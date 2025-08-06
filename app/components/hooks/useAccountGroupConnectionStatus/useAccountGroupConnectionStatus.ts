@@ -35,9 +35,11 @@ export const useAccountGroupConnectionStatus = (
     () =>
       Array.from(
         new Set(
-          requestedCaipChainIds.filter((chainId) => {
+          requestedCaipChainIds.map((chainId) => {
             const { namespace } = parseCaipChainId(chainId);
-            return namespace === KnownCaipNamespace.Eip155;
+            return namespace.startsWith(KnownCaipNamespace.Eip155)
+              ? `${KnownCaipNamespace.Eip155}:0`
+              : chainId;
           }),
         ),
       ),

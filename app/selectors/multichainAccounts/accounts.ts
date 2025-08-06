@@ -37,9 +37,9 @@ export const selectAccountGroups = createDeepEqualSelector(
   (accountTreeState: AccountTreeControllerState) => {
     const { wallets } = accountTreeState.accountTree;
 
-    return Object.values(wallets).flatMap((wallet) => {
-      return Object.values(wallet.groups);
-    });
+    return Object.values(wallets).flatMap((wallet) =>
+      Object.values(wallet.groups),
+    );
   },
 );
 
@@ -53,11 +53,10 @@ export const selectMultichainAccountGroups = createDeepEqualSelector(
 
 export const selectNonMultichainAccountGroups = createDeepEqualSelector(
   selectAccountGroups,
-  (accountGroups: AccountGroupObject[]) => {
-    return accountGroups.filter(
+  (accountGroups: AccountGroupObject[]) =>
+    accountGroups.filter(
       (group) => !group.id.startsWith(AccountWalletCategory.Entropy),
-    );
-  },
+    ),
 );
 
 type MultichainAccountId = AccountGroupObject['id'];
@@ -116,21 +115,18 @@ export const selectAccountGroupWithInternalAccounts = createDeepEqualSelector(
   (
     accountGroups: AccountGroupObject[],
     internalAccounts: InternalAccount[],
-  ): AccountGroupWithInternalAccounts[] => {
-    return accountGroups.map((accountGroup) => {
-      return {
-        ...accountGroup,
-        accounts: accountGroup.accounts
-          .map((accountId: string) => {
-            const internalAccount = internalAccounts.find(
-              (account) => account.id === accountId,
-            );
-            return internalAccount;
-          })
-          .filter((account) => account !== undefined),
-      };
-    });
-  },
+  ): AccountGroupWithInternalAccounts[] =>
+    accountGroups.map((accountGroup) => ({
+      ...accountGroup,
+      accounts: accountGroup.accounts
+        .map((accountId: string) => {
+          const internalAccount = internalAccounts.find(
+            (account) => account.id === accountId,
+          );
+          return internalAccount;
+        })
+        .filter((account) => account !== undefined),
+    })),
 );
 
 export const selectMultichainAccountsToScopesMap = createDeepEqualSelector(

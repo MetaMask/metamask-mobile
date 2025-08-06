@@ -1,12 +1,18 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RefObject } from 'react';
 import { FlashList, FlashListProps } from '@shopify/flash-list';
+import { AccountGroupId } from '@metamask/account-api';
 
 /**
  * Flattened item type for the account list
  */
 export type FlattenedMultichainAccountListItem =
-  | { type: 'account'; data: AccountGroupObject; walletName: string }
+  | {
+      type: 'account';
+      data: AccountGroupObject;
+      walletName: string;
+      isSelected: boolean;
+    }
   | { type: 'header'; data: { title: string; walletName: string } }
   | { type: 'footer'; data: { walletName: string } };
 
@@ -22,7 +28,7 @@ export interface MultichainAccountSelectorListProps
   /**
    * Selected account group
    */
-  selectedAccountGroup?: AccountGroupObject;
+  selectedAccountGroupsIds?: AccountGroupId[];
   /**
    * Test ID for the component
    */

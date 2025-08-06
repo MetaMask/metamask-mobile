@@ -34,6 +34,7 @@ const styleSheet = (params: {
       justifyContent: 'center',
     },
     accountsConnectedContainer: {
+      minHeight: ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT,
       marginTop: 8,
       backgroundColor: colors.background.default,
       borderRadius: 16,

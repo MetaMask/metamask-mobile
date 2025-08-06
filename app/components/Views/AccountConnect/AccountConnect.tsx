@@ -33,7 +33,6 @@ import {
   getUrlObj,
   prefixUrlWithProtocol,
 } from '../../../util/browser';
-import { useAccounts } from '../../hooks/useAccounts';
 
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
@@ -104,6 +103,8 @@ import MultichainPermissionsSummary, {
   MultichainPermissionsSummaryProps,
 } from '../../UI/PermissionsSummary/MultichainPermissionsSummary';
 import MultichainAccountConnectMultiSelector from './AccountConnectMultiSelector/MultichainAccountConnectMultiSelector';
+import EngineService from '../../../core/EngineService';
+import { getPermissions } from '../../../selectors/snaps';
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -111,16 +112,21 @@ const AccountConnect = (props: AccountConnectProps) => {
   const { hostInfo, permissionRequestId } = props.route.params;
   const [isLoading, setIsLoading] = useState(false);
   const [tabIndex, setTabIndex] = useState(0);
-  const { accounts, ensByAccountAddress } = useAccounts({
-    isLoading,
-  });
-
   const previousIdentitiesListSize = useRef<number>();
   const accountGroups = useSelector(selectAccountGroupWithInternalAccounts);
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
+
+  const existingPermissions = useSelector((state) =>
+    getPermissions(state, hostInfo?.metadata?.origin),
+  );
+
+  // console.log(
+  //   'existingPermissions',
+  //   JSON.stringify(existingPermissions, null, 2),
+  // );
 
   const requestedCaip25CaveatValue = useMemo(
     () =>
@@ -327,7 +333,12 @@ const AccountConnect = (props: AccountConnectProps) => {
       setSelectedCaipAccountIds(existingConnectedCaipAccountIds);
       previousIdentitiesListSize.current = accountsAddressList.length;
     }
-  }, [accountGroups, selectedAccountGroupIds]);
+  }, [
+    accountGroups,
+    existingConnectedCaipAccountIds,
+    selectedAccountGroupIds,
+    supportedAccountGroups,
+  ]);
 
   const cancelPermissionRequest = useCallback(
     (requestId: string) => {
@@ -442,8 +453,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     };
 
     const connectedAccountLength = selectedAccountGroupIds.length;
-    const activeAccountGroup: AccountGroupWithInternalAccounts =
-      selectedAccountGroupIds[0];
 
     const isMultichainRequest = !hostInfo.metadata.isEip1193Request;
 
@@ -517,8 +526,8 @@ const AccountConnect = (props: AccountConnectProps) => {
         const checksummedAddress = safeToChecksumAddress(
           addedAccountAddress,
         ) as string;
-        !isMultiSelect &&
-          setSelectedAddresses([`eip155:0:${checksummedAddress}`]);
+        // !isMultiSelect &&
+        //   setSelectedAddresses([`eip155:0:${checksummedAddress}`]);
         trackEvent(
           createEventBuilder(
             MetaMetricsEvents.ACCOUNTS_ADDED_NEW_ACCOUNT,
@@ -553,7 +562,6 @@ const AccountConnect = (props: AccountConnectProps) => {
 
       // Create lookup sets for selected account group IDs
       const selectedGroupIds = new Set(newSelectedAccountGroupIds);
-      console.log('new group ids', selectedGroupIds);
 
       // Filter to only selected account groups
       const selectedAccountGroups = supportedAccountGroups.filter((group) =>
@@ -580,7 +588,7 @@ const AccountConnect = (props: AccountConnectProps) => {
 
             if (namespace === KnownCaipNamespace.Eip155) {
               shouldAdd = accountScopesSet.has(eip155Scope);
-            } else if (namespace === chainId) {
+            } else {
               shouldAdd = accountScopesSet.has(chainId);
             }
 
@@ -748,7 +756,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     () => (
       <MultichainAccountConnectMultiSelector
         accountGroups={supportedAccountGroups}
-        selectedAccountGroupIds={selectedAccountGroupIds}
+        defaultSelectedAccountGroupIds={selectedAccountGroupIds}
         onSubmit={handleAccountGroupsSelected}
         onCreateAccount={() => {
           console.log(
@@ -763,7 +771,6 @@ const AccountConnect = (props: AccountConnectProps) => {
         hostname={hostnameFromUrlObj}
         screenTitle={strings('accounts.edit_accounts_title')}
         onSetScreen={setScreen}
-        onSetSelectedAccountGroupIds={setSelectedAccountGroupIds}
         onUserAction={setUserIntent}
         isRenderedAsBottomSheet={false}
         showDisconnectAllButton={false}

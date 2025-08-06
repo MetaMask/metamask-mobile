@@ -24,7 +24,7 @@ import {
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
-  selectedAccountGroup,
+  selectedAccountGroupsIds,
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
   ...props
@@ -65,6 +65,9 @@ const MultichainAccountSelectorList = ({
           type: 'account',
           data: accountGroup,
           walletName: section.walletName,
+          isSelected: Boolean(
+            selectedAccountGroupsIds?.includes(accountGroup.id),
+          ),
         });
       });
 
@@ -75,16 +78,14 @@ const MultichainAccountSelectorList = ({
     });
 
     return items;
-  }, [walletSections]);
+  }, [walletSections, selectedAccountGroupsIds]);
 
   // Handle account selection with debouncing to prevent rapid successive calls
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
-      // Prevent multiple rapid calls for the same account
-      if (selectedAccountGroup?.id === accountGroup.id) return;
       onSelectAccount?.(accountGroup);
     },
-    [onSelectAccount, selectedAccountGroup?.id],
+    [onSelectAccount],
   );
 
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
@@ -106,14 +107,16 @@ const MultichainAccountSelectorList = ({
           }
 
           case 'account': {
-            const isSelected = item.data.id === selectedAccountGroup?.id;
             return (
               <TouchableOpacity
                 style={styles.accountItem}
                 onPress={() => handleSelectAccount(item.data)}
                 activeOpacity={0.7}
               >
-                <AccountCell accountGroup={item.data} isSelected={isSelected} />
+                <AccountCell
+                  accountGroup={item.data}
+                  isSelected={item.isSelected}
+                />
               </TouchableOpacity>
             );
           }
@@ -131,7 +134,6 @@ const MultichainAccountSelectorList = ({
         styles.sectionHeaderText,
         styles.accountItem,
         styles.footerSpacing,
-        selectedAccountGroup,
         handleSelectAccount,
       ],
     );

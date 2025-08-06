@@ -16,6 +16,9 @@ import { USER_INTENT } from '../../../../constants/permissions';
 import { CaipAccountId } from '@metamask/utils';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts';
 import { AccountGroupId } from '@metamask/account-api';
+import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import MultichainAccountSelectorList from '../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 interface MultichainAccountConnectSingleSelectorProps {
   accountsGroups: AccountGroupWithInternalAccounts[];
@@ -27,7 +30,6 @@ interface MultichainAccountConnectSingleSelectorProps {
 }
 
 const MultichainAccountConnectSingleSelector = ({
-  accountsGroups,
   selectedAccountGroupIds,
   isLoading,
   onSetScreen,
@@ -40,9 +42,10 @@ const MultichainAccountConnectSingleSelector = ({
   );
 
   const onSelectAccountGroupId = useCallback(
-    (accountGroupId: AccountGroupId) => {
+    (accountGroup: AccountGroupObject) => {
+      console.log('single selector onSelectAccountGroupId', accountGroup);
       onSetScreen(AccountConnectScreens.SingleConnect);
-      onSetSelectedAccountGroupIds([accountGroupId]);
+      onSetSelectedAccountGroupIds([accountGroup.id]);
     },
     [onSetScreen, onSetSelectedAccountGroupIds],
   );
@@ -77,13 +80,11 @@ const MultichainAccountConnectSingleSelector = ({
   return (
     <>
       <SheetHeader onBack={onBack} title={strings('accounts.accounts_title')} />
-      {/* <CaipAccountSelectorList
-        onSelectAccount={onSelectAccount}
-        accounts={accounts}
-        ensByAccountAddress={ensByAccountAddress}
-        isLoading={isLoading}
-        selectedAddresses={selectedAccountGroupIds}
-      /> */}
+      <MultichainAccountSelectorList
+        onSelectAccount={onSelectAccountGroupId}
+        selectedAccountGroupsIds={selectedAccountGroupIds}
+        testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
+      />
       {renderSheetActions()}
     </>
   );

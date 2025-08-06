@@ -57,12 +57,14 @@ const MultichainAccountsConnectedList = ({
   privacyMode,
   networkAvatars,
   handleEditAccountsButtonPress,
+  onSelectAccount,
 }: {
   selectedAccountGroupIds: AccountGroupId[];
   accountGroups: AccountGroupWithInternalAccounts[];
   privacyMode: boolean;
   networkAvatars: NetworkAvatarProps[];
   handleEditAccountsButtonPress: () => void;
+  onSelectAccount: (accountGroup: AccountGroupWithInternalAccounts) => void;
 }) => {
   const accountListRef =
     useRef<FlashList<AccountGroupWithInternalAccounts>>(null);
@@ -76,13 +78,7 @@ const MultichainAccountsConnectedList = ({
       : MAX_VISIBLE_ITEMS;
 
   const { styles } = useStyles(styleSheet, { itemHeight: MAX_HEIGHT });
-  const accountAvatarType = useSelector(
-    (state: RootState) =>
-      state.settings.useBlockieIcon
-        ? AvatarAccountType.Blockies
-        : AvatarAccountType.JazzIcon,
-    shallowEqual,
-  );
+  const accountAvatarType = AvatarAccountType.Maskicon;
 
   const getFilteredNetworkAvatars = useCallback(
     (accountScopes: CaipChainId[] = []) => {
@@ -146,22 +142,28 @@ const MultichainAccountsConnectedList = ({
   );
 
   const renderAccountItem = useCallback(
-    ({ item }: { item: AccountGroupWithInternalAccounts }) => {
-      const accountName = item.metadata.name;
+    ({ item }: { item: AccountGroupId }) => {
+      const accountGroup = accountGroups.find((acc) => acc.id === item);
+      if (!accountGroup) return null;
+
+      const accountName = accountGroup.metadata.name;
       const avatarProps = {
         variant: AvatarVariant.Account as const,
         type: accountAvatarType,
-        accountAddress: item.id,
+        accountAddress: accountGroup?.id,
       };
 
       return (
         <Cell
-          key={item.id}
+          key={accountGroup?.id}
           style={styles.accountListItem}
           variant={CellVariant.Display}
           avatarProps={avatarProps}
           title={accountName}
           showSecondaryTextIcon={false}
+          onPress={() => {
+            onSelectAccount(accountGroup);
+          }}
         >
           {/* {account && renderRightAccessory(account)} */}
         </Cell>
@@ -170,48 +172,44 @@ const MultichainAccountsConnectedList = ({
     [styles.accountListItem, accountAvatarType],
   );
 
-  // const onContentSizeChanged = useCallback(() => {
-  //   // Handle auto scroll to account
-  //   if (!accountGroups.length) return;
+  const onContentSizeChanged = useCallback(() => {
+    // Handle auto scroll to account
+    if (!accountGroups.length) return;
 
-  //   if (accountGroupsLengthRef.current !== accountGroups.length) {
-  //     let selectedAccountGroup: AccountGroupWithInternalAccounts | undefined;
+    if (accountGroupsLengthRef.current !== accountGroups.length) {
+      let selectedAccountGroup: AccountGroupWithInternalAccounts | undefined;
 
-  //     if (selectedAccountGroupIds?.length) {
-  //       const selectedAccountGroupId = selectedAccountGroupIds[0];
-  //       selectedAccountGroup = accountGroups.find((acc) =>
-  //         areAddressesEqual(acc.id, selectedAccountGroupId),
-  //       );
-  //     }
+      if (selectedAccountGroupIds?.length) {
+        const selectedAccountGroupId = selectedAccountGroupIds[0];
+        selectedAccountGroup = accountGroups.find(
+          (acc) => acc.id === selectedAccountGroupId,
+        );
+      }
 
-  //     // Fall back to the account with isSelected flag if no override or match found
-  //     if (!selectedAccountGroup) {
-  //       selectedAccountGroup = accountGroups.find((acc) => acc.isSelected);
-  //     }
+      // Fall back to the account with isSelected flag if no override or match found
+      if (!selectedAccountGroup) {
+        selectedAccountGroup = accountGroups.find(
+          (acc) => acc.id === selectedAccountGroup?.id,
+        );
+      }
 
-  //     accountListRef.current?.scrollToOffset({
-  //       offset: selectedAccountGroup?.yOffset || 0,
-  //       animated: false,
-  //     });
+      // accountListRef.current?.scrollToOffset({
+      //   offset: selectedAccountGroup?.yOffset || 0,
+      //   animated: false,
+      // });
 
-  //     accountGroupsLengthRef.current = accountGroups.length;
-  //   }
-  // }, [accountGroups, accountListRef, selectedAccountGroupIds]);
+      accountGroupsLengthRef.current = accountGroups.length;
+    }
+  }, [accountGroups, accountListRef, selectedAccountGroupIds]);
 
   return (
     <View style={styles.container}>
       <View style={styles.accountsConnectedContainer}>
-        <FlashList
-          ref={accountListRef}
-          // onContentSizeChange={onContentSizeChanged}
-          data={accountGroups}
+        <FlatList
           keyExtractor={(item) => item.id}
+          data={selectedAccountGroupIds}
           renderItem={renderAccountItem}
-          estimatedItemSize={ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT}
-          renderScrollComponent={
-            ScrollView as React.ComponentType<ScrollViewProps>
-          }
-          disableAutoLayout
+          scrollEnabled={accountGroups.length > 1}
         />
       </View>
       <TouchableOpacity

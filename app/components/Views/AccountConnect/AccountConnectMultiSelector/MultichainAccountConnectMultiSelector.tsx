@@ -14,7 +14,6 @@ import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
-import CaipAccountSelectorList from '../../../UI/CaipAccountSelectorList';
 import HelpText, {
   HelpTextSeverity,
 } from '../../../../component-library/components/Form/HelpText';
@@ -23,13 +22,9 @@ import HelpText, {
 import { ConnectAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectAccountBottomSheet.selectors';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import styleSheet from './AccountConnectMultiSelector.styles';
-import {
-  AccountConnectMultiSelectorProps,
-  AccountConnectMultiSelectorScreens,
-} from './AccountConnectMultiSelector.types';
+import { AccountConnectMultiSelectorScreens } from './AccountConnectMultiSelector.types';
 import Checkbox from '../../../../component-library/components/Checkbox';
 import { ConnectedAccountsSelectorsIDs } from '../../../../../e2e/selectors/Browser/ConnectedAccountModal.selectors';
-import { isEqualCaseInsensitive } from '@metamask/controller-utils';
 import { Box } from '../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../UI/Box/box.types';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
@@ -40,13 +35,14 @@ import { AccountGroupWithInternalAccounts } from '../../../../selectors/multicha
 import { AccountConnectScreens } from '../AccountConnect.types';
 import accounts from '../../../../reducers/accounts';
 import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
+import MultichainAccountSelectorList from '../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 interface MultichainAccountConnectMultiSelectorProps {
   accountGroups: AccountGroupWithInternalAccounts[];
-  selectedAccountGroupIds: AccountGroupId[];
+  defaultSelectedAccountGroupIds: AccountGroupId[];
   isLoading: boolean;
   onSetScreen: (screen: AccountConnectScreens) => void;
-  onSetSelectedAccountGroupIds: (accountGroupIds: AccountGroupId[]) => void;
   onCreateAccount: () => void;
   onUserAction: (intent: USER_INTENT) => void;
   onSubmit: (accountGroupIds: AccountGroupId[]) => void;
@@ -59,13 +55,11 @@ interface MultichainAccountConnectMultiSelectorProps {
 }
 
 const MultichainAccountConnectMultiSelector = ({
-  accountGroups: accountsGroups,
+  accountGroups,
+  defaultSelectedAccountGroupIds,
   isLoading,
   screenTitle,
   onBack,
-  onSetScreen,
-  onSetSelectedAccountGroupIds,
-  onUserAction,
   onSubmit,
   onCreateAccount,
   isRenderedAsBottomSheet,
@@ -83,14 +77,14 @@ const MultichainAccountConnectMultiSelector = ({
   >([]);
 
   useEffect(() => {
-    setSelectedAccountGroupIds(selectedAccountGroupIds);
-  }, [setSelectedAccountGroupIds, selectedAccountGroupIds]);
+    setSelectedAccountGroupIds(defaultSelectedAccountGroupIds);
+  }, [setSelectedAccountGroupIds, defaultSelectedAccountGroupIds]);
 
   const onSelectAccountGroupId = useCallback(
-    (accountGroupId: AccountGroupId) => {
+    (accountGroup: AccountGroupObject) => {
       const updatedSelectedAccountGroupIds = selectedAccountGroupIds.filter(
         (selectedAccountGroupId: AccountGroupId) =>
-          !isEqualCaseInsensitive(selectedAccountGroupId, accountGroupId),
+          selectedAccountGroupId !== accountGroup.id,
       );
 
       if (
@@ -98,7 +92,7 @@ const MultichainAccountConnectMultiSelector = ({
       ) {
         setSelectedAccountGroupIds([
           ...selectedAccountGroupIds,
-          accountGroupId,
+          accountGroup.id,
         ]);
       } else {
         setSelectedAccountGroupIds(updatedSelectedAccountGroupIds);
@@ -115,7 +109,7 @@ const MultichainAccountConnectMultiSelector = ({
     onSubmit([]);
   }, [onSubmit]);
 
-  const areAllAccountsSelected = accountsGroups.every(
+  const areAllAccountsSelected = accountGroups.every(
     (group: AccountGroupWithInternalAccounts) =>
       selectedAccountGroupIds.includes(group.id),
   );
@@ -130,7 +124,7 @@ const MultichainAccountConnectMultiSelector = ({
     const selectAll = () => {
       if (isLoading) return;
       setSelectedAccountGroupIds(
-        accountsGroups.map(
+        accountGroups.map(
           (group: AccountGroupWithInternalAccounts) => group.id,
         ),
       );
@@ -158,7 +152,7 @@ const MultichainAccountConnectMultiSelector = ({
       </View>
     );
   }, [
-    accountsGroups,
+    accountGroups,
     areAllAccountsSelected,
     areAnyAccountsSelected,
     isLoading,
@@ -256,17 +250,11 @@ const MultichainAccountConnectMultiSelector = ({
               />
             </Box>
           </View>
-          {/* <CaipAccountSelectorList
-            onSelectAccount={onSelectAccount}
-            accounts={accounts}
-            ensByAccountAddress={ensByAccountAddress}
-            isLoading={isLoading}
-            selectedAddresses={selectedAddresses}
-            isMultiSelect
-            isRemoveAccountEnabled
-            isAutoScrollEnabled={isAutoScrollEnabled}
+          <MultichainAccountSelectorList
+            onSelectAccount={onSelectAccountGroupId}
+            selectedAccountGroupsIds={selectedAccountGroupIds}
             testID={AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID}
-          /> */}
+          />
           {connection?.originatorInfo?.apiVersion && (
             <View style={styles.sdkInfoContainer}>
               <View style={styles.sdkInfoDivier} />
@@ -290,6 +278,8 @@ const MultichainAccountConnectMultiSelector = ({
       screenTitle,
       onBack,
       renderSelectAllCheckbox,
+      onSelectAccountGroupId,
+      selectedAccountGroupIds,
       connection?.originatorInfo?.apiVersion,
       connection?.originatorInfo?.platform,
       renderCtaButtons,

@@ -147,7 +147,6 @@ const MultichainPermissionsSummary = ({
 }: MultichainPermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const fullNonTabView = showAccountsOnly && showPermissionsOnly;
-
   const { colors } = useTheme();
   const { styles } = useStyles(styleSheet, {
     isRenderedAsBottomSheet,
@@ -586,6 +585,7 @@ const MultichainPermissionsSummary = ({
         privacyMode={privacyMode}
         networkAvatars={networkAvatars}
         handleEditAccountsButtonPress={handleEditAccountsButtonPress}
+        onSelectAccount={() => {}}
         {...restAccountsConnectedTabProps}
       />
     ),
