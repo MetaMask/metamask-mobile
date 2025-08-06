@@ -22,6 +22,8 @@ ignores:
   - 'reflect-metadata'
   # Husky is used for pre-commit hooks
   - 'husky'
+  # Remove this once it's used in the project
+  - 'rive-react-native'
 
   # Note: Everything below this line should be removed after investigation
   # TODO: Investigate each dependency to see whether it's used
