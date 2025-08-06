@@ -258,11 +258,11 @@ stages:
       - build_android_main_exp: {}
       - build_android_main_test: {}
       - build_android_main_e2e: {}
-      - build_android_main_local: {}
+      - build_android_main_dev: {}
       - build_android_flask_prod: {}
       - build_android_flask_test: {}
       - build_android_flask_e2e: {}
-      - build_android_flask_local: {}
+      - build_android_flask_dev: {}
   create_build_qa_android:
     workflows:
       - build_android_qa: {}
