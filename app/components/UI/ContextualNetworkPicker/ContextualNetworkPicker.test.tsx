@@ -22,6 +22,30 @@ jest.mock('../../../util/theme', () => ({
   }),
 }));
 
+jest.mock('./ContextualNetworkPicker.styles', () => ({
+  __esModule: true,
+  default: () => ({
+    accountSelectorWrapper: {
+      marginHorizontal: 16,
+      marginVertical: 8,
+    },
+    base: {
+      padding: 12,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    avatarWrapper: {
+      marginRight: 8,
+    },
+    avatar: {},
+    networkName: {
+      fontSize: 16,
+    },
+  }),
+}));
+
 describe('ContextualNetworkPicker', () => {
   const defaultProps = {
     onPress: jest.fn(),
