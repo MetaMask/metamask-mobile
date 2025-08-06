@@ -124,7 +124,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
   );
 
-  // Handler for multichain account selection
   const _onSelectMultichainAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
       Engine.context.AccountTreeController.setSelectedAccountGroup(
@@ -132,7 +131,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
       );
       sheetRef.current?.onCloseBottomSheet();
 
-      // Track Event: "Switched Account" - may need to adjust this
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
           .addProperties({
@@ -145,12 +143,10 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [accounts?.length, trackEvent, createEventBuilder],
   );
 
-  // Handler for adding accounts
   const handleAddAccount = useCallback(() => {
     setScreen(AccountSelectorScreens.AddAccountActions);
   }, []);
 
-  // Handler for returning from add accounts screen
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
   }, []);
