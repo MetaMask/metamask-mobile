@@ -7,6 +7,7 @@ import {
   calculateFundingCountdown,
   calculate24hHighLow,
 } from '../utils/marketUtils';
+import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 
 interface MarketStats {
   high24h: string;
@@ -39,7 +40,8 @@ export const usePerpsMarketStats = (symbol: string): MarketStats => {
   // Get candlestick data for 24h high/low calculation
   const { candleData } = usePerpsPositionData({
     coin: symbol,
-    selectedInterval: '1h', // Use 1h candles for 24h calculation
+    selectedInterval: CandlePeriod.ONE_HOUR, // Use 1h candles for 24h calculation
+    selectedDuration: TimeDuration.ONE_DAY,
   });
 
   // Subscribe to market data updates (funding, open interest, volume)
