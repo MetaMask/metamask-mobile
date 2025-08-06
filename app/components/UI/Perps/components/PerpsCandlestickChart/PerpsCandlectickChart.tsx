@@ -87,6 +87,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     [theme.colors],
   );
 
+  DevLogger.log('candleData?.candles.length', candleData?.candles.length);
+
   // Full transformed data without windowing
   const fullTransformedData = React.useMemo(() => {
     if (!candleData?.candles || candleData.candles.length === 0) {
@@ -155,6 +157,16 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const transformedData = React.useMemo(() => {
     if (!fullTransformedData || fullTransformedData.length === 0) return [];
 
+    // If we have a reasonable amount of data, show it all instead of windowing
+    // Only use windowing when we have significantly more data than expected
+    if (fullTransformedData.length <= dataWindowSize * 1.5) {
+      DevLogger.log('Showing all data - no windowing needed:', {
+        availableData: fullTransformedData.length,
+        expectedWindow: dataWindowSize,
+      });
+      return fullTransformedData;
+    }
+
     const endIndex = Math.min(
       dataWindowStart + dataWindowSize,
       fullTransformedData.length,
@@ -164,6 +176,15 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     const windowedData = fullTransformedData.slice(startIndex, endIndex);
 
     // Debug logging to track data changes
+    DevLogger.log('Using windowing logic:', {
+      dataWindowStart,
+      startIndex,
+      endIndex,
+      windowedDataLength: windowedData.length,
+      fullDataLength: fullTransformedData.length,
+      dataWindowSize,
+    });
+
     DevLogger.log('Chart data window changed:', {
       dataWindowStart,
       startIndex,
@@ -403,6 +424,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const hasInitializedWindow = React.useRef(false);
   const lastDuration = React.useRef(selectedDuration);
   const lastInterval = React.useRef(selectedInterval);
+  const [isSettingsChanging, setIsSettingsChanging] = React.useState(false);
 
   // Immediate reset when interval/duration changes (before new data loads)
   useEffect(() => {
@@ -411,26 +433,46 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       lastInterval.current !== selectedInterval;
 
     if (settingsChanged) {
-      // Immediately reset window position and panning state
-      setDataWindowStart(0); // Reset to most recent position
+      setIsSettingsChanging(true);
+
+      // Reset panning state and allow re-initialization with new data
       setIsPanning(false);
       hasInitializedWindow.current = false; // Allow re-initialization with new data
+      setHasInitiallyLoaded(false); // Reset to show skeleton during settings change
+
+      // Always reset to start position when settings change
+      // The data initialization useEffect will handle setting the correct position once new data arrives
+      setDataWindowStart(0);
+
+      // The isSettingsChanging flag will be reset when new data arrives
 
       DevLogger.log('Settings changed - immediate reset:', {
         previousDuration: lastDuration.current,
         newDuration: selectedDuration,
         previousInterval: lastInterval.current,
         newInterval: selectedInterval,
+        oldDataLength: fullTransformedData.length,
+        newDataWindowSize: dataWindowSize,
+        resetDataWindowStart: 0,
       });
 
       lastDuration.current = selectedDuration;
       lastInterval.current = selectedInterval;
     }
-  }, [selectedDuration, selectedInterval]);
+  }, [
+    selectedDuration,
+    selectedInterval,
+    fullTransformedData.length,
+    dataWindowSize,
+  ]);
 
-  // Initialize/adjust window when data is available
+  // Initialize/adjust window when data is available (but not during settings changes)
   useEffect(() => {
-    if (fullTransformedData.length > 0 && !hasInitializedWindow.current) {
+    if (
+      fullTransformedData.length > 0 &&
+      !hasInitializedWindow.current &&
+      !isSettingsChanging
+    ) {
       // Start from the most recent data (end of array) - default view
       const initialStart = Math.max(
         0,
@@ -439,20 +481,17 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       setDataWindowStart(initialStart);
       hasInitializedWindow.current = true;
 
+      // Reset settings changing flag since we've now handled the new data
+      setIsSettingsChanging(false);
+
       DevLogger.log('Data window initialized with new data:', {
         initialStart,
         dataLength: fullTransformedData.length,
         dataWindowSize,
-        selectedDuration,
-        selectedInterval,
+        wasSettingsChange: isSettingsChanging,
       });
     }
-  }, [
-    fullTransformedData.length,
-    dataWindowSize,
-    selectedDuration,
-    selectedInterval,
-  ]);
+  }, [fullTransformedData.length, dataWindowSize, isSettingsChanging]);
   // Track when data has been initially loaded
   useEffect(() => {
     if (!isLoading && transformedData.length > 0 && !hasInitiallyLoaded) {
@@ -594,8 +633,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return lines.length > 0 ? lines : null;
   }, [tpslLines, transformedData, height]);
 
-  // Only show skeleton on initial load, not on interval changes
-  if (isLoading && !hasInitiallyLoaded) {
+  // Show skeleton on initial load or when settings are changing and loading new data
+  if ((isLoading && !hasInitiallyLoaded) || (isLoading && isSettingsChanging)) {
     return (
       <View style={styles.chartContainer}>
         {/* Chart placeholder with same height */}
@@ -651,6 +690,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       </View>
     );
   }
+
+  DevLogger.log('transformedData.length', transformedData.length);
 
   return (
     <CandlestickChart.Provider
