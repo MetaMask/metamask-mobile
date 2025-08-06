@@ -2,9 +2,12 @@ import React from 'react';
 import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { act, fireEvent } from '@testing-library/react-native';
+import { merge } from 'lodash';
 
 import Engine from '../../../../../../core/Engine';
-import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  ProviderValues,
+} from '../../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../../../util/transaction-controller';
 import { SendContextProvider } from '../../../context/send-context';
@@ -47,20 +50,25 @@ jest.mock('@react-navigation/native', () => ({
     params: {
       asset: {
         chainId: '0x1',
+        address: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
       },
     },
   }),
 }));
 
-const renderComponent = () =>
-  renderWithProvider(
+const renderComponent = (mockState?: ProviderValues['state']) => {
+  const state = mockState
+    ? merge(evmSendStateMock, mockState)
+    : evmSendStateMock;
+  return renderWithProvider(
     <SendContextProvider>
       <SendRoot />
     </SendContextProvider>,
     {
-      state: evmSendStateMock,
+      state,
     },
   );
+};
 
 describe('SendRoot', () => {
   beforeEach(() => {
@@ -107,21 +115,6 @@ describe('SendRoot', () => {
     expect(mockAddTransaction).not.toHaveBeenCalled();
   });
 
-  it('display error if amount is greater than balance for native token', async () => {
-    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-      params: {
-        asset: {
-          isNative: true,
-          chainId: '0x1',
-        },
-      },
-    } as RouteProp<ParamListBase, string>);
-
-    const { getByText, getByTestId } = renderComponent();
-    fireEvent.changeText(getByTestId('send_amount'), '100');
-    expect(getByText('Insufficient funds')).toBeTruthy();
-  });
-
   it('when confirm is clicked create transaction for ERC20 token', async () => {
     const mockAddTransaction = jest
       .spyOn(TransactionUtils, 'addTransaction')
@@ -161,6 +154,21 @@ describe('SendRoot', () => {
         'This address is a token contract address. If you send tokens to this address, you will lose them.',
       ),
     ).toBeTruthy();
+  });
+
+  it('display error if amount is greater than balance for native token', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          isNative: true,
+          chainId: '0x1',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), '100');
+    expect(getByText('Insufficient funds')).toBeTruthy();
   });
 
   it('display error if amount is greater than balance for ERC20 token', async () => {
@@ -267,6 +275,7 @@ describe('SendRoot', () => {
         asset: {
           isNative: true,
           chainId: '0x1',
+          address: TOKEN_ADDRESS_MOCK_1,
         },
       },
     } as RouteProp<ParamListBase, string>);
@@ -275,7 +284,7 @@ describe('SendRoot', () => {
     expect(getByTestId('send_amount').props.value).toBe('');
     fireEvent.press(getByText('Max'));
     expect(getByTestId('send_amount').props.value).toBe('0.9999685');
-    expect(getByText('$ 0.99')).toBeTruthy();
+    expect(getByText('$ 3889.87')).toBeTruthy();
   });
 
   it('display fiat conversion of amount entered', async () => {
