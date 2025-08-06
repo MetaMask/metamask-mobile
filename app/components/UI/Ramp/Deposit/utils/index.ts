@@ -1,6 +1,7 @@
 import { DepositOrder } from '@consensys/native-ramps-sdk';
 import {
   ALL_DEPOSIT_TOKENS,
+  ALL_PAYMENT_METHODS,
   DepositCryptoCurrency,
   DepositFiatCurrency,
   DepositPaymentMethod,
@@ -127,6 +128,18 @@ export function getTransakPaymentMethodId(
     throw new Error(`Unsupported payment method: ${paymentMethod.id}`);
   }
   return transakId;
+}
+
+/**
+ * Finds a payment method by its Transak ID
+ * @param transakId - The Transak payment method ID
+ */
+export function getPaymentMethodByTransakId(
+  transakId: string,
+): DepositPaymentMethod | undefined {
+  return ALL_PAYMENT_METHODS.find(
+    (method) => getTransakPaymentMethodId(method) === transakId,
+  );
 }
 
 /**

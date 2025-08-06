@@ -1,9 +1,14 @@
 import React from 'react';
 
-import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
+// eslint-disable-next-line import/no-namespace
+import * as MaxAmountUtils from '../../../hooks/send/useMaxAmount';
+// eslint-disable-next-line import/no-namespace
+import * as ConversionUtils from '../../../hooks/send/useConversions';
 import { SendContextProvider } from '../../../context/send-context';
-import Amount from './amount';
+import { evmSendStateMock } from '../../../__mocks__/send.mock';
+import { Amount } from './amount';
+import { fireEvent } from '@testing-library/react-native';
 
 jest.mock(
   '../../../../../../components/Views/confirmations/hooks/gas/useGasFeeEstimates',
@@ -35,11 +40,7 @@ const renderComponent = () =>
       <Amount />
     </SendContextProvider>,
     {
-      state: {
-        engine: {
-          backgroundState,
-        },
-      },
+      state: evmSendStateMock,
     },
   );
 
@@ -54,5 +55,57 @@ describe('Amount', () => {
     const { getByText } = renderComponent();
 
     expect(getByText('Max')).toBeTruthy();
+  });
+
+  it('does not display Max option if it is not supported', async () => {
+    jest.spyOn(MaxAmountUtils, 'useMaxAmount').mockReturnValue({
+      getMaxAmount: () => undefined,
+      isMaxAmountSupported: false,
+    });
+    const { queryByText } = renderComponent();
+
+    expect(queryByText('Max')).toBeNull();
+  });
+
+  it('update amount with max value when max button is clicked', async () => {
+    const MAX_AMOUNT = '0.01234';
+    jest.spyOn(MaxAmountUtils, 'useMaxAmount').mockReturnValue({
+      getMaxAmount: () => MAX_AMOUNT,
+      isMaxAmountSupported: true,
+    });
+    const { getByTestId, getByText } = renderComponent();
+    fireEvent.press(getByText('Max'));
+    expect(getByTestId('send_amount').props.value).toBe(MAX_AMOUNT);
+  });
+
+  it('display option for fiat toggle', async () => {
+    const { getByTestId } = renderComponent();
+
+    expect(getByTestId('fiat_toggle')).toBeTruthy();
+  });
+
+  it('displays fiat value for the amount entered', async () => {
+    jest.spyOn(ConversionUtils, 'useConversions').mockReturnValue({
+      getFiatDisplayValue: () => '$ 1200.00',
+      getFiatValue: () => 0,
+      getNativeDisplayValue: () => '',
+      getNativeValue: () => '',
+    });
+    const { getByTestId, getByText } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), '123');
+    expect(getByText('$ 1200.00')).toBeDefined();
+  });
+
+  it('displays native value for the amount entered if fiat_mode is enabled', async () => {
+    jest.spyOn(ConversionUtils, 'useConversions').mockReturnValue({
+      getFiatDisplayValue: () => '',
+      getFiatValue: () => 0,
+      getNativeDisplayValue: () => 'ETH 0.001',
+      getNativeValue: () => '',
+    });
+    const { getByTestId, getByText } = renderComponent();
+    fireEvent.press(getByTestId('fiat_toggle'));
+    fireEvent.changeText(getByTestId('send_amount'), '123');
+    expect(getByText('ETH 0.001')).toBeDefined();
   });
 });
