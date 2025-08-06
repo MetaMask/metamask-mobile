@@ -8,7 +8,6 @@ const mockFilesystemStorage = FilesystemStorage as jest.Mocked<
   typeof FilesystemStorage
 >;
 
-// Mock Device
 jest.mock('../../util/device');
 const mockDevice = Device as jest.Mocked<typeof Device>;
 
@@ -41,10 +40,8 @@ describe('Migration 91', () => {
 
     const result = await migration91(mockState);
 
-    // Should have called setItem for each controller
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(3);
 
-    // Check KeyringController migration (raw data, no filtering)
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
       'persist:KeyringController',
       JSON.stringify({
@@ -54,7 +51,6 @@ describe('Migration 91', () => {
       true,
     );
 
-    // Check NetworkController migration (raw data, no filtering)
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
       'persist:NetworkController',
       JSON.stringify({
@@ -64,7 +60,6 @@ describe('Migration 91', () => {
       true,
     );
 
-    // Check TransactionController migration (raw data, no filtering)
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
       'persist:TransactionController',
       JSON.stringify({
@@ -74,7 +69,6 @@ describe('Migration 91', () => {
       true,
     );
 
-    // Should clear the old engine data
     expect(result).toEqual({
       engine: {
         backgroundState: {},
@@ -91,10 +85,8 @@ describe('Migration 91', () => {
 
     const result = await migration91(mockState);
 
-    // Should not call setItem for any controllers
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
 
-    // Should return state unchanged
     expect(result).toEqual(mockState);
   });
 
@@ -105,9 +97,7 @@ describe('Migration 91', () => {
 
     const result = await migration91(mockState);
 
-    // Should not call setItem for any controllers
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
-
     // Should return state unchanged
     expect(result).toEqual(mockState);
   });
@@ -119,7 +109,6 @@ describe('Migration 91', () => {
           KeyringController: {
             vault: 'encrypted-vault-data',
           },
-          // NetworkController missing
           TransactionController: {
             transactions: [],
           },
@@ -129,7 +118,6 @@ describe('Migration 91', () => {
 
     const result = await migration91(mockState);
 
-    // Should only call setItem for existing controllers
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledWith(
@@ -144,7 +132,6 @@ describe('Migration 91', () => {
       true,
     );
 
-    // Should clear the old engine data
     expect(result).toEqual({
       engine: {
         backgroundState: {},
@@ -166,17 +153,14 @@ describe('Migration 91', () => {
       },
     };
 
-    // Mock storage error for KeyringController
     mockFilesystemStorage.setItem
       .mockRejectedValueOnce(new Error('Storage error'))
       .mockResolvedValueOnce();
 
     const result = await migration91(mockState);
 
-    // Should still call setItem for both controllers (one will fail)
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
 
-    // Should clear the old engine data even if some migrations failed
     expect(result).toEqual({
       engine: {
         backgroundState: {},
@@ -189,7 +173,6 @@ describe('Migration 91', () => {
 
     const result = await migration91(invalidState);
 
-    // Should return invalid state unchanged
     expect(result).toBe(invalidState);
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
   });

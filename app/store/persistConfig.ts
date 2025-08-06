@@ -13,8 +13,6 @@ import { getPersistentState } from './getPersistentState/getPersistentState';
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
 
-// will still be using this storage mechanism
-// Controller list from migration 028.ts
 const CONTROLLER_LIST = [
   'AccountTrackerController',
   'AddressBookController',

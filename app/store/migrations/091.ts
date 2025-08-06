@@ -5,7 +5,6 @@ import { captureException } from '@sentry/react-native';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
 
-// Controller list from migration 028.ts - same as in persistConfig.ts
 const CONTROLLER_LIST = [
   'AccountTrackerController',
   'AddressBookController',
@@ -46,7 +45,6 @@ const CONTROLLER_LIST = [
  * @returns The updated state with engine data cleared from redux-persist.
  */
 export default async function migrate(state: unknown) {
-  // Ensure the state is valid for migration
   if (!ensureValidState(state, 91)) {
     return state;
   }
