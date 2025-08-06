@@ -3,25 +3,25 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
 
 export interface CronjobControllerStorageState {
-  cronjobControllerStorage?: CronjobControllerState;
+  storage?: CronjobControllerState;
 }
 
 export const initialState: CronjobControllerStorageState = {
-  cronjobControllerStorage: undefined,
+  storage: undefined,
 };
 
-const name = 'cronjobControllerStorage';
+const name = 'cronjobController';
 
 const slice = createSlice({
   name,
   initialState,
   reducers: {
-    setCronjobControllerStorageState: (
+    setCronjobControllerState: (
       state,
       action: PayloadAction<CronjobControllerState>,
     ) => {
       // @ts-expect-error - Extensively deep merge.
-      state.cronjobControllerStorage = action.payload;
+      state.storage = action.payload;
     },
   },
 });
@@ -30,7 +30,6 @@ const { actions, reducer } = slice;
 
 export default reducer;
 
-export const selectCronjobControllerStorageState = (state: RootState) =>
-  state[name];
+export const selectCronjobControllerState = (state: RootState) => state[name];
 
-export const { setCronjobControllerStorageState } = actions;
+export const { setCronjobControllerState } = actions;

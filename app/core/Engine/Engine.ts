@@ -1774,16 +1774,14 @@ export class Engine {
     this.appStateListener = AppState.addEventListener(
       'change',
       (state: AppStateStatus) => {
-        if (state === 'active') {
-          this.controllerMessenger.call('SnapController:setClientActive', true);
+        if (state !== 'active' && state !== 'inactive') {
+          return;
         }
 
-        if (state === 'background') {
-          this.controllerMessenger.call(
-            'SnapController:setClientActive',
-            false,
-          );
-        }
+        return this.controllerMessenger.call(
+          'SnapController:setClientActive',
+          state === 'active',
+        );
       },
     );
     ///: END:ONLY_INCLUDE_IF

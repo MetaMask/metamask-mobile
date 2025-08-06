@@ -1,9 +1,9 @@
 import { CronjobControllerState } from '@metamask/snaps-controllers';
 import ReduxService from '../redux';
 import {
-  selectCronjobControllerStorageState,
-  setCronjobControllerStorageState,
-} from '../redux/slices/cronjobControllerStorage';
+  selectCronjobControllerState,
+  setCronjobControllerState,
+} from '../redux/slices/cronjobController';
 
 /**
  * A storage manager for CronjobController state.
@@ -18,10 +18,11 @@ export class CronjobControllerStorageManager {
    * @returns The initial CronjobController state.
    */
   getInitialState() {
-    const { cronjobControllerStorage } = selectCronjobControllerStorageState(
+    const { storage } = selectCronjobControllerState(
       ReduxService.store.getState(),
     );
-    return cronjobControllerStorage;
+
+    return storage;
   }
 
   /**
@@ -30,6 +31,6 @@ export class CronjobControllerStorageManager {
    * @param data - The CronjobController state to set.
    */
   set(data: CronjobControllerState) {
-    ReduxService.store.dispatch(setCronjobControllerStorageState(data));
+    ReduxService.store.dispatch(setCronjobControllerState(data));
   }
 }
