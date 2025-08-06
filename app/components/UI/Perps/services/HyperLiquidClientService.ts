@@ -243,6 +243,63 @@ export class HyperLiquidClientService {
   }
 
   /**
+   * Fetch historical candle data for a specific time range
+   * @param coin - The coin symbol (e.g., "BTC", "ETH")
+   * @param interval - The interval (e.g., "1m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "3d", "1w", "1M")
+   * @param startTime - Start time in milliseconds
+   * @param endTime - End time in milliseconds
+   * @returns Promise<CandleData | null>
+   */
+  public async fetchHistoricalCandlesWithTimeRange(
+    coin: string,
+    interval: ValidCandleInterval,
+    startTime: number,
+    endTime: number,
+  ): Promise<CandleData | null> {
+    this.ensureInitialized();
+
+    try {
+      // Use the SDK's InfoClient to fetch candle data
+      const infoClient = this.getInfoClient();
+      const data = await infoClient.candleSnapshot({
+        coin,
+        interval,
+        startTime,
+        endTime,
+      });
+
+      // Transform API response to match expected format
+      if (Array.isArray(data) && data.length > 0) {
+        const candles = data.map((candle) => ({
+          time: candle.t, // open time
+          open: candle.o.toString(),
+          high: candle.h.toString(),
+          low: candle.l.toString(),
+          close: candle.c.toString(),
+          volume: candle.v.toString(),
+        }));
+
+        return {
+          coin,
+          interval,
+          candles,
+        };
+      }
+
+      DevLogger.log(
+        `No candle data returned for ${coin} ${interval} from ${startTime} to ${endTime}`,
+      );
+      return null;
+    } catch (error) {
+      DevLogger.log(
+        `Error fetching historical candles with time range for ${coin}:`,
+        error,
+      );
+      return null;
+    }
+  }
+
+  /**
    * Convert interval string to milliseconds
    */
   private getIntervalMilliseconds(interval: CandlePeriod): number {

@@ -148,6 +148,23 @@ export const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.border.muted,
       opacity: PERPS_CHART_CONFIG.GRID_LINE_OPACITY.MINOR,
     },
+    loadingIndicator: {
+      position: 'absolute',
+      zIndex: 20, // Above everything
+      backgroundColor: colors.overlay.default,
+      borderRadius: 12,
+      padding: 4,
+      width: 24,
+      height: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    loadingIndicatorLeft: {
+      left: 0,
+    },
+    loadingIndicatorRight: {
+      right: 0,
+    },
   });
 };
 

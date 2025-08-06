@@ -71,7 +71,13 @@ const PerpsPositionDetailsView: React.FC = () => {
       navigation.goBack();
     },
   });
-  const { candleData, priceData, isLoadingHistory } = usePerpsPositionData({
+  const {
+    candleData,
+    priceData,
+    isLoadingHistory,
+    isLoadingMoreData,
+    loadMoreHistoricalData,
+  } = usePerpsPositionData({
     coin: position?.coin || '',
     selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
@@ -143,8 +149,10 @@ const PerpsPositionDetailsView: React.FC = () => {
           <CandlestickChartComponent
             candleData={candleData}
             isLoading={isLoadingHistory}
+            isLoadingMoreData={isLoadingMoreData}
             height={350}
             selectedDuration={selectedDuration}
+            selectedInterval={selectedCandlePeriod}
             tpslLines={{
               takeProfitPrice: position.takeProfitPrice,
               stopLossPrice: position.stopLossPrice,
@@ -154,6 +162,7 @@ const PerpsPositionDetailsView: React.FC = () => {
             }}
             onDurationChange={handleDurationChange}
             onGearPress={handleGearPress}
+            onLoadMoreData={loadMoreHistoricalData}
           />
         </View>
 

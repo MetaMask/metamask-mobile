@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react';
-import { View, Dimensions } from 'react-native';
+import React, { useEffect, useCallback } from 'react';
+import { View, Dimensions , ActivityIndicator } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-reanimated';
 import { CandlestickChart } from 'react-native-wagmi-charts';
 import { getGridLineStyle, styleSheet } from './PerpsCandlestickChart.styles';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -10,13 +12,16 @@ import Text, {
 import {
   PERPS_CHART_CONFIG,
   TimeDuration,
+  CandlePeriod,
   getCandlestickColors,
+  calculateCandleCount,
 } from '../../constants/chartConfig';
 import { PerpsCandlestickChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsTimeDurationSelector from '../PerpsTimeDurationSelector';
 import PerpsCandlestickChartSkeleton from './PerpsCandlestickChartSkeleton';
 import { strings } from '../../../../../../locales/i18n';
 import type { CandleData } from '../../types';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface TPSLLines {
   takeProfitPrice?: string;
@@ -31,10 +36,16 @@ interface CandlestickChartComponentProps {
   isLoading?: boolean;
   height?: number;
   selectedDuration?: TimeDuration;
+  selectedInterval?: CandlePeriod;
   tpslLines?: TPSLLines;
 
   onDurationChange?: (duration: TimeDuration) => void;
   onGearPress?: () => void;
+  // Pan navigation props
+  onPanNavigate?: (direction: 'left' | 'right') => void;
+  onLoadMoreData?: (direction: 'left' | 'right') => Promise<void>;
+  isPanEnabled?: boolean;
+  isLoadingMoreData?: boolean;
 }
 
 const screenWidth = Dimensions.get('window').width;
@@ -50,12 +61,22 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   isLoading = false,
   height = PERPS_CHART_CONFIG.DEFAULT_HEIGHT,
   selectedDuration = TimeDuration.ONE_DAY,
+  selectedInterval = CandlePeriod.ONE_HOUR,
   tpslLines,
   onDurationChange,
   onGearPress,
+  // Pan navigation props
+  onPanNavigate,
+  onLoadMoreData,
+  isPanEnabled = true,
+  isLoadingMoreData = false,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const [showTPSLLines, setShowTPSLLines] = React.useState(false);
+  const [isPanning, setIsPanning] = React.useState(false);
+
+  // Data windowing state
+  const [dataWindowStart, setDataWindowStart] = React.useState(0);
 
   // Get candlestick colors from centralized configuration
   // This allows for easy customization and potential user settings integration
@@ -65,8 +86,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     [theme.colors],
   );
 
-  // Transform data to wagmi-charts format with validation
-  const transformedData = React.useMemo(() => {
+  // Full transformed data without windowing
+  const fullTransformedData = React.useMemo(() => {
     if (!candleData?.candles || candleData.candles.length === 0) {
       return [];
     }
@@ -95,6 +116,311 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         (candle): candle is NonNullable<typeof candle> => candle !== null,
       ); // Remove invalid candles
   }, [candleData]);
+
+  // Fixed window size based on duration and interval selection
+  const dataWindowSize = React.useMemo(() => {
+    const calculatedSize = calculateCandleCount(
+      selectedDuration,
+      selectedInterval,
+    );
+
+    DevLogger.log('Data window size calculated:', {
+      selectedDuration,
+      selectedInterval,
+      calculatedSize,
+      availableData: fullTransformedData?.length || 0,
+    });
+
+    return calculatedSize;
+  }, [selectedDuration, selectedInterval, fullTransformedData?.length]);
+
+  // Calculate if we can navigate in each direction
+  const canNavigateLeft = React.useMemo(
+    () => dataWindowStart + dataWindowSize < (fullTransformedData?.length || 0),
+    [dataWindowStart, dataWindowSize, fullTransformedData?.length],
+  );
+
+  const canNavigateRight = React.useMemo(
+    () => dataWindowStart > 0,
+    [dataWindowStart],
+  );
+
+  // Windowed data for display (show subset of data)
+  const transformedData = React.useMemo(() => {
+    if (!fullTransformedData || fullTransformedData.length === 0) return [];
+
+    const endIndex = Math.min(
+      dataWindowStart + dataWindowSize,
+      fullTransformedData.length,
+    );
+    const startIndex = Math.max(0, dataWindowStart);
+
+    const windowedData = fullTransformedData.slice(startIndex, endIndex);
+
+    // Debug logging to track data changes
+    DevLogger.log('Chart data window changed:', {
+      dataWindowStart,
+      startIndex,
+      endIndex,
+      windowedDataLength: windowedData.length,
+      firstTimestamp: windowedData[0]?.timestamp,
+      lastTimestamp: windowedData[windowedData.length - 1]?.timestamp,
+    });
+
+    return windowedData;
+  }, [fullTransformedData, dataWindowStart, dataWindowSize]);
+
+  // JavaScript callback wrappers for use in gesture handlers
+  const setPanningJS = useCallback((panning: boolean) => {
+    setIsPanning(panning);
+  }, []);
+
+  // JavaScript callback wrapper for logging
+  const logJS = useCallback((message: string, ...args: unknown[]) => {
+    DevLogger.log(message, ...args);
+  }, []);
+
+  const updateDataWindowStartJS = useCallback(
+    (direction: 'left' | 'right') => {
+      DevLogger.log('updateDataWindowStartJS called:', {
+        direction,
+        canNavigateLeft,
+        canNavigateRight,
+        currentDataWindowStart: dataWindowStart,
+        fullTransformedDataLength: fullTransformedData?.length || 0,
+        dataWindowSize,
+      });
+
+      const stepSize = 20; // Number of candles to move per swipe
+      const loadMoreThreshold = 10; // Trigger loading when within 10 candles of boundary
+
+      if (direction === 'left' && canNavigateLeft) {
+        // Going back in time - show older data
+        DevLogger.log('Navigating left (older data)');
+        setDataWindowStart((prev) => {
+          const newStart = Math.min(
+            prev + stepSize,
+            Math.max(0, (fullTransformedData?.length || 0) - dataWindowSize),
+          );
+
+          // Check if we're getting close to the end of available data (older data)
+          const remainingDataAtEnd =
+            (fullTransformedData?.length || 0) - (newStart + dataWindowSize);
+          if (
+            remainingDataAtEnd <= loadMoreThreshold &&
+            onLoadMoreData &&
+            !isLoadingMoreData
+          ) {
+            runOnJS(logJS)(
+              'Near end of data, triggering load more (left/older)',
+            );
+            onLoadMoreData('left').catch((error) => {
+              runOnJS(logJS)('Failed to load more data (left):', error);
+            });
+          }
+
+          runOnJS(logJS)(
+            'Left navigation - prev:',
+            prev,
+            'newStart:',
+            newStart,
+            'remainingAtEnd:',
+            remainingDataAtEnd,
+          );
+          return newStart;
+        });
+      } else if (direction === 'right' && canNavigateRight) {
+        // Going forward in time - show newer data
+        runOnJS(logJS)('Navigating right (newer data)');
+        setDataWindowStart((prev) => {
+          const newStart = Math.max(0, prev - stepSize);
+
+          // Check if we're getting close to the beginning of available data (newer data)
+          if (
+            newStart <= loadMoreThreshold &&
+            onLoadMoreData &&
+            !isLoadingMoreData
+          ) {
+            runOnJS(logJS)(
+              'Near beginning of data, triggering load more (right/newer)',
+            );
+            onLoadMoreData('right').catch((error) => {
+              runOnJS(logJS)('Failed to load more data (right):', error);
+            });
+          }
+
+          runOnJS(logJS)(
+            'Right navigation - prev:',
+            prev,
+            'newStart:',
+            newStart,
+          );
+          return newStart;
+        });
+      } else {
+        runOnJS(logJS)('Navigation blocked:', {
+          direction,
+          canNavigateLeft,
+          canNavigateRight,
+        });
+
+        // Even if navigation is blocked, check if we need to load more data
+        if (
+          direction === 'left' &&
+          !canNavigateLeft &&
+          onLoadMoreData &&
+          !isLoadingMoreData
+        ) {
+          // We're at the very end of available data, try to load more
+          runOnJS(logJS)(
+            'At end of data, attempting to load more (left/older)',
+          );
+          onLoadMoreData('left').catch((error) => {
+            runOnJS(logJS)(
+              'Failed to load more data at boundary (left):',
+              error,
+            );
+          });
+        } else if (
+          direction === 'right' &&
+          !canNavigateRight &&
+          onLoadMoreData &&
+          !isLoadingMoreData
+        ) {
+          // We're at the very beginning of available data, try to load more
+          runOnJS(logJS)(
+            'At beginning of data, attempting to load more (right/newer)',
+          );
+          onLoadMoreData('right').catch((error) => {
+            runOnJS(logJS)(
+              'Failed to load more data at boundary (right):',
+              error,
+            );
+          });
+        }
+      }
+    },
+    [
+      canNavigateLeft,
+      canNavigateRight,
+      fullTransformedData?.length,
+      dataWindowSize,
+      dataWindowStart,
+      onLoadMoreData,
+      isLoadingMoreData,
+      logJS,
+    ],
+  );
+
+  const handlePanNavigateJS = useCallback(
+    (direction: 'left' | 'right') => {
+      onPanNavigate?.(direction);
+    },
+    [onPanNavigate],
+  );
+
+  // Pan gesture using new Gesture API
+  const panGesture = React.useMemo(
+    () =>
+      Gesture.Pan()
+        .enabled(isPanEnabled && !isLoading && !isLoadingMoreData)
+        .activeOffsetX([-20, 20]) // Only trigger on horizontal movement
+        .failOffsetY([-20, 20]) // Don't interfere with vertical scrolling
+        .onUpdate((event) => {
+          if (!isPanEnabled || isPanning) return;
+          runOnJS(logJS)('PANNING ACTIVE');
+
+          const { translationX, velocityX } = event;
+
+          // Detect horizontal swipe direction
+          const minSwipeDistance = 50; // Minimum distance to trigger navigation
+          const minVelocity = 500; // Minimum velocity for quick swipes
+
+          if (
+            Math.abs(translationX) > minSwipeDistance ||
+            Math.abs(velocityX) > minVelocity
+          ) {
+            runOnJS(setPanningJS)(true);
+
+            // Swipe left = go back in time (show older data) - increase window start
+            // Swipe right = go forward in time (show newer data) - decrease window start
+            const direction = translationX > 0 ? 'right' : 'left';
+
+            runOnJS(updateDataWindowStartJS)(direction);
+
+            // Call the optional navigation callback for additional logic (loading more data, etc.)
+            runOnJS(handlePanNavigateJS)(direction);
+          }
+        })
+        .onEnd(() => {
+          runOnJS(setPanningJS)(false);
+        }),
+    [
+      isPanEnabled,
+      isLoading,
+      isLoadingMoreData,
+      isPanning,
+      setPanningJS,
+      logJS,
+      updateDataWindowStartJS,
+      handlePanNavigateJS,
+    ],
+  );
+
+  // Initialize data window to show most recent data (only on first load or when settings change)
+  const hasInitializedWindow = React.useRef(false);
+  const lastDuration = React.useRef(selectedDuration);
+  const lastInterval = React.useRef(selectedInterval);
+
+  // Immediate reset when interval/duration changes (before new data loads)
+  useEffect(() => {
+    const settingsChanged =
+      lastDuration.current !== selectedDuration ||
+      lastInterval.current !== selectedInterval;
+
+    if (settingsChanged) {
+      // Immediately reset window position and panning state
+      setDataWindowStart(0); // Reset to most recent position
+      setIsPanning(false);
+      hasInitializedWindow.current = false; // Allow re-initialization with new data
+
+      DevLogger.log('Settings changed - immediate reset:', {
+        previousDuration: lastDuration.current,
+        newDuration: selectedDuration,
+        previousInterval: lastInterval.current,
+        newInterval: selectedInterval,
+      });
+
+      lastDuration.current = selectedDuration;
+      lastInterval.current = selectedInterval;
+    }
+  }, [selectedDuration, selectedInterval]);
+
+  // Initialize/adjust window when data is available
+  useEffect(() => {
+    if (fullTransformedData.length > 0 && !hasInitializedWindow.current) {
+      // Start from the most recent data (end of array) - default view
+      const initialStart = Math.max(
+        0,
+        fullTransformedData.length - dataWindowSize,
+      );
+      setDataWindowStart(initialStart);
+      hasInitializedWindow.current = true;
+
+      DevLogger.log('Data window initialized with new data:', {
+        initialStart,
+        dataLength: fullTransformedData.length,
+        dataWindowSize,
+        selectedDuration,
+        selectedInterval,
+      });
+    }
+  }, [
+    fullTransformedData.length,
+    dataWindowSize,
+    selectedDuration,
+    selectedInterval,
+  ]);
 
   // Show TP/SL lines after a short delay to ensure chart is rendered
   useEffect(() => {
@@ -288,129 +614,188 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   }
 
   return (
-    <CandlestickChart.Provider data={transformedData}>
-      {/* Custom Horizontal Grid Lines with Price Labels */}
-      <View style={styles.gridContainer}>
-        {gridLines.map((line, index) => (
-          <View key={`grid-${index}`}>
-            {/* Grid Line */}
-            <View
-              style={getGridLineStyle(theme.colors, line.isEdge, line.position)}
-            />
-            {/* Price Label */}
-            <View
-              style={[
-                styles.gridPriceLabel,
-                {
-                  top: line.position - 10, // Center the label on the line
-                  backgroundColor: theme.colors.background.default,
-                  borderColor: theme.colors.border.muted,
-                },
-              ]}
-            >
-              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-                ${formatPriceForAxis(line.price)}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </View>
-      {/* TP/SL Lines - Render first so they're behind everything */}
-      {tpslLinePositions && showTPSLLines && (
-        <View style={styles.tpslContainer}>
-          {tpslLinePositions.map((line, index) => (
-            <View
-              key={`tpsl-${line.type}-${index}`}
-              testID={`tpsl-${line.type}-${index}`}
-              style={[
-                styles.tpslLine,
-                {
-                  top: line.position,
-                  width: chartWidth - 65, // Match the chart width
-                  // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
-                  borderTopColor:
-                    line.type === 'tp'
-                      ? theme.colors.success.default // Green for Take Profit
-                      : line.type === 'sl'
-                      ? theme.colors.border.default // Gray for Stop Loss
-                      : line.type === 'entry'
-                      ? theme.colors.text.alternative // Light Gray for Entry Price
-                      : line.type === 'liquidation'
-                      ? theme.colors.error.default // Pink/Red for Liquidation Price
-                      : theme.colors.text.default, // White for Current Price
-                },
-              ]}
-            />
-          ))}
-        </View>
-      )}
-      <View style={styles.chartContainer}>
-        {/* Chart with Custom Grid Lines */}
-        <View style={styles.relativeContainer}>
-          {/* Main Candlestick Chart */}
-          <CandlestickChart
-            height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
-            width={chartWidth - 65}
-            style={styles.chartWithPadding}
-          >
-            {/* Candlestick Data */}
-            <CandlestickChart.Candles
-              positiveColor={candlestickColors.positive} // Green for positive candles
-              negativeColor={candlestickColors.negative} // Red for negative candles
-            />
-          </CandlestickChart>
-        </View>
-
-        {/* X-Axis Time Labels */}
-        <View style={styles.timeAxisContainer}>
-          {transformedData.length > 0 &&
-            (() => {
-              // Create 5 evenly spaced time points from actual data
-              const intervals = [];
-              const dataLength = transformedData.length;
-              const chartWidthForLabels = chartWidth - 65; // Account for y-axis space
-
-              for (let i = 0; i < 5; i++) {
-                const dataIndex = Math.floor((i / 4) * (dataLength - 1));
-                const time = transformedData[dataIndex].timestamp;
-                const position = (i / 4) * chartWidthForLabels;
-                intervals.push({ time, position, index: i });
-              }
-
-              return intervals.map((interval) => (
-                <Text
-                  key={`time-${interval.index}`}
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Alternative}
+    <CandlestickChart.Provider
+      data={transformedData}
+      key={`chart-${dataWindowStart}-${transformedData.length}`}
+    >
+      <GestureDetector gesture={panGesture}>
+        <View>
+          {/* Custom Horizontal Grid Lines with Price Labels */}
+          <View style={styles.gridContainer}>
+            {gridLines.map((line, index) => (
+              <View key={`grid-${index}`}>
+                {/* Grid Line */}
+                <View
+                  style={getGridLineStyle(
+                    theme.colors,
+                    line.isEdge,
+                    line.position,
+                  )}
+                />
+                {/* Price Label */}
+                <View
                   style={[
-                    styles.timeLabel,
+                    styles.gridPriceLabel,
                     {
-                      left: interval.position,
+                      top: line.position - 10, // Center the label on the line
+                      backgroundColor: theme.colors.background.default,
+                      borderColor: theme.colors.border.muted,
                     },
                   ]}
                 >
-                  {(() => {
-                    const date = new Date(interval.time);
-                    const hours = date.getHours().toString().padStart(2, '0');
-                    const minutes = date
-                      .getMinutes()
-                      .toString()
-                      .padStart(2, '0');
-                    return `${hours}:${minutes}`;
-                  })()}
-                </Text>
-              ));
-            })()}
-        </View>
+                  <Text
+                    variant={TextVariant.BodyXS}
+                    color={TextColor.Alternative}
+                  >
+                    ${formatPriceForAxis(line.price)}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+          {/* TP/SL Lines - Render first so they're behind everything */}
+          {tpslLinePositions && showTPSLLines && (
+            <View style={styles.tpslContainer}>
+              {tpslLinePositions.map((line, index) => (
+                <View
+                  key={`tpsl-${line.type}-${index}`}
+                  testID={`tpsl-${line.type}-${index}`}
+                  style={[
+                    styles.tpslLine,
+                    {
+                      top: line.position,
+                      width: chartWidth - 65, // Match the chart width
+                      // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
+                      borderTopColor:
+                        line.type === 'tp'
+                          ? theme.colors.success.default // Green for Take Profit
+                          : line.type === 'sl'
+                          ? theme.colors.border.default // Gray for Stop Loss
+                          : line.type === 'entry'
+                          ? theme.colors.text.alternative // Light Gray for Entry Price
+                          : line.type === 'liquidation'
+                          ? theme.colors.error.default // Pink/Red for Liquidation Price
+                          : theme.colors.text.default, // White for Current Price
+                    },
+                  ]}
+                />
+              ))}
+            </View>
+          )}
+          <View style={styles.chartContainer}>
+            {/* Chart with Custom Grid Lines */}
+            <View style={styles.relativeContainer}>
+              {/* Main Candlestick Chart */}
+              <CandlestickChart
+                key={`candlestick-${dataWindowStart}-${transformedData.length}`}
+                height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
+                width={chartWidth - 65}
+                style={styles.chartWithPadding}
+              >
+                {/* Candlestick Data */}
+                <CandlestickChart.Candles
+                  positiveColor={candlestickColors.positive} // Green for positive candles
+                  negativeColor={candlestickColors.negative} // Red for negative candles
+                />
+              </CandlestickChart>
 
-        {/* Time Duration Selector */}
-        <PerpsTimeDurationSelector
-          selectedDuration={selectedDuration}
-          onDurationChange={onDurationChange}
-          onGearPress={onGearPress}
-          testID={PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR}
-        />
-      </View>
+              {/* Loading indicators at chart edges */}
+              {isLoadingMoreData && (
+                <>
+                  {/* Left edge loading (older data) */}
+                  <View
+                    style={[
+                      styles.loadingIndicator,
+                      styles.loadingIndicatorLeft,
+                      {
+                        top:
+                          (height - PERPS_CHART_CONFIG.PADDING.VERTICAL) / 2 -
+                          10,
+                      },
+                    ]}
+                  >
+                    <ActivityIndicator
+                      size="small"
+                      color={theme.colors.primary.default}
+                    />
+                  </View>
+
+                  {/* Right edge loading (newer data) */}
+                  <View
+                    style={[
+                      styles.loadingIndicator,
+                      styles.loadingIndicatorRight,
+                      {
+                        top:
+                          (height - PERPS_CHART_CONFIG.PADDING.VERTICAL) / 2 -
+                          10,
+                      },
+                    ]}
+                  >
+                    <ActivityIndicator
+                      size="small"
+                      color={theme.colors.primary.default}
+                    />
+                  </View>
+                </>
+              )}
+            </View>
+
+            {/* X-Axis Time Labels */}
+            <View style={styles.timeAxisContainer}>
+              {transformedData.length > 0 &&
+                (() => {
+                  // Create 5 evenly spaced time points from actual data
+                  const intervals = [];
+                  const dataLength = transformedData.length;
+                  const chartWidthForLabels = chartWidth - 65; // Account for y-axis space
+
+                  for (let i = 0; i < 5; i++) {
+                    const dataIndex = Math.floor((i / 4) * (dataLength - 1));
+                    const time = transformedData[dataIndex].timestamp;
+                    const position = (i / 4) * chartWidthForLabels;
+                    intervals.push({ time, position, index: i });
+                  }
+
+                  return intervals.map((interval) => (
+                    <Text
+                      key={`time-${interval.index}`}
+                      variant={TextVariant.BodyXS}
+                      color={TextColor.Alternative}
+                      style={[
+                        styles.timeLabel,
+                        {
+                          left: interval.position,
+                        },
+                      ]}
+                    >
+                      {(() => {
+                        const date = new Date(interval.time);
+                        const hours = date
+                          .getHours()
+                          .toString()
+                          .padStart(2, '0');
+                        const minutes = date
+                          .getMinutes()
+                          .toString()
+                          .padStart(2, '0');
+                        return `${hours}:${minutes}`;
+                      })()}
+                    </Text>
+                  ));
+                })()}
+            </View>
+
+            {/* Time Duration Selector */}
+            <PerpsTimeDurationSelector
+              selectedDuration={selectedDuration}
+              onDurationChange={onDurationChange}
+              onGearPress={onGearPress}
+              testID={PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR}
+            />
+          </View>
+        </View>
+      </GestureDetector>
     </CandlestickChart.Provider>
   );
 };

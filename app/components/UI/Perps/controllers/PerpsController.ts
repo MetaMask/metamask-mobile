@@ -940,6 +940,58 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Fetch historical candle data for a specific time range
+   */
+  async fetchHistoricalCandlesWithTimeRange(
+    coin: string,
+    interval: CandlePeriod,
+    startTime: number,
+    endTime: number,
+  ): Promise<CandleData> {
+    try {
+      const provider = this.getActiveProvider() as IPerpsProvider & {
+        clientService?: {
+          fetchHistoricalCandlesWithTimeRange: (
+            coin: string,
+            interval: CandlePeriod,
+            startTime: number,
+            endTime: number,
+          ) => Promise<CandleData>;
+        };
+      };
+
+      // Check if provider has a client service with fetchHistoricalCandlesWithTimeRange
+      if (provider.clientService?.fetchHistoricalCandlesWithTimeRange) {
+        return await provider.clientService.fetchHistoricalCandlesWithTimeRange(
+          coin,
+          interval,
+          startTime,
+          endTime,
+        );
+      }
+
+      // Fallback: throw error if method not available
+      throw new Error(
+        'Historical candles with time range not supported by current provider',
+      );
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to fetch historical candles with time range';
+
+      // Update error state
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      // Re-throw the error so components can handle it appropriately
+      throw error;
+    }
+  }
+
+  /**
    * Calculate liquidation price for a position
    * Uses provider-specific formulas based on protocol rules
    */

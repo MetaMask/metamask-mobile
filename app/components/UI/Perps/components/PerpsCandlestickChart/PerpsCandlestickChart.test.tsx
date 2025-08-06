@@ -94,6 +94,26 @@ jest.mock('react-native', () => ({
   },
 }));
 
+// Mock react-native-gesture-handler
+jest.mock('react-native-gesture-handler', () => ({
+  GestureDetector: ({ children }: { children: React.ReactNode }) => children,
+  Gesture: {
+    Pan: jest.fn().mockReturnValue({
+      enabled: jest.fn().mockReturnThis(),
+      activeOffsetX: jest.fn().mockReturnThis(),
+      failOffsetY: jest.fn().mockReturnThis(),
+      onUpdate: jest.fn().mockReturnThis(),
+      onEnd: jest.fn().mockReturnThis(),
+    }),
+  },
+}));
+
+// Mock react-native-reanimated
+jest.mock('react-native-reanimated', () => ({
+  ...jest.requireActual('react-native-reanimated/mock'),
+  runOnJS: jest.fn((fn) => fn),
+}));
+
 // Mock the skeleton component to prevent animation warnings
 jest.mock('./PerpsCandlestickChartSkeleton', () => () => {
   const { View } = jest.requireActual('react-native');

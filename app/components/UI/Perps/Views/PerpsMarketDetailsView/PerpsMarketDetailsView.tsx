@@ -64,7 +64,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
   // Get candlestick data
-  const { candleData, isLoadingHistory } = usePerpsPositionData({
+  const {
+    candleData,
+    isLoadingHistory,
+    isLoadingMoreData,
+    loadMoreHistoricalData,
+  } = usePerpsPositionData({
     coin: market?.symbol || '',
     selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
@@ -137,10 +142,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           <CandlestickChartComponent
             candleData={candleData}
             isLoading={isLoadingHistory}
+            isLoadingMoreData={isLoadingMoreData}
             height={350}
             selectedDuration={selectedDuration}
+            selectedInterval={selectedCandlePeriod}
             onDurationChange={handleDurationChange}
             onGearPress={handleGearPress}
+            onLoadMoreData={loadMoreHistoricalData}
           />
         </View>
 
