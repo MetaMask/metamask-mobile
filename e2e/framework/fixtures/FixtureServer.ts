@@ -11,8 +11,6 @@ const logger = createLogger({
 const CURRENT_STATE_KEY = '__CURRENT__';
 const DEFAULT_STATE_KEY = '__DEFAULT__';
 
-const FIXTURE_SERVER_HOST = getLocalHost();
-
 const fixtureSubstitutionPrefix = '__FIXTURE_SUBSTITUTION__';
 const CONTRACT_KEY = 'CONTRACT';
 const fixtureSubstitutionCommands = {
@@ -111,7 +109,7 @@ class FixtureServer {
   // Start the fixture server
   async start() {
     const options = {
-      host: FIXTURE_SERVER_HOST,
+      host: getLocalHost(),
       port: getFixturesServerPort(),
       exclusive: true,
     };
