@@ -1,7 +1,7 @@
 // Third party dependencies.
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 // External dependencies.
 import BottomSheet, {
@@ -28,25 +28,17 @@ import { RampType } from '../../../reducers/fiatOrders/types';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
 import Routes from '../../../constants/navigation/Routes';
 
-interface FundActionMenuParams {
-  onBuy?: () => void;
-  asset?: {
-    address?: string;
-    chainId?: string;
-  };
-}
-
-type FundActionMenuRouteProp = RouteProp<
-  { FundActionMenu: FundActionMenuParams },
-  'FundActionMenu'
->;
+// Types
+import type {
+  FundActionMenuRouteProp,
+  ActionConfig,
+} from './FundActionMenu.types';
 
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const route = useRoute<FundActionMenuRouteProp>();
 
-  // Get onBuy function and asset context from route params if provided
   const customOnBuy = route.params?.onBuy;
   const assetContext = route.params?.asset;
 
@@ -54,7 +46,6 @@ const FundActionMenu = () => {
   const [isNetworkRampSupported] = useRampNetwork();
   const { isDepositEnabled } = useDepositEnabled();
   const { trackEvent, createEventBuilder } = useMetrics();
-
   const canSignTransactions = useSelector(selectCanSignTransactions);
 
   const closeBottomSheetAndNavigate = useCallback(
@@ -64,145 +55,132 @@ const FundActionMenu = () => {
     [],
   );
 
-  const onBuy = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      if (customOnBuy) {
-        // PRIORITY 1: Use the custom onBuy function if provided (e.g., from AssetOverview)
-        // This preserves the specific analytics and navigation logic from the caller
-        customOnBuy();
-      } else if (assetContext) {
-        // PRIORITY 2: Use asset-specific navigation with token context as fallback
-        // This ensures token context is preserved even if onBuy function is lost
-        navigate(
-          ...createBuyNavigationDetails({
-            address: assetContext.address,
-            chainId: assetContext.chainId
-              ? parseInt(assetContext.chainId, 16)
-              : getDecimalChainId(chainId),
-          }),
-        );
-      } else {
-        // PRIORITY 3: Use default navigation (e.g., from Wallet main view)
-        navigate(...createBuyNavigationDetails());
-      }
-    });
+  const createActionHandler = useCallback(
+    (config: Omit<ActionConfig, 'isVisible' | 'isDisabled'>) => () => {
+      closeBottomSheetAndNavigate(config.navigationAction);
 
-    // Only track analytics if we're not using customOnBuy (which handles its own analytics)
-    if (!customOnBuy) {
+      // Special handling for buy action with custom onBuy
+      if (config.type === 'buy' && customOnBuy) {
+        return; // Skip analytics for custom onBuy
+      }
+
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-          .addProperties({
-            text: 'Buy',
-            location: 'FundActionMenu',
-            chain_id_destination: assetContext?.chainId
-              ? parseInt(assetContext.chainId, 16)
-              : getDecimalChainId(chainId),
-          })
+        createEventBuilder(config.analyticsEvent)
+          .addProperties(config.analyticsProperties)
           .build(),
       );
-    }
 
-    trace({
-      name: TraceName.LoadRampExperience,
-      tags: {
-        rampType: RampType.BUY,
-      },
-    });
-  }, [
-    closeBottomSheetAndNavigate,
-    navigate,
-    trackEvent,
-    chainId,
-    createEventBuilder,
-    customOnBuy,
-    assetContext,
-  ]);
+      trace({
+        name: config.traceName,
+        ...config.traceProperties,
+      });
+    },
+    [closeBottomSheetAndNavigate, trackEvent, createEventBuilder, customOnBuy],
+  );
 
-  const onSell = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      navigate(...createSellNavigationDetails());
-    });
+  const getChainIdForAsset = useCallback(
+    () =>
+      assetContext?.chainId
+        ? parseInt(assetContext.chainId, 16)
+        : getDecimalChainId(chainId),
+    [assetContext?.chainId, chainId],
+  );
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.SELL_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Sell',
-          location: 'FundActionMenu',
-          chain_id_source: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-
-    trace({
-      name: TraceName.LoadRampExperience,
-      tags: {
-        rampType: RampType.SELL,
-      },
-    });
-  }, [
-    closeBottomSheetAndNavigate,
-    navigate,
-    trackEvent,
-    chainId,
-    createEventBuilder,
-  ]);
-
-  const onDeposit = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      navigate(Routes.DEPOSIT.ID);
-    });
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
-        .addProperties({
+  const actionConfigs: ActionConfig[] = useMemo(
+    () => [
+      {
+        type: 'deposit',
+        label: strings('fund_actionmenu.deposit'),
+        description: strings('fund_actionmenu.deposit_description'),
+        iconName: IconName.Money,
+        testID: WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON,
+        isVisible: isDepositEnabled,
+        analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+        analyticsProperties: {
           text: 'Deposit',
           location: 'FundActionMenu',
           chain_id_destination: getDecimalChainId(chainId),
           ramp_type: 'DEPOSIT',
-        })
-        .build(),
-    );
-
-    trace({
-      name: TraceName.LoadDepositExperience,
-    });
-  }, [
-    closeBottomSheetAndNavigate,
-    navigate,
-    trackEvent,
-    createEventBuilder,
-    chainId,
-  ]);
+        },
+        traceName: TraceName.LoadDepositExperience,
+        navigationAction: () => navigate(Routes.DEPOSIT.ID),
+      },
+      {
+        type: 'buy',
+        label: strings('fund_actionmenu.buy'),
+        description: strings('fund_actionmenu.buy_description'),
+        iconName: IconName.Add,
+        testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
+        isVisible: isNetworkRampSupported,
+        analyticsEvent: MetaMetricsEvents.BUY_BUTTON_CLICKED,
+        analyticsProperties: {
+          text: 'Buy',
+          location: 'FundActionMenu',
+          chain_id_destination: getChainIdForAsset(),
+        },
+        traceName: TraceName.LoadRampExperience,
+        traceProperties: { tags: { rampType: RampType.BUY } },
+        navigationAction: () => {
+          if (customOnBuy) {
+            customOnBuy();
+          } else if (assetContext) {
+            navigate(
+              ...createBuyNavigationDetails({
+                address: assetContext.address,
+                chainId: getChainIdForAsset(),
+              }),
+            );
+          } else {
+            navigate(...createBuyNavigationDetails());
+          }
+        },
+      },
+      {
+        type: 'sell',
+        label: strings('fund_actionmenu.sell'),
+        description: strings('fund_actionmenu.sell_description'),
+        iconName: IconName.MinusBold,
+        testID: WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
+        isVisible: isNetworkRampSupported,
+        isDisabled: !canSignTransactions,
+        analyticsEvent: MetaMetricsEvents.SELL_BUTTON_CLICKED,
+        analyticsProperties: {
+          text: 'Sell',
+          location: 'FundActionMenu',
+          chain_id_source: getDecimalChainId(chainId),
+        },
+        traceName: TraceName.LoadRampExperience,
+        traceProperties: { tags: { rampType: RampType.SELL } },
+        navigationAction: () => navigate(...createSellNavigationDetails()),
+      },
+    ],
+    [
+      isDepositEnabled,
+      isNetworkRampSupported,
+      canSignTransactions,
+      chainId,
+      getChainIdForAsset,
+      navigate,
+      customOnBuy,
+      assetContext,
+    ],
+  );
 
   return (
     <BottomSheet ref={sheetRef}>
-      {isDepositEnabled && (
-        <ActionListItem
-          label={strings('fund_actionmenu.deposit')}
-          description={strings('fund_actionmenu.deposit_description')}
-          iconName={IconName.Money}
-          onPress={onDeposit}
-          testID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
-        />
-      )}
-      {isNetworkRampSupported && (
-        <ActionListItem
-          label={strings('fund_actionmenu.buy')}
-          description={strings('fund_actionmenu.buy_description')}
-          iconName={IconName.Add}
-          onPress={onBuy}
-          testID={WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}
-        />
-      )}
-      {isNetworkRampSupported && (
-        <ActionListItem
-          label={strings('fund_actionmenu.sell')}
-          description={strings('fund_actionmenu.sell_description')}
-          iconName={IconName.MinusBold}
-          onPress={onSell}
-          testID={WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}
-          isDisabled={!canSignTransactions}
-        />
+      {actionConfigs.map(
+        (config) =>
+          config.isVisible && (
+            <ActionListItem
+              key={config.type}
+              label={config.label}
+              description={config.description}
+              iconName={config.iconName}
+              onPress={createActionHandler(config)}
+              testID={config.testID}
+              isDisabled={config.isDisabled}
+            />
+          ),
       )}
     </BottomSheet>
   );
