@@ -137,20 +137,33 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return calculatedSize;
   }, [selectedDuration, selectedInterval, fullTransformedData?.length]);
 
+  // Determine if we're using windowing or showing all data
+  // We use windowing if we have significantly more data OR if we've panned (to enable smooth navigation)
+  const isUsingWindowing = React.useMemo(() => {
+    if (!fullTransformedData || fullTransformedData.length === 0) return false;
+    // Use windowing if we have a lot of data OR if the user has panned (dataWindowStart !== default position)
+    const hasLotOfData = fullTransformedData.length > dataWindowSize * 1.5;
+    const hasPanned =
+      dataWindowStart !==
+      Math.max(0, fullTransformedData.length - dataWindowSize);
+    return hasLotOfData || hasPanned;
+  }, [fullTransformedData, dataWindowSize, dataWindowStart]);
+
   // Calculate if we can navigate in each direction
   const canNavigateLeft = React.useMemo(
-    () => dataWindowStart > 0,
-    [dataWindowStart],
+    // Always allow left navigation - either to pan through existing data or to load more
+    () => true,
+    [],
   );
 
   const canNavigateRight = React.useMemo(() => {
-    // Can navigate right (to newer data) if we're not already showing the most recent data
-    // Most recent data is when dataWindowStart is at its maximum possible value
+    // Can navigate right if we're not already showing the most recent data
     const maxDataWindowStart = Math.max(
       0,
       (fullTransformedData?.length || 0) - dataWindowSize,
     );
-    return dataWindowStart < maxDataWindowStart;
+    const canNavigate = dataWindowStart < maxDataWindowStart;
+    return canNavigate;
   }, [dataWindowStart, dataWindowSize, fullTransformedData?.length]);
 
   // Windowed data for display (show subset of data)
@@ -159,11 +172,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
     // If we have a reasonable amount of data, show it all instead of windowing
     // Only use windowing when we have significantly more data than expected
-    if (fullTransformedData.length <= dataWindowSize * 1.5) {
-      DevLogger.log('Showing all data - no windowing needed:', {
-        availableData: fullTransformedData.length,
-        expectedWindow: dataWindowSize,
-      });
+    if (!isUsingWindowing) {
       return fullTransformedData;
     }
 
@@ -175,46 +184,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
     const windowedData = fullTransformedData.slice(startIndex, endIndex);
 
-    // Debug logging to track data changes
-    DevLogger.log('Using windowing logic:', {
-      dataWindowStart,
-      startIndex,
-      endIndex,
-      windowedDataLength: windowedData.length,
-      fullDataLength: fullTransformedData.length,
-      dataWindowSize,
-    });
-
-    DevLogger.log('Chart data window changed:', {
-      dataWindowStart,
-      startIndex,
-      endIndex,
-      windowedDataLength: windowedData.length,
-      firstTimestamp: windowedData[0]?.timestamp,
-      lastTimestamp: windowedData[windowedData.length - 1]?.timestamp,
-      firstDate: windowedData[0]
-        ? new Date(windowedData[0].timestamp).toISOString()
-        : 'N/A',
-      lastDate: windowedData[windowedData.length - 1]
-        ? new Date(
-            windowedData[windowedData.length - 1].timestamp,
-          ).toISOString()
-        : 'N/A',
-      fullDataFirstTimestamp: fullTransformedData[0]?.timestamp,
-      fullDataLastTimestamp:
-        fullTransformedData[fullTransformedData.length - 1]?.timestamp,
-      fullDataFirstDate: fullTransformedData[0]
-        ? new Date(fullTransformedData[0].timestamp).toISOString()
-        : 'N/A',
-      fullDataLastDate: fullTransformedData[fullTransformedData.length - 1]
-        ? new Date(
-            fullTransformedData[fullTransformedData.length - 1].timestamp,
-          ).toISOString()
-        : 'N/A',
-    });
-
     return windowedData;
-  }, [fullTransformedData, dataWindowStart, dataWindowSize]);
+  }, [fullTransformedData, dataWindowStart, dataWindowSize, isUsingWindowing]);
 
   // JavaScript callback wrappers for use in gesture handlers
   const setPanningJS = useCallback((panning: boolean) => {
@@ -228,76 +199,21 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
   const updateDataWindowStartJS = useCallback(
     (direction: 'left' | 'right') => {
-      DevLogger.log('updateDataWindowStartJS called:', {
-        direction,
-        canNavigateLeft,
-        canNavigateRight,
-        currentDataWindowStart: dataWindowStart,
-        fullTransformedDataLength: fullTransformedData?.length || 0,
-        dataWindowSize,
-      });
-
-      const stepSize = 1; // Move by single candle/time period per swipe
-      const loadMoreThreshold = 10; // Trigger loading when within 10 candles of boundary
-
       if (direction === 'left' && canNavigateLeft) {
-        // Going back in time - show older data (decrease dataWindowStart toward 0)
-        DevLogger.log('Navigating left (older data)');
-        setDataWindowStart((prev) => {
-          const newStart = Math.max(0, prev - stepSize);
-
-          // Check if we're getting close to the beginning of available data (older data)
-          if (
-            newStart <= loadMoreThreshold &&
-            onLoadMoreData &&
-            !isLoadingMoreData
-          ) {
-            runOnJS(logJS)(
-              'Near beginning of data, triggering load more (left/older)',
-            );
-            onLoadMoreData('left').catch((error) => {
-              runOnJS(logJS)('Failed to load more data (left):', error);
-            });
-          }
-
-          runOnJS(logJS)(
-            'Left navigation - prev:',
-            prev,
-            'newStart:',
-            newStart,
-          );
-          return newStart;
-        });
+        if (onLoadMoreData) {
+          onLoadMoreData('left').catch((error) => {
+            runOnJS(logJS)('Failed to load more data (left):', error);
+          });
+        }
       } else if (direction === 'right' && canNavigateRight) {
-        // Going forward in time - show newer data (increase dataWindowStart toward max)
-        runOnJS(logJS)('Navigating right (newer data)');
         setDataWindowStart((prev) => {
+          const stepSize = 1; // Move by single candle/time period per swipe
           const maxStart = Math.max(
             0,
             (fullTransformedData?.length || 0) - dataWindowSize,
           );
           const newStart = Math.min(maxStart, prev + stepSize);
 
-          // Check if we're getting close to the beginning of available data (newer data)
-          if (
-            newStart <= loadMoreThreshold &&
-            onLoadMoreData &&
-            !isLoadingMoreData
-          ) {
-            runOnJS(logJS)(
-              'Near beginning of data, triggering load more (right/newer)',
-            );
-            onLoadMoreData('right').catch((error) => {
-              runOnJS(logJS)('Failed to load more data (right):', error);
-            });
-          }
-
-          runOnJS(logJS)(
-            'Right navigation - prev:',
-            prev,
-            'newStart:',
-            newStart,
-          );
           return newStart;
         });
       } else {
@@ -306,52 +222,15 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           canNavigateLeft,
           canNavigateRight,
         });
-
-        // Even if navigation is blocked, check if we need to load more data
-        if (
-          direction === 'left' &&
-          !canNavigateLeft &&
-          onLoadMoreData &&
-          !isLoadingMoreData
-        ) {
-          // We're at the very end of available data, try to load more
-          runOnJS(logJS)(
-            'At end of data, attempting to load more (left/older)',
-          );
-          onLoadMoreData('left').catch((error) => {
-            runOnJS(logJS)(
-              'Failed to load more data at boundary (left):',
-              error,
-            );
-          });
-        } else if (
-          direction === 'right' &&
-          !canNavigateRight &&
-          onLoadMoreData &&
-          !isLoadingMoreData
-        ) {
-          // We're at the very beginning of available data, try to load more
-          runOnJS(logJS)(
-            'At beginning of data, attempting to load more (right/newer)',
-          );
-          onLoadMoreData('right').catch((error) => {
-            runOnJS(logJS)(
-              'Failed to load more data at boundary (right):',
-              error,
-            );
-          });
-        }
       }
     },
     [
       canNavigateLeft,
       canNavigateRight,
-      fullTransformedData?.length,
       dataWindowSize,
-      dataWindowStart,
-      onLoadMoreData,
-      isLoadingMoreData,
+      fullTransformedData?.length,
       logJS,
+      onLoadMoreData,
     ],
   );
 
@@ -388,16 +267,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
             // Swipe right (translationX > 0) = go back in time (show older data)
             // Swipe left (translationX < 0) = go forward in time (show newer data)
             const direction = translationX > 0 ? 'left' : 'right';
-
-            runOnJS(logJS)('Gesture detected:', {
-              translationX,
-              velocityX,
-              direction,
-              meaning:
-                direction === 'right'
-                  ? 'forward in time (newer)'
-                  : 'back in time (older)',
-            });
 
             runOnJS(updateDataWindowStartJS)(direction);
 

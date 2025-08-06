@@ -69,16 +69,12 @@ export const usePerpsPositionData = ({
       setIsLoadingMoreData(true);
 
       try {
-        const additionalCandleCount = 50; // Fetch 50 more candles each time
+        const additionalCandleCount = 10;
 
         if (direction === 'left') {
           // Fetch older data (before the earliest candle)
           const earliestCandle = candleData.candles[0];
           if (!earliestCandle) return;
-
-          DevLogger.log(
-            `Loading more older data before timestamp: ${earliestCandle.time}`,
-          );
 
           // Calculate time range for older data
           const intervalMs = getIntervalMilliseconds(selectedInterval);
@@ -93,53 +89,20 @@ export const usePerpsPositionData = ({
               endTime,
             );
 
+          const newCandles = [...olderData.candles, ...candleData.candles];
+
           if (olderData?.candles && olderData.candles.length > 0) {
             // Prepend older data to existing data
-            setCandleData((prevData) => {
+            setCandleData((prevData: CandleData | null) => {
               if (!prevData) return olderData;
               return {
                 ...prevData,
-                candles: [...olderData.candles, ...prevData.candles],
+                candles: newCandles,
               };
             });
-            DevLogger.log(`Added ${olderData.candles.length} older candles`);
           }
         } else {
-          // Fetch newer data (after the latest candle)
-          const latestCandle =
-            candleData.candles[candleData.candles.length - 1];
-          if (!latestCandle) return;
-
-          DevLogger.log(
-            `Loading more newer data after timestamp: ${latestCandle.time}`,
-          );
-
-          // Calculate time range for newer data
-          const intervalMs = getIntervalMilliseconds(selectedInterval);
-          const startTime = latestCandle.time;
-          const endTime = startTime + additionalCandleCount * intervalMs;
-
-          const newerData =
-            await Engine.context.PerpsController.fetchHistoricalCandlesWithTimeRange(
-              coin,
-              selectedInterval,
-              startTime,
-              Math.min(endTime, Date.now()), // Don't fetch future data
-            );
-
-          if (newerData?.candles && newerData.candles.length > 0) {
-            // Append newer data to existing data (excluding duplicate first candle)
-            setCandleData((prevData) => {
-              if (!prevData) return newerData;
-              return {
-                ...prevData,
-                candles: [...prevData.candles, ...newerData.candles.slice(1)],
-              };
-            });
-            DevLogger.log(
-              `Added ${newerData.candles.length - 1} newer candles`,
-            );
-          }
+          // We don't need to load newer data at this time, we'll always have the latest data on mount
         }
       } catch (error) {
         DevLogger.log(`Error loading more ${direction} data:`, error);
