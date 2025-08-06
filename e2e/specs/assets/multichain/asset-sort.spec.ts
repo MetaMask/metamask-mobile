@@ -11,6 +11,7 @@ import ConfirmAddAssetView from '../../../pages/wallet/ImportTokenFlow/ConfirmAd
 import Tenderly from '../../../tenderly';
 import { CustomNetworks } from '../../../resources/networks.e2e';
 import ImportTokensView from '../../../pages/wallet/ImportTokenFlow/ImportTokensView';
+import MetaMetricsOptIn from '../../../pages/Onboarding/MetaMetricsOptInView';
 
 const AAVE_TENDERLY_MAINNET_DETAILS = {
   address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
@@ -69,6 +70,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
         // Relaunching the app since the tree is not re-rendered with FlashList v2.
         await device.launchApp({ newInstance: true });
         await loginToApp();
+        await MetaMetricsOptIn.tapAgreeButton();
 
         const tokens =
           (await WalletView.getTokensInWallet()) as IndexableNativeElement;
