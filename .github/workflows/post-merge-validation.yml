@@ -13,10 +13,10 @@ permissions:
 jobs:
   feature-validation:
     if: github.event.pull_request.merged == true
-    uses: MetaMask/github-tools/.github/workflows/post-feature-validation.yml@chore-post-validation
+    uses: MetaMask/github-tools/.github/workflows/post-merge-validation.yml@main
     with:
       repo-owner: ${{ github.repository_owner }}
       repo-name: ${{ github.event.repository.name }}
       pr-number: ${{ github.event.pull_request.number }}
       pr-author: ${{ github.event.pull_request.user.login }}
-      pr-title: ${{ github.event.pull_request.title }} 
+      pr-title: ${{ github.event.pull_request.title }}
