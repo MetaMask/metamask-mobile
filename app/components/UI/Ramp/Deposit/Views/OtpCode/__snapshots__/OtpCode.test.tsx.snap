@@ -495,7 +495,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -528,7 +528,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -561,7 +561,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -594,7 +594,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -627,7 +627,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -660,7 +660,7 @@ exports[`OtpCode Screen calls resendOtp when resend link is clicked and properly
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1327,7 +1327,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1360,7 +1360,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1393,7 +1393,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1426,7 +1426,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1459,7 +1459,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -1492,7 +1492,7 @@ exports[`OtpCode Screen render matches snapshot 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -2179,7 +2179,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -2212,7 +2212,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -2245,7 +2245,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -2278,7 +2278,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -2311,7 +2311,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -2344,7 +2344,7 @@ exports[`OtpCode Screen renders cooldown timer snapshot after resending OTP 1`] 
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3011,7 +3011,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3046,7 +3046,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3081,7 +3081,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3116,7 +3116,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3151,7 +3151,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3186,7 +3186,7 @@ exports[`OtpCode Screen renders error snapshot when API call fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3888,7 +3888,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3921,7 +3921,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3954,7 +3954,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -3987,7 +3987,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -4020,7 +4020,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
@@ -4053,7 +4053,7 @@ exports[`OtpCode Screen renders resend error snapshot when resend fails 1`] = `
                                   [
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 8,
                                       "borderWidth": 1,
