@@ -72,11 +72,14 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
-// Mock unstable_batchedUpdates more robustly
+// Mock unstable_batchedUpdates more reliably
 const ReactNative = require('react-native');
 if (ReactNative.unstable_batchedUpdates) {
   ReactNative.unstable_batchedUpdates = jest.fn((fn) => fn());
 }
+
+// Also mock it globally as a fallback
+global.unstable_batchedUpdates = jest.fn((fn) => fn());
 
 /*
  * NOTE: react-native-webview requires a jest mock starting on v12.
