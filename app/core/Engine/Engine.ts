@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
-
+///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+import {
+  AppState,
+  AppStateStatus,
+  NativeEventSubscription,
+} from 'react-native';
+///: END:ONLY_INCLUDE_IF
 import {
   AccountTrackerController,
   AssetsContractController,
@@ -234,11 +240,6 @@ import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { perpsControllerInit } from './controllers/perps-controller';
 import { selectUseTokenDetection } from '../../selectors/preferencesController';
-import {
-  AppState,
-  AppStateStatus,
-  NativeEventSubscription,
-} from 'react-native';
 
 const NON_EMPTY = 'NON_EMPTY';
 
