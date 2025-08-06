@@ -28,6 +28,7 @@ exports[`TransactionReview should match snapshot 1`] = `
               "y": 0,
             }
           }
+          showsVerticalScrollIndicator={true}
           style={
             [
               {
