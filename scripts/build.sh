@@ -8,11 +8,11 @@ readonly REPO_ROOT_DIR="$(dirname "${__DIRNAME__}")"
 PLATFORM=$1
 MODE=$2
 ENVIRONMENT=$3
-DEVICE_TYPE=""
 PRE_RELEASE=false
 JS_ENV_FILE=".js.env"
 ANDROID_ENV_FILE=".android.env"
 IOS_ENV_FILE=".ios.env"
+IS_LOCAL=false
 
 loadJSEnv(){
 	# Load JS specific env variables
@@ -70,7 +70,7 @@ printTitle(){
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
-	echo "  🚀 BUILDING $PLATFORM in $MODE mode $ENVIRONMENT" | tr [a-z] [A-Z]
+	echo "  🚀 BUILDING $PLATFORM for $MODE target with $ENVIRONMENT environment" | tr [a-z] [A-Z]
 	echo ''
 	echo '-------------------------------------------'
 	echo ''
@@ -109,26 +109,15 @@ checkParameters(){
 		exit 0;
 	fi
 
-	# Check if the --device flag is present
-	if [[ "$*" == *"--device"* ]]; then
-		DEVICE_TYPE="device"
-	elif [[ "$*" == *"--simulator"* ]]; then
-		DEVICE_TYPE="simulator"
-	elif [[ "$*" == *"--auto"* ]]; then
-		DEVICE_TYPE="auto"
-	fi
-
 	# Check if the --pre flag is present
 	if [[ "$*" == *"--pre"* ]]; then
 		PRE_RELEASE=true
 	fi
 
-	# Validate platform-specific flags
-	if [ "$PLATFORM" == "android" ]; then
-		if [ "$DEVICE_TYPE" == "device" ] || [ "$DEVICE_TYPE" == "simulator" ]; then
-			printError "--device and --simulator flags are not supported for Android builds at this moment. Please use --auto instead. Android builds are configured to automatically detect connected devices and emulators."
-			exit 1
-		fi
+	# Check if the --local flag is present
+	if [[ "$*" == *"--local"* ]]; then
+		# Script is running locally
+		IS_LOCAL=true
 	fi
 
 	# Check if the METAMASK_ENVIRONMENT is valid
@@ -141,8 +130,9 @@ checkParameters(){
 			# Invalid environment - exit with error
 			printError "METAMASK_ENVIRONMENT "${METAMASK_ENVIRONMENT}" is not valid. Please set it to one of the following: ${VALID_METAMASK_ENVIRONMENTS}"
 			exit 1
-			;;
 	esac
+	
+	#TODO: Add check for valid METAMASK_BUILD_TYPE once commands are fully refactored
 }
 
 remapEnvVariable() {
@@ -377,16 +367,9 @@ prebuild_android(){
 	fi
 }
 
-buildAndroidRun(){
-	prebuild_android
-	#react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
-}
-
 # Builds the Main APK for dev development
 buildAndroidMainDev(){
 	prebuild_android
-
 	# Generate both APK (for development) and test APK (for E2E testing)
 	cd android && ./gradlew app:assembleProdDebug app:assembleProdDebugAndroidTest --build-cache --parallel && cd ..
 }
@@ -394,7 +377,6 @@ buildAndroidMainDev(){
 # Builds the Flask APK for dev development
 buildAndroidFlaskDev(){
 	prebuild_android
-
 	# Generate both APK (for development) and test APK (for E2E testing)
 	cd android && ./gradlew app:assembleFlaskDebug app:assembleFlaskDebugAndroidTest --build-cache --parallel && cd ..
 }
@@ -402,48 +384,47 @@ buildAndroidFlaskDev(){
 # Builds the QA APK for dev development
 buildAndroidQaDev(){
 	prebuild_android
-
 	# Generate both APK (for development) and test APK (for E2E testing)
 	cd android && ./gradlew app:assembleQaDebug app:assembleQaDebugAndroidTest --build-cache --parallel && cd ..
 }
 
-buildAndroidRunQA(){
-	remapMainDevEnvVariables
+# Builds and installs the Main APK for local development
+buildAndroidMainLocal(){
+	prebuild_android
+	#react-native run-android --port=$WATCHER_PORT --variant=prodDebug --active-arch-only
+	npx expo run:android --no-install --port $WATCHER_PORT --variant 'prodDebug' --device
+}
+
+# Builds and installs the QA APK for local development
+buildAndroidQALocal(){
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=qaDebug --active-arch-only
-	npx expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug'
+	npx expo run:android --no-install --port $WATCHER_PORT --variant 'qaDebug' --device
 }
 
-buildAndroidRunFlask(){
+# Builds and installs the Flask APK for local development
+buildAndroidFlaskLocal(){
 	prebuild_android
 	#react-native run-android --port=$WATCHER_PORT --variant=flaskDebug --active-arch-only
-	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug'
+	npx expo run:android --no-install  --port $WATCHER_PORT --variant 'flaskDebug' --device
 }
 
-buildIosSimulator(){
+# Builds and installs the Main iOS app for local development
+buildIosMainLocal(){
 	prebuild_ios
-	device_args=()
-	if [ -n "$IOS_SIMULATOR" ]; then
-		device_args=(--device "$IOS_SIMULATOR")
-	fi
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT "${device_args[@]}"
+	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask" --device $IOS_SIMULATOR
 }
 
-buildIosSimulatorQA(){
+# Builds and installs the Flask iOS app for local development
+buildIosFlaskLocal(){
 	prebuild_ios
-	SIM="${IOS_SIMULATOR:-"iPhone 13 Pro"}"
-	#react-native run-ios --port=$WATCHER_PORT --simulator "$SIM" --scheme "MetaMask-QA"
-
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-QA"
+	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-Flask" --device $IOS_SIMULATOR
 }
 
-buildIosSimulatorFlask(){
-	prebuild_ios
-	device_args=()
-	if [ -n "$IOS_SIMULATOR" ]; then
-		device_args=(--device "$IOS_SIMULATOR")
-	fi
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device "$SIM" --scheme "MetaMask-Flask"
+# Builds and installs the QA iOS app for local development
+buildIosQALocal(){
+  	prebuild_ios
+	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --scheme "MetaMask-QA" --device $IOS_SIMULATOR
 }
 
 buildIosSimulatorE2E(){
@@ -463,21 +444,6 @@ buildIosQASimulatorE2E(){
 
 runIosE2E(){
   cd e2e && yarn ios:debug
-}
-
-buildIosDevice(){
-	prebuild_ios
-	npx expo run:ios --no-install --configuration Debug --port $WATCHER_PORT --device
-}
-
-buildIosDeviceQA(){
-	prebuild_ios
-	npx expo run:ios --no-install --port $WATCHER_PORT --configuration Debug --scheme "MetaMask-QA" --device
-}
-
-buildIosDeviceFlask(){
-	prebuild_ios
-	npx expo run:ios --no-install --configuration Debug --scheme "MetaMask-Flask" --device
 }
 
 # Generates the iOS binary for the given scheme and configuration
@@ -548,31 +514,6 @@ buildIosReleaseE2E(){
 	fi
 }
 
-buildIosQA(){
-  	echo "Start iOS QA build..."
-
-  	remapEnvVariableQA
-
-	prebuild_ios
-
-	# Replace release.xcconfig with ENV vars
-	if [ "$PRE_RELEASE" = true ] ; then
-		echo "Setting up env vars...";
-    	echo "$IOS_ENV"
-		echo "$IOS_ENV" | tr "|" "\n" > $IOS_ENV_FILE
-		echo "Build started..."
-		brew install watchman
-		cd ios
-		generateIosBinary "MetaMask-QA"
-	else
-		if [ ! -f "ios/release.xcconfig" ] ; then
-			echo "$IOS_ENV" | tr "|" "\n" > ios/release.xcconfig
-		fi
-		cd ios && xcodebuild -workspace MetaMask.xcworkspace -scheme MetaMask-QA -configuration Release -sdk iphonesimulator -derivedDataPath build
-		# ./node_modules/.bin/react-native run-ios --scheme MetaMask-QA- -configuration Release --simulator "iPhone 13 Pro"
-	fi
-}
-
 # Builds the Main APK for production
 buildAndroidMainProduction(){
 	prebuild_android
@@ -632,23 +573,25 @@ buildAndroidReleaseE2E(){
 
 buildAndroid() {
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
-		if [ "$DEVICE_TYPE" == "auto" ] ; then
-			buildAndroidRun
+		if [ "$IS_LOCAL" = true ] ; then
+			buildAndroidMainLocal
 		elif [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
 			buildAndroidMainDev
 		else
 			buildAndroidMainProduction
 		fi
 	elif [ "$MODE" == "flask" ] ; then
-		if [ "$DEVICE_TYPE" == "auto" ] ; then
-			buildAndroidRunFlask
+		if [ "$IS_LOCAL" = true ] ; then
+			buildAndroidFlaskLocal
 		elif [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
 			buildAndroidFlaskDev
 		else
 			buildAndroidFlaskProduction
 		fi
 	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
-		if [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
+		if [ "$IS_LOCAL" = true ] ; then
+			buildAndroidQALocal
+		elif [ "$METAMASK_ENVIRONMENT" == "dev" ] ; then
 			buildAndroidQaDev
 		else
 			buildAndroidQaProduction
@@ -657,12 +600,9 @@ buildAndroid() {
 		buildAndroidReleaseE2E
   	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
-	elif [ "$MODE" == "qaDebug" ] ; then
-		buildAndroidRunQA
-	elif [ "$MODE" == "flaskDebug" ] ; then
-		buildAndroidRunFlask
 	else
-		buildAndroidRun
+		printError "METAMASK_ENVIRONMENT "${METAMASK_ENVIRONMENT}" is not recognized."
+		exit 1
 	fi
 }
 
@@ -679,10 +619,8 @@ buildAndroidRunE2E(){
 buildIos() {
 	echo "Build iOS $MODE started..."
 	if [ "$MODE" == "release" ] || [ "$MODE" == "main" ] ; then
-		if [ "$DEVICE_TYPE" = "device" ] ; then
-			buildIosDevice
-		elif [ "$DEVICE_TYPE" = "simulator" ] ; then
-			buildIosSimulator
+		if [ "$IS_LOCAL" = true ] ; then
+			buildIosMainLocal
 		else
 			# Prepare iOS dependencies
 			prebuild_ios
@@ -692,10 +630,8 @@ buildIos() {
 			generateIosBinary "MetaMask"
 		fi
 	elif [ "$MODE" == "flask" ] ; then
-		if [ "$DEVICE_TYPE" = "device" ] ; then
-			buildIosDeviceFlask
-		elif [ "$DEVICE_TYPE" = "simulator" ] ; then
-			buildIosSimulatorFlask
+		if [ "$IS_LOCAL" = true ] ; then
+			buildIosFlaskLocal
 		else
 			# Prepare iOS dependencies
 			prebuild_ios
@@ -703,6 +639,17 @@ buildIos() {
 			cd ios
 			# Generate iOS binary
 			generateIosBinary "MetaMask-Flask"
+		fi
+	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
+		if [ "$IS_LOCAL" = true ] ; then
+			buildIosQALocal
+		else
+			# Prepare iOS dependencies
+			prebuild_ios
+			# Go to ios directory
+			cd ios
+			# Generate iOS binary
+			generateIosBinary "MetaMask-QA"
 		fi
 	elif [ "$MODE" == "releaseE2E" ] ; then
 		buildIosReleaseE2E
@@ -712,31 +659,9 @@ buildIos() {
 			buildIosQASimulatorE2E
 	elif [ "$MODE" == "flaskDebugE2E" ] ; then
 			buildIosFlaskSimulatorE2E
-	elif [ "$MODE" == "QA" ] || [ "$MODE" == "qa" ] ; then
-		# Prepare iOS dependencies
-		prebuild_ios
-		# Go to ios directory
-		cd ios
-		# Generate iOS binary
-		generateIosBinary "MetaMask-QA"
-	elif [ "$MODE" == "qaDebug" ] ; then
-		if [ "$DEVICE_TYPE" = "device" ] ; then
-			buildIosDeviceQA
-		else
-			buildIosSimulatorQA
-		fi
-	elif [ "$MODE" == "flaskDebug" ] ; then
-		if [ "$DEVICE_TYPE" = "device" ] ; then
-			buildIosDeviceFlask
-		else
-			buildIosSimulatorFlask
-		fi
 	else
-		if [ "$DEVICE_TYPE" = "device" ] ; then
-			buildIosDevice
-		else
-			buildIosSimulator
-		fi
+		printError "METAMASK_ENVIRONMENT "${METAMASK_ENVIRONMENT}" is not recognized"
+		exit 1
 	fi
 }
 
@@ -801,7 +726,7 @@ if [ "$MODE" == "main" ]; then
 	elif [ "$ENVIRONMENT" == "dev" ]; then
 		remapMainDevEnvVariables
 	fi
-elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
+elif [ "$MODE" == "flask" ]; then
 	# TODO: Map environment variables based on environment
 	if [ "$ENVIRONMENT" == "production" ]; then
 		remapFlaskProdEnvVariables
@@ -810,7 +735,7 @@ elif [ "$MODE" == "flask" ] || [ "$MODE" == "flaskDebug" ]; then
 	elif [ "$ENVIRONMENT" == "e2e" ]; then
 		remapFlaskE2EEnvVariables
 	fi
-elif [ "$MODE" == "qa" ] || [ "$MODE" == "qaDebug" ] || [ "$MODE" == "QA" ]; then
+elif [ "$MODE" == "qa" ] || [ "$MODE" == "QA" ]; then
 	# TODO: Map environment variables based on environment
 	remapEnvVariableQA
 fi
