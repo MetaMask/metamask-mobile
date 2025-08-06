@@ -72,10 +72,10 @@ jest.mock('react-native', () => {
   return originalModule;
 });
 
-// Mock unstable_batchedUpdates by patching it after the module is loaded
-const originalRN = jest.requireActual('react-native');
-if (originalRN.unstable_batchedUpdates) {
-  originalRN.unstable_batchedUpdates = jest.fn((fn) => fn());
+// Mock unstable_batchedUpdates more robustly
+const ReactNative = require('react-native');
+if (ReactNative.unstable_batchedUpdates) {
+  ReactNative.unstable_batchedUpdates = jest.fn((fn) => fn());
 }
 
 /*
