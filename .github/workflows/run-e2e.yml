@@ -18,8 +18,6 @@ jobs:
   build-android-apks:
     name: "Build Android APKs (Shared)"
     uses: ./.github/workflows/build-android-e2e.yml
-    with:
-      build-type: main
     secrets: inherit
 
   smoke-confirmations-ios:
