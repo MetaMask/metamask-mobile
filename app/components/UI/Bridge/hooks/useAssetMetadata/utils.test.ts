@@ -91,10 +91,11 @@ describe('asset-utils', () => {
   });
 
   describe('fetchAssetMetadata', () => {
-    const mockAddress = '0x123' as Hex;
+    const mockAddress = '0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01' as Hex;
     const mockChainId = 'eip155:1' as CaipChainId;
     const mockHexChainId = '0x1' as Hex;
-    const mockAssetId = 'eip155:1/erc20:0x123' as CaipAssetType;
+    const mockAssetId =
+      'eip155:1/erc20:0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01' as CaipAssetType;
 
     beforeEach(() => {
       jest.clearAllMocks();
@@ -122,10 +123,11 @@ describe('asset-utils', () => {
         symbol: 'TEST',
         decimals: 18,
         image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x123.png',
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01.png',
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,
+        name: 'Test Token',
       });
     });
 
