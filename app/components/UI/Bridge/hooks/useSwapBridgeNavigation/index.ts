@@ -80,18 +80,18 @@ export const useSwapBridgeNavigation = ({
             }
           : undefined;
 
-      const candidateBridgeToken =
+      const candidateSourceToken =
         tokenBase ?? bridgeNativeSourceTokenFormatted;
-      const bridgeToken = isBridgeEnabledSource
-        ? candidateBridgeToken
+      const sourceToken = isBridgeEnabledSource
+        ? candidateSourceToken
         : undefined;
 
-      if (!bridgeToken) {
+      if (!sourceToken) {
         return;
       }
 
       const params: BridgeRouteParams = {
-        sourceToken: bridgeToken,
+        sourceToken,
         sourcePage,
         bridgeViewMode,
       };
@@ -105,9 +105,9 @@ export const useSwapBridgeNavigation = ({
         createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
           .addProperties({
             location,
-            chain_id_source: getDecimalChainId(bridgeToken.chainId),
-            token_symbol_source: bridgeToken?.symbol,
-            token_address_source: bridgeToken?.address,
+            chain_id_source: getDecimalChainId(sourceToken.chainId),
+            token_symbol_source: sourceToken?.symbol,
+            token_address_source: sourceToken?.address,
           })
           .build(),
       );

@@ -1,7 +1,7 @@
 import {
   setDestToken,
-  selectDestToken,
   selectBridgeViewMode,
+  selectDestToken,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
 import { DefaultSwapDestTokens } from '../../constants/default-swap-dest-tokens';
@@ -9,6 +9,7 @@ import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode, BridgeToken } from '../../types';
 import { getNativeSourceToken } from '../useInitialSourceToken';
 import { SolScope } from '@metamask/keyring-api';
+import usePrevious from '../../../../hooks/usePrevious';
 
 // Need to pass in the initial source token to avoid a race condition with useInitialSourceToken
 // Can't just use selectSourceToken because of race condition
@@ -18,16 +19,16 @@ export const useInitialDestToken = (
 ) => {
   const dispatch = useDispatch();
   const selectedChainId = useSelector(selectChainId);
-  const destToken = useSelector(selectDestToken);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
+  const destToken = useSelector(selectDestToken);
 
   const isSwap =
     bridgeViewMode === BridgeViewMode.Swap ||
     bridgeViewMode === BridgeViewMode.Unified;
 
-  if (destToken) return;
+  const prevInitialDestToken = usePrevious(initialDestToken);
 
-  if (initialDestToken) {
+  if (initialDestToken && prevInitialDestToken !== initialDestToken) {
     dispatch(setDestToken(initialDestToken));
     return;
   }
@@ -53,6 +54,7 @@ export const useInitialDestToken = (
 
   if (
     isSwap &&
+    !destToken &&
     defaultDestToken &&
     initialSourceToken?.address !== defaultDestToken.address
   ) {

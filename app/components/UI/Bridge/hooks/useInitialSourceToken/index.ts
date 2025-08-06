@@ -1,10 +1,8 @@
 import {
-  selectSourceToken,
   setSourceAmount,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
-import { useRef } from 'react';
 import { BridgeToken } from '../../types';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
@@ -17,6 +15,7 @@ import {
 import { constants } from 'ethers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
+import usePrevious from '../../../../hooks/usePrevious';
 ///: END:ONLY_INCLUDE_IF
 
 export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
@@ -47,8 +46,7 @@ export const useInitialSourceToken = (
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
-  const hasSetInitialSourceToken = useRef(false);
-  const sourceToken = useSelector(selectSourceToken);
+  const prevInitialSourceToken = usePrevious(initialSourceToken);
 
   const {
     chainId: selectedChainId,
@@ -66,7 +64,7 @@ export const useInitialSourceToken = (
     selectedNetworkName,
   });
 
-  if (hasSetInitialSourceToken.current || sourceToken) return;
+  if (prevInitialSourceToken === initialSourceToken) return;
 
   // Will default to the native token of the current chain if no token is provided
   if (!initialSourceToken) {
@@ -98,6 +96,4 @@ export const useInitialSourceToken = (
 
     onSetRpcTarget(evmNetworkConfigurations[initialSourceToken.chainId as Hex]);
   }
-
-  hasSetInitialSourceToken.current = true;
 };
