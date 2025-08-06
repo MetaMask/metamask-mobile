@@ -1,6 +1,7 @@
 import { RouteProp } from '@react-navigation/native';
 import { IconName } from '@metamask/design-system-react-native';
 import { TraceName } from '../../../util/trace';
+import { IMetaMetricsEvent } from '../../../core/Analytics';
 
 export interface FundActionMenuParams {
   onBuy?: () => void;
@@ -23,7 +24,7 @@ export interface ActionConfig {
   testID: string;
   isVisible: boolean;
   isDisabled?: boolean;
-  analyticsEvent: string;
+  analyticsEvent: IMetaMetricsEvent;
   analyticsProperties: Record<string, string | number>;
   traceName: TraceName;
   traceProperties?: { tags?: Record<string, string> };

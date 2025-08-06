@@ -126,7 +126,7 @@ describe('FundActionMenu', () => {
       createEventBuilder: mockCreateEventBuilder,
     } as never);
 
-    mockUseRampNetwork.mockReturnValue([true]);
+    mockUseRampNetwork.mockReturnValue([true, true]);
     mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });
     getDecimalChainId.mockReturnValue(1);
     createBuyNavigationDetails.mockReturnValue(['BuyScreen', {}] as never);
@@ -180,7 +180,7 @@ describe('FundActionMenu', () => {
     });
 
     it('does not render buy button when ramp network is not supported', () => {
-      mockUseRampNetwork.mockReturnValue([false]);
+      mockUseRampNetwork.mockReturnValue([false, false]);
 
       const { queryByTestId } = render(<FundActionMenu />);
 
@@ -204,7 +204,7 @@ describe('FundActionMenu', () => {
     });
 
     it('does not render sell button when ramp network is not supported', () => {
-      mockUseRampNetwork.mockReturnValue([false]);
+      mockUseRampNetwork.mockReturnValue([false, false]);
 
       const { queryByTestId } = render(<FundActionMenu />);
 
@@ -582,7 +582,7 @@ describe('FundActionMenu', () => {
 
     it('renders when no buttons are available', () => {
       mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: false });
-      mockUseRampNetwork.mockReturnValue([false]);
+      mockUseRampNetwork.mockReturnValue([false, false]);
 
       const { getByTestId, queryByTestId } = render(<FundActionMenu />);
 
