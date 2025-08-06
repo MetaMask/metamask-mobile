@@ -50,6 +50,7 @@ jest.doMock('react-native', () => {
     StatusBar: {
       currentHeight: 42,
     },
+    unstable_batchedUpdates: jest.fn((fn) => fn()),
   };
 });
 
