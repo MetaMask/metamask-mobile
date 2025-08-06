@@ -1,0 +1,13 @@
+diff --git a/node_modules/@metamask/swaps-controller/dist/constants.js b/node_modules/@metamask/swaps-controller/dist/constants.js
+index e06e772..d6a499c 100644
+--- a/node_modules/@metamask/swaps-controller/dist/constants.js
++++ b/node_modules/@metamask/swaps-controller/dist/constants.js
+@@ -37,7 +37,7 @@ exports.CHAIN_ID_TO_NAME_MAP = {
+     [exports.SEI_CHAIN_ID]: 'sei',
+ };
+ //* APIs base urls
+-exports.API_BASE_URL = 'https://swap.api.cx.metamask.io';
++exports.API_BASE_URL = 'https://swap.dev-api.cx.metamask.io';
+ exports.DEV_BASE_URL = 'https://swap.dev-api.cx.metamask.io';
+ exports.GAS_API_BASE_URL = 'https://gas.api.cx.metamask.io';
+ //* Contract addresses
