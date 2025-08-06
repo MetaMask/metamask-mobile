@@ -514,8 +514,18 @@
     },
     "token_modal": {
       "select_a_token": "Select a Token",
+      "select_token": "Select token",
       "search_by_name_or_address": "Search token by name or address",
       "no_tokens_found": "No tokens match \"{{searchString}}\""
+    },
+    "networks_filter_bar": {
+      "all_networks": "All networks"
+    },
+    "networks_filter_selector": {
+      "select_network": "Select network",
+      "select_all":"Select all",
+      "deselect_all": "Deselect all",
+      "apply": "Apply"
     },
     "configuration_modal": {
       "title": "Options",
