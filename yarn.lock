@@ -4927,10 +4927,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.18.0.tgz#51b73f9132886c599b7e09fd5671a1dc7584836c"
   integrity sha512-5HeXKrsTOBowdK/5KJ6tmHRkv7IekUG9oIczNZwRnGxqGIzmRRPnxVEaWawOuRCxlkNO3qZT9KCkxFtCL+tXbw==
 
-"@metamask/bridge-controller@^36.0.0":
-  version "36.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-36.2.0.tgz#9f9ad8efbc75b01cf1f883a61b8cbf358828dcba"
-  integrity sha512-q20oO1+GD17Qo4sk8DsEFfD9cjkx9meMOWq/4rcFAkdgSJWUdwstRhYT2lF/n+1pWHpziimBtlY/lTmTxdFMnA==
+"@metamask/bridge-controller@^37.1.0":
+  version "37.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-37.1.0.tgz#2aa5577dfd0cb73e8bb345f0a54acbacea189893"
+  integrity sha512-zI9rRVLjUROjHeyNSfqcovtlj7c3MZrgs2xlFDF0x1r475BEnEi5AX7XnXMMvrDo3QSXa317WR4ocKQalWZAGg==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4942,7 +4942,7 @@
     "@metamask/gas-fee-controller" "^24.0.0"
     "@metamask/keyring-api" "^19.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
-    "@metamask/multichain-network-controller" "^0.10.0"
+    "@metamask/multichain-network-controller" "^0.11.0"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/utils" "^11.4.2"
     bignumber.js "^9.1.2"
@@ -5040,24 +5040,24 @@
     fast-deep-equal "^3.1.3"
     lodash "^4.17.21"
 
-"@metamask/design-system-react-native@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/@metamask/design-system-react-native/-/design-system-react-native-0.2.0.tgz#a26e6b6149bfbca77b7f0ac880d6c505baa4d5cf"
-  integrity sha512-45osPdvLtnsIPuNUI3aT/smamxJcxqPPk071V9un/NWyPXntYqkb5DEfHh0A+tdbCR7Xf7TWZAgjO0yaPWjdlw==
+"@metamask/design-system-react-native@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.npmjs.org/@metamask/design-system-react-native/-/design-system-react-native-0.3.0.tgz#cf2e7f4c20a73a02d9a9d64b51bfd3dbe7cf7d7c"
+  integrity sha512-A5AT1VmnznMrteNt/r2zUno3jfwKshVPyAkcL9JwJ9LslgEuCR/M42P9+0koQK0z5od9lb3Tw1s6ZIwLQlXglQ==
   dependencies:
     react-native-jazzicon "^0.1.2"
 
-"@metamask/design-system-twrnc-preset@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/@metamask/design-system-twrnc-preset/-/design-system-twrnc-preset-0.2.0.tgz#4be2e5f6cf5a3621a54152b4f6d49c3024f707e6"
-  integrity sha512-Fz9zFr1c8M/awWcIOogE5RjPb7jCtCMHOr2HuWttRt0t0/cyyCWfPezT0sB3FWddTvk0nYTkvWCt8cWPZ7OCbw==
+"@metamask/design-system-twrnc-preset@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.npmjs.org/@metamask/design-system-twrnc-preset/-/design-system-twrnc-preset-0.2.1.tgz#1d76c4272f67d41ead6ad8faef793b902a9644c9"
+  integrity sha512-cpADvjPXiQV+JnXZMBM3y0V/CUEMFi1tDJcYILydnb7nXfuLTLXMAvrZzsdUmzkhOLX/nDNiLvheHWKKGsbgXQ==
   dependencies:
     twrnc "^4.5.1"
 
-"@metamask/design-tokens@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.npmjs.org/@metamask/design-tokens/-/design-tokens-8.1.0.tgz#898fbbf0ade6c28a0506da59f47f40fd24316b8a"
-  integrity sha512-ZWWVfCs0JRL3syGurqS/vN74IATM5eGElzEMsaVbxtV23MdrKsye5PehfnKZvFg87f8iJP3jLv+HPaKWlaG/rQ==
+"@metamask/design-tokens@^8.1.1":
+  version "8.1.1"
+  resolved "https://registry.npmjs.org/@metamask/design-tokens/-/design-tokens-8.1.1.tgz#f2a1f7dd03a9be8672ec06d83767d03d354501d8"
+  integrity sha512-B3NwHI+KDJIGRXmBMBOI2Eoc0miYVcq6IU2mOOmZlBkyCeVSMxavrydmDLTsXKJ68uFrbvLUBC+zN9wnux6L6g==
 
 "@metamask/earn-controller@^3.0.0":
   version "3.0.0"
@@ -5551,10 +5551,10 @@
     "@metamask/snaps-utils" "^11.0.0"
     "@metamask/superstruct" "^3.1.0"
 
-"@metamask/multichain-api-client@^0.6.4":
-  version "0.6.4"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.6.4.tgz#417009a7f202fcbdf365f4041e388fe25da77e6c"
-  integrity sha512-UvyRWwJMb74mYsR5LSPT0v6pyDdSiJ9wRhQDfpqOaOvB8Nfy1IcHUrSd9eNeZa2epegdIXZNYEKAvr0pwmLkog==
+"@metamask/multichain-api-client@^0.6.5":
+  version "0.6.5"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-api-client/-/multichain-api-client-0.6.5.tgz#b269eec6b484e7ca9a43088fbcb454334cacb242"
+  integrity sha512-DP8uZZLrmZwvMr/RvMqymS4IdQW37Nv2ZUqX90/f5JdTzqePVhMMdyrc14+BTZpYV2RNu7flhcDXa7gmTvJPbw==
 
 "@metamask/multichain-api-middleware@^0.4.0":
   version "0.4.0"
@@ -5582,6 +5582,20 @@
     "@metamask/controller-utils" "^11.11.0"
     "@metamask/keyring-api" "^18.0.0"
     "@metamask/keyring-internal-api" "^6.2.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.4.2"
+    "@solana/addresses" "^2.0.0"
+    lodash "^4.17.21"
+
+"@metamask/multichain-network-controller@^0.11.0":
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.11.0.tgz#ec7ae24fcb8602bd916e860a2e212696fc63f986"
+  integrity sha512-cz3+w2uvzNwxhmm2SnfG9SBG+GQknx/X/qOOZXGbwg3Cs6Nh/5fCgD+RXIreKrlmfOcb7xFQ+208NZpJpuVYAA==
+  dependencies:
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/controller-utils" "^11.11.0"
+    "@metamask/keyring-api" "^19.0.0"
+    "@metamask/keyring-internal-api" "^7.0.0"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.4.2"
     "@solana/addresses" "^2.0.0"
@@ -6296,10 +6310,10 @@
     "@toruslabs/http-helpers" "^8.1.1"
     bn.js "^5.2.1"
 
-"@metamask/transaction-controller@^58.1.1":
-  version "58.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-58.1.1.tgz#2df64950b5c9a3a41f26cd1ed6675c86f8df164b"
-  integrity sha512-3qkypQk8wS2IqHZ4V6mAarsOUufD9G0WvnJUyBRX59PVnZtXrkEPFnNc+9PdVy+w96ujEEJwb1ggR/hwm+sShA==
+"@metamask/transaction-controller@^59.0.0":
+  version "59.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-59.0.0.tgz#8ef3fd64d70e8cb29a2da301a695bdf9a1e7ff6f"
+  integrity sha512-1qVvnoRJ220Bak4pqQ83Kq0528Xkl5DReV/WiZOWWN1Fna8lT1SJJX9bDVCYw2hAbzCmESSiZkSgvsYLKCOXrQ==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
     "@ethereumjs/tx" "^5.4.0"
@@ -16645,7 +16659,7 @@ color-name@^1.0.0, color-name@~1.1.4:
   resolved "https://registry.yarnpkg.com/color-name/-/color-name-1.1.4.tgz#c2a09a87acbde69543de6f63fa3995c826c536a2"
   integrity sha512-dOy+3AuW3a2wNbZHIuMZpTcgjGuLU/uBL/ubcZF9OXbDo8ff4O8yVp5Bf0efS8uEoYo5q4Fx7dY9OgQGXgAsQA==
 
-color-string@^1.5.2, color-string@^1.5.4, color-string@^1.9.0:
+color-string@^1.5.2, color-string@^1.5.4, color-string@^1.9.0, color-string@^1.9.1:
   version "1.9.1"
   resolved "https://registry.yarnpkg.com/color-string/-/color-string-1.9.1.tgz#4467f9146f036f855b764dfb5bf8582bf342c7a4"
   integrity sha512-shrVawQFojnZv6xM40anx4CkoDP+fZsw/ZerEMsW/pyzsRbElpsL/DBVW7q3ExxwusdNXI3lXpuhEZkzs8p5Eg==
@@ -27956,13 +27970,6 @@ react-native-webview-invoke@^0.6.2:
   resolved "https://registry.yarnpkg.com/react-native-webview-invoke/-/react-native-webview-invoke-0.6.2.tgz#75cc27ef98ea1cbc9386269347d3aafe90d33aa3"
   integrity sha512-PCzP7Zl3XwHU10JYS8nR0gwuR8XiOO0MhC8y9ZuPPI+HeISn95GvNYhOXxeLgfbdbUcpNWh1HqxPDySlfCIqxg==
 
-react-native-worklets-core@^1.6.0:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/react-native-worklets-core/-/react-native-worklets-core-1.6.0.tgz#52b2eb840668e6989495fe1be2e899e0e070321d"
-  integrity sha512-IRu8UUROsRklFdeqmZdWxeCq+EYYSCV8zj4S9mdPwm1K72OehptoYbZCU3+2NjINF4I8Q+Z+z5TwaJQpKQBYmg==
-  dependencies:
-    string-hash-64 "^1.0.3"
-
 react-native@0.76.9:
   version "0.76.9"
   resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.76.9.tgz#68cdfbe75a5c02417ac0eefbb28894a1adc330a2"
@@ -28849,6 +28856,11 @@ ripple-keypairs@^2.0.0:
     "@noble/curves" "^1.0.0"
     "@xrplf/isomorphic" "^1.0.0"
     ripple-address-codec "^5.0.0"
+
+rive-react-native@^9.3.4:
+  version "9.3.4"
+  resolved "https://registry.yarnpkg.com/rive-react-native/-/rive-react-native-9.3.4.tgz#0ef21e4e6994bfde6bd15a2b8e291beef3dff3e6"
+  integrity sha512-rlJlEWjSLrbDcxAQYV/JyJ+XS38fI5C0FcZXXlOtUEioCatlkyz6c9BfW1Xkax9LvX+++O+ZV83LsTu7foNhuA==
 
 rlp@^2.2.3, rlp@^2.2.4, rlp@^2.2.6:
   version "2.2.7"
@@ -29874,11 +29886,6 @@ string-argv@0.3.1, string-argv@^0.3.1:
   version "0.3.1"
   resolved "https://registry.yarnpkg.com/string-argv/-/string-argv-0.3.1.tgz#95e2fbec0427ae19184935f816d74aaa4c5c19da"
   integrity sha512-a1uQGz7IyVy9YwhqjZIZu1c8JO8dNIe20xBmSS6qu9kv++k3JGzCVmprbNN5Kn+BgzD5E7YYwg1CcjuJMRNsvg==
-
-string-hash-64@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/string-hash-64/-/string-hash-64-1.0.3.tgz#0deb56df58678640db5c479ccbbb597aaa0de322"
-  integrity sha512-D5OKWKvDhyVWWn2x5Y9b+37NUllks34q1dCDhk/vYcso9fmhs+Tl3KR/gE4v5UNj2UA35cnX4KdVVGkG1deKqw==
 
 string-length@^4.0.1:
   version "4.0.2"

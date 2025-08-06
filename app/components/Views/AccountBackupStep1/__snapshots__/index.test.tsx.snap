@@ -207,7 +207,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "stretch",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -450,7 +450,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
                 {
                   "alignItems": "center",
                   "alignSelf": "stretch",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -693,7 +693,7 @@ exports[`AccountBackupStep1 Snapshots iOS render matches snapshot 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "stretch",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -936,7 +936,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
                 {
                   "alignItems": "center",
                   "alignSelf": "stretch",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -1179,7 +1179,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
                 {
                   "alignItems": "center",
                   "alignSelf": "stretch",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,

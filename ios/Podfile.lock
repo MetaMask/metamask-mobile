@@ -2049,27 +2049,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-worklets-core (1.6.0):
-    - DoubleConversion
-    - glog
-    - hermes-engine
-    - RCT-Folly (= 2024.10.14.00)
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - Yoga
   - React-nativeconfig (0.76.9)
   - React-NativeModulesApple (0.76.9):
     - glog
@@ -2344,6 +2323,10 @@ PODS:
     - React-utils (= 0.76.9)
   - ReactNativePayments (2.0.0):
     - React
+  - rive-react-native (9.3.4):
+    - React-Core
+    - RiveRuntime (= 6.9.4)
+  - RiveRuntime (6.9.4)
   - RNCAsyncStorage (1.24.0):
     - DoubleConversion
     - glog
@@ -2788,16 +2771,10 @@ PODS:
     - React
   - VisionCamera (4.6.4):
     - VisionCamera/Core (= 4.6.4)
-    - VisionCamera/FrameProcessors (= 4.6.4)
     - VisionCamera/React (= 4.6.4)
   - VisionCamera/Core (4.6.4)
-  - VisionCamera/FrameProcessors (4.6.4):
-    - React
-    - React-callinvoker
-    - react-native-worklets-core
   - VisionCamera/React (4.6.4):
     - React-Core
-    - VisionCamera/FrameProcessors
   - Yoga (0.0.0)
 
 DEPENDENCIES:
@@ -2893,7 +2870,6 @@ DEPENDENCIES:
   - react-native-video (from `../node_modules/react-native-video`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
   - "react-native-webview-mm (from `../node_modules/@metamask/react-native-webview`)"
-  - react-native-worklets-core (from `../node_modules/react-native-worklets-core`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -2922,6 +2898,7 @@ DEPENDENCIES:
   - ReactCodegen (from `build/generated/ios`)
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "ReactNativePayments (from `../node_modules/@metamask/react-native-payments/lib/ios/`)"
+  - rive-react-native (from `../node_modules/rive-react-native`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCCheckbox (from `../node_modules/@react-native-community/checkbox`)"
   - "RNCClipboard (from `../node_modules/@react-native-clipboard/clipboard`)"
@@ -2975,6 +2952,7 @@ SPEC REPOS:
     - OpenSSL-Universal
     - PromisesObjC
     - React-Codegen
+    - RiveRuntime
     - Sentry
     - SocketRocket
 
@@ -3152,8 +3130,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-view-shot"
   react-native-webview-mm:
     :path: "../node_modules/@metamask/react-native-webview"
-  react-native-worklets-core:
-    :path: "../node_modules/react-native-worklets-core"
   React-nativeconfig:
     :path: "../node_modules/react-native/ReactCommon"
   React-NativeModulesApple:
@@ -3210,6 +3186,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native/ReactCommon"
   ReactNativePayments:
     :path: "../node_modules/@metamask/react-native-payments/lib/ios/"
+  rive-react-native:
+    :path: "../node_modules/rive-react-native"
   RNCAsyncStorage:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNCCheckbox:
@@ -3378,7 +3356,6 @@ SPEC CHECKSUMS:
   react-native-video: 3bb92b90b2774144fac7d43d52d11b936e8a14ec
   react-native-view-shot: d1a701eb0719c6dccbd20b4bb43b1069f304cb70
   react-native-webview-mm: 0fbb0f4722fb1937065e9e1a84282584e632c8f6
-  react-native-worklets-core: 9a811a85223be3b41f44a80886f204a8130a332b
   React-nativeconfig: 8efdb1ef1e9158c77098a93085438f7e7b463678
   React-NativeModulesApple: cebca2e5320a3d66e123cade23bd90a167ffce5e
   React-perflogger: 72e653eb3aba9122f9e57cf012d22d2486f33358
@@ -3407,6 +3384,8 @@ SPEC CHECKSUMS:
   ReactCodegen: f853a20cc9125c5521c8766b4b49375fec20648b
   ReactCommon: 300d8d9c5cb1a6cd79a67cf5d8f91e4d477195f9
   ReactNativePayments: 47056cd9f1dc32dbdd716974de5df700c44f12db
+  rive-react-native: 9c7100fec9480d23dc69b4f4fb321de6bb742c4a
+  RiveRuntime: 56c2133fa5c5c570dd93818d8c2772ae6f126806
   RNCAsyncStorage: 9b86b860b6253f5eacf34af7d740037091358dab
   RNCCheckbox: 33b44487ca8008394ce658cc32b26eab04f426ef
   RNCClipboard: f1fe5a8005c651c204e60b43cf0cd67e2244ab70
@@ -3437,7 +3416,7 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   sovran-react-native: e4721a564ee6ef5b5a0d901bc677018cf371ea01
   TcpSockets: 48866ffcb39d7114741919d21069fc90189e474a
-  VisionCamera: 52b101a7fa0a70ff455163c5a121d8dfe9871ab7
+  VisionCamera: f56eaedde0d3fa095143b78374d29e89e71735f9
   Yoga: feb4910aba9742cfedc059e2b2902e22ffe9954a
 
 PODFILE CHECKSUM: aba718cdf38f663bc54e8d01365528918eea2b5a
