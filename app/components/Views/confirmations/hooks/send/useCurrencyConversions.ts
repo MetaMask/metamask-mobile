@@ -102,7 +102,7 @@ export const getNativeDisplayValueFn = ({
     decimals: 5,
   })}`;
 
-export const useConversions = () => {
+export const useCurrencyConversions = () => {
   const { asset, chainId } = useSendContext();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector((state: RootState) =>

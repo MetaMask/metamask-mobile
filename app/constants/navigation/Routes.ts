@@ -290,8 +290,10 @@ const Routes = {
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
   SEND: {
+    RECIPIENT: 'Recipient',
+    ASSET: 'Asset',
+    AMOUNT: 'Amount',
     DEFAULT: 'Send',
-    ROOT: 'Root',
   },
 };
 

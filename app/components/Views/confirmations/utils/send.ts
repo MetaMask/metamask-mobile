@@ -26,8 +26,9 @@ export const handleSendPageNavigation = (
   asset?: AssetType | Nft,
 ) => {
   if (isSendRedesignEnabled()) {
+    const screen = asset ? Routes.SEND.AMOUNT : Routes.SEND.ASSET;
     navigate(Routes.SEND.DEFAULT, {
-      screen: Routes.SEND.ROOT,
+      screen,
       params: {
         asset,
       },
