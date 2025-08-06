@@ -1,8 +1,7 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import PerpsPositionTransactionView from './PerpsPositionTransactionView';
-import { usePerpsNetwork } from '../../hooks';
+import { usePerpsNetwork, usePerpsBlockExplorerUrl } from '../../hooks';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import renderWithProvider, {
   DeepPartial,
@@ -40,30 +39,12 @@ jest.mock('@react-navigation/native', () => {
 
 jest.mock('../../hooks', () => ({
   usePerpsNetwork: jest.fn(),
+  usePerpsBlockExplorerUrl: jest.fn(),
 }));
-
-jest.mock('react-native', () => {
-  const ActualReactNative = jest.requireActual('react-native');
-  return {
-    ...ActualReactNative,
-    Linking: {
-      openURL: jest.fn(),
-    },
-  };
-});
 
 // Mock the navbar utilities
 jest.mock('../../../Navbar', () => ({
   getPerpsTransactionsDetailsNavbar: jest.fn(() => ({ title: 'Test Title' })),
-}));
-
-// Mock the blockchain utilities
-jest.mock('../../utils/blockchainUtils', () => ({
-  getHyperliquidExplorerUrl: jest.fn((network, address) =>
-    network === 'mainnet'
-      ? `https://app.hyperliquid.xyz/explorer/address/${address}`
-      : `https://app.hyperliquid-testnet.xyz/explorer/address/${address}`,
-  ),
 }));
 
 jest.mock('../../../../../selectors/accountsController', () => ({
@@ -102,12 +83,30 @@ describe('PerpsPositionTransactionView', () => {
     typeof usePerpsNetwork
   >;
 
+  const mockUsePerpsBlockExplorerUrl =
+    usePerpsBlockExplorerUrl as jest.MockedFunction<
+      typeof usePerpsBlockExplorerUrl
+    >;
+
   beforeEach(() => {
     jest.clearAllMocks();
     (selectSelectedInternalAccount as unknown as jest.Mock).mockReturnValue({
       address: '0x1234567890abcdef1234567890abcdef12345678',
     });
     mockUsePerpsNetwork.mockReturnValue('mainnet');
+    mockUsePerpsBlockExplorerUrl.mockReturnValue({
+      getExplorerUrl: jest.fn().mockImplementation((address) => {
+        const network = mockUsePerpsNetwork();
+        return network === 'mainnet'
+          ? `https://app.hyperliquid.xyz/explorer/address/${
+              address || '0x1234567890abcdef1234567890abcdef12345678'
+            }`
+          : `https://app.hyperliquid-testnet.xyz/explorer/address/${
+              address || '0x1234567890abcdef1234567890abcdef12345678'
+            }`;
+      }),
+      baseExplorerUrl: 'https://app.hyperliquid.xyz/explorer',
+    });
 
     // Mock the route params
     mockUseRoute.mockReturnValue({
@@ -131,7 +130,7 @@ describe('PerpsPositionTransactionView', () => {
       state: mockInitialState,
     });
 
-    expect(getByText('Net P&L')).toBeOnTheScreen();
+    expect(getByText('P&L')).toBeOnTheScreen();
     expect(getByText('+$150.75')).toBeOnTheScreen();
   });
 
@@ -157,7 +156,7 @@ describe('PerpsPositionTransactionView', () => {
       },
     );
 
-    expect(queryByText('Net P&L')).not.toBeOnTheScreen();
+    expect(queryByText('P&L')).not.toBeOnTheScreen();
   });
 
   it('should handle negative P&L correctly', () => {
@@ -180,7 +179,7 @@ describe('PerpsPositionTransactionView', () => {
       state: mockInitialState,
     });
 
-    expect(getByText('Net P&L')).toBeOnTheScreen();
+    expect(getByText('P&L')).toBeOnTheScreen();
     expect(getByText('-$75.25')).toBeOnTheScreen();
   });
 
@@ -211,7 +210,7 @@ describe('PerpsPositionTransactionView', () => {
       state: mockInitialState,
     });
 
-    expect(getByText('Total fees')).toBeOnTheScreen();
+    expect(getByText('Fees')).toBeOnTheScreen();
     expect(getByText('$5.00')).toBeOnTheScreen();
   });
 
@@ -235,7 +234,7 @@ describe('PerpsPositionTransactionView', () => {
     expect(getByText('$0.005')).toBeOnTheScreen();
   });
 
-  it('should open block explorer when button is pressed', () => {
+  it('should navigate to block explorer in browser tab when button is pressed', () => {
     const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
       state: mockInitialState,
     });
@@ -243,9 +242,12 @@ describe('PerpsPositionTransactionView', () => {
     const blockExplorerButton = getByText('View on block explorer');
     fireEvent.press(blockExplorerButton);
 
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://app.hyperliquid.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://app.hyperliquid.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
+      },
+    });
   });
 
   it('should use testnet URL when network is testnet', () => {
@@ -258,12 +260,15 @@ describe('PerpsPositionTransactionView', () => {
     const blockExplorerButton = getByText('View on block explorer');
     fireEvent.press(blockExplorerButton);
 
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://app.hyperliquid-testnet.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://app.hyperliquid-testnet.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
+      },
+    });
   });
 
-  it('should not open block explorer when no selected account', () => {
+  it('should not navigate to block explorer when no selected account', () => {
     (selectSelectedInternalAccount as unknown as jest.Mock).mockReturnValue(
       null,
     );
@@ -274,7 +279,7 @@ describe('PerpsPositionTransactionView', () => {
     const blockExplorerButton = getByText('View on block explorer');
     fireEvent.press(blockExplorerButton);
 
-    expect(Linking.openURL).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
   });
 
   it('should render error message when transaction is not found', () => {
@@ -336,7 +341,7 @@ describe('PerpsPositionTransactionView', () => {
       },
     );
 
-    expect(queryByText('Net P&L')).not.toBeOnTheScreen();
+    expect(queryByText('P&L')).not.toBeOnTheScreen();
   });
 
   it('should format large amounts correctly', () => {
@@ -380,12 +385,13 @@ describe('PerpsPositionTransactionView', () => {
       params: { transaction: btcTransaction },
     });
 
-    renderWithProvider(<PerpsPositionTransactionView />, {
+    const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
       state: mockInitialState,
     });
 
     // Should render without errors for different assets
-    expect(mockUsePerpsNetwork).toHaveBeenCalled();
+    expect(getByText('Date')).toBeOnTheScreen();
+    expect(getByText('Entry price')).toBeOnTheScreen();
   });
 
   it('should format entry price correctly', () => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import Routes from '../../../../../constants/navigation/Routes';
 import PerpsFundingTransactionView from './PerpsFundingTransactionView';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
@@ -25,6 +25,7 @@ const mockUseNavigation = jest.fn();
 const mockUseRoute = jest.fn();
 const mockUseSelector = jest.fn();
 const mockUsePerpsNetwork = jest.fn();
+const mockUsePerpsBlockExplorerUrl = jest.fn();
 const mockGetHyperliquidExplorerUrl = jest.fn();
 const mockFormatPerpsFiat = jest.fn();
 const mockFormatTransactionDate = jest.fn();
@@ -41,6 +42,7 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../hooks', () => ({
   usePerpsNetwork: () => mockUsePerpsNetwork(),
+  usePerpsBlockExplorerUrl: () => mockUsePerpsBlockExplorerUrl(),
 }));
 
 jest.mock('../../../Navbar', () => ({
@@ -52,30 +54,21 @@ jest.mock('../../utils/blockchainUtils', () => ({
   getHyperliquidExplorerUrl: () => mockGetHyperliquidExplorerUrl(),
 }));
 
-// jest.mock('../../utils/formatUtils', () => ({
-//   // formatPerpsFiat: (value: string | number) => mockFormatPerpsFiat(value),
-//   // formatTransactionDate: () => mockFormatTransactionDate(),
-// }));
-
-jest.mock('react-native', () => {
-  const ActualReactNative = jest.requireActual('react-native');
-  return {
-    ...ActualReactNative,
-    Linking: {
-      openURL: jest.fn(),
-    },
-  };
-});
-
 describe('PerpsFundingTransactionView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
     // Arrange - Set up default mocks
     mockUsePerpsNetwork.mockReturnValue('mainnet');
-    mockGetHyperliquidExplorerUrl.mockReturnValue(
-      'https://app.hyperliquid.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
-    );
+    mockUsePerpsBlockExplorerUrl.mockReturnValue({
+      getExplorerUrl: jest
+        .fn()
+        .mockImplementation(
+          () =>
+            'https://app.hyperliquid.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
+        ),
+      baseExplorerUrl: 'https://app.hyperliquid.xyz/explorer',
+    });
     mockUseSelector.mockReturnValue({
       address: '0x1234567890abcdef1234567890abcdef12345678',
     });
@@ -83,6 +76,7 @@ describe('PerpsFundingTransactionView', () => {
       params: { transaction: mockTransaction },
     });
     mockUseNavigation.mockReturnValue({
+      navigate: jest.fn(),
       setOptions: jest.fn(),
     });
     mockFormatPerpsFiat.mockImplementation((value) => `$${value}`);
@@ -200,8 +194,14 @@ describe('PerpsFundingTransactionView', () => {
     expect(getByText('0.1%')).toBeTruthy();
   });
 
-  it('should open block explorer when button is pressed', () => {
+  it('should navigate to block explorer in browser tab when button is pressed', () => {
     // Arrange
+    const mockNavigate = jest.fn();
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+      setOptions: jest.fn(),
+    });
+
     const { getByTestId } = render(<PerpsFundingTransactionView />);
 
     // Act
@@ -211,17 +211,32 @@ describe('PerpsFundingTransactionView', () => {
     fireEvent.press(blockExplorerButton);
 
     // Assert
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://app.hyperliquid.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://app.hyperliquid.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
+      },
+    });
   });
 
   it('should use testnet URL when network is testnet', () => {
     // Arrange
+    const mockNavigate = jest.fn();
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+      setOptions: jest.fn(),
+    });
+
     mockUsePerpsNetwork.mockReturnValue('testnet');
-    mockGetHyperliquidExplorerUrl.mockReturnValue(
-      'https://app.hyperliquid-testnet.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
-    );
+    mockUsePerpsBlockExplorerUrl.mockReturnValue({
+      getExplorerUrl: jest
+        .fn()
+        .mockImplementation(
+          () =>
+            'https://app.hyperliquid-testnet.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
+        ),
+      baseExplorerUrl: 'https://app.hyperliquid-testnet.xyz/explorer',
+    });
 
     const { getByTestId } = render(<PerpsFundingTransactionView />);
 
@@ -232,13 +247,22 @@ describe('PerpsFundingTransactionView', () => {
     fireEvent.press(blockExplorerButton);
 
     // Assert
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://app.hyperliquid-testnet.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://app.hyperliquid-testnet.xyz/explorer/address/0x1234567890abcdef1234567890abcdef12345678',
+      },
+    });
   });
 
-  it('should not open block explorer when no selected account', () => {
+  it('should not navigate to block explorer when no selected account', () => {
     // Arrange
+    const mockNavigate = jest.fn();
+    mockUseNavigation.mockReturnValue({
+      navigate: mockNavigate,
+      setOptions: jest.fn(),
+    });
+
     mockUseSelector.mockReturnValue(null);
 
     const { getByTestId } = render(<PerpsFundingTransactionView />);
@@ -250,7 +274,10 @@ describe('PerpsFundingTransactionView', () => {
     fireEvent.press(blockExplorerButton);
 
     // Assert
-    expect(Linking.openURL).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.BROWSER_TAB_HOME,
+      expect.anything(),
+    );
   });
 
   it('should render error message when transaction is not found', () => {

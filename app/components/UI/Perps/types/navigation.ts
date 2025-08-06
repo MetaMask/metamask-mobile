@@ -5,7 +5,7 @@ import type {
   OrderType,
   PerpsMarketData,
 } from '../controllers/types';
-import { PerpsTransaction } from '../Views/PerpsTransactionsView/PerpsTransactionsView';
+import { PerpsTransaction } from './transactionHistory';
 
 /**
  * PERPS navigation parameter types

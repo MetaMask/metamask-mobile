@@ -1063,33 +1063,28 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params?.accountId,
       );
 
-      try {
-        const rawFunding = await infoClient.userFunding({
-          user: userAddress,
-          startTime: params?.startTime || 0,
-          endTime: params?.endTime,
-        });
+      const rawFunding = await infoClient.userFunding({
+        user: userAddress,
+        startTime: params?.startTime || 0,
+        endTime: params?.endTime,
+      });
 
-        DevLogger.log('User funding received:', rawFunding);
+      DevLogger.log('User funding received:', rawFunding);
 
-        // Transform HyperLiquid funding to abstract Funding type
-        const funding: Funding[] = (rawFunding || []).map((rawFundingItem) => {
-          const { delta, hash, time } = rawFundingItem;
+      // Transform HyperLiquid funding to abstract Funding type
+      const funding: Funding[] = (rawFunding || []).map((rawFundingItem) => {
+        const { delta, hash, time } = rawFundingItem;
 
-          return {
-            symbol: delta.coin,
-            amountUsd: delta.usdc,
-            rate: delta.fundingRate,
-            timestamp: time,
-            transactionHash: hash,
-          };
-        });
+        return {
+          symbol: delta.coin,
+          amountUsd: delta.usdc,
+          rate: delta.fundingRate,
+          timestamp: time,
+          transactionHash: hash,
+        };
+      });
 
-        return funding;
-      } catch (fundingError) {
-        DevLogger.log('userFunding failed', fundingError);
-        return [];
-      }
+      return funding;
     } catch (error) {
       DevLogger.log('Error getting user funding:', error);
       return [];
@@ -1921,5 +1916,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
     } catch (error) {
       return createErrorResult(error, { success: false });
     }
+  }
+
+  /**
+   * Get block explorer URL for an address or just the base URL
+   * @param address - Optional address to append to the base URL
+   * @returns Block explorer URL
+   */
+  getBlockExplorerUrl(address?: string): string {
+    const network = this.clientService.isTestnetMode() ? 'testnet' : 'mainnet';
+    const baseUrl =
+      network === 'testnet'
+        ? 'https://app.hyperliquid-testnet.xyz'
+        : 'https://app.hyperliquid.xyz';
+
+    if (address) {
+      return `${baseUrl}/explorer/address/${address}`;
+    }
+
+    return `${baseUrl}/explorer`;
   }
 }

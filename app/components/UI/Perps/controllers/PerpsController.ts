@@ -1469,4 +1469,14 @@ export class PerpsController extends BaseController<
       });
     }
   }
+
+  /**
+   * Get block explorer URL for an address or just the base URL
+   * @param address - Optional address to append to the base URL
+   * @returns Block explorer URL
+   */
+  getBlockExplorerUrl(address?: string): string {
+    const provider = this.getActiveProvider();
+    return provider.getBlockExplorerUrl(address);
+  }
 }

@@ -287,8 +287,12 @@ export const formatDateSection = (timestamp: number): string => {
     return 'Yesterday';
   }
 
-  return date.toLocaleDateString('en-US', {
+  const month = new Intl.DateTimeFormat('en-US', {
     month: 'short',
+  }).format(new Date(timestamp));
+  const day = new Intl.DateTimeFormat('en-US', {
     day: 'numeric',
-  });
+  }).format(new Date(timestamp));
+
+  return `${month}, ${day}`; // 'Jul, 26'
 };

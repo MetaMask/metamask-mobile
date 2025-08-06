@@ -1,11 +1,11 @@
 import {
   NavigationProp,
-  RouteProp,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
 import React from 'react';
-import { Linking, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -23,28 +23,25 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
-import { usePerpsNetwork } from '../../hooks';
+import { usePerpsBlockExplorerUrl } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
-import { getHyperliquidExplorerUrl } from '../../utils/blockchainUtils';
+import {
+  PerpsPositionTransactionRouteProp,
+  PerpsTransaction,
+} from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
   formatPnl,
   formatTransactionDate,
 } from '../../utils/formatUtils';
-import { PerpsTransaction } from '../PerpsTransactionsView/PerpsTransactionsView';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
-
-type PerpsPositionTransactionRouteProp = RouteProp<
-  PerpsNavigationParamList,
-  'PerpsPositionTransaction'
->;
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<PerpsPositionTransactionRouteProp>();
-  const perpsNetwork = usePerpsNetwork();
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const { getExplorerUrl } = usePerpsBlockExplorerUrl();
 
   // Get transaction from route params
   const transaction = route.params?.transaction as PerpsTransaction;
@@ -60,7 +57,7 @@ const PerpsPositionTransactionView: React.FC = () => {
     return (
       <ScreenView>
         <View style={styles.content}>
-          <Text>Transaction not found</Text>
+          <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
       </ScreenView>
     );
@@ -70,22 +67,30 @@ const PerpsPositionTransactionView: React.FC = () => {
     if (!selectedInternalAccount) {
       return;
     }
-    Linking.openURL(
-      getHyperliquidExplorerUrl(perpsNetwork, selectedInternalAccount.address),
-    );
+    const explorerUrl = getExplorerUrl(selectedInternalAccount.address);
+    if (!explorerUrl) {
+      return;
+    }
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: explorerUrl,
+      },
+    });
   };
-
-  // Asset display component with metadata
 
   // Main detail rows - only show if values exist
   const mainDetailRows = [
-    { label: 'Date', value: formatTransactionDate(transaction.timestamp) },
+    {
+      label: strings('perps.transactions.position.date'),
+      value: formatTransactionDate(transaction.timestamp),
+    },
     transaction.fill?.amount && {
-      label: 'Size',
+      label: strings('perps.transactions.position.size'),
       value: `${formatPerpsFiat(Math.abs(transaction.fill?.amountNumber))}`,
     },
     transaction.fill?.entryPrice && {
-      label: 'Entry price',
+      label: strings('perps.transactions.position.entry_price'),
       value: `${formatPerpsFiat(transaction.fill?.entryPrice)}`,
     },
   ].filter(Boolean);
@@ -93,7 +98,7 @@ const PerpsPositionTransactionView: React.FC = () => {
   // Secondary detail rows - only show if values exist
   const secondaryDetailRows = [
     transaction.fill?.fee && {
-      label: 'Total fees',
+      label: strings('perps.transactions.position.fees'),
       value: `${
         BigNumber(transaction.fill?.fee).isGreaterThan(0.01)
           ? formatPerpsFiat(transaction.fill?.fee)
@@ -110,7 +115,7 @@ const PerpsPositionTransactionView: React.FC = () => {
     );
     const lessThanNegCent = BigNumber(transaction.fill?.pnl).isLessThan(-0.01);
     secondaryDetailRows.push({
-      label: 'Net P&L',
+      label: strings('perps.transactions.position.pnl'),
       value: greaterThanZero
         ? `${
             greaterThanCent
@@ -131,7 +136,7 @@ const PerpsPositionTransactionView: React.FC = () => {
   // Points or Net P&L row - only show if values exist
   if (transaction.fill?.points) {
     secondaryDetailRows.push({
-      label: 'Points',
+      label: strings('perps.transactions.position.points'),
       value: transaction.fill?.points,
       textColor: TextColor.Success,
     });
@@ -210,7 +215,7 @@ const PerpsPositionTransactionView: React.FC = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label="View on block explorer"
+            label={strings('perps.transactions.view_on_explorer')}
             onPress={handleViewOnBlockExplorer}
             style={styles.blockExplorerButton}
           />

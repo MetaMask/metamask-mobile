@@ -124,6 +124,7 @@ describe('PerpsController', () => {
       getMaxLeverage: jest.fn(),
       calculateFees: jest.fn(),
       getMarketDataWithPrices: jest.fn(),
+      getBlockExplorerUrl: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -2414,6 +2415,61 @@ describe('PerpsController', () => {
         await expect(controller.validateWithdrawal({} as any)).rejects.toThrow(
           'PROVIDER_NOT_AVAILABLE',
         );
+      });
+    });
+  });
+
+  describe('getBlockExplorerUrl', () => {
+    it('should delegate to active provider', async () => {
+      withController(async ({ controller }) => {
+        await controller.initializeProviders();
+
+        const mockUrl = 'https://app.hyperliquid.xyz/explorer/address/0x123';
+        mockHyperLiquidProvider.getBlockExplorerUrl.mockReturnValue(mockUrl);
+
+        const result = controller.getBlockExplorerUrl('0x123');
+
+        expect(result).toBe(mockUrl);
+        expect(
+          mockHyperLiquidProvider.getBlockExplorerUrl,
+        ).toHaveBeenCalledWith('0x123');
+      });
+    });
+
+    it('should get base URL when no address provided', async () => {
+      withController(async ({ controller }) => {
+        await controller.initializeProviders();
+
+        const mockBaseUrl = 'https://app.hyperliquid.xyz/explorer';
+        mockHyperLiquidProvider.getBlockExplorerUrl.mockReturnValue(
+          mockBaseUrl,
+        );
+
+        const result = controller.getBlockExplorerUrl();
+
+        expect(result).toBe(mockBaseUrl);
+        expect(
+          mockHyperLiquidProvider.getBlockExplorerUrl,
+        ).toHaveBeenCalledWith(undefined);
+      });
+    });
+
+    it('should handle testnet URLs', async () => {
+      withController(async ({ controller }) => {
+        await controller.initializeProviders();
+
+        const mockTestnetUrl =
+          'https://app.hyperliquid-testnet.xyz/explorer/address/0x456';
+        mockHyperLiquidProvider.getBlockExplorerUrl.mockReturnValue(
+          mockTestnetUrl,
+        );
+
+        const result = controller.getBlockExplorerUrl('0x456');
+
+        expect(result).toBe(mockTestnetUrl);
+        expect(
+          mockHyperLiquidProvider.getBlockExplorerUrl,
+        ).toHaveBeenCalledWith('0x456');
       });
     });
   });

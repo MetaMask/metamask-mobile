@@ -7,8 +7,9 @@ import Avatar, {
 } from '../../../../../component-library/components/Avatars/Avatar';
 import RemoteImage from '../../../../Base/RemoteImage';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import { PerpsTransaction } from '../../Views/PerpsTransactionsView/PerpsTransactionsView';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
+import { PerpsTransaction } from '../../types/transactionHistory';
 
 interface PerpsTransactionItemProps {
   item: PerpsTransaction;
@@ -30,7 +31,9 @@ const PerpsTransactionItem: React.FC<PerpsTransactionItemProps> = ({
       testID={PerpsTransactionSelectorsIDs.TRANSACTION_ITEM}
       style={styles.transactionItem}
       onPress={() => onPress(item)}
-      activeOpacity={0.7}
+      activeOpacity={
+        PERPS_TRANSACTIONS_HISTORY_CONSTANTS.LIST_ITEM_SELECTOR_OPACITY
+      }
     >
       <View
         testID={PerpsTransactionSelectorsIDs.TRANSACTION_ITEM_AVATAR}

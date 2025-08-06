@@ -9,8 +9,8 @@ import Avatar, {
 } from '../../../../../component-library/components/Avatars/Avatar';
 import RemoteImage from '../../../../Base/RemoteImage';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
-import { PerpsTransaction } from '../../Views/PerpsTransactionsView/PerpsTransactionsView';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransaction } from '../../types/transactionHistory';
 
 interface PerpsTransactionDetailAssetHeroProps {
   transaction: PerpsTransaction;

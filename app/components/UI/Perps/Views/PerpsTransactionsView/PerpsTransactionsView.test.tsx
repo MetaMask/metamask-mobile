@@ -1,7 +1,13 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import PerpsTransactionsView from './PerpsTransactionsView';
-import { usePerpsConnection, usePerpsTrading } from '../../hooks';
+import {
+  usePerpsConnection,
+  usePerpsFunding,
+  usePerpsOrderFills,
+  usePerpsOrders,
+  usePerpsTrading,
+} from '../../hooks';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { RootState } from '../../../../../reducers';
 import renderWithProvider, {
@@ -21,6 +27,9 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsTrading: jest.fn(),
+  usePerpsOrderFills: jest.fn(),
+  usePerpsOrders: jest.fn(),
+  usePerpsFunding: jest.fn(),
 }));
 
 // Mock the asset metadata hook to avoid network calls
@@ -59,14 +68,14 @@ const mockOrdersData = [
   {
     orderId: 'order-1',
     symbol: 'BTC',
-    side: 'buy',
-    orderType: 'limit',
+    side: 'buy' as const,
+    orderType: 'limit' as const,
     size: '0.5',
     originalSize: '1.0',
     price: '45000',
     filledSize: '0.5',
     remainingSize: '0.5',
-    status: 'open',
+    status: 'open' as const,
     timestamp: 1640995200000,
     lastUpdated: 1640995200000,
   },
@@ -88,9 +97,15 @@ describe('PerpsTransactionsView', () => {
   const mockUsePerpsTrading = usePerpsTrading as jest.MockedFunction<
     typeof usePerpsTrading
   >;
-  const mockGetUserFills = jest.fn();
-  const mockGetUserOrders = jest.fn();
-  const mockGetUserFunding = jest.fn();
+  const mockUsePerpsOrderFills = usePerpsOrderFills as jest.MockedFunction<
+    typeof usePerpsOrderFills
+  >;
+  const mockUsePerpsOrders = usePerpsOrders as jest.MockedFunction<
+    typeof usePerpsOrders
+  >;
+  const mockUsePerpsFunding = usePerpsFunding as jest.MockedFunction<
+    typeof usePerpsFunding
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -107,9 +122,9 @@ describe('PerpsTransactionsView', () => {
     });
 
     mockUsePerpsTrading.mockReturnValue({
-      getOrderFills: mockGetUserFills,
-      getOrders: mockGetUserOrders,
-      getFunding: mockGetUserFunding,
+      getOrderFills: jest.fn(),
+      getOrders: jest.fn(),
+      getFunding: jest.fn(),
       placeOrder: jest.fn(),
       cancelOrder: jest.fn(),
       closePosition: jest.fn(),
@@ -128,11 +143,34 @@ describe('PerpsTransactionsView', () => {
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
       calculateFees: jest.fn(),
+      validateOrder: jest.fn(),
+      validateClosePosition: jest.fn(),
+      validateWithdrawal: jest.fn(),
     });
 
-    mockGetUserFills.mockResolvedValue(mockFillsData);
-    mockGetUserOrders.mockResolvedValue(mockOrdersData);
-    mockGetUserFunding.mockResolvedValue(mockFundingData);
+    mockUsePerpsOrderFills.mockReturnValue({
+      orderFills: mockFillsData,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsOrders.mockReturnValue({
+      orders: mockOrdersData,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsFunding.mockReturnValue({
+      funding: mockFundingData,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
   });
 
   it('should render with filter tabs', () => {
@@ -151,9 +189,16 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(mockGetUserFills).toHaveBeenCalled();
-      expect(mockGetUserOrders).toHaveBeenCalled();
-      expect(mockGetUserFunding).toHaveBeenCalled();
+      // The hooks are called with skipInitialFetch: false when connected
+      expect(mockUsePerpsOrderFills).toHaveBeenCalledWith({
+        skipInitialFetch: false,
+      });
+      expect(mockUsePerpsOrders).toHaveBeenCalledWith({
+        skipInitialFetch: false,
+      });
+      expect(mockUsePerpsFunding).toHaveBeenCalledWith({
+        skipInitialFetch: false,
+      });
     });
   });
 
@@ -172,9 +217,16 @@ describe('PerpsTransactionsView', () => {
       state: mockInitialState,
     });
 
-    expect(mockGetUserFills).not.toHaveBeenCalled();
-    expect(mockGetUserOrders).not.toHaveBeenCalled();
-    expect(mockGetUserFunding).not.toHaveBeenCalled();
+    // The hooks are called with skipInitialFetch: true when not connected
+    expect(mockUsePerpsOrderFills).toHaveBeenCalledWith({
+      skipInitialFetch: true,
+    });
+    expect(mockUsePerpsOrders).toHaveBeenCalledWith({
+      skipInitialFetch: true,
+    });
+    expect(mockUsePerpsFunding).toHaveBeenCalledWith({
+      skipInitialFetch: true,
+    });
   });
 
   it('should switch between filter tabs', async () => {
@@ -184,7 +236,7 @@ describe('PerpsTransactionsView', () => {
 
     // Wait for initial load
     await waitFor(() => {
-      expect(mockGetUserFills).toHaveBeenCalled();
+      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
     });
 
     // Switch to Orders tab
@@ -203,7 +255,7 @@ describe('PerpsTransactionsView', () => {
 
     // Wait for initial load
     await waitFor(() => {
-      expect(mockGetUserFunding).toHaveBeenCalled();
+      expect(mockUsePerpsFunding).toHaveBeenCalled();
     });
 
     // Switch to Funding tab
@@ -216,32 +268,72 @@ describe('PerpsTransactionsView', () => {
   });
 
   it('should handle refresh correctly', async () => {
+    const mockRefreshFills = jest.fn();
+    const mockRefreshOrders = jest.fn();
+    const mockRefreshFunding = jest.fn();
+
+    // Set up mocks with refresh functions
+    mockUsePerpsOrderFills.mockReturnValue({
+      orderFills: mockFillsData,
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshFills,
+      isRefreshing: false,
+    });
+
+    mockUsePerpsOrders.mockReturnValue({
+      orders: mockOrdersData,
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshOrders,
+      isRefreshing: false,
+    });
+
+    mockUsePerpsFunding.mockReturnValue({
+      funding: mockFundingData,
+      isLoading: false,
+      error: null,
+      refresh: mockRefreshFunding,
+      isRefreshing: false,
+    });
+
     renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
     });
 
-    // Wait for initial load
-    await waitFor(() => {
-      expect(mockGetUserFills).toHaveBeenCalledTimes(1);
-    });
-
-    // Clear the mocks to check refresh calls
-    jest.clearAllMocks();
-    mockGetUserFills.mockResolvedValue(mockFillsData);
-    mockGetUserOrders.mockResolvedValue(mockOrdersData);
-    mockGetUserFunding.mockResolvedValue(mockFundingData);
-
-    // Simulate refresh
-    // Note: RefreshControl testing might need specific setup
-
-    // Verify refresh calls
-    // This would need proper RefreshControl testing setup
+    // Simulate pull-to-refresh would call the refresh functions
+    // The actual testing of RefreshControl would require more complex setup
+    // but we can verify the refresh functions are available
+    expect(mockRefreshFills).toBeDefined();
+    expect(mockRefreshOrders).toBeDefined();
+    expect(mockRefreshFunding).toBeDefined();
   });
 
   it('should handle empty state correctly', async () => {
-    mockGetUserFills.mockResolvedValue([]);
-    mockGetUserOrders.mockResolvedValue([]);
-    mockGetUserFunding.mockResolvedValue([]);
+    // Mock hooks to return empty data
+    mockUsePerpsOrderFills.mockReturnValue({
+      orderFills: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsOrders.mockReturnValue({
+      orders: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsFunding.mockReturnValue({
+      funding: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
@@ -256,9 +348,30 @@ describe('PerpsTransactionsView', () => {
   });
 
   it('should handle API errors gracefully', async () => {
-    mockGetUserFills.mockRejectedValue(new Error('API Error'));
-    mockGetUserOrders.mockRejectedValue(new Error('API Error'));
-    mockGetUserFunding.mockRejectedValue(new Error('API Error'));
+    // Mock hooks to return error state
+    mockUsePerpsOrderFills.mockReturnValue({
+      orderFills: [],
+      isLoading: false,
+      error: 'API Error',
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsOrders.mockReturnValue({
+      orders: [],
+      isLoading: false,
+      error: 'API Error',
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsFunding.mockReturnValue({
+      funding: [],
+      isLoading: false,
+      error: 'API Error',
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
@@ -276,7 +389,7 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(mockGetUserFills).toHaveBeenCalled();
+      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
     });
 
     // This would require the actual transaction items to be rendered
@@ -306,14 +419,21 @@ describe('PerpsTransactionsView', () => {
       timestamp: mockNow - 3 * 24 * 60 * 60 * 1000, // 3 days ago
     };
 
-    mockGetUserFills.mockResolvedValue([todayFill, yesterdayFill, oldFill]);
+    // Mock hooks to return fills with different dates
+    mockUsePerpsOrderFills.mockReturnValue({
+      orderFills: [todayFill, yesterdayFill, oldFill],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
 
     renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
     });
 
     await waitFor(() => {
-      expect(mockGetUserFills).toHaveBeenCalled();
+      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
     });
 
     // The component should have processed the date formatting logic (lines 244, 246)
@@ -333,24 +453,65 @@ describe('PerpsTransactionsView', () => {
       { ...mockFillsData[0], orderId: 'new-fill', timestamp: 2000000 },
     ];
 
-    mockGetUserFills.mockResolvedValue(unsortedFills);
-    mockGetUserOrders.mockResolvedValue([]);
-    mockGetUserFunding.mockResolvedValue([]);
+    // Mock hooks to return unsorted fills
+    mockUsePerpsOrderFills.mockReturnValue({
+      orderFills: unsortedFills,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsOrders.mockReturnValue({
+      orders: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsFunding.mockReturnValue({
+      funding: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
 
     renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
     });
 
     await waitFor(() => {
-      expect(mockGetUserFills).toHaveBeenCalled();
+      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
     });
   });
 
   it('should handle API errors and set empty arrays', async () => {
     // This covers lines 339-343 where errors trigger fallback to empty arrays
-    mockGetUserFills.mockRejectedValue(new Error('Network error'));
-    mockGetUserOrders.mockResolvedValue(mockOrdersData);
-    mockGetUserFunding.mockResolvedValue(mockFundingData);
+    mockUsePerpsOrderFills.mockReturnValue({
+      orderFills: [],
+      isLoading: false,
+      error: 'Network error',
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsOrders.mockReturnValue({
+      orders: mockOrdersData,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsFunding.mockReturnValue({
+      funding: mockFundingData,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
@@ -363,16 +524,36 @@ describe('PerpsTransactionsView', () => {
 
   it('should handle mixed API errors correctly', async () => {
     // This test covers lines 334,337-343 by causing some APIs to fail during sorting
-    mockGetUserFills.mockResolvedValue(mockFillsData);
-    mockGetUserOrders.mockRejectedValue(new Error('Orders failed'));
-    mockGetUserFunding.mockRejectedValue(new Error('Funding failed'));
+    mockUsePerpsOrderFills.mockReturnValue({
+      orderFills: mockFillsData,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsOrders.mockReturnValue({
+      orders: [],
+      isLoading: false,
+      error: 'Orders failed',
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsFunding.mockReturnValue({
+      funding: [],
+      isLoading: false,
+      error: 'Funding failed',
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
     });
 
     await waitFor(() => {
-      expect(mockGetUserFills).toHaveBeenCalled();
+      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
     });
 
     // The component should still function with partial data
@@ -399,7 +580,7 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(mockGetUserFills).toHaveBeenCalled();
+      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
     });
 
     // Force a re-render to trigger useEffect and refresh logic
@@ -416,7 +597,7 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(mockGetUserFills).toHaveBeenCalled();
+      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
     });
 
     // Test switching tabs with onPressIn - this triggers the scroll behavior (lines 393-406)
@@ -450,7 +631,7 @@ describe('PerpsTransactionsView', () => {
     });
 
     await waitFor(() => {
-      expect(mockGetUserFills).toHaveBeenCalled();
+      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
     });
 
     // Look for transaction items that should be rendered
@@ -473,17 +654,37 @@ describe('PerpsTransactionsView', () => {
   });
 
   it('should render null for transactions without fill, order, or funding', async () => {
-    // Mock to return a transaction without the expected properties
-    mockGetUserFills.mockResolvedValue([]);
-    mockGetUserOrders.mockResolvedValue([]);
-    mockGetUserFunding.mockResolvedValue([]);
+    // Mock hooks to return empty data
+    mockUsePerpsOrderFills.mockReturnValue({
+      orderFills: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsOrders.mockReturnValue({
+      orders: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    mockUsePerpsFunding.mockReturnValue({
+      funding: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
 
     const component = renderWithProvider(<PerpsTransactionsView />, {
       state: mockInitialState,
     });
 
     await waitFor(() => {
-      expect(mockGetUserFills).toHaveBeenCalled();
+      expect(mockUsePerpsOrderFills).toHaveBeenCalled();
     });
 
     // The renderRightContent function should handle transactions without

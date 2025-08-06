@@ -1,7 +1,10 @@
 import { BigNumber } from 'bignumber.js';
-import type { PerpsTransaction } from '../Views/PerpsTransactionsView/PerpsTransactionsView';
-import { OrderFill } from '../controllers';
-import { Funding, Order } from '../controllers/types';
+import { Funding, Order, OrderFill } from '../controllers/types';
+import {
+  PerpsOrderTransactionStatus,
+  PerpsOrderTransactionStatusType,
+  PerpsTransaction,
+} from '../types/transactionHistory';
 
 /**
  * Transform abstract OrderFill objects to PerpsTransaction format
@@ -67,7 +70,7 @@ export function transformFillsToTransactions(
 
     acc.push({
       id: orderId || `fill-${timestamp}`,
-      type: 'trade' as const,
+      type: 'trade',
       category: isOpened ? 'position_open' : 'position_close',
       title: `${action} ${symbol} ${
         isFlipped ? direction?.toLowerCase() || '' : part2?.toLowerCase() || ''
@@ -129,24 +132,27 @@ export function transformOrdersToTransactions(
 
     const orderTypeSlug = orderType.toLowerCase().split(' ').join('_');
 
-    let orderStatusType: 'filled' | 'canceled' | 'pending' = 'pending';
-    let statusText = '';
+    let orderStatusType: PerpsOrderTransactionStatusType =
+      PerpsOrderTransactionStatusType.Pending;
+    let statusText = PerpsOrderTransactionStatus.Queued;
 
     if (isCompleted) {
-      orderStatusType = 'filled';
-      statusText = 'Filled';
+      orderStatusType = PerpsOrderTransactionStatusType.Filled;
+      statusText = PerpsOrderTransactionStatus.Filled;
     } else if (isCancelled) {
-      orderStatusType = 'canceled';
-      statusText = 'Canceled';
+      orderStatusType = PerpsOrderTransactionStatusType.Canceled;
+      statusText = PerpsOrderTransactionStatus.Canceled;
     } else if (isRejected) {
-      orderStatusType = 'canceled'; // Map rejected to canceled
-      statusText = 'Rejected';
+      orderStatusType = PerpsOrderTransactionStatusType.Canceled; // Map rejected to canceled
+      statusText = PerpsOrderTransactionStatus.Rejected;
     } else if (isTriggered) {
-      orderStatusType = 'filled'; // Map triggered to filled
-      statusText = 'Triggered';
+      orderStatusType = PerpsOrderTransactionStatusType.Filled; // Map triggered to filled
+      statusText = PerpsOrderTransactionStatus.Triggered;
     } else {
-      orderStatusType = 'pending';
-      statusText = isOpened ? '' : 'Queued';
+      orderStatusType = PerpsOrderTransactionStatusType.Pending;
+      statusText = isOpened
+        ? PerpsOrderTransactionStatus.Open
+        : PerpsOrderTransactionStatus.Queued;
     }
 
     // Calculate filled percentage from abstract types
@@ -161,8 +167,8 @@ export function transformOrdersToTransactions(
 
     return {
       id: `${orderId}-${timestamp}`,
-      type: 'order' as const,
-      category: 'limit_order' as const, // Fixed category
+      type: 'order',
+      category: 'limit_order',
       title,
       subtitle,
       timestamp,
@@ -198,8 +204,8 @@ export function transformFundingToTransactions(
 
     return {
       id: `funding-${timestamp}-${symbol}`,
-      type: 'funding' as const,
-      category: 'funding_fee' as const,
+      type: 'funding',
+      category: 'funding_fee',
       title: `${isPositive ? 'Received' : 'Paid'} funding fee`,
       subtitle: ``,
       timestamp,

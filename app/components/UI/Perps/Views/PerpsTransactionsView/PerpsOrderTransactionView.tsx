@@ -1,11 +1,11 @@
 import {
   NavigationProp,
-  RouteProp,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
 import React from 'react';
-import { Linking, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
@@ -24,28 +24,21 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
-import { usePerpsNetwork, usePerpsOrderFees } from '../../hooks';
+import { usePerpsBlockExplorerUrl, usePerpsOrderFees } from '../../hooks';
 import { PerpsNavigationParamList } from '../../types/navigation';
-import { getHyperliquidExplorerUrl } from '../../utils/blockchainUtils';
+import { PerpsOrderTransactionRouteProp } from '../../types/transactionHistory';
 import {
   formatPerpsFiat,
   formatTransactionDate,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsOrderTransactionView.styles';
 
-// Interface now imported from PerpsTransactionsView
-
-type PerpsOrderTransactionRouteProp = RouteProp<
-  PerpsNavigationParamList,
-  'PerpsOrderTransaction'
->;
-
 const PerpsOrderTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<PerpsOrderTransactionRouteProp>();
-  const perpsNetwork = usePerpsNetwork();
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const { getExplorerUrl } = usePerpsBlockExplorerUrl();
   // Get transaction from route params
   const transaction = route.params?.transaction;
 
@@ -59,7 +52,7 @@ const PerpsOrderTransactionView: React.FC = () => {
     return (
       <ScreenView>
         <View style={styles.content}>
-          <Text>Transaction not found</Text>
+          <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
       </ScreenView>
     );
@@ -74,24 +67,37 @@ const PerpsOrderTransactionView: React.FC = () => {
     if (!selectedInternalAccount) {
       return;
     }
-    Linking.openURL(
-      getHyperliquidExplorerUrl(perpsNetwork, selectedInternalAccount.address),
-    );
+    const explorerUrl = getExplorerUrl(selectedInternalAccount.address);
+    if (!explorerUrl) {
+      return;
+    }
+    navigation.navigate('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: explorerUrl,
+      },
+    });
   };
 
   // Main detail rows based on design
   const mainDetailRows = [
-    { label: 'Date', value: formatTransactionDate(transaction.timestamp) },
+    {
+      label: strings('perps.transactions.order.date'),
+      value: formatTransactionDate(transaction.timestamp),
+    },
     // Add order-specific fields when available from transaction data
     {
-      label: 'Size',
+      label: strings('perps.transactions.order.size'),
       value: formatPerpsFiat(transaction.order?.size ?? 0),
     },
     {
-      label: 'Limit price',
+      label: strings('perps.transactions.order.limit_price'),
       value: formatPerpsFiat(transaction.order?.limitPrice ?? 0),
     },
-    { label: 'Filled', value: transaction.order?.filled },
+    {
+      label: strings('perps.transactions.order.filled'),
+      value: transaction.order?.filled,
+    },
   ];
 
   const isFilled = transaction.order?.text === 'Filled';
@@ -99,7 +105,7 @@ const PerpsOrderTransactionView: React.FC = () => {
 
   const feeRows = [
     {
-      label: 'MetaMask fee',
+      label: strings('perps.transactions.order.metamask_fee'),
       value: `${
         isFilled
           ? `${
@@ -111,7 +117,7 @@ const PerpsOrderTransactionView: React.FC = () => {
       }`,
     },
     {
-      label: 'Hyperliquid fee',
+      label: strings('perps.transactions.order.hyperliquid_fee'),
       value: `${
         isFilled
           ? `${
@@ -123,7 +129,7 @@ const PerpsOrderTransactionView: React.FC = () => {
       }`,
     },
     {
-      label: 'Total fee',
+      label: strings('perps.transactions.order.total_fee'),
       value: `${
         isFilled
           ? `${
@@ -201,7 +207,7 @@ const PerpsOrderTransactionView: React.FC = () => {
             variant={ButtonVariants.Secondary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            label="View on block explorer"
+            label={strings('perps.transactions.view_on_explorer')}
             onPress={handleViewOnBlockExplorer}
             style={styles.blockExplorerButton}
           />

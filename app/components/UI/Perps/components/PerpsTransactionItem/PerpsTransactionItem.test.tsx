@@ -3,6 +3,10 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { StyleSheet } from 'react-native';
 import PerpsTransactionItem from './PerpsTransactionItem';
 import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsOrderTransactionStatus,
+  PerpsOrderTransactionStatusType,
+} from '../../types/transactionHistory';
 
 const mockColors = {
   black: '#000000',
@@ -153,26 +157,6 @@ describe('PerpsTransactionItem', () => {
     expect(queryByText('1.5 ETH')).toBeFalsy();
   });
 
-  it('should use centered styles when subtitle is empty', () => {
-    const transactionWithoutSubtitle = {
-      ...mockTransaction,
-      subtitle: '',
-    };
-
-    render(
-      <PerpsTransactionItem
-        item={transactionWithoutSubtitle}
-        styles={mockStyles}
-        onPress={mockOnPress}
-        renderRightContent={mockRenderRightContent}
-      />,
-    );
-
-    // This would require checking the applied styles, which is complex in React Native Testing Library
-    // The test ensures the component renders without crashing when subtitle is empty
-    expect(true).toBeTruthy();
-  });
-
   it('should render Avatar with correct asset name', () => {
     const btcTransaction = {
       ...mockTransaction,
@@ -202,8 +186,8 @@ describe('PerpsTransactionItem', () => {
       title: 'Long limit order',
       fill: undefined,
       order: {
-        text: 'Filled',
-        statusType: 'filled' as const,
+        text: PerpsOrderTransactionStatus.Filled,
+        statusType: PerpsOrderTransactionStatusType.Filled,
         type: 'limit' as const,
         size: '1000',
         limitPrice: '2000',

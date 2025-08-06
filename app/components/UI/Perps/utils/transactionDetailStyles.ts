@@ -1,3 +1,4 @@
+import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../util/theme/models';
 
 /**
@@ -8,7 +9,7 @@ import type { Theme } from '../../../../util/theme/models';
 export const createTransactionDetailStyles = (theme: Theme) => {
   const { colors } = theme;
 
-  return {
+  return StyleSheet.create({
     // Container styles
     container: {
       flex: 1,
@@ -22,7 +23,7 @@ export const createTransactionDetailStyles = (theme: Theme) => {
 
     // Asset container styles (for views with asset hero)
     assetContainer: {
-      alignItems: 'center' as const,
+      alignItems: 'center',
       paddingBottom: 20,
       paddingHorizontal: 16,
     },
@@ -31,9 +32,9 @@ export const createTransactionDetailStyles = (theme: Theme) => {
       height: 44,
       borderRadius: 36,
       marginBottom: 16,
-      overflow: 'hidden' as const,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
+      overflow: 'hidden',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     assetIcon: {
       width: 44,
@@ -41,7 +42,7 @@ export const createTransactionDetailStyles = (theme: Theme) => {
       borderRadius: 36,
     },
     assetAmount: {
-      fontWeight: '700' as const,
+      fontWeight: '700',
       color: colors.text.default,
     },
 
@@ -50,9 +51,9 @@ export const createTransactionDetailStyles = (theme: Theme) => {
       flex: 1,
     },
     detailRow: {
-      flexDirection: 'row' as const,
-      justifyContent: 'space-between' as const,
-      alignItems: 'center' as const,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       paddingVertical: 8,
     },
     detailRowLast: {
@@ -65,7 +66,7 @@ export const createTransactionDetailStyles = (theme: Theme) => {
     detailValue: {
       fontSize: 14,
       color: colors.text.default,
-      fontWeight: '400' as const,
+      fontWeight: '400',
     },
 
     // Section separator
@@ -85,9 +86,9 @@ export const createTransactionDetailStyles = (theme: Theme) => {
     // Status-specific styles
     profitValue: {
       color: colors.success.default,
-      fontWeight: '500' as const,
+      fontWeight: '500',
     },
-  };
+  });
 };
 
 /**

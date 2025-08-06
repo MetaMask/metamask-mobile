@@ -121,27 +121,6 @@ const PerpsScreenStack = () => (
           animationEnabled: false,
         }}
       />
-
-      {/*
-      Removed for minimal PR (can be added back in future PRs):
-      - PerpsMarketListView (Market list)
-      - PerpsOrderHistoryView (Order history)
-      - PerpsOrderDetailsView (Order details)
-    */}
-      {/*
-        Removed for minimal PR (can be added back in future PRs):
-        - PerpsMarketListView (Market list)
-        - PerpsPositionsView (Positions list)
-        - PerpsPositionDetailsView (Position details)
-        - PerpsOrderView (Order placement)
-        - PerpsOrderSuccessView (Order success)
-        - PerpsDepositAmountView (Deposit flow)
-        - PerpsDepositPreviewView (Deposit preview)
-        - PerpsDepositProcessingView (Deposit processing)
-        - PerpsDepositSuccessView (Deposit success)
-        - PerpsOrderHistoryView (Order history)
-        - PerpsOrderDetailsView (Order details)
-      */}
     </Stack.Navigator>
   </PerpsConnectionProvider>
 );

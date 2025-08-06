@@ -1,4 +1,5 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { FlashList } from '@shopify/flash-list';
 import React, {
   useCallback,
   useEffect,
@@ -12,7 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
+import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
@@ -21,85 +22,34 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsNavigationParamList } from '../../types/navigation';
 
 // Import PerpsController hooks
-import { usePerpsConnection, usePerpsTrading } from '../../hooks';
+import PerpsTransactionItem from '../../components/PerpsTransactionItem';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistoryConfig';
+import {
+  usePerpsConnection,
+  usePerpsFunding,
+  usePerpsOrderFills,
+  usePerpsOrders,
+} from '../../hooks';
+import {
+  FilterTab,
+  ListItem,
+  PerpsTransaction,
+  PerpsTransactionsViewProps,
+  TransactionSection,
+} from '../../types/transactionHistory';
+import { formatDateSection } from '../../utils/formatUtils';
 import {
   transformFillsToTransactions,
   transformFundingToTransactions,
   transformOrdersToTransactions,
 } from '../../utils/transactionTransforms';
-import PerpsTransactionItem from '../../components/PerpsTransactionItem';
-import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistory';
 import { styleSheet } from './PerpsTransactionsView.styles';
-
-// Perps transaction data structure matching the new design
-export interface PerpsTransaction {
-  id: string;
-  type: 'trade' | 'order' | 'funding';
-  category: 'position_open' | 'position_close' | 'limit_order' | 'funding_fee';
-  title: string;
-  subtitle: string; // Asset amount (e.g., "2.01 ETH")
-  timestamp: number;
-  asset: string;
-  // For trades: fill info
-  fill?: {
-    shortTitle: string; // e.g., "Opened long" or "Closed long"
-    amount: string; // e.g., "+$43.99" or "-$400"
-    amountNumber: number; // e.g., 43.99 or 400
-    isPositive: boolean;
-    size: string;
-    entryPrice: string;
-    points: string;
-    pnl: string;
-    fee: string;
-    action: string;
-    feeToken: string;
-  };
-  // For orders: order info
-  order?: {
-    text: string; // e.g., "Filled", "Canceled"
-    statusType: 'filled' | 'canceled' | 'pending';
-    type: 'limit' | 'market';
-    size: string;
-    limitPrice: string;
-    filled: string;
-  };
-  // For funding: funding info
-  fundingAmount?: {
-    isPositive: boolean;
-    fee: string;
-    feeNumber: number;
-    rate: string;
-  };
-}
-
-// Helper interface for date-grouped data
-interface TransactionSection {
-  title: string; // "Today", "Jul 26", etc.
-  data: PerpsTransaction[];
-}
-
-// Union type for FlashList items (headers + transactions)
-type ListItem =
-  | { type: 'header'; title: string; id: string }
-  | { type: 'transaction'; transaction: PerpsTransaction; id: string };
-
-type FilterTab = 'Trades' | 'Orders' | 'Funding';
-
-interface PerpsTransactionsViewProps {}
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
 
-  const [fillTransactions, setFillTransactions] = useState<PerpsTransaction[]>(
-    [],
-  );
-  const [orderTransactions, setOrderTransactions] = useState<
-    PerpsTransaction[]
-  >([]);
-  const [fundingTransactions, setFundingTransactions] = useState<
-    PerpsTransaction[]
-  >([]);
+  // Transaction data is now computed from hooks instead of stored in state
   const [flatListData, setFlatListData] = useState<ListItem[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Trades');
   const [refreshing, setRefreshing] = useState(false);
@@ -108,26 +58,19 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const flashListRef = useRef(null);
 
   const { isConnected } = usePerpsConnection();
-  const { getOrderFills, getOrders, getFunding } = usePerpsTrading();
 
-  // Helper function to format date for section headers
-  const formatDateSection = (timestamp: number): string => {
-    const date = new Date(timestamp);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
+  // Use new hooks for data fetching
+  const { orderFills: fillsData, refresh: refreshFills } = usePerpsOrderFills({
+    skipInitialFetch: !isConnected,
+  });
 
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    }
+  const { orders: ordersData, refresh: refreshOrders } = usePerpsOrders({
+    skipInitialFetch: !isConnected,
+  });
 
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-    });
-  };
+  const { funding: fundingData, refresh: refreshFunding } = usePerpsFunding({
+    skipInitialFetch: !isConnected,
+  });
 
   // Helper function to group transactions by date
   const groupTransactionsByDate = useCallback(
@@ -174,48 +117,21 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     return flattened;
   };
 
-  // Load real transaction data from HyperLiquid API
-  const loadTransactions = useCallback(async () => {
-    if (!isConnected) {
-      return;
-    }
+  // Transform raw data from hooks into transaction format
+  const fillTransactions = useMemo(
+    () => transformFillsToTransactions(fillsData || []),
+    [fillsData],
+  );
 
-    setRefreshing(true);
-    try {
-      // Fetch historical data in parallel
-      const [fillsData, ordersData, fundingData] = await Promise.all([
-        getOrderFills().catch((error) => {
-          console.warn('Failed to fetch fills:', error);
-          return [];
-        }),
-        getOrders().catch((error) => {
-          console.warn('Failed to fetch orders:', error);
-          return [];
-        }),
-        getFunding().catch((error) => {
-          console.warn('Failed to fetch funding:', error);
-          return [];
-        }),
-      ]);
+  const orderTransactions = useMemo(
+    () => transformOrdersToTransactions(ordersData || []),
+    [ordersData],
+  );
 
-      // Transform and store each data type separately
-      const transformedFills = transformFillsToTransactions(fillsData);
-      const transformedOrders = transformOrdersToTransactions(ordersData);
-      const transformedFunding = transformFundingToTransactions(fundingData);
-
-      // Sort each type chronologically (newest first)
-      setFillTransactions(transformedFills);
-      setOrderTransactions(transformedOrders);
-      setFundingTransactions(transformedFunding);
-    } catch (error) {
-      // Fallback to empty arrays on error
-      setFillTransactions([]);
-      setOrderTransactions([]);
-      setFundingTransactions([]);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [isConnected, getFunding, getOrders, getOrderFills]);
+  const fundingTransactions = useMemo(
+    () => transformFundingToTransactions(fundingData || []),
+    [fundingData],
+  );
 
   // Memoized grouped transactions to avoid recalculation on every filter change
   const allGroupedTransactions = useMemo(
@@ -246,14 +162,21 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Note: Removed automatic scroll to top on tab change to allow switching tabs while scrolling
 
   const onRefresh = useCallback(async () => {
+    if (!isConnected) {
+      return;
+    }
     setRefreshing(true);
-    await loadTransactions();
-    setRefreshing(false);
-  }, [loadTransactions]);
+    try {
+      // Refresh all data sources in parallel
+      await Promise.all([refreshFills(), refreshOrders(), refreshFunding()]);
+    } catch (error) {
+      console.warn('Failed to refresh transaction data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [isConnected, refreshFills, refreshOrders, refreshFunding]);
 
-  useEffect(() => {
-    loadTransactions();
-  }, [loadTransactions]);
+  // Initial loading is handled by the hooks themselves
 
   const renderFilterTab = useCallback(
     (tab: FilterTab) => {
@@ -290,7 +213,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
             variant={TextVariant.BodyMDBold}
             style={isActive ? null : styles.filterTabText}
           >
-            {tab}
+            {strings(`perps.transactions.tabs.${tab.toLowerCase()}`)}
           </Text>
         </TouchableOpacity>
       );
@@ -396,10 +319,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const renderEmptyState = () => (
     <View style={styles.emptyContainer}>
       <Text style={styles.emptyText}>
-        No {activeFilter.toLowerCase()} transactions yet
+        {strings('perps.transactions.empty_state.no_transactions', {
+          type: activeFilter.toLowerCase(),
+        })}
       </Text>
       <Text style={styles.emptyText}>
-        Your trading history will appear here
+        {strings('perps.transactions.empty_state.history_will_appear')}
       </Text>
     </View>
   );

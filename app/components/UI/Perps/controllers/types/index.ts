@@ -434,9 +434,26 @@ export interface IPerpsProvider {
   ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific withdrawal validation
 
   // Historical data operations
-  getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>; // Historical trade fills
-  getOrders(params?: GetOrdersParams): Promise<Order[]>; // Historical order lifecycle
-  getFunding(params?: GetFundingParams): Promise<Funding[]>; // Historical funding payments
+  /**
+   * Historical trade fills - actual executed trades with exact prices and fees.
+   * Purpose: Track what actually happened when orders were executed.
+   * Example: Market long 1 ETH @ $50,000 → OrderFill with exact execution price and fees
+   */
+  getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
+
+  /**
+   * Historical order lifecycle - order placement, modifications, and status changes.
+   * Purpose: Track the complete journey of orders from request to completion.
+   * Example: Limit buy 1 ETH @ $48,000 → Order with status 'open' → 'filled' when executed
+   */
+  getOrders(params?: GetOrdersParams): Promise<Order[]>;
+
+  /**
+   * Historical funding payments - periodic costs/rewards for holding positions.
+   * Purpose: Track ongoing expenses and income from position maintenance.
+   * Example: Holding long ETH position → Funding payment of -$5.00 (you pay the funding)
+   */
+  getFunding(params?: GetFundingParams): Promise<Funding[]>;
 
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
@@ -457,4 +474,7 @@ export interface IPerpsProvider {
   initialize(): Promise<InitializeResult>;
   isReadyToTrade(): Promise<ReadyToTradeResult>;
   disconnect(): Promise<DisconnectResult>;
+
+  // Block explorer
+  getBlockExplorerUrl(address?: string): string;
 }
