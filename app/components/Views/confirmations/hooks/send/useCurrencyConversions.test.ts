@@ -1,7 +1,4 @@
-import {
-  ProviderValues,
-  renderHookWithProvider,
-} from '../../../../../util/test/renderWithProvider';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
   evmSendStateMock,
   TOKEN_ADDRESS_MOCK_1,
@@ -12,8 +9,8 @@ import {
   getFiatValueFn,
   getNativeDisplayValueFn,
   getNativeValueFn,
-  useConversions,
-} from './useConversions';
+  useCurrencyConversions,
+} from './useCurrencyConversions';
 
 jest.mock('../gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: () => ({
@@ -104,11 +101,11 @@ describe('getNativeDisplayValueFn', () => {
   });
 });
 
-describe('useConversions', () => {
+describe('useCurrencyConversions', () => {
   it('return function getMaxAmount', () => {
     const { result } = renderHookWithProvider(
-      () => useConversions(),
-      mockState as ProviderValues,
+      () => useCurrencyConversions(),
+      mockState,
     );
     expect(result.current.getFiatDisplayValue).toBeDefined();
     expect(result.current.getFiatValue).toBeDefined();
