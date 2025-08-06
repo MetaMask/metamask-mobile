@@ -52,17 +52,20 @@ export function transformFillsToTransactions(
     }
 
     let amount = '';
+    let amountBN = BigNumber(0);
+
     if (isFlipped) {
-      amount = `${isPositive ? '+' : '-'}${BigNumber(fill.startPosition || '0')
+      amountBN = BigNumber(fill.startPosition || '0')
         .minus(fill.size)
+        .times(fill.price);
+      amount = `${isPositive ? '+' : '-'}${amountBN
         .absoluteValue()
-        .times(fill.price)
         .toString()} ${fill.symbol}`;
     } else {
-      amount = `${isPositive ? '+' : '-'}${BigNumber(fill.size)
-        .times(fill.price)
-        .plus(fill.fee)
-        .toString()} ${fill.feeToken}`;
+      amountBN = BigNumber(fill.size).times(fill.price).plus(fill.fee);
+      amount = `${isPositive ? '+' : '-'}${amountBN.toString()} ${
+        fill.feeToken
+      }`;
     }
 
     const absAmount = Math.abs(parseFloat(amount)).toFixed(2);
@@ -85,7 +88,7 @@ export function transformFillsToTransactions(
             : part2?.toLowerCase() || ''
         }`,
         amount: amountUSD,
-        amountNumber: parseFloat(parseFloat(amount).toFixed(2)),
+        amountNumber: parseFloat(amountBN.toFixed(2)),
         isPositive,
         size,
         entryPrice: price,
