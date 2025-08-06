@@ -8,12 +8,13 @@ import Text, {
 import {
   CHART_INTERVALS,
   PERPS_CHART_CONFIG,
+  ChartInterval,
 } from '../../constants/chartConfig';
 import { selectorStyleSheet } from './PerpsCandlestickChartIntervalSelector.styles.ts';
 
 interface PerpsCandlestickChartIntervalSelectorProps {
-  selectedInterval: string;
-  onIntervalChange?: (interval: string) => void;
+  selectedInterval: ChartInterval | string;
+  onIntervalChange?: (interval: ChartInterval) => void;
   testID?: string;
 }
 
