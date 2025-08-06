@@ -14,7 +14,7 @@ interface UsePerpsOrderFormParams {
   initialType?: OrderType;
 }
 
-interface UsePerpsOrderFormReturn {
+export interface UsePerpsOrderFormReturn {
   orderForm: OrderFormState;
   updateOrderForm: (updates: Partial<OrderFormState>) => void;
   setAmount: (amount: string) => void;

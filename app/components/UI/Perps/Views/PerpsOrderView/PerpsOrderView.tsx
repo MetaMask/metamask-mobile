@@ -85,7 +85,6 @@ import {
   usePerpsMarketData,
   usePerpsOrderExecution,
   usePerpsOrderFees,
-  usePerpsOrderForm,
   usePerpsOrderValidation,
   usePerpsPaymentTokens,
   usePerpsPrices,
@@ -98,6 +97,10 @@ import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Keypad from '../../../../Base/Keypad';
+import {
+  PerpsOrderProvider,
+  usePerpsOrderContext,
+} from '../../contexts/PerpsOrderContext';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -115,9 +118,9 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
 }
 
-const PerpsOrderView: React.FC = () => {
+// Extract the main content into a separate component that uses context
+const PerpsOrderViewContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   const { top } = useSafeAreaInsets();
   const { colors } = useTheme();
 
@@ -134,14 +137,6 @@ const PerpsOrderView: React.FC = () => {
   const tokenList = useSelector(selectTokenList);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
-  // Get navigation params
-  const {
-    direction = 'long',
-    asset = 'BTC',
-    amount: paramAmount,
-    leverage: paramLeverage,
-  } = route.params || {};
-
   const cachedAccountState = usePerpsAccount();
 
   // Get real HyperLiquid USDC balance
@@ -149,14 +144,7 @@ const PerpsOrderView: React.FC = () => {
     cachedAccountState?.availableBalance?.toString() || '0',
   );
 
-  // Market data hook
-  const {
-    marketData,
-    isLoading: isLoadingMarketData,
-    error: marketDataError,
-  } = usePerpsMarketData(asset);
-
-  // Order form state management
+  // Get order form state from context instead of hook
   const {
     orderForm,
     setAmount,
@@ -169,12 +157,14 @@ const PerpsOrderView: React.FC = () => {
     handleMaxAmount,
     handleMinAmount,
     calculations,
-  } = usePerpsOrderForm({
-    initialAsset: asset,
-    initialDirection: direction,
-    initialAmount: paramAmount,
-    initialLeverage: paramLeverage,
-  });
+  } = usePerpsOrderContext();
+
+  // Market data hook - now uses orderForm.asset from context
+  const {
+    marketData,
+    isLoading: isLoadingMarketData,
+    error: marketDataError,
+  } = usePerpsMarketData(orderForm.asset);
 
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
@@ -314,7 +304,9 @@ const PerpsOrderView: React.FC = () => {
           { label: strings('perps.order.error.invalid_asset'), isBold: true },
           { label: ': ', isBold: false },
           {
-            label: strings('perps.order.error.asset_not_tradable', { asset }),
+            label: strings('perps.order.error.asset_not_tradable', {
+              asset: orderForm.asset,
+            }),
             isBold: false,
           },
         ],
@@ -331,7 +323,7 @@ const PerpsOrderView: React.FC = () => {
         },
       });
     }
-  }, [marketDataError, asset, toastRef, navigation]);
+  }, [marketDataError, orderForm.asset, toastRef, navigation]);
 
   // Real-time position size calculation
   const positionSize = useMemo(
@@ -923,6 +915,30 @@ const PerpsOrderView: React.FC = () => {
         />
       )}
     </SafeAreaView>
+  );
+};
+
+// Main component that wraps content with context provider
+const PerpsOrderView: React.FC = () => {
+  const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+
+  // Get navigation params to pass to context provider
+  const {
+    direction = 'long',
+    asset = 'BTC',
+    amount: paramAmount,
+    leverage: paramLeverage,
+  } = route.params || {};
+
+  return (
+    <PerpsOrderProvider
+      initialAsset={asset}
+      initialDirection={direction}
+      initialAmount={paramAmount}
+      initialLeverage={paramLeverage}
+    >
+      <PerpsOrderViewContent />
+    </PerpsOrderProvider>
   );
 };
 

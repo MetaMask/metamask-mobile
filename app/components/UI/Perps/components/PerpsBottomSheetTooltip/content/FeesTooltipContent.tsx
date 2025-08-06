@@ -12,12 +12,12 @@ import {
   usePerpsOrderFees,
   formatFeeRate,
 } from '../../../hooks/usePerpsOrderFees';
-import { usePerpsOrderForm } from '../../../hooks';
+import { usePerpsOrderContext } from '../../../contexts/PerpsOrderContext';
 
 const FeesTooltipContent = ({ testID }: TooltipContentProps) => {
   const { styles } = useStyles(createStyles, {});
 
-  const { orderForm } = usePerpsOrderForm();
+  const { orderForm } = usePerpsOrderContext();
 
   // Get actual fee rates from the hook
   const { metamaskFeeRate, protocolFeeRate } = usePerpsOrderFees({
