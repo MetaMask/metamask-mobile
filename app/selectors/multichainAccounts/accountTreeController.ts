@@ -26,10 +26,7 @@ export const selectAccountTreeControllerState = (state: RootState) =>
 export const selectValidatedAccountTreeState = createDeepEqualSelector(
   [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
   (accountTreeState, multichainAccountsState1Enabled) => ({
-    isValid:
-      multichainAccountsState1Enabled &&
-      accountTreeState?.accountTree?.wallets &&
-      Object.keys(accountTreeState.accountTree.wallets).length > 0,
+    isValid: multichainAccountsState1Enabled,
     accountTreeState,
   }),
 );
@@ -160,6 +157,12 @@ export const selectAccountGroupsByWallet = createDeepEqualSelector(
   },
 );
 
+/**
+ * Get the selected account group from the AccountTreeController
+ * @param state - Root redux state
+ * @param selectedAccountId - The ID of the selected account
+ * @returns The selected account group or null if not found
+ */
 export const selectSelectedAccountGroup = createDeepEqualSelector(
   [selectValidatedAccountTreeState, selectSelectedInternalAccountId],
   (
