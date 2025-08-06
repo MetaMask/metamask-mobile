@@ -651,6 +651,9 @@ class OptinMetrics extends PureComponent {
 }
 
 OptinMetrics.contextType = ThemeContext;
+OptinMetrics.navigationOptions = {
+  headerShown: false,
+};
 
 const mapStateToProps = (state) => ({
   events: state.onboarding.events,
