@@ -364,8 +364,6 @@ const PerpsOrderView: React.FC = () => {
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
     orderForm,
-    // TODO: Update usePerpsOrderValidation to use orderForm.type instead of separate orderType
-    orderType: orderForm.type,
     positionSize,
     assetPrice: assetData.price,
     availableBalance,
