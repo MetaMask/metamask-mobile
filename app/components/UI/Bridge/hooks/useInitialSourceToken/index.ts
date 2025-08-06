@@ -74,11 +74,12 @@ export const useInitialSourceToken = (
     selectedNetworkName: selectedEvmNetworkName,
   });
 
+  const chainId = isEvmNetworkSelected
+    ? selectedEvmChainId
+    : selectedNonEvmNetworkChainId;
+
   // Will default to the native token of the current chain if no token is provided
   if (!initialSourceToken && !sourceToken) {
-    const chainId = isEvmNetworkSelected
-      ? selectedEvmChainId
-      : selectedNonEvmNetworkChainId;
     dispatch(setSourceToken(getNativeSourceToken(chainId)));
     return;
   }
@@ -100,7 +101,7 @@ export const useInitialSourceToken = (
   }
 
   // Change network if necessary
-  if (initialSourceToken?.chainId !== selectedEvmChainId) {
+  if (initialSourceToken?.chainId !== chainId) {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     if (initialSourceToken?.chainId === SolScope.Mainnet) {
       onNonEvmNetworkChange(initialSourceToken?.chainId);
