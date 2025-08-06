@@ -3,7 +3,7 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { SendContextProvider } from '../../../context/send-context';
-import Asset from './asset';
+import { Asset } from './asset';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),

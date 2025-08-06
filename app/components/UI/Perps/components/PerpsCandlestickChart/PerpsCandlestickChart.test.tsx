@@ -1,5 +1,10 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
@@ -578,6 +583,79 @@ describe('CandlestickChartComponent', () => {
 
       // Assert
       expect(screen.getByText('No chart data available')).toBeOnTheScreen();
+    });
+  });
+
+  describe('TP/SL Lines', () => {
+    it('renders TP/SL lines when tpslLines prop is provided with valid prices', async () => {
+      // Arrange
+      const propsWithTPSL = {
+        ...defaultProps,
+        tpslLines: {
+          takeProfitPrice: '46800', // Within chart range (44000-47000)
+          stopLossPrice: '44500', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithTPSL} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const tpslElements = screen.getAllByTestId(/tpsl-/);
+        expect(tpslElements).toHaveLength(2); // One for TP, one for SL
+      });
+    });
+
+    it('does not render TP/SL lines when tpslLines prop is not provided', () => {
+      // Arrange & Act
+      render(<CandlestickChartComponent {...defaultProps} />);
+
+      // Assert
+      const tpslElements = screen.queryAllByTestId(/tpsl-/);
+      expect(tpslElements).toHaveLength(0);
+    });
+
+    it('renders only TP line when only takeProfitPrice is provided', async () => {
+      // Arrange
+      const propsWithTPOnly = {
+        ...defaultProps,
+        tpslLines: {
+          takeProfitPrice: '46800', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithTPOnly} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const tpslElements = screen.getAllByTestId(/tpsl-tp/);
+        expect(tpslElements).toHaveLength(1);
+        const slElements = screen.queryAllByTestId(/tpsl-sl/);
+        expect(slElements).toHaveLength(0);
+      });
+    });
+
+    it('renders only SL line when only stopLossPrice is provided', async () => {
+      // Arrange
+      const propsWithSLOnly = {
+        ...defaultProps,
+        tpslLines: {
+          stopLossPrice: '44500', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithSLOnly} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const tpslElements = screen.getAllByTestId(/tpsl-sl/);
+        expect(tpslElements).toHaveLength(1);
+        const tpElements = screen.queryAllByTestId(/tpsl-tp/);
+        expect(tpElements).toHaveLength(0);
+      });
     });
   });
 });
