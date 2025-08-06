@@ -514,8 +514,18 @@
     },
     "token_modal": {
       "select_a_token": "Select a Token",
+      "select_token": "Select token",
       "search_by_name_or_address": "Search token by name or address",
       "no_tokens_found": "No tokens match \"{{searchString}}\""
+    },
+    "networks_filter_bar": {
+      "all_networks": "All networks"
+    },
+    "networks_filter_selector": {
+      "select_network": "Select network",
+      "select_all":"Select all",
+      "deselect_all": "Deselect all",
+      "apply": "Apply"
     },
     "configuration_modal": {
       "title": "Options",
@@ -4762,7 +4772,9 @@
       "signing_in_with": "Signing in with",
       "spender": "Spender",
       "now": "Now",
-      "switching_to": "Switching To"
+      "switching_to": "Switching To",
+      "bridge_estimated_time": "Est. time",
+      "pay_with": "Pay with"
     },
     "title": {
       "signature": "Signature request",
@@ -4774,7 +4786,8 @@
       "contract_deployment": "Deploy a contract",
       "transfer": "Transfer request",
       "switch_account_type": "Account update",
-      "approve": "Approve request"
+      "approve": "Approve request",
+      "perps_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",

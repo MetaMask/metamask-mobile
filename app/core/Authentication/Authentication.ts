@@ -746,7 +746,12 @@ class AuthenticationService {
           const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
 
           // import the new mnemonic to the current vault
-          await this.importSeedlessMnemonicToVault(mnemonicToRestore);
+          const keyringMetadata = await this.importSeedlessMnemonicToVault(
+            mnemonicToRestore,
+          );
+
+          // discover multichain accounts from imported srp
+          this.addMultichainAccounts([keyringMetadata]);
         } else {
           Logger.error(new Error('Unknown secret type'), secret.type);
         }

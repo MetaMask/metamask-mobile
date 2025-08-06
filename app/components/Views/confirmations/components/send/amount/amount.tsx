@@ -1,92 +1,49 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import Button, {
+  ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import Input from '../../../../../../component-library/components/Form/TextField/foundation/Input';
-import Text, {
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
-import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
+import Routes from '../../../../../../constants/navigation/Routes';
+import Text from '../../../../../../component-library/components/Texts/Text';
+import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 import { useStyles } from '../../../../../hooks/useStyles';
-import useAmountValidation from '../../../hooks/send/useAmountValidation';
-import useConversions from '../../../hooks/send/useConversions';
-import useMaxAmount from '../../../hooks/send/useMaxAmount';
+import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendContext } from '../../../context/send-context';
-import styleSheet from './amount.styles';
+import { useSendAmountConfirmDisabled } from '../../../hooks/send/useSendAmountConfirmDisabled';
+import { useSendScreenNavigation } from '../../../hooks/send/useSendScreenNavigation';
+import { AmountEdit } from './amount-edit';
+import { styleSheet } from './amount.styles';
 
-const Amount = () => {
+export const Amount = () => {
+  const { gotToSendScreen } = useSendScreenNavigation();
+  const from = useSelector(selectSelectedInternalAccount);
   const { styles } = useStyles(styleSheet, {});
-  const { updateValue } = useSendContext();
-  const { getMaxAmount } = useMaxAmount();
-  const [amount, updateAmount] = useState('');
-  const { amountError } = useAmountValidation();
-  const primaryCurrency = useSelector(selectPrimaryCurrency) ?? 'ETH';
-  const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
-  const {
-    getFiatDisplayValue,
-    getFiatValue,
-    getNativeDisplayValue,
-    getNativeValue,
-  } = useConversions();
+  const { asset } = useSendContext();
+  const { isDisabled } = useSendAmountConfirmDisabled();
+  useRouteParams();
 
-  useEffect(() => {
-    setFiatMode(primaryCurrency === 'Fiat');
-  }, [primaryCurrency, setFiatMode]);
-
-  const alternateDisplayValue = useMemo(
-    () =>
-      fiatMode ? getNativeDisplayValue(amount) : getFiatDisplayValue(amount),
-    [amount, fiatMode, getFiatDisplayValue, getNativeDisplayValue],
-  );
-
-  const updateToMaxAmount = useCallback(() => {
-    const maxAmount = getMaxAmount();
-    updateAmount(fiatMode ? getFiatValue(maxAmount).toString() : maxAmount);
-    updateValue(maxAmount);
-  }, [fiatMode, getFiatValue, getMaxAmount, updateAmount, updateValue]);
-
-  const updateToNewAmount = useCallback(
-    (amt: string) => {
-      updateAmount(amt);
-      updateValue(fiatMode ? getNativeValue(amt) : amt);
-    },
-    [fiatMode, getNativeValue, updateAmount, updateValue],
-  );
-
-  const toggleFiatMode = useCallback(() => {
-    setFiatMode(!fiatMode);
-    updateAmount('');
-    updateValue('');
-  }, [fiatMode, setFiatMode, updateAmount, updateValue]);
+  const goToNextPage = useCallback(() => {
+    gotToSendScreen(Routes.SEND.RECIPIENT);
+  }, [gotToSendScreen]);
 
   return (
-    <View>
-      <Text>Value:</Text>
-      <Input
-        style={styles.input}
-        value={amount}
-        onChangeText={updateToNewAmount}
-        testID="send_amount"
-      />
-      <Text>{fiatMode ? 'Native value' : 'Fiat value'}:</Text>
-      <Text>{alternateDisplayValue}</Text>
+    <View style={styles.container}>
+      <Text>Asset: {asset?.address ?? 'NA'}</Text>
+      <View>
+        <Text>From:</Text>
+        <Text>{from?.address}</Text>
+      </View>
+      <AmountEdit />
       <Button
-        label={fiatMode ? 'Native mode' : 'Fiat mode'}
-        onPress={toggleFiatMode}
-        variant={ButtonVariants.Secondary}
-        testID="fiat_toggle"
-      />
-      <Text color={TextColor.Error}>{amountError}</Text>
-      <Button
-        label="Max"
-        onPress={updateToMaxAmount}
-        variant={ButtonVariants.Secondary}
+        label="Continue"
+        disabled={isDisabled}
+        onPress={goToNextPage}
+        variant={ButtonVariants.Primary}
+        size={ButtonSize.Lg}
       />
     </View>
   );
 };
-
-export default Amount;

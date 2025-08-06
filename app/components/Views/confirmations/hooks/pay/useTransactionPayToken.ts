@@ -9,6 +9,7 @@ import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 import { useCallback } from 'react';
 import { RootState } from '../../../../../reducers';
 import { Hex } from '@metamask/utils';
+import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
 
 export function useTransactionPayToken() {
   const dispatch = useDispatch();
@@ -20,10 +21,22 @@ export function useTransactionPayToken() {
     selectTransactionPayToken(state, transactionId as string),
   );
 
+  const chainId = selectedPayToken?.chainId || transactionChainId;
+
+  const chainTokens = Object.values(
+    useSelector((state) => selectTokensByChainIdAndAddress(state, chainId)),
+  );
+
+  const token = chainTokens.find(
+    (t) => t.address.toLowerCase() === selectedPayToken?.address.toLowerCase(),
+  );
+
   const defaultPayToken: TransactionPayToken = {
     address: EMPTY_ADDRESS,
     chainId: transactionChainId as Hex,
   };
+
+  const decimals = token?.decimals ?? 18;
 
   const setPayToken = useCallback(
     (payToken: TransactionPayToken) => {
@@ -40,6 +53,7 @@ export function useTransactionPayToken() {
   const payToken = selectedPayToken ?? defaultPayToken;
 
   return {
+    decimals,
     payToken,
     setPayToken,
   };
