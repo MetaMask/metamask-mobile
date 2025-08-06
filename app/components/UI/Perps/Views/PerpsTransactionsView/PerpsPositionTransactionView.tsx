@@ -109,14 +109,16 @@ const PerpsPositionTransactionView: React.FC = () => {
   ].filter(Boolean);
 
   if (transaction.fill?.pnl && transaction.fill?.action === 'Closed') {
-    const greaterThanZero = BigNumber(transaction.fill?.pnl).isGreaterThan(0);
+    const greaterThanOrEqualToZero = BigNumber(
+      transaction.fill?.pnl,
+    ).isGreaterThanOrEqualTo(0);
     const greaterThanCent = BigNumber(transaction.fill?.pnl).isGreaterThan(
       0.01,
     );
     const lessThanNegCent = BigNumber(transaction.fill?.pnl).isLessThan(-0.01);
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.pnl'),
-      value: greaterThanZero
+      value: greaterThanOrEqualToZero
         ? `${
             greaterThanCent
               ? formatPnl(transaction.fill?.pnl)
@@ -137,7 +139,7 @@ const PerpsPositionTransactionView: React.FC = () => {
   if (transaction.fill?.points) {
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.points'),
-      value: transaction.fill?.points,
+      value: `+${transaction.fill?.points}`,
       textColor: TextColor.Success,
     });
   }

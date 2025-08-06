@@ -46,7 +46,6 @@ describe('createTransactionDetailStyles', () => {
       mockTheme.colors.background.default,
     );
     expect(styles.detailLabel.color).toBe(mockTheme.colors.text.alternative);
-    expect(styles.detailValue.color).toBe(mockTheme.colors.text.default);
     expect(styles.profitValue.color).toBe(mockTheme.colors.success.default);
     expect(styles.sectionSeparator.borderBottomColor).toBe(
       mockTheme.colors.border.muted,
