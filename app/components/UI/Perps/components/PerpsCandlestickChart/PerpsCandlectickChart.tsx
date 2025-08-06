@@ -79,6 +79,9 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const [dataWindowStart, setDataWindowStart] = React.useState(0);
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = React.useState(false);
 
+  // Settings change tracking
+  const [isSettingsChanging, setIsSettingsChanging] = React.useState(false);
+
   // Dual candle data state
   const [allCandleData, setAllCandleData] = React.useState<CandleData | null>(
     null,
@@ -86,12 +89,43 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const [displayedCandleData, setDisplayedCandleData] =
     React.useState<CandleData | null>(null);
 
+  // Fixed window size based on duration and interval selection
+  const dataWindowSize = React.useMemo(() => {
+    const calculatedSize = calculateCandleCount(
+      selectedDuration,
+      selectedInterval,
+    );
+
+    DevLogger.log('Data window size calculated:', {
+      selectedDuration,
+      selectedInterval,
+      calculatedSize,
+    });
+
+    return calculatedSize;
+  }, [selectedDuration, selectedInterval]);
+
   // Sync allCandleData with incoming candleData prop
   React.useEffect(() => {
     if (candleData) {
       setAllCandleData(candleData);
+
+      // If this is new data after settings change, ensure window bounds are valid
+      if (isSettingsChanging) {
+        // Reset window to start if current position would be invalid
+        const maxValidStart = Math.max(
+          0,
+          candleData.candles.length - dataWindowSize,
+        );
+        if (dataWindowStart > maxValidStart) {
+          setDataWindowStart(0);
+        }
+      }
+
+      // Reset settings changing flag when new data arrives
+      setIsSettingsChanging(false);
     }
-  }, [candleData]);
+  }, [candleData, isSettingsChanging, dataWindowStart, dataWindowSize]);
 
   // Get candlestick colors from centralized configuration
   // This allows for easy customization and potential user settings integration
@@ -118,12 +152,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
         // Validate numeric values
         if (isNaN(open) || isNaN(high) || isNaN(low) || isNaN(close)) {
-          console.warn(`Invalid candle data for time ${candle.time}`, {
-            open: candle.open,
-            high: candle.high,
-            low: candle.low,
-            close: candle.close,
-          });
           return null;
         }
 
@@ -133,23 +161,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         (candle): candle is NonNullable<typeof candle> => candle !== null,
       ); // Remove invalid candles
   }, [allCandleData]);
-
-  // Fixed window size based on duration and interval selection
-  const dataWindowSize = React.useMemo(() => {
-    const calculatedSize = calculateCandleCount(
-      selectedDuration,
-      selectedInterval,
-    );
-
-    DevLogger.log('Data window size calculated:', {
-      selectedDuration,
-      selectedInterval,
-      calculatedSize,
-      availableData: fullTransformedData?.length || 0,
-    });
-
-    return calculatedSize;
-  }, [selectedDuration, selectedInterval, fullTransformedData?.length]);
 
   // Calculate if we can navigate in each direction
   const canNavigateLeft = React.useMemo(
@@ -179,11 +190,27 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       return;
     }
 
-    const endIndex = Math.min(
-      dataWindowStart + dataWindowSize,
+    // During settings changes, ensure we have valid window bounds
+    const safeDataWindowSize = Math.min(
+      dataWindowSize,
       fullTransformedData.length,
     );
-    const startIndex = Math.max(0, dataWindowStart);
+    const safeDataWindowStart = Math.min(
+      dataWindowStart,
+      Math.max(0, fullTransformedData.length - safeDataWindowSize),
+    );
+
+    const endIndex = Math.min(
+      safeDataWindowStart + safeDataWindowSize,
+      fullTransformedData.length,
+    );
+    const startIndex = Math.max(0, safeDataWindowStart);
+
+    // Ensure we have valid indices
+    if (startIndex >= allCandleData.candles.length || endIndex <= startIndex) {
+      setDisplayedCandleData(null);
+      return;
+    }
 
     // Get the corresponding original candle data for the window
     const windowedCandles = allCandleData.candles.slice(startIndex, endIndex);
@@ -215,12 +242,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
         // Validate numeric values
         if (isNaN(open) || isNaN(high) || isNaN(low) || isNaN(close)) {
-          console.warn(`Invalid candle data for time ${candle.time}`, {
-            open: candle.open,
-            high: candle.high,
-            low: candle.low,
-            close: candle.close,
-          });
           return null;
         }
 
@@ -236,18 +257,11 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     setIsPanning(panning);
   }, []);
 
-  // JavaScript callback wrapper for logging
-  const logJS = useCallback((message: string, ...args: unknown[]) => {
-    DevLogger.log(message, ...args);
-  }, []);
-
   const updateDataWindowStartJS = useCallback(
     (direction: 'left' | 'right') => {
       if (direction === 'left' && canNavigateLeft) {
         if (onLoadMoreData) {
-          onLoadMoreData('left').catch((error) => {
-            runOnJS(logJS)('Failed to load more data (left):', error);
-          });
+          onLoadMoreData('left');
         }
       } else if (direction === 'right' && canNavigateRight) {
         // For right panning, update window position first, then trigger data refresh
@@ -261,18 +275,10 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
           // Trigger data refresh after updating window position
           if (onLoadMoreData) {
-            onLoadMoreData('right').catch((error) => {
-              runOnJS(logJS)('Failed to refresh data (right):', error);
-            });
+            onLoadMoreData('right');
           }
 
           return newStart;
-        });
-      } else {
-        runOnJS(logJS)('Navigation blocked:', {
-          direction,
-          canNavigateLeft,
-          canNavigateRight,
         });
       }
     },
@@ -281,7 +287,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       canNavigateRight,
       dataWindowSize,
       fullTransformedData?.length,
-      logJS,
       onLoadMoreData,
     ],
   );
@@ -302,7 +307,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         .failOffsetY([-20, 20]) // Don't interfere with vertical scrolling
         .onUpdate((event) => {
           if (!isPanEnabled || isPanning) return;
-          runOnJS(logJS)('PANNING ACTIVE');
 
           const { translationX, velocityX } = event;
 
@@ -335,7 +339,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       isLoadingMoreData,
       isPanning,
       setPanningJS,
-      logJS,
       updateDataWindowStartJS,
       handlePanNavigateJS,
     ],
@@ -345,7 +348,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const hasInitializedWindow = React.useRef(false);
   const lastDuration = React.useRef(selectedDuration);
   const lastInterval = React.useRef(selectedInterval);
-  const [isSettingsChanging, setIsSettingsChanging] = React.useState(false);
 
   // Immediate reset when interval/duration changes (before new data loads)
   useEffect(() => {
@@ -356,10 +358,13 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     if (settingsChanged) {
       setIsSettingsChanging(true);
 
+      // Don't clear candle data - keep current data visible for smooth transition
+      // The new data will trigger wagmi-charts animation when it arrives
+
       // Reset panning state and allow re-initialization with new data
       setIsPanning(false);
       hasInitializedWindow.current = false; // Allow re-initialization with new data
-      setHasInitiallyLoaded(false); // Reset to show skeleton during settings change
+      // Don't reset hasInitiallyLoaded - we want to avoid skeleton
 
       // Always reset to start position when settings change
       // The data initialization useEffect will handle setting the correct position once new data arrives
@@ -367,15 +372,19 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
       // The isSettingsChanging flag will be reset when new data arrives
 
-      DevLogger.log('Settings changed - immediate reset:', {
-        previousDuration: lastDuration.current,
-        newDuration: selectedDuration,
-        previousInterval: lastInterval.current,
-        newInterval: selectedInterval,
-        oldDataLength: fullTransformedData.length,
-        newDataWindowSize: dataWindowSize,
-        resetDataWindowStart: 0,
-      });
+      DevLogger.log(
+        'Settings changed - keeping current data for smooth transition:',
+        {
+          previousDuration: lastDuration.current,
+          newDuration: selectedDuration,
+          previousInterval: lastInterval.current,
+          newInterval: selectedInterval,
+          oldDataLength: fullTransformedData.length,
+          newDataWindowSize: dataWindowSize,
+          resetDataWindowStart: 0,
+          keepingCurrentData: true,
+        },
+      );
 
       lastDuration.current = selectedDuration;
       lastInterval.current = selectedInterval;
@@ -559,8 +568,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return lines.length > 0 ? lines : null;
   }, [tpslLines, displayedTransformedData, height]);
 
-  // Show skeleton on initial load or when settings are changing and loading new data
-  if ((isLoading && !hasInitiallyLoaded) || (isLoading && isSettingsChanging)) {
+  // Show skeleton only on initial load, not during settings changes (use wagmi animation instead)
+  if (isLoading && !hasInitiallyLoaded) {
     return (
       <View style={styles.chartContainer}>
         {/* Chart placeholder with same height */}
