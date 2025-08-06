@@ -217,6 +217,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   CANDLE_PERIOD_BOTTOM_SHEET: 'perps-market-candle-period-bottom-sheet',
   OPEN_INTEREST_INFO_ICON: 'perps-market-details-open-interest-info-icon',
   FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',
+  BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
 };
 
 // ========================================
