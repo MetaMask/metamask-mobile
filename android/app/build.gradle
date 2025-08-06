@@ -317,25 +317,26 @@ android {
             applicationId "io.metamask"
             // Use QA signing config for E2E testing to avoid keystore issues
             if (System.getenv("E2E") == 'true') {
-              signingConfig signingConfigs.qa
+              signingConfig signingConfigs.qaProd
             } else {
-              signingConfig signingConfigs.release
-            signingConfig signingConfigs.mainProd
-            // Use the appropriate signing config based on environment
-            if (System.getenv("METAMASK_ENVIRONMENT") == 'exp') {
-              signingConfig signingConfigs.mainExp
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'test') {
-              signingConfig signingConfigs.mainTest
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'e2e') {
-              signingConfig signingConfigs.mainE2e
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'prod')  {
-              signingConfig signingConfigs.mainProd
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'rc')  {
-              signingConfig signingConfigs.mainRc
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'beta')  {
-              signingConfig signingConfigs.mainBeta
-            } else if (System.getenv("METAMASK_ENVIRONMENT") == 'local') {
-              signingConfig signingConfigs.mainDev
+              // Use the appropriate signing config based on environment
+              if (System.getenv("METAMASK_ENVIRONMENT") == 'exp') {
+                signingConfig signingConfigs.mainExp
+              } else if (System.getenv("METAMASK_ENVIRONMENT") == 'test') {
+                signingConfig signingConfigs.mainTest
+              } else if (System.getenv("METAMASK_ENVIRONMENT") == 'e2e') {
+                signingConfig signingConfigs.mainE2e
+              } else if (System.getenv("METAMASK_ENVIRONMENT") == 'prod')  {
+                signingConfig signingConfigs.mainProd
+              } else if (System.getenv("METAMASK_ENVIRONMENT") == 'rc')  {
+                signingConfig signingConfigs.mainRc
+              } else if (System.getenv("METAMASK_ENVIRONMENT") == 'beta')  {
+                signingConfig signingConfigs.mainBeta
+              } else if (System.getenv("METAMASK_ENVIRONMENT") == 'local') {
+                signingConfig signingConfigs.mainDev
+              } else {
+                signingConfig signingConfigs.mainProd
+              }
             }
           }
           flask {
