@@ -78,13 +78,23 @@ const FundActionMenu = () => {
     [closeBottomSheetAndNavigate, trackEvent, createEventBuilder, customOnBuy],
   );
 
-  const getChainIdForAsset = useCallback(
-    () =>
-      assetContext?.chainId
-        ? parseInt(assetContext.chainId, 16)
-        : getDecimalChainId(chainId),
-    [assetContext?.chainId, chainId],
-  );
+  const getChainIdForAsset = useCallback(() => {
+    if (assetContext?.chainId) {
+      // Safely parse chainId - if it's hex (starts with 0x), convert to decimal
+      // If it's already decimal or invalid format, use as-is
+      if (
+        typeof assetContext.chainId === 'string' &&
+        assetContext.chainId.startsWith('0x')
+      ) {
+        const parsed = parseInt(assetContext.chainId, 16);
+        return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
+      }
+      // If it's already a decimal string, convert to number
+      const parsed = parseInt(assetContext.chainId, 10);
+      return isNaN(parsed) ? getDecimalChainId(chainId) : parsed;
+    }
+    return getDecimalChainId(chainId);
+  }, [assetContext?.chainId, chainId]);
 
   const actionConfigs: ActionConfig[] = useMemo(
     () =>
