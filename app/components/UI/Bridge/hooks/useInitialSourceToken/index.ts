@@ -1,4 +1,5 @@
 import {
+  selectSourceToken,
   setSourceAmount,
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
@@ -16,6 +17,10 @@ import { constants } from 'ethers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
 import usePrevious from '../../../../hooks/usePrevious';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../../../selectors/multichainNetworkController';
 ///: END:ONLY_INCLUDE_IF
 
 export const getNativeSourceToken = (chainId: Hex | CaipChainId) => {
@@ -43,15 +48,20 @@ export const useInitialSourceToken = (
   initialSourceAmount?: string,
 ) => {
   const dispatch = useDispatch();
+  const sourceToken = useSelector(selectSourceToken);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
   const prevInitialSourceToken = usePrevious(initialSourceToken);
+  const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+  const selectedNonEvmNetworkChainId = useSelector(
+    selectSelectedNonEvmNetworkChainId,
+  );
 
   const {
-    chainId: selectedChainId,
+    chainId: selectedEvmChainId,
     domainIsConnectedDapp,
-    networkName: selectedNetworkName,
+    networkName: selectedEvmNetworkName,
   } = useNetworkInfo();
   const {
     onSetRpcTarget,
@@ -60,21 +70,25 @@ export const useInitialSourceToken = (
     ///: END:ONLY_INCLUDE_IF
   } = useSwitchNetworks({
     domainIsConnectedDapp,
-    selectedChainId,
-    selectedNetworkName,
+    selectedChainId: selectedEvmChainId,
+    selectedNetworkName: selectedEvmNetworkName,
   });
+
+  // Will default to the native token of the current chain if no token is provided
+  if (!initialSourceToken && !sourceToken) {
+    const chainId = isEvmNetworkSelected
+      ? selectedEvmChainId
+      : selectedNonEvmNetworkChainId;
+    dispatch(setSourceToken(getNativeSourceToken(chainId)));
+    return;
+  }
 
   if (prevInitialSourceToken === initialSourceToken) return;
 
-  // Will default to the native token of the current chain if no token is provided
-  if (!initialSourceToken) {
-    dispatch(setSourceToken(getNativeSourceToken(selectedChainId)));
-    return;
-  }
   // Fix for the case where the initial source token is the native token of the current chain
-  if (initialSourceToken.address === constants.AddressZero) {
+  if (initialSourceToken?.address === constants.AddressZero) {
     // Set the source token
-    dispatch(setSourceToken(getNativeSourceToken(initialSourceToken.chainId)));
+    dispatch(setSourceToken(getNativeSourceToken(initialSourceToken?.chainId)));
   } else {
     // Set the source token
     dispatch(setSourceToken(initialSourceToken));
@@ -86,14 +100,16 @@ export const useInitialSourceToken = (
   }
 
   // Change network if necessary
-  if (initialSourceToken.chainId !== selectedChainId) {
+  if (initialSourceToken?.chainId !== selectedEvmChainId) {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (initialSourceToken.chainId === SolScope.Mainnet) {
-      onNonEvmNetworkChange(initialSourceToken.chainId);
+    if (initialSourceToken?.chainId === SolScope.Mainnet) {
+      onNonEvmNetworkChange(initialSourceToken?.chainId);
       return;
     }
     ///: END:ONLY_INCLUDE_IF
 
-    onSetRpcTarget(evmNetworkConfigurations[initialSourceToken.chainId as Hex]);
+    onSetRpcTarget(
+      evmNetworkConfigurations[initialSourceToken?.chainId as Hex],
+    );
   }
 };
