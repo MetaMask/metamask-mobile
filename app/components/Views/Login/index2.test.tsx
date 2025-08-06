@@ -335,7 +335,7 @@ describe('Login test suite 2', () => {
       const errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
       expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0m:1s',
+        'Too many attempts. Please try again in 0:00:01',
       );
     });
 
@@ -361,7 +361,7 @@ describe('Login test suite 2', () => {
       let errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement).toBeTruthy();
       expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0m:3s',
+        'Too many attempts. Please try again in 0:00:03',
       );
 
       expect(passwordInput.props.editable).toBe(false);
@@ -372,7 +372,7 @@ describe('Login test suite 2', () => {
 
       errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0m:2s',
+        'Too many attempts. Please try again in 0:00:02',
       );
 
       await act(async () => {
@@ -381,7 +381,7 @@ describe('Login test suite 2', () => {
 
       errorElement = getByTestId(LoginViewSelectors.PASSWORD_ERROR);
       expect(errorElement.props.children).toEqual(
-        'Too many attempts. Please try again in 0m:1s',
+        'Too many attempts. Please try again in 0:00:01',
       );
 
       await act(async () => {
