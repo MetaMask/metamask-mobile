@@ -87,73 +87,74 @@ const FundActionMenu = () => {
   );
 
   const actionConfigs: ActionConfig[] = useMemo(
-    () => [
-      {
-        type: 'deposit',
-        label: strings('fund_actionmenu.deposit'),
-        description: strings('fund_actionmenu.deposit_description'),
-        iconName: IconName.Money,
-        testID: WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON,
-        isVisible: isDepositEnabled,
-        analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
-        analyticsProperties: {
-          text: 'Deposit',
-          location: 'FundActionMenu',
-          chain_id_destination: getDecimalChainId(chainId),
-          ramp_type: 'DEPOSIT',
+    () =>
+      [
+        {
+          type: 'deposit',
+          label: strings('fund_actionmenu.deposit'),
+          description: strings('fund_actionmenu.deposit_description'),
+          iconName: IconName.Money,
+          testID: WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON,
+          isVisible: isDepositEnabled,
+          analyticsEvent: MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
+          analyticsProperties: {
+            text: 'Deposit',
+            location: 'FundActionMenu',
+            chain_id_destination: getDecimalChainId(chainId),
+            ramp_type: 'DEPOSIT',
+          },
+          traceName: TraceName.LoadDepositExperience,
+          navigationAction: () => navigate(Routes.DEPOSIT.ID),
         },
-        traceName: TraceName.LoadDepositExperience,
-        navigationAction: () => navigate(Routes.DEPOSIT.ID),
-      },
-      {
-        type: 'buy',
-        label: strings('fund_actionmenu.buy'),
-        description: strings('fund_actionmenu.buy_description'),
-        iconName: IconName.Add,
-        testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
-        isVisible: isNetworkRampSupported || !!customOnBuy,
-        analyticsEvent: MetaMetricsEvents.BUY_BUTTON_CLICKED,
-        analyticsProperties: {
-          text: 'Buy',
-          location: 'FundActionMenu',
-          chain_id_destination: getChainIdForAsset(),
+        {
+          type: 'buy',
+          label: strings('fund_actionmenu.buy'),
+          description: strings('fund_actionmenu.buy_description'),
+          iconName: IconName.Add,
+          testID: WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
+          isVisible: isNetworkRampSupported || !!customOnBuy,
+          analyticsEvent: MetaMetricsEvents.BUY_BUTTON_CLICKED,
+          analyticsProperties: {
+            text: 'Buy',
+            location: 'FundActionMenu',
+            chain_id_destination: getChainIdForAsset(),
+          },
+          traceName: TraceName.LoadRampExperience,
+          traceProperties: { tags: { rampType: RampType.BUY } },
+          navigationAction: () => {
+            if (customOnBuy) {
+              customOnBuy();
+            } else if (assetContext) {
+              navigate(
+                ...createBuyNavigationDetails({
+                  address: assetContext.address,
+                  chainId: getChainIdForAsset(),
+                }),
+              );
+            } else {
+              navigate(...createBuyNavigationDetails());
+            }
+          },
         },
-        traceName: TraceName.LoadRampExperience,
-        traceProperties: { tags: { rampType: RampType.BUY } },
-        navigationAction: () => {
-          if (customOnBuy) {
-            customOnBuy();
-          } else if (assetContext) {
-            navigate(
-              ...createBuyNavigationDetails({
-                address: assetContext.address,
-                chainId: getChainIdForAsset(),
-              }),
-            );
-          } else {
-            navigate(...createBuyNavigationDetails());
-          }
+        {
+          type: 'sell',
+          label: strings('fund_actionmenu.sell'),
+          description: strings('fund_actionmenu.sell_description'),
+          iconName: IconName.MinusBold,
+          testID: WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
+          isVisible: isNetworkRampSupported,
+          isDisabled: !canSignTransactions,
+          analyticsEvent: MetaMetricsEvents.SELL_BUTTON_CLICKED,
+          analyticsProperties: {
+            text: 'Sell',
+            location: 'FundActionMenu',
+            chain_id_source: getDecimalChainId(chainId),
+          },
+          traceName: TraceName.LoadRampExperience,
+          traceProperties: { tags: { rampType: RampType.SELL } },
+          navigationAction: () => navigate(...createSellNavigationDetails()),
         },
-      },
-      {
-        type: 'sell',
-        label: strings('fund_actionmenu.sell'),
-        description: strings('fund_actionmenu.sell_description'),
-        iconName: IconName.MinusBold,
-        testID: WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
-        isVisible: isNetworkRampSupported,
-        isDisabled: !canSignTransactions,
-        analyticsEvent: MetaMetricsEvents.SELL_BUTTON_CLICKED,
-        analyticsProperties: {
-          text: 'Sell',
-          location: 'FundActionMenu',
-          chain_id_source: getDecimalChainId(chainId),
-        },
-        traceName: TraceName.LoadRampExperience,
-        traceProperties: { tags: { rampType: RampType.SELL } },
-        navigationAction: () => navigate(...createSellNavigationDetails()),
-      },
-    ],
+      ] as ActionConfig[],
     [
       isDepositEnabled,
       isNetworkRampSupported,
