@@ -7,11 +7,10 @@ import { OnboardingCarouselSelectorIDs } from '../../../e2e/selectors/Onboarding
 import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import { expect } from 'appwright';
+import { expect as appwrightExpect } from 'appwright';
 
 class WelcomeScreen  {
   constructor() {
-    console.log('WelcomeScreen constructor');
     this.CAROUSEL_RECTANGLES = null;
   }
 
@@ -91,7 +90,8 @@ class WelcomeScreen  {
     if (!this._device) {
       expect(this.screen).toBeDisplayed();
     } else {
-      expect(await this.screen).toBeVisible();
+      const element = await this.screen;
+      await appwrightExpect(element).toBeVisible();
     }
   }
 
@@ -99,7 +99,8 @@ class WelcomeScreen  {
     if (!this._device) {
       expect(this.getStartedButton).toBeDisplayed();
     } else {
-      expect(this.getStartedButton).toBeVisible();
+      const element = await this.getStartedButton;
+      await appwrightExpect(element).toBeVisible();
     }
   }
 
@@ -165,7 +166,7 @@ class WelcomeScreen  {
       await element.waitForDisplayed({ interval: 500 });
     } else {
       const element = await this.screen;
-      await expect(element).toBeVisible();
+      await appwrightExpect(element).toBeVisible();
     }
   }
 }

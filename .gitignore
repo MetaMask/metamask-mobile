@@ -111,7 +111,9 @@ e2e/specs/performance/reports/*-performance-results.json
 # appwright
 appwright/report
 playwright-report/*
+appwright/test-reports/
 test-results/
+test-reports/
 appwright/reporters/reports/*
 *.apk
 

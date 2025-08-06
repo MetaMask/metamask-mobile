@@ -7,7 +7,7 @@ import {
 import Selectors from '../../helpers/Selectors';
 import { MetaMetricsOptInSelectorsIDs } from '../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import { expect } from 'appwright';
+import { expect as appwrightExpect } from 'appwright';
 
 class MetaMetricsScreen{
 
@@ -52,7 +52,7 @@ class MetaMetricsScreen{
       await expect(this.screenTitle).toBeDisplayed();
     } else {
       const element = await this.screenTitle;
-      await expect(element).toBeVisible({ timeout: 10000 });
+      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
     }
   }
 

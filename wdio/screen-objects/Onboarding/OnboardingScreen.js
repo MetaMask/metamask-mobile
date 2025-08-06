@@ -2,7 +2,7 @@ import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import { OnboardingSelectorIDs } from '../../../e2e/selectors/Onboarding/Onboarding.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import { expect } from 'appwright';
+import { expect as appwrightExpect } from 'appwright';
 
 class OnBoardingScreen {
 
@@ -53,7 +53,7 @@ class OnBoardingScreen {
       await expect(this.title).toBeDisplayed();
     } else {
       const element = await this.title;
-      await expect(element).toBeVisible({ timeout: 10000 });
+      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
     }
   }
 

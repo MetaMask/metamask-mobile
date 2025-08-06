@@ -1,24 +1,68 @@
 import Selectors from '../../helpers/Selectors';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import Gestures from '../../helpers/Gestures';
+import AppwrightSelectors from '../../helpers/AppwrightSelectors';
 
 class AddAccountModal {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
+  get importSrpButton() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON);
+    }
+  }
+
   get newAccountButton() {
-    return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON);
+    }
   }
 
   get importAccountButton() {
-    return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON);
+    }
   }
 
   async tapNewAccountButton() {
-    await Gestures.waitAndTap(this.newAccountButton);
-    const newAccountButton = await this.newAccountButton;
-    await newAccountButton.waitForExist({ reverse: true });
+    if (!this._device) {
+      await Gestures.waitAndTap(this.newAccountButton);
+      const newAccountButton = await this.newAccountButton;
+      await newAccountButton.waitForExist({ reverse: true });
+    } else {
+      const element = await this.newAccountButton;
+      await element.tap();
+    }
   }
 
   async tapImportAccountButton() {
-    await Gestures.waitAndTap(this.importAccountButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.importAccountButton);
+    } else {
+      const element = await this.importAccountButton;
+      await element.tap();
+    }
+  }
+
+  async tapImportSrpButton() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.importSrpButton);
+    } else {
+      const element = await this.importSrpButton;
+      await element.tap();
+    }
   }
 }
 

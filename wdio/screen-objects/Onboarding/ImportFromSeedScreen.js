@@ -2,7 +2,7 @@ import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { ImportFromSeedSelectorsIDs } from '../../../e2e/selectors/Onboarding/ImportFromSeed.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import { expect } from 'appwright';
+import { expect as appwrightExpect, ScrollDirection } from 'appwright';
 
 class ImportFromSeedScreen {
   get device() {
@@ -42,8 +42,12 @@ class ImportFromSeedScreen {
   }
 
 
-  async inputOfIndex(srpIndex) {
-    return `import-from-seed-screen-seed-phrase-input-id_${String(srpIndex)}`;
+  async inputOfIndex(srpIndex, onboarding = true) {
+    if (onboarding)
+      return `import-from-seed-screen-seed-phrase-input-id_${String(srpIndex)}`;
+    else {
+      return `srp-input-word-${String(srpIndex)}`;
+    }
    }
  
 
@@ -52,45 +56,77 @@ class ImportFromSeedScreen {
       await expect(this.screenTitle).toBeDisplayed();
     } else {
       const element = await this.screenTitle;
-      await expect(element).toBeVisible({ timeout: 10000 });
+      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
     }
   }
 
-  async typeSecretRecoveryPhrase(phrase) {
+  async typeSecretRecoveryPhrase(phrase, onboarding = true) {
+    const phraseArray = phrase.split(' ');
     if (!this._device) {
       await Gestures.setValueWithoutTap(this.seedPhraseInput, phrase);
     } else {
-      const phraseArray = phrase.split(' ');
-      const firstWord = phraseArray[0];
-      const lastWord = phraseArray[phraseArray.length - 1];
-      const form = await this.seedPhraseInput
-      await form.fill(`${firstWord} `);
-      for (let i = 1; i < phraseArray.length - 1; i++) {
-        const wordElement = await this.inputOfIndex(i);
-        const input = await this.device.getById(wordElement);
-        await input.fill(`${phraseArray[i]} `);
+      if (onboarding) {
+        const firstWord = phraseArray[0];
+        const lastWord = phraseArray[phraseArray.length - 1];
+        const form = await this.seedPhraseInput
+        await form.fill(`${firstWord} `);
+        for (let i = 1; i < phraseArray.length - 1; i++) {
+          const wordElement = await this.inputOfIndex(i);
+          const input = await AppwrightSelectors.getElementByResourceId(this.device, wordElement);
+          await input.fill(`${phraseArray[i]} `);
+        }
+        const wordElement = await this.inputOfIndex(phraseArray.length - 1);
+        const lastInput = await AppwrightSelectors.getElementByResourceId(this.device, wordElement);
+        await lastInput.fill(lastWord);
+      } else {
+        for (let i = 1; i <= phraseArray.length; i++) {
+          const wordElement = await this.inputOfIndex(i, false);
+          const input = await AppwrightSelectors.getElementByText(this.device, wordElement);
+          await input.fill(`${phraseArray[i-1]} `);
+        }
       }
-      const wordElement = await this.inputOfIndex(phraseArray.length - 1);
-      const lastInput = await this.device.getById(wordElement);
-      await lastInput.fill(lastWord);
     }
   }
 
-  async tapContinueButton() {
-    if (!this._device) {
-      await Gestures.waitAndTap(this.continueButton);
+  async tapContinueButton(onboarding = true) {
+    if (onboarding) {
+      if (!this._device) {
+        await Gestures.waitAndTap(this.continueButton);
+      } else {
+        const element = await this.continueButton;
+        await element.tap();
+      }
     } else {
-      const element = await this.continueButton;
-      await element.tap();
+      if (!this._device) {
+        await Gestures.waitAndTap(this.continueButton);
+      } else {
+        const isIOS = await AppwrightSelectors.isIOS(this.device);
+        if (isIOS) {
+          const element = await AppwrightSelectors.getElementByResourceId(this.device, 'import-button');
+          await element.tap();
+        } else {
+          const element = await AppwrightSelectors.getElementByText(this.device, 'Continue');
+          await element.tap();
+        }
+      }
     }
   }
 
-  async tapImportScreenTitleToDismissKeyboard() {
-    if (!this._device) {
-      await Gestures.waitAndTap(this.screenTitle);
+  async tapImportScreenTitleToDismissKeyboard(onboarding = true) {
+    if (onboarding) {
+      if (!this._device) {
+          await Gestures.waitAndTap(this.screenTitle);
+      } else {
+        const element = await this.screenTitle;
+        await element.tap();
+      }
     } else {
-      const element = await this.screenTitle;
+      if (!this._device) {
+        await Gestures.waitAndTap(this.screenTitle);
+    } else {
+      const element = await AppwrightSelectors.getElementByText(this.device, 'Import Secret Recovery Phrase');
       await element.tap();
+    }
     }
   }
 }

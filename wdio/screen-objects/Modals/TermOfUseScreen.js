@@ -2,7 +2,7 @@ import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import { TermsOfUseModalSelectorsIDs } from '../../../e2e/selectors/Onboarding/TermsOfUseModal.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import { expect } from 'appwright';
+import { expect as appwrightExpect } from 'appwright';
 
 class TermOfUseScreen {
 
@@ -59,7 +59,7 @@ class TermOfUseScreen {
       const container = await this.container;
       await container.waitForDisplayed();
     } else {
-      await expect(await this.container).toBeVisible();
+      await appwrightExpect(await this.container).toBeVisible();
     }
   }
 

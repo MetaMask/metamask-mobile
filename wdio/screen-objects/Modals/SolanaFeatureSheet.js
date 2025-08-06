@@ -5,7 +5,7 @@ import { WalletViewSelectorsIDs } from '../../../e2e/selectors/wallet/WalletView
 import Selectors from '../../helpers/Selectors';
 import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
-import { expect } from 'appwright';
+import { expect as appwrightExpect } from 'appwright';
 
 
 
@@ -116,7 +116,7 @@ class SolanaNewFeatureSheet {
       await expect(this.importAccountButton).toBeDisplayed();
     } else {
       const element = await this.importAccountButton;
-      await expect(element).toBeVisible({ timeout: 10000 });
+      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
     }
   }
 

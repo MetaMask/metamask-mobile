@@ -14,9 +14,12 @@ import WalletAccountModal from '../../wdio/screen-objects/Modals/WalletAccountMo
 import SkipAccountSecurityModal from '../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import ImportFromSeedScreen from '../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
+import WalletMainScreen from '../../wdio/screen-objects/WalletMainScreen.js';
+import AccountListComponent from '../../wdio/screen-objects/AccountListComponent.js';
+import AddAccountModal from '../../wdio/screen-objects/Modals/AddAccountModal.js';
 
 test('Import SRPs', async ({ device }, testInfo) => {
-  const coreUser = new TimerHelper('Core user onboarding timer');
+  const srp1Timer = new TimerHelper('Onboarding SRP 1 timer');
   const screen1Timer = new TimerHelper(
     'Time until the user clicks on the "Get Started" button',
   );
@@ -33,7 +36,12 @@ test('Import SRPs', async ({ device }, testInfo) => {
   SkipAccountSecurityModal.device = device;
   ImportFromSeedScreen.device = device;
   CreatePasswordScreen.device = device;
+  WalletMainScreen.device = device;
+  AccountListComponent.device = device;
+  AddAccountModal.device = device;
+
   //await WelcomeScreen.waitForScreenToDisplay();
+  srp1Timer.start();
   await WelcomeScreen.clickGetStartedButton();
 
   const screen2Timer = new TimerHelper(
@@ -59,19 +67,18 @@ test('Import SRPs', async ({ device }, testInfo) => {
   screen4Timer.start();
   await ImportFromSeedScreen.isScreenTitleVisible();
   screen3Timer.stop();
-  await ImportFromSeedScreen.typeSecretRecoveryPhrase(process.env.TEST_SRP_1);
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(process.env.TEST_SRP_1, true);
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
   await ImportFromSeedScreen.tapContinueButton();
   const screen5Timer = new TimerHelper(
     'Time until the user completes the password fields and MetaMetrics screen is displayed',
   );
+  screen4Timer.stop();
   screen5Timer.start();
   await CreatePasswordScreen.enterPassword('123456789');
   await CreatePasswordScreen.reEnterPassword('123456789');
   await CreatePasswordScreen.tapIUnderstandCheckBox();
   await CreatePasswordScreen.tapCreatePasswordButton();
-  const metaMetricsScreenTimer = new TimerHelper('metaMetricsScreenTimer');
-  metaMetricsScreenTimer.start();
   await MetaMetricsScreen.isScreenTitleVisible();
   screen5Timer.stop();
   await MetaMetricsScreen.tapIAgreeButton();
@@ -83,6 +90,42 @@ test('Import SRPs', async ({ device }, testInfo) => {
   await SolanaFeatureSheet.isVisible();
   await SolanaFeatureSheet.tapNotNowButton();
   screen6Timer.stop();
+  await WalletMainScreen.isMainWalletViewVisible();
+  srp1Timer.stop();
+  const srp2Timer = new TimerHelper('Importing SRP 2 total timer');
+  srp2Timer.start();
+
+  await WalletMainScreen.tapIdenticon();
+  await AccountListComponent.tapAddAccountButton();
+  await AddAccountModal.tapImportSrpButton();
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(process.env.TEST_SRP_2, false);
+  await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard(false);
+
+  const srp2StartImportTimer = new TimerHelper('Time from the user clicks on "Continue" button on Import the second SRP until main wallet view is visible');
+
+  await ImportFromSeedScreen.tapContinueButton(false);
+  srp2StartImportTimer.start();
+  await WalletMainScreen.isMainWalletViewVisible();
+
+  srp2StartImportTimer.stop();
+  srp2Timer.stop();
+  /////// Import SRP 3
+  const srp3Timer = new TimerHelper('Importing SRP 3 total timer');
+  srp3Timer.start();
+
+  await WalletMainScreen.tapIdenticon();
+  await AccountListComponent.tapAddAccountButton();
+  await AddAccountModal.tapImportSrpButton();
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(process.env.TEST_SRP_3, false);
+  await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard(false);
+  const srp3StartImportTimer = new TimerHelper('Time from the user clicks on "Continue" button on Import the third SRP until main wallet view is visible');
+
+  await ImportFromSeedScreen.tapContinueButton(false);
+  srp3StartImportTimer.start();
+  await WalletMainScreen.isMainWalletViewVisible();
+
+  srp3StartImportTimer.stop();
+  srp3Timer.stop();
   const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(screen1Timer);
   performanceTracker.addTimer(screen2Timer);
@@ -90,5 +133,12 @@ test('Import SRPs', async ({ device }, testInfo) => {
   performanceTracker.addTimer(screen4Timer);
   performanceTracker.addTimer(screen5Timer);
   performanceTracker.addTimer(screen6Timer);
+  performanceTracker.addTimer(srp1Timer);
+  performanceTracker.addTimer(srp2StartImportTimer);
+  performanceTracker.addTimer(srp2Timer);
+  performanceTracker.addTimer(srp3StartImportTimer);
+  performanceTracker.addTimer(srp3Timer);
+
+
   await performanceTracker.attachToTest(testInfo);
 });

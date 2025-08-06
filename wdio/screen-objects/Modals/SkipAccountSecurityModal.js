@@ -32,7 +32,7 @@ class SkipAccountSecurityModal {
     } else {
       const button = await this.skipBackupText;
       await button.tap();
-      const skipButton = await AppwrightSelectors.getElementByText(this._device, 'Skip');
+      const skipButton = await AppwrightSelectors.getElementByResourceId(this._device, 'Skip-button');
       await skipButton.tap();
     }
   }
