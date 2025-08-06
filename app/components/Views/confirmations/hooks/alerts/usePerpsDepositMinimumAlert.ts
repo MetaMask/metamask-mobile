@@ -11,9 +11,9 @@ export const MINIMUM_DEPOSIT_USD = 10;
 export function usePerpsDepositMinimumAlert(): Alert[] {
   const { usdValue } = useTokenAmount();
 
-  const underMinimum = new BigNumber(usdValue ?? '0').isLessThan(
-    MINIMUM_DEPOSIT_USD,
-  );
+  const underMinimum =
+    new BigNumber(usdValue ?? '0').isLessThan(MINIMUM_DEPOSIT_USD) &&
+    process.env.MM_CONFIRMATION_INTENTS === 'true';
 
   return useMemo(() => {
     if (!underMinimum) {
