@@ -58,6 +58,10 @@ module.exports = {
       device: 'android.bitrise.emulator',
       app: 'android.release',
     },
+    'android.github_ci.release': {
+      device: 'android.github_ci.emulator',
+      app: 'android.release',
+    },
     'android.emu.flask.release': {
       device: 'android.bitrise.emulator',
       app: 'android.flask.release',
@@ -74,8 +78,14 @@ module.exports = {
       type: 'android.emulator',
       device: {
         avdName: 'emulator',
+      }
+    },
+    'android.github_ci.emulator': {
+      type: 'android.emulator',
+      device: {
+        avdName: 'emulator',
       },
-      // to be used by github action runners later on
+      // optimized for GitHub Actions CI runners
       bootArgs: '-skin 1080x2340 -memory 5120 -cores 2 -gpu swiftshader_indirect -no-audio -no-boot-anim -partition-size 4096 -no-snapshot-save -no-snapshot-load -cache-size 1024 -accel on',
       forceAdbInstall: true,
       gpuMode: 'swiftshader_indirect',
