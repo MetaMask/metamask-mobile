@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback } from 'react';
-import { View, Dimensions , ActivityIndicator } from 'react-native';
+import { View, Dimensions, ActivityIndicator } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 import { CandlestickChart } from 'react-native-wagmi-charts';
@@ -77,6 +77,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
   // Data windowing state
   const [dataWindowStart, setDataWindowStart] = React.useState(0);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = React.useState(false);
 
   // Get candlestick colors from centralized configuration
   // This allows for easy customization and potential user settings integration
@@ -421,6 +422,12 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     selectedDuration,
     selectedInterval,
   ]);
+  // Track when data has been initially loaded
+  useEffect(() => {
+    if (!isLoading && transformedData.length > 0 && !hasInitiallyLoaded) {
+      setHasInitiallyLoaded(true);
+    }
+  }, [isLoading, transformedData.length, hasInitiallyLoaded]);
 
   // Show TP/SL lines after a short delay to ensure chart is rendered
   useEffect(() => {
@@ -556,7 +563,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return lines.length > 0 ? lines : null;
   }, [tpslLines, transformedData, height]);
 
-  if (isLoading) {
+  // Only show skeleton on initial load, not on interval changes
+  if (isLoading && !hasInitiallyLoaded) {
     return (
       <View style={styles.chartContainer}>
         {/* Chart placeholder with same height */}
@@ -779,7 +787,23 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
                           .getMinutes()
                           .toString()
                           .padStart(2, '0');
-                        return `${hours}:${minutes}`;
+                        const monthNames = [
+                          'Jan',
+                          'Feb',
+                          'Mar',
+                          'Apr',
+                          'May',
+                          'Jun',
+                          'Jul',
+                          'Aug',
+                          'Sep',
+                          'Oct',
+                          'Nov',
+                          'Dec',
+                        ];
+                        const month = monthNames[date.getMonth()];
+                        const day = date.getDate();
+                        return `${hours}:${minutes}\n${month} ${day}`;
                       })()}
                     </Text>
                   ));
