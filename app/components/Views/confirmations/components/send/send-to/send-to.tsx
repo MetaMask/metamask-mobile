@@ -1,4 +1,3 @@
-import { Hex } from '@metamask/utils';
 import React from 'react';
 import { View } from 'react-native';
 
@@ -7,11 +6,11 @@ import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../hooks/useStyles';
-import useToAddressValidation from '../../../hooks/send/useToAddressValidation';
 import { useSendContext } from '../../../context/send-context';
-import styleSheet from './to.styles';
+import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
+import { styleSheet } from './send-to.styles';
 
-const To = () => {
+export const SendTo = () => {
   const { styles } = useStyles(styleSheet, {});
   const { to, updateTo } = useSendContext();
   const { toAddressError, toAddressWarning } = useToAddressValidation();
@@ -21,16 +20,14 @@ const To = () => {
       <Text>To:</Text>
       <Input
         style={styles.input}
-        onChangeText={(toAddr: string) => {
-          updateTo(toAddr as Hex);
-        }}
+        onChangeText={updateTo}
         value={to}
         testID="send_to_address"
       />
-      <Text color={TextColor.Error}>{toAddressError}</Text>
-      <Text color={TextColor.Warning}>{toAddressWarning}</Text>
+      {toAddressError && <Text color={TextColor.Error}>{toAddressError}</Text>}
+      {toAddressWarning && (
+        <Text color={TextColor.Warning}>{toAddressWarning}</Text>
+      )}
     </View>
   );
 };
-
-export default To;
