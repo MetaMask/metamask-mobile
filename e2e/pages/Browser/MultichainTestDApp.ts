@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-console */
 import TestHelpers from '../../helpers';
-import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
+import { getLocalTestDappPort } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import {
@@ -19,9 +19,7 @@ import Assertions from '../../framework/Assertions';
 import { isCaipChainId } from '@metamask/utils';
 
 // Use the same port as the regular test dapp - the multichainDapp flag controls which dapp is served
-export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getTestDappLocalUrl(
-  0,
-)}`;
+export const MULTICHAIN_TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
 export const DEFAULT_MULTICHAIN_TEST_DAPP_URL =
   'https://metamask.github.io/test-dapp-multichain/';
 
