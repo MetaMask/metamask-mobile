@@ -1,6 +1,6 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
-import { useMaxAmount } from './useMaxAmount';
+import { useGasFeeEstimatesForSend } from './useGasFeeEstimatesForSend';
 
 jest.mock('../gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: () => ({
@@ -12,9 +12,12 @@ const mockState = {
   state: evmSendStateMock,
 };
 
-describe('useMaxAmount', () => {
-  it('return function getMaxAmount', () => {
-    const { result } = renderHookWithProvider(() => useMaxAmount(), mockState);
-    expect(result.current.getMaxAmount).toBeDefined();
+describe('useGasFeeEstimatesForSend', () => {
+  it('return gas estimates', () => {
+    const { result } = renderHookWithProvider(
+      () => useGasFeeEstimatesForSend(),
+      mockState,
+    );
+    expect(result.current.gasFeeEstimates).toBeDefined();
   });
 });
