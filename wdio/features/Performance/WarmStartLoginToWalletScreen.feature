@@ -1,4 +1,5 @@
 @androidApp
+@performance
 Feature: Measure Wallet Screen Warm Start
   # This feature measures the warm start of the app when:
   # The time it takes to get from login view to wallet view.

@@ -1,4 +1,5 @@
 @androidApp
+@performance
 Feature: Measure Login Screen Cold Start
     # This feature measures the cold start of the app when:
     # The user imports a wallet and the time it takes to get from launching app to login view
