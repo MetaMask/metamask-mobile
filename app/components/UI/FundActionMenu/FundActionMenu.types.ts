@@ -27,6 +27,6 @@ export interface ActionConfig {
   analyticsEvent: IMetaMetricsEvent;
   analyticsProperties: Record<string, string | number>;
   traceName: TraceName;
-  traceProperties?: { tags?: Record<string, string> };
+  traceProperties?: Record<string, any>;
   navigationAction: () => void;
 }
