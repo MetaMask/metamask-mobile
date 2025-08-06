@@ -1,17 +1,17 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
-import { useSendDisabled } from './useSendDisabled';
+import { useSendAmountConfirmDisabled } from './useSendAmountConfirmDisabled';
 
 const mockState = {
   state: evmSendStateMock,
 };
 
-describe('useSendDisabled', () => {
-  it('return field for sendDisabled', () => {
+describe('useSendAmountConfirmDisabled', () => {
+  it('return field for isDisabled', () => {
     const { result } = renderHookWithProvider(
-      () => useSendDisabled(),
+      () => useSendAmountConfirmDisabled(),
       mockState,
     );
-    expect(result.current).toStrictEqual({ sendDisabled: true });
+    expect(result.current).toStrictEqual({ isDisabled: true });
   });
 });
