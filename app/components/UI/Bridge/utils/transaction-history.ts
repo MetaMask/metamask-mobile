@@ -34,6 +34,16 @@ export const getSwapBridgeTxActivityTitle = (
 ): string | undefined => {
   const { quote } = bridgeTxHistoryItem;
 
+  // Swap
+  const isSwap = quote.srcAsset.chainId === quote.destAsset.chainId;
+  if (isSwap) {
+    return strings('swaps.transaction_label.swap', {
+      sourceToken: quote.srcAsset.symbol,
+      destinationToken: quote.destAsset.symbol,
+    });
+  }
+
+  // Bridge
   const destChainId = isSolanaChainId(quote.destChainId)
     ? formatChainIdToCaip(quote.destChainId)
     : formatChainIdToHex(quote.destChainId);
