@@ -46,7 +46,7 @@ export default defineConfig({
           name: 'Google Pixel 8 Pro', // this can changed
           osVersion: '14.0', // this can changed
         },
-        buildPath: 'bs://445908f25b4d11afa50f5ed0ee9ced7f1ccc39de', // Path to Browserstack url bs:// link release-7.53.0-7.53.0-2223.apk
+        buildPath: 'bs://', // Path to Browserstack url bs:// link release-7.53.0-7.53.0-2223.apk
       },
     },
     {
@@ -55,10 +55,10 @@ export default defineConfig({
         platform: Platform.IOS,
         device: {
           provider: 'browserstack',
-          name: 'iPhone 11', // this can changed
-          osVersion: '13', // this can changed
+          name: 'iPhone 14 Pro Max', // this can changed
+          osVersion: '16', // this can changed
         },
-        buildPath: 'bs://56e23661be10ccbb61912f1a727738bc4cd82bc1', // Path to Browserstack url bs:// link //release-7.53.0-7.53.0-2223.ipa
+        buildPath: 'bs://', // Path to Browserstack url bs:// link //release-7.53.0-7.53.0-2223.ipa
       },
     },
   ],
