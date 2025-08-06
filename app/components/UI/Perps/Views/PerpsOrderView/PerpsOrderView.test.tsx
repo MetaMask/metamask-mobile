@@ -46,7 +46,6 @@ import {
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsNetwork,
-  usePerpsOrderForm,
   usePerpsPaymentTokens,
   usePerpsPrices,
   usePerpsTrading,
@@ -88,31 +87,7 @@ jest.mock('../../hooks', () => ({
     error: null,
   })),
   formatFeeRate: jest.fn((rate) => `${(rate * 100).toFixed(3)}%`),
-  usePerpsOrderForm: jest.fn(() => ({
-    orderForm: {
-      asset: 'ETH',
-      direction: 'long',
-      amount: '100',
-      leverage: 10,
-      takeProfitPrice: undefined,
-      stopLossPrice: undefined,
-      limitPrice: undefined,
-      type: 'market',
-    },
-    setAmount: jest.fn(),
-    setLeverage: jest.fn(),
-    setTakeProfitPrice: jest.fn(),
-    setStopLossPrice: jest.fn(),
-    setLimitPrice: jest.fn(),
-    handlePercentageAmount: jest.fn(),
-    handleMaxAmount: jest.fn(),
-    handleMinAmount: jest.fn(),
-    calculations: {
-      marginRequired: 10,
-      positionSize: 0.00222,
-      liquidationPrice: 36000,
-    },
-  })),
+  usePerpsOrderForm: jest.fn(),
   usePerpsOrderValidation: jest.fn(() => ({
     isValid: true,
     errors: [],
@@ -395,12 +370,21 @@ describe('PerpsOrderView', () => {
   });
 
   it('handles leverage display', async () => {
+    // Set up route params with leverage
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        asset: 'ETH',
+        direction: 'long',
+        leverage: 10,
+      },
+    });
+
     render(<PerpsOrderView />);
 
     // Find leverage text
     await waitFor(() => {
       expect(screen.getByText('Leverage')).toBeDefined();
-      expect(screen.getByText('10x')).toBeDefined(); // Default leverage value from usePerpsOrderForm mock
+      expect(screen.getByText('10x')).toBeDefined(); // Leverage from route params
     });
   });
 
@@ -558,34 +542,7 @@ describe('PerpsOrderView', () => {
     (useRoute as jest.Mock).mockReturnValue({
       params: {
         asset: 'BTC',
-        action: 'short',
-      },
-    });
-
-    // Update the usePerpsOrderForm mock to return short direction
-    (usePerpsOrderForm as jest.Mock).mockReturnValue({
-      orderForm: {
-        asset: 'BTC',
         direction: 'short',
-        amount: '100',
-        leverage: 10,
-        takeProfitPrice: undefined,
-        stopLossPrice: undefined,
-        limitPrice: undefined,
-        type: 'market',
-      },
-      setAmount: jest.fn(),
-      setLeverage: jest.fn(),
-      setTakeProfitPrice: jest.fn(),
-      setStopLossPrice: jest.fn(),
-      setLimitPrice: jest.fn(),
-      handlePercentageAmount: jest.fn(),
-      handleMaxAmount: jest.fn(),
-      handleMinAmount: jest.fn(),
-      calculations: {
-        marginRequired: 10,
-        positionSize: 0.00222,
-        liquidationPrice: 36000,
       },
     });
 
