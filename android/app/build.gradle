@@ -304,8 +304,8 @@ android {
         }
     }
 
-	  flavorDimensions "version"
-   		  productFlavors {
+    flavorDimensions "version"
+    productFlavors {
           qa {
             dimension "version"
             applicationIdSuffix ".qa"
@@ -354,7 +354,7 @@ android {
               signingConfig signingConfigs.flaskDev
             }
           }
-    	  }
+    }
 
 	  buildTypes.each {
 		  it.buildConfigField 'String', 'foxCode', "\"$System.env.MM_FOX_CODE\""
