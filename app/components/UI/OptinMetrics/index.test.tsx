@@ -1,11 +1,11 @@
-import OptinMetrics from './';
-import { renderScreen } from '../../../util/test/renderWithProvider';
-import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
+import { Platform } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { renderScreen } from '../../../util/test/renderWithProvider';
+import OptinMetrics from './index';
 import { strings } from '../../../../locales/i18n';
+import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
-import { Platform } from 'react-native';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -41,18 +41,6 @@ jest.mock(
 jest.mock('../../../reducers/legalNotices', () => ({
   isPastPrivacyPolicyDate: jest.fn().mockReturnValue(true),
 }));
-
-// Use dynamic mocking to avoid native module conflicts
-jest.doMock('react-native', () => {
-  const originalRN = jest.requireActual('react-native');
-  return {
-    ...originalRN,
-    StatusBar: {
-      currentHeight: 42,
-    },
-    unstable_batchedUpdates: jest.fn((fn) => fn()),
-  };
-});
 
 describe('OptinMetrics', () => {
   beforeEach(() => {
