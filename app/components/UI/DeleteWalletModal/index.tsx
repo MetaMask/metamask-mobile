@@ -110,9 +110,8 @@ const DeleteWalletModal: React.FC = () => {
   };
 
   const deleteWallet = async () => {
-    setIsDeletingWallet(true);
-    let deletionSucceeded = false;
     try {
+      setIsDeletingWallet(true);
       await dispatch(
         clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
       );
@@ -122,23 +121,16 @@ const DeleteWalletModal: React.FC = () => {
       await deleteUser();
       await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
       await dispatch(setCompletedOnboarding(false));
+      triggerClose();
       // Track analytics for successful deletion
       track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
-      deletionSucceeded = true;
-    } catch (error) {
-      console.error('Error during wallet deletion:', error);
-      setIsDeletingWallet(false);
-      return;
-    }
-
-    // Only proceed with navigation and cleanup if deletion succeeded
-    if (deletionSucceeded) {
-      // Schedule navigation and modal closure
       InteractionManager.runAfterInteractions(() => {
         navigateOnboardingRoot();
-        setIsDeletingWallet(false);
-        triggerClose();
       });
+    } catch (error) {
+      console.error('Error during wallet deletion:', error);
+    } finally {
+      setIsDeletingWallet(false);
     }
   };
 
