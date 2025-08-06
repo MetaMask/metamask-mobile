@@ -51,9 +51,11 @@ describe('CardSDK Context', () => {
   ];
 
   const mockCardFeatureFlag: CardFeatureFlag = {
-    'eip155:59144': {
-      enabled: true,
-      tokens: mockSupportedTokens,
+    chains: {
+      'eip155:59144': {
+        enabled: true,
+        tokens: mockSupportedTokens,
+      },
     },
   };
 

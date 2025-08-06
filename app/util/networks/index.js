@@ -1,5 +1,5 @@
 import URL from 'url-parse';
-import networksWithImages from 'images/image-icons';
+import networksWithImages from '.././../images/image-icons';
 import {
   MAINNET,
   NETWORKS_CHAIN_ID,
@@ -23,17 +23,6 @@ import { toLowerCaseEquals } from '../general';
 import { fastSplit } from '../number';
 import { regex } from '../../../app/util/regex';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from '../../../app/core/Multichain/constants';
-
-/* eslint-disable */
-const ethLogo = require('../../images/eth-logo-new.png');
-const sepoliaLogo = require('../../images/sepolia-logo-dark.png');
-const lineaTestnetLogo = require('../../images/linea-testnet-logo.png');
-const lineaMainnetLogo = require('../../images/linea-mainnet-logo.png');
-const megaEthTestnetLogo = require('../../images/megaeth-testnet-logo.png');
-const monadTestnetLogo = require('../../images/monad-testnet-logo.png');
-const baseMainnetLogo = require('../../images/base.png');
-
-/* eslint-enable */
 import {
   PopularList,
   UnpopularNetworkList,
@@ -88,7 +77,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#3cc29e',
     networkType: 'mainnet',
-    imageSource: ethLogo,
+    imageSource: networksWithImages.ETHEREUM,
     blockExplorerUrl: MAINNET_BLOCK_EXPLORER,
     isTestNet: false,
   },
@@ -102,7 +91,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#121212',
     networkType: 'linea-mainnet',
-    imageSource: lineaMainnetLogo,
+    imageSource: networksWithImages['LINEA-MAINNET'],
     blockExplorerUrl: LINEA_MAINNET_BLOCK_EXPLORER,
     isTestNet: false,
   },
@@ -116,7 +105,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#0052FE',
     networkType: 'base-mainnet',
-    imageSource: baseMainnetLogo,
+    imageSource: networksWithImages.BASE,
     blockExplorerUrl: BASE_MAINNET_BLOCK_EXPLORER,
     isTestNet: false,
   },
@@ -130,7 +119,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#cfb5f0',
     networkType: 'sepolia',
-    imageSource: sepoliaLogo,
+    imageSource: networksWithImages.SEPOLIA,
     blockExplorerUrl: SEPOLIA_BLOCK_EXPLORER,
     isTestNet: true,
   },
@@ -144,7 +133,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'linea-sepolia',
-    imageSource: lineaTestnetLogo,
+    imageSource: networksWithImages['LINEA-SEPOLIA'],
     blockExplorerUrl: LINEA_SEPOLIA_BLOCK_EXPLORER,
     isTestNet: true,
   },
@@ -158,7 +147,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'megaeth-testnet',
-    imageSource: megaEthTestnetLogo,
+    imageSource: networksWithImages['MEGAETH-TESTNET'],
     blockExplorerUrl: BlockExplorerUrl['megaeth-testnet'],
     isTestNet: true,
   },
@@ -172,7 +161,7 @@ export const NetworkList = {
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     color: '#61dfff',
     networkType: 'monad-testnet',
-    imageSource: monadTestnetLogo,
+    imageSource: networksWithImages['MONAD-TESTNET'],
     blockExplorerUrl: BlockExplorerUrl['monad-testnet'],
     isTestNet: true,
   },

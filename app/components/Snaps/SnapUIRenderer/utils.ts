@@ -6,13 +6,7 @@ import {
 } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren, hasChildren } from '@metamask/snaps-utils';
 import { memoize } from 'lodash';
-import { sha256 } from '@noble/hashes/sha256';
-import {
-  NonEmptyArray,
-  bytesToHex,
-  hasProperty,
-  remove0x,
-} from '@metamask/utils';
+import { NonEmptyArray, hasProperty } from '@metamask/utils';
 import { COMPONENT_MAPPING } from './components';
 import { unescape as unescapeFn } from 'he';
 import { FormState, InterfaceState, State } from '@metamask/snaps-sdk';
@@ -51,6 +45,7 @@ export const FIELD_ELEMENT_TYPES = [
   'Selector',
   'AddressInput',
   'AssetSelector',
+  'AccountSelector',
 ];
 
 /**
@@ -105,9 +100,11 @@ function getChildrenForHash(component: JSXElement) {
 }
 
 /**
- * A memoized function for generating a hash that represents a Snap UI component.
+ * A memoized function for generating a "hash" that represents a Snap UI component.
  *
  * This can be used to generate React keys for components.
+ *
+ * In practice, this is no longer a hash for performance reasons.
  *
  * @param component - The component.
  * @returns A hash as a string.
@@ -116,18 +113,7 @@ const generateHash = memoize((component: JSXElement) => {
   const { type, props } = component;
   const { name } = props as { name?: string };
   const children = getChildrenForHash(component);
-  return remove0x(
-    bytesToHex(
-      // TODO: Benchmark
-      sha256(
-        JSON.stringify({
-          type,
-          name: name ?? null,
-          children,
-        }),
-      ),
-    ),
-  );
+  return JSON.stringify({ type, name: name ?? null, children });
 });
 
 /**

@@ -331,7 +331,12 @@ describe('DeFiPositionsList', () => {
     expect(
       await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER),
     ).toBeOnTheScreen();
-    expect(await findByText(`No positions yet`)).toBeOnTheScreen();
+    expect(
+      await findByText(`Can't find what you're looking for?`),
+    ).toBeOnTheScreen();
+    expect(
+      await findByText(`We may not support your protocol yet.`),
+    ).toBeOnTheScreen();
   });
 
   describe('when isRemoveGlobalNetworkSelectorEnabled is true', () => {

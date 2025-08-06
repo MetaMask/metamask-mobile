@@ -153,11 +153,23 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "name": "Bitcoin Testnet",
             "nativeCurrency": "bip122:000000000933ea01ad0ee984209779ba/slip44:0",
           },
+          "bip122:00000000da84f2bafbbc53dee25a72ae": {
+            "chainId": "bip122:00000000da84f2bafbbc53dee25a72ae",
+            "isEvm": false,
+            "name": "Bitcoin Testnet4",
+            "nativeCurrency": "bip122:00000000da84f2bafbbc53dee25a72ae/slip44:0",
+          },
           "bip122:00000008819873e925422c1ff0f99f7c": {
             "chainId": "bip122:00000008819873e925422c1ff0f99f7c",
             "isEvm": false,
-            "name": "Bitcoin Signet",
+            "name": "Bitcoin Mutinynet",
             "nativeCurrency": "bip122:00000008819873e925422c1ff0f99f7c/slip44:0",
+          },
+          "bip122:regtest": {
+            "chainId": "bip122:regtest",
+            "isEvm": false,
+            "name": "Bitcoin Regtest",
+            "nativeCurrency": "bip122:regtest/slip44:0",
           },
           "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z": {
             "chainId": "solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z",
@@ -350,6 +362,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "currentDepositTxHash": null,
         "depositError": null,
         "depositStatus": "idle",
+        "isEligible": false,
         "isTestnet": false,
         "lastError": null,
         "lastUpdateTimestamp": 0,

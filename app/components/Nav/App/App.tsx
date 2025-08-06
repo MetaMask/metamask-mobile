@@ -159,6 +159,9 @@ import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
+import PrivacyOverlay from '../../Views/PrivacyOverlay';
+import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
+import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -213,7 +216,11 @@ const OnboardingNav = () => (
     <Stack.Screen name="Onboarding" component={Onboarding} />
     <Stack.Screen name="OnboardingCarousel" component={OnboardingCarousel} />
     <Stack.Screen name="ChoosePassword" component={ChoosePassword} />
-    <Stack.Screen name="AccountBackupStep1" component={AccountBackupStep1} />
+    <Stack.Screen
+      name="AccountBackupStep1"
+      component={AccountBackupStep1}
+      options={{ headerShown: false }}
+    />
     <Stack.Screen name="AccountBackupStep1B" component={AccountBackupStep1B} />
     <Stack.Screen
       name={Routes.ONBOARDING.SUCCESS_FLOW}
@@ -897,6 +904,14 @@ const AppFlow = () => {
           name={Routes.SMART_ACCOUNT_OPT_IN}
           component={ModalSmartAccountOptIn}
         />
+        <Stack.Screen
+          name={Routes.CONFIRMATION_PAY_WITH_MODAL}
+          component={PayWithModal}
+        />
+        <Stack.Screen
+          name={Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL}
+          component={PayWithNetworkModal}
+        />
       </Stack.Navigator>
     </>
   );
@@ -931,18 +946,17 @@ const App: React.FC = () => {
     endTrace({ name: TraceName.UIStartup });
   }, []);
 
+  const firstLoad = useRef(true);
   // periodically check seedless password outdated when app UI is open
   useInterval(
     async () => {
       if (isSeedlessOnboardingLoginFlow) {
-        await Authentication.checkIsSeedlessPasswordOutdated().catch(
-          (error) => {
-            Logger.error(
-              error,
-              'App: Error in checkIsSeedlessPasswordOutdated',
-            );
-          },
-        );
+        await Authentication.checkIsSeedlessPasswordOutdated(
+          firstLoad.current,
+        ).catch((error) => {
+          Logger.error(error, 'App: Error in checkIsSeedlessPasswordOutdated');
+        });
+        firstLoad.current = false;
       }
     },
     {
@@ -1219,6 +1233,7 @@ const App: React.FC = () => {
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
+      <PrivacyOverlay />
     </>
   );
 };

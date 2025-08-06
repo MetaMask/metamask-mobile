@@ -34,7 +34,7 @@ import { selectSelectedInternalAccount } from '../../../selectors/accountsContro
 import { selectSortedTransactions } from '../../../selectors/transactionController';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
+import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { toChecksumHexAddress } from '@metamask/controller-utils';
@@ -269,10 +269,10 @@ const mapStateToProps = (state) => {
     selectedInternalAccount &&
     !isEvmAccountType(selectedInternalAccount.type)
   ) {
-    const solanaTransactionData = selectSolanaAccountTransactions(state);
-    const solanaTransactions = solanaTransactionData?.transactions || [];
+    const nonEVMTransactions = selectNonEvmTransactions(state);
+    const txs = nonEVMTransactions?.transactions || [];
 
-    allTransactions = [...evmTransactions, ...solanaTransactions].sort(
+    allTransactions = [...evmTransactions, ...txs].sort(
       (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
     );
   }

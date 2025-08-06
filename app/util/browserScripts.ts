@@ -81,11 +81,16 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (
   origin: string,
 ) => `(function () {
   try {
-    window.postMessage(${JSON.stringify(message)}, '${origin}');
+    // Only send message if origins match
+    if (window.location.origin === ${JSON.stringify(origin)}) {
+      window.postMessage(${JSON.stringify(message)}, ${JSON.stringify(origin)});
+    } else {
+      console.warn('MetaMask: Origin mismatch, blocking message');
+    }
   } catch (e) {
-    //Nothing to do
+    console.error('MetaMask postMessage error:', e);
   }
-})()`;
+})();`;
 
 export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (
   _message: object,

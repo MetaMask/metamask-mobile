@@ -706,7 +706,7 @@ exports[`DepositInfoSection renders correctly 1`] = `
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 4,
                       "height": 16,
                       "overflow": "hidden",
                       "width": 16,
@@ -720,9 +720,14 @@ exports[`DepositInfoSection renders correctly 1`] = `
                       }
                     }
                     style={
-                      {
-                        "flex": 1,
-                      }
+                      [
+                        {
+                          "flex": 1,
+                        },
+                        {
+                          "borderRadius": 4,
+                        },
+                      ]
                     }
                   />
                 </View>

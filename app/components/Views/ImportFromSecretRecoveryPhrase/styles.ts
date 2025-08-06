@@ -30,7 +30,7 @@ const createStyles = (colors: any) =>
     },
     seedPhraseContainer: {
       paddingTop: 16,
-      backgroundColor: colors.background.muted,
+      backgroundColor: colors.background.section,
       borderRadius: 10,
       marginTop: 16,
       minHeight: 264,
@@ -58,12 +58,14 @@ const createStyles = (colors: any) =>
     seedPhraseDefaultInput: {
       borderWidth: 0,
       paddingHorizontal: 0,
-      width: '100%',
+      display: 'flex',
+      flex: 1,
       backgroundColor: importedColors.transparent,
       height: 66,
     },
     textAreaInput: {
-      width: '100%',
+      display: 'flex',
+      flex: 1,
       backgroundColor: importedColors.transparent,
       fontSize: 16,
       color: colors.text.alternative,

@@ -1,24 +1,15 @@
+import { TestSpecificMock } from '../../framework/types';
+
 /**
  * Mock responses for ramps API calls
  * Used in E2E tests to avoid dependency on external APIs
  */
 
-interface MockResponse {
-  urlEndpoint: string;
-  response: unknown;
-  responseCode: number;
-}
-
-interface RampsApiMocks {
-  GET: MockResponse[];
-  POST: MockResponse[];
-}
-
 /**
  * Get ramps API mocks with realistic responses for buy and sell flows
  * @returns {RampsApiMocks} Object containing GET and POST mocks for ramps APIs
  */
-export const getRampsApiMocks = (): RampsApiMocks => ({
+export const getRampsApiMocks = (): TestSpecificMock => ({
   GET: [
     // Mock getQuotes for buy - more flexible URL matching
     {

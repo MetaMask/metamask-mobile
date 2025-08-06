@@ -61,7 +61,10 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {
       return null;
     }
-    return getCryptoCurrencyFromTransakId(order.data.cryptoCurrency);
+    return getCryptoCurrencyFromTransakId(
+      order.data.cryptoCurrency,
+      order.data.network,
+    );
   };
 
   const cryptoToken = getCryptoToken();
@@ -111,7 +114,14 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
       currency: order.currency,
     });
   } else if (order.state === FIAT_ORDER_STATES.FAILED) {
-    subtitle = strings('deposit.order_processing.error_description');
+    if (
+      hasDepositOrderField(order.data, 'statusDescription') &&
+      order.data.statusDescription
+    ) {
+      subtitle = order.data.statusDescription;
+    } else {
+      subtitle = strings('deposit.order_processing.error_description');
+    }
   } else if (order.state === FIAT_ORDER_STATES.CANCELLED) {
     subtitle = strings('deposit.order_processing.cancel_order_description');
   } else if (

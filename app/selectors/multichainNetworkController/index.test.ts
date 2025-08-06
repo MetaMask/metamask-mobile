@@ -191,18 +191,21 @@ describe('getActiveNetworksByScopes', () => {
     ]);
   });
 
-  it('should return Bitcoin network for a Bitcoin account', () => {
-    const account = {
-      address: MOCK_BTC_ACCOUNT,
-      scopes: [BtcScope.Mainnet],
-    };
-    const result = getActiveNetworksByScopes(baseState, account);
-    expect(result).toEqual([
-      {
-        caipChainId: BtcScope.Mainnet,
-      },
-    ]);
-  });
+  it.each(Object.values(BtcScope))(
+    'should return correct network for Bitcoin: %s',
+    (scope: BtcScope) => {
+      const account = {
+        address: MOCK_BTC_ACCOUNT,
+        scopes: [scope],
+      };
+      const result = getActiveNetworksByScopes(baseState, account);
+      expect(result).toEqual([
+        {
+          caipChainId: scope,
+        },
+      ]);
+    },
+  );
 
   it('should return an empty array if account has no scopes', () => {
     const account = {

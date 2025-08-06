@@ -13,7 +13,7 @@ import {
   selectChainId,
   selectEvmTicker,
 } from '../../../selectors/networkController';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
+import { swapsLivenessMultichainSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
@@ -63,6 +63,7 @@ import { selectMultichainTokenListForAccountId } from '../../../selectors/multic
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const WalletActions = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -73,7 +74,7 @@ const WalletActions = () => {
 
   const chainId = useSelector(selectChainId);
   const ticker = useSelector(selectEvmTicker);
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector(swapsLivenessMultichainSelector);
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
   );
@@ -93,6 +94,7 @@ const WalletActions = () => {
       location: SwapBridgeNavigationLocation.TabBar,
       sourcePage: 'MainView',
     });
+  const { navigateToSendPage } = useSendNavigation();
 
   const selectedAsset = useSelector(
     (state: RootState) => state.transaction.selectedAsset,
@@ -297,21 +299,24 @@ const WalletActions = () => {
     }
 
     closeBottomSheetAndNavigate(() => {
+      let asset = assetToSend;
       if (
         !assetToSend ||
         assetToSend.isETH ||
         assetToSend.isNative ||
         Object.keys(assetToSend).length === 0
       ) {
-        ticker && dispatch(newAssetTransaction(getEther(ticker)));
+        if (ticker) {
+          asset = getEther(ticker);
+          dispatch(newAssetTransaction(asset));
+        }
       } else {
         dispatch(newAssetTransaction(assetToSend));
       }
-      navigate('SendFlowView', {});
+      navigateToSendPage(asset);
     });
   }, [
     closeBottomSheetAndNavigate,
-    navigate,
     ticker,
     dispatch,
     trackEvent,
@@ -319,6 +324,7 @@ const WalletActions = () => {
     createEventBuilder,
     selectedAsset,
     assetToSend,
+    navigateToSendPage,
     sendNonEvmAsset,
   ]);
 
@@ -353,7 +359,9 @@ const WalletActions = () => {
 
   const onPerps = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(Routes.PERPS.ROOT);
+      navigate(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.MARKETS,
+      });
     });
   }, [closeBottomSheetAndNavigate, navigate]);
 
@@ -379,6 +387,16 @@ const WalletActions = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
+        {isDepositEnabled && (
+          <WalletAction
+            actionType={WalletActionType.Deposit}
+            iconName={IconName.Cash}
+            onPress={onDeposit}
+            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
+            iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+          />
+        )}
         {isNetworkRampSupported && (
           <WalletAction
             actionType={WalletActionType.Buy}
@@ -398,16 +416,6 @@ const WalletActions = () => {
             iconStyle={styles.icon}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
-          />
-        )}
-        {isDepositEnabled && (
-          <WalletAction
-            actionType={WalletActionType.Deposit}
-            iconName={IconName.Cash}
-            onPress={onDeposit}
-            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
           />
         )}
         {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (

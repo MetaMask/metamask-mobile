@@ -1,12 +1,7 @@
-'use strict';
 import { SmokeConfirmations } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import {
   SMART_CONTRACTS,
   contractConfiguration,
@@ -15,18 +10,14 @@ import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/Activi
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../fixtures/utils';
+import { DappVariants } from '../../framework/Constants';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
-  beforeAll(async () => {
-    jest.setTimeout(170000);
-    await TestHelpers.reverseServerPort();
-  });
-
   it('send an ERC20 token from a dapp', async () => {
     const testSpecificMock = {
       GET: [
@@ -37,7 +28,11 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
@@ -45,14 +40,11 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
           )
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
-        smartContract: HST_CONTRACT,
+        smartContracts: [HST_CONTRACT],
         testSpecificMock,
       },
-      // Remove any once withFixtures is typed
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      async ({ contractRegistry }: { contractRegistry: any }) => {
-        const hstAddress = await contractRegistry.getContractAddress(
+      async ({ contractRegistry }) => {
+        const hstAddress = await contractRegistry?.getContractAddress(
           HST_CONTRACT,
         );
         await loginToApp();
@@ -62,11 +54,9 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TestDApp.navigateToTestDappWithContract({
           contractAddress: hstAddress,
         });
-        await TestHelpers.delay(3000);
 
         // Transfer ERC20 tokens
         await TestDApp.tapERC20TransferButton();
-        await TestHelpers.delay(3000);
 
         // Tap confirm button
         await TestDApp.tapConfirmButton();
@@ -75,7 +65,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TabBarComponent.tapActivity();
 
         // Assert "Sent Tokens" transaction is displayed
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           ActivitiesViewSelectorsText.SENT_TOKENS_MESSAGE_TEXT(
             // contractConfiguration is not typed
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

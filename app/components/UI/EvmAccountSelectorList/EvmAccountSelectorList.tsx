@@ -39,7 +39,7 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
-import { selectAccountSections } from '../../../multichain-accounts/selectors/accountTreeController';
+import { selectAccountSections } from '../../../selectors/multichainAccounts/accountTreeController';
 
 import {
   AccountSection,
@@ -58,7 +58,7 @@ import {
   selectInternalAccounts,
   selectInternalAccountsById,
 } from '../../../selectors/accountsController';
-import { AccountWallet } from '@metamask/account-tree-controller';
+import { AccountWalletObject } from '@metamask/account-tree-controller';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 
 /**
@@ -310,7 +310,7 @@ const EvmAccountSelectorList = ({
   );
 
   const onNavigateToWalletDetails = useCallback(
-    (wallet: AccountWallet) => {
+    (wallet: AccountWalletObject) => {
       navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
         walletId: wallet.id,
       });
@@ -319,7 +319,7 @@ const EvmAccountSelectorList = ({
   );
 
   const renderSectionHeader = useCallback(
-    ({ title, wallet }: { title: string; wallet?: AccountWallet }) => (
+    ({ title, wallet }: { title: string; wallet?: AccountWalletObject }) => (
       <View style={styles.sectionHeader}>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {title}

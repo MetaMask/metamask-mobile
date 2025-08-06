@@ -112,6 +112,7 @@ describe('SolanaNewFeatureContent', () => {
     expect(StorageWrapper.setItem).toHaveBeenCalledWith(
       SOLANA_FEATURE_MODAL_SHOWN,
       'true',
+      { emitEvent: false },
     );
     expect(mockTrackEvent).toHaveBeenCalled();
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(

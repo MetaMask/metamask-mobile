@@ -15,7 +15,6 @@ import { connect } from 'react-redux';
 import {
   setSelectedAsset,
   prepareTransaction,
-  setTransactionObject,
   resetTransaction,
   setMaxValueMode,
 } from '../../../../../../actions/transaction';
@@ -635,9 +634,15 @@ class Amount extends PureComponent {
         selectedAsset: { address, tokenId },
       },
       selectedAddress,
+      globalNetworkClientId,
     } = this.props;
     try {
-      return await NftController.isNftOwner(selectedAddress, address, tokenId);
+      return await NftController.isNftOwner(
+        selectedAddress,
+        address,
+        tokenId,
+        globalNetworkClientId,
+      );
     } catch (e) {
       return false;
     }
@@ -707,8 +712,7 @@ class Amount extends PureComponent {
     );
 
     const shouldUseRedesignedTransferConfirmation =
-      isRedesignedTransferConfirmationEnabledForTransfer &&
-      !isHardwareAccount(transaction.from);
+      isRedesignedTransferConfirmationEnabledForTransfer;
 
     setSelectedAsset(selectedAsset);
     if (onConfirm) {

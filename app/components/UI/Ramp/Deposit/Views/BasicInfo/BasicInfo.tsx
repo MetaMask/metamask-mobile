@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { View, TextInput, Keyboard } from 'react-native';
+import { View, TextInput, Keyboard, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
@@ -20,7 +20,11 @@ import { useForm } from '../../hooks/useForm';
 import DepositPhoneField from '../../components/DepositPhoneField';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import DepositDateField from '../../components/DepositDateField';
-import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
+import {
+  AddressFormData,
+  createEnterAddressNavDetails,
+} from '../EnterAddress/EnterAddress';
+import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
 import { VALIDATION_REGEX } from '../../constants/constants';
@@ -29,6 +33,11 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../../component-library/components/Icons/Icon';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import PrivacySection from '../../components/PrivacySection';
 import { timestampToTransakFormat } from '../../utils';
@@ -36,7 +45,7 @@ import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
-  kycUrl?: string;
+  previousFormData?: BasicInfoFormData & AddressFormData;
 }
 
 export const createBasicInfoNavDetails =
@@ -54,7 +63,7 @@ const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
-  const { quote, kycUrl } = useParams<BasicInfoParams>();
+  const { quote, previousFormData } = useParams<BasicInfoParams>();
   const { selectedRegion } = useDepositSDK();
 
   const firstNameInputRef = useRef<TextInput>(null);
@@ -63,12 +72,18 @@ const BasicInfo = (): JSX.Element => {
   const dateInputRef = useRef<TextInput>(null);
   const ssnInputRef = useRef<TextInput>(null);
 
+  const utcDateToPrefill = new Date(previousFormData?.dob || '');
+  const timestamp = utcDateToPrefill.getTime();
+  const localTimestampToUseInternally = isNaN(timestamp)
+    ? ''
+    : (timestamp + utcDateToPrefill.getTimezoneOffset() * 60 * 1000).toString();
+
   const initialFormData: BasicInfoFormData = {
-    firstName: '',
-    lastName: '',
-    mobileNumber: '',
-    dob: '',
-    ssn: '',
+    firstName: previousFormData?.firstName || '',
+    lastName: previousFormData?.lastName || '',
+    mobileNumber: previousFormData?.mobileNumber || '',
+    dob: localTimestampToUseInternally,
+    ssn: previousFormData?.ssn || '',
   };
 
   const validateForm = (
@@ -145,6 +160,7 @@ const BasicInfo = (): JSX.Element => {
 
       navigation.navigate(
         ...createEnterAddressNavDetails({
+          previousFormData,
           formData: {
             ...formData,
             dob: formData.dob.trim()
@@ -152,16 +168,15 @@ const BasicInfo = (): JSX.Element => {
               : '',
           },
           quote,
-          kycUrl,
         }),
       );
     }
   }, [
+    previousFormData,
     navigation,
     validateFormData,
     formData,
     quote,
-    kycUrl,
     selectedRegion?.isoCode,
     trackEvent,
   ]);
@@ -188,6 +203,10 @@ const BasicInfo = (): JSX.Element => {
     [formData, handleFormDataChange],
   );
 
+  const handleSsnInfoPress = useCallback(() => {
+    navigation.navigate(...createSsnInfoModalNavigationDetails());
+  }, [navigation]);
+
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
@@ -203,7 +222,6 @@ const BasicInfo = (): JSX.Element => {
             <Text style={styles.subtitle}>
               {strings('deposit.basic_info.subtitle')}
             </Text>
-
             <View style={styles.nameInputRow}>
               <DepositTextField
                 label={strings('deposit.basic_info.first_name')}
@@ -288,7 +306,23 @@ const BasicInfo = (): JSX.Element => {
             />
             {selectedRegion?.isoCode === 'US' && (
               <DepositTextField
-                label={strings('deposit.basic_info.social_security_number')}
+                label={
+                  <View style={styles.ssnLabel}>
+                    <Text variant={TextVariant.BodyMD}>
+                      {strings('deposit.basic_info.social_security_number')}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={handleSsnInfoPress}
+                      testID="ssn-info-button"
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Sm}
+                        color={IconColor.Alternative}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                }
                 placeholder="XXX-XX-XXXX"
                 value={formData.ssn || ''}
                 onChangeText={handleFieldChange('ssn')}

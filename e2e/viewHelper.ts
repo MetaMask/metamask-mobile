@@ -23,9 +23,15 @@ import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
+import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
+import Matchers from './utils/Matchers';
+import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
+const SEEDLESS_ONBOARDING_ENABLED =
+  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
+  process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
 
 /**
  * Accepts the terms of use modal.
@@ -167,10 +173,15 @@ export const importWalletWithRecoveryPhrase = async ({
     await acceptTermOfUse();
   }
 
-  await Assertions.expectElementToBeVisible(OnboardingView.importSeedButton, {
-    description: 'Import with seed button should be visible',
-  });
-  await OnboardingView.tapImportWalletFromSeedPhrase();
+  await Assertions.expectElementToBeVisible(
+    OnboardingView.existingWalletButton,
+    {
+      description: 'Have an existing wallet button should be visible',
+    },
+  );
+
+  await OnboardingView.tapHaveAnExistingWallet();
+  await OnboardingSheet.tapImportSeedButton();
 
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
@@ -238,9 +249,17 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   await acceptTermOfUse();
   await OnboardingView.tapCreateWallet();
 
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
+      description: 'Onboarding Sheet should be visible',
+    });
+    await OnboardingSheet.tapImportSeedButton();
+  }
+
   await Assertions.expectElementToBeVisible(CreatePasswordView.container, {
     description: 'Create Password View should be visible',
   });
+
   await CreatePasswordView.enterPassword(validAccount.password);
   await CreatePasswordView.reEnterPassword(validAccount.password);
   await CreatePasswordView.tapIUnderstandCheckBox();
@@ -273,10 +292,9 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   });
   await OnboardingSuccessView.tapDone();
 
+  await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
-
-  await closeOnboardingModals(false);
 };
 
 /**
@@ -368,8 +386,12 @@ export const switchToSepoliaNetwork = async () => {
  */
 export const loginToApp = async (password?: string) => {
   const PASSWORD = password ?? '123123123';
-  await Assertions.expectElementToBeVisible(LoginView.container);
-  await Assertions.expectElementToBeVisible(LoginView.passwordInput);
+  await Assertions.expectElementToBeVisible(LoginView.container, {
+    description: 'Login View container should be visible',
+  });
+  await Assertions.expectElementToBeVisible(LoginView.passwordInput, {
+    description: 'Login View password input should be visible',
+  });
   await LoginView.enterPassword(PASSWORD);
 };
 
@@ -385,10 +407,15 @@ export const waitForTestDappToLoad = async () => {
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      await Assertions.expectElementToBeVisible(TestDApp.testDappFoxLogo);
-      await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle);
-
-      await Assertions.expectElementToBeVisible(TestDApp.DappConnectButton);
+      await Assertions.expectElementToBeVisible(TestDApp.testDappFoxLogo, {
+        description: 'Test Dapp Fox Logo should be visible',
+      });
+      await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
+        description: 'Test Dapp Page Title should be visible',
+      });
+      await Assertions.expectElementToBeVisible(TestDApp.DappConnectButton, {
+        description: 'Test Dapp Connect Button should be visible',
+      });
       return; // Success - page is fully loaded and interactive
     } catch (error) {
       if (attempt === MAX_RETRIES) {
@@ -402,4 +429,29 @@ export const waitForTestDappToLoad = async () => {
   }
 
   throw new Error('Test dapp failed to become fully interactive');
+};
+
+export const waitForTestSnapsToLoad = async () => {
+  const MAX_RETRIES = 3;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await Assertions.expectElementToBeVisible(
+        Matchers.getElementByWebID(
+          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+          'root',
+        ),
+      );
+    } catch (error) {
+      if (attempt === MAX_RETRIES) {
+        throw new Error(
+          `Test Snaps failed to load after ${MAX_RETRIES} attempts: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
+    }
+  }
+
+  throw new Error('Test Snaps failed to become fully interactive.');
 };

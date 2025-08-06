@@ -7,6 +7,7 @@ import type { ControllerInitFunction } from '../../types';
 import { RestrictedMessenger } from '@metamask/base-controller';
 import type { NetworkControllerGetNetworkClientByIdAction } from '@metamask/network-controller';
 import { defaultCurrencyRateState } from './constants';
+import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 
 /**
  * Initialize the CurrencyRateController.
@@ -35,7 +36,7 @@ export const currencyRateControllerInit: ControllerInitFunction<
   CurrencyRateController,
   CurrencyRateMessenger
 > = (request) => {
-  const { controllerMessenger, persistedState } = request;
+  const { controllerMessenger, persistedState, getState } = request;
 
   // Get the persisted state or use default state
   const persistedCurrencyRateState =
@@ -62,6 +63,7 @@ export const currencyRateControllerInit: ControllerInitFunction<
       ...persistedCurrencyRateState,
       currencyRates: normalizedCurrencyRates,
     },
+    useExternalServices: () => selectBasicFunctionalityEnabled(getState()),
   });
 
   return { controller };

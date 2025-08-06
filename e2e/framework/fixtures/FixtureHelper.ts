@@ -1,5 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
-import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './FixtureServer';
+import FixtureServer from './FixtureServer';
 import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
 import Ganache from '../../../app/util/test/ganache';
 
@@ -7,7 +7,6 @@ import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import createStaticServer from '../../create-static-server';
 import {
-  DEFAULT_MOCKSERVER_PORT,
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
@@ -27,20 +26,25 @@ import {
   DappOptions,
   AnvilNodeOptions,
   GanacheNodeOptions,
+  TestSpecificMock,
 } from '../types';
-import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
+import {
+  TestDapps,
+  DappVariants,
+  defaultGanacheOptions,
+  DEFAULT_MOCKSERVER_PORT,
+} from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
-import { logger } from '../logger';
+import { createLogger } from '../logger';
+import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
+import { type Mockttp } from 'mockttp';
 
-export const DEFAULT_DAPP_SERVER_PORT = 8085;
+const logger = createLogger({
+  name: 'FixtureHelper',
+});
 
-// While Appium is still in use it's necessary to check if getFixturesServerPort if defined and provide a fallback in case it's not.
-const getFixturesPort =
-  typeof getFixturesServerPort === 'function'
-    ? getFixturesServerPort
-    : () => DEFAULT_FIXTURE_SERVER_PORT;
-const FIXTURE_SERVER_URL = `http://localhost:${getFixturesPort()}/state.json`;
+const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {
@@ -278,6 +282,7 @@ export const loadFixture = async (
   const state = fixture || new FixtureBuilder({ onboarding: true }).build();
   await fixtureServer.loadJsonState(state, null);
   // Checks if state is loaded
+  logger.debug(`Loading fixture into fixture server: ${FIXTURE_SERVER_URL}`);
   const response = await axios.get(FIXTURE_SERVER_URL);
 
   // Throws if state is not properly loaded
@@ -312,6 +317,67 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   logger.debug('The fixture server is stopped');
 };
 
+export const createMockAPIServer = async (
+  mockServerInstance?: Mockttp,
+  testSpecificMock?: TestSpecificMock,
+) => {
+  // Handle mock server
+  let mockServer: Mockttp | undefined;
+  let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
+
+  // Both
+  if (mockServerInstance && testSpecificMock) {
+    throw new Error(
+      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
+    );
+  }
+
+  // mockServerInstance only
+  if (mockServerInstance && !testSpecificMock) {
+    mockServer = mockServerInstance;
+    mockServerPort = mockServer.port;
+    logger.debug(
+      `Mock server started from mockServerInstance on port ${mockServerPort}`,
+    );
+
+    const endpoints = await mockServer.getMockedEndpoints();
+
+    logger.debug(`Mocked endpoints: ${endpoints.length}`);
+  }
+
+  // testSpecificMock only
+  if (!mockServerInstance && testSpecificMock) {
+    mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+
+    logger.debug(
+      `Mock server started from testSpecificMock on port ${mockServerPort}`,
+    );
+  }
+
+  // neither
+  if (!mockServerInstance && !testSpecificMock) {
+    mockServerPort = getMockServerPort();
+    mockServer = await startMockServer({}, mockServerPort);
+
+    logger.debug(
+      `Mock server started from testSpecificMock on port ${mockServerPort}`,
+    );
+  }
+
+  if (!mockServer) {
+    throw new Error('Test setup failure, no mock server setup');
+  }
+
+  // Additional Global Mocks
+  await mockNotificationServices(mockServer);
+
+  return {
+    mockServer,
+    mockServerPort,
+  };
+};
+
 /**
  * Executes a test suite with fixtures by setting up a fixture server, loading a specified fixture,
  * and running the test suite. After the test suite execution, it stops the fixture server.
@@ -340,21 +406,20 @@ export async function withFixtures(
       },
     ],
     testSpecificMock,
+    mockServerInstance,
     launchArgs,
     languageAndLocale,
     permissions = {},
+    endTestfn,
   } = options;
+
+  const { mockServer, mockServerPort } = await createMockAPIServer(
+    mockServerInstance,
+    testSpecificMock,
+  );
 
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
-
-  // Handle mock server
-  let mockServer;
-  let mockServerPort = DEFAULT_MOCKSERVER_PORT;
-  if (testSpecificMock) {
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
-  }
 
   // Handle local nodes
   let localNodes;
@@ -417,6 +482,12 @@ export async function withFixtures(
     logger.error('Error in withFixtures:', error);
     throw error;
   } finally {
+    if (endTestfn) {
+      // Pass the mockServer to the endTestfn if it exists as we may want
+      // to capture events before cleanup
+      await endTestfn({ mockServer });
+    }
+
     // Clean up all local nodes
     if (localNodes && localNodes.length > 0) {
       await handleLocalNodeCleanup(localNodes);
@@ -426,7 +497,7 @@ export async function withFixtures(
       await handleDappCleanup(dapps, dappServer);
     }
 
-    if (testSpecificMock) {
+    if (mockServer) {
       await stopMockServer(mockServer);
     }
 

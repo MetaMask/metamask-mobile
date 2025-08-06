@@ -37,15 +37,15 @@ import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface EnterAddressParams {
+  previousFormData?: BasicInfoFormData & AddressFormData;
   formData: BasicInfoFormData;
   quote: BuyQuote;
-  kycUrl?: string;
 }
 
 export const createEnterAddressNavDetails =
   createNavigationDetails<EnterAddressParams>(Routes.DEPOSIT.ENTER_ADDRESS);
 
-interface AddressFormData {
+export interface AddressFormData {
   addressLine1: string;
   addressLine2: string;
   city: string;
@@ -60,7 +60,7 @@ const EnterAddress = (): JSX.Element => {
   const {
     formData: basicInfoFormData,
     quote,
-    kycUrl,
+    previousFormData,
   } = useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
@@ -73,21 +73,23 @@ const EnterAddress = (): JSX.Element => {
   const stateInputRef = useRef<TextInput>(null);
   const postCodeInputRef = useRef<TextInput>(null);
 
-  const cryptoCurrency = getCryptoCurrencyFromTransakId(quote.cryptoCurrency);
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(
+    quote.cryptoCurrency,
+    quote.network,
+  );
 
-  const { navigateToAdditionalVerification, navigateToKycProcessing } =
-    useDepositRouting({
-      cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
-      paymentMethodId: quote.paymentMethod,
-    });
+  const { routeAfterAuthentication } = useDepositRouting({
+    cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
+    paymentMethodId: quote.paymentMethod,
+  });
 
   const initialFormData: AddressFormData = {
-    addressLine1: '',
-    addressLine2: '',
-    state: '',
-    city: '',
-    postCode: '',
-    countryCode: selectedRegion?.isoCode || '',
+    addressLine1: previousFormData?.addressLine1 || '',
+    addressLine2: previousFormData?.addressLine2 || '',
+    state: previousFormData?.state || '',
+    city: previousFormData?.city || '',
+    postCode: previousFormData?.postCode || '',
+    countryCode: previousFormData?.countryCode || selectedRegion?.isoCode || '',
   };
 
   const validateForm = (data: AddressFormData): Record<string, string> => {
@@ -177,15 +179,6 @@ const EnterAddress = (): JSX.Element => {
     throws: true,
   });
 
-  const [, submitPurpose] = useDepositSdkMethod(
-    {
-      method: 'submitPurposeOfUsageForm',
-      onMount: false,
-      throws: true,
-    },
-    ['Buying/selling crypto for investments'],
-  );
-
   const [, submitSsnDetails] = useDepositSdkMethod({
     method: 'submitSsnDetails',
     onMount: false,
@@ -224,13 +217,7 @@ const EnterAddress = (): JSX.Element => {
         await submitSsnDetails(basicInfoFormData.ssn);
       }
 
-      await submitPurpose();
-
-      if (kycUrl) {
-        navigateToAdditionalVerification({ quote, kycUrl });
-      } else {
-        navigateToKycProcessing({ quote });
-      }
+      await routeAfterAuthentication(quote);
     } catch (submissionError) {
       setLoading(false);
       setError(
@@ -250,12 +237,9 @@ const EnterAddress = (): JSX.Element => {
     basicInfoFormData,
     formData,
     postKycForm,
-    submitPurpose,
     quote,
-    kycUrl,
-    navigateToAdditionalVerification,
     submitSsnDetails,
-    navigateToKycProcessing,
+    routeAfterAuthentication,
     selectedRegion?.isoCode,
     trackEvent,
   ]);

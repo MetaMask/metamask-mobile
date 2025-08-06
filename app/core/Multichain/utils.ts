@@ -1,11 +1,6 @@
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import {
-  EthAccountType,
-  SolScope,
-  BtcAccountType,
-  BtcScope,
-} from '@metamask/keyring-api';
+import { EthAccountType, BtcAccountType } from '@metamask/keyring-api';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import Engine from '../Engine';
 import { CaipChainId, Hex } from '@metamask/utils';
@@ -16,6 +11,7 @@ import {
   formatBlockExplorerAddressUrl,
   formatBlockExplorerTransactionUrl,
 } from './networks';
+import { AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS } from '@metamask/multichain-network-controller';
 
 /**
  * Returns whether an account is an EVM account.
@@ -64,20 +60,12 @@ export function isSolanaAccount(account: InternalAccount): boolean {
  * @returns `true` if the address is a non-EVM address, `false` otherwise.
  */
 export function isNonEvmAddress(address: string): boolean {
-  return isSolanaAddress(address) || isBtcMainnetAddress(address);
-}
-
-/**
- * Returns the chain id of the non-EVM network based on the account address.
- *
- * @param address - The address to check.
- * @returns The chain id of the non-EVM network.
- */
-export function nonEvmNetworkChainIdByAccountAddress(address: string): string {
-  if (isSolanaAddress(address)) {
-    return SolScope.Mainnet;
-  }
-  return BtcScope.Mainnet;
+  return (
+    isSolanaAddress(address) ||
+    isBtcMainnetAddress(address) ||
+    isBtcTestnetAddress(address) ||
+    isBtcRegtestAddress(address)
+  );
 }
 
 export function lastSelectedAccountAddressByNonEvmNetworkChainId(
@@ -101,7 +89,9 @@ export function lastSelectedAccountAddressInEvmNetwork(): string | undefined {
  * @returns `true` if the chain id is a non-EVM chain id, `false` otherwise.
  */
 export function isNonEvmChainId(chainId: string | Hex | CaipChainId): boolean {
-  return chainId === SolScope.Mainnet || chainId === BtcScope.Mainnet;
+  return Object.keys(AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS).includes(
+    chainId,
+  );
 }
 
 /**
@@ -140,6 +130,18 @@ export function isBtcMainnetAddress(address: string): boolean {
  */
 export function isBtcTestnetAddress(address: string): boolean {
   return validate(address, Network.testnet);
+}
+
+/**
+ * Returns whether an address is on the Bitcoin tegtest.
+ *
+ * See {@link isBtcMainnetAddress} for implementation details.
+ *
+ * @param address - The address to check.
+ * @returns `true` if the address is on the Bitcoin regtest, `false` otherwise.
+ */
+export function isBtcRegtestAddress(address: string): boolean {
+  return validate(address, Network.regtest);
 }
 
 /**

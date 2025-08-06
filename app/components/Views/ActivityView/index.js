@@ -25,6 +25,7 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import {
+  selectChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
@@ -112,6 +113,7 @@ const ActivityView = () => {
     selectSelectedInternalAccountFormattedAddress,
   );
 
+  const currentChainId = useSelector(selectChainId);
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isAllPopularEVMNetworks = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -242,6 +244,7 @@ const ActivityView = () => {
           {selectedAddress && isNonEvmAddress(selectedAddress) ? (
             <MultichainTransactionsView
               tabLabel={strings('transactions_view.title')}
+              chainId={currentChainId}
             />
           ) : (
             <TransactionsView tabLabel={strings('transactions_view.title')} />

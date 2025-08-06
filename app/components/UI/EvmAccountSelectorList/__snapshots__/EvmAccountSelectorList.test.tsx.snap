@@ -493,7 +493,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -514,7 +514,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -656,25 +658,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                             >
                               Account 1
                             </Text>
-                            <TouchableOpacity
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": undefined,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessible={true}
-                              focusable={false}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
+                            <View
                               style={
                                 {
                                   "alignItems": "flex-start",
@@ -699,7 +683,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                               >
                                 0xC4955...4D272
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                           <View
                             style={
@@ -912,7 +896,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -933,7 +917,9 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -1075,25 +1061,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                             >
                               Account 2
                             </Text>
-                            <TouchableOpacity
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": undefined,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessible={true}
-                              focusable={false}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
+                            <View
                               style={
                                 {
                                   "alignItems": "flex-start",
@@ -1118,7 +1086,7 @@ exports[`EvmAccountSelectorList renders all accounts with balances 1`] = `
                               >
                                 0xd0185...a78E7
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                           <View
                             style={
@@ -1740,7 +1708,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -1761,7 +1729,9 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -1903,25 +1873,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                             >
                               Account 1
                             </Text>
-                            <TouchableOpacity
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": undefined,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessible={true}
-                              focusable={false}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
+                            <View
                               style={
                                 {
                                   "alignItems": "flex-start",
@@ -1946,7 +1898,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                               >
                                 0xC4955...4D272
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                           <View
                             style={
@@ -2121,7 +2073,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -2142,7 +2094,9 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -2284,25 +2238,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                             >
                               Account 2
                             </Text>
-                            <TouchableOpacity
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": undefined,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessible={true}
-                              focusable={false}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
+                            <View
                               style={
                                 {
                                   "alignItems": "flex-start",
@@ -2327,7 +2263,7 @@ exports[`EvmAccountSelectorList renders all accounts with right accessory 1`] = 
                               >
                                 0xd0185...a78E7
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                           <View
                             style={
@@ -2909,7 +2845,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -2930,7 +2866,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -3072,25 +3010,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                             >
                               Account 1
                             </Text>
-                            <TouchableOpacity
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": undefined,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessible={true}
-                              focusable={false}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
+                            <View
                               style={
                                 {
                                   "alignItems": "flex-start",
@@ -3115,7 +3035,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                               >
                                 0xC4955...4D272
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                           <View
                             style={
@@ -3328,7 +3248,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -3349,7 +3269,9 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -3491,25 +3413,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                             >
                               Account 2
                             </Text>
-                            <TouchableOpacity
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": undefined,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessible={true}
-                              focusable={false}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
+                            <View
                               style={
                                 {
                                   "alignItems": "flex-start",
@@ -3534,7 +3438,7 @@ exports[`EvmAccountSelectorList renders correctly 1`] = `
                               >
                                 0xd0185...a78E7
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                           <View
                             style={
@@ -4155,7 +4059,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -4176,7 +4080,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -4318,25 +4224,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                             >
                               Account 1
                             </Text>
-                            <TouchableOpacity
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": undefined,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessible={true}
-                              focusable={false}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
+                            <View
                               style={
                                 {
                                   "alignItems": "flex-start",
@@ -4361,7 +4249,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                               >
                                 0xC4955...4D272
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                           <View
                             style={
@@ -4574,7 +4462,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                             style={
                               {
                                 "backgroundColor": "#ffffff",
-                                "borderRadius": 16,
+                                "borderRadius": 8,
                                 "height": 32,
                                 "marginRight": 16,
                                 "overflow": "hidden",
@@ -4595,7 +4483,9 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                                     "height": 32,
                                     "width": 32,
                                   },
-                                  undefined,
+                                  {
+                                    "borderRadius": 8,
+                                  },
                                 ]
                               }
                             >
@@ -4737,25 +4627,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                             >
                               Account 2
                             </Text>
-                            <TouchableOpacity
-                              accessibilityState={
-                                {
-                                  "busy": undefined,
-                                  "checked": undefined,
-                                  "disabled": undefined,
-                                  "expanded": undefined,
-                                  "selected": undefined,
-                                }
-                              }
-                              accessible={true}
-                              focusable={false}
-                              onClick={[Function]}
-                              onResponderGrant={[Function]}
-                              onResponderMove={[Function]}
-                              onResponderRelease={[Function]}
-                              onResponderTerminate={[Function]}
-                              onResponderTerminationRequest={[Function]}
-                              onStartShouldSetResponder={[Function]}
+                            <View
                               style={
                                 {
                                   "alignItems": "flex-start",
@@ -4780,7 +4652,7 @@ exports[`EvmAccountSelectorList renders network icons for accounts with transact
                               >
                                 0xd0185...a78E7
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                           <View
                             style={

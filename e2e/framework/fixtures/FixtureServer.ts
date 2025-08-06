@@ -2,13 +2,16 @@ import { getFixturesServerPort } from './FixtureUtils';
 import Koa, { Context } from 'koa';
 import { isObject, mapValues } from 'lodash';
 import FixtureBuilder from './FixtureBuilder';
-import { logger } from '../logger';
+import { createLogger } from '../logger';
+
+const logger = createLogger({
+  name: 'FixtureServer',
+});
 
 const CURRENT_STATE_KEY = '__CURRENT__';
 const DEFAULT_STATE_KEY = '__DEFAULT__';
 
 const FIXTURE_SERVER_HOST = 'localhost';
-export const DEFAULT_FIXTURE_SERVER_PORT = 12345;
 
 const fixtureSubstitutionPrefix = '__FIXTURE_SUBSTITUTION__';
 const CONTRACT_KEY = 'CONTRACT';

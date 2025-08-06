@@ -132,7 +132,7 @@ exports[`AccountCard render matches snapshot 1`] = `
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 4,
                       "height": 16,
                       "overflow": "hidden",
                       "width": 16,
@@ -151,7 +151,9 @@ exports[`AccountCard render matches snapshot 1`] = `
                           "height": 16,
                           "width": 16,
                         },
-                        undefined,
+                        {
+                          "borderRadius": 4,
+                        },
                       ]
                     }
                   >
@@ -412,7 +414,7 @@ exports[`AccountCard render matches snapshot 1`] = `
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 4,
                       "height": 16,
                       "overflow": "hidden",
                       "width": 16,
@@ -431,7 +433,9 @@ exports[`AccountCard render matches snapshot 1`] = `
                           "height": 16,
                           "width": 16,
                         },
-                        undefined,
+                        {
+                          "borderRadius": 4,
+                        },
                       ]
                     }
                   >

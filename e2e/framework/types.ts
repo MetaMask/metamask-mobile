@@ -18,6 +18,7 @@ export interface GestureOptions {
 
 export interface TapOptions extends GestureOptions {
   delay?: number; // Delay before the tap action
+  waitForElementToDisappear?: boolean; // If true, waits for the element to disappear after tapping
 }
 
 export interface TypeTextOptions extends GestureOptions {
@@ -60,9 +61,18 @@ export interface StabilityOptions {
   interval?: number;
   stableCount?: number;
 }
+export interface RampsRegion {
+  currencies: string[];
+  emoji: string;
+  id: string;
+  name: string;
+  support: { buy: boolean; sell: boolean; recurringBuy: boolean };
+  unsupported: boolean;
+  recommended: boolean;
+  detected: boolean;
+}
 
 // Fixtures and Local Node Types
-
 // Available local node types
 export enum LocalNodeType {
   anvil = 'anvil',
@@ -170,6 +180,8 @@ export interface MockApiEndpoint {
  * @param {Partial<LaunchArgs>} [launchArgs] - The launch arguments to use for the test.
  * @param {LanguageAndLocale} [languageAndLocale] - The language and locale to use for the test.
  * @param {Record<string, unknown>} [permissions] - The permissions to set for the device.
+ * @param {Mockttp} [mockServerInstance] - The mock server instance to use for the test. Useful when a custom setup of the mock server is needed.
+ * @param {() => Promise<void>} [endTestfn] - The function to execute after the test is finished.
  */
 export interface WithFixturesOptions {
   fixture: FixtureBuilder;
@@ -182,4 +194,7 @@ export interface WithFixturesOptions {
   launchArgs?: Partial<LaunchArgs>;
   languageAndLocale?: LanguageAndLocale;
   permissions?: Record<string, unknown>;
+  mockServerInstance?: Mockttp;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  endTestfn?: (...args: any[]) => Promise<void>;
 }

@@ -1,8 +1,8 @@
 import { loginToApp } from '../../../viewHelper';
 import TestHelpers from '../../../helpers.js';
 import WalletView from '../../../pages/wallet/WalletView';
-import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet.js';
-import Assertions from '../../../framework/Assertions.ts';
+import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet';
+import Assertions from '../../../framework/Assertions';
 import { SmokeIdentity } from '../../../tags.js';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures.ts';
@@ -11,12 +11,12 @@ import {
   UserStorageMockttpControllerEvents,
   UserStorageMockttpController,
 } from '../utils/user-storage/userStorageMockttpController.ts';
-import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet.js';
+import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import { goToImportSrp, inputSrp } from '../../multisrp/utils.ts';
-import ImportSrpView from '../../../pages/importSrp/ImportSrpView.js';
+import ImportSrpView from '../../../pages/importSrp/ImportSrpView';
 import { IDENTITY_TEAM_SEED_PHRASE_2 } from '../utils/constants.ts';
-import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent.ts';
-import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent.ts';
+import AddNewHdAccountComponent from '../../../pages/wallet/MultiSrp/AddAccountToSrp/AddNewHdAccountComponent';
+import SRPListItemComponent from '../../../pages/wallet/MultiSrp/Common/SRPListItemComponent';
 import { createUserStorageController } from '../utils/mocks.ts';
 
 describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {

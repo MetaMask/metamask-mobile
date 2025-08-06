@@ -1,25 +1,19 @@
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import TestHelpers from '../../../helpers';
 import { loginToApp } from '../../../viewHelper';
-import {
-  withFixtures,
-  defaultGanacheOptions,
-} from '../../../fixtures/fixture-helper';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { buildPermissions } from '../../../fixtures/utils';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
-import Assertions from '../../../utils/Assertions';
-import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
+import Assertions from '../../../framework/Assertions';
 import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../../pages/Send/SendView';
 import AmountView from '../../../pages/Send/AmountView';
-import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 
@@ -34,7 +28,6 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await TestHelpers.reverseServerPort();
   });
 
   it('handles max native asset', async () => {
@@ -47,14 +40,12 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
           )
           .build(),
         restartDevice: true,
-        ganacheOptions: defaultGanacheOptions,
         testSpecificMock,
       },
       async () => {
         await loginToApp();
 
         await TabBarComponent.tapActions();
-        await TestHelpers.delay(2000);
         await WalletActionsBottomSheet.tapSendButton();
 
         await SendView.inputAddress(RECIPIENT);
@@ -62,25 +53,19 @@ describe(SmokeConfirmationsRedesigned('Send Max Transfer'), () => {
 
         // Do double tab here to prevent flakiness
         await AmountView.tapMaxButton();
-        await TestHelpers.delay(2000);
         await AmountView.tapMaxButton();
 
         await AmountView.tapNextButton();
 
         // Check all expected elements are visible
-        await Assertions.checkIfVisible(
-          ConfirmationUITypes.FlatConfirmationContainer,
-        );
-        await Assertions.checkIfVisible(RowComponents.FromTo);
-        await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
-        await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
+        await Assertions.expectTextDisplayed('1,000 ETH');
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed('Confirmed');
+        await Assertions.expectTextDisplayed('Confirmed');
       },
     );
   });

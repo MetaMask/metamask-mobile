@@ -105,10 +105,6 @@ import {
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../util/networks';
 
-export const formatNetworkRpcUrl = (rpcUrl) => {
-  return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
-};
-
 const formatNetworkRpcUrl = (rpcUrl) => {
   return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
 };

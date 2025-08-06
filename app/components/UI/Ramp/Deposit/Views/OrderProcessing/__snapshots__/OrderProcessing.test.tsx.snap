@@ -288,7 +288,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -884,7 +884,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -1161,7 +1161,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderColor": "transparent",
                   "borderRadius": 12,
                   "borderWidth": 1,
@@ -1256,103 +1256,22 @@ exports[`OrderProcessing Component renders no order found state 1`] = `
   >
     <View
       style={
-        [
-          {
-            "flex": 1,
-          },
-          undefined,
-        ]
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "bottom": 0,
+          "justifyContent": "center",
+          "left": 0,
+          "position": "absolute",
+          "right": 0,
+          "top": 0,
+        }
       }
     >
-      <View
-        style={
-          [
-            {
-              "padding": 15,
-            },
-            {
-              "flex": 1,
-            },
-            undefined,
-          ]
-        }
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flex": 1,
-              "justifyContent": "center",
-            }
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Regular",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            No order found
-          </Text>
-        </View>
-      </View>
-    </View>
-    <View>
-      <View
-        style={
-          [
-            {
-              "padding": 15,
-            },
-            undefined,
-            undefined,
-          ]
-        }
-      >
-        <TouchableOpacity
-          accessibilityRole="button"
-          accessible={true}
-          activeOpacity={1}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
-              "borderRadius": 12,
-              "flexDirection": "row",
-              "height": 48,
-              "justifyContent": "center",
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-            }
-          }
-          testID="no-order-back-button"
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#ffffff",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-          >
-            Back to Wallet
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <ActivityIndicator
+        color="#4459ff"
+        size="large"
+      />
     </View>
   </View>
 </RCTSafeAreaView>
@@ -1646,7 +1565,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -2242,7 +2161,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d1a",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,

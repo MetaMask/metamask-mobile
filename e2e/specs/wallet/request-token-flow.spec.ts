@@ -1,4 +1,3 @@
-'use strict';
 import { SmokeWalletPlatform } from '../../tags';
 import RequestPaymentModal from '../../pages/Receive/RequestPaymentModal';
 import SendLinkView from '../../pages/Receive/SendLinkView';
@@ -8,11 +7,10 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import { loginToApp } from '../../viewHelper';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import TestHelpers from '../../helpers';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../pages/wallet/WalletView';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 
 const SAI_CONTRACT_ADDRESS: string =
   '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
@@ -20,11 +18,6 @@ const SAI_CONTRACT_ADDRESS: string =
 describe(
   SmokeWalletPlatform('Request Token Flow with Unprotected Wallet'),
   (): void => {
-    beforeAll(async (): Promise<void> => {
-      jest.setTimeout(200000);
-      await TestHelpers.reverseServerPort();
-    });
-
     it('should complete request token flow from action button to wallet protection modal', async (): Promise<void> => {
       await withFixtures(
         {
@@ -36,18 +29,18 @@ describe(
         },
         async (): Promise<void> => {
           await loginToApp();
-          await Assertions.checkIfVisible(WalletView.container);
+          await Assertions.expectElementToBeVisible(WalletView.container);
           // Request asset from Action button
           await TabBarComponent.tapActions();
           await WalletActionsBottomSheet.tapReceiveButton();
           await RequestPaymentModal.tapRequestPaymentButton();
-          await Assertions.checkIfVisible(
+          await Assertions.expectElementToBeVisible(
             RequestPaymentView.requestPaymentContainer,
           );
 
           // Search for SAI by contract
           await RequestPaymentView.searchForToken(SAI_CONTRACT_ADDRESS);
-          await Assertions.checkIfTextIsDisplayed('SAI');
+          await Assertions.expectTextDisplayed('SAI');
 
           // Search DAI
           await RequestPaymentView.searchForToken('D');
@@ -55,11 +48,11 @@ describe(
 
           // Request DAI amount
           await RequestPaymentView.typeInTokenAmount(5.5);
-          await Assertions.checkIfVisible(SendLinkView.container);
+          await Assertions.expectElementToBeVisible(SendLinkView.container);
 
           // See DAI request QR code
           await SendLinkView.tapQRCodeButton();
-          await Assertions.checkIfVisible(
+          await Assertions.expectElementToBeVisible(
             PaymentRequestQrBottomSheet.container,
           );
 
@@ -68,7 +61,9 @@ describe(
           await SendLinkView.tapCloseSendLinkButton();
 
           // See protect your wallet modal
-          await Assertions.checkIfVisible(ProtectYourWalletModal.container);
+          await Assertions.expectElementToBeVisible(
+            ProtectYourWalletModal.container,
+          );
         },
       );
     });
