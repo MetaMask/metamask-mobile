@@ -137,14 +137,19 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
   // Calculate if we can navigate in each direction
   const canNavigateLeft = React.useMemo(
-    () => dataWindowStart + dataWindowSize < (fullTransformedData?.length || 0),
-    [dataWindowStart, dataWindowSize, fullTransformedData?.length],
-  );
-
-  const canNavigateRight = React.useMemo(
     () => dataWindowStart > 0,
     [dataWindowStart],
   );
+
+  const canNavigateRight = React.useMemo(() => {
+    // Can navigate right (to newer data) if we're not already showing the most recent data
+    // Most recent data is when dataWindowStart is at its maximum possible value
+    const maxDataWindowStart = Math.max(
+      0,
+      (fullTransformedData?.length || 0) - dataWindowSize,
+    );
+    return dataWindowStart < maxDataWindowStart;
+  }, [dataWindowStart, dataWindowSize, fullTransformedData?.length]);
 
   // Windowed data for display (show subset of data)
   const transformedData = React.useMemo(() => {
@@ -166,6 +171,25 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       windowedDataLength: windowedData.length,
       firstTimestamp: windowedData[0]?.timestamp,
       lastTimestamp: windowedData[windowedData.length - 1]?.timestamp,
+      firstDate: windowedData[0]
+        ? new Date(windowedData[0].timestamp).toISOString()
+        : 'N/A',
+      lastDate: windowedData[windowedData.length - 1]
+        ? new Date(
+            windowedData[windowedData.length - 1].timestamp,
+          ).toISOString()
+        : 'N/A',
+      fullDataFirstTimestamp: fullTransformedData[0]?.timestamp,
+      fullDataLastTimestamp:
+        fullTransformedData[fullTransformedData.length - 1]?.timestamp,
+      fullDataFirstDate: fullTransformedData[0]
+        ? new Date(fullTransformedData[0].timestamp).toISOString()
+        : 'N/A',
+      fullDataLastDate: fullTransformedData[fullTransformedData.length - 1]
+        ? new Date(
+            fullTransformedData[fullTransformedData.length - 1].timestamp,
+          ).toISOString()
+        : 'N/A',
     });
 
     return windowedData;
@@ -196,24 +220,19 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       const loadMoreThreshold = 10; // Trigger loading when within 10 candles of boundary
 
       if (direction === 'left' && canNavigateLeft) {
-        // Going back in time - show older data
+        // Going back in time - show older data (decrease dataWindowStart toward 0)
         DevLogger.log('Navigating left (older data)');
         setDataWindowStart((prev) => {
-          const newStart = Math.min(
-            prev + stepSize,
-            Math.max(0, (fullTransformedData?.length || 0) - dataWindowSize),
-          );
+          const newStart = Math.max(0, prev - stepSize);
 
-          // Check if we're getting close to the end of available data (older data)
-          const remainingDataAtEnd =
-            (fullTransformedData?.length || 0) - (newStart + dataWindowSize);
+          // Check if we're getting close to the beginning of available data (older data)
           if (
-            remainingDataAtEnd <= loadMoreThreshold &&
+            newStart <= loadMoreThreshold &&
             onLoadMoreData &&
             !isLoadingMoreData
           ) {
             runOnJS(logJS)(
-              'Near end of data, triggering load more (left/older)',
+              'Near beginning of data, triggering load more (left/older)',
             );
             onLoadMoreData('left').catch((error) => {
               runOnJS(logJS)('Failed to load more data (left):', error);
@@ -225,16 +244,18 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
             prev,
             'newStart:',
             newStart,
-            'remainingAtEnd:',
-            remainingDataAtEnd,
           );
           return newStart;
         });
       } else if (direction === 'right' && canNavigateRight) {
-        // Going forward in time - show newer data
+        // Going forward in time - show newer data (increase dataWindowStart toward max)
         runOnJS(logJS)('Navigating right (newer data)');
         setDataWindowStart((prev) => {
-          const newStart = Math.max(0, prev - stepSize);
+          const maxStart = Math.max(
+            0,
+            (fullTransformedData?.length || 0) - dataWindowSize,
+          );
+          const newStart = Math.min(maxStart, prev + stepSize);
 
           // Check if we're getting close to the beginning of available data (newer data)
           if (
@@ -343,9 +364,19 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           ) {
             runOnJS(setPanningJS)(true);
 
-            // Swipe left = go back in time (show older data) - increase window start
-            // Swipe right = go forward in time (show newer data) - decrease window start
-            const direction = translationX > 0 ? 'right' : 'left';
+            // Swipe right (translationX > 0) = go back in time (show older data)
+            // Swipe left (translationX < 0) = go forward in time (show newer data)
+            const direction = translationX > 0 ? 'left' : 'right';
+
+            runOnJS(logJS)('Gesture detected:', {
+              translationX,
+              velocityX,
+              direction,
+              meaning:
+                direction === 'right'
+                  ? 'forward in time (newer)'
+                  : 'back in time (older)',
+            });
 
             runOnJS(updateDataWindowStartJS)(direction);
 
