@@ -497,8 +497,6 @@ const Wallet = ({
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
 
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('isConnectionRemoved useEffect wallet', isConnectionRemoved);
     if (isConnectionRemoved) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,

@@ -1010,7 +1010,7 @@ class AuthenticationService {
     const { success, error: seedlessSyncError } =
       await SeedlessOnboardingController.submitGlobalPassword({
         globalPassword,
-        maxKeyChainLength: 1,
+        maxKeyChainLength: 20,
       })
         .then(() => ({ success: true, error: null }))
         .catch((err) => ({ success: false, error: err }));
@@ -1035,6 +1035,7 @@ class AuthenticationService {
         await this.rehydrateSeedPhrase(globalPassword, authData);
         // skip the rest of the flow ( change password and sync keyring encryption key)
         ReduxService.store.dispatch(setIsConnectionRemoved(true));
+        return;
       } else if (
         errorMessage ===
         SeedlessOnboardingControllerErrorMessage.IncorrectPassword
