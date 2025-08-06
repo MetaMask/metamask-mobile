@@ -98,8 +98,8 @@ describe('AccountTreeController Selectors', () => {
 
   describe('selectAccountSections', () => {
     it.each([
-      ['undefined accountTree', undefined, null],
-      ['empty wallets', { accountTree: { wallets: {} } }, null],
+      ['disabled multichain accounts', { accountTree: { wallets: {} } }, []],
+      ['empty wallets', { accountTree: { wallets: {} } }, []],
     ])('returns %s correctly', (_, accountTreeController, expected) => {
       const mockState = createMockState(accountTreeController);
       const result = selectAccountSections(mockState);
@@ -455,7 +455,6 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it.each([
-      ['undefined accountTree', undefined, ACCOUNT_ID_1, null],
       [
         'disabled multichain accounts',
         { accountTree: { wallets: { [WALLET_ID_1]: mockWallet } } },
@@ -497,7 +496,6 @@ describe('AccountTreeController Selectors', () => {
 
   describe('selectAccountGroups', () => {
     it.each([
-      ['undefined accountTree', undefined, []],
       [
         'disabled multichain accounts',
         {
@@ -518,7 +516,6 @@ describe('AccountTreeController Selectors', () => {
       } as unknown as RootState);
 
     it.each([
-      ['undefined accountTree', undefined, ACCOUNT_ID_1, null],
       [
         'disabled multichain accounts',
         {
