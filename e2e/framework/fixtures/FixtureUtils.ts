@@ -12,15 +12,21 @@ import {
 } from '../Constants';
 
 /**
- * Determines if the current environment is running on BrowserStack.
+ * Determines if tests are running on BrowserStack with local tunnel enabled.
  *
  * This function provides consistent BrowserStack detection used by both
  * getServerPort() and getLocalHost() to ensure matching host/port configurations.
  *
- * @returns True when running on BrowserStack with local tunnel enabled
+ * Handles environment variable patterns:
+ * - BROWSERSTACK_LOCAL=true → true
+ * - BROWSERSTACK_LOCAL=false → false
+ * - BROWSERSTACK_LOCAL="" → false
+ * - BROWSERSTACK_LOCAL unset → false
+ *
+ * @returns True when BrowserStack local tunnel is enabled
  */
-function isBrowserStackEnvironment(): boolean {
-  return Boolean(process.env.BROWSERSTACK_LOCAL);
+function isBrowserStack() {
+  return process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
 }
 
 /**
@@ -42,10 +48,7 @@ function isBrowserStackEnvironment(): boolean {
  * ```
  */
 export function getLocalHost() {
-  if (isBrowserStackEnvironment()) {
-    return 'bs-local.com';
-  }
-  return 'localhost';
+  return isBrowserStack() ? 'bs-local.com' : 'localhost';
 }
 
 function transformToValidPort(defaultPort: number, pid: number) {
@@ -58,7 +61,7 @@ function transformToValidPort(defaultPort: number, pid: number) {
 
 function getServerPort(defaultPort: number) {
   if (process.env.CI) {
-    if (isBrowserStackEnvironment()) {
+    if (isBrowserStack()) {
       // if running on browserstack, do not use dynamic ports
       return defaultPort;
     }
