@@ -316,9 +316,6 @@ export const config = {
     //   await adb.reversePort(8545, 8545);
     //   await adb.reversePort(12345, 12345);
     // }
-    await startFixtureServer(fixtureServer);
-    const state = new FixtureBuilder().build();
-    await loadFixture(fixtureServer, { fixture: state });
   },
   /**
    * Runs before a WebdriverIO command gets executed.
