@@ -178,13 +178,13 @@ describe('BankDetails Component', () => {
     render(BankDetails);
 
     // Initially beneficiary address should not be visible
-    expect(screen.queryByText('456 recipient street')).toBeNull();
+    expect(screen.queryByText('456 Recipient Street')).toBeNull();
 
     // Show bank information
     fireEvent.press(screen.getByText('Show bank information'));
 
     // Beneficiary address should now be visible
-    expect(screen.getByText('456 recipient street')).toBeTruthy();
+    expect(screen.getByText('456 Recipient Street')).toBeTruthy();
   });
 
   it('calls setOptions with correct title when component mounts', () => {
