@@ -763,5 +763,75 @@ describe('Wallet', () => {
 
       jest.clearAllMocks();
     });
+
+    it('connection removed modal is not shown when isConnectionRemoved is true and isSocialLogin is true', () => {
+      const mockInitialStateWithConnectionRemoved = {
+        ...mockInitialState,
+        user: {
+          isConnectionRemoved: true,
+        },
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            PreferencesController: {
+              ...mockInitialState.engine.backgroundState.PreferencesController,
+              useNftDetection: true,
+            },
+            SeedlessOnboardingController: {
+              ...mockInitialState.engine.backgroundState
+                .SeedlessOnboardingController,
+              vault: 'encrypted-vault-data',
+              loginFlow: true,
+            },
+          },
+        },
+      };
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(mockInitialStateWithConnectionRemoved),
+        );
+
+      // Create a complete navigation object mock
+      const mockNavigationObject = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      } as unknown as NavigationProp<ParamListBase>;
+
+      // Clear previous calls
+      mockNavigate.mockClear();
+
+      renderWithProvider(
+        <Wallet
+          navigation={mockNavigationObject}
+          currentRouteName={Routes.WALLET_VIEW}
+        />,
+        {
+          state: mockInitialStateWithConnectionRemoved,
+        },
+      );
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: expect.any(String),
+            description: expect.any(String),
+            primaryButtonLabel: expect.any(String),
+            type: 'error',
+            icon: IconName.Danger,
+            iconColor: IconColor.Warning,
+            isInteractable: false,
+            closeOnPrimaryButtonPress: true,
+            onPrimaryButtonPress: expect.any(Function),
+          }),
+        },
+      );
+
+      jest.clearAllMocks();
+    });
   });
 });

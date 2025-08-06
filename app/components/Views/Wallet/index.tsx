@@ -149,6 +149,7 @@ import {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { setIsConnectionRemoved } from '../../../actions/user';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -495,9 +496,10 @@ const Wallet = ({
   }, [addTraitsToUser, hdKeyrings.length]);
 
   const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
-    if (isConnectionRemoved) {
+    if (isConnectionRemoved && !isSocialLogin) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
         params: {
@@ -510,14 +512,12 @@ const Wallet = ({
           isInteractable: false,
           closeOnPrimaryButtonPress: true,
           onPrimaryButtonPress: () => {
-            // eslint-disable-next-line no-console
-            console.log('isConnectionRemoved 2', isConnectionRemoved);
             dispatch(setIsConnectionRemoved(false));
           },
         },
       });
     }
-  }, [navigation, isConnectionRemoved, dispatch]);
+  }, [navigation, isConnectionRemoved, dispatch, isSocialLogin]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
