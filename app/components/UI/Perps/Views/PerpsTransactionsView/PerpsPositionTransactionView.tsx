@@ -1,49 +1,43 @@
-import React from 'react';
-import { View, ScrollView, Linking } from 'react-native';
 import {
   NavigationProp,
+  RouteProp,
   useNavigation,
   useRoute,
-  RouteProp,
 } from '@react-navigation/native';
+import React from 'react';
+import { Linking, ScrollView, View } from 'react-native';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 
+import { BigNumber } from 'bignumber.js';
+import { useSelector } from 'react-redux';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
-import type { Theme } from '../../../../../util/theme/models';
-import { createTransactionDetailStyles } from '../../utils/transactionDetailStyles';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import ScreenView from '../../../../Base/ScreenView';
-import { PerpsNavigationParamList } from '../../types/navigation';
-import { PerpsTransaction } from '../PerpsTransactionsView/PerpsTransactionsView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
-import { BigNumber } from 'bignumber.js';
+import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
+import { usePerpsNetwork } from '../../hooks';
+import { PerpsNavigationParamList } from '../../types/navigation';
+import { getHyperliquidExplorerUrl } from '../../utils/blockchainUtils';
 import {
   formatPerpsFiat,
   formatPnl,
   formatTransactionDate,
 } from '../../utils/formatUtils';
-import { getHyperliquidExplorerUrl } from '../../utils/blockchainUtils';
-import { usePerpsNetwork } from '../../hooks';
-import { useSelector } from 'react-redux';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
+import { PerpsTransaction } from '../PerpsTransactionsView/PerpsTransactionsView';
+import { styleSheet } from './PerpsPositionTransactionView.styles';
 
 type PerpsPositionTransactionRouteProp = RouteProp<
   PerpsNavigationParamList,
   'PerpsPositionTransaction'
 >;
-
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  return createTransactionDetailStyles(theme);
-};
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});

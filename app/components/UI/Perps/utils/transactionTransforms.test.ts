@@ -165,6 +165,30 @@ describe('transactionTransforms', () => {
 
       expect(result).toHaveLength(0);
     });
+
+    it('should handle unknown actions by logging error and returning empty array', () => {
+      // Mock console.error to test the error logging
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      const unknownActionFill: OrderFill = {
+        ...mockOrderFill,
+        direction: 'Unknown Action' as string, // This will trigger the unknown action case
+      };
+
+      const result = transformFillsToTransactions([unknownActionFill]);
+
+      // Should return empty array for unknown actions
+      expect(result).toEqual([]);
+
+      // Should log error
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        'Unknown action',
+        unknownActionFill,
+      );
+
+      // Restore console.error
+      consoleErrorSpy.mockRestore();
+    });
   });
 
   describe('transformOrdersToTransactions', () => {

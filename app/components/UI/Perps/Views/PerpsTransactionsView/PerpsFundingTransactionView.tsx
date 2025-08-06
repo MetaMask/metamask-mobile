@@ -1,37 +1,36 @@
-import React from 'react';
-import { View, ScrollView, Linking } from 'react-native';
 import {
   NavigationProp,
+  RouteProp,
   useNavigation,
   useRoute,
-  RouteProp,
 } from '@react-navigation/native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import { BigNumber } from 'bignumber.js';
+import React from 'react';
+import { Linking, ScrollView, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import type { Theme } from '../../../../../util/theme/models';
-import { createTransactionDetailStyles } from '../../utils/transactionDetailStyles';
-import ScreenView from '../../../../Base/ScreenView';
-import { PerpsNavigationParamList } from '../../types/navigation';
-import { PerpsTransaction } from '../PerpsTransactionsView/PerpsTransactionsView';
-import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
-import { getHyperliquidExplorerUrl } from '../../utils/blockchainUtils';
-import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import ScreenView from '../../../../Base/ScreenView';
+import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import { usePerpsNetwork } from '../../hooks';
+import { PerpsNavigationParamList } from '../../types/navigation';
+import { getHyperliquidExplorerUrl } from '../../utils/blockchainUtils';
 import {
   formatPerpsFiat,
   formatTransactionDate,
 } from '../../utils/formatUtils';
-import { BigNumber } from 'bignumber.js';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsTransaction } from '../PerpsTransactionsView/PerpsTransactionsView';
+import { styleSheet } from './PerpsFundingTransactionView.styles';
 
 // Interface now imported from PerpsTransactionsView
 
@@ -40,32 +39,12 @@ type PerpsFundingTransactionRouteProp = RouteProp<
   'PerpsFundingTransaction'
 >;
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  const baseStyles = createTransactionDetailStyles(theme);
-
-  // Override content padding for funding view
-  return {
-    ...baseStyles,
-    content: {
-      ...baseStyles.content,
-      paddingTop: 8, // Different padding for funding view
-    },
-    detailLabel: {
-      ...baseStyles.detailLabel,
-      fontSize: 16, // Larger font for funding view
-    },
-    detailValue: {
-      ...baseStyles.detailValue,
-      fontSize: 16, // Larger font for funding view
-    },
-  };
-};
-
 const PerpsFundingTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
+
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route = useRoute<PerpsFundingTransactionRouteProp>();
+
   const perpsNetwork = usePerpsNetwork();
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
 

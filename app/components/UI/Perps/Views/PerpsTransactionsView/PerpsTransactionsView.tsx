@@ -18,7 +18,6 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { Theme } from '../../../../../util/theme/models';
 import { PerpsNavigationParamList } from '../../types/navigation';
 
 // Import PerpsController hooks
@@ -29,6 +28,8 @@ import {
   transformOrdersToTransactions,
 } from '../../utils/transactionTransforms';
 import PerpsTransactionItem from '../../components/PerpsTransactionItem';
+import { PERPS_TRANSACTIONS_HISTORY_CONSTANTS } from '../../constants/transactionsHistory';
+import { styleSheet } from './PerpsTransactionsView.styles';
 
 // Perps transaction data structure matching the new design
 export interface PerpsTransaction {
@@ -85,130 +86,6 @@ type ListItem =
 type FilterTab = 'Trades' | 'Orders' | 'Funding';
 
 interface PerpsTransactionsViewProps {}
-
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  const { colors } = theme;
-
-  return {
-    container: {
-      flex: 1,
-    },
-    filterTabText: {
-      color: colors.text.alternative,
-    },
-    filterContainer: {
-      paddingHorizontal: 16,
-      paddingVertical: 16,
-      backgroundColor: colors.background.default,
-      zIndex: 1000, // iOS
-      elevation: 1000, // Android
-      position: 'relative' as const,
-    },
-    filterScrollView: {
-      flexDirection: 'row' as const,
-    },
-    filterTab: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-      marginRight: 8,
-      borderRadius: 20,
-      backgroundColor: colors.background.default,
-      alignItems: 'center' as const,
-      justifyContent: 'center' as const,
-    },
-    filterTabActive: {
-      backgroundColor: colors.background.defaultPressed,
-    },
-    transactionList: {
-      flex: 1,
-      minHeight: 1, // Prevents FlashList layout issues
-    },
-    sectionHeader: {
-      paddingTop: 12,
-      paddingHorizontal: 16,
-      backgroundColor: colors.background.default,
-    },
-    sectionHeaderText: {
-      fontSize: 16,
-      fontWeight: '600' as const,
-      color: colors.text.muted,
-    },
-    transactionItem: {
-      flexDirection: 'row' as const,
-      alignItems: 'center' as const,
-      paddingVertical: 16,
-      paddingHorizontal: 16,
-      minHeight: 72, // Consistent height for FlashList
-    },
-    transactionIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-    },
-    tokenIconContainer: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      marginRight: 12,
-      overflow: 'hidden' as const,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
-    },
-    transactionContent: {
-      flex: 1,
-    },
-    transactionContentCentered: {
-      flex: 1,
-      justifyContent: 'center' as const,
-    },
-    transactionTitle: {
-      fontSize: 16,
-      fontWeight: '400' as const,
-      color: colors.text.default,
-      marginBottom: 4,
-    },
-    transactionTitleCentered: {
-      fontSize: 16,
-      fontWeight: '400' as const,
-      color: colors.text.default,
-      marginBottom: 0, // No margin when centered
-    },
-    transactionSubtitle: {
-      fontSize: 14,
-      color: colors.text.alternative,
-    },
-    rightContent: {
-      alignItems: 'flex-end' as const,
-    },
-    profitAmount: {
-      color: colors.success.default,
-    },
-    lossAmount: {
-      color: colors.error.default,
-    },
-    statusFilled: {
-      color: colors.text.muted,
-    },
-    statusCanceled: {
-      color: colors.text.muted,
-    },
-    statusPending: {
-      color: colors.text.muted,
-    },
-    emptyContainer: {
-      flex: 1,
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
-      paddingVertical: 48,
-    },
-    emptyText: {
-      textAlign: 'center' as const,
-      marginTop: 16,
-      color: colors.text.muted,
-    },
-  };
-};
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -327,15 +204,9 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
       const transformedFunding = transformFundingToTransactions(fundingData);
 
       // Sort each type chronologically (newest first)
-      setFillTransactions(
-        transformedFills.sort((a, b) => b.timestamp - a.timestamp),
-      );
-      setOrderTransactions(
-        transformedOrders.sort((a, b) => b.timestamp - a.timestamp),
-      );
-      setFundingTransactions(
-        transformedFunding.sort((a, b) => b.timestamp - a.timestamp),
-      );
+      setFillTransactions(transformedFills);
+      setOrderTransactions(transformedOrders);
+      setFundingTransactions(transformedFunding);
     } catch (error) {
       // Fallback to empty arrays on error
       setFillTransactions([]);
@@ -557,16 +428,20 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
         data={flatListData}
         renderItem={renderListItem}
         keyExtractor={(item) => item.id}
-        estimatedItemSize={52}
+        estimatedItemSize={
+          PERPS_TRANSACTIONS_HISTORY_CONSTANTS.ESTIMATED_LIST_ITEM_SIZE
+        }
         getItemType={(item) =>
           item.type === 'header' ? 'header' : 'transaction'
         }
         overrideItemLayout={(layout, item) => {
           // Fix gaps by setting exact heights
           if (item.type === 'header') {
-            layout.size = 48;
+            layout.size =
+              PERPS_TRANSACTIONS_HISTORY_CONSTANTS.ESTIMATED_LIST_HEADER_LAYOUT_SIZE;
           } else {
-            layout.size = 72;
+            layout.size =
+              PERPS_TRANSACTIONS_HISTORY_CONSTANTS.ESTIMATED_LIST_ITEM_LAYOUT_SIZE;
           }
         }}
         ListEmptyComponent={renderEmptyState}
@@ -574,9 +449,13 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         showsVerticalScrollIndicator={false}
-        drawDistance={200}
+        drawDistance={
+          PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FLASH_LIST_DRAW_DISTANCE
+        }
         ItemSeparatorComponent={() => null}
-        scrollEventThrottle={16}
+        scrollEventThrottle={
+          PERPS_TRANSACTIONS_HISTORY_CONSTANTS.FLASH_LIST_SCROLL_EVENT_THROTTLE
+        }
         removeClippedSubviews
         keyboardShouldPersistTaps="handled"
       />

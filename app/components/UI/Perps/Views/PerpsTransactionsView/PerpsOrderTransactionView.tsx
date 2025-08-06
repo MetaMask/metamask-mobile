@@ -13,6 +13,7 @@ import Text, {
 
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
+import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -20,8 +21,6 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import type { Theme } from '../../../../../util/theme/models';
-import { createTransactionDetailStyles } from '../../utils/transactionDetailStyles';
 import ScreenView from '../../../../Base/ScreenView';
 import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
@@ -32,7 +31,7 @@ import {
   formatPerpsFiat,
   formatTransactionDate,
 } from '../../utils/formatUtils';
-import { PerpsTransactionSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { styleSheet } from './PerpsOrderTransactionView.styles';
 
 // Interface now imported from PerpsTransactionsView
 
@@ -40,11 +39,6 @@ type PerpsOrderTransactionRouteProp = RouteProp<
   PerpsNavigationParamList,
   'PerpsOrderTransaction'
 >;
-
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  return createTransactionDetailStyles(theme);
-};
 
 const PerpsOrderTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});

@@ -46,6 +46,12 @@ describe('formatUtils', () => {
     it('should handle small decimal values', () => {
       expect(formatPerpsFiat(0.1)).toBe('$0.10'); // Currency standard: at least 2 decimals
     });
+
+    it('should return $0.00 for NaN values', () => {
+      expect(formatPerpsFiat('invalid')).toBe('$0.00');
+      expect(formatPerpsFiat('')).toBe('$0.00');
+      expect(formatPerpsFiat('abc')).toBe('$0.00');
+    });
   });
 
   describe('formatPrice', () => {
