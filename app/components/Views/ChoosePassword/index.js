@@ -565,7 +565,7 @@ class ChoosePassword extends PureComponent {
         this.isOAuthPasswordCreationError(error) &&
         this.props.metrics.isEnabled()
       ) {
-        await this.handleSeedlessOnboardingControllerError();
+        await this.handleSeedlessOnboardingControllerError(error);
         this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
       }
     }
