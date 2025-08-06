@@ -366,11 +366,13 @@ const WalletActions = () => {
     });
   }, [closeBottomSheetAndNavigate, navigate]);
 
-  const onPerpsSandbox = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      navigate(Routes.PERPS.ROOT);
-    });
-  }, [closeBottomSheetAndNavigate, navigate]);
+  const sendIconStyle = useMemo(
+    () => ({
+      transform: [{ rotate: '-45deg' }],
+      ...styles.icon,
+    }),
+    [styles.icon],
+  );
 
   const isEarnWalletActionEnabled = useMemo(() => {
     if (
@@ -411,7 +413,7 @@ const WalletActions = () => {
             iconName={IconName.Minus}
             onPress={onSell}
             testID={WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}
-            disabled={!canSignTransactions}
+            isDisabled={!canSignTransactions}
           />
         )}
         {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
@@ -421,7 +423,7 @@ const WalletActions = () => {
             iconName={IconName.SwapVertical}
             onPress={goToSwaps}
             testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-            disabled={!canSignTransactions || !swapsIsLive}
+            isDisabled={!canSignTransactions || !swapsIsLive}
           />
         )}
         {AppConstants.BRIDGE.ACTIVE &&
@@ -433,7 +435,7 @@ const WalletActions = () => {
               iconName={IconName.Bridge}
               onPress={goToBridge}
               testID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
-              disabled={!canSignTransactions}
+              isDisabled={!canSignTransactions}
             />
           )}
         {isPerpsEnabled && (
@@ -444,17 +446,7 @@ const WalletActions = () => {
             iconName={IconName.Usb}
             onPress={onPerps}
             testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
-            disabled={!canSignTransactions}
-          />
-        )}
-        {isPerpsEnabled && (
-          <ActionListItem
-            label={strings('asset_overview.perps_sandbox_button')}
-            description={strings('asset_overview.perps_sandbox_description')}
-            iconName={IconName.Arrow2UpRight}
-            onPress={onPerpsSandbox}
-            testID={WalletActionsBottomSheetSelectorsIDs.PERPS_SANDBOX_BUTTON}
-            disabled={!canSignTransactions}
+            isDisabled={!canSignTransactions}
           />
         )}
         <ActionListItem
@@ -463,7 +455,7 @@ const WalletActions = () => {
           iconName={IconName.Send}
           onPress={onSend}
           testID={WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON}
-          disabled={!canSignTransactions}
+          isDisabled={!canSignTransactions}
         />
         <ActionListItem
           label={strings('asset_overview.receive_button')}
@@ -471,7 +463,7 @@ const WalletActions = () => {
           iconName={IconName.Received}
           onPress={onReceive}
           testID={WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON}
-          disabled={false}
+          isDisabled={false}
         />
         {isEarnWalletActionEnabled && (
           <ActionListItem
@@ -480,7 +472,7 @@ const WalletActions = () => {
             iconName={IconName.Stake}
             onPress={onEarn}
             testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
-            disabled={!canSignTransactions}
+            isDisabled={!canSignTransactions}
           />
         )}
       </View>
