@@ -97,7 +97,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
-      height: 20,
+      height: 40, // Increased height to accommodate two lines
       marginTop: 4,
       marginBottom: 8,
       paddingRight: 50, // Match the chart's right padding to align with rightmost candle
@@ -105,8 +105,9 @@ export const styleSheet = (params: { theme: Theme }) => {
     timeLabel: {
       position: 'absolute',
       textAlign: 'center',
-      minWidth: 40,
-      transform: [{ translateX: -20 }], // Center the label on its position
+      minWidth: 50, // Increased width to accommodate date text
+      transform: [{ translateX: -25 }], // Adjusted centering for wider label
+      lineHeight: 16, // Set line height for better spacing between lines
     },
     tpslLine: {
       position: 'absolute',

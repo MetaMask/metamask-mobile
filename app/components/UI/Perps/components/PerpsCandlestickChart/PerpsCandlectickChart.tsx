@@ -56,6 +56,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const [showTPSLLines, setShowTPSLLines] = React.useState(false);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = React.useState(false);
 
   // Get candlestick colors from centralized configuration
   // This allows for easy customization and potential user settings integration
@@ -95,6 +96,13 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         (candle): candle is NonNullable<typeof candle> => candle !== null,
       ); // Remove invalid candles
   }, [candleData]);
+
+  // Track when data has been initially loaded
+  useEffect(() => {
+    if (!isLoading && transformedData.length > 0 && !hasInitiallyLoaded) {
+      setHasInitiallyLoaded(true);
+    }
+  }, [isLoading, transformedData.length, hasInitiallyLoaded]);
 
   // Show TP/SL lines after a short delay to ensure chart is rendered
   useEffect(() => {
@@ -230,7 +238,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return lines.length > 0 ? lines : null;
   }, [tpslLines, transformedData, height]);
 
-  if (isLoading) {
+  // Only show skeleton on initial load, not on interval changes
+  if (isLoading && !hasInitiallyLoaded) {
     return (
       <View style={styles.chartContainer}>
         {/* Chart placeholder with same height */}
@@ -396,7 +405,23 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
                       .getMinutes()
                       .toString()
                       .padStart(2, '0');
-                    return `${hours}:${minutes}`;
+                    const monthNames = [
+                      'Jan',
+                      'Feb',
+                      'Mar',
+                      'Apr',
+                      'May',
+                      'Jun',
+                      'Jul',
+                      'Aug',
+                      'Sep',
+                      'Oct',
+                      'Nov',
+                      'Dec',
+                    ];
+                    const month = monthNames[date.getMonth()];
+                    const day = date.getDate();
+                    return `${hours}:${minutes}\n${month} ${day}`;
                   })()}
                 </Text>
               ));
