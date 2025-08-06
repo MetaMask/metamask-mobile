@@ -1,15 +1,16 @@
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import {
-  ProviderValues,
-  renderHookWithProvider,
-} from '../../../../../util/test/renderWithProvider';
+  evmSendStateMock,
+  TOKEN_ADDRESS_MOCK_1,
+} from '../../__mocks__/send.mock';
 import { AssetType } from '../../types/token';
-import useConversions, {
+import {
   getFiatDisplayValueFn,
   getFiatValueFn,
   getNativeDisplayValueFn,
   getNativeValueFn,
-} from './useConversions';
+  useCurrencyConversions,
+} from './useCurrencyConversions';
 
 jest.mock('../gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: () => ({
@@ -18,53 +19,16 @@ jest.mock('../gas/useGasFeeEstimates', () => ({
 }));
 
 const mockState = {
-  state: {
-    engine: {
-      backgroundState: {
-        ...backgroundState,
-        AccountsController: {
-          internalAccounts: {
-            selectedAccount: 'evm-account-id',
-            accounts: {
-              'evm-account-id': {
-                id: 'evm-account-id',
-                type: 'eip155:eoa',
-                address: '0x12345',
-                metadata: {},
-              },
-            },
-          },
-        },
-        TokenBalancesController: {
-          tokenBalances: {
-            '0x12345': {
-              '0x1': {
-                '0x123': '0x5',
-              },
-            },
-          },
-        },
-        AccountTrackerController: {
-          accountsByChainId: {
-            '0x1': {
-              '0x12345': {
-                balance: '0xDE0B6B3A7640000',
-              },
-            },
-          },
-        },
-      },
-    },
-  },
+  state: evmSendStateMock,
 };
 
 describe('getFiatValueFn', () => {
   it('return fiat value for passed native value', () => {
     expect(
       getFiatValueFn({
-        asset: { address: '0x123' } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1 } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { '0x123': { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         amount: '10',
         decimals: 2,
       }),
@@ -74,9 +38,9 @@ describe('getFiatValueFn', () => {
   it('return 0 if input is empty string', () => {
     expect(
       getFiatValueFn({
-        asset: { address: '0x123' } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1 } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { '0x123': { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         amount: '',
         decimals: 2,
       }),
@@ -88,9 +52,9 @@ describe('getFiatDisplayValueFn', () => {
   it('return fiat value with currency prefix for passed native value', () => {
     expect(
       getFiatDisplayValueFn({
-        asset: { address: '0x123' } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1 } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { '0x123': { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         currentCurrency: 'usd',
         amount: '10',
       }),
@@ -102,9 +66,9 @@ describe('getNativeValueFn', () => {
   it('return native value for passed fiat value', () => {
     expect(
       getNativeValueFn({
-        asset: { address: '0x123' } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1 } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { '0x123': { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         amount: '38905.56',
         decimals: 2,
       }),
@@ -114,9 +78,9 @@ describe('getNativeValueFn', () => {
   it('return 0 if input is empty string', () => {
     expect(
       getNativeValueFn({
-        asset: { address: '0x123' } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1 } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { '0x123': { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         amount: '',
         decimals: 2,
       }),
@@ -128,20 +92,20 @@ describe('getNativeDisplayValueFn', () => {
   it('return native value for passed fiat value', () => {
     expect(
       getNativeDisplayValueFn({
-        asset: { address: '0x123', symbol: 'ETH' } as AssetType,
+        asset: { address: TOKEN_ADDRESS_MOCK_1, symbol: 'ETH' } as AssetType,
         conversionRate: 1,
-        contractExchangeRates: { '0x123': { price: 3890.556 } },
+        contractExchangeRates: { [TOKEN_ADDRESS_MOCK_1]: { price: 3890.556 } },
         amount: '38905.56',
       }),
     ).toStrictEqual('ETH 10');
   });
 });
 
-describe('useConversions', () => {
+describe('useCurrencyConversions', () => {
   it('return function getMaxAmount', () => {
     const { result } = renderHookWithProvider(
-      () => useConversions(),
-      mockState as ProviderValues,
+      () => useCurrencyConversions(),
+      mockState,
     );
     expect(result.current.getFiatDisplayValue).toBeDefined();
     expect(result.current.getFiatValue).toBeDefined();
