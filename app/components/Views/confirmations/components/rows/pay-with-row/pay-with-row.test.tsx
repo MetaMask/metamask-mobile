@@ -43,6 +43,7 @@ describe('PayWithRow', () => {
     jest.resetAllMocks();
 
     jest.mocked(useTransactionPayToken).mockReturnValue({
+      balanceFiat: '$1.23',
       balanceHuman: '1.23',
       decimals: 18,
       payToken: {
