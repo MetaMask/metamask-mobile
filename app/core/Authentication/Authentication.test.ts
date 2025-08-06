@@ -1144,8 +1144,9 @@ describe('Authentication', () => {
           type: SecretType.Mnemonic,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
@@ -1157,13 +1158,12 @@ describe('Authentication', () => {
         mockSeedPhrase1,
         expect.any(Object),
       );
-      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
-        mockAuthData,
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1197,8 +1197,9 @@ describe('Authentication', () => {
         getState: jest.fn(() => mockStateLocal),
       } as unknown as ReduxStore);
 
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       (
         Engine.context.KeyringController.addNewKeyring as jest.Mock
@@ -1215,9 +1216,8 @@ describe('Authentication', () => {
         mockSeedPhrase1,
         expect.any(Object),
       );
-      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
-        mockAuthData,
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
@@ -1234,7 +1234,7 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1252,8 +1252,9 @@ describe('Authentication', () => {
           type: SecretType.PrivateKey,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       const importAccountFromPrivateKeySpy = jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
@@ -1264,9 +1265,8 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.fetchAllSecretData,
       ).toHaveBeenCalledWith(mockPassword);
-      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
-        mockAuthData,
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
@@ -1277,7 +1277,7 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1296,14 +1296,15 @@ describe('Authentication', () => {
         },
       ]);
       const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1321,8 +1322,10 @@ describe('Authentication', () => {
           type: SecretType.PrivateKey,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       const importError = new Error('Import failed');
       const importAccountFromPrivateKeySpy = jest
@@ -1331,10 +1334,10 @@ describe('Authentication', () => {
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
-      expect(newWalletAndRestoreSpy).toHaveBeenCalled();
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
       expect(importAccountFromPrivateKeySpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(importError);
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1373,8 +1376,9 @@ describe('Authentication', () => {
           type: SecretType.Mnemonic,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       const error = new Error('Keyring add failed');
       (
@@ -1403,12 +1407,12 @@ describe('Authentication', () => {
       expect(
         Engine.context.KeyringController.addNewKeyring,
       ).toHaveBeenCalledTimes(1);
-      expect(newWalletAndRestoreSpy).toHaveBeenCalled();
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(error);
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
