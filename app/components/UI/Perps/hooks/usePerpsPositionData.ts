@@ -103,6 +103,12 @@ export const usePerpsPositionData = ({
           }
         } else {
           // We don't need to load newer data at this time, we'll always have the latest data on mount
+          setCandleData((prevData: CandleData | null) => {
+            if (!prevData) return candleData;
+            return {
+              ...prevData,
+            };
+          });
         }
       } catch (error) {
         DevLogger.log(`Error loading more ${direction} data:`, error);

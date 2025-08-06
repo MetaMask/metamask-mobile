@@ -79,6 +79,20 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const [dataWindowStart, setDataWindowStart] = React.useState(0);
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = React.useState(false);
 
+  // Dual candle data state
+  const [allCandleData, setAllCandleData] = React.useState<CandleData | null>(
+    null,
+  );
+  const [displayedCandleData, setDisplayedCandleData] =
+    React.useState<CandleData | null>(null);
+
+  // Sync allCandleData with incoming candleData prop
+  React.useEffect(() => {
+    if (candleData) {
+      setAllCandleData(candleData);
+    }
+  }, [candleData]);
+
   // Get candlestick colors from centralized configuration
   // This allows for easy customization and potential user settings integration
   // useMemo prevents object recreation on every render
@@ -91,11 +105,11 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
   // Full transformed data without windowing
   const fullTransformedData = React.useMemo(() => {
-    if (!candleData?.candles || candleData.candles.length === 0) {
+    if (!allCandleData?.candles || allCandleData.candles.length === 0) {
       return [];
     }
 
-    return candleData.candles
+    return allCandleData.candles
       .map((candle) => {
         const open = parseFloat(candle.open);
         const high = parseFloat(candle.high);
@@ -118,7 +132,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       .filter(
         (candle): candle is NonNullable<typeof candle> => candle !== null,
       ); // Remove invalid candles
-  }, [candleData]);
+  }, [allCandleData]);
 
   // Fixed window size based on duration and interval selection
   const dataWindowSize = React.useMemo(() => {
@@ -137,18 +151,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return calculatedSize;
   }, [selectedDuration, selectedInterval, fullTransformedData?.length]);
 
-  // Determine if we're using windowing or showing all data
-  // We use windowing if we have significantly more data OR if we've panned (to enable smooth navigation)
-  const isUsingWindowing = React.useMemo(() => {
-    if (!fullTransformedData || fullTransformedData.length === 0) return false;
-    // Use windowing if we have a lot of data OR if the user has panned (dataWindowStart !== default position)
-    const hasLotOfData = fullTransformedData.length > dataWindowSize * 1.5;
-    const hasPanned =
-      dataWindowStart !==
-      Math.max(0, fullTransformedData.length - dataWindowSize);
-    return hasLotOfData || hasPanned;
-  }, [fullTransformedData, dataWindowSize, dataWindowStart]);
-
   // Calculate if we can navigate in each direction
   const canNavigateLeft = React.useMemo(
     // Always allow left navigation - either to pan through existing data or to load more
@@ -166,14 +168,15 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return canNavigate;
   }, [dataWindowStart, dataWindowSize, fullTransformedData?.length]);
 
-  // Windowed data for display (show subset of data)
-  const transformedData = React.useMemo(() => {
-    if (!fullTransformedData || fullTransformedData.length === 0) return [];
-
-    // If we have a reasonable amount of data, show it all instead of windowing
-    // Only use windowing when we have significantly more data than expected
-    if (!isUsingWindowing) {
-      return fullTransformedData;
+  // Update displayed candle data based on current window
+  React.useEffect(() => {
+    if (
+      !allCandleData ||
+      !fullTransformedData ||
+      fullTransformedData.length === 0
+    ) {
+      setDisplayedCandleData(null);
+      return;
     }
 
     const endIndex = Math.min(
@@ -182,10 +185,51 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     );
     const startIndex = Math.max(0, dataWindowStart);
 
-    const windowedData = fullTransformedData.slice(startIndex, endIndex);
+    // Get the corresponding original candle data for the window
+    const windowedCandles = allCandleData.candles.slice(startIndex, endIndex);
 
-    return windowedData;
-  }, [fullTransformedData, dataWindowStart, dataWindowSize, isUsingWindowing]);
+    // Create new displayedCandleData with windowed candles
+    const newDisplayedData: CandleData = {
+      ...allCandleData,
+      candles: windowedCandles,
+    };
+
+    setDisplayedCandleData(newDisplayedData);
+  }, [allCandleData, fullTransformedData, dataWindowStart, dataWindowSize]);
+
+  // Transform displayed candle data for wagmi-charts
+  const displayedTransformedData = React.useMemo(() => {
+    if (
+      !displayedCandleData?.candles ||
+      displayedCandleData.candles.length === 0
+    ) {
+      return [];
+    }
+
+    return displayedCandleData.candles
+      .map((candle) => {
+        const open = parseFloat(candle.open);
+        const high = parseFloat(candle.high);
+        const low = parseFloat(candle.low);
+        const close = parseFloat(candle.close);
+
+        // Validate numeric values
+        if (isNaN(open) || isNaN(high) || isNaN(low) || isNaN(close)) {
+          console.warn(`Invalid candle data for time ${candle.time}`, {
+            open: candle.open,
+            high: candle.high,
+            low: candle.low,
+            close: candle.close,
+          });
+          return null;
+        }
+
+        return { timestamp: candle.time, open, high, low, close };
+      })
+      .filter(
+        (candle): candle is NonNullable<typeof candle> => candle !== null,
+      ); // Remove invalid candles
+  }, [displayedCandleData]);
 
   // JavaScript callback wrappers for use in gesture handlers
   const setPanningJS = useCallback((panning: boolean) => {
@@ -206,6 +250,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           });
         }
       } else if (direction === 'right' && canNavigateRight) {
+        // For right panning, update window position first, then trigger data refresh
         setDataWindowStart((prev) => {
           const stepSize = 1; // Move by single candle/time period per swipe
           const maxStart = Math.max(
@@ -213,6 +258,13 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
             (fullTransformedData?.length || 0) - dataWindowSize,
           );
           const newStart = Math.min(maxStart, prev + stepSize);
+
+          // Trigger data refresh after updating window position
+          if (onLoadMoreData) {
+            onLoadMoreData('right').catch((error) => {
+              runOnJS(logJS)('Failed to refresh data (right):', error);
+            });
+          }
 
           return newStart;
         });
@@ -361,16 +413,21 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       });
     }
   }, [fullTransformedData.length, dataWindowSize, isSettingsChanging]);
+
   // Track when data has been initially loaded
   useEffect(() => {
-    if (!isLoading && transformedData.length > 0 && !hasInitiallyLoaded) {
+    if (
+      !isLoading &&
+      displayedTransformedData.length > 0 &&
+      !hasInitiallyLoaded
+    ) {
       setHasInitiallyLoaded(true);
     }
-  }, [isLoading, transformedData.length, hasInitiallyLoaded]);
+  }, [isLoading, displayedTransformedData.length, hasInitiallyLoaded]);
 
   // Show TP/SL lines after a short delay to ensure chart is rendered
   useEffect(() => {
-    if (tpslLines && !isLoading && transformedData.length > 0) {
+    if (tpslLines && !isLoading && displayedTransformedData.length > 0) {
       const timeout = setTimeout(() => {
         setShowTPSLLines(true);
       }, 10);
@@ -378,13 +435,13 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       return () => clearTimeout(timeout);
     }
     setShowTPSLLines(false);
-  }, [tpslLines, isLoading, transformedData.length]);
+  }, [tpslLines, isLoading, displayedTransformedData.length]);
 
   // Calculate evenly spaced horizontal lines with better visibility
   const gridLines = React.useMemo(() => {
-    if (transformedData.length === 0) return [];
+    if (displayedTransformedData.length === 0) return [];
 
-    const prices = transformedData.flatMap((d) => [
+    const prices = displayedTransformedData.flatMap((d) => [
       d.open,
       d.high,
       d.low,
@@ -412,14 +469,14 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     }
 
     return lines;
-  }, [transformedData, height]);
+  }, [displayedTransformedData, height]);
 
   // Calculate TP/SL line positions if they exist and are within chart bounds
   // Use the same calculation method as grid lines for consistency
   const tpslLinePositions = React.useMemo(() => {
-    if (!tpslLines || transformedData.length === 0) return null;
+    if (!tpslLines || displayedTransformedData.length === 0) return null;
 
-    const prices = transformedData.flatMap((d) => [
+    const prices = displayedTransformedData.flatMap((d) => [
       d.open,
       d.high,
       d.low,
@@ -500,7 +557,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     }
 
     return lines.length > 0 ? lines : null;
-  }, [tpslLines, transformedData, height]);
+  }, [tpslLines, displayedTransformedData, height]);
 
   // Show skeleton on initial load or when settings are changing and loading new data
   if ((isLoading && !hasInitiallyLoaded) || (isLoading && isSettingsChanging)) {
@@ -525,7 +582,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     );
   }
 
-  if (!candleData || transformedData.length === 0) {
+  if (!candleData || displayedTransformedData.length === 0) {
     return (
       <View style={styles.chartContainer}>
         {/* Chart placeholder with same height */}
@@ -560,13 +617,13 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     );
   }
 
-  DevLogger.log('transformedData.length', transformedData.length);
+  DevLogger.log(
+    'displayedTransformedData.length',
+    displayedTransformedData.length,
+  );
 
   return (
-    <CandlestickChart.Provider
-      data={transformedData}
-      key={`chart-${dataWindowStart}-${transformedData.length}`}
-    >
+    <CandlestickChart.Provider data={displayedTransformedData}>
       <GestureDetector gesture={panGesture}>
         <View>
           {/* Custom Horizontal Grid Lines with Price Labels */}
@@ -636,7 +693,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
             <View style={styles.relativeContainer}>
               {/* Main Candlestick Chart */}
               <CandlestickChart
-                key={`candlestick-${dataWindowStart}-${transformedData.length}`}
+                key={`candlestick-${dataWindowStart}-${displayedTransformedData.length}`}
                 height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
                 width={chartWidth - 65}
                 style={styles.chartWithPadding}
@@ -692,16 +749,16 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
             {/* X-Axis Time Labels */}
             <View style={styles.timeAxisContainer}>
-              {transformedData.length > 0 &&
+              {displayedTransformedData.length > 0 &&
                 (() => {
                   // Create 5 evenly spaced time points from actual data
                   const intervals = [];
-                  const dataLength = transformedData.length;
+                  const dataLength = displayedTransformedData.length;
                   const chartWidthForLabels = chartWidth - 65; // Account for y-axis space
 
                   for (let i = 0; i < 5; i++) {
                     const dataIndex = Math.floor((i / 4) * (dataLength - 1));
-                    const time = transformedData[dataIndex].timestamp;
+                    const time = displayedTransformedData[dataIndex].timestamp;
                     const position = (i / 4) * chartWidthForLabels;
                     intervals.push({ time, position, index: i });
                   }
