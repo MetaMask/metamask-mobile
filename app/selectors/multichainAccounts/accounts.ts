@@ -26,8 +26,6 @@ export const selectMultichainAccountGroupById = createDeepEqualSelector(
     const [walletId] = accountId.split('/');
     const wallet = wallets[walletId as AccountWalletId];
 
-    console.log('wallet', wallet);
-
     return wallet?.groups[accountId as AccountGroupId];
   },
 );
@@ -198,6 +196,7 @@ export const selectMultichainAccountGroupsByScopes = createDeepEqualSelector(
     accountGroupsWithInternalAccounts: AccountGroupWithInternalAccounts[],
     scopes: CaipChainId[],
   ) => {
+    console.log('scopes', scopes);
     const { cleanedScopes, hasEvmScope } = scopes.reduce(
       (acc, scope) => {
         const [namespace] = scope.split(':');
@@ -211,6 +210,7 @@ export const selectMultichainAccountGroupsByScopes = createDeepEqualSelector(
       { cleanedScopes: [] as CaipChainId[], hasEvmScope: false },
     );
 
+    console.log('hasEvmScope', hasEvmScope);
     // Can early return with all multichain account groups because they all have EVM scopes
     if (hasEvmScope) {
       return accountGroupsWithInternalAccounts;

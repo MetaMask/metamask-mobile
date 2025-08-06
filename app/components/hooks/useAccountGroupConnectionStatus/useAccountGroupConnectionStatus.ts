@@ -7,6 +7,8 @@ import {
 import {
   CaipAccountId,
   CaipChainId,
+  CaipNamespace,
+  isCaipNamespace,
   KnownCaipNamespace,
   parseCaipAccountId,
   parseCaipChainId,
@@ -22,7 +24,7 @@ import {
 
 export const useAccountGroupConnectionStatus = (
   existingPermission: Caip25CaveatValue,
-  requestedCaipChainIds: CaipChainId[],
+  requestedCaipChainIds: CaipChainId[] | CaipNamespace[],
 ) => {
   const accountGroups = useSelector(selectAccountGroupWithInternalAccounts);
 
@@ -35,8 +37,14 @@ export const useAccountGroupConnectionStatus = (
     () =>
       Array.from(
         new Set(
-          requestedCaipChainIds.map((chainId) => {
-            const { namespace } = parseCaipChainId(chainId);
+          requestedCaipChainIds.map((chainId: string) => {
+            let namespace: string;
+            if (isCaipNamespace(chainId)) {
+              namespace = chainId;
+            } else {
+              namespace = parseCaipChainId(chainId).namespace;
+            }
+            console.log('namespace', namespace);
             return namespace.startsWith(KnownCaipNamespace.Eip155)
               ? `${KnownCaipNamespace.Eip155}:0`
               : chainId;
@@ -45,6 +53,9 @@ export const useAccountGroupConnectionStatus = (
       ),
     [requestedCaipChainIds],
   );
+
+  console.log('deduplicatedEvmChains', deduplicatedEvmChains);
+  console.log('accountGroups', accountGroups);
 
   const supportedAccountGroups = useSelector((state) =>
     selectMultichainAccountGroupsByScopes(state, deduplicatedEvmChains),
@@ -77,13 +88,13 @@ export const useAccountGroupConnectionStatus = (
           (group) => group.id === accountGroupId,
         );
         if (accountGroup) {
-          connectedAccountGroups.add(accountGroup);
+          connectedAccountGroupsSet.add(accountGroup);
         }
       }
     });
 
     return {
-      connectedAccountGroups: connectedAccountGroupsSet,
+      connectedAccountGroups: Array.from(connectedAccountGroupsSet),
       connectedCaipAccountIds: connectedAccountIds,
     };
   }, [existingPermission, accountGroups, caip25ToAccountGroupMap]);

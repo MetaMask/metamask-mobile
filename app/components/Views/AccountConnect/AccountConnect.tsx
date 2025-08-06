@@ -202,15 +202,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     [requestedCaip25CaveatValue],
   );
 
-  const {
-    connectedAccountGroups,
-    supportedAccountGroups,
-    existingConnectedCaipAccountIds,
-  } = useAccountGroupConnectionStatus(
-    existingPermissionsCaip25CaveatValue,
-    requestedCaipChainIds,
-  );
-
   const networkConfigurations = useSelector(
     selectNetworkConfigurationsByCaipChainId,
   );
@@ -218,6 +209,15 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const supportedRequestedCaipChainIds = requestedCaipChainIds.filter(
     (caipChainId) => allNetworksList.includes(caipChainId as CaipChainId),
+  );
+
+  const {
+    connectedAccountGroups,
+    supportedAccountGroups,
+    existingConnectedCaipAccountIds,
+  } = useAccountGroupConnectionStatus(
+    existingPermissionsCaip25CaveatValue,
+    requestedNamespaces,
   );
 
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
@@ -615,11 +615,18 @@ const AccountConnect = (props: AccountConnectProps) => {
       const selectedAccountGroups = supportedAccountGroups.filter((group) =>
         selectedGroupIds.has(group.id),
       );
+      console.log('supportedAccountGroups', supportedAccountGroups);
+
+      console.log('selectedGroupIds', selectedGroupIds);
+
+      console.log('selectedAccountGroups', selectedAccountGroups);
 
       const caip25AccountIds = getCaip25AccountFromAccountGroupAndScope(
         selectedAccountGroups,
         updatedSelectedChains,
       );
+
+      console.log('caip25AccountIds', caip25AccountIds);
 
       setSelectedChainIds(updatedSelectedChains);
       setSelectedAccountGroupIds(
