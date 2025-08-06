@@ -118,7 +118,7 @@ describe('PerpsBottomSheetTooltip', () => {
   });
 
   it('renders custom tooltip content correctly (Fee Tooltip)', () => {
-    const { getByText } = renderBottomSheetTooltip({
+    const { getByText, queryAllByText } = renderBottomSheetTooltip({
       isVisible: true,
       onClose: mockOnClose,
       contentKey: 'fees',
@@ -126,9 +126,8 @@ describe('PerpsBottomSheetTooltip', () => {
 
     expect(getByText('Fees')).toBeTruthy();
     expect(getByText('MetaMask fee')).toBeTruthy();
-    expect(getByText('0.1%')).toBeTruthy();
     expect(getByText('Provider fee')).toBeTruthy();
-    expect(getByText('0.0432%')).toBeTruthy();
+    expect(queryAllByText('0.000%').length).toBe(2);
   });
 
   it('uses custom testID when provided', () => {

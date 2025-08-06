@@ -8,11 +8,25 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../locales/i18n';
 import { TooltipContentProps } from './types';
 import createStyles from './FeesTooltipContent.styles';
+import {
+  usePerpsOrderFees,
+  formatFeeRate,
+} from '../../../hooks/usePerpsOrderFees';
+import { usePerpsOrderForm } from '../../../hooks';
 
 const FeesTooltipContent = ({ testID }: TooltipContentProps) => {
   const { styles } = useStyles(createStyles, {});
-  const metamaskFee = '0.1%'; // This should come from actual fee calculation
-  const providerFee = '0.0432%'; // This should come from actual fee calculation
+
+  const { orderForm } = usePerpsOrderForm();
+
+  // Get actual fee rates from the hook
+  const { metamaskFeeRate, protocolFeeRate } = usePerpsOrderFees({
+    orderType: orderForm.type,
+    amount: orderForm.amount,
+  });
+
+  const metamaskFee = formatFeeRate(metamaskFeeRate);
+  const providerFee = formatFeeRate(protocolFeeRate);
 
   return (
     <View testID={testID}>

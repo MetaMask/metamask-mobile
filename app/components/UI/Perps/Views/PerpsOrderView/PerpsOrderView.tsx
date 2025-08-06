@@ -164,6 +164,7 @@ const PerpsOrderView: React.FC = () => {
     setTakeProfitPrice,
     setStopLossPrice,
     setLimitPrice,
+    setOrderType,
     handlePercentageAmount,
     handleMaxAmount,
     handleMinAmount,
@@ -228,7 +229,7 @@ const PerpsOrderView: React.FC = () => {
         });
       },
     });
-  const [orderType, setOrderType] = useState<OrderType>('market');
+
   const [selectedPaymentToken, setSelectedPaymentToken] =
     useState<PerpsToken | null>(null);
 
@@ -249,7 +250,7 @@ const PerpsOrderView: React.FC = () => {
 
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
-    orderType,
+    orderType: orderForm.type,
     amount: orderForm.amount,
     isMaker: false, // Conservative estimate for UI display
   });
@@ -273,7 +274,7 @@ const PerpsOrderView: React.FC = () => {
   // - bestAsk: Lowest price sellers are willing to accept
   // - spread: Difference between ask and bid
   // - includeOrderBook: When true, fetches bid/ask data for limit orders
-  const priceData = usePerpsPrices(assetSymbols, orderType === 'limit');
+  const priceData = usePerpsPrices(assetSymbols, orderForm.type === 'limit');
   const currentPrice = priceData[orderForm.asset];
   const assetData = useMemo(() => {
     if (!currentPrice) {
@@ -363,7 +364,8 @@ const PerpsOrderView: React.FC = () => {
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
     orderForm,
-    orderType,
+    // TODO: Update usePerpsOrderValidation to use orderForm.type instead of separate orderType
+    orderType: orderForm.type,
     positionSize,
     assetPrice: assetData.price,
     availableBalance,
@@ -424,12 +426,12 @@ const PerpsOrderView: React.FC = () => {
       coin: orderForm.asset,
       isBuy: orderForm.direction === 'long',
       size: positionSize,
-      orderType,
+      orderType: orderForm.type,
       takeProfitPrice: orderForm.takeProfitPrice,
       stopLossPrice: orderForm.stopLossPrice,
       currentPrice: assetData.price,
       leverage: orderForm.leverage,
-      ...(orderType === 'limit' && orderForm.limitPrice
+      ...(orderForm.type === 'limit' && orderForm.limitPrice
         ? { price: orderForm.limitPrice }
         : {}),
     };
@@ -442,7 +444,6 @@ const PerpsOrderView: React.FC = () => {
     positionSize,
     assetData.price,
     executeOrder,
-    orderType,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
@@ -464,7 +465,7 @@ const PerpsOrderView: React.FC = () => {
         asset={orderForm.asset}
         price={assetData.price}
         priceChange={assetData.change}
-        orderType={orderType}
+        orderType={orderForm.type}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
       />
 
@@ -530,7 +531,7 @@ const PerpsOrderView: React.FC = () => {
           </View>
 
           {/* Limit price - only show for limit orders */}
-          {orderType === 'limit' && (
+          {orderForm.type === 'limit' && (
             <View style={styles.detailItem}>
               <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                 <ListItem>
@@ -912,7 +913,7 @@ const PerpsOrderView: React.FC = () => {
           }
           setIsOrderTypeVisible(false);
         }}
-        currentOrderType={orderType}
+        currentOrderType={orderForm.type}
       />
       {selectedTooltip && (
         <PerpsBottomSheetTooltip
