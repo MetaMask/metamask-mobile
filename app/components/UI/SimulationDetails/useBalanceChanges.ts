@@ -236,13 +236,15 @@ export default function useBalanceChanges({
   simulationData?: SimulationData;
   networkClientId: string;
 }): { pending: boolean; value: BalanceChange[] } {
-  const nativeFiatRate = useSelector((state: RootState) =>
-    selectConversionRateByChainId(state, chainId),
-  ) as number;
+  const nativeFiatRate =
+    useSelector((state: RootState) =>
+      selectConversionRateByChainId(state, chainId),
+    ) ?? 0;
   const fiatCurrency = useSelector(selectCurrentCurrency);
-  const nativeUsdRate = useSelector((state: RootState) =>
-    selectUSDConversionRateByChainId(state, chainId),
-  ) as number;
+  const nativeUsdRate =
+    useSelector((state: RootState) =>
+      selectUSDConversionRateByChainId(state, chainId),
+    ) ?? undefined;
 
   const { nativeBalanceChange, tokenBalanceChanges = [] } =
     simulationData ?? {};
