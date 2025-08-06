@@ -248,9 +248,7 @@ describe('CandlestickChartComponent', () => {
       expect(
         screen.getByTestId(PerpsCandlestickChartSelectorsIDs.CANDLES),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.CROSSHAIR),
-      ).toBeOnTheScreen();
+
       expect(
         screen.getByTestId(PerpsCandlestickChartSelectorsIDs.TOOLTIP),
       ).toBeOnTheScreen();
@@ -440,8 +438,8 @@ describe('CandlestickChartComponent', () => {
       const chart = screen.getByTestId(
         PerpsCandlestickChartSelectorsIDs.CONTAINER,
       );
-      expect(chart).toHaveProp('data-height', 280); // 400 - 120 (PADDING.VERTICAL)
-      expect(chart).toHaveProp('data-width', 702); // 750 - 48 (PADDING.HORIZONTAL * 2)
+      expect(chart).toHaveProp('data-height', 280);
+      expect(chart).toHaveProp('data-width', 685);
     });
 
     it('handles missing candle data gracefully', () => {

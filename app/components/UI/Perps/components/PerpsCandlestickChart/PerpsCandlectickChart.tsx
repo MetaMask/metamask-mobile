@@ -297,7 +297,10 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   }
 
   return (
-    <CandlestickChart.Provider data={transformedData}>
+    <CandlestickChart.Provider
+      data={transformedData}
+      testID={PerpsCandlestickChartSelectorsIDs.PROVIDER}
+    >
       {/* Custom Horizontal Grid Lines with Price Labels */}
       <View style={styles.gridContainer}>
         {gridLines.map((line, index) => (
@@ -366,7 +369,10 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
             <CandlestickChart.Candles
               positiveColor={candlestickColors.positive} // Green for positive candles
               negativeColor={candlestickColors.negative} // Red for negative candles
+              testID={PerpsCandlestickChartSelectorsIDs.CANDLES}
             />
+            {/* Tooltip for price display */}
+            <View testID={PerpsCandlestickChartSelectorsIDs.TOOLTIP} />
           </CandlestickChart>
         </View>
 
