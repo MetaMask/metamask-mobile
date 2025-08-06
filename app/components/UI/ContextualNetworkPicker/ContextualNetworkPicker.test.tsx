@@ -1,8 +1,10 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import renderWithProvider from '../../../util/test/renderWithProvider';
-import ContextualNetworkPicker from './ContextualNetworkPicker';
+import type { ThemeColors } from '@metamask/design-tokens';
 import { NETWORK_SELECTOR_TEST_IDS } from '../../../constants/networkSelector';
+import renderWithProvider from '../../../util/test/renderWithProvider';
+import createStyles from './ContextualNetworkPicker.styles';
+import ContextualNetworkPicker from './ContextualNetworkPicker';
 
 jest.mock('../../../util/theme', () => ({
   useTheme: () => ({
@@ -19,10 +21,6 @@ jest.mock('../../../util/theme', () => ({
     },
   }),
 }));
-
-// Import actual styles for testing
-import createStyles from './ContextualNetworkPicker.styles';
-import type { ThemeColors } from '@metamask/design-tokens';
 
 describe('ContextualNetworkPicker', () => {
   const defaultProps = {
