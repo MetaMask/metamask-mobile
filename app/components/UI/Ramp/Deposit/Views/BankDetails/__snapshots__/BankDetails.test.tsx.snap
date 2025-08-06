@@ -585,7 +585,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 8,
                                       "gap": 16,
                                       "padding": 16,
@@ -873,7 +873,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d1a",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -966,7 +966,7 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
@@ -1637,7 +1637,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                 <View
                                   style={
                                     {
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderRadius": 8,
                                       "gap": 16,
                                       "padding": 16,
@@ -2067,7 +2067,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                 accessible={true}
                                 style={
                                   {
-                                    "backgroundColor": "#3c4d9d1a",
+                                    "backgroundColor": "#3c4d9d0f",
                                     "borderRadius": 8,
                                     "marginVertical": 8,
                                     "padding": 16,
@@ -2160,7 +2160,7 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "flex-start",
-                                      "backgroundColor": "#3c4d9d1a",
+                                      "backgroundColor": "#3c4d9d0f",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,
