@@ -1333,14 +1333,33 @@ describe('BridgeView', () => {
     });
 
     it('uses sourceAmount from route params when provided', () => {
+      // Need to provide a source token for the amount to be set
+      mockRoute.params.sourceToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1' as Hex,
+        decimals: 18,
+        image: '',
+        name: 'Ether',
+        symbol: 'ETH',
+      };
       mockRoute.params.sourceAmount = '1000000';
+
+      // Update the mock state to include the source token and amount
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          sourceToken: mockRoute.params.sourceToken,
+          sourceAmount: '1000000',
+        },
+      };
 
       const { getByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: mockState },
+        { state: testState },
       );
 
       // Should display the deep link amount in the input
