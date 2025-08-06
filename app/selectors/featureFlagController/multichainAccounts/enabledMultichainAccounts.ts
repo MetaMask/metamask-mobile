@@ -60,6 +60,15 @@ export const isMultichainAccountsFeatureEnabled = (
     return false;
   }
 
+  // Conditional statement to override the remote flag and use local values for state 2
+  if (
+    overrideRemoteFeatureFlags &&
+    enabledMultichainAccountsState2Local &&
+    featureVersionToCheck === MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2
+  ) {
+    return true;
+  }
+
   return (
     featureVersion === featureVersionToCheck &&
     compareVersions.compare(minimumVersion, APP_VERSION, '<=')
@@ -103,8 +112,6 @@ export const selectMultichainAccountsState1Enabled =
  * @returns Boolean indicating if multichain accounts state 2 is enabled.
  */
 export const selectMultichainAccountsState2Enabled =
-  overrideRemoteFeatureFlags && enabledMultichainAccountsState2Local
-    ? true
-    : createMultichainAccountsStateSelector([
-        MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
-      ]);
+  createMultichainAccountsStateSelector([
+    MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+  ]);
