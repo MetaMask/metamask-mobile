@@ -19,8 +19,13 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
   const result = useMemo(
     () =>
       requests.map(({ address, chainId }) => {
-        const tokenMarketData =
-          tokenMarketDataByAddressByChainId[chainId]?.[address];
+        const chainTokens = Object.values(
+          tokenMarketDataByAddressByChainId[chainId] ?? {},
+        );
+
+        const token = chainTokens.find(
+          (t) => t.tokenAddress.toLowerCase() === address.toLowerCase(),
+        );
 
         const networkConfiguration = networkConfigurations[chainId];
 
@@ -31,7 +36,7 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
           return undefined;
         }
 
-        return (tokenMarketData?.price ?? 1) * conversionRate;
+        return (token?.price ?? 1) * conversionRate;
       }),
     [
       requests,

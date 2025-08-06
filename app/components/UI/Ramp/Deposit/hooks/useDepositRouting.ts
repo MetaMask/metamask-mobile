@@ -261,8 +261,7 @@ export const useDepositRouting = ({
                 payment_method_id: order.paymentMethod,
                 country: selectedRegion?.isoCode || '',
                 chain_id: cryptoCurrency?.chainId || '',
-                currency_destination:
-                  selectedWalletAddress || order.walletAddress,
+                currency_destination: cryptoCurrency?.assetId || '',
                 currency_source: order.fiatCurrency,
               });
             } catch (error) {

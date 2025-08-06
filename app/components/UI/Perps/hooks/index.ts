@@ -39,12 +39,9 @@ export { usePerpsPositions } from './usePerpsPositions';
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
-// - usePerpsDeposit (deposit flows)
-// - usePerpsPendingOrders (order management)
-// - usePerpsError (error handling)
-// - usePerpsLivePositions (live position tracking)
-// - usePerpsOrderFills (order fills)
-// - usePerpsPositionPnL (P&L calculations)
-// - usePerpsReadiness (readiness checks)
-// - usePerpsOrderManagement (order workflows)
-// - useStableArray (utility hook for stable array references)
+export { useHasExistingPosition } from './useHasExistingPosition';
+export { useMinimumOrderAmount } from './useMinimumOrderAmount';
+export { usePerpsOrderForm } from './usePerpsOrderForm';
+export { usePerpsOrderValidation } from './usePerpsOrderValidation';
+export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
+export { usePerpsOrderExecution } from './usePerpsOrderExecution';

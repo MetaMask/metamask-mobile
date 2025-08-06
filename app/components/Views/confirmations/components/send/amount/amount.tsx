@@ -1,43 +1,49 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
+import { useSelector } from 'react-redux';
 
 import Button, {
+  ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import Input from '../../../../../../component-library/components/Form/TextField/foundation/Input';
-import Text, {
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../../constants/navigation/Routes';
+import Text from '../../../../../../component-library/components/Texts/Text';
+import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
 import { useStyles } from '../../../../../hooks/useStyles';
-import useAmountValidation from '../../../hooks/send/useAmountValidation';
-import useMaxAmount from '../../../hooks/send/useMaxAmount';
+import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendContext } from '../../../context/send-context';
-import styleSheet from './amount.styles';
+import { useSendAmountConfirmDisabled } from '../../../hooks/send/useSendAmountConfirmDisabled';
+import { useSendScreenNavigation } from '../../../hooks/send/useSendScreenNavigation';
+import { AmountEdit } from './amount-edit';
+import { styleSheet } from './amount.styles';
 
-const Amount = () => {
+export const Amount = () => {
+  const { gotToSendScreen } = useSendScreenNavigation();
+  const from = useSelector(selectSelectedInternalAccount);
   const { styles } = useStyles(styleSheet, {});
-  const { value, updateValue } = useSendContext();
-  const { updateToMaxAmount } = useMaxAmount();
-  const { amountError } = useAmountValidation();
-  // todo: include to address validation
+  const { asset } = useSendContext();
+  const { isDisabled } = useSendAmountConfirmDisabled();
+  useRouteParams();
+
+  const goToNextPage = useCallback(() => {
+    gotToSendScreen(Routes.SEND.RECIPIENT);
+  }, [gotToSendScreen]);
 
   return (
-    <View>
-      <Text>Value:</Text>
-      <Input
-        style={styles.input}
-        value={value}
-        onChangeText={updateValue}
-        testID="send_amount"
-      />
-      <Text color={TextColor.Error}>{amountError}</Text>
+    <View style={styles.container}>
+      <Text>Asset: {asset?.address ?? 'NA'}</Text>
+      <View>
+        <Text>From:</Text>
+        <Text>{from?.address}</Text>
+      </View>
+      <AmountEdit />
       <Button
-        label="Max"
-        onPress={updateToMaxAmount}
-        variant={ButtonVariants.Secondary}
+        label="Continue"
+        disabled={isDisabled}
+        onPress={goToNextPage}
+        variant={ButtonVariants.Primary}
+        size={ButtonSize.Lg}
       />
     </View>
   );
 };
-
-export default Amount;
