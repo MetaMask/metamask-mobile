@@ -258,6 +258,15 @@ export const BridgeTransactionDetails = (
         : null;
   }
 
+  let status;
+  if (isBridge) {
+    status = bridgeStatus.status;
+  } else if (isSwap) {
+    status = evmTxMeta?.status;
+  } else if (multiChainTx) {
+    status = multiChainTx.status;
+  }
+
   return (
     <ScreenView>
       <Box style={styles.transactionContainer}>
@@ -298,9 +307,7 @@ export const BridgeTransactionDetails = (
               })}
               style={styles.textTransform}
             >
-              {isBridge ? bridgeStatus.status : null}
-              {isSwap ? evmTxMeta?.status : null}
-              {multiChainTx ? multiChainTx.status : null}
+              {status}
             </Text>
           </Box>
         </Box>

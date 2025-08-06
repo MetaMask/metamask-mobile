@@ -29,6 +29,7 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
   labelTextProps,
   descriptionTextProps,
   iconProps,
+  isDisabled = false,
   ...pressableProps
 }) => {
   const tw = useTailwind();
@@ -75,7 +76,15 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
     }
 
     if (iconName) {
-      return <Icon name={iconName} size={IconSize.Md} {...iconProps} />;
+      return (
+        <Box
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Center}
+          twClassName="h-6"
+        >
+          <Icon name={iconName} size={IconSize.Md} {...iconProps} />
+        </Box>
+      );
     }
 
     return null;
@@ -83,12 +92,16 @@ const ActionListItem: React.FC<ActionListItemProps> = ({
 
   const getStyle = useCallback(
     ({ pressed }: { pressed: boolean }) =>
-      tw.style('bg-default px-4 py-3', pressed && 'bg-default-pressed'),
-    [tw],
+      tw.style(
+        'bg-default px-4 py-3',
+        pressed && !isDisabled && 'bg-default-pressed',
+        isDisabled && 'opacity-50',
+      ),
+    [tw, isDisabled],
   );
 
   return (
-    <Pressable style={getStyle} {...pressableProps}>
+    <Pressable style={getStyle} disabled={isDisabled} {...pressableProps}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
