@@ -1,9 +1,7 @@
-import { FEE_RATES } from '../constants/hyperLiquidConfig';
-import type { OrderType } from '../controllers/types';
-
 interface PositionSizeParams {
   amount: string;
   price: number;
+  szDecimals?: number;
 }
 
 interface MarginRequiredParams {
@@ -11,25 +9,26 @@ interface MarginRequiredParams {
   leverage: number;
 }
 
-interface EstimatedFeesParams {
-  amount: string;
-  orderType: OrderType;
-}
-
 /**
  * Calculate position size based on USD amount and asset price
- * @param params - Amount in USD and current asset price
- * @returns Position size formatted to 6 decimal places
+ * Uses Math.ceil to ensure orders meet minimum USD requirements
+ * @param params - Amount in USD, current asset price, and optional decimal precision
+ * @returns Position size formatted to the asset's decimal precision
  */
 export function calculatePositionSize(params: PositionSizeParams): string {
-  const { amount, price } = params;
+  const { amount, price, szDecimals = 6 } = params;
   const amountNum = parseFloat(amount || '0');
 
   if (isNaN(amountNum) || isNaN(price) || amountNum === 0 || price === 0) {
-    return '0.000000';
+    return (0).toFixed(szDecimals);
   }
 
-  return (amountNum / price).toFixed(6);
+  const positionSize = amountNum / price;
+  const multiplier = Math.pow(10, szDecimals);
+  // Math.ceil prevents orders from falling below minimum USD requirements
+  const rounded = Math.ceil(positionSize * multiplier) / multiplier;
+
+  return rounded.toFixed(szDecimals);
 }
 
 /**
@@ -51,22 +50,4 @@ export function calculateMarginRequired(params: MarginRequiredParams): string {
   }
 
   return (amountNum / leverage).toFixed(2);
-}
-
-/**
- * Calculate estimated fees for an order
- * @param params - Order amount and type
- * @returns Estimated fees as a number
- */
-export function calculateEstimatedFees(params: EstimatedFeesParams): number {
-  const { amount, orderType } = params;
-  const amountNum = parseFloat(amount || '0');
-
-  if (isNaN(amountNum)) {
-    return 0;
-  }
-
-  const feeRate = orderType === 'market' ? FEE_RATES.market : FEE_RATES.limit;
-
-  return amountNum * feeRate;
 }

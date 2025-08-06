@@ -172,10 +172,8 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
-                  "borderColor": "#b7bbc866",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
-                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
                   "overflow": "hidden",
@@ -360,10 +358,8 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
-                  "borderColor": "#b7bbc866",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
-                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
                   "overflow": "hidden",
@@ -548,10 +544,8 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
-                  "borderColor": "#b7bbc866",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
-                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
                   "overflow": "hidden",
@@ -736,10 +730,8 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
-                  "borderColor": "#b7bbc866",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
-                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
                   "overflow": "hidden",
@@ -888,10 +880,8 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
-                  "borderColor": "#b7bbc866",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
-                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
                   "overflow": "hidden",
@@ -1076,10 +1066,8 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
-                  "borderColor": "#b7bbc866",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
-                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
                   "overflow": "hidden",
@@ -1264,10 +1252,8 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
-                  "borderColor": "#b7bbc866",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
-                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
                   "overflow": "hidden",
@@ -1452,10 +1438,8 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d1a",
-                  "borderColor": "#b7bbc866",
+                  "backgroundColor": "#3c4d9d0f",
                   "borderRadius": 8,
-                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
                   "overflow": "hidden",

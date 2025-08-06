@@ -908,7 +908,7 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "borderRadius": 8,
+                            "borderRadius": 4,
                             "height": 16,
                             "overflow": "hidden",
                             "width": 16,
@@ -922,9 +922,14 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
                             }
                           }
                           style={
-                            {
-                              "flex": 1,
-                            }
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              {
+                                "borderRadius": 4,
+                              },
+                            ]
                           }
                         />
                       </View>
@@ -1402,7 +1407,7 @@ exports[`EarnLendingDepositConfirmationView matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,

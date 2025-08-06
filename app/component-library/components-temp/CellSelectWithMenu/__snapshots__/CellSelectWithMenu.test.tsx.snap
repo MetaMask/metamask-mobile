@@ -58,7 +58,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
             style={
               {
                 "backgroundColor": "#ffffff",
-                "borderRadius": 16,
+                "borderRadius": 8,
                 "height": 32,
                 "marginRight": 16,
                 "overflow": "hidden",
@@ -79,7 +79,9 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                     "height": 32,
                     "width": 32,
                   },
-                  undefined,
+                  {
+                    "borderRadius": 8,
+                  },
                 ]
               }
             >
@@ -220,25 +222,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
             >
               Orangefox.eth
             </Text>
-            <TouchableOpacity
-              accessibilityState={
-                {
-                  "busy": undefined,
-                  "checked": undefined,
-                  "disabled": undefined,
-                  "expanded": undefined,
-                  "selected": undefined,
-                }
-              }
-              accessible={true}
-              focusable={false}
-              onClick={[Function]}
-              onResponderGrant={[Function]}
-              onResponderMove={[Function]}
-              onResponderRelease={[Function]}
-              onResponderTerminate={[Function]}
-              onResponderTerminationRequest={[Function]}
-              onStartShouldSetResponder={[Function]}
+            <View
               style={
                 {
                   "alignItems": "flex-start",
@@ -278,7 +262,7 @@ exports[`CellSelectWithMenu should render with default settings correctly 1`] = 
                 }
                 width={10}
               />
-            </TouchableOpacity>
+            </View>
             <View
               style={
                 {

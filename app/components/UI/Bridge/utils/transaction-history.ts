@@ -3,10 +3,16 @@ import {
   formatChainIdToHex,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
-import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
+import {
+  BridgeHistoryItem,
+  MAX_ATTEMPTS,
+} from '@metamask/bridge-status-controller';
 import { NETWORK_TO_SHORT_NETWORK_NAME_MAP } from '../../../../constants/bridge';
 import { strings } from '../../../../../locales/i18n';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { TRANSACTION_TYPES } from '../../../../util/transactions';
 import { calculateTotalGas } from '../../TransactionElement/utils-gas';
 import {
@@ -19,12 +25,25 @@ import {
 import { Hex } from '@metamask/utils';
 import { ethers } from 'ethers';
 import { toFormattedAddress } from '../../../../util/address';
+import Routes from '../../../../constants/navigation/Routes';
+import { useNavigation } from '@react-navigation/native';
+import Engine from '../../../../core/Engine';
 
 export const getSwapBridgeTxActivityTitle = (
   bridgeTxHistoryItem: BridgeHistoryItem,
 ): string | undefined => {
   const { quote } = bridgeTxHistoryItem;
 
+  // Swap
+  const isSwap = quote.srcAsset.chainId === quote.destAsset.chainId;
+  if (isSwap) {
+    return strings('swaps.transaction_label.swap', {
+      sourceToken: quote.srcAsset.symbol,
+      destinationToken: quote.destAsset.symbol,
+    });
+  }
+
+  // Bridge
   const destChainId = isSolanaChainId(quote.destChainId)
     ? formatChainIdToCaip(quote.destChainId)
     : formatChainIdToHex(quote.destChainId);
@@ -206,4 +225,24 @@ export const decodeSwapsTx = (args: {
   };
 
   return [transactionElement, transactionDetails];
+};
+
+export const handleUnifiedSwapsTxHistoryItemClick = (
+  navigation: ReturnType<typeof useNavigation>,
+  tx: TransactionMeta,
+  bridgeTxHistoryItem?: BridgeHistoryItem,
+) => {
+  navigation.navigate(Routes.BRIDGE.BRIDGE_TRANSACTION_DETAILS, {
+    evmTxMeta: tx,
+  });
+
+  // Reset attempts if the bridge transaction has reached the max attempts and user has clicked on the transaction
+  if (bridgeTxHistoryItem && tx.type === TransactionType.bridge) {
+    const { attempts } = bridgeTxHistoryItem;
+    if (attempts && attempts.counter >= MAX_ATTEMPTS) {
+      Engine.context.BridgeStatusController.restartPollingForFailedAttempts({
+        txMetaId: bridgeTxHistoryItem.txMetaId,
+      });
+    }
+  }
 };
