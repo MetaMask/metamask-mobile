@@ -923,7 +923,7 @@ const App: React.FC = () => {
   const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
 
-  const { isEnabled: isMetricsEnabled } = useMetrics();
+  const { isEnabled: checkMetricsEnabled } = useMetrics();
 
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
@@ -991,7 +991,7 @@ const App: React.FC = () => {
             OPTIN_META_METRICS_UI_SEEN,
           );
 
-          if (!isOptinMetaMetricsUISeen && !isMetricsEnabled()) {
+          if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
             const resetParams = {
               routes: [
                 {
