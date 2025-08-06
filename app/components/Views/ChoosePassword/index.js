@@ -465,7 +465,10 @@ class ChoosePassword extends PureComponent {
         } catch (error) {
           if (this.isOAuthPasswordCreationError(error)) {
             const shouldRethrow = this.handleSentryCapture(error, authType);
+            // proceed error handling if metrics are enabled
             if (shouldRethrow) throw error;
+            // skip error handling and prompt error boundry
+            else return;
           } else if (Device.isIos) {
             await this.handleRejectedOsBiometricPrompt();
           }
