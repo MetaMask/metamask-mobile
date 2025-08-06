@@ -142,7 +142,7 @@ export const useSwapBridgeNavigation = ({
   const { addPopularNetwork, networkModal } = useAddNetwork();
 
   // Swaps
-  const handleSwapsNavigation = useCallback(
+  const handleLegacySwapsNavigation = useCallback(
     async (currentToken?: BridgeToken) => {
       const swapToken = currentToken ??
         tokenBase ?? {
@@ -233,7 +233,7 @@ export const useSwapBridgeNavigation = ({
       }
       ///: END:ONLY_INCLUDE_IF
 
-      await handleSwapsNavigation(currentToken);
+      await handleLegacySwapsNavigation(currentToken);
     },
     [
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -241,7 +241,7 @@ export const useSwapBridgeNavigation = ({
       selectedChainId,
       goToBridge,
       ///: END:ONLY_INCLUDE_IF
-      handleSwapsNavigation,
+      handleLegacySwapsNavigation,
       isUnifiedSwapsEnabled,
     ],
   );
