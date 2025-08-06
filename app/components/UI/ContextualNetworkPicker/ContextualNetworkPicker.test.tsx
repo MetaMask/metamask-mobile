@@ -20,29 +20,9 @@ jest.mock('../../../util/theme', () => ({
   }),
 }));
 
-jest.mock('./ContextualNetworkPicker.styles', () => ({
-  __esModule: true,
-  default: () => ({
-    accountSelectorWrapper: {
-      marginHorizontal: 16,
-      marginVertical: 8,
-    },
-    base: {
-      padding: 12,
-    },
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    avatarWrapper: {
-      marginRight: 8,
-    },
-    avatar: {},
-    networkName: {
-      fontSize: 16,
-    },
-  }),
-}));
+// Import actual styles for testing
+import createStyles from './ContextualNetworkPicker.styles';
+import type { ThemeColors } from '@metamask/design-tokens';
 
 describe('ContextualNetworkPicker', () => {
   const defaultProps = {
@@ -319,6 +299,62 @@ describe('ContextualNetworkPicker', () => {
       expect(
         getByTestId(NETWORK_SELECTOR_TEST_IDS.CONTEXTUAL_NETWORK_PICKER),
       ).toBeTruthy();
+    });
+  });
+
+  describe('Styles', () => {
+    const mockColors = {
+      background: {
+        default: '#ffffff',
+        alternative: '#f2f3f4',
+      },
+      border: {
+        default: '#d6d9dc',
+        muted: '#bbc0c5',
+      },
+      text: {
+        default: '#24272a',
+        alternative: '#535a61',
+      },
+    } as unknown as ThemeColors;
+
+    it('should create styles with enabled state (disabled=false)', () => {
+      const styles = createStyles(mockColors, false);
+
+      expect(styles.base.borderColor).toBe(mockColors.border.default);
+      expect(styles.avatar.opacity).toBe(1);
+      expect(styles.networkName.opacity).toBe(1);
+    });
+
+    it('should create styles with disabled state (disabled=true)', () => {
+      const styles = createStyles(mockColors, true);
+
+      expect(styles.base.borderColor).toBe(mockColors.border.muted);
+      expect(styles.avatar.opacity).toBe(0.5);
+      expect(styles.networkName.opacity).toBe(0.5);
+    });
+
+    it('should create consistent static styles regardless of disabled state', () => {
+      const enabledStyles = createStyles(mockColors, false);
+      const disabledStyles = createStyles(mockColors, true);
+
+      // These styles should be identical regardless of disabled state
+      expect(enabledStyles.accountSelectorWrapper).toEqual(
+        disabledStyles.accountSelectorWrapper,
+      );
+      expect(enabledStyles.avatarWrapper).toEqual(disabledStyles.avatarWrapper);
+      expect(enabledStyles.row).toEqual(disabledStyles.row);
+    });
+
+    it('should return valid StyleSheet objects with all expected properties', () => {
+      const styles = createStyles(mockColors, false);
+
+      expect(styles).toHaveProperty('base');
+      expect(styles).toHaveProperty('accountSelectorWrapper');
+      expect(styles).toHaveProperty('avatarWrapper');
+      expect(styles).toHaveProperty('row');
+      expect(styles).toHaveProperty('avatar');
+      expect(styles).toHaveProperty('networkName');
     });
   });
 });
