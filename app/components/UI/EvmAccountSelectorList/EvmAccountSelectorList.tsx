@@ -564,7 +564,7 @@ const EvmAccountSelectorList = ({
   // This is a require prop that makes the list rendering more performant
   const listItemHeight = 80; // Exact height of the Cell component
 
-  return (
+  return flattenedData.length > 0 ? (
     <View style={styles.listContainer}>
       <FlashList
         ref={accountListRef}
@@ -578,11 +578,10 @@ const EvmAccountSelectorList = ({
           ScrollView as React.ComponentType<ScrollViewProps>
         }
         testID={ACCOUNT_SELECTOR_LIST_TESTID}
-        disableAutoLayout
         {...props}
       />
     </View>
-  );
+  ) : null;
 };
 
 export default React.memo(EvmAccountSelectorList);
