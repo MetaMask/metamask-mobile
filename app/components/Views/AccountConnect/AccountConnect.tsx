@@ -103,8 +103,59 @@ import MultichainPermissionsSummary, {
   MultichainPermissionsSummaryProps,
 } from '../../UI/PermissionsSummary/MultichainPermissionsSummary';
 import MultichainAccountConnectMultiSelector from './AccountConnectMultiSelector/MultichainAccountConnectMultiSelector';
-import EngineService from '../../../core/EngineService';
 import { getPermissions } from '../../../selectors/snaps';
+
+const getCaip25AccountFromAccountGroupAndScope = (
+  accountGroups: AccountGroupWithInternalAccounts[],
+  scopes: CaipChainId[],
+) => {
+  // Pre-parse all chain namespaces and cache common strings
+  const chainNamespaces = new Map<CaipChainId, string>();
+  const eip155Scope = `${KnownCaipNamespace.Eip155}:0`;
+  scopes.forEach((chainId) => {
+    try {
+      const { namespace } = parseCaipChainId(chainId);
+      chainNamespaces.set(chainId, namespace);
+    } catch (err) {
+      // Skip invalid chain IDs
+    }
+  });
+
+  // Build account addresses more efficiently
+  const updatedSelectedCaipAccountAddresses = new Set<CaipAccountId>();
+
+  // Process each selected account group
+  accountGroups.forEach((accountGroup) => {
+    accountGroup.accounts.forEach((account) => {
+      // Convert scopes to Set for O(1) lookup
+      const accountScopesSet = new Set(account.scopes);
+
+      // Check each selected chain
+      scopes.forEach((chainId) => {
+        const namespace = chainNamespaces.get(chainId);
+        if (!namespace) {
+          return;
+        }
+
+        let shouldAdd = false;
+
+        if (namespace === KnownCaipNamespace.Eip155) {
+          shouldAdd = accountScopesSet.has(eip155Scope);
+        } else {
+          shouldAdd = accountScopesSet.has(chainId);
+        }
+
+        if (shouldAdd) {
+          updatedSelectedCaipAccountAddresses.add(
+            `${chainId}:${account.address}`,
+          );
+        }
+      });
+    });
+  });
+
+  return Array.from(updatedSelectedCaipAccountAddresses);
+};
 
 const AccountConnect = (props: AccountConnectProps) => {
   const { colors } = useTheme();
@@ -119,14 +170,18 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
-  const existingPermissions = useSelector((state) =>
+  const existingPermissionsForHost = useSelector((state) =>
     getPermissions(state, hostInfo?.metadata?.origin),
   );
 
-  // console.log(
-  //   'existingPermissions',
-  //   JSON.stringify(existingPermissions, null, 2),
-  // );
+  const existingPermissionsCaip25CaveatValue = useMemo(
+    () =>
+      getRequestedCaip25CaveatValue(
+        existingPermissionsForHost,
+        hostInfo?.metadata?.origin,
+      ),
+    [existingPermissionsForHost, hostInfo?.metadata?.origin],
+  );
 
   const requestedCaip25CaveatValue = useMemo(
     () =>
@@ -152,7 +207,7 @@ const AccountConnect = (props: AccountConnectProps) => {
     supportedAccountGroups,
     existingConnectedCaipAccountIds,
   } = useAccountGroupConnectionStatus(
-    requestedCaip25CaveatValue,
+    existingPermissionsCaip25CaveatValue,
     requestedCaipChainIds,
   );
 
@@ -323,20 +378,24 @@ const AccountConnect = (props: AccountConnectProps) => {
 
     if (previousIdentitiesListSize.current !== accountsAddressList.length) {
       // // Clean up selected addresses that are no longer part of accounts.
-      // const updatedSelectedAddresses = selectedAddresses.filter((address) =>
-      //   isCaipAccountIdInPermittedAccountIds(address, accountsAddressList),
-      // );
 
       setSelectedAccountGroupIds(
-        supportedAccountGroups.map((group) => group.id),
+        connectedAccountGroups.map((group) => group.id),
       );
-      setSelectedCaipAccountIds(existingConnectedCaipAccountIds);
+      setSelectedCaipAccountIds(
+        getCaip25AccountFromAccountGroupAndScope(
+          connectedAccountGroups,
+          selectedChainIds,
+        ),
+      );
       previousIdentitiesListSize.current = accountsAddressList.length;
     }
   }, [
     accountGroups,
+    connectedAccountGroups,
     existingConnectedCaipAccountIds,
     selectedAccountGroupIds,
+    selectedChainIds,
     supportedAccountGroups,
   ]);
 
@@ -436,6 +495,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   );
 
   const handleConnect = useCallback(async () => {
+    // need to ensure the
     const request: PermissionsRequest = {
       ...hostInfo,
       metadata: {
@@ -548,18 +608,6 @@ const AccountConnect = (props: AccountConnectProps) => {
     (newSelectedAccountGroupIds: AccountGroupId[]) => {
       const updatedSelectedChains = [...selectedChainIds];
 
-      // Pre-parse all chain namespaces and cache common strings
-      const chainNamespaces = new Map<CaipChainId, string>();
-      const eip155Scope = `${KnownCaipNamespace.Eip155}:0`;
-      updatedSelectedChains.forEach((chainId) => {
-        try {
-          const { namespace } = parseCaipChainId(chainId);
-          chainNamespaces.set(chainId, namespace);
-        } catch (err) {
-          // Skip invalid chain IDs
-        }
-      });
-
       // Create lookup sets for selected account group IDs
       const selectedGroupIds = new Set(newSelectedAccountGroupIds);
 
@@ -568,46 +616,16 @@ const AccountConnect = (props: AccountConnectProps) => {
         selectedGroupIds.has(group.id),
       );
 
-      // Build account addresses more efficiently
-      const updatedSelectedCaipAccountAddresses = new Set<CaipAccountId>();
-
-      // Process each selected account group
-      selectedAccountGroups.forEach((accountGroup) => {
-        accountGroup.accounts.forEach((account) => {
-          // Convert scopes to Set for O(1) lookup
-          const accountScopesSet = new Set(account.scopes);
-
-          // Check each selected chain
-          updatedSelectedChains.forEach((chainId) => {
-            const namespace = chainNamespaces.get(chainId);
-            if (!namespace) {
-              return;
-            }
-
-            let shouldAdd = false;
-
-            if (namespace === KnownCaipNamespace.Eip155) {
-              shouldAdd = accountScopesSet.has(eip155Scope);
-            } else {
-              shouldAdd = accountScopesSet.has(chainId);
-            }
-
-            if (shouldAdd) {
-              updatedSelectedCaipAccountAddresses.add(
-                `${chainId}:${account.address}`,
-              );
-            }
-          });
-        });
-      });
+      const caip25AccountIds = getCaip25AccountFromAccountGroupAndScope(
+        selectedAccountGroups,
+        updatedSelectedChains,
+      );
 
       setSelectedChainIds(updatedSelectedChains);
       setSelectedAccountGroupIds(
         selectedAccountGroups.map((group) => group.id),
       );
-      setSelectedCaipAccountIds(
-        Array.from(updatedSelectedCaipAccountAddresses),
-      );
+      setSelectedCaipAccountIds(caip25AccountIds);
       setScreen(AccountConnectScreens.SingleConnect);
     },
     [selectedChainIds, supportedAccountGroups],

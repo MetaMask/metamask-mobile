@@ -206,7 +206,7 @@ const MultichainAccountsConnectedList = ({
     <View style={styles.container}>
       <View style={styles.accountsConnectedContainer}>
         <FlatList
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item}
           data={selectedAccountGroupIds}
           renderItem={renderAccountItem}
           scrollEnabled={accountGroups.length > 1}
