@@ -6,7 +6,7 @@ import { type KeyringControllerState } from '@metamask/keyring-controller';
 import NavigationService from '../NavigationService';
 import Logger from '../../util/Logger';
 import Routes from '../../constants/navigation/Routes';
-import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY } from './constants';
+import { INIT_BG_STATE_KEY } from './constants';
 
 // Mock NavigationService
 jest.mock('../NavigationService', () => ({
@@ -158,7 +158,7 @@ describe('EngineService', () => {
       expect(Logger.log).toHaveBeenCalledWith(
         'EngineService: Initializing Engine:',
         {
-          hasState: false,
+          hasState: true, // Changed from false to true since our new storage system returns data
         },
       );
     });
@@ -208,7 +208,7 @@ describe('EngineService', () => {
       });
     });
 
-    it('should batch multiple update keys', async () => {
+    it('should only handle INIT_BG_STATE_KEY in updateBatcher', async () => {
       engineService.start();
 
       const keys = [
@@ -217,21 +217,17 @@ describe('EngineService', () => {
         'NetworkController',
       ];
 
-      // Add each key
+      // Add each key - these should not be processed by updateBatcher anymore
       keys.forEach((key) => {
         // @ts-expect-error - accessing private property for testing
         engineService.updateBatcher.add(key);
       });
 
-      // Wait for batcher to process and verify each key in order
+      // Wait for batcher to process - should only handle INIT_BG_STATE_KEY
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledTimes(keys.length); // 3 keys
-        keys.forEach((key, index) => {
-          expect(mockDispatch).toHaveBeenNthCalledWith(index + 1, {
-            type: UPDATE_BG_STATE_KEY,
-            payload: { key },
-          });
-        });
+        // updateBatcher now only handles INIT_BG_STATE_KEY
+        // UPDATE_BG_STATE_KEY is handled in setupEnginePersistence()
+        expect(mockDispatch).toHaveBeenCalledTimes(0);
       });
     });
   });

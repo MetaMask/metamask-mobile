@@ -26,7 +26,7 @@ const CONTROLLER_LIST = [
   'GasFeeController',
   'ApprovalController',
   'SnapController',
-  'subjectMetadataController',
+  'SubjectMetadataController',
   'PermissionController',
   'LoggingController',
   'PPOMController',
