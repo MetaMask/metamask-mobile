@@ -306,6 +306,7 @@ describe('AccountBackupStep1', () => {
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
+      mockNavigate.mockClear();
       const { wrapper } = setupTest();
 
       // Find and press the "Remind me later" button
@@ -314,14 +315,17 @@ describe('AccountBackupStep1', () => {
       );
       fireEvent.press(remindLaterButton);
 
-      // Get the onConfirm function from the modal params
-      const modalParams = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'RootModalFlow' &&
-          call[1].screen === 'SkipAccountSecurityModal',
-      )[1].params;
+      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+        screen: 'SkipAccountSecurityModal',
+        params: {
+          onConfirm: expect.any(Function),
+          onCancel: expect.any(Function),
+        },
+      });
 
-      mockNavigate.mockClear();
+      // Get the onConfirm function from the modal params
+      const modalParams = mockNavigate.mock.calls[0][1].params;
+
       // Call the onConfirm function (skip)
       await modalParams.onConfirm();
     });
