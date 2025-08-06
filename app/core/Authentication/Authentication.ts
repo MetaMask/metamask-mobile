@@ -452,11 +452,12 @@ class AuthenticationService {
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      this.lockApp({ reset: false });
-
+      // error handling ui needed for oauth login
       if (e instanceof OAuthError) {
         throw e;
       }
+
+      this.lockApp({ reset: false });
 
       throw new AuthenticationError(
         (e as Error).message,

@@ -464,11 +464,8 @@ class ChoosePassword extends PureComponent {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
           if (this.isOAuthPasswordCreationError(error)) {
-            const shouldRethrow = this.handleSentryCapture(error, authType);
-            // proceed error handling if metrics are enabled
-            if (shouldRethrow) throw error;
-            // skip error handling and prompt error boundry
-            else return;
+            this.handleSentryCapture(error, authType);
+            throw error;
           } else if (Device.isIos) {
             await this.handleRejectedOsBiometricPrompt();
           }
@@ -533,11 +530,6 @@ class ChoosePassword extends PureComponent {
         Logger.error(e);
       }
 
-      if (this.isOAuthPasswordCreationError(error)) {
-        await this.handleSeedlessOnboardingControllerError();
-        this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
-      }
-
       // Set state in app as it was with no password
       this.props.setExistingUser(true);
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -567,6 +559,14 @@ class ChoosePassword extends PureComponent {
           tags: { errorMessage: error.toString() },
         });
         endTrace({ name: TraceName.OnboardingPasswordSetupError });
+      }
+
+      if (
+        this.isOAuthPasswordCreationError(error) &&
+        this.props.metrics.isEnabled()
+      ) {
+        await this.handleSeedlessOnboardingControllerError();
+        this.props.navigation.replace(Routes.ONBOARDING.LOGIN);
       }
     }
   };
