@@ -30,6 +30,10 @@ import Routes from '../../../constants/navigation/Routes';
 
 interface FundActionMenuParams {
   onBuy?: () => void;
+  asset?: {
+    address?: string;
+    chainId?: string;
+  };
 }
 
 type FundActionMenuRouteProp = RouteProp<
@@ -42,8 +46,9 @@ const FundActionMenu = () => {
   const { navigate } = useNavigation();
   const route = useRoute<FundActionMenuRouteProp>();
 
-  // Get onBuy function from route params if provided
+  // Get onBuy function and asset context from route params if provided
   const customOnBuy = route.params?.onBuy;
+  const assetContext = route.params?.asset;
 
   const chainId = useSelector(selectChainId);
   const [isNetworkRampSupported] = useRampNetwork();
@@ -62,23 +67,40 @@ const FundActionMenu = () => {
   const onBuy = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
       if (customOnBuy) {
-        // Use the custom onBuy function if provided (e.g., from AssetOverview)
+        // PRIORITY 1: Use the custom onBuy function if provided (e.g., from AssetOverview)
+        // This preserves the specific analytics and navigation logic from the caller
         customOnBuy();
+      } else if (assetContext) {
+        // PRIORITY 2: Use asset-specific navigation with token context as fallback
+        // This ensures token context is preserved even if onBuy function is lost
+        navigate(
+          ...createBuyNavigationDetails({
+            address: assetContext.address,
+            chainId: assetContext.chainId
+              ? parseInt(assetContext.chainId, 16)
+              : getDecimalChainId(chainId),
+          }),
+        );
       } else {
-        // Use default navigation (e.g., from Wallet main view)
+        // PRIORITY 3: Use default navigation (e.g., from Wallet main view)
         navigate(...createBuyNavigationDetails());
       }
     });
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Buy',
-          location: 'FundActionMenu',
-          chain_id_destination: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
+    // Only track analytics if we're not using customOnBuy (which handles its own analytics)
+    if (!customOnBuy) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+          .addProperties({
+            text: 'Buy',
+            location: 'FundActionMenu',
+            chain_id_destination: assetContext?.chainId
+              ? parseInt(assetContext.chainId, 16)
+              : getDecimalChainId(chainId),
+          })
+          .build(),
+      );
+    }
 
     trace({
       name: TraceName.LoadRampExperience,
@@ -93,6 +115,7 @@ const FundActionMenu = () => {
     chainId,
     createEventBuilder,
     customOnBuy,
+    assetContext,
   ]);
 
   const onSell = useCallback(() => {

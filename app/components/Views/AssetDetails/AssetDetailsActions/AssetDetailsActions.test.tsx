@@ -66,9 +66,14 @@ describe('AssetDetailsActions', () => {
     expect(getByText(strings('asset_overview.receive_button'))).toBeTruthy();
   });
 
-  it('navigates to FundActionMenu with onBuy param when onBuy prop is provided', () => {
+  it('navigates to FundActionMenu with both onBuy and asset context when both are provided', () => {
+    const mockAsset = { address: '0x123', chainId: '0x1' };
     const { getByTestId } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} onBuy={mockOnBuy} />,
+      <AssetDetailsActions
+        {...defaultProps}
+        asset={mockAsset}
+        onBuy={mockOnBuy}
+      />,
       { state: initialRootState },
     );
 
@@ -77,11 +82,12 @@ describe('AssetDetailsActions', () => {
       screen: Routes.MODAL.FUND_ACTION_MENU,
       params: {
         onBuy: mockOnBuy,
+        asset: mockAsset,
       },
     });
   });
 
-  it('navigates to FundActionMenu without onBuy param when no onBuy prop', () => {
+  it('navigates to FundActionMenu with neither onBuy nor asset context when no props provided', () => {
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
       { state: initialRootState },
@@ -92,6 +98,7 @@ describe('AssetDetailsActions', () => {
       screen: Routes.MODAL.FUND_ACTION_MENU,
       params: {
         onBuy: undefined,
+        asset: undefined,
       },
     });
   });

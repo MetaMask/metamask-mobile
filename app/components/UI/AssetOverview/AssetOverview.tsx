@@ -429,6 +429,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             onBuy={onBuy}
             onReceive={onReceive}
             onSend={onSend}
+            asset={{
+              address: asset.address,
+              chainId,
+            }}
           />
           <Balance
             asset={asset}

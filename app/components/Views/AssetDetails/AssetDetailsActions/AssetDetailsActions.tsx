@@ -25,6 +25,11 @@ export interface AssetDetailsActionsProps {
   goToBridge: () => void;
   onSend: () => void;
   onReceive: () => void;
+  // Asset context for buy flow
+  asset?: {
+    address?: string;
+    chainId?: string;
+  };
   // Optional custom action IDs to avoid test ID conflicts
   buyButtonActionID?: string;
   swapButtonActionID?: string;
@@ -43,6 +48,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   goToBridge,
   onSend,
   onReceive,
+  asset,
   buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
   swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
   bridgeButtonActionID = TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
@@ -54,11 +60,12 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const { navigate } = useNavigation();
 
   const handleBuyPress = () => {
-    // Always navigate to FundActionMenu, but pass onBuy function as parameter
+    // Always navigate to FundActionMenu, but pass both onBuy function and asset context
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.FUND_ACTION_MENU,
       params: {
-        onBuy, // Pass the onBuy function to FundActionMenu
+        onBuy, // Pass the onBuy function (if provided)
+        asset, // Pass asset context as fallback
       },
     });
   };
