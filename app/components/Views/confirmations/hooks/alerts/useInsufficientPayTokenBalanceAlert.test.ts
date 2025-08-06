@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-native';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
 import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
-import { useInsufficientPayTokenBalance } from './useInsufficientPayTokenBalance';
+import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
@@ -11,7 +11,7 @@ jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayTokenAmounts');
 
 function runHook() {
-  return renderHook(() => useInsufficientPayTokenBalance());
+  return renderHook(() => useInsufficientPayTokenBalanceAlert());
 }
 
 describe('useInsufficientPayTokenBalance', () => {

@@ -7,7 +7,7 @@ import { BigNumber } from 'bignumber.js';
 import { useTransactionPayTokenAmounts } from '../pay/useTransactionPayTokenAmounts';
 import { strings } from '../../../../../../locales/i18n';
 
-export function useInsufficientPayTokenBalance(): Alert[] {
+export function useInsufficientPayTokenBalanceAlert(): Alert[] {
   const { totalHuman } = useTransactionPayTokenAmounts();
   const { balanceHuman } = useTransactionPayToken();
 
