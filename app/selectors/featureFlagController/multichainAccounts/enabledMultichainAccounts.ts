@@ -15,7 +15,7 @@ export interface MultichainAccountsFeatureFlag {
 
 const APP_VERSION = packageJson.version;
 const overrideRemoteFeatureFlags =
-  process.env.MM_REMOTE_FEATURE_FLAGS === 'true' && !isProduction();
+  process.env.OVERRIDE_REMOTE_FEATURE_FLAGS === 'true' && !isProduction();
 const enabledMultichainAccountsState2Local =
   process.env.MM_ENABLE_MULTICHAIN_ACCOUNTS_STATE_2 === 'true';
 
