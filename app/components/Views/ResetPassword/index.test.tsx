@@ -20,6 +20,10 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import Device from '../../../util/device';
 import ReduxService from '../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../core/redux/types';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -312,8 +316,17 @@ describe('ResetPassword', () => {
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
           params: expect.objectContaining({
             title: strings('reset_password.warning_password_change_title'),
-            description: strings(
-              'reset_password.warning_password_change_description',
+            description: (
+              <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+                {strings('reset_password.warning_password_change_description')}
+                <Text
+                  color={TextColor.Primary}
+                  onPress={expect.any(Function)}
+                  variant={TextVariant.BodyMD}
+                >
+                  {strings('reset_password.learn_more')}
+                </Text>
+              </Text>
             ),
             type: 'error',
             icon: 'Danger',

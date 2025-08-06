@@ -82,7 +82,9 @@ const ImportPrivateKey = () => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/accounts-and-addresses/what-are-imported-accounts-/',
+        url: isSRP
+          ? 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key'
+          : 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
         title: strings('drawer.metamask_support'),
       },
     });
