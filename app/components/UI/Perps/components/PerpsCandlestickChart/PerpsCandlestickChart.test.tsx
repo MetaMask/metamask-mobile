@@ -68,16 +68,6 @@ jest.mock('react-native-wagmi-charts', () => {
     />
   );
 
-  MockChart.Crosshair = ({ children }: { children: React.ReactNode }) => (
-    <View testID={PerpsCandlestickChartSelectorsIDsMock.CROSSHAIR}>
-      {children}
-    </View>
-  );
-
-  MockChart.Tooltip = () => (
-    <View testID={PerpsCandlestickChartSelectorsIDsMock.TOOLTIP} />
-  );
-
   return { CandlestickChart: MockChart };
 });
 
@@ -655,6 +645,124 @@ describe('CandlestickChartComponent', () => {
         expect(tpslElements).toHaveLength(1);
         const tpElements = screen.queryAllByTestId(/tpsl-tp/);
         expect(tpElements).toHaveLength(0);
+      });
+    });
+
+    it('renders entry price line when entryPrice is provided', async () => {
+      // Arrange
+      const propsWithEntry = {
+        ...defaultProps,
+        tpslLines: {
+          entryPrice: '45500', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithEntry} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const entryElements = screen.getAllByTestId(/tpsl-entry/);
+        expect(entryElements).toHaveLength(1);
+      });
+    });
+
+    it('renders liquidation price line when liquidationPrice is provided', async () => {
+      // Arrange
+      const propsWithLiquidation = {
+        ...defaultProps,
+        tpslLines: {
+          liquidationPrice: '44200', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithLiquidation} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const liquidationElements = screen.getAllByTestId(/tpsl-liquidation/);
+        expect(liquidationElements).toHaveLength(1);
+      });
+    });
+
+    it('does not render liquidation price line when liquidationPrice is null', async () => {
+      // Arrange
+      const propsWithNullLiquidation = {
+        ...defaultProps,
+        tpslLines: {
+          liquidationPrice: null,
+          entryPrice: '45500', // Include another line to ensure component renders
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithNullLiquidation} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const liquidationElements = screen.queryAllByTestId(/tpsl-liquidation/);
+        expect(liquidationElements).toHaveLength(0);
+
+        const entryElements = screen.getAllByTestId(/tpsl-entry/);
+        expect(entryElements).toHaveLength(1); // Entry line should still render
+      });
+    });
+
+    it('renders current price line when currentPrice is provided', async () => {
+      // Arrange
+      const propsWithCurrent = {
+        ...defaultProps,
+        tpslLines: {
+          currentPrice: '45800', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithCurrent} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const currentElements = screen.getAllByTestId(/tpsl-current/);
+        expect(currentElements).toHaveLength(1);
+      });
+    });
+
+    it('renders all lines when TP, SL, entry, liquidation, and current prices are provided', async () => {
+      // Arrange
+      const propsWithAll = {
+        ...defaultProps,
+        tpslLines: {
+          takeProfitPrice: '46800', // Within chart range (44000-47000)
+          stopLossPrice: '44500', // Within chart range (44000-47000)
+          entryPrice: '45500', // Within chart range (44000-47000)
+          liquidationPrice: '44200', // Within chart range (44000-47000)
+          currentPrice: '45800', // Within chart range (44000-47000)
+        },
+      };
+
+      // Act
+      render(<CandlestickChartComponent {...propsWithAll} />);
+
+      // Assert - Wait for the timeout to complete
+      await waitFor(() => {
+        const tpslElements = screen.getAllByTestId(/tpsl-/);
+        expect(tpslElements).toHaveLength(5); // One for TP, one for SL, one for entry, one for liquidation, one for current
+
+        const tpElements = screen.getAllByTestId(/tpsl-tp/);
+        expect(tpElements).toHaveLength(1);
+
+        const slElements = screen.getAllByTestId(/tpsl-sl/);
+        expect(slElements).toHaveLength(1);
+
+        const entryElements = screen.getAllByTestId(/tpsl-entry/);
+        expect(entryElements).toHaveLength(1);
+
+        const liquidationElements = screen.getAllByTestId(/tpsl-liquidation/);
+        expect(liquidationElements).toHaveLength(1);
+
+        const currentElements = screen.getAllByTestId(/tpsl-current/);
+        expect(currentElements).toHaveLength(1);
       });
     });
   });

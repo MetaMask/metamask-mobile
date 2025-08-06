@@ -79,26 +79,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       zIndex: 10,
     },
 
-    // Tooltip styling
-    tooltipContainer: {
-      backgroundColor: colors.background.alternative,
-      borderRadius: 8,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderWidth: 1,
-      borderColor: colors.border.muted,
-      shadowColor: colors.shadow.default,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 20,
-    },
-    tooltipText: {
-      color: colors.text.default,
-      fontSize: 12,
-      fontWeight: '600',
-    },
-
     chartLoadingContainer: {
       backgroundColor: importedColors.transparent,
       alignItems: 'center',
@@ -108,10 +88,12 @@ export const styleSheet = (params: { theme: Theme }) => {
     relativeContainer: {
       position: 'relative',
     },
+    chartWithPadding: {
+      paddingRight: 65,
+    },
     tpslLine: {
       position: 'absolute',
       left: 0,
-      right: 0,
       height: 1,
       zIndex: -999, // Far below everything
       opacity: 0.8,

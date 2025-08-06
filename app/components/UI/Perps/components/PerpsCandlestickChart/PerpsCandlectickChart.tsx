@@ -21,6 +21,9 @@ import type { CandleData } from '../../types';
 interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
+  entryPrice?: string;
+  liquidationPrice?: string | null;
+  currentPrice?: string;
 }
 
 interface CandlestickChartComponentProps {
@@ -35,7 +38,13 @@ interface CandlestickChartComponentProps {
 }
 
 const screenWidth = Dimensions.get('window').width;
-const chartWidth = screenWidth - PERPS_CHART_CONFIG.PADDING.HORIZONTAL * 2; // Account for padding
+const chartWidth = screenWidth; // Full screen width, no horizontal padding
+
+// Helper function to format price for y-axis labels
+const formatPriceForAxis = (price: number): string =>
+  // Round to whole number and add commas for thousands
+   Math.round(price).toLocaleString('en-US')
+;
 
 const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   candleData,
@@ -126,8 +135,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         price,
         isEdge: isEdgeLine,
         position:
-          (i / (gridLineCount - 1)) *
-          (height - PERPS_CHART_CONFIG.PADDING.VERTICAL), // Direct pixel positioning
+          ((gridLineCount - 1 - i) / (gridLineCount - 1)) *
+          (height - PERPS_CHART_CONFIG.PADDING.VERTICAL), // Inverted positioning: higher prices at top
       });
     }
 
@@ -150,7 +159,11 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     const priceRange = maxPrice - minPrice;
     const chartHeight = height - PERPS_CHART_CONFIG.PADDING.VERTICAL;
 
-    const lines: { type: 'tp' | 'sl'; price: number; position: number }[] = [];
+    const lines: {
+      type: 'tp' | 'sl' | 'entry' | 'liquidation' | 'current';
+      price: number;
+      position: number;
+    }[] = [];
 
     // Take Profit line
     if (tpslLines.takeProfitPrice) {
@@ -171,6 +184,47 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         const normalizedPosition = (slPrice - minPrice) / priceRange;
         const position = chartHeight * (0.98 - normalizedPosition);
         lines.push({ type: 'sl', price: slPrice, position });
+      }
+    }
+
+    // Entry Price line
+    if (tpslLines.entryPrice) {
+      const entryPrice = parseFloat(tpslLines.entryPrice);
+      if (entryPrice >= minPrice && entryPrice <= maxPrice && priceRange > 0) {
+        // Use exact same calculation as grid lines but for specific price
+        const normalizedPosition = (entryPrice - minPrice) / priceRange;
+        const position = chartHeight * (1 - normalizedPosition);
+        lines.push({ type: 'entry', price: entryPrice, position });
+      }
+    }
+
+    // Liquidation Price line
+    if (tpslLines.liquidationPrice) {
+      const liquidationPrice = parseFloat(tpslLines.liquidationPrice);
+      if (
+        liquidationPrice >= minPrice &&
+        liquidationPrice <= maxPrice &&
+        priceRange > 0
+      ) {
+        // Use exact same calculation as grid lines but for specific price
+        const normalizedPosition = (liquidationPrice - minPrice) / priceRange;
+        const position = chartHeight * (1 - normalizedPosition);
+        lines.push({ type: 'liquidation', price: liquidationPrice, position });
+      }
+    }
+
+    // Current Price line
+    if (tpslLines.currentPrice) {
+      const currentPrice = parseFloat(tpslLines.currentPrice);
+      if (
+        currentPrice >= minPrice &&
+        currentPrice <= maxPrice &&
+        priceRange > 0
+      ) {
+        // Use exact same calculation as grid lines but for specific price
+        const normalizedPosition = (currentPrice - minPrice) / priceRange;
+        const position = chartHeight * (1 - normalizedPosition);
+        lines.push({ type: 'current', price: currentPrice, position });
       }
     }
 
@@ -236,64 +290,75 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
   return (
     <CandlestickChart.Provider data={transformedData}>
+      {/* Custom Horizontal Grid Lines with Price Labels */}
+      <View style={styles.gridContainer}>
+        {gridLines.map((line, index) => (
+          <View key={`grid-${index}`}>
+            {/* Grid Line */}
+            <View
+              style={getGridLineStyle(theme.colors, line.isEdge, line.position)}
+            />
+            {/* Price Label */}
+            <View
+              style={[
+                styles.gridPriceLabel,
+                {
+                  top: line.position - 10, // Center the label on the line
+                  backgroundColor: theme.colors.background.default,
+                  borderColor: theme.colors.border.muted,
+                },
+              ]}
+            >
+              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+                ${formatPriceForAxis(line.price)}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+      {/* TP/SL Lines - Render first so they're behind everything */}
+      {tpslLinePositions && showTPSLLines && (
+        <View style={styles.tpslContainer}>
+          {tpslLinePositions.map((line, index) => (
+            <View
+              key={`tpsl-${line.type}-${index}`}
+              testID={`tpsl-${line.type}-${index}`}
+              style={[
+                styles.tpslLine,
+                {
+                  top: line.position,
+                  width: chartWidth - 65, // Match the chart width
+                  // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
+                  borderTopColor:
+                    line.type === 'tp'
+                      ? theme.colors.success.default // Green for Take Profit
+                      : line.type === 'sl'
+                      ? theme.colors.border.default // Gray for Stop Loss
+                      : line.type === 'entry'
+                      ? theme.colors.text.alternative // Light Gray for Entry Price
+                      : line.type === 'liquidation'
+                      ? theme.colors.error.default // Pink/Red for Liquidation Price
+                      : theme.colors.text.default, // White for Current Price
+                },
+              ]}
+            />
+          ))}
+        </View>
+      )}
       <View style={styles.chartContainer}>
         {/* Chart with Custom Grid Lines */}
         <View style={styles.relativeContainer}>
           {/* Main Candlestick Chart */}
           <CandlestickChart
             height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
-            width={chartWidth}
+            width={chartWidth - 65}
+            style={styles.chartWithPadding}
           >
-            {/* TP/SL Lines - Render first so they're behind everything */}
-            {tpslLinePositions && showTPSLLines && (
-              <View style={styles.tpslContainer}>
-                {tpslLinePositions.map((line, index) => (
-                  <View
-                    key={`tpsl-${line.type}-${index}`}
-                    testID={`tpsl-${line.type}-${index}`}
-                    style={[
-                      styles.tpslLine,
-                      {
-                        top: line.position,
-                        borderTopColor:
-                          line.type === 'tp'
-                            ? theme.colors.success.default // Green for Take Profit
-                            : theme.colors.error.default, // Red for Stop Loss
-                      },
-                    ]}
-                  />
-                ))}
-              </View>
-            )}
-
-            {/* Custom Horizontal Grid Lines */}
-            <View style={styles.gridContainer}>
-              {gridLines.map((line, index) => (
-                <View
-                  key={`grid-${index}`}
-                  style={getGridLineStyle(
-                    theme.colors,
-                    line.isEdge,
-                    line.position,
-                  )}
-                />
-              ))}
-            </View>
             {/* Candlestick Data */}
             <CandlestickChart.Candles
               positiveColor={candlestickColors.positive} // Green for positive candles
               negativeColor={candlestickColors.negative} // Red for negative candles
             />
-
-            {/* Interactive Crosshair */}
-            <CandlestickChart.Crosshair>
-              <CandlestickChart.Tooltip
-                style={styles.tooltipContainer}
-                tooltipTextProps={{
-                  style: styles.tooltipText,
-                }}
-              />
-            </CandlestickChart.Crosshair>
           </CandlestickChart>
         </View>
 
