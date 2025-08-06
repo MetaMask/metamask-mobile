@@ -1,7 +1,7 @@
 // Third party dependencies.
 import React, { useCallback, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 
 // External dependencies.
 import BottomSheet, {
@@ -28,9 +28,22 @@ import { RampType } from '../../../reducers/fiatOrders/types';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
 import Routes from '../../../constants/navigation/Routes';
 
+interface FundActionMenuParams {
+  onBuy?: () => void;
+}
+
+type FundActionMenuRouteProp = RouteProp<
+  { FundActionMenu: FundActionMenuParams },
+  'FundActionMenu'
+>;
+
 const FundActionMenu = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
+  const route = useRoute<FundActionMenuRouteProp>();
+
+  // Get onBuy function from route params if provided
+  const customOnBuy = route.params?.onBuy;
 
   const chainId = useSelector(selectChainId);
   const [isNetworkRampSupported] = useRampNetwork();
@@ -48,7 +61,13 @@ const FundActionMenu = () => {
 
   const onBuy = useCallback(() => {
     closeBottomSheetAndNavigate(() => {
-      navigate(...createBuyNavigationDetails());
+      if (customOnBuy) {
+        // Use the custom onBuy function if provided (e.g., from AssetOverview)
+        customOnBuy();
+      } else {
+        // Use default navigation (e.g., from Wallet main view)
+        navigate(...createBuyNavigationDetails());
+      }
     });
 
     trackEvent(
@@ -73,6 +92,7 @@ const FundActionMenu = () => {
     trackEvent,
     chainId,
     createEventBuilder,
+    customOnBuy,
   ]);
 
   const onSell = useCallback(() => {

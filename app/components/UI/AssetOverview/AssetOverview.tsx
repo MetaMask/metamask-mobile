@@ -239,6 +239,24 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     navigateToSendPage(asset);
   };
 
+  const onBuy = () => {
+    navigation.navigate(
+      ...createBuyNavigationDetails({
+        address: asset.address,
+        chainId: getDecimalChainId(chainId),
+      }),
+    );
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
+        .addProperties({
+          text: 'Buy',
+          location: 'TokenDetails',
+          chain_id_destination: getDecimalChainId(chainId),
+        })
+        .build(),
+    );
+  };
+
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
       url,
@@ -408,6 +426,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             swapsIsLive={swapsIsLive}
             goToBridge={goToBridge}
             goToSwaps={goToSwaps}
+            onBuy={onBuy}
             onReceive={onReceive}
             onSend={onSend}
           />

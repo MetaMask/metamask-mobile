@@ -23,6 +23,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 describe('AssetDetailsActions', () => {
+  const mockOnBuy = jest.fn();
   const mockGoToSwaps = jest.fn();
   const mockGoToBridge = jest.fn();
   const mockOnSend = jest.fn();
@@ -65,7 +66,22 @@ describe('AssetDetailsActions', () => {
     expect(getByText(strings('asset_overview.receive_button'))).toBeTruthy();
   });
 
-  it('navigates to FundActionMenu when the buy button is pressed', () => {
+  it('navigates to FundActionMenu with onBuy param when onBuy prop is provided', () => {
+    const { getByTestId } = renderWithProvider(
+      <AssetDetailsActions {...defaultProps} onBuy={mockOnBuy} />,
+      { state: initialRootState },
+    );
+
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.MODAL.FUND_ACTION_MENU,
+      params: {
+        onBuy: mockOnBuy,
+      },
+    });
+  });
+
+  it('navigates to FundActionMenu without onBuy param when no onBuy prop', () => {
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
       { state: initialRootState },
@@ -74,6 +90,9 @@ describe('AssetDetailsActions', () => {
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.FUND_ACTION_MENU,
+      params: {
+        onBuy: undefined,
+      },
     });
   });
 

@@ -20,6 +20,7 @@ export interface AssetDetailsActionsProps {
   displaySwapsButton: boolean | undefined;
   displayBridgeButton: boolean | undefined;
   swapsIsLive: boolean | undefined;
+  onBuy?: () => void;
   goToSwaps: () => void;
   goToBridge: () => void;
   onSend: () => void;
@@ -37,6 +38,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   displaySwapsButton,
   displayBridgeButton,
   swapsIsLive,
+  onBuy,
   goToSwaps,
   goToBridge,
   onSend,
@@ -52,9 +54,12 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   const { navigate } = useNavigation();
 
   const handleBuyPress = () => {
-    // Navigate to the FundActionMenu modal
+    // Always navigate to FundActionMenu, but pass onBuy function as parameter
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.FUND_ACTION_MENU,
+      params: {
+        onBuy, // Pass the onBuy function to FundActionMenu
+      },
     });
   };
 
