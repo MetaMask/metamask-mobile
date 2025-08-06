@@ -107,7 +107,7 @@ import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPosi
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
-import { SendRoot } from '../../Views/confirmations/components/send/send-root';
+import { Send } from '../../Views/confirmations/components/send';
 import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
 
 const Stack = createStackNavigator();
@@ -838,13 +838,13 @@ const MainNavigator = () => {
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
         name="Send"
-        component={SendRoot}
+        component={Send}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
         name="SendFlowView"
-        component={isSendRedesignEnabled() ? SendRoot : SendFlowView}
+        component={isSendRedesignEnabled() ? Send : SendFlowView}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />

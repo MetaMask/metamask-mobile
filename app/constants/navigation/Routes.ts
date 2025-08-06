@@ -294,8 +294,10 @@ const Routes = {
     HOME: 'CardHome',
   },
   SEND: {
+    RECIPIENT: 'Recipient',
+    ASSET: 'Asset',
+    AMOUNT: 'Amount',
     DEFAULT: 'Send',
-    ROOT: 'Root',
   },
 };
 

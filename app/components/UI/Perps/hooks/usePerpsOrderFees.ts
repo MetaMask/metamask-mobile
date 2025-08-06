@@ -143,8 +143,11 @@ export function usePerpsOrderFees({
 /**
  * Format fee rate as percentage
  * @param rate Fee rate as decimal (e.g., 0.00045)
- * @returns Formatted percentage string (e.g., "0.045%")
+ * @returns Formatted percentage string (e.g., "0.045%") or "N/A" if invalid
  */
-export function formatFeeRate(rate: number): string {
+export function formatFeeRate(rate: number | undefined | null): string {
+  if (rate === undefined || rate === null || isNaN(rate)) {
+    return 'N/A';
+  }
   return `${(rate * 100).toFixed(3)}%`;
 }
