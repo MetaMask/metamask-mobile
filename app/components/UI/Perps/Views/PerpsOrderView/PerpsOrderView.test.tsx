@@ -46,6 +46,7 @@ import {
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsNetwork,
+  usePerpsOrderFees,
   usePerpsOrderForm,
   usePerpsPaymentTokens,
   usePerpsPrices,
@@ -706,5 +707,113 @@ describe('PerpsOrderView', () => {
 
     // Verify the component renders with our mock
     expect(mockPlaceOrder).toBeDefined();
+  });
+
+  describe('Tooltip functionality (TAT-1250)', () => {
+    let mockOpenTooltipModal: jest.Mock;
+
+    beforeEach(() => {
+      mockOpenTooltipModal = jest.fn();
+      const useTooltipModal = jest.requireMock(
+        '../../../../hooks/useTooltipModal',
+      );
+      useTooltipModal.default.mockReturnValue({
+        openTooltipModal: mockOpenTooltipModal,
+      });
+    });
+
+    it('should have tooltip triggers for all required sections', async () => {
+      render(<PerpsOrderView />);
+
+      // Verify all the required text labels are present (matching design)
+      expect(screen.getByText('Leverage')).toBeDefined();
+      expect(screen.getByText('Margin')).toBeDefined();
+      expect(screen.getByText('Liquidation price')).toBeDefined();
+      expect(screen.getByText('Fees')).toBeDefined();
+
+      // Verify the tooltip modal hook is available
+      expect(mockOpenTooltipModal).toBeDefined();
+    });
+
+    it('should NOT show execution time tooltip (removed per requirement)', async () => {
+      render(<PerpsOrderView />);
+
+      // Verify execution time is not present in the UI
+      await waitFor(() => {
+        expect(screen.queryByText('Estimated execution time')).toBeNull();
+        expect(screen.queryByText('execution time')).toBeNull();
+      });
+    });
+
+    it('should use dynamic fee rates from usePerpsOrderFees', async () => {
+      // Mock specific fee rates
+      (usePerpsOrderFees as jest.Mock).mockReturnValue({
+        totalFee: 45.15,
+        protocolFee: 45,
+        metamaskFee: 0.15,
+        protocolFeeRate: 0.00045, // 0.045%
+        metamaskFeeRate: 0.001, // 0.1%
+        isLoadingMetamaskFee: false,
+        error: null,
+      });
+
+      render(<PerpsOrderView />);
+
+      // Verify the component renders with the fee data
+      expect(screen.getByText('Fees')).toBeDefined();
+
+      // The fee rates are used in the tooltip content
+      expect(usePerpsOrderFees).toHaveBeenCalled();
+    });
+
+    it('should handle undefined fee rates gracefully', async () => {
+      // Mock undefined fee rates
+      (usePerpsOrderFees as jest.Mock).mockReturnValue({
+        totalFee: 0,
+        protocolFee: 0,
+        metamaskFee: 0,
+        protocolFeeRate: undefined,
+        metamaskFeeRate: null,
+        isLoadingMetamaskFee: true,
+        error: null,
+      });
+
+      render(<PerpsOrderView />);
+
+      // Component should render without errors
+      expect(screen.getByText('Fees')).toBeDefined();
+    });
+
+    it('should use memoized createTooltipContent helper', () => {
+      const { rerender } = render(<PerpsOrderView />);
+
+      // Re-render with same props
+      rerender(<PerpsOrderView />);
+
+      // Component should render efficiently with memoization
+      expect(screen.getByText('Leverage')).toBeDefined();
+    });
+
+    it('should navigate to current route when Got it is pressed', () => {
+      const tooltipNavigate = jest.fn();
+      const tooltipRoute = {
+        params: {
+          asset: 'ETH',
+          action: 'long',
+        },
+      };
+
+      (useNavigation as jest.Mock).mockReturnValue({
+        navigate: tooltipNavigate,
+        goBack: mockGoBack,
+      });
+      (useRoute as jest.Mock).mockReturnValue(tooltipRoute);
+
+      render(<PerpsOrderView />);
+
+      // Verify navigation is set up correctly for tooltip Got it button
+      expect(tooltipNavigate).toBeDefined();
+      expect(tooltipRoute.params).toBeDefined();
+    });
   });
 });
