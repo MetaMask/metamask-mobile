@@ -71,6 +71,30 @@ export function getSecondTestDappPort(): number {
   // Use a different base port for the second dapp
   return getServerPort(DEFAULT_DAPP_SERVER_PORT + 1);
 }
+/**
+ * @description
+ * When running tests on BrowserStack, local services need to be accessed through
+ * BrowserStack's local tunnel hostname. For local development,
+ * standard localhost is used.
+ *
+ * @returns {string} The hostname to use for connecting to local services:
+ * - 'bs-local.com' when running on BrowserStack (detected via BROWSERSTACK_USERNAME env var)
+ * - 'localhost' for local development and other environments
+ *
+ * @example
+ * ```typescript
+ * const fixtureServerHost = getLocalHost();
+ * const serverUrl = `http://${fixtureServerHost}:${port}`;
+ * // Returns: "http://bs-local.com:12345" on BrowserStack
+ * // Returns: "http://localhost:12345" locally
+ * ```
+ */
+export function getLocalHost() {
+  if (process.env.BROWSERSTACK_USERNAME) {
+    return 'bs-local.com';
+  }
+  return 'localhost';
+}
 
 export function buildPermissions(chainIds: string[]): Record<string, unknown> {
   // default mainnet
