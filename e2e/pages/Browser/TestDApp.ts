@@ -423,7 +423,7 @@ class TestDApp {
   }: ContractNavigationParams): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
-      `${getTestDappLocalUrl(0)}?scrollTo=''&contract=${contractAddress}`,
+      `${getTestDappLocalUrl()}/?scrollTo=''&contract=${contractAddress}`,
     );
   }
 

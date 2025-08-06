@@ -75,7 +75,7 @@ class SolanaTestDApp {
   async navigateToSolanaTestDApp(): Promise<void> {
     await Browser.tapUrlInputBox();
 
-    await Browser.navigateToURL(getTestDappLocalUrl(0));
+    await Browser.navigateToURL(getTestDappLocalUrl());
 
     await waitFor(element(by.id(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID)))
       .toBeVisible()

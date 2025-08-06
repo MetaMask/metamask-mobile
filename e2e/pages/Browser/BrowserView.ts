@@ -289,7 +289,7 @@ class Browser {
 
   async navigateToTestDApp(): Promise<void> {
     await this.tapUrlInputBox();
-    await this.navigateToURL(getTestDappLocalUrl(0));
+    await this.navigateToURL(getTestDappLocalUrl());
   }
 
   async navigateToSecondTestDApp(): Promise<void> {
@@ -307,9 +307,7 @@ class Browser {
     await this.tapUrlInputBox();
     const encodedParams = encodeURIComponent(JSON.stringify(transactionParams));
     await this.navigateToURL(
-      `${getTestDappLocalUrl(
-        0,
-      )}/request?method=eth_sendTransaction&params=${encodedParams}`,
+      `${getTestDappLocalUrl()}/request?method=eth_sendTransaction&params=${encodedParams}`,
     );
   }
 
