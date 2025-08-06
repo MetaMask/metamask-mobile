@@ -30,6 +30,9 @@ jobs:
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
+      NODE_OPTIONS: '--max-old-space-size=12288 --max-semi-space-size=1024'
+      DETOX_LAUNCH_TIMEOUT: '300000'
+      DETOX_MATCH_TIMEOUT: '30000'
       MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
       SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}

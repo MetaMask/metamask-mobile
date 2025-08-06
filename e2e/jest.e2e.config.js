@@ -2,7 +2,7 @@
 require('dotenv').config({ path: '.e2e.env' });
 
 // Determine maxWorkers based on environment
-let workers = process.env.CI ? 3 : 1;
+let workers = process.env.CI ? 10 : 1;
 
 // Set maxWorkers to 1 for performance workflows
 if (process.env.BITRISE_TRIGGERED_WORKFLOW_ID) {
