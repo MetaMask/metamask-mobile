@@ -22,8 +22,6 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'emulator', // or 'local-device' or 'browserstack'
-          name: 'Samsung Galaxy S24 Ultra', // this can changed
-          osVersion: '14.0', // this can changed
         },
         buildPath: '/Users/javi/Downloads/app-qa-release.apk', // Path to your .apk file
       },
@@ -45,10 +43,10 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'browserstack', // or 'local-device' or 'browserstack'
-          name: 'Samsung Galaxy S23 Ultra', // this can changed
-          osVersion: '13.0', // this can changed
+          name: 'Google Pixel 8 Pro', // this can changed
+          osVersion: '14.0', // this can changed
         },
-        buildPath: 'bs://', // Path to Browserstack url bs:// link release-7.53.0-7.53.0-2223.apk
+        buildPath: 'bs://445908f25b4d11afa50f5ed0ee9ced7f1ccc39de', // Path to Browserstack url bs:// link release-7.53.0-7.53.0-2223.apk
       },
     },
     {
@@ -60,7 +58,7 @@ export default defineConfig({
           name: 'iPhone 11', // this can changed
           osVersion: '13', // this can changed
         },
-        buildPath: 'bs://', // Path to Browserstack url bs:// link //release-7.53.0-7.53.0-2223.ipa
+        buildPath: 'bs://56e23661be10ccbb61912f1a727738bc4cd82bc1', // Path to Browserstack url bs:// link //release-7.53.0-7.53.0-2223.ipa
       },
     },
   ],

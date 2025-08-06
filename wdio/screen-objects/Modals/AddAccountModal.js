@@ -36,6 +36,14 @@ class AddAccountModal {
     }
   }
 
+  get createSolanaAccountButton() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON);
+    }
+  }
+
   async tapNewAccountButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.newAccountButton);
@@ -64,6 +72,16 @@ class AddAccountModal {
       await element.tap();
     }
   }
+
+  async tapCreateSolanaAccountButton() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.createSolanaAccountButton);
+    } else {
+      const element = await this.createSolanaAccountButton;
+      await element.tap();
+    }
+  }
+  
 }
 
 export default new AddAccountModal();

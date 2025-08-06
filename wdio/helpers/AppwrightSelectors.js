@@ -1,6 +1,7 @@
 export default class AppwrightSelectors {
   static async getElementByResourceId(device, id) {
-    if (device.webDriverClient.capabilities.platformName === 'android') {
+    const isAndroid = await AppwrightSelectors.isAndroid(device);
+    if (isAndroid) {
       return await device.getByXpath(`//*[@resource-id='${id}']`);
     } else {
       return await device.getById(id);
