@@ -91,6 +91,23 @@ export const styleSheet = (params: { theme: Theme }) => {
     chartWithPadding: {
       paddingRight: 65,
     },
+    timeAxisContainer: {
+      width: '100%',
+      position: 'relative',
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      height: 20,
+      marginTop: 4,
+      marginBottom: 8,
+      paddingRight: 50, // Match the chart's right padding to align with rightmost candle
+    },
+    timeLabel: {
+      position: 'absolute',
+      textAlign: 'center',
+      minWidth: 40,
+      transform: [{ translateX: -20 }], // Center the label on its position
+    },
     tpslLine: {
       position: 'absolute',
       left: 0,

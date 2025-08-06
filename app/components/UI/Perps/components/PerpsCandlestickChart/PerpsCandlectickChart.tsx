@@ -43,8 +43,7 @@ const chartWidth = screenWidth; // Full screen width, no horizontal padding
 // Helper function to format price for y-axis labels
 const formatPriceForAxis = (price: number): string =>
   // Round to whole number and add commas for thousands
-   Math.round(price).toLocaleString('en-US')
-;
+  Math.round(price).toLocaleString('en-US');
 
 const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   candleData,
@@ -360,6 +359,48 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
               negativeColor={candlestickColors.negative} // Red for negative candles
             />
           </CandlestickChart>
+        </View>
+
+        {/* X-Axis Time Labels */}
+        <View style={styles.timeAxisContainer}>
+          {transformedData.length > 0 &&
+            (() => {
+              // Create 5 evenly spaced time points from actual data
+              const intervals = [];
+              const dataLength = transformedData.length;
+              const chartWidthForLabels = chartWidth - 65; // Account for y-axis space
+
+              for (let i = 0; i < 5; i++) {
+                const dataIndex = Math.floor((i / 4) * (dataLength - 1));
+                const time = transformedData[dataIndex].timestamp;
+                const position = (i / 4) * chartWidthForLabels;
+                intervals.push({ time, position, index: i });
+              }
+
+              return intervals.map((interval) => (
+                <Text
+                  key={`time-${interval.index}`}
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                  style={[
+                    styles.timeLabel,
+                    {
+                      left: interval.position,
+                    },
+                  ]}
+                >
+                  {(() => {
+                    const date = new Date(interval.time);
+                    const hours = date.getHours().toString().padStart(2, '0');
+                    const minutes = date
+                      .getMinutes()
+                      .toString()
+                      .padStart(2, '0');
+                    return `${hours}:${minutes}`;
+                  })()}
+                </Text>
+              ));
+            })()}
         </View>
 
         {/* Time Duration Selector */}
