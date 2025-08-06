@@ -10,6 +10,7 @@ import React, {
   useEffect,
   useMemo,
   useState,
+  useRef,
 } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -54,6 +55,13 @@ import {
 } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import useTooltipModal from '../../../../hooks/useTooltipModal';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../../util/trace';
 import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
@@ -124,6 +132,10 @@ const PerpsOrderView: React.FC = () => {
 
   const toastRef = toastContext?.toastRef;
   const { openTooltipModal } = useTooltipModal();
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  // Ref to access current orderType in callbacks
+  const orderTypeRef = useRef<OrderType>('market');
 
   // Selectors
   const tokenList = useSelector(selectTokenList);
@@ -174,6 +186,21 @@ const PerpsOrderView: React.FC = () => {
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
       onSuccess: (position) => {
+        // Track successful position open
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PERPS_POSITION_OPENED)
+            .addProperties({
+              market: orderForm.asset,
+              direction: orderForm.direction,
+              orderType: orderTypeRef.current,
+              leverage: orderForm.leverage,
+              positionSize: position?.size || orderForm.amount,
+              entryPrice: position?.entryPrice,
+              marginUsed: position?.marginUsed,
+            })
+            .build(),
+        );
+
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
@@ -226,6 +253,11 @@ const PerpsOrderView: React.FC = () => {
   const [orderType, setOrderType] = useState<OrderType>('market');
   const [selectedPaymentToken, setSelectedPaymentToken] =
     useState<PerpsToken | null>(null);
+
+  // Update ref when orderType changes
+  useEffect(() => {
+    orderTypeRef.current = orderType;
+  }, [orderType]);
 
   const [isTokenSelectorVisible, setIsTokenSelectorVisible] = useState(false);
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
@@ -325,6 +357,44 @@ const PerpsOrderView: React.FC = () => {
       setSelectedPaymentToken(paymentTokens[0]);
     }
   }, [paymentTokens, selectedPaymentToken]);
+
+  // Track screen load
+  useEffect(() => {
+    trace({
+      name: TraceName.PerpsOrderView,
+      op: TraceOperation.UIStartup,
+      tags: {
+        screen: 'perps_order_view',
+        market: asset,
+        direction,
+        orderType,
+      },
+    });
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_DASHBOARD_VIEWED)
+        .addProperties({
+          market: asset,
+          accountBalance: cachedAccountState?.availableBalance,
+          direction,
+          orderType,
+        })
+        .build(),
+    );
+
+    return () => {
+      endTrace({
+        name: TraceName.PerpsOrderView,
+      });
+    };
+  }, [
+    asset,
+    cachedAccountState?.availableBalance,
+    createEventBuilder,
+    direction,
+    orderType,
+    trackEvent,
+  ]);
 
   // Note: Navigation params for order type modal are no longer needed
 
@@ -445,8 +515,27 @@ const PerpsOrderView: React.FC = () => {
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
       setAmount(value || '0');
+
+      // Track position size entry
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_POSITION_SIZE_ENTERED)
+          .addProperties({
+            market: orderForm.asset,
+            direction: orderForm.direction,
+            orderType,
+            positionSize: value || '0',
+          })
+          .build(),
+      );
     },
-    [setAmount],
+    [
+      setAmount,
+      trackEvent,
+      createEventBuilder,
+      orderForm.asset,
+      orderForm.direction,
+      orderType,
+    ],
   );
 
   const handlePercentagePress = (percentage: number) => {
@@ -466,6 +555,21 @@ const PerpsOrderView: React.FC = () => {
   };
 
   const handlePlaceOrder = useCallback(async () => {
+    // Track order preview shown
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_ORDER_PREVIEW_SHOWN)
+        .addProperties({
+          market: orderForm.asset,
+          direction: orderForm.direction,
+          orderType,
+          leverage: orderForm.leverage,
+          positionSize,
+          marginRequired,
+          estimatedFees,
+        })
+        .build(),
+    );
+
     // Validation errors are shown in the UI
     if (!orderValidation.isValid) {
       const firstError = orderValidation.errors[0];
@@ -480,8 +584,38 @@ const PerpsOrderView: React.FC = () => {
         iconColor: IconColor.Warning,
         hasNoTimeout: true,
       });
+
+      // Track validation failure
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_ORDER_VALIDATION_FAILED)
+          .addProperties({
+            market: orderForm.asset,
+            direction: orderForm.direction,
+            orderType,
+            error: firstError,
+          })
+          .build(),
+      );
+
       return;
     }
+
+    // Track order submit clicked
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_ORDER_SUBMIT_CLICKED)
+        .addProperties({
+          market: orderForm.asset,
+          direction: orderForm.direction,
+          orderType,
+          leverage: orderForm.leverage,
+          positionSize,
+          marginRequired,
+          paymentToken: selectedPaymentToken?.symbol,
+          hasTakeProfit: !!orderForm.takeProfitPrice,
+          hasStopLoss: !!orderForm.stopLossPrice,
+        })
+        .build(),
+    );
 
     // Execute order using the new hook
     const orderParams: OrderParams = {
@@ -507,6 +641,11 @@ const PerpsOrderView: React.FC = () => {
     assetData.price,
     executeOrder,
     orderType,
+    trackEvent,
+    createEventBuilder,
+    marginRequired,
+    estimatedFees,
+    selectedPaymentToken,
   ]);
 
   return (
@@ -909,6 +1048,20 @@ const PerpsOrderView: React.FC = () => {
         onTokenSelect={(token) => {
           setSelectedPaymentToken(token);
           setIsTokenSelectorVisible(false);
+
+          // Track payment token selected
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.PERPS_PAYMENT_TOKEN_SELECTED)
+              .addProperties({
+                market: orderForm.asset,
+                direction: orderForm.direction,
+                orderType,
+                paymentToken: token.symbol,
+                paymentChain: token.chainId,
+                previousToken: selectedPaymentToken?.symbol,
+              })
+              .build(),
+          );
         }}
         tokens={paymentTokens}
         selectedTokenAddress={selectedPaymentToken?.address || ''}
@@ -927,6 +1080,25 @@ const PerpsOrderView: React.FC = () => {
           setTakeProfitPrice(takeProfitPrice);
           setStopLossPrice(stopLossPrice);
           setIsTPSLVisible(false);
+
+          // Track TP/SL set
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.PERPS_TP_SL_SET)
+              .addProperties({
+                market: orderForm.asset,
+                direction: orderForm.direction,
+                orderType,
+                hasTakeProfit: !!takeProfitPrice,
+                hasStopLoss: !!stopLossPrice,
+                takeProfitDistance: takeProfitPrice
+                  ? Math.abs(parseFloat(takeProfitPrice) - assetData.price)
+                  : undefined,
+                stopLossDistance: stopLossPrice
+                  ? Math.abs(parseFloat(stopLossPrice) - assetData.price)
+                  : undefined,
+              })
+              .build(),
+          );
         }}
         asset={orderForm.asset}
         currentPrice={assetData.price}
@@ -942,6 +1114,18 @@ const PerpsOrderView: React.FC = () => {
         onConfirm={(leverage) => {
           setLeverage(leverage);
           setIsLeverageVisible(false);
+
+          // Track leverage adjustment
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.PERPS_LEVERAGE_ADJUSTED)
+              .addProperties({
+                market: orderForm.asset,
+                direction: orderForm.direction,
+                newLeverage: leverage,
+                previousLeverage: orderForm.leverage,
+              })
+              .build(),
+          );
         }}
         leverage={orderForm.leverage}
         minLeverage={1}
@@ -977,6 +1161,18 @@ const PerpsOrderView: React.FC = () => {
             setLimitPrice(undefined);
           }
           setIsOrderTypeVisible(false);
+
+          // Track order type change
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.PERPS_ORDER_TYPE_CHANGED)
+              .addProperties({
+                market: orderForm.asset,
+                direction: orderForm.direction,
+                newOrderType: type,
+                previousOrderType: orderType,
+              })
+              .build(),
+          );
         }}
         currentOrderType={orderType}
       />

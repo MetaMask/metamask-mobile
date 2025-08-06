@@ -1,6 +1,8 @@
 import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
 import { type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
+import performance from 'react-native-performance';
+import { setMeasurement } from '@sentry/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
@@ -176,11 +178,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Place an order using direct wallet signing (same as working debug test)
    */
   async placeOrder(params: PerpsOrderParams): Promise<OrderResult> {
+    const startTime = performance.now();
+
     try {
       DevLogger.log('Placing order via HyperLiquid SDK:', params);
 
       // Validate order parameters
+      const validationStart = performance.now();
       const validation = validateOrderParams(params);
+      setMeasurement(
+        'order_validation_ms',
+        performance.now() - validationStart,
+        'millisecond',
+      );
+
       if (!validation.isValid) {
         throw new Error(validation.error);
       }
@@ -354,10 +365,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // 5. Submit via SDK exchange client instead of direct fetch
       const exchangeClient = this.clientService.getExchangeClient();
+      const submitStart = performance.now();
       const result = await exchangeClient.order({
         orders,
         grouping,
       });
+      setMeasurement(
+        'order_submission_ms',
+        performance.now() - submitStart,
+        'millisecond',
+      );
 
       if (result.status !== 'ok') {
         throw new Error(`Order failed: ${JSON.stringify(result)}`);
@@ -367,6 +384,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const restingOrder =
         status && 'resting' in status ? status.resting : null;
       const filledOrder = status && 'filled' in status ? status.filled : null;
+
+      // Set position-specific measurements
+      setMeasurement('leverage_ratio', params.leverage || 1, 'none');
+      setMeasurement('position_size_usd', parseFloat(params.size), 'none');
+      if (params.orderType === 'limit' && params.price && params.currentPrice) {
+        const priceDistance =
+          (Math.abs(parseFloat(params.price) - params.currentPrice) /
+            params.currentPrice) *
+          10000;
+        setMeasurement('limit_price_distance_bps', priceDistance, 'none');
+      }
+
+      setMeasurement(
+        'total_order_time_ms',
+        performance.now() - startTime,
+        'millisecond',
+      );
 
       return {
         success: true,
@@ -733,10 +767,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Close a position
    */
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
+    const startTime = performance.now();
+
     try {
       DevLogger.log('Closing position:', params);
 
+      const positionsStart = performance.now();
       const positions = await this.getPositions();
+      setMeasurement(
+        'get_positions_ms',
+        performance.now() - positionsStart,
+        'millisecond',
+      );
+
       const position = positions.find((p) => p.coin === params.coin);
 
       if (!position) {
@@ -755,6 +798,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         price: params.price,
         reduceOnly: true,
       });
+
+      setMeasurement(
+        'total_close_position_ms',
+        performance.now() - startTime,
+        'millisecond',
+      );
 
       return result;
     } catch (error) {
@@ -911,6 +960,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Get account state
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
+    const startTime = performance.now();
+
     try {
       DevLogger.log('Getting account state via HyperLiquid SDK');
 
@@ -928,16 +979,28 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Get both Perps and Spot balances
+      const apiCallStart = performance.now();
       const [perpsState, spotState] = await Promise.all([
         infoClient.clearinghouseState({ user: userAddress }),
         infoClient.spotClearinghouseState({ user: userAddress }),
       ]);
+      setMeasurement(
+        'account_state_api_ms',
+        performance.now() - apiCallStart,
+        'millisecond',
+      );
 
       DevLogger.log('Perps state:', perpsState);
       DevLogger.log('Spot state:', spotState);
 
       const accountState = adaptAccountStateFromSDK(perpsState, spotState);
       DevLogger.log('Adapted account state:', accountState);
+
+      setMeasurement(
+        'total_account_state_ms',
+        performance.now() - startTime,
+        'millisecond',
+      );
 
       return accountState;
     } catch (error) {
@@ -952,14 +1015,31 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Get available markets
    */
   async getMarkets(): Promise<MarketInfo[]> {
+    const startTime = performance.now();
+
     try {
       DevLogger.log('Getting markets via HyperLiquid SDK');
 
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
+      const apiStart = performance.now();
       const meta = await infoClient.meta();
-      return meta.universe.map((asset) => adaptMarketFromSDK(asset));
+      setMeasurement(
+        'markets_api_ms',
+        performance.now() - apiStart,
+        'millisecond',
+      );
+
+      const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
+      setMeasurement(
+        'total_markets_ms',
+        performance.now() - startTime,
+        'millisecond',
+      );
+      setMeasurement('markets_count', markets.length, 'none');
+
+      return markets;
     } catch (error) {
       DevLogger.log('Error getting markets:', error);
       return [];
