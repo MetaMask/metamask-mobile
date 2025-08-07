@@ -300,7 +300,8 @@ describe('useAddressBalance', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith(chainId);
+      // With the fix, findNetworkClientIdByChainId should NOT be called when feature flag is false
+      expect(mockFindNetworkClientIdByChainId).not.toHaveBeenCalled();
       expect(mockGetERC20BalanceOf).toHaveBeenCalledWith(
         '0x326836cc6Cd09B5Aa59B81a7F72f25fcc0136888', // Checksum address
         MOCK_ADDRESS_1,
@@ -308,7 +309,7 @@ describe('useAddressBalance', () => {
       );
     });
 
-    it('calls findNetworkClientIdByChainId with correct chainId regardless of feature flag', async () => {
+    it('calls findNetworkClientIdByChainId with correct chainId when feature flag is enabled', async () => {
       const chainId = '0xa86a'; // Avalanche
       const providedNetworkClientId = 'avalanche-client';
 
@@ -385,10 +386,16 @@ describe('useAddressBalance', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
-      expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith(undefined);
+      // With the fix, findNetworkClientIdByChainId should NOT be called when chainId is undefined
+      expect(mockFindNetworkClientIdByChainId).not.toHaveBeenCalled();
+      expect(mockGetERC20BalanceOf).toHaveBeenCalledWith(
+        '0x326836cc6cd09B5AA59B81A7f72f25fCc0136666', // Checksum address
+        MOCK_ADDRESS_1,
+        providedNetworkClientId, // Should fallback to provided networkClientId
+      );
     });
 
-    it('handles null networkClientIdByChainId when feature flag is enabled', async () => {
+    it('falls back to provided networkClientId when findNetworkClientIdByChainId returns null', async () => {
       const chainId = '0x89';
       const providedNetworkClientId = 'mainnet-client';
 
@@ -423,10 +430,11 @@ describe('useAddressBalance', () => {
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
+      // With the fix, when networkClientIdByChainId is null, it should fallback to providedNetworkClientId
       expect(mockGetERC20BalanceOf).toHaveBeenCalledWith(
         '0x326836cc6cD09B5aa59b81a7F72f25FCC0136555', // Checksum address
         MOCK_ADDRESS_1,
-        null, // Should pass null when networkClientIdByChainId is null
+        providedNetworkClientId, // Should fallback to provided networkClientId instead of null
       );
     });
 

@@ -154,14 +154,19 @@ const useAddressBalance = (
           try {
             const { AssetsContractController, NetworkController } =
               Engine.context;
-            const networkClientIdByChainId =
-              NetworkController.findNetworkClientIdByChainId(chainId as Hex);
+            let effectiveNetworkClientId = networkClientId;
+
+            if (isRemoveGlobalNetworkSelectorEnabled() && chainId) {
+              const networkClientIdByChainId =
+                NetworkController.findNetworkClientIdByChainId(chainId as Hex);
+              if (networkClientIdByChainId) {
+                effectiveNetworkClientId = networkClientIdByChainId;
+              }
+            }
             fromAccBalance = await AssetsContractController.getERC20BalanceOf(
               contractAddress,
               address,
-              isRemoveGlobalNetworkSelectorEnabled()
-                ? networkClientIdByChainId
-                : networkClientId,
+              effectiveNetworkClientId,
             );
             fromAccBalance = `${renderFromTokenMinimalUnit(
               // This is to work around incompatibility between bn.js v4/v5 - should be removed when migration to v5 is complete
