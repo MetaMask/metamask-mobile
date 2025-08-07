@@ -15,6 +15,8 @@ const mockState = {
 describe('useMaxAmount', () => {
   it('return function getMaxAmount', () => {
     const { result } = renderHookWithProvider(() => useMaxAmount(), mockState);
-    expect(result.current.getMaxAmount).toBeDefined();
+    expect(result.current.balance).toBeDefined();
+    expect(result.current.isMaxAmountSupported).toBeDefined();
+    expect(result.current.maxAmount).toBeDefined();
   });
 });

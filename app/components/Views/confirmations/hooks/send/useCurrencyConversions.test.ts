@@ -77,7 +77,7 @@ describe('getFiatDisplayValueFn', () => {
         currentCurrency: 'usd',
         amount: '',
       }),
-    ).toStrictEqual('$ 0');
+    ).toStrictEqual('$ 0.00');
   });
 });
 
@@ -146,6 +146,7 @@ describe('useCurrencyConversions', () => {
       () => useCurrencyConversions(),
       mockState,
     );
+    expect(result.current.fiatCurrencySymbol).toBeDefined();
     expect(result.current.getFiatDisplayValue).toBeDefined();
     expect(result.current.getFiatValue).toBeDefined();
     expect(result.current.getNativeDisplayValue).toBeDefined();
