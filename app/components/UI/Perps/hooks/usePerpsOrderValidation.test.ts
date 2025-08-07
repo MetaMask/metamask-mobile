@@ -52,11 +52,11 @@ describe('usePerpsOrderValidation', () => {
     amount: '100',
     leverage: 10,
     balancePercent: 10,
+    type: 'market',
   };
 
   const defaultParams = {
     orderForm: defaultOrderForm,
-    orderType: 'market' as const,
     positionSize: '0.002',
     assetPrice: 50000,
     availableBalance: 1000,
@@ -273,9 +273,9 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation({
           ...defaultParams,
-          orderType: 'limit',
           orderForm: {
             ...defaultOrderForm,
+            type: 'limit',
             limitPrice: undefined,
           },
         }),
@@ -295,9 +295,9 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation({
           ...defaultParams,
-          orderType: 'limit',
           orderForm: {
             ...defaultOrderForm,
+            type: 'limit',
             limitPrice: '49500',
           },
         }),
