@@ -8,7 +8,7 @@ import renderWithProvider, {
 } from '../../../../../../util/test/renderWithProvider';
 import { SendContextProvider } from '../../../context/send-context';
 import {
-  ACCOUNT_ADDRESS_MOCK_1,
+  SOLANA_ASSET,
   TOKEN_ADDRESS_MOCK_1,
   evmSendStateMock,
 } from '../../../__mocks__/send.mock';
@@ -72,23 +72,33 @@ describe('Amount', () => {
   });
 
   it('renders correctly', async () => {
-    const { getByText } = renderComponent();
+    const { getByTestId } = renderComponent();
 
-    expect(getByText('From:')).toBeTruthy();
-    expect(getByText('Value:')).toBeTruthy();
+    expect(getByTestId('send_amount')).toBeTruthy();
   });
 
-  it('use from address returned from SendContext', async () => {
-    const { getByText } = renderComponent();
-
-    expect(getByText('From:')).toBeTruthy();
-    expect(getByText(ACCOUNT_ADDRESS_MOCK_1)).toBeTruthy();
-  });
-
-  it('display error for invalid amount value', async () => {
-    const { getByText, getByTestId } = renderComponent();
+  it('continue button should not be visible for invalid amount value', async () => {
+    const { getByText, queryByText, getByTestId } = renderComponent();
     fireEvent.changeText(getByTestId('send_amount'), 'abc');
-    expect(getByText('Invalid amount')).toBeTruthy();
+    expect(queryByText('Continue')).toBeNull();
+    fireEvent.changeText(getByTestId('send_amount'), '.01');
+    expect(getByText('Continue')).toBeTruthy();
+  });
+
+  it('pressing Max uses max balance of ERC20 token', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          address: TOKEN_ADDRESS_MOCK_1,
+          decimals: 2,
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    expect(getByTestId('send_amount').props.value).toBe('');
+    fireEvent.press(getByText('Max'));
+    expect(getByTestId('send_amount').props.value).toBe('0.05');
   });
 
   it('display error if amount is greater than balance for native token', async () => {
@@ -127,28 +137,12 @@ describe('Amount', () => {
         asset: {
           name: 'Ethereum',
           address: TOKEN_ADDRESS_MOCK_1,
+          ticker: 'ETH',
         },
       },
     } as RouteProp<ParamListBase, string>);
     const { getByText } = renderComponent();
-    expect(getByText(`Asset: ${TOKEN_ADDRESS_MOCK_1}`)).toBeTruthy();
-  });
-
-  it('pressing Max uses max balance of ERC20 token', () => {
-    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-      params: {
-        asset: {
-          address: TOKEN_ADDRESS_MOCK_1,
-          decimals: 2,
-        },
-      },
-    } as RouteProp<ParamListBase, string>);
-
-    const { getByText, getByTestId } = renderComponent();
-    expect(getByTestId('send_amount').props.value).toBe('');
-    fireEvent.press(getByText('Max'));
-    expect(getByTestId('send_amount').props.value).toBe('0.05');
-    expect(getByText('$ 0.05')).toBeTruthy();
+    expect(getByText('ETH')).toBeTruthy();
   });
 
   it('pressing Max uses max balance minus gas for native token', () => {
@@ -158,6 +152,7 @@ describe('Amount', () => {
           isNative: true,
           chainId: '0x1',
           address: TOKEN_ADDRESS_MOCK_1,
+          ticker: 'ETH',
         },
       },
     } as RouteProp<ParamListBase, string>);
@@ -167,6 +162,7 @@ describe('Amount', () => {
     fireEvent.press(getByText('Max'));
     expect(getByTestId('send_amount').props.value).toBe('0.9999685');
     expect(getByText('$ 3889.87')).toBeTruthy();
+    fireEvent.press(getByText('1.00000 ETH available'));
   });
 
   it('display fiat conversion of amount entered', async () => {
@@ -184,7 +180,19 @@ describe('Amount', () => {
 
     const { getByText, getByTestId } = renderComponent();
     fireEvent.changeText(getByTestId('send_amount'), '1');
-    expect(getByText('$ 3890')).toBeTruthy();
+    expect(getByText('$ 3890.00')).toBeTruthy();
+  });
+
+  it('display fiat conversion of amount entered for solana asset', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: SOLANA_ASSET,
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), '1');
+    expect(getByText('$ 175.00')).toBeTruthy();
   });
 
   it('if fiatmode is enabled display native conversion of amount entered', async () => {
@@ -229,7 +237,7 @@ describe('Amount', () => {
 
   it('navigate to next page when continue button is clicked', () => {
     const { getByText, getByTestId } = renderComponent();
-    fireEvent.changeText(getByTestId('send_amount'), '100');
+    fireEvent.changeText(getByTestId('send_amount'), '.01');
     fireEvent.press(getByText('Continue'));
     expect(mockNavigate).toHaveBeenCalled();
   });
