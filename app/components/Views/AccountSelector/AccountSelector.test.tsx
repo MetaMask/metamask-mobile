@@ -54,6 +54,15 @@ const mockInitialState = {
       PreferencesController: {
         privacyMode: false,
       },
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          enableMultichainAccounts: {
+            enabled: true,
+            featureVersion: '1',
+            minimumVersion: '8.0.0',
+          },
+        },
+      },
     },
   },
   accounts: {
@@ -71,6 +80,7 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: () => mockDispatch,
   useSelector: (selector: unknown) => {
+    // Default mock state for selectors
     const mockState = {
       engine: {
         backgroundState: {
@@ -83,6 +93,15 @@ jest.mock('react-redux', () => ({
           },
           PreferencesController: {
             privacyMode: false,
+          },
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccounts: {
+                enabled: true,
+                featureVersion: '1',
+                minimumVersion: '8.0.0',
+              },
+            },
           },
         },
       },
