@@ -68,6 +68,10 @@ jobs:
           GITHUB_CI: "true"
           CI: "true"
           NODE_OPTIONS: "--max-old-space-size=8192"
+          MM_UNIFIED_SWAPS_ENABLED: "true"
+          MM_BRIDGE_ENABLED: "true"
+          BRIDGE_USE_DEV_APIS: "true"
+          RAMP_INTERNAL_BUILD: "true"
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
           SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
@@ -81,6 +85,7 @@ jobs:
           MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT: ${{ secrets.MAIN_ANDROID_GOOGLE_SERVER_CLIENT_ID_UAT }}
           GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
           GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
+          MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
       - name: Upload Android APK
         id: upload-apk

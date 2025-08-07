@@ -32,6 +32,10 @@ jobs:
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
       GITHUB_CI: 'true'
+      MM_UNIFIED_SWAPS_ENABLED: 'true'
+      RAMP_INTERNAL_BUILD: 'true'
+      MM_BRIDGE_ENABLED: 'true'
+      BRIDGE_USE_DEV_APIS: 'true'
       MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
       SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
       SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
@@ -47,6 +51,7 @@ jobs:
       GOOGLE_SERVICES_B64_IOS: ${{ secrets.GOOGLE_SERVICES_B64_IOS }}
       GOOGLE_SERVICES_B64_ANDROID: ${{ secrets.GOOGLE_SERVICES_B64_ANDROID }}
       MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
+      MM_INFURA_PROJECT_ID: ${{ secrets.MM_INFURA_PROJECT_ID }}
 
     steps:
       - name: Checkout
