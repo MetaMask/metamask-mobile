@@ -5,7 +5,10 @@ import { useEffect, useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useDispatch } from 'react-redux';
-import { setTransactionBridgeQuotes } from '../../../../../core/redux/slices/confirmationMetrics';
+import {
+  setTransactionBridgeQuotes,
+  setTransactionBridgeQuotesLoading,
+} from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { Hex, createProjectLogger } from '@metamask/utils';
 
@@ -25,17 +28,14 @@ export function useTransactionBridgeQuotes() {
     payToken: { address: sourceTokenAddress, chainId: sourceChainId },
   } = useTransactionPayToken();
 
-  const sourceAmounts = useTransactionPayTokenAmounts();
+  const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
   const requiredTokens = useTransactionRequiredTokens();
 
   const requests: (BridgeQuoteRequest | undefined)[] = useMemo(
     () =>
-      sourceAmounts?.map((sourceTokenAmount, index) => {
+      sourceAmounts?.map((sourceAmount, index) => {
         const { address: targetTokenAddress } = requiredTokens[index] || {};
-
-        if (!sourceTokenAmount) {
-          return undefined;
-        }
+        const { amountRaw: sourceTokenAmount } = sourceAmount;
 
         return {
           from: from as Hex,
@@ -63,6 +63,12 @@ export function useTransactionBridgeQuotes() {
 
     return getBridgeQuotes(requests as BridgeQuoteRequest[]);
   }, [requests]);
+
+  useEffect(() => {
+    dispatch(
+      setTransactionBridgeQuotesLoading({ transactionId, isLoading: loading }),
+    );
+  }, [dispatch, transactionId, loading]);
 
   useEffect(() => {
     dispatch(setTransactionBridgeQuotes({ transactionId, quotes }));
