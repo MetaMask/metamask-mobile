@@ -54,7 +54,7 @@ import {
 } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import useTooltipModal from '../../../../hooks/useTooltipModal';
-import Keypad from '../../../Ramp/Aggregator/components/Keypad';
+import Keypad from '../../../../Base/Keypad';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';

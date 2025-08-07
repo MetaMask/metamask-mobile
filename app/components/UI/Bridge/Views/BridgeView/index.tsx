@@ -15,10 +15,7 @@ import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   getDecimalChainId,
   getNetworkImageSource,
@@ -488,9 +485,6 @@ const BridgeView = () => {
                   onChange={handleKeypadChange}
                   currency={sourceToken?.symbol || 'ETH'}
                   decimals={sourceToken?.decimals || 18}
-                  deleteIcon={
-                    <Icon name={IconName.Arrow2Left} size={IconSize.Lg} />
-                  }
                 />
               </Box>
             ) : null}

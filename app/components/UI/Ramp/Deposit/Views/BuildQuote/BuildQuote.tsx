@@ -609,7 +609,9 @@ const BuildQuote = () => {
             onChange={handleKeypadChange}
             currency={fiatCurrency.symbol}
             decimals={0}
-            deleteIcon={<Icon name={IconName.Arrow2Left} size={IconSize.Lg} />}
+            periodButtonProps={{
+              isDisabled: true,
+            }}
           />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
