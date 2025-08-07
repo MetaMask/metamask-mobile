@@ -100,4 +100,16 @@ describe('TokenSelectorModal Component', () => {
       expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
     });
   });
+
+  it('displays network filter selector when pressing "All networks" button', async () => {
+    const { getByText, toJSON } = renderWithProvider(TokenSelectorModal);
+
+    const allNetworksButton = getByText('All networks');
+    fireEvent.press(allNetworksButton);
+
+    await waitFor(() => {
+      expect(getByText('Deselect all')).toBeTruthy();
+    });
+    expect(toJSON()).toMatchSnapshot();
+  });
 });
