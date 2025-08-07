@@ -42,43 +42,40 @@ export const useNetworkEnablement = () => {
 
   const enableNetwork = useMemo(
     () => (chainId: CaipChainId) =>
-      networkEnablementController.setEnabledNetwork(chainId),
+      networkEnablementController.enableNetwork(chainId),
     [networkEnablementController],
   );
 
   const disableNetwork = useMemo(
     () => (chainId: CaipChainId) =>
-      networkEnablementController.setDisabledNetwork(chainId),
+      networkEnablementController.disableNetwork(chainId),
     [networkEnablementController],
+  );
+
+  const isNetworkEnabled = useMemo(
+    () => (chainId: CaipChainId) => {
+      const { namespace: chainNamespace, reference } =
+        parseCaipChainId(chainId);
+      const formattedChainIdHex = toHex(reference);
+      return (
+        enabledNetworksByNamespace?.[chainNamespace]?.[formattedChainIdHex] ===
+        true
+      );
+    },
+    [enabledNetworksByNamespace],
   );
 
   const toggleNetwork = useMemo(
     () => (chainId: CaipChainId) => {
-      const controllerEnabled =
-        networkEnablementController.isNetworkEnabled(chainId);
-      const formattedChainId = parseCaipChainId(chainId).reference;
-      const formattedChainIdHex = toHex(formattedChainId);
-      const namespaceEnabled =
-        enabledNetworksForCurrentNamespace[formattedChainIdHex] === true;
+      const networkEnabled = isNetworkEnabled(chainId);
 
-      if (controllerEnabled && namespaceEnabled) {
+      if (networkEnabled) {
         disableNetwork(chainId);
       } else {
         enableNetwork(chainId);
       }
     },
-    [
-      networkEnablementController,
-      enableNetwork,
-      disableNetwork,
-      enabledNetworksForCurrentNamespace,
-    ],
-  );
-
-  const isNetworkEnabled = useMemo(
-    () => (chainId: CaipChainId) =>
-      networkEnablementController.isNetworkEnabled(chainId),
-    [networkEnablementController],
+    [isNetworkEnabled, enableNetwork, disableNetwork],
   );
 
   return {

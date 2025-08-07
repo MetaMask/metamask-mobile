@@ -96,9 +96,8 @@ describe('useNetworksByNamespace', () => {
         '0x13881': true,
       },
       networkEnablementController: {
-        setEnabledNetwork: jest.fn(),
-        setDisabledNetwork: jest.fn(),
-        isNetworkEnabled: jest.fn(),
+        enableNetwork: jest.fn(),
+        disableNetwork: jest.fn(),
       } as unknown as ReturnType<
         typeof useNetworkEnablement
       >['networkEnablementController'],
@@ -270,9 +269,8 @@ describe('useNetworksByNamespace', () => {
           '0x89': true,
         },
         networkEnablementController: {
-          setEnabledNetwork: jest.fn(),
-          setDisabledNetwork: jest.fn(),
-          isNetworkEnabled: jest.fn(),
+          enableNetwork: jest.fn(),
+          disableNetwork: jest.fn(),
         } as unknown as ReturnType<
           typeof useNetworkEnablement
         >['networkEnablementController'],
@@ -319,9 +317,8 @@ describe('useNetworksByNamespace', () => {
           '0x89': false,
         },
         networkEnablementController: {
-          setEnabledNetwork: jest.fn(),
-          setDisabledNetwork: jest.fn(),
-          isNetworkEnabled: jest.fn(),
+          enableNetwork: jest.fn(),
+          disableNetwork: jest.fn(),
         } as unknown as ReturnType<
           typeof useNetworkEnablement
         >['networkEnablementController'],
@@ -418,9 +415,8 @@ describe('useNetworksByNamespace', () => {
           '0x1': true,
         },
         networkEnablementController: {
-          setEnabledNetwork: jest.fn(),
-          setDisabledNetwork: jest.fn(),
-          isNetworkEnabled: jest.fn(),
+          enableNetwork: jest.fn(),
+          disableNetwork: jest.fn(),
         } as unknown as ReturnType<
           typeof useNetworkEnablement
         >['networkEnablementController'],

@@ -111,9 +111,8 @@ describe('useNetworkSelection', () => {
         '0x13881': true,
       },
       networkEnablementController: {
-        setEnabledNetwork: jest.fn(),
-        setDisabledNetwork: jest.fn(),
-        isNetworkEnabled: jest.fn(),
+        enableNetwork: jest.fn(),
+        disableNetwork: jest.fn(),
       } as unknown as ReturnType<
         typeof useNetworkEnablement
       >['networkEnablementController'],
@@ -211,9 +210,8 @@ describe('useNetworkSelection', () => {
           '0x89': false,
         },
         networkEnablementController: {
-          setEnabledNetwork: jest.fn(),
-          setDisabledNetwork: jest.fn(),
-          isNetworkEnabled: jest.fn(),
+          enableNetwork: jest.fn(),
+          disableNetwork: jest.fn(),
         } as unknown as ReturnType<
           typeof useNetworkEnablement
         >['networkEnablementController'],
@@ -261,9 +259,8 @@ describe('useNetworkSelection', () => {
           '0x89': false,
         },
         networkEnablementController: {
-          setEnabledNetwork: jest.fn(),
-          setDisabledNetwork: jest.fn(),
-          isNetworkEnabled: jest.fn(),
+          enableNetwork: jest.fn(),
+          disableNetwork: jest.fn(),
         } as unknown as ReturnType<
           typeof useNetworkEnablement
         >['networkEnablementController'],
@@ -447,9 +444,8 @@ describe('useNetworkSelection', () => {
           '0x89': false,
         },
         networkEnablementController: {
-          setEnabledNetwork: jest.fn(),
-          setDisabledNetwork: jest.fn(),
-          isNetworkEnabled: jest.fn(),
+          enableNetwork: jest.fn(),
+          disableNetwork: jest.fn(),
         } as unknown as ReturnType<
           typeof useNetworkEnablement
         >['networkEnablementController'],
@@ -483,9 +479,8 @@ describe('useNetworkSelection', () => {
           '0x89': false,
         },
         networkEnablementController: {
-          setEnabledNetwork: jest.fn(),
-          setDisabledNetwork: jest.fn(),
-          isNetworkEnabled: jest.fn(),
+          enableNetwork: jest.fn(),
+          disableNetwork: jest.fn(),
         } as unknown as ReturnType<
           typeof useNetworkEnablement
         >['networkEnablementController'],
@@ -510,9 +505,8 @@ describe('useNetworkSelection', () => {
         },
         enabledNetworksForCurrentNamespace: {},
         networkEnablementController: {
-          setEnabledNetwork: jest.fn(),
-          setDisabledNetwork: jest.fn(),
-          isNetworkEnabled: jest.fn(),
+          enableNetwork: jest.fn(),
+          disableNetwork: jest.fn(),
         } as unknown as ReturnType<
           typeof useNetworkEnablement
         >['networkEnablementController'],
@@ -537,9 +531,8 @@ describe('useNetworkSelection', () => {
         },
         enabledNetworksForCurrentNamespace: {},
         networkEnablementController: {
-          setEnabledNetwork: jest.fn(),
-          setDisabledNetwork: jest.fn(),
-          isNetworkEnabled: jest.fn(),
+          enableNetwork: jest.fn(),
+          disableNetwork: jest.fn(),
         } as unknown as ReturnType<
           typeof useNetworkEnablement
         >['networkEnablementController'],

@@ -21,9 +21,8 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../core/Engine', () => ({
   context: {
     NetworkEnablementController: {
-      setEnabledNetwork: jest.fn(),
-      setDisabledNetwork: jest.fn(),
-      isNetworkEnabled: jest.fn(),
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
     },
   },
 }));
@@ -50,11 +49,13 @@ jest.mock('../../../selectors/networkController', () => ({
 }));
 
 import { useNetworkEnablement } from './useNetworkEnablement';
+import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectChainId } from '../../../selectors/networkController';
 
 const mockNetworkEnablementController = {
-  setEnabledNetwork: jest.fn(),
-  setDisabledNetwork: jest.fn(),
-  isNetworkEnabled: jest.fn(),
+  enableNetwork: jest.fn(),
+  disableNetwork: jest.fn(),
 };
 
 describe('useNetworkEnablement', () => {
@@ -66,8 +67,7 @@ describe('useNetworkEnablement', () => {
     jest.clearAllMocks();
 
     mockUseSelector.mockImplementation((selector) => {
-      const selectorStr = selector.toString();
-      if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
+      if (selector === selectEnabledNetworksByNamespace) {
         return {
           eip155: {
             '0x1': true,
@@ -75,25 +75,23 @@ describe('useNetworkEnablement', () => {
           },
         };
       }
-      if (selectorStr.includes('selectChainId')) {
+      if (selector === selectChainId) {
         return '0x1';
       }
-      if (selectorStr.includes('selectIsEvmNetworkSelected')) {
+      if (selector === selectIsEvmNetworkSelected) {
         return true;
       }
       return undefined;
     });
 
-    mockUseSelector.mockReturnValue({
-      eip155: {
-        '0x1': true,
-        '0x89': false,
-      },
-    });
-
-    (parseCaipChainId as jest.Mock).mockReturnValue({
-      namespace: 'eip155',
-      reference: '1',
+    (parseCaipChainId as jest.Mock).mockImplementation((id: string) => {
+      if (!id || typeof id !== 'string') {
+        return { namespace: 'eip155', reference: '1' };
+      }
+      const parts = id.split(':');
+      const namespace = parts[0] ?? 'eip155';
+      const reference = parts[1] ?? '1';
+      return { namespace, reference };
     });
     (toEvmCaipChainId as jest.Mock).mockReturnValue('eip155:1');
     (toHex as jest.Mock).mockImplementation((value) => `0x${value}`);
@@ -118,7 +116,6 @@ describe('useNetworkEnablement', () => {
       expect(result.current).toHaveProperty('enableNetwork');
       expect(result.current).toHaveProperty('disableNetwork');
       expect(result.current).toHaveProperty('toggleNetwork');
-      expect(result.current).toHaveProperty('isNetworkEnabled');
     });
 
     it('returns functions for network operations', () => {
@@ -127,7 +124,6 @@ describe('useNetworkEnablement', () => {
       expect(typeof result.current.enableNetwork).toBe('function');
       expect(typeof result.current.disableNetwork).toBe('function');
       expect(typeof result.current.toggleNetwork).toBe('function');
-      expect(typeof result.current.isNetworkEnabled).toBe('function');
     });
 
     it('calculates namespace correctly', () => {
@@ -147,70 +143,65 @@ describe('useNetworkEnablement', () => {
   });
 
   describe('network operations', () => {
-    it('calls setEnabledNetwork when enableNetwork is called', () => {
+    it('calls enableNetwork when enableNetwork is called', () => {
       const chainId = 'eip155:1' as CaipChainId;
 
       const { result } = renderHook(() => useNetworkEnablement());
       result.current.enableNetwork(chainId);
 
       expect(
-        mockNetworkEnablementController.setEnabledNetwork,
+        mockNetworkEnablementController.enableNetwork,
       ).toHaveBeenCalledWith(chainId);
     });
 
-    it('calls setDisabledNetwork when disableNetwork is called', () => {
+    it('calls disableNetwork when disableNetwork is called', () => {
       const chainId = 'eip155:1' as CaipChainId;
 
       const { result } = renderHook(() => useNetworkEnablement());
       result.current.disableNetwork(chainId);
 
       expect(
-        mockNetworkEnablementController.setDisabledNetwork,
+        mockNetworkEnablementController.disableNetwork,
       ).toHaveBeenCalledWith(chainId);
     });
 
-    it('calls isNetworkEnabled when isNetworkEnabled is called', () => {
-      const chainId = 'eip155:1' as CaipChainId;
-      mockNetworkEnablementController.isNetworkEnabled.mockReturnValue(true);
-
+    it('computes isNetworkEnabled from store state', () => {
       const { result } = renderHook(() => useNetworkEnablement());
-      const isEnabled = result.current.isNetworkEnabled(chainId);
-
-      expect(
-        mockNetworkEnablementController.isNetworkEnabled,
-      ).toHaveBeenCalledWith(chainId);
-      expect(isEnabled).toBe(true);
+      expect(result.current.isNetworkEnabled('eip155:1' as CaipChainId)).toBe(
+        true,
+      );
+      expect(result.current.isNetworkEnabled('eip155:89' as CaipChainId)).toBe(
+        false,
+      );
     });
   });
 
   describe('toggleNetwork logic', () => {
-    it('disables network when both controller and namespace show it as enabled', () => {
+    it('disables network when store shows it as enabled', () => {
       const chainId = 'eip155:1' as CaipChainId;
-      mockNetworkEnablementController.isNetworkEnabled.mockReturnValue(true);
 
       const { result } = renderHook(() => useNetworkEnablement());
       result.current.toggleNetwork(chainId);
 
       expect(
-        mockNetworkEnablementController.setDisabledNetwork,
+        mockNetworkEnablementController.disableNetwork,
       ).toHaveBeenCalledWith(chainId);
       expect(
-        mockNetworkEnablementController.setEnabledNetwork,
+        mockNetworkEnablementController.enableNetwork,
       ).not.toHaveBeenCalled();
     });
 
-    it('enables network when controller shows it as disabled', () => {
-      const chainId = 'eip155:1' as CaipChainId;
-      mockNetworkEnablementController.isNetworkEnabled.mockReturnValue(false);
+    it('enables network when store shows it as disabled', () => {
+      const chainId = 'eip155:89' as CaipChainId;
 
       const { result } = renderHook(() => useNetworkEnablement());
       result.current.toggleNetwork(chainId);
 
       expect(
-        mockNetworkEnablementController.setEnabledNetwork,
+        mockNetworkEnablementController.enableNetwork,
       ).toHaveBeenCalledWith(chainId);
       expect(
-        mockNetworkEnablementController.setDisabledNetwork,
+        mockNetworkEnablementController.disableNetwork,
       ).not.toHaveBeenCalled();
     });
   });
@@ -218,14 +209,13 @@ describe('useNetworkEnablement', () => {
   describe('edge cases', () => {
     it('handles empty enabledNetworksByNamespace', () => {
       mockUseSelector.mockImplementation((selector) => {
-        const selectorStr = selector.toString();
-        if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
+        if (selector === selectEnabledNetworksByNamespace) {
           return {};
         }
-        if (selectorStr.includes('selectChainId')) {
+        if (selector === selectChainId) {
           return '0x1';
         }
-        if (selectorStr.includes('selectIsEvmNetworkSelected')) {
+        if (selector === selectIsEvmNetworkSelected) {
           return true;
         }
         return undefined;
@@ -253,14 +243,13 @@ describe('useNetworkEnablement', () => {
 
     it('handles undefined enabledNetworksByNamespace', () => {
       mockUseSelector.mockImplementation((selector) => {
-        const selectorStr = selector.toString();
-        if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
+        if (selector === selectEnabledNetworksByNamespace) {
           return undefined;
         }
-        if (selectorStr.includes('selectChainId')) {
+        if (selector === selectChainId) {
           return '0x1';
         }
-        if (selectorStr.includes('selectIsEvmNetworkSelected')) {
+        if (selector === selectIsEvmNetworkSelected) {
           return true;
         }
         return undefined;
@@ -273,14 +262,13 @@ describe('useNetworkEnablement', () => {
 
     it('handles null enabledNetworksByNamespace', () => {
       mockUseSelector.mockImplementation((selector) => {
-        const selectorStr = selector.toString();
-        if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
+        if (selector === selectEnabledNetworksByNamespace) {
           return null;
         }
-        if (selectorStr.includes('selectChainId')) {
+        if (selector === selectChainId) {
           return '0x1';
         }
-        if (selectorStr.includes('selectIsEvmNetworkSelected')) {
+        if (selector === selectIsEvmNetworkSelected) {
           return true;
         }
         return undefined;
