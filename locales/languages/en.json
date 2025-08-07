@@ -496,6 +496,9 @@
     "public_address": "Public Address"
   },
   "send": {
+    "available": "available",
+    "amount_insufficient": "Insufficient funds",
+    "continue": "Continue",
     "title": "Send",
     "deeplink_failure": "Something went wrong. Please try again",
     "warn_network_change": "Network changed to ",
