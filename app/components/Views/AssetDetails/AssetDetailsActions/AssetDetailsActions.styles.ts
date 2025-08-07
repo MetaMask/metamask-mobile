@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () => {
-  return StyleSheet.create({
+const styleSheet = () =>
+  StyleSheet.create({
     activitiesButton: {
       width: '100%',
       flexDirection: 'row',
@@ -13,6 +13,5 @@ const styleSheet = () => {
       flex: 1,
     },
   });
-};
 
 export default styleSheet;
