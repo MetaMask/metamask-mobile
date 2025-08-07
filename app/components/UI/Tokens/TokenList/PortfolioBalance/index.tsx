@@ -21,6 +21,7 @@ import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMulti
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { balanceSelectors } from '@metamask/assets-controllers';
 
 export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
@@ -31,6 +32,43 @@ export const PortfolioBalance = React.memo(() => {
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+
+  const { selectBalanceForAllWallets } = balanceSelectors;
+  const assetsControllersBalance = useSelector(selectBalanceForAllWallets());
+
+  // Log detailed balance information for all wallets and groups
+  // eslint-disable-next-line no-console
+  console.log(
+    '💰 MetaMask Wallet Balance Details:',
+    JSON.stringify(
+      {
+        totalBalance: assetsControllersBalance?.totalBalanceInUserCurrency,
+        currency: assetsControllersBalance?.userCurrency,
+        walletCount: assetsControllersBalance?.wallets
+          ? Object.keys(assetsControllersBalance.wallets).length
+          : 0,
+        wallets: assetsControllersBalance?.wallets
+          ? Object.entries(assetsControllersBalance.wallets).map(
+              ([walletId, wallet]) => ({
+                walletId,
+                totalBalance: wallet.totalBalanceInUserCurrency,
+                currency: wallet.userCurrency,
+                groupCount: Object.keys(wallet.groups).length,
+                groups: Object.entries(wallet.groups).map(
+                  ([groupId, group]) => ({
+                    groupId,
+                    totalBalance: group.totalBalanceInUserCurrency,
+                    currency: group.userCurrency,
+                  }),
+                ),
+              }),
+            )
+          : [],
+      },
+      null,
+      2,
+    ),
+  );
 
   const renderAggregatedPercentage = () => {
     if (
