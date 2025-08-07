@@ -9,7 +9,6 @@ import {
   selectAddressHasTokenBalances,
   selectHasAnyBalance,
   selectSingleTokenBalance,
-  selectContractBalancesByContextualChainId,
 } from './tokenBalancesController';
 import { TokenBalancesControllerState } from '@metamask/assets-controllers';
 
