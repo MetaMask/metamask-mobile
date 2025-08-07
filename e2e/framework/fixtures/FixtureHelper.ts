@@ -175,8 +175,7 @@ async function handleLocalNodes(
         case LocalNodeType.anvil:
           localNode = new AnvilManager();
           localNodeSpecificOptions = nodeOptions as AnvilNodeOptions;
-          // AnvilManager now handles port cleanup internally
-          await localNode.quit();
+
           await localNode.start(localNodeSpecificOptions);
           localNodes.push(localNode);
           break;

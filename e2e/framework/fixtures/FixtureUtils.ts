@@ -1,3 +1,4 @@
+/* eslint-disable import/no-nodejs-modules */
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -12,6 +13,14 @@ import {
   DEFAULT_MOCKSERVER_PORT,
   DEFAULT_DAPP_SERVER_PORT,
 } from '../Constants';
+import net from 'net';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { createLogger } from '../logger';
+
+const logger = createLogger({
+  name: 'FixtureUtils',
+});
 
 function transformToValidPort(defaultPort: number, pid: number) {
   // Improve uniqueness by using a simple transformation
@@ -79,6 +88,53 @@ interface Caip25Permission {
       value: Caip25CaveatValue;
     }[];
   };
+}
+
+/**
+ * Checks if a specific port is in use
+ * @param {number} port - The port to check
+ * @returns {Promise<boolean>} True if the port is in use, false otherwise
+ */
+export async function isPortInUse(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net
+      .createServer()
+      .once('error', () => {
+        // Port is in use
+        resolve(true);
+      })
+      .once('listening', () => {
+        // Port is free
+        server.close();
+        resolve(false);
+      })
+      .listen(port);
+  });
+}
+
+/**
+ * Attempts to kill any process using the specified port
+ * @param {number} port - The port to free up
+ * @returns {Promise<boolean>} True if successful, false otherwise
+ */
+export async function killProcessOnPort(port: number): Promise<boolean> {
+  const execAsync = promisify(exec);
+
+  try {
+    // macOS/Linux command to find and kill process on port
+    const cmd = `lsof -i :${port} -t | xargs kill -9`;
+    await execAsync(cmd);
+
+    // Give it a moment to release the port
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Check if port is now available
+    return !(await isPortInUse(port));
+  } catch (error) {
+    // Error could be normal if no process was found
+    logger.debug(`Attempted to kill process on port ${port}: ${error}`);
+    return false;
+  }
 }
 
 export function buildPermissions(chainIds: string[]): Caip25Permission {
