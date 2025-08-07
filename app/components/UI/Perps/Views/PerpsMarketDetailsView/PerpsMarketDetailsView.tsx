@@ -4,7 +4,7 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
@@ -47,6 +47,7 @@ import PerpsBottomSheetTooltip, {
 import { useSelector } from 'react-redux';
 import { selectPerpsProvider } from '../../selectors/perpsController';
 import { capitalize } from '../../../../../util/general';
+import { usePerpsAccount } from '../../hooks';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
 }
@@ -72,6 +73,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   ] = useState(false);
 
   const perpsProvider = useSelector(selectPerpsProvider);
+
+  const account = usePerpsAccount();
+
+  const hasZeroBalance = useMemo(
+    () => parseFloat(account?.availableBalance || '0') === 0,
+    [account?.availableBalance],
+  );
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -116,6 +124,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       direction: 'short',
       asset: market.symbol,
     });
+  };
+
+  const handleAddFundsPress = () => {
+    navigation.navigate(Routes.PERPS.DEPOSIT);
   };
 
   const handleTooltipPress = useCallback(
@@ -336,9 +348,25 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           </Text>
         </View>
       </ScrollView>
-
+      {hasZeroBalance && (
+        <View style={[styles.actionsContainer, styles.addFundsContainer]}>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {strings('perps.market.add_funds_to_start_trading_perps')}
+          </Text>
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label={strings('perps.market.add_funds')}
+            onPress={handleAddFundsPress}
+            style={styles.actionButton}
+            testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+            disabled={hasExistingPosition}
+          />
+        </View>
+      )}
       {/* Action Buttons */}
-      {!isLoadingPosition && !hasExistingPosition && (
+      {!isLoadingPosition && !hasExistingPosition && !hasZeroBalance && (
         <View style={styles.actionsContainer}>
           <Button
             variant={ButtonVariants.Primary}
@@ -362,7 +390,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           />
         </View>
       )}
-
       {/* Candle Period Bottom Sheet */}
       {isCandlePeriodBottomSheetVisible && (
         <PerpsCandlePeriodBottomSheet
@@ -374,7 +401,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           testID={PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET}
         />
       )}
-
       {selectedTooltip && (
         <PerpsBottomSheetTooltip
           isVisible

@@ -97,7 +97,7 @@ export const createStyles = ({
       backgroundColor: theme.colors.background.default,
       paddingHorizontal: 16,
       paddingVertical: 16,
-      paddingBottom: 24,
+      paddingBottom: 32,
       borderTopWidth: 1,
       borderTopColor: theme.colors.border.muted,
       flexDirection: 'row',
@@ -129,5 +129,8 @@ export const createStyles = ({
       paddingHorizontal: 16,
       paddingTop: 16,
       textAlign: 'left',
+    },
+    addFundsContainer: {
+      flexDirection: 'column',
     },
   });
