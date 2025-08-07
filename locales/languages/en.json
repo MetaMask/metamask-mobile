@@ -2223,6 +2223,7 @@
     "sell_button": "Sell",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
+    "deposit_button": "Deposit",
     "earn_button": "Earn",
     "perps_button": "Perpetuals",
     "add_collectible_button": "Add",

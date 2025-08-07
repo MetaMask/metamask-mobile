@@ -390,7 +390,7 @@ const WalletActions = () => {
       <View style={styles.actionsContainer}>
         {isDepositEnabled && (
           <ActionListItem
-            label="Deposit"
+            label={strings('asset_overview.deposit_button')}
             description={strings('asset_overview.deposit_description')}
             iconName={IconName.Money}
             onPress={onDeposit}
