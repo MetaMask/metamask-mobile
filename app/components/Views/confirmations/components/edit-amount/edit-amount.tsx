@@ -3,13 +3,24 @@ import { TextInput, View } from 'react-native';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './edit-amount.styles';
+import { useAlerts } from '../../context/alert-system-context';
+import Text from '../../../../../component-library/components/Texts/Text';
+import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 
 export interface EditAmountProps {
+  children?: React.ReactNode;
   prefix?: string;
 }
 
-export function EditAmount({ prefix = '' }: EditAmountProps) {
-  const { styles } = useStyles(styleSheet, {});
+export function EditAmount({ children, prefix = '' }: EditAmountProps) {
+  const { fieldAlerts } = useAlerts();
+  const alerts = fieldAlerts.filter((a) => a.field === RowAlertKey.Amount);
+  const hasAlert = alerts.length > 0;
+  const alertMessage = alerts[0]?.message;
+
+  const { styles } = useStyles(styleSheet, {
+    hasAlert,
+  });
 
   const { amountPrecise: transactionAmountHuman, updateTokenAmount } =
     useTokenAmount();
@@ -38,6 +49,8 @@ export function EditAmount({ prefix = '' }: EditAmountProps) {
         keyboardType="numeric"
         style={styles.input}
       />
+      {children}
+      {hasAlert ? <Text style={styles.alert}>{alertMessage}</Text> : null}
     </View>
   );
 }
