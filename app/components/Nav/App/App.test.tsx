@@ -70,6 +70,14 @@ jest.mock('../../../../app/core/WalletConnect/WalletConnectV2', () => ({
   },
 }));
 
+jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+  __esModule: true,
+  default: () => ({
+    isEnabled: jest.fn().mockReturnValue(false),
+    getMetaMetricsId: jest.fn(),
+  }),
+}));
+
 import WC2ManagerMock from '../../../../app/core/WalletConnect/WalletConnectV2';
 import { DevLogger as DevLoggerMock } from '../../../../app/core/SDKConnect/utils/DevLogger';
 
