@@ -60,9 +60,9 @@ describe('useTransactionPayToken', () => {
       {
         address: tokenAddress1Mock,
         balance: '123.456',
-        balanceFiat: '$456,123',
         decimals: 4,
         chainId: ChainId.mainnet,
+        tokenFiatAmount: 456.123,
       },
     ] as unknown as BridgeToken[]);
   });

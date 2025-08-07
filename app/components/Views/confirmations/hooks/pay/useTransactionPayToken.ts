@@ -39,9 +39,7 @@ export function useTransactionPayToken() {
 
   const decimals = token?.decimals ?? 18;
   const balanceHuman = token?.balance ?? '0';
-
-  const balanceFiat =
-    token?.balanceFiat?.match(/[\d,.]+/)?.[0]?.replace(/,/g, '.') ?? '0';
+  const balanceFiat = token?.tokenFiatAmount?.toString() ?? '0';
 
   const setPayToken = useCallback(
     (payToken: TransactionPayToken) => {
