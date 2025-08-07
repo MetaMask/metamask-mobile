@@ -42,7 +42,7 @@ const PerpsScreenStack = () => (
         name={Routes.PERPS.TRADING_VIEW}
         component={PerpsView}
         options={{
-          title: strings('perps.title'),
+          title: strings('perps.perps_trading'),
           headerShown: true,
         }}
       />

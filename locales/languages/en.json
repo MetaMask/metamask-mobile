@@ -784,7 +784,8 @@
     }
   },
   "perps": {
-    "title": "Perps Trading",
+    "title": "Perps",
+    "perps_trading": "Perps Trading",
     "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
     "manage_balance": "Manage Balance",
     "total_balance": "Total Balance",
@@ -794,7 +795,6 @@
     "withdraw": "Withdraw",
     "refresh_balance": "Refresh Balance",
     "add_funds": "Add funds",
-    "perpetuals": "Perpetuals",
     "your_positions": "Your positions",
     "loading_positions": "Loading positions...",
     "refreshing_positions": "Refreshing positions...",
@@ -1184,13 +1184,12 @@
     "chart": {
       "no_data": "No chart data available"
     },
-    "perpetual_markets": "Perpetual markets",
+    "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
     "search": "Search",
-    "perpetual_trading": "Perpetual Trading",
     "testnet": "Testnet",
     "mainnet": "Mainnet",
     "developer_options": {
@@ -1334,7 +1333,7 @@
     "collectible": "Collectible",
     "collectibles": "NFTs",
     "defi": "DeFi",
-    "perps": "Perpetuals",
+    "perps": "Perps",
     "transactions": "TRANSACTIONS",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
@@ -2288,7 +2287,7 @@
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
     "earn_button": "Earn",
-    "perps_button": "Perpetuals",
+    "perps_button": "Perps",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
@@ -2303,7 +2302,7 @@
       "send": "Sending not supported for this account",
       "action": "This action is not supported for this account",
       "earn": "Earning not supported for this account",
-      "perps": "Perpetuals trading not supported for this account"
+      "perps": "Perps trading not supported for this account"
     },
     "description": "Description",
     "totalSupply": "Total Supply",
@@ -2321,7 +2320,7 @@
     "send_description": "Send crypto to any account",
     "receive_description": "Receive crypto",
     "earn_description": "Earn rewards on your tokens",
-    "perps_description": "Trade perpetual contracts",
+    "perps_description": "Trade perp contracts",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",
