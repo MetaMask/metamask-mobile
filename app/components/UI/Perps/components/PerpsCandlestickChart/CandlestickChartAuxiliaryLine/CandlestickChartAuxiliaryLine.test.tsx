@@ -26,7 +26,7 @@ jest.mock('react-native-svg', () => {
 });
 
 // Mock component library hooks
-jest.mock('../../../../../../../component-library/hooks', () => ({
+jest.mock('../../../../../../component-library/hooks', () => ({
   useStyles: () => ({
     styles: {
       container: {},
@@ -311,8 +311,8 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Assert
       expect(screen.getByTestId('auxiliary-line-tp-0')).toBeOnTheScreen();
-      expect(screen.getByTestId('auxiliary-line-sl-0')).toBeOnTheScreen();
-      expect(screen.getByTestId('auxiliary-line-entry-0')).toBeOnTheScreen();
+      expect(screen.getByTestId('auxiliary-line-sl-1')).toBeOnTheScreen();
+      expect(screen.getByTestId('auxiliary-line-entry-2')).toBeOnTheScreen();
     });
 
     it('only renders lines with prices within chart range', () => {
