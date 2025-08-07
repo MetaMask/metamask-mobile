@@ -13,23 +13,26 @@ const log = createProjectLogger('transaction-pay');
  */
 export function useTransactionPayTokenAmounts() {
   const { decimals, payToken } = useTransactionPayToken();
-  const { address, chainId } = payToken;
+  const { address, chainId } = payToken ?? {};
 
-  const fiatRequest = useMemo(
-    () => [
+  const fiatRequests = useMemo(() => {
+    if (!address || !chainId) {
+      return [];
+    }
+
+    return [
       {
         address,
         chainId,
       },
-    ],
-    [address, chainId],
-  );
+    ];
+  }, [address, chainId]);
 
-  const tokenFiatRate = useTokenFiatRates(fiatRequest)[0];
+  const tokenFiatRate = useTokenFiatRates(fiatRequests)[0];
   const { values } = useTransactionRequiredFiat();
 
   const amounts = useDeepMemo(() => {
-    if (!tokenFiatRate) {
+    if (!tokenFiatRate || !decimals) {
       return undefined;
     }
 

@@ -13,6 +13,8 @@ import { AlertMessage } from '../../../../components/alert-message';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
 import { useAutomaticTransactionPayToken } from '../../../../hooks/pay/useAutomaticTransactionPayToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import GeneralAlertBanner from '../../../../components/general-alert-banner';
+import { Box } from '../../../../../../UI/Box/Box';
 
 const AMOUNT_PREFIX = '$';
 
@@ -47,9 +49,12 @@ export function PerpsDeposit() {
         onKeyboardShow={handleKeyboardShow}
         onKeyboardHide={handleKeyboardHide}
       >
-        <PayTokenBalance />
-        <AlertMessage field={RowAlertKey.Amount} />
-        <TokenAmountNative />
+        <Box gap={16}>
+          <PayTokenBalance />
+          <AlertMessage field={RowAlertKey.Amount} />
+          <TokenAmountNative />
+        </Box>
+        <GeneralAlertBanner field={RowAlertKey.PayWith} inline />
         <InfoSection>
           <PayWithRow />
           {!isKeyboardVisible && <BridgeTimeRow />}

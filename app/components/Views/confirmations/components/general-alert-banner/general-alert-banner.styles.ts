@@ -1,9 +1,10 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../util/theme/models';
 
-const styleSheet = () =>
+const styleSheet = (params: { theme: Theme; vars: { inline?: boolean } }) =>
   StyleSheet.create({
     wrapper: {
-      marginBottom: 24,
+      marginBottom: !params.vars.inline ? 24 : 8,
     },
     details: { marginLeft: 10, marginBottom: 10 },
     detailsItem: {

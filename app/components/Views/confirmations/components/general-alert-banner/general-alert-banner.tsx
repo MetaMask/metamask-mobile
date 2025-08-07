@@ -4,19 +4,32 @@ import BannerAlert from '../../../../../component-library/components/Banners/Ban
 import styleSheet from './general-alert-banner.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getBannerAlertSeverity } from '../../utils/alert-system';
+import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 
-const GeneralAlertBanner = () => {
-  const { generalAlerts } = useAlerts();
-  const { styles } = useStyles(styleSheet, {});
+export interface GeneralAlertBannerProps {
+  field?: RowAlertKey;
+  inline?: boolean;
+}
 
-  if (generalAlerts.length === 0) {
+const GeneralAlertBanner = ({
+  field,
+  inline,
+}: GeneralAlertBannerProps = {}) => {
+  const { generalAlerts, fieldAlerts } = useAlerts();
+  const { styles } = useStyles(styleSheet, { inline });
+
+  const alerts = field
+    ? fieldAlerts.filter((a) => a.field === field)
+    : generalAlerts;
+
+  if (alerts.length === 0) {
     return null;
   }
 
   // Temporary loop throw all general alerts until design team establishes a design for multiple general alerts
   return (
     <>
-      {generalAlerts.map((selectedAlert, index) => (
+      {alerts.map((selectedAlert, index) => (
         <BannerAlert
           key={`banner-alert-${index}`}
           severity={getBannerAlertSeverity(selectedAlert.severity)}

@@ -18,6 +18,10 @@ export function PayWithRow() {
     navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
   }, [navigation]);
 
+  if (!payToken) {
+    return null;
+  }
+
   return (
     <InfoRow label={strings('confirm.label.pay_with')}>
       <TouchableOpacity onPress={handleClick}>
