@@ -108,7 +108,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     setShowTPSLLines(false);
   }, [tpslLines, isLoading, transformedData.length]);
 
-  // Only show skeleton on initial load, not on interval changes
+  // Only show skeleton on initial load, not on interval changes.
   if (isLoading && !hasInitiallyLoaded) {
     return (
       <View style={styles.chartContainer}>
