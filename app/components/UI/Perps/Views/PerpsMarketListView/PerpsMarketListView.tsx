@@ -223,7 +223,6 @@ const PerpsMarketListView = ({
           style={[styles.animatedListContainer, { opacity: fadeAnimation }]}
         >
           <FlashList
-            style={styles.animatedListContainer}
             data={filteredMarkets}
             renderItem={({ item }) => (
               <PerpsMarketRowItem market={item} onPress={handleMarketPress} />
