@@ -357,22 +357,9 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
         data={flatListData}
         renderItem={renderListItem}
         keyExtractor={(item) => item.id}
-        estimatedItemSize={
-          PERPS_TRANSACTIONS_HISTORY_CONSTANTS.ESTIMATED_LIST_ITEM_SIZE
-        }
         getItemType={(item) =>
           item.type === 'header' ? 'header' : 'transaction'
         }
-        overrideItemLayout={(layout, item) => {
-          // Fix gaps by setting exact heights
-          if (item.type === 'header') {
-            layout.size =
-              PERPS_TRANSACTIONS_HISTORY_CONSTANTS.ESTIMATED_LIST_HEADER_LAYOUT_SIZE;
-          } else {
-            layout.size =
-              PERPS_TRANSACTIONS_HISTORY_CONSTANTS.ESTIMATED_LIST_ITEM_LAYOUT_SIZE;
-          }
-        }}
         ListEmptyComponent={renderEmptyState}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
