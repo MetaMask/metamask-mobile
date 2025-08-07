@@ -56,9 +56,11 @@ const useCurrencyRatePolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
 
   let providedChainIdsNativeCurrencies;
   if (chainIds) {
-    providedChainIdsNativeCurrencies = chainIds.map((chainId) => ({
-      nativeCurrencies: [networkConfigurations[chainId].nativeCurrency],
-    }));
+    providedChainIdsNativeCurrencies = chainIds
+      .map((chainId) => ({
+        nativeCurrencies: [networkConfigurations[chainId]?.nativeCurrency],
+      }))
+      .filter(Boolean);
   }
 
   const input = providedChainIdsNativeCurrencies ?? nativeCurrenciesToPoll;

@@ -143,12 +143,14 @@ function getPartialTokens(
     const decimals = new BigNumber(balanceToken?.decimals ?? 18).toNumber();
     const amountRaw = new BigNumber(token.amount, 16);
     const amountHuman = amountRaw.shiftedBy(-decimals);
-    const balanceRaw = new BigNumber(balanceHuman, 10).shiftedBy(decimals);
-    const missingRaw = amountRaw.minus(balanceRaw);
-    const missingHuman = missingRaw.shiftedBy(-decimals);
 
-    if (missingRaw.lte(0)) {
-      return acc;
+    const balanceRaw = new BigNumber(balanceHuman, 10).shiftedBy(decimals);
+    let missingRaw = amountRaw.minus(balanceRaw);
+    let missingHuman = missingRaw.shiftedBy(-decimals);
+
+    if (missingRaw.isNegative()) {
+      missingRaw = new BigNumber(0);
+      missingHuman = new BigNumber(0);
     }
 
     acc.push({
