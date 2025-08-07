@@ -12,14 +12,14 @@ describe('EditAmountKeyboard', () => {
         onChange={onChangeMock}
         onDonePress={noop}
         onPercentagePress={noop}
-        value={0}
+        value="0"
       />,
     );
 
     const digitButton = getByText('1');
     fireEvent.press(digitButton);
 
-    expect(onChangeMock).toHaveBeenCalledWith(1);
+    expect(onChangeMock).toHaveBeenCalledWith('1');
   });
 
   it('calls onDone when done button pressed', () => {
@@ -30,7 +30,7 @@ describe('EditAmountKeyboard', () => {
         onChange={noop}
         onDonePress={onDonePressMock}
         onPercentagePress={noop}
-        value={0}
+        value="0"
       />,
     );
 
@@ -48,7 +48,7 @@ describe('EditAmountKeyboard', () => {
         onChange={noop}
         onDonePress={noop}
         onPercentagePress={onPercentagePressMock}
-        value={0}
+        value="0"
       />,
     );
 

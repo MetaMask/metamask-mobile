@@ -13,10 +13,10 @@ import { View } from 'react-native';
 const PERCENTAGE_BUTTONS = [10, 25, 50];
 
 export interface EditAmountKeyboardProps {
-  onChange: (value: number) => void;
+  onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
-  value: number;
+  value: string;
 }
 
 export function EditAmountKeyboard({
@@ -31,7 +31,7 @@ export function EditAmountKeyboard({
 
   const handleChange = useCallback(
     (data: KeypadChangeData) => {
-      onChange(data.valueAsNumber);
+      onChange(data.value);
     },
     [onChange],
   );

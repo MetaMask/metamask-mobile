@@ -40,8 +40,8 @@ export function EditAmount({
   const { balanceFiat } = useTransactionPayToken();
   const { amountUnformatted, updateTokenAmount } = useTokenAmount();
 
-  const [amountHuman, setAmountHuman] = useState<number>(
-    parseFloat(amountUnformatted ?? '0'),
+  const [amountHuman, setAmountHuman] = useState<string>(
+    amountUnformatted ?? '0',
   );
 
   const handleInputPress = useCallback(() => {
@@ -58,9 +58,9 @@ export function EditAmount({
   }, [autoKeyboard, inputChanged, handleInputPress]);
 
   const handleChange = useCallback(
-    (amount: number) => {
+    (amount: string) => {
       setAmountHuman(amount);
-      updateTokenAmount(amount.toString());
+      updateTokenAmount(amount);
     },
     [updateTokenAmount],
   );
@@ -79,7 +79,7 @@ export function EditAmount({
         .multipliedBy(percentage)
         .dividedBy(100);
 
-      handleChange(percentageValue.toNumber());
+      handleChange(percentageValue.toString(10));
     },
     [balanceFiat, handleChange],
   );
@@ -101,7 +101,7 @@ export function EditAmount({
       </View>
       {showKeyboard && (
         <EditAmountKeyboard
-          value={amountHuman}
+          value={amountHuman.toString()}
           onChange={handleChange}
           onDonePress={handleKeyboardDone}
           onPercentagePress={handlePercentagePress}
