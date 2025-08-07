@@ -45,13 +45,13 @@ const CONTROLLER_LIST = [
  * @returns The updated state with engine data cleared from redux-persist.
  */
 export default async function migrate(state: unknown) {
-  if (!ensureValidState(state, 91)) {
+  if (!ensureValidState(state, 92)) {
     return state;
   }
 
   try {
     Logger.log(
-      'Migration 91: Starting migration from redux-persist to individual controller storage',
+      'Migration 92: Starting migration from redux-persist to individual controller storage',
     );
 
     const { engine } = state;
@@ -63,7 +63,7 @@ export default async function migrate(state: unknown) {
       Object.keys(engine.backgroundState).length > 0
     ) {
       Logger.log(
-        'Migration 91: Found existing engine data, starting migration',
+        'Migration 92: Found existing engine data, starting migration',
       );
 
       const controllers = engine.backgroundState;
@@ -85,17 +85,17 @@ export default async function migrate(state: unknown) {
 
             await FilesystemStorage.setItem(key, value, Device.isIos());
 
-            Logger.log(`Migration 91: Successfully migrated ${controllerName}`);
+            Logger.log(`Migration 92: Successfully migrated ${controllerName}`);
             migratedControllers++;
           } else {
             Logger.log(
-              `Migration 91: No data found for ${controllerName}, skipping`,
+              `Migration 92: No data found for ${controllerName}, skipping`,
             );
           }
         } catch (error) {
           Logger.error(
             error as Error,
-            `Migration 91: Failed to migrate ${controllerName} to individual storage`,
+            `Migration 92: Failed to migrate ${controllerName} to individual storage`,
           );
           failedControllers++;
           captureException(error as Error);
@@ -103,16 +103,16 @@ export default async function migrate(state: unknown) {
       }
 
       Logger.log(
-        `Migration 91: Migration completed. Migrated: ${migratedControllers}, Failed: ${failedControllers}`,
+        `Migration 92: Migration completed. Migrated: ${migratedControllers}, Failed: ${failedControllers}`,
       );
 
       // Clear the old engine data from redux-persist
       engine.backgroundState = {};
 
-      Logger.log('Migration 91: Cleared old engine data from redux-persist');
+      Logger.log('Migration 92: Cleared old engine data from redux-persist');
     } else {
       Logger.log(
-        'Migration 91: No existing engine data found, skipping migration',
+        'Migration 92: No existing engine data found, skipping migration',
       );
     }
 
@@ -120,7 +120,7 @@ export default async function migrate(state: unknown) {
   } catch (error) {
     Logger.error(
       error as Error,
-      'Migration 91: Failed to migrate from redux-persist to individual controller storage',
+      'Migration 92: Failed to migrate from redux-persist to individual controller storage',
     );
     captureException(error as Error);
 

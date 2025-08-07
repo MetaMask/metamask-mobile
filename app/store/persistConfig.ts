@@ -83,26 +83,44 @@ export const ControllerStorage = {
             if (data) {
               // Parse the JSON data
               const parsedData = JSON.parse(data);
+
+              // Ensure parsedData is an object to prevent destructuring errors
+              if (
+                !parsedData ||
+                typeof parsedData !== 'object' ||
+                Array.isArray(parsedData)
+              ) {
+                Logger.error(
+                  new Error(
+                    `Invalid persisted data for ${controllerName}: not an object`,
+                  ),
+                );
+                return null; // Don't include invalid data
+              }
+
               // TODO: Remove _persist metadata if it exists - this needs to be moved later
               // to the migration that will change the data from redux to simple FileSystem
               const { _persist, ...controllerState } = parsedData;
-              return { [controllerName]: controllerState };
+
+              // Only include controllers that have meaningful state (not empty objects)
+              if (Object.keys(controllerState).length > 0) {
+                return { [controllerName]: controllerState };
+              }
             }
-            return { [controllerName]: {} };
+            return null; // Don't include controllers with no data
           } catch (error) {
             Logger.error(error as Error, {
               message: `Failed to get controller state for ${controllerName}`,
             });
-            return { [controllerName]: {} };
+            return null; // Don't include controllers with errors
           }
         }),
       );
 
-      // Combine all controller states into a single object
-      const backgroundState = controllerStates.reduce(
-        (acc, controllerState) => ({ ...acc, ...controllerState }),
-        {},
-      );
+      // Combine all controller states into a single object, filtering out null values
+      const backgroundState = controllerStates
+        .filter((state) => state !== null)
+        .reduce((acc, controllerState) => ({ ...acc, ...controllerState }), {});
 
       return { backgroundState };
     } catch (error) {

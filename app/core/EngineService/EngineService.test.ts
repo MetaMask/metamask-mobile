@@ -7,6 +7,7 @@ import NavigationService from '../NavigationService';
 import Logger from '../../util/Logger';
 import Routes from '../../constants/navigation/Routes';
 import { INIT_BG_STATE_KEY } from './constants';
+import { ControllerStorage } from '../../store/persistConfig';
 
 // Mock NavigationService
 jest.mock('../NavigationService', () => ({
@@ -26,6 +27,17 @@ jest.mock('../BackupVault', () => ({
 }));
 
 jest.mock('../../util/test/network-store.js', () => jest.fn());
+
+// Mock ControllerStorage
+jest.mock('../../store/persistConfig', () => ({
+  ControllerStorage: {
+    getKey: jest.fn(() => Promise.resolve({ backgroundState: {} })),
+    setItem: jest.fn(),
+    getItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+  setupEnginePersistence: jest.fn(),
+}));
 
 // Unmock global Engine
 jest.unmock('../Engine');
@@ -132,7 +144,11 @@ describe('EngineService', () => {
 
   afterEach(() => {
     // Clean up any pending timers to prevent Jest teardown issues
-    jest.runOnlyPendingTimers();
+    try {
+      jest.runOnlyPendingTimers();
+    } catch {
+      // Ignore error if fake timers are not active
+    }
     jest.useRealTimers();
   });
 
@@ -143,7 +159,15 @@ describe('EngineService', () => {
     });
   });
 
-  it('should log Engine initialization with state info', async () => {
+  it('should log Engine initialization with state info (existing installation)', async () => {
+    // Mock ControllerStorage to return actual state (existing installation)
+    (ControllerStorage.getKey as jest.Mock).mockResolvedValue({
+      backgroundState: {
+        KeyringController: { vault: 'encrypted_vault_data' },
+        PreferencesController: { selectedAddress: '0x123' },
+      },
+    });
+
     engineService.start();
     await waitFor(() => {
       expect(Logger.log).toHaveBeenCalledWith(
@@ -155,7 +179,12 @@ describe('EngineService', () => {
     });
   });
 
-  it('should log Engine initialization with empty state', async () => {
+  it('should log Engine initialization with empty state (fresh install)', async () => {
+    // Mock ControllerStorage to return empty state (fresh install)
+    (ControllerStorage.getKey as jest.Mock).mockResolvedValue({
+      backgroundState: {},
+    });
+
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({ engine: { backgroundState: {} } }),
       dispatch: jest.fn(),
@@ -166,7 +195,7 @@ describe('EngineService', () => {
       expect(Logger.log).toHaveBeenCalledWith(
         'EngineService: Initializing Engine:',
         {
-          hasState: true, // Changed from false to true since our new storage system returns data
+          hasState: false, // Should be false for fresh installs now that the bug is fixed
         },
       );
     });
@@ -183,7 +212,7 @@ describe('EngineService', () => {
     expect(Logger.log).toHaveBeenCalledWith(
       'EngineService: Initializing Engine from backup:',
       {
-        hasState: true,
+        hasState: false, // Correctly detects no persisted state now that the bug is fixed
       },
     );
 
