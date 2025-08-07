@@ -39,6 +39,7 @@ describe('usePerpsOrderForm', () => {
         takeProfitPrice: undefined,
         stopLossPrice: undefined,
         limitPrice: undefined,
+        type: 'market',
       });
     });
 
@@ -49,6 +50,7 @@ describe('usePerpsOrderForm', () => {
           initialDirection: 'short',
           initialAmount: '500',
           initialLeverage: 20,
+          initialType: 'limit',
         }),
       );
 
@@ -61,6 +63,7 @@ describe('usePerpsOrderForm', () => {
         takeProfitPrice: undefined,
         stopLossPrice: undefined,
         limitPrice: undefined,
+        type: 'limit',
       });
     });
 
@@ -144,6 +147,16 @@ describe('usePerpsOrderForm', () => {
       });
 
       expect(result.current.orderForm.limitPrice).toBe('50000');
+    });
+
+    it('should update order type', () => {
+      const { result } = renderHook(() => usePerpsOrderForm());
+
+      act(() => {
+        result.current.setOrderType('limit');
+      });
+
+      expect(result.current.orderForm.type).toBe('limit');
     });
 
     it('should update multiple fields at once', () => {

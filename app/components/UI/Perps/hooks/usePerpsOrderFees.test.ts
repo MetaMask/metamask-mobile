@@ -41,6 +41,9 @@ describe('usePerpsOrderFees', () => {
       validateOrder: jest.fn(),
       validateClosePosition: jest.fn(),
       validateWithdrawal: jest.fn(),
+      getFunding: jest.fn(),
+      getOrders: jest.fn(),
+      getOrderFills: jest.fn(),
     });
   });
 
