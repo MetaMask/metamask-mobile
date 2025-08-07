@@ -21,4 +21,9 @@ export const ALLOWLISTED_URLS = [
   'https://clients3.google.com/generate_204',
   'https://api.avax.network/ext/bc/C/rpc',
   'https://security-alerts.api.cx.metamask.io/validate/0x539',
+  'https://token.api.cx.metamask.io/tokens/1?occurrenceFloor=3&includeNativeAssets=false&includeTokenFees=false&includeAssetType=false&includeERC20Permit=false&includeStorage=false',
+  // this should be fixed in code to remove the double slash before transactions, mock without double slash already in the defaults
+  'https://accounts.api.cx.metamask.io/v1/accounts/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3//transactions?networks=0x1,0x89,0x38,0xe708,0x2105,0xa,0xa4b1,0x82750,0x531&sortDirection=DESC',
+  // this should be fixed in code to remove the double slash before balances, mock without double slash already in the default mocks
+  'https://accounts.api.cx.metamask.io/v2/accounts//balances?networks=1 ',
 ];

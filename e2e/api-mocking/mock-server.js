@@ -21,6 +21,10 @@ const BLOCKLISTED_HOSTS = [
   'mainnet.infura.io',
   'sepolia.infura.io',
   'palm-mainnet.infura.io',
+  'base-mainnet.infura.io',
+  'bsc-mainnet.infura.io',
+  'optimism-mainnet.infura.io',
+  'polygon-mainnet.infura.io',
 ];
 
 /**

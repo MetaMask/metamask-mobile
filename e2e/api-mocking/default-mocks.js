@@ -204,6 +204,11 @@ export const DEFAULT_MOCKS = {
       response: SWAPS_FEATURE_FLAG_RESPONSE,
     },
     {
+      urlEndpoint: 'https://swap.api.cx.metamask.io/featureFlags',
+      responseCode: 200,
+      response: SWAPS_FEATURE_FLAG_RESPONSE,
+    },
+    {
       urlEndpoint:
         'https://accounts.api.cx.metamask.io/v2/activeNetworks?accountIds=eip155%3A0%3A0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
       responseCode: 200,
@@ -230,6 +235,12 @@ export const DEFAULT_MOCKS = {
         ],
         unprocessedNetworks: [],
       },
+    },
+    {
+      urlEndpoint:
+        'https://accounts.api.cx.metamask.io/v2/accounts/0xaa4179e7f103701e904d27df223a39aa9c27405a/balances?networks=1%2C59144%2C8453%2C42161%2C56%2C10%2C137',
+      responseCode: 200,
+      response: { count: 0, balances: [], unprocessedNetworks: [] },
     },
     {
       urlEndpoint:
