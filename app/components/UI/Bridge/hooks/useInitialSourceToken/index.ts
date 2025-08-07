@@ -101,21 +101,14 @@ export const useInitialSourceToken = (
   }
 
   // Change network if necessary
-  if (initialSourceToken?.chainId !== chainId) {
+  if (initialSourceToken?.chainId && initialSourceToken?.chainId !== chainId) {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (
-      initialSourceToken?.chainId === SolScope.Mainnet &&
-      initialSourceToken.chainId
-    ) {
+    if (initialSourceToken?.chainId === SolScope.Mainnet) {
       onNonEvmNetworkChange(initialSourceToken.chainId);
       return;
     }
     ///: END:ONLY_INCLUDE_IF
 
-    if (initialSourceToken?.chainId) {
-      onSetRpcTarget(
-        evmNetworkConfigurations[initialSourceToken.chainId as Hex],
-      );
-    }
+    onSetRpcTarget(evmNetworkConfigurations[initialSourceToken.chainId as Hex]);
   }
 };
