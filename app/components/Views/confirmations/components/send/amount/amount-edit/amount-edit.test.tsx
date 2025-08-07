@@ -46,9 +46,9 @@ const renderComponent = () =>
 
 describe('AmountEdit', () => {
   it('renders correctly', async () => {
-    const { getByText } = renderComponent();
+    const { getByTestId } = renderComponent();
 
-    expect(getByText('Value:')).toBeTruthy();
+    expect(getByTestId('send_amount')).toBeTruthy();
   });
 
   it('display option to set value to Max', async () => {
@@ -59,8 +59,9 @@ describe('AmountEdit', () => {
 
   it('does not display Max option if it is not supported', async () => {
     jest.spyOn(MaxAmountUtils, 'useMaxAmount').mockReturnValue({
-      getMaxAmount: () => undefined,
+      maxAmount: undefined,
       isMaxAmountSupported: false,
+      balance: '',
     });
     const { queryByText } = renderComponent();
 
@@ -70,8 +71,9 @@ describe('AmountEdit', () => {
   it('update amount with max value when max button is clicked', async () => {
     const MAX_AMOUNT = '0.01234';
     jest.spyOn(MaxAmountUtils, 'useMaxAmount').mockReturnValue({
-      getMaxAmount: () => MAX_AMOUNT,
+      maxAmount: MAX_AMOUNT,
       isMaxAmountSupported: true,
+      balance: MAX_AMOUNT.toString(),
     });
     const { getByTestId, getByText } = renderComponent();
     fireEvent.press(getByText('Max'));
@@ -86,6 +88,7 @@ describe('AmountEdit', () => {
 
   it('displays fiat value for the amount entered', async () => {
     jest.spyOn(ConversionUtils, 'useCurrencyConversions').mockReturnValue({
+      fiatCurrencySymbol: '$',
       getFiatDisplayValue: () => '$ 1200.00',
       getFiatValue: () => 0,
       getNativeDisplayValue: () => '',
@@ -98,6 +101,7 @@ describe('AmountEdit', () => {
 
   it('displays native value for the amount entered if fiat_mode is enabled', async () => {
     jest.spyOn(ConversionUtils, 'useCurrencyConversions').mockReturnValue({
+      fiatCurrencySymbol: '$',
       getFiatDisplayValue: () => '',
       getFiatValue: () => 0,
       getNativeDisplayValue: () => 'ETH 0.001',
