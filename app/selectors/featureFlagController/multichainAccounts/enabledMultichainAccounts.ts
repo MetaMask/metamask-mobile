@@ -75,13 +75,12 @@ export const isMultichainAccountsFeatureEnabled = (
  */
 const overrideMultichainAccountsState2EnabledFlag = (
   featureVersions: string[],
-) => (
-    featureVersions.some(
-      (version) => version === MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
-    ) &&
-    overrideRemoteFeatureFlags &&
-    enabledMultichainAccountsState2Local
-  );
+) =>
+  featureVersions.some(
+    (version) => version === MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+  ) &&
+  overrideRemoteFeatureFlags &&
+  enabledMultichainAccountsState2Local;
 
 /**
  * Creates a selector to determine if multichain accounts are enabled based on the feature version.
