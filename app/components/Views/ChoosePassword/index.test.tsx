@@ -887,7 +887,7 @@ describe('ChoosePassword', () => {
           oauthLoginSuccess: true,
         },
       },
-      // navigation: mockNavigation,
+      navigation: mockNavigation,
     };
     const component = renderWithProviders(<ChoosePassword {...props} />);
 
@@ -897,6 +897,18 @@ describe('ChoosePassword', () => {
 
     expect(learnMoreLink).toBeOnTheScreen();
     expect(learnMoreLink.props.onPress).toBeDefined();
+
+    await act(async () => {
+      fireEvent.press(learnMoreLink);
+    });
+
+    expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
+        title: 'support.metamask.io',
+      },
+    });
   });
 
   describe('ErrorBoundary Tests', () => {
