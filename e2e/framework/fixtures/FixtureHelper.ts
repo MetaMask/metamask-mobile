@@ -393,7 +393,6 @@ export const createMockAPIServer = async (
     const mergedMocks = mergeWithDefaultMocks(testSpecificMock);
     mockServer = await startMockServer(mergedMocks, mockServerPort);
 
-    logger.debug('Merged mocks:', mergedMocks);
     logger.debug(
       `Mock server started from testSpecificMock on port ${mockServerPort}`,
     );

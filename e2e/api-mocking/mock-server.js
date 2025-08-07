@@ -121,6 +121,11 @@ export const startMockServer = async (events, port) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
 
+  // Initialize global list for live server requests
+  if (!global.liveServerRequest) {
+    global.liveServerRequest = [];
+  }
+
   await mockServer.start(port);
   logger.debug(`Mockttp server running at http://localhost:${port}`);
 
@@ -222,7 +227,7 @@ export const startMockServer = async (events, port) => {
       if (!isUrlAllowed(updatedUrl)) {
         const errorMessage = `Request going to live server: ${updatedUrl} for method: ${method}`;
         logger.warn(errorMessage);
-        global.liveServerRequest = new Error(errorMessage);
+        global.liveServerRequest.push(new Error(errorMessage));
       }
 
       return handleDirectFetch(
@@ -242,7 +247,7 @@ export const startMockServer = async (events, port) => {
     if (!isUrlAllowed(redirectedUrl)) {
       const errorMessage = `Request going to live server: ${redirectedUrl} for method: ${request.method}`;
       logger.warn(errorMessage);
-      global.liveServerRequest = new Error(errorMessage);
+      global.liveServerRequest.push(new Error(errorMessage));
     }
 
     return handleDirectFetch(
