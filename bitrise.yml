@@ -5,6 +5,13 @@ project_type: react-native
 
 #Pipelines are listed below
 pipelines:
+  # Generates prod builds for all targets
+  create_prod_builds_pipeline:
+    stages:
+      - create_prod_builds: {}
+  create_android_env_builds_pipeline:
+    stages:
+      - create_android_env_builds: {}
   #Creates MetaMask-QA apps and stores apk/ipa in Bitrise
   create_qa_builds_pipeline:
     stages:
@@ -49,13 +56,13 @@ pipelines:
       - bump_version_stage: {}
       - create_android_release: {}
       - deploy_android_release: {}
-  #Run E2E test suite for iOS only
+  # TODO: Remove this workflow since it's not used anymore
   run_e2e_ios_pipeline:
     stages:
       - build_e2e_ios_stage: {}
       - run_e2e_ios_stage: {}
       - notify: {}
-  #Run E2E test suite for  Flask builds
+  # TODO: Remove this workflow since it's not used anymore
   run_e2e_flask_pipeline:
     stages:
       - pr_cache_check_stage: {}
@@ -84,6 +91,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (smoke), emulator Android
   pr_smoke_e2e_pipeline:
     stages:
+      - set_main_target_stage: {}
       - pr_cache_check_stage: {}
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
@@ -92,6 +100,7 @@ pipelines:
 
   flask_smoke_e2e_pipeline:
     stages:
+      - set_flask_target_stage: {}
       - pr_cache_check_stage: {}
       - build_e2e_flask_ios_android: {}
       - run_e2e_flask_ios_android_stage: {}
@@ -100,6 +109,7 @@ pipelines:
   #Performance smoke test pipeline - runs only performance tests
   smoke_e2e_performance_pipeline:
     stages:
+      - set_main_target_stage: {}
       - pr_cache_check_stage: {}
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_performance_ios_android_stage: {}
@@ -108,6 +118,7 @@ pipelines:
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
   pr_regression_e2e_pipeline:
     stages:
+      - set_main_target_stage: {}
       - pr_cache_check_stage: {}
       - build_regression_e2e_ios_android_stage: {}
       - run_regression_e2e_ios_android_stage: {}
@@ -222,6 +233,7 @@ stages:
       - build_android_qa_devbuild: {}
       - build_ios_qa_devbuild: {}
       - build_ios_qa_simbuild: {}
+  # TODO: This workflow doesn't make sense since both QA and Flask are targets. Need to refactor.
   create_build_qa_flask:
     workflows:
       - build_android_qa_flask: {}
@@ -230,15 +242,38 @@ stages:
     workflows:
       - build_android_qa: {}
       - build_ios_qa: {}
+  create_prod_builds:
+    workflows:
+      - build_ios_main_prod: {}
+      - build_android_main_prod: {}
+      - build_ios_qa_prod: {}
+      - build_android_qa_prod: {}
+      - build_ios_flask_prod: {}
+      - build_android_flask_prod: {}
+  create_android_env_builds:
+    workflows:
+      - build_android_main_prod: {}
+      - build_android_main_rc: {}
+      - build_android_main_beta: {}
+      - build_android_main_exp: {}
+      - build_android_main_test: {}
+      - build_android_main_e2e: {}
+      - build_android_main_local: {}
+      - build_android_flask_prod: {}
+      - build_android_flask_test: {}
+      - build_android_flask_e2e: {}
+      - build_android_flask_local: {}
   create_build_qa_android:
     workflows:
       - build_android_qa: {}
   create_build_qa_ios:
     workflows:
       - build_ios_qa: {}
+  # TODO: Remove this workflow since it's not used anymore
   build_e2e_ios_stage:
     workflows:
       - ios_e2e_build: {}
+  # TODO: Remove this workflow since it's not used anymore
   run_e2e_ios_stage:
     workflows:
       - ios_e2e_test: {}
@@ -246,12 +281,20 @@ stages:
     abort_on_fail: true
     workflows:
       - pr_check_build_cache: {}
+  # Sets the METAMASK_BUILD_TYPE variable to the main target
+  set_main_target_stage:
+    workflows:
+      - set_main_target_workflow: {}
+  # Sets the METAMASK_BUILD_TYPE variable to the flask target
+  set_flask_target_stage:
+    workflows:
+      - set_flask_target_workflow: {}
   build_smoke_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
-      - ios_e2e_build:
+      - build_ios_main_e2e:
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
-      - android_e2e_build:
+      - build_android_main_e2e:
           run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   build_multichain_permissions_e2e_ios_android_stage:
     abort_on_fail: true
@@ -309,12 +352,13 @@ stages:
     workflows:
       - run_tag_smoke_performance_ios: {}
       - run_tag_smoke_performance_android: {}
+  # TODO: This stage does the same thing as build_smoke_e2e_ios_android_stage
   build_regression_e2e_ios_android_stage:
     abort_on_fail: true
     workflows:
-      - ios_build_regression_tests:
+      - build_ios_main_e2e:
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
-      - android_build_regression_tests:
+      - build_android_main_e2e:
           run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
   run_regression_e2e_ios_android_stage:
     workflows:
@@ -345,6 +389,7 @@ stages:
   report_results_stage:
     workflows:
       - run_testrail_update_automated_test_results: {}
+  # TODO: Remove this stage since it's not used anymore
   run_e2e_ios_android_stage:
     workflows:
       - ios_e2e_test: {}
@@ -375,10 +420,9 @@ stages:
       - release_announcing_stores: {}
   build_e2e_flask_ios_android:
     workflows:
-      - build_flask_e2e_android: 
-          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
-      - build_flask_e2e_ios: 
-          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+      - build_android_flask_e2e: {}
+      - build_ios_flask_e2e: {}
+  # TODO: Remove this workflow since it's not used anymore
   run_e2e_flask_ios_android:
     workflows:
       - run_flask_e2e_android: {}
@@ -774,14 +818,13 @@ workflows:
                 ./scripts/download-android-qa-app.sh
                 # APK_PATH is already set by the download script using envman
   build_flask_e2e_android:
+    after_run:
+      - android_flask_e2e_build
     meta:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-    envs:
-      - METAMASK_BUILD_TYPE: 'flask'
-    after_run:
-      - android_e2e_build
+  # TODO: Remove this workflow since it's not used anymore
   run_flask_e2e_android:
     meta:
       bitrise.io:
@@ -793,9 +836,10 @@ workflows:
       - android_e2e_test
   build_flask_e2e_ios:
     envs:
-      - METAMASK_BUILD_TYPE: 'flask'
+      - YARN_COMMAND: 'build:ios:flask:e2e'
     after_run:
       - ios_e2e_build
+  # TODO: Remove this workflow since it's not used anymore
   run_flask_e2e_ios:
     envs:
       - METAMASK_BUILD_TYPE: 'flask'
@@ -1054,15 +1098,27 @@ workflows:
       - android_e2e_test
   android_e2e_build:
     envs:
-      - KEYSTORE_URL: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-      - BUILD_COMMAND: 'yarn test:e2e:android:build:qa-release'
+      - KEYSTORE_URL: $BITRISEIO_ANDROID_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - BUILD_COMMAND: 'yarn build:android:main:e2e'
     after_run:
       - _android_e2e_build_template
     meta:
       bitrise.io:
         machine_type_id: elite-xl
         stack: linux-docker-android-22.04
-
+  # TODO: Consolidate android_e2e_build and android_flask_e2e_build once _android_e2e_build_template and _android_build_template is consolidated
+  android_flask_e2e_build:
+    envs:
+      - KEYSTORE_URL: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
+      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - BUILD_COMMAND: 'yarn build:android:flask:e2e'
+    after_run:
+      - _android_e2e_build_template
+    meta:
+      bitrise.io:
+        machine_type_id: elite-xl
+        stack: linux-docker-android-22.04
   run_single_android_e2e_test:
     run_if: '{{ or (ne "$E2E_TEST_FILE" "") (ne "$TEST_SUITE_TAG" "") }}'
     after_run:
@@ -1116,7 +1172,7 @@ workflows:
           title: Pull Android build
       - script@1:
           title: Copy Android build for Detox
-          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+          # run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1281,11 +1337,12 @@ workflows:
           inputs:
             - content: |-
                 #!/usr/bin/env bash
-                export METAMASK_ENVIRONMENT='local'
-                 node -v
+
+                export METAMASK_ENVIRONMENT='e2e'
+
                 if [ -n "${E2E_TEST_FILE:-}" ]; then
                   echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
-                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:run:qa-release $E2E_TEST_FILE
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:android:$METAMASK_BUILD_TYPE:prod $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
                   ./scripts/run-e2e-tags.sh
@@ -1404,7 +1461,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
-          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+          # run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1569,10 +1626,6 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/set-cache-envs.sh ios
       - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
       - script:
           inputs:
             - content: |-
@@ -1613,9 +1666,12 @@ workflows:
                 #!/usr/bin/env bash
                 ./scripts/cache/setup-ccache.sh
                 node -v
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:build:qa-release
+                if [ -n "$YARN_COMMAND" ]; then
+                    GIT_BRANCH=$BITRISE_GIT_BRANCH yarn "$YARN_COMMAND"
+                else
+                    echo "No YARN_COMMAND provided. Running yarn build:ios:main:e2e..."
+                    yarn build:ios:main:e2e
+                fi
       - save-cocoapods-cache@1: {}
       - save-cache@1:
           title: Save CCache
@@ -1706,7 +1762,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
-          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+          # run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1735,7 +1791,7 @@ workflows:
       - set-xcode-build-number@1:
           inputs:
             - build_short_version_string: $VERSION_NAME
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
+            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/Info.plist
       - script:
           inputs:
             - content: |-
@@ -1909,17 +1965,11 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
 
-                # node -v
-                export METAMASK_ENVIRONMENT='local'
-                export METAMASK_BUILD_TYPE=${METAMASK_BUILD_TYPE:-'main'}
-                # if [ "$METAMASK_BUILD_TYPE" = "flask" ]; then
-                # IS_TEST='true' METAMASK_BUILD_TYPE='flask' yarn test:e2e:ios:run:qa-release e2e/specs/flask/
-                # else
-                # ./scripts/run-e2e-tags.sh
-                # fi
+                export METAMASK_ENVIRONMENT='e2e'
+
                 if [ -n "${E2E_TEST_FILE:-}" ]; then
                   echo "[INFO] Running only specified E2E_TEST_FILE(s): $E2E_TEST_FILE"
-                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:run:qa-release $E2E_TEST_FILE
+                  IGNORE_BOXLOGS_DEVELOPMENT="true" yarn test:e2e:ios:$METAMASK_BUILD_TYPE:prod $E2E_TEST_FILE
                 elif [ -n "${TEST_SUITE_TAG:-}" ]; then
                   echo "[INFO] Running tests matching TEST_SUITE_TAG: $TEST_SUITE_TAG"
                   ./scripts/run-e2e-tags.sh
@@ -2033,7 +2083,7 @@ workflows:
             - ndk_version: $NDK_VERSION
             - gradlew_path: $PROJECT_LOCATION/gradlew
       - script@1:
-          title: Build Android Pre-Release Bundle
+          title: Build Android Binary
           is_always_run: false
           inputs:
             - content: |-
@@ -2053,6 +2103,13 @@ workflows:
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
                 fi
+      - deploy-to-bitrise-io@2.2.3:
+          title: Share Detox files between pipelines
+          run_if: '{{getenv "SHARE_WITH_DETOX" | eq "true"}}'
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
       - save-gradle-cache@1: {}
       - script@1:
           title: Rename release files
@@ -2087,12 +2144,12 @@ workflows:
                 fi
 
                 NEW_APK="$APK_DIR/$NEW_BASE_NAME.apk"
-                mv "$OLD_APK" "$NEW_APK"
+                cp "$OLD_APK" "$NEW_APK"
 
                 # Rename AAB
                 if [ -n "$BUNDLE_DIR" ]; then
                     NEW_AAB="$BUNDLE_DIR/$NEW_BASE_NAME.aab"
-                    mv "$OLD_AAB" "$NEW_AAB"
+                    cp "$OLD_AAB" "$NEW_AAB"
                 fi
 
                 # Export new names as environment variables
@@ -2153,8 +2210,9 @@ workflows:
       - file-downloader@1:
           inputs:
             - source: $KEYSTORE_URL
-            - destination: android/keystores/internalRelease.keystore
+            - destination: $KEYSTORE_PATH
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
+      # Note - This step will fail if stack is not Linux
       - script@1:
           title: Install CCache & symlink
           inputs:
@@ -2292,6 +2350,37 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_flask_test:
+    envs:
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_FLASK_UAT_URL
+      - KEYSTORE_PATH: 'android/keystores/flask-uat.keystore'
+      - APP_NAME: 'flask'
+      - OUTPUT_PATH: 'flaskRelease'
+      - YARN_COMMAND: 'build:android:flask:test'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_flask_e2e:
+    envs:
+      - YARN_COMMAND: 'build:android:flask:e2e'
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_FLASK_UAT_URL
+      - KEYSTORE_PATH: 'android/keystores/flask-uat.keystore'
+      - APP_NAME: 'flask'
+      - OUTPUT_PATH: 'flaskRelease'
+      - SHARE_WITH_DETOX: 'true'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_main_prod:
     envs:
       - NAME: $VERSION_NAME
@@ -2337,13 +2426,44 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  build_android_main_test:
+    envs:
+      - YARN_COMMAND: 'build:android:main:test'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_main_e2e:
+    envs:
+      - YARN_COMMAND: 'build:android:main:e2e'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
+      - APP_NAME: 'prod'
+      - OUTPUT_PATH: 'prodRelease'
+      - SHARE_WITH_DETOX: 'true'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
   build_android_main_exp:
     envs:
       - YARN_COMMAND: 'build:android:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
@@ -2394,7 +2514,7 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_devbuild:
+  build_android_main_local:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $VERSION_NAME
@@ -2407,7 +2527,15 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_flask_devbuild:
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_android_devbuild:
+    after_run:
+      - build_android_main_local
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_flask_local:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $FLASK_VERSION_NAME
@@ -2420,7 +2548,15 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
-  build_android_qa_devbuild:
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_android_flask_devbuild:
+    after_run:
+      - build_android_flask_local
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_qa_local:
     envs:
       - IS_DEV_BUILD: 'true'
       - NAME: $VERSION_NAME
@@ -2433,70 +2569,34 @@ workflows:
       bitrise.io:
         stack: linux-docker-android-22.04
         machine_type_id: elite-xl
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_android_qa_devbuild:
+    after_run:
+      - build_android_qa_local
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  build_android_qa_prod:
+    envs:
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
+      - APP_NAME: 'qa'
+      - OUTPUT_PATH: 'qaRelease'
+      - YARN_COMMAND: 'build:android:qa:prod'
+    after_run:
+      - _android_build_template
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+  # TODO: Remove this workflow once new build configuration is consolidated
   build_android_qa:
-      before_run:
-        - code_setup
       after_run:
-        - _upload_apk_to_browserstack
-        - notify_failure
-      steps:
-        - change-android-versioncode-and-versionname@1:
-            inputs:
-              - new_version_name: $VERSION_NAME
-              - new_version_code: $VERSION_NUMBER
-              - build_gradle_path: $PROJECT_LOCATION_ANDROID/app/build.gradle
-        - file-downloader@1:
-            inputs:
-              - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
-              - destination: android/keystores/internalRelease.keystore
-        - restore-gradle-cache@2: {}
-        - install-missing-android-tools@3:
-            inputs:
-              - ndk_version: $NDK_VERSION
-              - gradlew_path: $PROJECT_LOCATION/gradlew
-        - script@1:
-            inputs:
-              - content: |-
-                  #!/usr/bin/env bash
-                  node -v
-                  GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:android:pre-release:bundle:qa
-            title: Build Android Pre-Release Bundle
-            is_always_run: false
-        - save-gradle-cache@1: {}
-        - deploy-to-bitrise-io@2.2.3:
-            is_always_run: false
-            is_skippable: true
-            inputs:
-              - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/$QA_APK_NAME.apk
-            title: Bitrise Deploy APK
-        - deploy-to-bitrise-io@2.2.3:
-            is_always_run: false
-            is_skippable: true
-            inputs:
-              - deploy_path: $PROJECT_LOCATION/app/build/outputs/apk/qa/release/sha512sums.txt
-            title: Bitrise Deploy Checksum
-        - deploy-to-bitrise-io@2.2.3:
-            is_always_run: false
-            is_skippable: true
-            inputs:
-              - deploy_path: $PROJECT_LOCATION/app/build/outputs/mapping/qaRelease/mapping.txt
-            title: Bitrise ProGuard Map Files
-        - deploy-to-bitrise-io@2.2.3:
-            is_always_run: false
-            is_skippable: true
-            inputs:
-              - deploy_path: $PROJECT_LOCATION/app/build/outputs/bundle/qaRelease/app-qa-release.aab
-            title: Bitrise Deploy AAB
-        - deploy-to-bitrise-io@2.2.3:
-            is_always_run: false
-            is_skippable: true
-            inputs:
-              - deploy_path: sourcemaps/android/index.js.map
-            title: Bitrise Deploy Sourcemaps
-      meta:
-        bitrise.io:
-          stack: linux-docker-android-22.04
-          machine_type_id: elite-xl
+        - build_android_qa_prod
+        - _upload_apk_to_browserstack_qa
   build_android_qa_flask:
     before_run:
       - code_setup
@@ -2578,7 +2678,7 @@ workflows:
                 CUSTOM_ID=${CUSTOM_ID////-}
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$APK_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_ANDROID_FLASK_APP_URL
                 APK_PATH_FOR_APP_LIVE=$PROJECT_LOCATION/app/build/outputs/apk/flask/release/"$CUSTOM_ID".apk
-                mv "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
+                cp "$APK_PATH" "$APK_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$APK_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_flask_apps.json
       - deploy-to-bitrise-io@2.2.3:
@@ -2587,7 +2687,7 @@ workflows:
           inputs:
             - pipeline_intermediate_files: $BITRISE_SOURCE_DIR/browserstack_uploaded_flask_apps.json:BROWSERSTACK_UPLOADED_FLASK_APPS_LIST
           title: Save Browserstack uploaded Flask apps JSON
-  _upload_apk_to_browserstack:
+  _upload_apk_to_browserstack_qa:
     steps:
       - script@1:
           title: Upload APK to Browserstack
@@ -2603,7 +2703,7 @@ workflows:
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
 
-                mv "$ORIGINAL_APK" "$APK_DIR/$CUSTOM_ID.apk"
+                cp "$ORIGINAL_APK" "$APK_DIR/$CUSTOM_ID.apk"
                 APK_PATH="$APK_DIR/$CUSTOM_ID.apk"
 
                 # Upload to app-automate
@@ -2792,15 +2892,25 @@ workflows:
                     echo "Error: Invalid build type specified: $METAMASK_BUILD_TYPE"
                     exit 1
                 fi
+      - deploy-to-bitrise-io@2.2.3:
+          title: Share Detox files between pipelines
+          run_if: '{{getenv "SHARE_WITH_DETOX" | eq "true"}}'
+          is_always_run: false
+          is_skippable: true
+          inputs:
+            - pipeline_intermediate_files: |-
+                ios/build/Build/Products/$CONFIGURATION-iphonesimulator:INTERMEDIATE_IOS_BUILD_DIR
+                ../Library/Detox/ios:INTERMEDIATE_IOS_DETOX_DIR
       - script@1:
           title: Rename iOS artifact files
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 set -ex
+
                 # Set base paths
                 if [ "$IS_SIM_BUILD" = "true" ]; then
-                  BUILD_DIR="ios/build/Build/Products/Debug-iphonesimulator"
+                  BUILD_DIR="ios/build/Build/Products/${CONFIGURATION}-iphonesimulator"
                   DEVICE_TYPE="simulator"
                   BINARY_EXTENSION=".app"
                 else
@@ -2817,17 +2927,18 @@ workflows:
                   NEW_BASE_NAME="metamask-${DEVICE_TYPE}-${METAMASK_ENVIRONMENT}-${METAMASK_BUILD_TYPE}-${NAME}-${NUMBER}"
                 fi
 
-                # Rename binary
+                # Copy binary with new name (preserve original)
                 OLD_BINARY="$BUILD_DIR/$APP_NAME$BINARY_EXTENSION"
                 NEW_BINARY="$BUILD_DIR/$NEW_BASE_NAME$BINARY_EXTENSION"
-                mv "$OLD_BINARY" "$NEW_BINARY"
+                # Need to copy recursively so that .app files are fully copied
+                cp -r "$OLD_BINARY" "$NEW_BINARY"
 
-                # Rename xcarchive (only for non-simulator builds)
+                # Copy xcarchive with new name (only for non-simulator builds, preserve original)
                 if [ "$IS_SIM_BUILD" != "true" ]; then
                   ARCHIVE_DIR="ios/build"
                   OLD_ARCHIVE="$ARCHIVE_DIR/$APP_NAME.xcarchive"
                   NEW_ARCHIVE="$ARCHIVE_DIR/$NEW_BASE_NAME.xcarchive"
-                  mv "$OLD_ARCHIVE" "$NEW_ARCHIVE"
+                  cp -r "$OLD_ARCHIVE" "$NEW_ARCHIVE"
                 fi
 
                 # Export new names as environment variables
@@ -2862,6 +2973,7 @@ workflows:
       - build_ios_main_prod
   build_ios_main_prod:
     envs:
+      - CONFIGURATION: 'Release'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
@@ -2871,6 +2983,7 @@ workflows:
       - _ios_build_template
   build_ios_main_beta:
     envs:
+      - CONFIGURATION: 'Release'
       - YARN_COMMAND: 'build:ios:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
@@ -2880,6 +2993,7 @@ workflows:
       - _ios_build_template
   build_ios_main_rc:
     envs:
+      - CONFIGURATION: 'Release'
       - YARN_COMMAND: 'build:ios:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
@@ -2889,11 +3003,34 @@ workflows:
       - _ios_build_template
   build_ios_main_exp:
     envs:
+      - CONFIGURATION: 'Release'
       - YARN_COMMAND: 'build:ios:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask"
       - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_test:
+    envs:
+      - CONFIGURATION: 'Release'
+      - YARN_COMMAND: 'build:ios:main:test'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+    after_run:
+      - _ios_build_template
+  build_ios_main_e2e:
+    envs:
+      - CONFIGURATION: 'Release'
+      - IS_SIM_BUILD: 'true'
+      - SHARE_WITH_DETOX: 'true'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask"
+      - INFO_PLIST_NAME: "Info.plist"
+      - YARN_COMMAND: 'build:ios:main:e2e'
     after_run:
       - _ios_build_template
   build_ios_release_and_upload_sourcemaps:
@@ -2908,6 +3045,7 @@ workflows:
       - build_ios_main_rc
   build_ios_beta:
     envs:
+      - CONFIGURATION: 'Release'
       - METAMASK_BUILD_TYPE: "beta"
       - METAMASK_ENVIRONMENT: 'production'
       - NAME: $VERSION_NAME
@@ -2922,6 +3060,7 @@ workflows:
       - build_ios_flask_prod
   build_ios_flask_prod:
     envs:
+      - CONFIGURATION: 'Release'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
@@ -2929,20 +3068,31 @@ workflows:
       - YARN_COMMAND: 'build:ios:flask:prod'
     after_run:
       - _ios_build_template
-  build_ios_simbuild:
+  build_ios_flask_test:
     envs:
-      - IS_SIM_BUILD: 'true'
-      - IS_DEV_BUILD: 'true'
-      - METAMASK_BUILD_TYPE: 'main'
-      - METAMASK_ENVIRONMENT: 'debug'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - APP_NAME: 'MetaMask'
-      - INFO_PLIST_NAME: 'Info.plist'
+      - CONFIGURATION: 'Release'
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - APP_NAME: "MetaMask-Flask"
+      - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+      - YARN_COMMAND: 'build:ios:flask:test'
     after_run:
       - _ios_build_template
-  build_ios_devbuild:
+  build_ios_flask_e2e:
     envs:
+      - CONFIGURATION: 'Release'
+      - IS_SIM_BUILD: 'true'
+      - SHARE_WITH_DETOX: 'true'
+      - NAME: $FLASK_VERSION_NAME
+      - NUMBER: $FLASK_VERSION_NUMBER
+      - APP_NAME: "MetaMask-Flask"
+      - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
+      - YARN_COMMAND: 'build:ios:flask:e2e'
+    after_run:
+      - _ios_build_template
+  build_ios_main_local:
+    envs:
+      - CONFIGURATION: 'Debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: 'MetaMask'
@@ -2950,8 +3100,19 @@ workflows:
       - YARN_COMMAND: 'build:ios:main:local'
     after_run:
       - _ios_build_template
-  build_ios_flask_devbuild:
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_ios_simbuild:
     envs:
+      - IS_SIM_BUILD: 'true'
+    after_run:
+      - build_ios_main_local
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_ios_devbuild:
+    after_run:
+      - build_ios_main_local
+  build_ios_flask_local:
+    envs:
+      - CONFIGURATION: 'Debug'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
       - APP_NAME: "MetaMask-Flask"
@@ -2959,29 +3120,18 @@ workflows:
       - YARN_COMMAND: 'build:ios:flask:local'
     after_run:
       - _ios_build_template
-  build_ios_qa_devbuild:
-    envs:
-      - IS_DEV_BUILD: 'true'
-      - NAME: $VERSION_NAME
-      - NUMBER: $VERSION_NUMBER
-      - APP_NAME: "MetaMask-QA"
-      - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
-      - YARN_COMMAND: 'build:ios:qa:local'
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_ios_flask_devbuild:
     after_run:
-      - _ios_build_template
+      - build_ios_flask_local
   build_ios_flask_simbuild:
     envs:
       - IS_SIM_BUILD: 'true'
-      - NAME: $FLASK_VERSION_NAME
-      - NUMBER: $FLASK_VERSION_NUMBER
-      - APP_NAME: "MetaMask-Flask"
-      - INFO_PLIST_NAME: "MetaMask-Flask-Info.plist"
-      - YARN_COMMAND: 'build:ios:flask:local'
     after_run:
-      - _ios_build_template
-  build_ios_qa_simbuild:
+      - build_ios_flask_local
+  build_ios_qa_local:
     envs:
-      - IS_SIM_BUILD: 'true'
+      - CONFIGURATION: 'Debug'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
       - APP_NAME: "MetaMask-QA"
@@ -2989,48 +3139,31 @@ workflows:
       - YARN_COMMAND: 'build:ios:qa:local'
     after_run:
       - _ios_build_template
-  build_ios_qa:
-    before_run:
-      - code_setup
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_ios_qa_devbuild:
     after_run:
-      - _upload_ipa_to_browserstack
-      - notify_failure
-    steps:
-      - certificate-and-profile-installer@1: {}
-      - set-xcode-build-number@1:
-          inputs:
-            - build_short_version_string: $VERSION_NAME
-            - build_version: $VERSION_NUMBER
-            - plist_path: $PROJECT_LOCATION_IOS/MetaMask/MetaMask-QA-Info.plist
-      - script@1:
-          inputs:
-            - content: |-
-                #!/usr/bin/env bash
-                node -v
-                GIT_BRANCH=$BITRISE_GIT_BRANCH METAMASK_BUILD_TYPE='main' METAMASK_ENVIRONMENT='qa' yarn build:ios:pre-qa
-          title: iOS Sourcemaps & Build
-          is_always_run: false
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: ios/build/output/MetaMask-QA.ipa:BITRISE_APP_STORE_IPA_PATH
-            - deploy_path: ios/build/output/MetaMask-QA.ipa
-          title: Deploy iOS IPA
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - deploy_path: ios/build/MetaMask-QA.xcarchive
-          title: Deploy Symbols File
-      - deploy-to-bitrise-io@2.2.3:
-          is_always_run: false
-          is_skippable: true
-          inputs:
-            - pipeline_intermediate_files: sourcemaps/ios/index.js.map:BITRISE_APP_STORE_SOURCEMAP_PATH
-            - deploy_path: sourcemaps/ios/index.js.map
-          title: Deploy Source Map
-  _upload_ipa_to_browserstack:
+      - build_ios_qa_local
+  build_ios_qa_simbuild:
+    envs:
+      - IS_SIM_BUILD: 'true'
+    after_run:
+      - build_ios_qa_local
+  build_ios_qa_prod:
+    envs:
+      - CONFIGURATION: 'Release'
+      - NAME: $VERSION_NAME
+      - NUMBER: $VERSION_NUMBER
+      - APP_NAME: "MetaMask-QA"
+      - INFO_PLIST_NAME: "MetaMask-QA-Info.plist"
+      - YARN_COMMAND: 'build:ios:qa:prod'
+    after_run:
+      - _ios_build_template
+  # TODO: Remove this workflow once new build configuration is consolidated
+  build_ios_qa:
+    after_run:
+      - build_ios_qa_prod
+      - _upload_ipa_to_browserstack_qa
+  _upload_ipa_to_browserstack_qa:
     steps:
       - script@1:
           title: Upload IPA to Browserstack
@@ -3047,7 +3180,7 @@ workflows:
                 CUSTOM_ID="$BITRISE_GIT_BRANCH-$VERSION_NAME-$VERSION_NUMBER"
                 CUSTOM_ID=${CUSTOM_ID////-}
 
-                mv "$ORIGINAL_IPA" "$IPA_DIR/$CUSTOM_ID.ipa"
+                cp "$ORIGINAL_IPA" "$IPA_DIR/$CUSTOM_ID.ipa"
                 IPA_PATH="$IPA_DIR/$CUSTOM_ID.ipa"
 
                 # Upload to app-automate
@@ -3175,7 +3308,7 @@ workflows:
                 IPA_PATH=ios/build/output/MetaMask-Flask.ipa
                 IPA_PATH_FOR_APP_LIVE=ios/build/output/"$CUSTOM_ID".ipa
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-automate/upload" -F "file=@$IPA_PATH" -F 'data={"custom_id": "'$CUSTOM_ID'"}' | jq -j '.app_url' | envman add --key BROWSERSTACK_IOS_FLASK_APP_URL
-                mv "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
+                cp "$IPA_PATH" "$IPA_PATH_FOR_APP_LIVE"
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X POST "https://api-cloud.browserstack.com/app-live/upload" -F "file=@$IPA_PATH_FOR_APP_LIVE" -F 'data={"custom_id": "'$CUSTOM_ID'"}'
                 curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" -X GET https://api-cloud.browserstack.com/app-automate/recent_apps | jq > browserstack_uploaded_flask_apps.json
       - share-pipeline-variable@1:
@@ -3189,7 +3322,20 @@ workflows:
           inputs:
             - deploy_path: browserstack_uploaded_flask_apps.json
           title: Bitrise Deploy Browserstack Uploaded Flask Apps
-
+  set_main_target_workflow:
+    steps:
+      - share-pipeline-variable@1:
+          title: Persist METAMASK_BUILD_TYPE across all stages and workflows
+          inputs:
+            - variables: |-
+                METAMASK_BUILD_TYPE=main
+  set_flask_target_workflow:
+    steps:
+      - share-pipeline-variable@1:
+          title: Persist METAMASK_BUILD_TYPE across all stages and workflows
+          inputs:
+            - variables: |-
+                METAMASK_BUILD_TYPE=flask
 
 app:
   envs:
@@ -3256,13 +3402,13 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.51.1
+      VERSION_NAME: 7.54.0
     - opts:
         is_expand: false
       VERSION_NUMBER: 2203
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.51.1
+      FLASK_VERSION_NAME: 7.54.0
     - opts:
         is_expand: false
       FLASK_VERSION_NUMBER: 2203

@@ -1,5 +1,6 @@
 import { CaipAssetId } from '@metamask/utils';
 import { renderHook } from '@testing-library/react-native';
+import type { Hex } from 'viem';
 import Engine from '../../../../core/Engine';
 import type {
   AccountState,
@@ -39,6 +40,14 @@ jest.mock('../../../../core/Engine', () => ({
       getDepositRoutes: jest.fn(),
       resetDepositState: jest.fn(),
       withdraw: jest.fn(),
+      calculateLiquidationPrice: jest.fn(),
+      calculateMaintenanceMargin: jest.fn(),
+      getMaxLeverage: jest.fn(),
+      updatePositionTPSL: jest.fn(),
+      calculateFees: jest.fn(),
+      validateOrder: jest.fn(),
+      validateClosePosition: jest.fn(),
+      validateWithdrawal: jest.fn(),
     },
   },
 }));
@@ -553,6 +562,256 @@ describe('usePerpsTrading', () => {
     });
   });
 
+  describe('calculateFees', () => {
+    it('should calculate fees successfully', async () => {
+      const mockFeeResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+      };
+
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValue(mockFeeResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const params = {
+        orderType: 'market' as const,
+        isMaker: false,
+        amount: '100000',
+      };
+
+      const response = await result.current.calculateFees(params);
+
+      expect(Engine.context.PerpsController.calculateFees).toHaveBeenCalledWith(
+        params,
+      );
+      expect(response).toEqual(mockFeeResult);
+    });
+
+    it('should return Promise<FeeCalculationResult>', async () => {
+      const mockFeeResult = {
+        feeRate: 0.00015,
+        feeAmount: 15,
+      };
+
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValue(mockFeeResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const params = {
+        orderType: 'limit' as const,
+        isMaker: true,
+        amount: '100000',
+      };
+
+      const resultPromise = result.current.calculateFees(params);
+      expect(resultPromise).toBeInstanceOf(Promise);
+
+      const response = await resultPromise;
+      expect(response).toHaveProperty('feeRate');
+      expect(response).toHaveProperty('feeAmount');
+      expect(response.feeRate).toBe(0.00015);
+      expect(response.feeAmount).toBe(15);
+    });
+
+    it('should handle fee calculation errors', async () => {
+      const mockError = new Error('Fee calculation failed');
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockRejectedValue(mockError);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const params = {
+        orderType: 'market' as const,
+        isMaker: false,
+        amount: '100000',
+      };
+
+      await expect(result.current.calculateFees(params)).rejects.toThrow(
+        'Fee calculation failed',
+      );
+    });
+
+    it('should calculate fees with different order types', async () => {
+      const mockMarketFeeResult = {
+        feeRate: 0.00045,
+        feeAmount: 45,
+      };
+      const mockLimitFeeResult = {
+        feeRate: 0.00015,
+        feeAmount: 15,
+      };
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      // Test market order
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValueOnce(mockMarketFeeResult);
+
+      const marketResult = await result.current.calculateFees({
+        orderType: 'market',
+        isMaker: false,
+        amount: '100000',
+      });
+      expect(marketResult).toEqual(mockMarketFeeResult);
+
+      // Test limit order
+      (
+        Engine.context.PerpsController.calculateFees as jest.Mock
+      ).mockResolvedValueOnce(mockLimitFeeResult);
+
+      const limitResult = await result.current.calculateFees({
+        orderType: 'limit',
+        isMaker: true,
+        amount: '100000',
+      });
+      expect(limitResult).toEqual(mockLimitFeeResult);
+    });
+  });
+
+  describe('validateOrder', () => {
+    it('should call PerpsController.validateOrder with correct parameters', async () => {
+      const mockValidationResult = { isValid: true };
+      (
+        Engine.context.PerpsController.validateOrder as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.5',
+        orderType: 'market',
+      };
+
+      const response = await result.current.validateOrder(orderParams);
+
+      expect(Engine.context.PerpsController.validateOrder).toHaveBeenCalledWith(
+        orderParams,
+      );
+      expect(response).toEqual(mockValidationResult);
+    });
+
+    it('should return validation error', async () => {
+      const mockValidationResult = {
+        isValid: false,
+        error: 'Minimum order size is $10.00',
+      };
+      (
+        Engine.context.PerpsController.validateOrder as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.00001',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const response = await result.current.validateOrder(orderParams);
+
+      expect(response.isValid).toBe(false);
+      expect(response.error).toBe('Minimum order size is $10.00');
+    });
+  });
+
+  describe('validateClosePosition', () => {
+    it('should call PerpsController.validateClosePosition with correct parameters', async () => {
+      const mockValidationResult = { isValid: true };
+      (
+        Engine.context.PerpsController.validateClosePosition as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const response = await result.current.validateClosePosition(closeParams);
+
+      expect(
+        Engine.context.PerpsController.validateClosePosition,
+      ).toHaveBeenCalledWith(closeParams);
+      expect(response).toEqual(mockValidationResult);
+    });
+
+    it('should return validation error for invalid close position', async () => {
+      const mockValidationResult = {
+        isValid: false,
+        error: 'Coin is required',
+      };
+      (
+        Engine.context.PerpsController.validateClosePosition as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const closeParams: ClosePositionParams = {
+        coin: '',
+        orderType: 'market',
+      };
+
+      const response = await result.current.validateClosePosition(closeParams);
+
+      expect(response.isValid).toBe(false);
+      expect(response.error).toBe('Coin is required');
+    });
+  });
+
+  describe('validateWithdrawal', () => {
+    it('should call PerpsController.validateWithdrawal with correct parameters', async () => {
+      const mockValidationResult = { isValid: true };
+      (
+        Engine.context.PerpsController.validateWithdrawal as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '100',
+        destination: '0x1234567890123456789012345678901234567890' as Hex,
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831/default' as CaipAssetId,
+      };
+
+      const response = await result.current.validateWithdrawal(withdrawParams);
+
+      expect(
+        Engine.context.PerpsController.validateWithdrawal,
+      ).toHaveBeenCalledWith(withdrawParams);
+      expect(response).toEqual(mockValidationResult);
+    });
+
+    it('should handle validation without errors', async () => {
+      const mockValidationResult = { isValid: true };
+      (
+        Engine.context.PerpsController.validateWithdrawal as jest.Mock
+      ).mockResolvedValue(mockValidationResult);
+
+      const { result } = renderHook(() => usePerpsTrading());
+
+      const withdrawParams: WithdrawParams = {
+        amount: '100',
+      };
+
+      const response = await result.current.validateWithdrawal(withdrawParams);
+
+      expect(response.isValid).toBe(true);
+      expect(response.error).toBeUndefined();
+    });
+  });
+
   describe('hook stability', () => {
     it('should return stable function references', () => {
       const { result, rerender } = renderHook(() => usePerpsTrading());
@@ -591,6 +850,30 @@ describe('usePerpsTrading', () => {
         updatedFunctions.resetDepositState,
       );
       expect(initialFunctions.withdraw).toBe(updatedFunctions.withdraw);
+      expect(initialFunctions.calculateLiquidationPrice).toBe(
+        updatedFunctions.calculateLiquidationPrice,
+      );
+      expect(initialFunctions.calculateMaintenanceMargin).toBe(
+        updatedFunctions.calculateMaintenanceMargin,
+      );
+      expect(initialFunctions.getMaxLeverage).toBe(
+        updatedFunctions.getMaxLeverage,
+      );
+      expect(initialFunctions.updatePositionTPSL).toBe(
+        updatedFunctions.updatePositionTPSL,
+      );
+      expect(initialFunctions.calculateFees).toBe(
+        updatedFunctions.calculateFees,
+      );
+      expect(initialFunctions.validateOrder).toBe(
+        updatedFunctions.validateOrder,
+      );
+      expect(initialFunctions.validateClosePosition).toBe(
+        updatedFunctions.validateClosePosition,
+      );
+      expect(initialFunctions.validateWithdrawal).toBe(
+        updatedFunctions.validateWithdrawal,
+      );
     });
   });
 });
