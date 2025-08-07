@@ -659,7 +659,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       });
 
       await waitFor(() => {
-        expect(result.current).toEqual([]);
+        expect(result.current).toEqual(unusedApprovalsAlert);
       });
     });
   });
