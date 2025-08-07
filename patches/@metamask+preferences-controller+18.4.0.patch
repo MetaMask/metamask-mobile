@@ -154,7 +154,7 @@ index 7c24a04..892e601 100644
 +    /**
 +     * Controls token filtering controls
 +     */
-+    tokenNetworkFilter: Record<string, boolean>;
++    tokenNetworkFilter: Record<string, string>;
  };
  declare const name = "PreferencesController";
  export type PreferencesControllerGetStateAction = ControllerGetStateAction<typeof name, PreferencesState>;
