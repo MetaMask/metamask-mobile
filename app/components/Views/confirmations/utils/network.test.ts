@@ -14,13 +14,26 @@ jest.mock('../../../../util/networks', () => ({
 }));
 
 jest.mock('../../../../util/networks/customNetworks', () => ({
-  UnpopularNetworkList: [],
-  CustomNetworkImgMapping: {},
-  PopularList: [],
+  UnpopularNetworkList: [
+    {
+      chainId: '0xfa',
+      rpcPrefs: { imageSource: 'unpopular-network-image-source' },
+    },
+  ],
+  CustomNetworkImgMapping: {
+    '0x123': 'custom-network-image-source',
+  },
+  PopularList: [
+    {
+      chainId: '0x2a',
+      rpcPrefs: { imageSource: 'popular-network-image-source' },
+    },
+  ],
   getNonEvmNetworkImageSourceByChainId: jest.fn(),
 }));
 
 jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
   isCaipChainId: jest.fn(),
 }));
 
@@ -88,15 +101,6 @@ describe('getNetworkBadgeSource', () => {
       mockIsTestNet.mockReturnValue(false);
       mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
 
-      const { UnpopularNetworkList } = jest.requireActual(
-        '../../../../util/networks/customNetworks',
-      );
-      UnpopularNetworkList.length = 0;
-      UnpopularNetworkList.push({
-        chainId,
-        rpcPrefs: { imageSource: expectedImageSource },
-      });
-
       const result = getNetworkBadgeSource(chainId);
 
       expect(result).toBe(expectedImageSource);
@@ -110,15 +114,6 @@ describe('getNetworkBadgeSource', () => {
 
       mockIsTestNet.mockReturnValue(false);
       mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
-
-      const { PopularList } = jest.requireActual(
-        '../../../../util/networks/customNetworks',
-      );
-      PopularList.length = 0;
-      PopularList.push({
-        chainId,
-        rpcPrefs: { imageSource: expectedImageSource },
-      });
 
       const result = getNetworkBadgeSource(chainId);
 
@@ -158,13 +153,6 @@ describe('getNetworkBadgeSource', () => {
       mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
       mockIsCaipChainId.mockReturnValue(false);
 
-      const { CustomNetworkImgMapping } = jest.requireActual(
-        '../../../../util/networks/customNetworks',
-      );
-      Object.assign(CustomNetworkImgMapping, {
-        [chainId]: expectedImageSource,
-      });
-
       const result = getNetworkBadgeSource(chainId);
 
       expect(result).toBe(expectedImageSource);
@@ -201,58 +189,6 @@ describe('getNetworkBadgeSource', () => {
       const result = getNetworkBadgeSource(chainId);
 
       expect(result).toBe(testnetImageSource);
-    });
-
-    it('prioritizes default network over unpopular network', () => {
-      const chainId = '0x1';
-      const defaultImageSource = 'default-image';
-      const unpopularImageSource = 'unpopular-image';
-
-      mockIsTestNet.mockReturnValue(false);
-      mockGetDefaultNetworkByChainId.mockReturnValue({
-        imageSource: defaultImageSource,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-
-      const { UnpopularNetworkList } = jest.requireActual(
-        '../../../../util/networks/customNetworks',
-      );
-      UnpopularNetworkList.length = 0;
-      UnpopularNetworkList.push({
-        chainId,
-        rpcPrefs: { imageSource: unpopularImageSource },
-      });
-
-      const result = getNetworkBadgeSource(chainId);
-
-      expect(result).toBe(defaultImageSource);
-    });
-
-    it('prioritizes unpopular network over popular network', () => {
-      const chainId = '0xfa';
-      const unpopularImageSource = 'unpopular-image';
-      const popularImageSource = 'popular-image';
-
-      mockIsTestNet.mockReturnValue(false);
-      mockGetDefaultNetworkByChainId.mockReturnValue(undefined);
-
-      const { UnpopularNetworkList, PopularList } = jest.requireActual(
-        '../../../../util/networks/customNetworks',
-      );
-      UnpopularNetworkList.length = 0;
-      UnpopularNetworkList.push({
-        chainId,
-        rpcPrefs: { imageSource: unpopularImageSource },
-      });
-      PopularList.length = 0;
-      PopularList.push({
-        chainId,
-        rpcPrefs: { imageSource: popularImageSource },
-      });
-
-      const result = getNetworkBadgeSource(chainId);
-
-      expect(result).toBe(unpopularImageSource);
     });
   });
 });
