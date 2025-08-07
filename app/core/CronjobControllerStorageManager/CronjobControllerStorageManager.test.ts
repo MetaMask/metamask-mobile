@@ -22,6 +22,32 @@ describe('CronjobControllerStorageManager', () => {
 
       expect(data).toStrictEqual({ events: {} });
     });
+
+    it('returns initial controller state with existing values', async () => {
+      const manager = new CronjobControllerStorageManager();
+
+      const cronjobControllerState = {
+        events: {
+          foo: {
+            id: 'foo',
+            scheduledAt: '1234567890',
+            snapId: 'snapId' as SnapId,
+            date: '2023-10-01T00:00:00Z',
+            recurring: true,
+            schedule: '0 0 * * *',
+            request: {
+              method: 'testMethod',
+            },
+          },
+        },
+      };
+
+      manager.set(cronjobControllerState);
+
+      const data = manager.getInitialState();
+
+      expect(data).toStrictEqual(cronjobControllerState);
+    });
   });
 
   describe('set', () => {
