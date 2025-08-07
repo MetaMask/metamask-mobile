@@ -68,6 +68,24 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock trace utilities
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PerpsController: 'Perps Controller',
+    PerpsOrderExecution: 'Perps Order Execution',
+    PerpsDeposit: 'Perps Deposit',
+    PerpsWithdrawal: 'Perps Withdrawal',
+  },
+  TraceOperation: {
+    PerpsOperation: 'perps.operation',
+    PerpsOrderSubmission: 'perps.order_submission',
+    PerpsDeposit: 'perps.deposit',
+    PerpsWithdrawal: 'perps.withdrawal',
+  },
+}));
+
 // Mock successfulFetch for geo location testing
 jest.mock('@metamask/controller-utils', () => {
   const actual = jest.requireActual('@metamask/controller-utils');
@@ -743,6 +761,39 @@ describe('PerpsController', () => {
         expect(mockHyperLiquidProvider.closePosition).toHaveBeenCalledWith(
           closeParams,
         );
+      });
+    });
+
+    it('should track performance when placing order', async () => {
+      const orderParams = {
+        coin: 'ETH',
+        isBuy: true,
+        size: '1.5',
+        orderType: 'market' as const,
+      };
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'test-order-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        await controller.placeOrder(orderParams);
+
+        // Verify trace was called with correct parameters
+        const traceModule = jest.requireMock('../../../../util/trace');
+        expect(traceModule.trace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: expect.stringContaining('Perps Order Execution'),
+            tags: expect.objectContaining({
+              market: 'ETH',
+              leverage: 1,
+            }),
+          }),
+        );
+        expect(traceModule.endTrace).toHaveBeenCalled();
       });
     });
 

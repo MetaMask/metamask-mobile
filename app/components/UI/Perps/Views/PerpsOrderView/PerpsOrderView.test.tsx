@@ -153,6 +153,43 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock trace utilities
+jest.mock('../../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PerpsOrderView: 'Perps Order View',
+  },
+  TraceOperation: {
+    UIStartup: 'ui.startup',
+  },
+}));
+
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+}));
+jest.mock('../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+  MetaMetricsEvents: {
+    PERPS_DASHBOARD_VIEWED: 'PERPS_DASHBOARD_VIEWED',
+    PERPS_POSITION_OPENED: 'PERPS_POSITION_OPENED',
+    PERPS_LEVERAGE_ADJUSTED: 'PERPS_LEVERAGE_ADJUSTED',
+    PERPS_POSITION_SIZE_ENTERED: 'PERPS_POSITION_SIZE_ENTERED',
+    PERPS_ORDER_PREVIEW_SHOWN: 'PERPS_ORDER_PREVIEW_SHOWN',
+    PERPS_ORDER_SUBMIT_CLICKED: 'PERPS_ORDER_SUBMIT_CLICKED',
+    PERPS_ORDER_VALIDATION_FAILED: 'PERPS_ORDER_VALIDATION_FAILED',
+    PERPS_PAYMENT_TOKEN_SELECTED: 'PERPS_PAYMENT_TOKEN_SELECTED',
+    PERPS_TP_SL_SET: 'PERPS_TP_SL_SET',
+    PERPS_ORDER_TYPE_CHANGED: 'PERPS_ORDER_TYPE_CHANGED',
+  },
+}));
+
 // Mock Engine context to prevent accessing real PerpsController
 jest.mock('../../../../../core/Engine', () => ({
   context: {
@@ -499,6 +536,23 @@ describe('PerpsOrderView', () => {
     // MIN button functionality is part of the component
     // Verify the component renders correctly
     expect(screen.getByTestId('perps-amount-display')).toBeDefined();
+  });
+
+  it('should track performance metrics on mount', () => {
+    render(<PerpsOrderView />);
+
+    // Verify trace was called for screen load
+    const traceModule = jest.requireMock('../../../../../util/trace');
+    expect(traceModule.trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Perps Order View',
+        op: 'ui.startup',
+      }),
+    );
+
+    // Verify Mixpanel event was tracked
+    expect(mockCreateEventBuilder).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('should show slider when not focused on input', async () => {

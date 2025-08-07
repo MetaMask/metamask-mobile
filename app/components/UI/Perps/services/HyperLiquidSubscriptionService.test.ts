@@ -39,6 +39,25 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock trace utilities
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PerpsMarketDataUpdate: 'Perps Market Data Update',
+    PerpsWebSocketConnected: 'Perps WebSocket Connected',
+    PerpsWebSocketDisconnected: 'Perps WebSocket Disconnected',
+  },
+  TraceOperation: {
+    PerpsMarketData: 'perps.market_data',
+  },
+}));
+
+// Mock Sentry
+jest.mock('@sentry/react-native', () => ({
+  setMeasurement: jest.fn(),
+}));
+
 describe('HyperLiquidSubscriptionService', () => {
   let service: HyperLiquidSubscriptionService;
   let mockClientService: jest.Mocked<HyperLiquidClientService>;
@@ -129,6 +148,7 @@ describe('HyperLiquidSubscriptionService', () => {
     mockClientService = {
       ensureSubscriptionClient: jest.fn(),
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
+      isTestnetMode: jest.fn(() => false),
     } as any;
 
     // Mock wallet service
@@ -551,6 +571,37 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(mockCallback).toHaveBeenCalled();
 
       unsubscribe();
+    });
+  });
+
+  describe('WebSocket Monitoring', () => {
+    it('should track WebSocket connection and performance', async () => {
+      const mockCallback = jest.fn();
+
+      service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+      });
+
+      // Wait for subscription to be established
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Verify WebSocket connection tracking
+      const traceModule = jest.requireMock('../../../../util/trace');
+      expect(traceModule.trace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Perps WebSocket Connected',
+          op: 'perps.market_data',
+        }),
+      );
+
+      // Verify performance measurements
+      const sentryModule = jest.requireMock('@sentry/react-native');
+      expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
+        'price_update_process_ms',
+        expect.any(Number),
+        'millisecond',
+      );
     });
   });
 

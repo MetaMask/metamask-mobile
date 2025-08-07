@@ -23,6 +23,11 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
 jest.mock('../../services/HyperLiquidSubscriptionService');
+
+// Mock Sentry
+jest.mock('@sentry/react-native', () => ({
+  setMeasurement: jest.fn(),
+}));
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (key === 'time.minutes_format' && params?.count) {
@@ -115,7 +120,7 @@ describe('HyperLiquidProvider', () => {
       getExchangeClient: jest.fn().mockReturnValue({
         order: jest.fn().mockResolvedValue({
           status: 'ok',
-          response: { data: { statuses: [{ resting: { oid: '123' } }] } },
+          response: { data: { statuses: [{ resting: { oid: 123 } }] } },
         }),
         modify: jest.fn().mockResolvedValue({
           status: 'ok',
@@ -371,6 +376,36 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(true);
+    });
+
+    it('should track performance measurements when placing order', async () => {
+      const orderParams: OrderParams = {
+        coin: 'ETH',
+        isBuy: true,
+        size: '1.0',
+        orderType: 'market',
+        leverage: 10,
+      };
+
+      await provider.placeOrder(orderParams);
+
+      // Verify performance measurements were tracked
+      const sentryModule = jest.requireMock('@sentry/react-native');
+      expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
+        'order_validation_ms',
+        expect.any(Number),
+        'millisecond',
+      );
+      expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
+        'leverage_ratio',
+        10,
+        'none',
+      );
+      expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
+        'position_size_usd',
+        expect.any(Number),
+        'none',
+      );
     });
 
     it('should handle order placement errors', async () => {
