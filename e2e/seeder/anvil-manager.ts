@@ -1,6 +1,6 @@
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createAnvilClients } from './anvil-clients';
-import { AnvilPort } from '../fixtures/utils';
+import { AnvilPort } from '../framework/fixtures/FixtureUtils';
 import { AnvilNodeOptions } from '../framework/types';
 import { createLogger } from '../framework/logger';
 
