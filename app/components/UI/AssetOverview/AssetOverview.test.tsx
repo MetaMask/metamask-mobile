@@ -11,8 +11,6 @@ import {
   MOCK_ADDRESS_2,
   createMockSnapInternalAccount,
 } from '../../../util/test/accountsControllerTestUtils';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
-import { getDecimalChainId } from '../../../util/networks';
 import { TokenOverviewSelectorsIDs } from '../../../../e2e/selectors/wallet/TokenOverview.selectors';
 // eslint-disable-next-line import/no-namespace
 import * as transactions from '../../../util/transactions';
@@ -232,12 +230,17 @@ describe('AssetOverview', () => {
     const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
     fireEvent.press(buyButton);
 
-    expect(navigate).toHaveBeenCalledWith(
-      ...createBuyNavigationDetails({
-        address: asset.address,
-        chainId: getDecimalChainId(MOCK_CHAIN_ID),
-      }),
-    );
+    // Now expects navigation to FundActionMenu with onBuy function and asset context
+    expect(navigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'FundActionMenu',
+      params: {
+        onBuy: expect.any(Function),
+        asset: {
+          address: asset.address,
+          chainId: MOCK_CHAIN_ID,
+        },
+      },
+    });
   });
 
   it('should handle send button press', async () => {

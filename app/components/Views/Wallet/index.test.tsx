@@ -513,7 +513,6 @@ describe('Wallet', () => {
           goToSwaps: expect.any(Function),
           onReceive: expect.any(Function),
           onSend: expect.any(Function),
-          onBuy: expect.any(Function),
           buyButtonActionID: 'wallet-buy-button',
           swapButtonActionID: 'wallet-swap-button',
           bridgeButtonActionID: 'wallet-bridge-button',
@@ -594,14 +593,14 @@ describe('Wallet', () => {
       expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
     });
 
-    it('should handle onBuy callback correctly', () => {
+    it('should pass correct props to AssetDetailsActions (no onBuy prop needed)', () => {
       //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
-      const onBuy = mockAssetDetailsActions.mock.calls[0][0].onBuy;
-      onBuy();
-
-      expect(mockNavigate).toHaveBeenCalled();
+      // Verify that AssetDetailsActions is called without onBuy prop
+      const passedProps = mockAssetDetailsActions.mock.calls[0][0];
+      expect(passedProps.onBuy).toBeUndefined();
+      expect(passedProps.buyButtonActionID).toBeDefined();
     });
 
     it('should handle goToBridge callback correctly', () => {

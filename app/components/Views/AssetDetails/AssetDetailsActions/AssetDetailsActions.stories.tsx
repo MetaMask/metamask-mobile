@@ -108,3 +108,18 @@ export const NoButtons = Template.bind(
     onReceive: () => null,
   },
 );
+
+export const FundActionMenuNavigation = Template.bind(
+  {},
+  {
+    displayBuyButton: true,
+    displaySwapsButton: true,
+    displayBridgeButton: true,
+    swapsIsLive: true,
+    // No onBuy prop - will navigate to FundActionMenu
+    goToSwaps: () => null,
+    goToBridge: () => null,
+    onSend: () => null,
+    onReceive: () => null,
+  },
+);
