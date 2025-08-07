@@ -248,3 +248,24 @@ export const PerpsTestnetToggleSelectorsIDs = {
 export const PerpsDeveloperOptionsSectionSelectorsIDs = {
   PERPS_SANDBOX_BUTTON: 'perps-developer-options-section-perps-sandbox-button',
 };
+
+// ========================================
+// PERPS TRANSACTION SELECTORS
+// ========================================
+
+export const PerpsTransactionSelectorsIDs = {
+  // Transaction Detail Asset Hero
+  TRANSACTION_DETAIL_ASSET_HERO: 'perps-transaction-detail-asset-hero',
+  ASSET_ICON_CONTAINER: 'asset-icon-container',
+
+  // Transaction Item
+  TRANSACTION_ITEM: 'transaction-item',
+  TRANSACTION_ITEM_AVATAR: 'transaction-item-avatar',
+
+  // Transaction Views
+  FUNDING_TRANSACTION_VIEW: 'perps-funding-transaction-view',
+  ORDER_TRANSACTION_VIEW: 'perps-order-transaction-view',
+
+  // Common buttons
+  BLOCK_EXPLORER_BUTTON: 'block-explorer-button',
+};

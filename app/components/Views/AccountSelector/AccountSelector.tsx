@@ -7,7 +7,6 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useWindowDimensions } from 'react-native';
 
 // External dependencies.
 import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
@@ -52,9 +51,7 @@ import { ButtonProps } from '../../../component-library/components/Buttons/Butto
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
-  const { height: screenHeight } = useWindowDimensions();
-
-  const { styles } = useStyles(styleSheet, { screenHeight });
+  const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const routeParams = useMemo(() => route?.params, [route?.params]);

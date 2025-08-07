@@ -51,12 +51,12 @@ describe('getEstimatedTotalGas', () => {
 });
 
 describe('getMaxValueFn', () => {
-  it('return undefined if no asset is passed', () => {
+  it('return default if no asset is passed', () => {
     expect(
       getMaxValueFn(
         getMaxFnArguments({ asset: undefined }) as unknown as GetMaxValueArgs,
       ),
-    ).toStrictEqual(undefined);
+    ).toStrictEqual({ balance: '0', maxAmount: '0' });
   });
 
   it('return correct value for native token', () => {
@@ -69,7 +69,7 @@ describe('getMaxValueFn', () => {
           },
         }) as unknown as GetMaxValueArgs,
       ),
-    ).toStrictEqual('999.9999685');
+    ).toStrictEqual({ balance: '1000', maxAmount: '999.9999685' });
   });
 
   it('return correct value for ERC20 token', () => {
@@ -82,7 +82,7 @@ describe('getMaxValueFn', () => {
           },
         }) as unknown as GetMaxValueArgs,
       ),
-    ).toStrictEqual('10000000');
+    ).toStrictEqual({ balance: '10000000', maxAmount: '10000000' });
   });
 });
 

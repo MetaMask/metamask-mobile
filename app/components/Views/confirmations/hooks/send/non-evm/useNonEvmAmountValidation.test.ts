@@ -19,23 +19,23 @@ const getArguments = (params: Record<string, unknown>) => ({
 describe('validateAmountFn', () => {
   it('returns undefined if no value is passed', () => {
     expect(validateAmountFn(getArguments({ amount: undefined }))).toStrictEqual(
-      undefined,
+      { invalidAmount: true },
     );
-    expect(validateAmountFn(getArguments({ amount: null }))).toStrictEqual(
-      undefined,
-    );
-    expect(validateAmountFn(getArguments({ amount: '' }))).toStrictEqual(
-      undefined,
-    );
+    expect(validateAmountFn(getArguments({ amount: null }))).toStrictEqual({
+      invalidAmount: true,
+    });
+    expect(validateAmountFn(getArguments({ amount: '' }))).toStrictEqual({
+      invalidAmount: true,
+    });
   });
 
   it('returns invalid value error if value passed is not correct positive decimal', () => {
-    expect(validateAmountFn(getArguments({ amount: 'abc' }))).toStrictEqual(
-      'Invalid amount',
-    );
-    expect(validateAmountFn(getArguments({ amount: '-100' }))).toStrictEqual(
-      'Invalid amount',
-    );
+    expect(validateAmountFn(getArguments({ amount: 'abc' }))).toStrictEqual({
+      invalidAmount: true,
+    });
+    expect(validateAmountFn(getArguments({ amount: '-100' }))).toStrictEqual({
+      invalidAmount: true,
+    });
   });
 
   it('does not return error if amount is less than user balance', () => {
@@ -45,7 +45,7 @@ describe('validateAmountFn', () => {
           amount: '50',
         }),
       ),
-    ).toStrictEqual(undefined);
+    ).toStrictEqual({});
   });
 
   it('does not return error if amount is equal to user balance', () => {
@@ -55,7 +55,7 @@ describe('validateAmountFn', () => {
           amount: '100',
         }),
       ),
-    ).toStrictEqual(undefined);
+    ).toStrictEqual({});
   });
 
   it('return error if amount is greater than user balance', () => {
@@ -65,7 +65,7 @@ describe('validateAmountFn', () => {
           amount: '200',
         }),
       ),
-    ).toStrictEqual('Insufficient funds');
+    ).toStrictEqual({ insufficientBalance: true });
   });
 });
 
