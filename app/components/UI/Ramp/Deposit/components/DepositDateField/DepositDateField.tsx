@@ -69,8 +69,12 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
     const handleOpenPicker = useCallback(() => {
       handleOnPress?.();
+      // if opened with no value set the default date
+      if (!value || value.trim() === '') {
+        setPendingDateSelection(DEFAULT_DATE);
+      }
       setShowDatePicker(true);
-    }, [handleOnPress]);
+    }, [handleOnPress, value]);
 
     const handleClosePicker = useCallback(() => {
       setShowDatePicker(false);
