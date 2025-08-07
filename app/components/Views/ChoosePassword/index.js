@@ -101,29 +101,29 @@ const createStyles = (colors) =>
       flexDirection: 'column',
     },
     loadingWrapper: {
-      paddingHorizontal: 40,
-      paddingBottom: 30,
+      paddingHorizontal: 16,
       alignItems: 'center',
+      display: 'flex',
+      justifyContent: 'flex-start',
+      alignContent: 'center',
       flex: 1,
+      rowGap: 24,
     },
     foxWrapper: {
-      width: Device.isIos() ? 90 : 80,
-      height: Device.isIos() ? 90 : 80,
-      marginTop: 30,
-      marginBottom: 30,
+      width: Device.isMediumDevice() ? 180 : 220,
+      height: Device.isMediumDevice() ? 180 : 220,
     },
     image: {
       alignSelf: 'center',
-      width: 80,
-      height: 80,
+      width: Device.isMediumDevice() ? 180 : 220,
+      height: Device.isMediumDevice() ? 180 : 220,
     },
-    title: {
-      justifyContent: 'flex-start',
-      textAlign: 'flex-start',
-      fontSize: 32,
-    },
-    subtitle: {
-      textAlign: 'center',
+    loadingTextContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      rowGap: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     field: {
       position: 'relative',
@@ -297,7 +297,7 @@ class ChoosePassword extends PureComponent {
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: this.headerLeft,
+          headerLeft: this.state.loading ? () => <View /> : this.headerLeft,
         },
         colors,
         false,
@@ -765,21 +765,26 @@ class ChoosePassword extends PureComponent {
               />
             </View>
             <ActivityIndicator size="large" color={colors.text.default} />
-            <Text
-              variant={TextVariant.HeadingLG}
-              style={styles.title}
-              adjustsFontSizeToFit
-              numberOfLines={1}
-            >
-              {strings(
-                previousScreen === ONBOARDING
-                  ? 'create_wallet.title'
-                  : 'secure_your_wallet.creating_password',
-              )}
-            </Text>
-            <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
-              {strings('create_wallet.subtitle')}
-            </Text>
+            <View style={styles.loadingTextContainer}>
+              <Text
+                variant={TextVariant.HeadingLG}
+                color={colors.text.default}
+                adjustsFontSizeToFit
+                numberOfLines={1}
+              >
+                {strings(
+                  previousScreen === ONBOARDING
+                    ? 'create_wallet.title'
+                    : 'secure_your_wallet.creating_password',
+                )}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={colors.text.alternative}
+              >
+                {strings('create_wallet.subtitle')}
+              </Text>
+            </View>
           </View>
         ) : (
           <KeyboardAwareScrollView
