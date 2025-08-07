@@ -9,6 +9,7 @@ import { EditAmountKeyboard } from '../edit-amount-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
+
 export interface EditAmountProps {
   autoKeyboard?: boolean;
   children?: React.ReactNode;
@@ -87,15 +88,17 @@ export function EditAmount({
 
   return (
     <View style={styles.container}>
-      <TextInput
-        testID="edit-amount-input"
-        value={displayValue}
-        style={styles.input}
-        ref={inputRef}
-        showSoftInputOnFocus={false}
-        onPress={handleInputPress}
-      />
-      {children}
+      <View style={styles.primaryContainer}>
+        <TextInput
+          testID="edit-amount-input"
+          value={displayValue}
+          style={styles.input}
+          ref={inputRef}
+          showSoftInputOnFocus={false}
+          onPress={handleInputPress}
+        />
+        {children}
+      </View>
       {showKeyboard && (
         <EditAmountKeyboard
           value={amountHuman}

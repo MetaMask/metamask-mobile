@@ -8,6 +8,7 @@ import Button, {
 import { Box } from '../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
+import { View } from 'react-native';
 
 const PERCENTAGE_BUTTONS = [10, 25, 50];
 
@@ -36,7 +37,7 @@ export function EditAmountKeyboard({
   );
 
   return (
-    <>
+    <View>
       <Box
         testID="edit-amount-keyboard"
         flexDirection={FlexDirection.Row}
@@ -66,6 +67,6 @@ export function EditAmountKeyboard({
         digitButtonStyle={styles.digitButton}
         currency="native"
       />
-    </>
+    </View>
   );
 }

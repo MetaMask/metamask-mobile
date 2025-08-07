@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
 import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row/gas-fee-details-row';
 import { PayWithRow } from '../../../../components/rows/pay-with-row';
 import useNavbar from '../../../../hooks/ui/useNavbar';
@@ -29,7 +28,7 @@ export function PerpsDeposit() {
   };
 
   return (
-    <View>
+    <>
       <EditAmount
         prefix={AMOUNT_PREFIX}
         autoKeyboard
@@ -50,6 +49,6 @@ export function PerpsDeposit() {
           </>
         )}
       </EditAmount>
-    </View>
+    </>
   );
 }

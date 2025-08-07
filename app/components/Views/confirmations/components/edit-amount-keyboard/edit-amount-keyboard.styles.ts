@@ -4,12 +4,9 @@ import { Theme } from '../../../../../util/theme/models';
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     container: {
-      display: 'flex',
-      justifyContent: 'space-evenly',
       paddingHorizontal: 0,
       marginInline: -5,
-      position: 'relative',
-      bottom: 0,
+      justifyContent: 'center',
     },
     digitButton: {
       borderRadius: 12,
@@ -24,6 +21,7 @@ const styleSheet = (params: { theme: Theme }) =>
       height: 48,
       flexGrow: 1,
       fontSize: 20,
+      marginBottom: 5,
     },
   });
 
