@@ -1,10 +1,10 @@
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
-import { useSendType } from './useSendType';
 import { useEvmToAddressValidation } from './evm/useEvmToAddressValidation';
+import { useSendType } from './useSendType';
 import { useSolanaToAddressValidation } from './solana/useSolanaToAddressValidation';
 
 // todo: to address validation assumees `to` is the input from the user
-// depending on implementation we may need to have 2 fields for receipient `toInput` and `toResolved`
+// depending on implementation we may need to have 2 fields for recipient `toInput` and `toResolved`
 export const useToAddressValidation = () => {
   const { isEvmSendType, isSolanaSendType } = useSendType();
   const { validateEvmToAddress } = useEvmToAddressValidation();

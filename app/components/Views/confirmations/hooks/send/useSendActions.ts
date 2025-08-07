@@ -40,6 +40,7 @@ export const useSendActions = () => {
     );
   }, [asset, chainId, navigation, fromAccount, from, isEvmSendType, to, value]);
 
+  // todo: depending on the designs this function may not be needed
   const handleCancelPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);

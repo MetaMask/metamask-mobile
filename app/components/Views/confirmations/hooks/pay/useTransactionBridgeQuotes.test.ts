@@ -1,7 +1,10 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionPayTokenAmounts } from './useTransactionPayTokenAmounts';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
+import {
+  TransactionToken,
+  useTransactionRequiredTokens,
+} from './useTransactionRequiredTokens';
 import { useTransactionBridgeQuotes } from './useTransactionBridgeQuotes';
 import { TransactionBridgeQuote, getBridgeQuotes } from '../../utils/bridge';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
@@ -63,6 +66,8 @@ describe('useTransactionBridgeQuotes', () => {
     } as unknown as TransactionMeta);
 
     useTransactionPayTokenMock.mockReturnValue({
+      balanceHuman: '123.456',
+      decimals: 4,
       payToken: {
         address: TOKEN_ADDRESS_SOURCE_MOCK,
         chainId: CHAIN_ID_SOURCE_MOCK,
@@ -73,18 +78,18 @@ describe('useTransactionBridgeQuotes', () => {
     useTransactionRequiredTokensMock.mockReturnValue([
       {
         address: TOKEN_ADDRESS_TARGET_1_MOCK,
-        amount: '0x1',
       },
       {
         address: TOKEN_ADDRESS_TARGET_2_MOCK,
-        amount: '0x2',
       },
-    ]);
+    ] as unknown as TransactionToken[]);
 
-    useTransactionPayTokenAmountsMock.mockReturnValue([
-      SOURCE_AMOUNT_1_MOCK,
-      SOURCE_AMOUNT_2_MOCK,
-    ]);
+    useTransactionPayTokenAmountsMock.mockReturnValue({
+      amounts: [
+        { amountRaw: SOURCE_AMOUNT_1_MOCK },
+        { amountRaw: SOURCE_AMOUNT_2_MOCK },
+      ],
+    } as ReturnType<typeof useTransactionPayTokenAmounts>);
 
     getBridgeQuotesMock.mockResolvedValue([QUOTE_MOCK, QUOTE_MOCK]);
   });

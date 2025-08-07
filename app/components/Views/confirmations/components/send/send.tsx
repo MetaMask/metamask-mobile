@@ -5,14 +5,18 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { SendContextProvider } from '../../context/send-context';
 import { Confirm } from '../confirm';
 
-import { SendRoot } from './send-root';
+import { Amount } from './amount';
+import { Asset } from './asset';
+import { SendTo } from './send-to';
 
 const Stack = createStackNavigator();
 
 export const Send = () => (
   <SendContextProvider>
     <Stack.Navigator headerMode="screen">
-      <Stack.Screen name={Routes.SEND.ROOT} component={SendRoot} />
+      <Stack.Screen name={Routes.SEND.AMOUNT} component={Amount} />
+      <Stack.Screen name={Routes.SEND.ASSET} component={Asset} />
+      <Stack.Screen name={Routes.SEND.RECIPIENT} component={SendTo} />
       <Stack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
         component={Confirm}
