@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import { PerpsBottomSheetTooltipProps } from './PerpsBottomSheetTooltip.types';
 import { PerpsBottomSheetTooltipSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsOrderProvider } from '../../contexts/PerpsOrderContext';
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -118,11 +119,25 @@ describe('PerpsBottomSheetTooltip', () => {
   });
 
   it('renders custom tooltip content correctly (Fee Tooltip)', () => {
-    const { getByText, queryAllByText } = renderBottomSheetTooltip({
-      isVisible: true,
-      onClose: mockOnClose,
-      contentKey: 'fees',
-    });
+    const params = {
+      initialAsset: 'BTC',
+      initialDirection: 'long' as const,
+      initialAmount: '6',
+      initialLeverage: 5,
+    };
+
+    const { getByText, queryAllByText } = renderWithProvider(
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <PerpsOrderProvider {...params}>
+          <PerpsBottomSheetTooltip
+            isVisible
+            onClose={mockOnClose}
+            contentKey={'fees'}
+            testID={PerpsBottomSheetTooltipSelectorsIDs.TOOLTIP}
+          />
+        </PerpsOrderProvider>
+      </SafeAreaProvider>,
+    );
 
     expect(getByText('Fees')).toBeTruthy();
     expect(getByText('MetaMask fee')).toBeTruthy();
