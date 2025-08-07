@@ -10,13 +10,13 @@ import Engine from '../../core/Engine';
 
 export class AccountTreeInitService {
   initializeAccountTree = async (): Promise<void> => {
-    const {
-      AccountTreeController,
-      AccountsController,
-      RemoteFeatureFlagController,
-    } = Engine.context;
-    const { enableMultichainAccounts } =
-      RemoteFeatureFlagController.state.remoteFeatureFlags;
+    const { AccountTreeController, AccountsController } = Engine.context;
+    const enableMultichainAccounts = {
+      enabled: true,
+      featureVersion: MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+      minimumVersion: '0.0.0',
+    };
+
     if (!assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)) {
       return;
     }

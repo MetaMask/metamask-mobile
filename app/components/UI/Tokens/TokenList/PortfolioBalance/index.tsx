@@ -21,6 +21,9 @@ import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMulti
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { balanceSelectors } from '@metamask/assets-controllers';
+import { formatWithThreshold } from '../../../../../util/assets';
+import I18n from '../../../../../../locales/i18n';
 
 export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
@@ -31,6 +34,75 @@ export const PortfolioBalance = React.memo(() => {
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+
+  const { selectBalanceForAllWallets } = balanceSelectors;
+  const assetsControllersBalance = useSelector(selectBalanceForAllWallets());
+
+  // Log detailed balance information for all wallets and groups
+  // eslint-disable-next-line no-console
+  console.log(
+    '💰 MetaMask Wallet Balance Details:',
+    JSON.stringify(
+      {
+        totalBalance: assetsControllersBalance?.totalBalanceInUserCurrency,
+        currency: assetsControllersBalance?.userCurrency,
+        walletCount: assetsControllersBalance?.wallets
+          ? Object.keys(assetsControllersBalance.wallets).length
+          : 0,
+        wallets: assetsControllersBalance?.wallets
+          ? Object.entries(assetsControllersBalance.wallets).map(
+              ([walletId, wallet]) => ({
+                walletId,
+                totalBalance: wallet.totalBalanceInUserCurrency,
+                currency: wallet.userCurrency,
+                groupCount: Object.keys(wallet.groups).length,
+                groups: Object.entries(wallet.groups).map(
+                  ([groupId, group]) => ({
+                    groupId,
+                    totalBalance: group.totalBalanceInUserCurrency,
+                    currency: group.userCurrency,
+                  }),
+                ),
+              }),
+            )
+          : [],
+      },
+      null,
+      2,
+    ),
+  );
+
+  // Format total portfolio balance
+  const formattedTotalPortfolioBalance =
+    assetsControllersBalance?.totalBalanceInUserCurrency !== undefined
+      ? formatWithThreshold(
+          assetsControllersBalance.totalBalanceInUserCurrency,
+          0,
+          I18n.locale,
+          {
+            style: 'currency',
+            currency: assetsControllersBalance.userCurrency.toUpperCase(),
+          },
+        )
+      : undefined;
+
+  // Create display text with total portfolio balance in parentheses
+  const getDisplayText = () => {
+    const selectedBalance = selectedAccountMultichainBalance?.displayBalance;
+    const totalBalance = formattedTotalPortfolioBalance;
+
+    if (!selectedBalance) {
+      return undefined;
+    }
+
+    // Only show total portfolio balance if it's different from the selected account balance
+    // and if we have a valid total balance
+    if (totalBalance && totalBalance !== selectedBalance) {
+      return `${selectedBalance} (${totalBalance})`;
+    }
+
+    return selectedBalance;
+  };
 
   const renderAggregatedPercentage = () => {
     if (
@@ -63,11 +135,13 @@ export const PortfolioBalance = React.memo(() => {
     [PreferencesController],
   );
 
+  const displayText = getDisplayText();
+
   return (
     <View style={styles.portfolioBalance}>
       <View>
         <View>
-          {selectedAccountMultichainBalance?.displayBalance ? (
+          {displayText ? (
             <View style={styles.balanceContainer}>
               <SensitiveText
                 isHidden={privacyMode}
@@ -75,7 +149,7 @@ export const PortfolioBalance = React.memo(() => {
                 testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
                 variant={TextVariant.DisplayLG}
               >
-                {selectedAccountMultichainBalance.displayBalance}
+                {displayText}
               </SensitiveText>
               <TouchableOpacity
                 onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}

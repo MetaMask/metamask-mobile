@@ -4857,10 +4857,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^73.0.1":
-  version "73.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-73.0.1.tgz#b95d54f1f2bd12903e795e4c0eec69dcdbd29d63"
-  integrity sha512-K5ffE+wavPIKXjVny0cbAwM5zguyQ0qAkBs22zIqpke0ai50WXDyIeJym742An/UtISVij3saP62REGmgLzTPw==
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@73.0.2-preview-b31794c":
+  version "73.0.2-preview-b31794c"
+  resolved "https://registry.npmjs.org/@metamask-previews/assets-controllers/-/assets-controllers-73.0.2-preview-b31794c.tgz#9a2701a5220d576bf6102cc02c17627b767a1c42"
+  integrity sha512-WmpUsi5c/7LUpu65TFFBej5HHFoEvKD/v4rWllJsfhrLer57tpei/SK+ylXKJcpJjiAGtpTnDmuojW6aBFVUKQ==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4873,7 +4873,7 @@
     "@metamask/contract-metadata" "^2.4.0"
     "@metamask/controller-utils" "^11.11.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/keyring-api" "^19.0.0"
+    "@metamask/keyring-api" "^20.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/rpc-errors" "^7.0.2"
@@ -4888,6 +4888,7 @@
     immer "^9.0.6"
     lodash "^4.17.21"
     multiformats "^13.1.0"
+    reselect "^5.1.1"
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
@@ -5423,6 +5424,16 @@
   version "19.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-19.1.0.tgz#5fcf1873bc779774a53025982bd84230d03dcf66"
   integrity sha512-QmKlPuPKtVzFz+wmTX8FbrAatHC0X17t2EwaejoUXDbGdeEH1H3dHGjRHXVkfdjBWdTh2OeCXVUP/TVXwwxKGw==
+  dependencies:
+    "@metamask/keyring-utils" "^3.1.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.1.0"
+    bitcoin-address-validation "^2.2.3"
+
+"@metamask/keyring-api@^20.0.0":
+  version "20.0.0"
+  resolved "https://registry.npmjs.org/@metamask/keyring-api/-/keyring-api-20.0.0.tgz#831dee2a44d1521b1f057e095b479ed6a3c88331"
+  integrity sha512-kRJ+dYIiE99MaoH2kmO1lc2m3Jc3sKINJxWp4iBlyiugx7lUd3Fmr+s4rsUv6l/9EXUygOckX/qfYJtR+2I04Q==
   dependencies:
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/superstruct" "^3.1.0"

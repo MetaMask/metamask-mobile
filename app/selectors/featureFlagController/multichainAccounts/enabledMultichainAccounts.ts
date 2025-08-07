@@ -66,9 +66,12 @@ export const isMultichainAccountsFeatureEnabled = (
  * @returns Boolean indicating if the multichain accounts feature is enabled for the specified versions.
  */
 const createMultichainAccountsStateSelector = (featureVersions: string[]) =>
-  createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags): boolean => {
-    const enableMultichainAccounts =
-      remoteFeatureFlags.enableMultichainAccounts;
+  createSelector(selectRemoteFeatureFlags, (): boolean => {
+    const enableMultichainAccounts = {
+      enabled: true,
+      featureVersion: MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
+      minimumVersion: '0.0.0',
+    };
     if (!assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)) {
       return false;
     }
