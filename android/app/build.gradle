@@ -171,7 +171,7 @@ def reactNativeArchitectures() {
 * Adding function that will retuen the Bitrise ndkPath if it is a QA or Production Build
 */
 def ndkPath() {
-    return System.getenv('METAMASK_ENVIRONMENT') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
+    return System.getenv('METAMASK_BUILD_TYPE') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'qa' || System.getenv('METAMASK_ENVIRONMENT') == 'production' ? rootProject.ext.bitriseNdkPath : ""
 }
 
 
@@ -188,7 +188,7 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionName "7.53.0"
-        versionCode 2223
+        versionCode 2224
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         manifestPlaceholders.MM_BRANCH_KEY_TEST = "$System.env.MM_BRANCH_KEY_TEST"
@@ -275,7 +275,7 @@ android {
             applicationIdSuffix ".flask"
             applicationId "io.metamask"
             // Use the appropriate signing config based on environment
-            if (System.getenv("METAMASK_ENVIRONMENT") == 'qa') {
+            if (System.getenv("METAMASK_ENVIRONMENT") == 'qa' || System.getenv('METAMASK_BUILD_TYPE') == 'qa') {
               signingConfig signingConfigs.qa
             } else {
               signingConfig signingConfigs.flask
