@@ -49,6 +49,12 @@
     "batched_unused_approvals": {
       "title": "Unnecessary permission",
       "message": "You're giving someone else permission to withdraw your tokens, even though it's not necessary for this transaction."
+    },
+    "perps_deposit_minimum": {
+      "message": "Min order value is $10"
+    },
+    "insufficient_pay_token_balance": {
+      "message": "Insufficient funds. Select different token."
     }
   },
   "blockaid_banner": {
@@ -747,6 +753,7 @@
       "bic": "BIC",
       "account_type": "Account type",
       "bank_name": "Bank name",
+      "beneficiary_address": "Beneficiary address",
       "bank_address": "Bank address",
       "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
       "error_message": "We were unable to confirm your bank transfer. Please try again.",
@@ -1175,6 +1182,42 @@
     "developer_options": {
       "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
       "perps_sandbox_button": "Perps Sandbox"
+    },
+    "transactions": {
+      "title": "Perps",
+      "tabs": {
+        "trades": "Trades",
+        "orders": "Orders",
+        "funding": "Funding"
+      },
+      "not_found": "Transaction not found",
+      "position": {
+        "date": "Date",
+        "size": "Size",
+        "entry_price": "Entry price",
+        "points": "Points",
+        "fees": "Fees",
+        "pnl": "P&L"
+      },
+      "order": {
+        "date": "Date",
+        "size": "Size",
+        "limit_price": "Limit price",
+        "filled": "Filled",
+        "metamask_fee": "MetaMask fee",
+        "hyperliquid_fee": "Hyperliquid fee",
+        "total_fee": "Total fee"
+      },
+      "funding": {
+        "date": "Date",
+        "fee": "Fee",
+        "rate": "Rate"
+      },
+      "view_on_explorer": "View on block explorer",
+      "empty_state": {
+        "no_transactions": "No {{type}} transactions yet",
+        "history_will_appear": "Your trading history will appear here"
+      }
     }
   },
   "receive": {
@@ -4774,7 +4817,8 @@
       "now": "Now",
       "switching_to": "Switching To",
       "bridge_estimated_time": "Est. time",
-      "pay_with": "Pay with"
+      "pay_with": "Pay with",
+      "total": "Total"
     },
     "title": {
       "signature": "Signature request",
@@ -4894,7 +4938,8 @@
     "review": "Review",
     "transferRequest": "Transfer request",
     "nested_transaction_heading": "Transaction {{index}}",
-    "transaction": "Transaction"
+    "transaction": "Transaction",
+    "available_balance": "Available: "
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
