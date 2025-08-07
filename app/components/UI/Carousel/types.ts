@@ -10,6 +10,7 @@ export type SlideId =
   | 'multisrp'
   | 'backupAndSync'
   | 'solana'
+  | 'smartAccount'
   | `contentful-${string}`;
 
 interface NavigationParams {
@@ -26,7 +27,9 @@ interface NavigationScreen {
   params: NavigationParams;
 }
 
-type NavigationRoute = readonly [string] | readonly [string, NavigationScreen];
+export type NavigationRoute =
+  | readonly [string]
+  | readonly [string, NavigationScreen];
 
 export interface UrlNavigationAction {
   type: 'url';

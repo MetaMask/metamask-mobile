@@ -20,7 +20,7 @@ export const EarnNetworkAvatar = ({ token }: EarnNetworkAvatarProps) => {
         style={styles.networkAvatar}
         ticker={token.ticker ?? ''}
         big={false}
-        biggest={false}
+        biggest
         testID={`earn-token-list-item-${token.symbol}-${token.chainId}`}
       />
     );

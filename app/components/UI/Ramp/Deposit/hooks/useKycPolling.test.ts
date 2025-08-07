@@ -10,6 +10,7 @@ import {
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
+import { DepositRegion } from '../constants';
 
 jest.mock('./useDepositSdkMethod');
 jest.mock('../sdk');
@@ -52,9 +53,13 @@ describe('useKycPolling', () => {
       authToken: { id: 'test-token' } as NativeTransakAccessToken,
       setAuthToken: jest.fn(),
       checkExistingToken: jest.fn(),
-      clearAuthToken: jest.fn(),
+      logoutFromProvider: jest.fn(),
       getStarted: true,
       setGetStarted: jest.fn(),
+      selectedRegion: {
+        isoCode: 'US',
+      } as DepositRegion,
+      setSelectedRegion: jest.fn(),
     });
   });
 

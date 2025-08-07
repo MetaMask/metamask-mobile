@@ -1,7 +1,8 @@
-import { useIsNft } from './useIsNft';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { TokenStandard } from '../../../../UI/SimulationDetails/types';
 import { useGetTokenStandardAndDetails } from '../useGetTokenStandardAndDetails';
+import { useIsNft } from './useIsNft';
 
 jest.mock('../transactions/useTransactionMetadataRequest', () => ({
   useTransactionMetadataRequest: jest.fn().mockReturnValue({
@@ -25,7 +26,41 @@ describe('useIsNft', () => {
     jest.clearAllMocks();
   });
 
-  it('returns isNft true when token standard is not ERC20', () => {
+  it.each([
+    { standard: TokenStandard.ERC1155, isNft: true },
+    { standard: TokenStandard.ERC721, isNft: true },
+    { standard: TokenStandard.ERC20, isNft: false },
+  ])(
+    'returns isNft $isNft when token standard is $standard',
+    ({ standard, isNft }) => {
+      (useGetTokenStandardAndDetails as jest.Mock).mockReturnValue({
+        details: {
+          standard,
+        },
+        isPending: false,
+      });
+
+      const { result } = renderHookWithProvider(useIsNft, {
+        state: {
+          engine: {
+            backgroundState,
+          },
+        },
+      });
+
+      expect(result.current).toEqual({
+        isNft,
+        isPending: false,
+      });
+    },
+  );
+
+  it('returns undefined when token standard is undefined', () => {
+    (useGetTokenStandardAndDetails as jest.Mock).mockReturnValue({
+      details: undefined,
+      isPending: true,
+    });
+
     const { result } = renderHookWithProvider(useIsNft, {
       state: {
         engine: {
@@ -35,17 +70,15 @@ describe('useIsNft', () => {
     });
 
     expect(result.current).toEqual({
-      isNft: true,
-      isPending: false,
+      isNft: undefined,
+      isPending: true,
     });
   });
 
-  it('returns isNft false when token standard is ERC20', () => {
+  it('when token standard is on pending state, returns undefined', () => {
     (useGetTokenStandardAndDetails as jest.Mock).mockReturnValue({
-      details: {
-        standard: 'ERC20',
-      },
-      isPending: false,
+      details: undefined,
+      isPending: true,
     });
 
     const { result } = renderHookWithProvider(useIsNft, {
@@ -57,8 +90,8 @@ describe('useIsNft', () => {
     });
 
     expect(result.current).toEqual({
-      isNft: false,
-      isPending: false,
+      isNft: undefined,
+      isPending: true,
     });
   });
 });

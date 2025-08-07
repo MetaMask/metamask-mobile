@@ -15,7 +15,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
       paddingTop: 8,
     },
     keyboardAvoidingView: {
-      flex: 1
+      flex: 1,
     },
     contentContainer: {
       paddingVertical: 15,
@@ -79,7 +79,7 @@ const styleSheet = ({ theme: { colors, typography } }: { theme: Theme }) =>
     },
     price: {
       color: colors.text.default,
-    }
+    },
   });
 
 export default styleSheet;

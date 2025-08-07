@@ -10,8 +10,8 @@ const styleSheet = (params: {
   const { colors } = theme;
   const { isNegative, isApproval } = vars;
 
-  let backgroundColor: string | undefined = undefined;
-  let textColor: string | undefined = undefined;
+  let backgroundColor: string | undefined;
+  let textColor: string | undefined;
 
   if (isApproval) {
     backgroundColor = colors.background.muted;

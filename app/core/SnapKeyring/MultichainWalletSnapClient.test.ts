@@ -9,8 +9,7 @@ import { CaipChainId, SnapId } from '@metamask/snaps-sdk';
 import Engine from '../Engine';
 import { Sender } from '@metamask/keyring-snap-client';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
-import { BITCOIN_WALLET_SNAP_ID } from './BitcoinWalletSnap';
+import { SolScope } from '@metamask/keyring-api';
 
 const mockSnapKeyring = {
   createAccount: jest.fn(),
@@ -203,7 +202,7 @@ describe('MultichainWalletSnapClient', () => {
         },
       );
 
-      await client.addDiscoveredAccounts(mockEntropySource);
+      await client.addDiscoveredAccounts(mockEntropySource, SolScope.Mainnet);
 
       expect(mockSnapKeyring.createAccount).toHaveBeenCalledTimes(1);
       expect(mockSnapKeyring.createAccount).toHaveBeenCalledWith(
@@ -282,39 +281,12 @@ describe('Wallet Client Implementations', () => {
       const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
       expect(bitcoinClient).toBeDefined();
     });
-
-    it('getScope returns bitcoin network', () => {
-      const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
-      expect(bitcoinClient.getScope()).toEqual(BtcScope.Mainnet);
-    });
-
-    it('adds synchronize parameter to createAccount', async () => {
-      const mockOptions = {
-        scope: BtcScope.Mainnet,
-        accountNameSuggestion: 'Bitcoin Account 1',
-        entropySource: 'test-entropy',
-      };
-
-      const bitcoinClient = new BitcoinWalletSnapClient(mockSnapKeyringOptions);
-      await bitcoinClient.createAccount(mockOptions);
-
-      expect(mockSnapKeyring.createAccount).toHaveBeenCalledWith(
-        BITCOIN_WALLET_SNAP_ID,
-        { ...mockOptions, synchronize: true },
-        mockSnapKeyringOptions,
-      );
-    });
   });
 
   describe('SolanaWalletSnapClient', () => {
     it('should create a SolanaWalletSnapClient', () => {
       const solanaClient = new SolanaWalletSnapClient(mockSnapKeyringOptions);
       expect(solanaClient).toBeDefined();
-    });
-
-    it('getScope returns solana network', () => {
-      const solanaClient = new SolanaWalletSnapClient(mockSnapKeyringOptions);
-      expect(solanaClient.getScope()).toEqual(SolScope.Mainnet);
     });
   });
 });

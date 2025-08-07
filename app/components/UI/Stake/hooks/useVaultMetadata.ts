@@ -25,9 +25,7 @@ const useVaultMetadata = (chainId: number) => {
     setError(null);
 
     try {
-      await Engine.context.EarnController.refreshPooledStakingVaultMetadata(
-        chainId,
-      );
+      await Engine.context.EarnController.refreshPooledStakingVaultMetadata();
     } catch (err) {
       setError('Failed to fetch vault metadata');
     } finally {

@@ -119,9 +119,8 @@ exports[`ProgressStepper renders correctly 1`] = `
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -136,9 +135,8 @@ exports[`ProgressStepper renders correctly 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -150,9 +148,8 @@ exports[`ProgressStepper renders correctly 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -190,9 +187,8 @@ exports[`ProgressStepper renders correctly 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -207,9 +203,8 @@ exports[`ProgressStepper renders correctly 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -221,9 +216,8 @@ exports[`ProgressStepper renders correctly 1`] = `
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -371,9 +365,8 @@ exports[`ProgressStepper renders first and second step complete state when activ
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -385,9 +378,8 @@ exports[`ProgressStepper renders first and second step complete state when activ
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -440,9 +432,8 @@ exports[`ProgressStepper renders first and second step complete state when activ
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -454,9 +445,8 @@ exports[`ProgressStepper renders first and second step complete state when activ
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -604,9 +594,8 @@ exports[`ProgressStepper renders first step complete and second step pending sta
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -618,9 +607,8 @@ exports[`ProgressStepper renders first step complete and second step pending sta
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -658,9 +646,8 @@ exports[`ProgressStepper renders first step complete and second step pending sta
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -675,9 +662,8 @@ exports[`ProgressStepper renders first step complete and second step pending sta
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -689,9 +675,8 @@ exports[`ProgressStepper renders first step complete and second step pending sta
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -847,9 +832,8 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -861,9 +845,8 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -901,9 +884,8 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -918,9 +900,8 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -932,9 +913,8 @@ exports[`ProgressStepper renders first step loading when isLoading prop set to t
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -1067,9 +1047,8 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
           style={
             {
               "color": "#ffffff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -1084,9 +1063,8 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -1098,9 +1076,8 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -1138,9 +1115,8 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }
@@ -1155,9 +1131,8 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 14,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 22,
             "textAlign": "center",
@@ -1169,9 +1144,8 @@ exports[`ProgressStepper renders first step pending state when active step is 0 
           style={
             {
               "color": "#4459ff",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
             }

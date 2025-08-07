@@ -88,60 +88,70 @@ describe('getTransactionIcon', () => {
     });
 
     test('returns dark swap icon when app theme is dark and OS scheme is dark', () => {
-      expect(
-        getTransactionIcon('swap', false, AppThemeKey.dark, 'dark'),
-      ).toBe(transactionIconSwapDark);
+      expect(getTransactionIcon('swap', false, AppThemeKey.dark, 'dark')).toBe(
+        transactionIconSwapDark,
+      );
     });
 
     test('returns light swap icon when app theme is light and OS scheme is dark', () => {
-      expect(
-        getTransactionIcon('swap', false, AppThemeKey.light, 'dark'),
-      ).toBe(transactionIconSwapLight);
+      expect(getTransactionIcon('swap', false, AppThemeKey.light, 'dark')).toBe(
+        transactionIconSwapLight,
+      );
     });
 
     test('returns dark swap icon when app theme is dark and OS scheme is light', () => {
-      expect(
-        getTransactionIcon('swap', false, AppThemeKey.dark, 'light'),
-      ).toBe(transactionIconSwapDark);
+      expect(getTransactionIcon('swap', false, AppThemeKey.dark, 'light')).toBe(
+        transactionIconSwapDark,
+      );
     });
   });
 
   describe('failed transaction theme-based icon selection', () => {
     test('returns light failed swap icon when app theme is light and OS scheme is light', () => {
-      expect(
-        getTransactionIcon('swap', true, AppThemeKey.light, 'light'),
-      ).toBe(transactionIconSwapFailedLight);
+      expect(getTransactionIcon('swap', true, AppThemeKey.light, 'light')).toBe(
+        transactionIconSwapFailedLight,
+      );
     });
 
     test('returns dark failed swap icon when app theme is dark and OS scheme is dark', () => {
-      expect(
-        getTransactionIcon('swap', true, AppThemeKey.dark, 'dark'),
-      ).toBe(transactionIconSwapFailedDark);
+      expect(getTransactionIcon('swap', true, AppThemeKey.dark, 'dark')).toBe(
+        transactionIconSwapFailedDark,
+      );
     });
 
     test('returns light failed swap icon when app theme is light and OS scheme is dark', () => {
-      expect(
-        getTransactionIcon('swap', true, AppThemeKey.light, 'dark'),
-      ).toBe(transactionIconSwapFailedLight);
+      expect(getTransactionIcon('swap', true, AppThemeKey.light, 'dark')).toBe(
+        transactionIconSwapFailedLight,
+      );
     });
 
     test('returns dark failed swap icon when app theme is dark and OS scheme is light', () => {
-      expect(
-        getTransactionIcon('swap', true, AppThemeKey.dark, 'light'),
-      ).toBe(transactionIconSwapFailedDark);
+      expect(getTransactionIcon('swap', true, AppThemeKey.dark, 'light')).toBe(
+        transactionIconSwapFailedDark,
+      );
     });
   });
 
   describe('edge cases', () => {
     test('returns interaction icon for unknown transaction type', () => {
       expect(
-        getTransactionIcon('unknown', false, defaultAppTheme, defaultOsColorScheme),
+        getTransactionIcon(
+          'unknown',
+          false,
+          defaultAppTheme,
+          defaultOsColorScheme,
+        ),
       ).toBe(transactionIconInteraction);
     });
 
     test('returns failed interaction icon for failed unknown transaction type', () => {
       expect(
-        getTransactionIcon('unknown', true, defaultAppTheme, defaultOsColorScheme),
+        getTransactionIcon(
+          'unknown',
+          true,
+          defaultAppTheme,
+          defaultOsColorScheme,
+        ),
       ).toBe(transactionIconInteractionFailed);
     });
 

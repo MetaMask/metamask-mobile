@@ -21,11 +21,7 @@ const useEarnLendingPositions = (asset: TokenI) => {
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    if (
-      new BigNumber(
-        outputToken?.experience?.market?.position?.assets ?? '0',
-      ).gt(0)
-    ) {
+    if (new BigNumber(outputToken?.balanceMinimalUnit ?? '0').gt(0)) {
       setHasEarnLendingPositions(true);
     } else {
       setHasEarnLendingPositions(false);
@@ -62,6 +58,7 @@ const useEarnLendingPositions = (asset: TokenI) => {
     //   outputToken.experience?.market?.id &&
     //   outputToken.experience?.market?.address
     // ) {
+    //   trace({ name: TraceName.EarnEarnings });
     //   getLendingPositionHistory({
     //     positionId: outputToken.experience?.market?.position?.id,
     //     marketId: outputToken.experience?.market?.id,
@@ -71,19 +68,21 @@ const useEarnLendingPositions = (asset: TokenI) => {
     //     console.error('Failed to fetch lending position history', err);
     //     setError('Failed to fetch lending position history');
     //     setIsLoading(false);
+    //   }).finally(() => {
+    //      endTrace({ name: TraceName.EarnEarnings });
     //   });
     // } else {
     //   setIsLoading(false);
     // }
     setIsLoading(false);
-  }, [outputToken?.experience?.market?.position?.assets]);
+  }, [outputToken?.balanceMinimalUnit]);
   // }, [outputToken, selectedAccount]);
 
   useEffect(() => {
     if (
       outputToken &&
       outputToken.experience?.market?.protocol &&
-      outputToken.experience?.market?.position?.id &&
+      outputToken.balanceMinimalUnit &&
       outputToken.experience?.market?.id &&
       outputToken.experience?.market?.address &&
       selectedAccount?.address

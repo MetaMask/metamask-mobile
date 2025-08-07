@@ -409,7 +409,8 @@ export const selectIsUnifiedSwapsEnabled = createSelector(
   (bridgeFeatureFlags, chainId) => {
     if (
       isUnifiedSwapsEnvVarEnabled() &&
-      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isUnifiedUIEnabled
+      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]
+        ?.isUnifiedUIEnabled
     ) {
       return true;
     }

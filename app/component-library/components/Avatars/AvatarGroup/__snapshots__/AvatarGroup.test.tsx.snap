@@ -137,7 +137,7 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderRadius": 8,
+          "borderRadius": 4,
           "height": 16,
           "overflow": "hidden",
           "width": 16,
@@ -157,7 +157,9 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
               "height": 16,
               "width": 16,
             },
-            undefined,
+            {
+              "borderRadius": 4,
+            },
           ]
         }
       >
@@ -280,9 +282,8 @@ exports[`AvatarGroup should render AvatarGroup component 1`] = `
     style={
       {
         "color": "#686e7d",
-        "fontFamily": "CentraNo1-Medium",
+        "fontFamily": "Geist Medium",
         "fontSize": 14,
-        "fontWeight": "500",
         "letterSpacing": 0,
         "lineHeight": 22,
         "marginLeft": 2,

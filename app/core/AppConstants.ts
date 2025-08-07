@@ -11,6 +11,7 @@ const SECURITY_ALERTS_API_URL =
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
+  METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE,
   DEFAULT_LOCK_TIMEOUT: 30000,
   DEFAULT_SEARCH_ENGINE: 'Google',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
@@ -47,8 +48,8 @@ export default {
   MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
   MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
-  MM_DEEP_LINK_PUBLIC_KEY_X: 'nFiE3X_J5n5OJJSlLK95kSByhfLrSJmRxjEtBaP3TD8',
-  MM_DEEP_LINK_PUBLIC_KEY_Y: 'RBeepuE1D3or2SdzjsFcHU-l2rrNb46ZW_4wCXCLSaY',
+  MM_DEEP_LINK_PUBLIC_KEY_X: 'PxxYwxHYnfdrHyG9LPws2330ffAYE9a4CDD6Wx9ZwGs',
+  MM_DEEP_LINK_PUBLIC_KEY_Y: 'w4ZtTHFnWyNkbgXglqJOoc-1OA5ZC4kW4GYU_QIeBNA',
   SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
   HOMEPAGE_URL: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
   OLD_HOMEPAGE_URL_HOST: 'home.metamask.io',
@@ -141,7 +142,8 @@ export default {
       'https://support.metamask.io/privacy-and-security/privacy-best-practices',
     SMART_TXS:
       'https://support.metamask.io/transactions-and-gas/transactions/smart-transactions/',
-    SMART_ACCOUNTS: 'https://metamask.io/smart-accounts/',
+    SMART_ACCOUNTS:
+      'https://support.metamask.io/configure/accounts/what-is-a-smart-account/#what-are-metamask-smart-accounts',
     STAKING_RISK_DISCLOSURE: 'https://consensys.io/staking-risk-disclosures',
     EARN_RISK_DISCLOSURE: 'https://consensys.io/earn-risk-disclosures',
     ADD_SOLANA_ACCOUNT_PRIVACY_POLICY:
@@ -236,9 +238,6 @@ export default {
     BASE_URL: 'https://client-config.api.cx.metamask.io',
     VERSION: 'v1',
     DEFAULT_FETCH_INTERVAL: 15 * 60 * 1000, // 15 minutes
-  },
-  SEEDLESS_ONBOARDING: {
-    WEB3AUTH_NETWORK: process.env.WEB3AUTH_NETWORK,
   },
   TOKEN_DISCOVERY_BROWSER_ENABLED:
     process.env.TOKEN_DISCOVERY_BROWSER_ENABLED === 'true',

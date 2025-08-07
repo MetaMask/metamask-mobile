@@ -30,7 +30,11 @@ describe('disconnect', () => {
   });
 
   it('should log the disconnect action with channel ID, context, and terminate flag', async () => {
-    await disconnect({ instance: mockConnection, terminate: true, context: 'test' });
+    await disconnect({
+      instance: mockConnection,
+      terminate: true,
+      context: 'test',
+    });
 
     expect(DevLogger.log).toHaveBeenCalledTimes(3);
     expect(DevLogger.log).toHaveBeenNthCalledWith(
@@ -92,11 +96,17 @@ describe('disconnect', () => {
   });
 
   it('should return the terminated status', async () => {
-    const result = await disconnect({ instance: mockConnection, terminate: true });
+    const result = await disconnect({
+      instance: mockConnection,
+      terminate: true,
+    });
     expect(result).toBe(true);
 
     mockRemoteSendMessage.mockResolvedValue(false);
-    const falseResult = await disconnect({ instance: mockConnection, terminate: true });
+    const falseResult = await disconnect({
+      instance: mockConnection,
+      terminate: true,
+    });
     expect(falseResult).toBe(false);
   });
 });

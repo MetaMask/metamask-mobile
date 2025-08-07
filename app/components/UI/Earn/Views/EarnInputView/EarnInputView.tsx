@@ -67,6 +67,9 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { getIsRedesignedStablecoinLendingScreenEnabled } from './utils';
 import { useEarnAnalyticsEventLogging } from '../../hooks/useEarnEventAnalyticsLogging';
 import { doesTokenRequireAllowanceReset } from '../../utils';
+import { ScrollView } from 'react-native-gesture-handler';
+import { trace, TraceName } from '../../../../../util/trace';
+import { useEndTraceOnMount } from '../../../../hooks/useEndTraceOnMount';
 
 const EarnInputView = () => {
   // navigation hooks
@@ -170,10 +173,13 @@ const EarnInputView = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEndTraceOnMount(TraceName.EarnDepositScreen);
+
   const navigateToLearnMoreModal = () => {
     const tokenExperience = earnToken?.experience?.type;
 
     if (tokenExperience === EARN_EXPERIENCES.POOLED_STAKING) {
+      trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
       navigation.navigate('StakeModals', {
         screen: Routes.STAKING.MODALS.LEARN_MORE,
         params: { chainId: earnToken?.chainId },
@@ -181,6 +187,7 @@ const EarnInputView = () => {
     }
 
     if (tokenExperience === EARN_EXPERIENCES.STABLECOIN_LENDING) {
+      trace({ name: TraceName.EarnFaq, data: { experience: tokenExperience } });
       navigation.navigate(Routes.EARN.MODALS.ROOT, {
         screen: Routes.EARN.MODALS.LENDING_LEARN_MORE,
         params: { asset: earnToken },
@@ -294,6 +301,12 @@ const EarnInputView = () => {
 
       return isExistingAllowanceLowerThanNeeded;
     })();
+
+    if (needsAllowanceIncrease) {
+      trace({ name: TraceName.EarnDepositSpendingCapScreen });
+    } else {
+      trace({ name: TraceName.EarnDepositReviewScreen });
+    }
 
     const lendingPoolContractAddress =
       CHAIN_ID_TO_AAVE_POOL_CONTRACT[getDecimalChainId(earnToken.chainId)] ??
@@ -461,6 +474,12 @@ const EarnInputView = () => {
     };
 
     if (isStakingDepositRedesignedEnabled) {
+      // start trace between user initiating deposit and the redesigned confirmation screen loading
+      trace({
+        name: TraceName.EarnDepositConfirmationScreen,
+        data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
+      });
+
       // this prevents the user from adding the transaction deposit into the
       // controller state multiple times
       setIsSubmittingStakeDepositTransaction(true);
@@ -774,40 +793,48 @@ const EarnInputView = () => {
 
   return (
     <ScreenLayout style={styles.container}>
-      <InputDisplay
-        isOverMaximum={isOverMaximum}
-        balanceText={balanceText}
-        balanceValue={balanceValue}
-        amountToken={amountToken}
-        amountFiatNumber={amountFiatNumber}
-        isFiat={isFiat}
-        asset={token}
-        currentCurrency={currentCurrency}
-        handleCurrencySwitch={handleCurrencySwitchWithTracking}
-        currencyToggleValue={currencyToggleValue}
-      />
-      <View style={styles.rewardsRateContainer}>
-        {isStablecoinLendingEnabled ? (
-          <EarnTokenSelector
-            token={token}
-            action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
-          />
-        ) : (
-          <EstimatedAnnualRewardsCard
-            estimatedAnnualRewards={estimatedAnnualRewards}
-            onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
-              event: MetaMetricsEvents.TOOLTIP_OPENED,
-              properties: {
-                selected_provider: EVENT_PROVIDERS.CONSENSYS,
-                text: 'Tooltip Opened',
-                location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
-                tooltip_name: 'MetaMask Pool Estimated Rewards',
-              },
-            })}
-            isLoading={isLoadingEarnMetadata}
-          />
-        )}
-      </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+      >
+        <InputDisplay
+          isOverMaximum={isOverMaximum}
+          balanceText={balanceText}
+          balanceValue={balanceValue}
+          amountToken={amountToken}
+          amountFiatNumber={amountFiatNumber}
+          isFiat={isFiat}
+          asset={token}
+          currentCurrency={currentCurrency}
+          handleCurrencySwitch={handleCurrencySwitchWithTracking}
+          currencyToggleValue={currencyToggleValue}
+        />
+        <View style={styles.rewardsRateContainer}>
+          {isStablecoinLendingEnabled ? (
+            <>
+              <View style={styles.spacer} />
+              <EarnTokenSelector
+                token={token}
+                action={EARN_INPUT_VIEW_ACTIONS.DEPOSIT}
+              />
+            </>
+          ) : (
+            <EstimatedAnnualRewardsCard
+              estimatedAnnualRewards={estimatedAnnualRewards}
+              onIconPress={withMetaMetrics(navigateToLearnMoreModal, {
+                event: MetaMetricsEvents.TOOLTIP_OPENED,
+                properties: {
+                  selected_provider: EVENT_PROVIDERS.CONSENSYS,
+                  text: 'Tooltip Opened',
+                  location: EVENT_LOCATIONS.EARN_INPUT_VIEW,
+                  tooltip_name: 'MetaMask Pool Estimated Rewards',
+                },
+              })}
+              isLoading={isLoadingEarnMetadata}
+            />
+          )}
+        </View>
+      </ScrollView>
       <QuickAmounts
         amounts={percentageOptions}
         onAmountPress={handleQuickAmountPressWithTracking}

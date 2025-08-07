@@ -413,7 +413,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   "fontWeight": "600",
                                 },
                                 {
-                                  "color": "#1c7e33",
+                                  "color": "#457a39",
                                 },
                                 undefined,
                                 undefined,
@@ -513,9 +513,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
+                                "fontFamily": "Geist Regular",
                                 "fontSize": 16,
-                                "fontWeight": "400",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -624,7 +623,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
                                       "marginRight": 8,
                                       "overflow": "hidden",
@@ -644,7 +643,9 @@ exports[`TransactionDetails should render correctly 1`] = `
                                           "height": 32,
                                           "width": 32,
                                         },
-                                        undefined,
+                                        {
+                                          "borderRadius": 8,
+                                        },
                                       ]
                                     }
                                   >
@@ -768,9 +769,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -878,7 +878,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
                                       "marginRight": 8,
                                       "overflow": "hidden",
@@ -898,7 +898,9 @@ exports[`TransactionDetails should render correctly 1`] = `
                                           "height": 32,
                                           "width": 32,
                                         },
-                                        undefined,
+                                        {
+                                          "borderRadius": 8,
+                                        },
                                       ]
                                     }
                                   >
@@ -1022,9 +1024,8 @@ exports[`TransactionDetails should render correctly 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -1524,7 +1525,7 @@ exports[`TransactionDetails should render correctly 1`] = `
                             }
                           }
                         >
-                          VIEW ON Etherscan
+                          View on Etherscan
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -1953,7 +1954,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   "fontWeight": "600",
                                 },
                                 {
-                                  "color": "#1c7e33",
+                                  "color": "#457a39",
                                 },
                                 undefined,
                                 undefined,
@@ -2053,9 +2054,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
+                                "fontFamily": "Geist Regular",
                                 "fontSize": 16,
-                                "fontWeight": "400",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -2164,7 +2164,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
                                       "marginRight": 8,
                                       "overflow": "hidden",
@@ -2184,7 +2184,9 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                           "height": 32,
                                           "width": 32,
                                         },
-                                        undefined,
+                                        {
+                                          "borderRadius": 8,
+                                        },
                                       ]
                                     }
                                   >
@@ -2308,9 +2310,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -2418,7 +2419,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
                                       "marginRight": 8,
                                       "overflow": "hidden",
@@ -2438,7 +2439,9 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                           "height": 32,
                                           "width": 32,
                                         },
-                                        undefined,
+                                        {
+                                          "borderRadius": 8,
+                                        },
                                       ]
                                     }
                                   >
@@ -2562,9 +2565,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -3064,7 +3066,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           }
                         >
-                          VIEW ON Etherscan
+                          View on Etherscan
                         </Text>
                       </TouchableOpacity>
                     </View>
@@ -3493,7 +3495,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   "fontWeight": "600",
                                 },
                                 {
-                                  "color": "#1c7e33",
+                                  "color": "#457a39",
                                 },
                                 undefined,
                                 undefined,
@@ -3593,9 +3595,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             style={
                               {
                                 "color": "#121314",
-                                "fontFamily": "CentraNo1-Book",
+                                "fontFamily": "Geist Regular",
                                 "fontSize": 16,
-                                "fontWeight": "400",
                                 "letterSpacing": 0,
                                 "lineHeight": 24,
                               }
@@ -3704,7 +3705,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
                                       "marginRight": 8,
                                       "overflow": "hidden",
@@ -3724,7 +3725,9 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                           "height": 32,
                                           "width": 32,
                                         },
-                                        undefined,
+                                        {
+                                          "borderRadius": 8,
+                                        },
                                       ]
                                     }
                                   >
@@ -3848,9 +3851,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -3958,7 +3960,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderRadius": 16,
+                                      "borderRadius": 8,
                                       "height": 32,
                                       "marginRight": 8,
                                       "overflow": "hidden",
@@ -3978,7 +3980,9 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                           "height": 32,
                                           "width": 32,
                                         },
-                                        undefined,
+                                        {
+                                          "borderRadius": 8,
+                                        },
                                       ]
                                     }
                                   >
@@ -4102,9 +4106,8 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "CentraNo1-Book",
+                                      "fontFamily": "Geist Regular",
                                       "fontSize": 16,
-                                      "fontWeight": "400",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -4604,7 +4607,7 @@ exports[`TransactionDetails should render correctly for multi-layer fee network 
                             }
                           }
                         >
-                          VIEW ON Etherscan
+                          View on Etherscan
                         </Text>
                       </TouchableOpacity>
                     </View>

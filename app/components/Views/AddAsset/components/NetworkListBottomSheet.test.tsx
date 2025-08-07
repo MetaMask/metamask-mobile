@@ -14,6 +14,7 @@ const mockInitialState = {
       PreferencesController: {
         useTokenDetection: true,
       },
+      MultichainNetworkController: {},
       NetworkController: {
         networkConfigurationsByChainId: {
           '0x1': {

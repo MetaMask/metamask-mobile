@@ -57,16 +57,12 @@ describe('AccountNetworkInfoExpanded', () => {
     });
   });
 
-  it('should match snapshot when isPortfolioViewEnabled is true', () => {
+  it('renders expected elements', () => {
     mockIsPortfolioViewEnabled.mockReturnValue(true);
-    const { toJSON, getByText } = renderWithProvider(
-      <AccountNetworkInfoExpanded />,
-      {
-        state: personalSignatureConfirmationState,
-      },
-    );
+    const { getByText } = renderWithProvider(<AccountNetworkInfoExpanded />, {
+      state: personalSignatureConfirmationState,
+    });
 
-    expect(toJSON()).toMatchSnapshot();
     expect(getByText('Account')).toBeDefined();
     expect(getByText('Balance')).toBeDefined();
     expect(getByText('Balance')).toBeDefined();

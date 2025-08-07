@@ -394,7 +394,7 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#1c7e33",
+                                      "color": "#457a39",
                                       "fontSize": 12,
                                     },
                                     {

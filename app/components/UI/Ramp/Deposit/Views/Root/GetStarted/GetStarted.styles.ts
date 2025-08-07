@@ -8,35 +8,30 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     title: {
-      textAlign: 'center',
+      marginBottom: 16,
+      fontWeight: 'bold',
     },
     getStartedImageWrapper: {
       alignItems: 'center',
     },
     getStartedImage: {
-      width: screenWidth,
-      height: screenWidth * 0.75,
+      width: screenWidth * 0.65,
+      height: screenWidth * 0.49,
       alignSelf: 'center',
+      marginVertical: 16,
     },
     bulletPointContainer: {
-      marginBottom: 16,
-      paddingHorizontal: 16,
+      marginVertical: 8,
       flexDirection: 'row',
     },
     bulletPointContent: {
       flex: 1,
-      paddingLeft: 12,
-    },
-    bulletPointTitle: {
-      fontWeight: 'bold',
+      marginLeft: 12,
     },
     bulletPointDescription: {
       fontSize: 14,
       lineHeight: 20,
-      opacity: 0.8,
-    },
-    checkIcon: {
-      color: theme.colors.success.default,
+      color: theme.colors.text.alternative,
     },
   });
 };

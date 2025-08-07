@@ -224,9 +224,8 @@ exports[`AccountInfoCard should match snapshot 1`] = `
             },
             "1": undefined,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -248,9 +247,8 @@ exports[`AccountInfoCard should match snapshot 1`] = `
             },
             "1": undefined,
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -275,9 +273,8 @@ exports[`AccountInfoCard should match snapshot 1`] = `
           },
           "1": undefined,
           "color": "#121314",
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
         }

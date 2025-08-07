@@ -37,9 +37,9 @@ import {
   setSlippage,
   selectIsSubmittingTx,
   setIsSubmittingTx,
-  selectIsSolanaToEvm,
   selectDestAddress,
   selectIsSolanaSourced,
+  selectBridgeViewMode,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -62,24 +62,21 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import { createStyles } from './BridgeView.styles';
 import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
-import type { BridgeSourceTokenSelectorRouteParams } from '../../components/BridgeSourceTokenSelector';
-import type { BridgeDestTokenSelectorRouteParams } from '../../components/BridgeDestTokenSelector';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import AppConstants from '../../../../../core/AppConstants';
-import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx.ts';
+import { endTrace, TraceName } from '../../../../../util/trace.ts';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
   sourcePage: string;
-  bridgeViewMode: BridgeViewMode;
 }
 
 const BridgeView = () => {
@@ -93,7 +90,6 @@ const BridgeView = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
-  const { validateBridgeTx } = useValidateBridgeTx();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Needed to get gas fee estimates
@@ -105,15 +101,7 @@ const BridgeView = () => {
   const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
-  const {
-    activeQuote,
-    isLoading,
-    destTokenAmount,
-    quoteFetchError,
-    isNoQuotesAvailable,
-    isExpired,
-    willRefresh,
-  } = useBridgeQuoteData();
+  const bridgeViewMode = useSelector(selectBridgeViewMode);
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
   const selectedAddress = useSelector(
@@ -125,7 +113,6 @@ const BridgeView = () => {
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
   const isSolanaSwap = useSelector(selectIsSolanaSwap);
-  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -138,6 +125,11 @@ const BridgeView = () => {
   useInitialSourceToken(initialSourceToken);
   useInitialDestToken(initialSourceToken);
 
+  // End trace when component mounts
+  useEffect(() => {
+    endTrace({ name: TraceName.SwapViewLoaded, timestamp: Date.now() });
+  }, []);
+
   // Set slippage to undefined for Solana swaps
   useEffect(() => {
     if (isSolanaSwap) {
@@ -147,14 +139,27 @@ const BridgeView = () => {
 
   const hasDestinationPicker = isEvmSolanaBridge;
 
-  const hasQuoteDetails = activeQuote && !isLoading;
-
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
     balance: sourceToken?.balance,
   });
+
+  const {
+    activeQuote,
+    isLoading,
+    destTokenAmount,
+    quoteFetchError,
+    isNoQuotesAvailable,
+    isExpired,
+    willRefresh,
+    blockaidError,
+  } = useBridgeQuoteData({
+    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+
+  const hasQuoteDetails = activeQuote && !isLoading;
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -170,6 +175,7 @@ const BridgeView = () => {
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
@@ -214,8 +220,8 @@ const BridgeView = () => {
   );
 
   useEffect(() => {
-    navigation.setOptions(getBridgeNavbar(navigation, route, colors));
-  }, [navigation, route, colors]);
+    navigation.setOptions(getBridgeNavbar(navigation, bridgeViewMode, colors));
+  }, [navigation, bridgeViewMode, colors]);
 
   const hasTrackedPageView = useRef(false);
   useEffect(() => {
@@ -224,11 +230,7 @@ const BridgeView = () => {
     if (shouldTrackPageView) {
       hasTrackedPageView.current = true;
       trackEvent(
-        createEventBuilder(
-          route.params.bridgeViewMode === BridgeViewMode.Bridge
-            ? MetaMetricsEvents.BRIDGE_PAGE_VIEWED
-            : MetaMetricsEvents.SWAP_PAGE_VIEWED,
-        )
+        createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
           .addProperties({
             chain_id_source: getDecimalChainId(sourceToken.chainId),
             chain_id_destination: getDecimalChainId(destToken?.chainId),
@@ -240,13 +242,7 @@ const BridgeView = () => {
           .build(),
       );
     }
-  }, [
-    sourceToken,
-    destToken,
-    trackEvent,
-    createEventBuilder,
-    route.params.bridgeViewMode,
-  ]);
+  }, [sourceToken, destToken, trackEvent, createEventBuilder, bridgeViewMode]);
 
   // Update isErrorBannerVisible when input focus changes
   useEffect(() => {
@@ -262,6 +258,7 @@ const BridgeView = () => {
     }
   }, [isError]);
 
+  // Keypad already handles max token decimals, so we don't need to check here
   const handleKeypadChange = ({
     value,
   }: {
@@ -279,34 +276,15 @@ const BridgeView = () => {
     try {
       if (activeQuote) {
         dispatch(setIsSubmittingTx(true));
-        if (isSolanaSwap || isSolanaToEvm) {
-          const validationResult = await validateBridgeTx({
-            quoteResponse: activeQuote,
-          });
-          if (validationResult.error || validationResult.result.validation.reason) {
-            const isValidationError = !!validationResult.result.validation.reason;
-            navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-              screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
-              params: {
-                errorType: isValidationError ? 'validation' : 'simulation',
-                errorMessage: isValidationError ? validationResult.result.validation.reason : validationResult.error,
-              },
-            });
-            return;
-          }
-          // TEMPORARY: If tx originates from Solana, navigate to transactions view BEFORE submitting the tx
-          // Necessary because snaps prevents navigation after tx is submitted
-          navigation.navigate(Routes.TRANSACTIONS_VIEW);
-        }
         await submitBridgeTx({
           quoteResponse: activeQuote,
         });
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
       }
     } catch (error) {
       console.error('Error submitting bridge tx', error);
     } finally {
       dispatch(setIsSubmittingTx(false));
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
   };
 
@@ -323,24 +301,18 @@ const BridgeView = () => {
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SOURCE_TOKEN_SELECTOR,
-      params: {
-        bridgeViewMode: route.params.bridgeViewMode,
-      } as BridgeSourceTokenSelectorRouteParams,
     });
 
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
-      params: {
-        bridgeViewMode: route.params.bridgeViewMode,
-      } as BridgeDestTokenSelectorRouteParams,
     });
 
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
-    const isSwap = route.params.bridgeViewMode === BridgeViewMode.Swap;
+    const isSwap = sourceToken?.chainId === destToken?.chainId;
     return isSwap
       ? strings('bridge.confirm_swap')
       : strings('bridge.confirm_bridge');
@@ -396,14 +368,19 @@ const BridgeView = () => {
       activeQuote &&
       quotesLastFetched && (
         <Box style={styles.buttonContainer}>
-          {isHardwareAddress && (
+          {isHardwareAddress && isSolanaSourced && (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
-              description={
-                isSolanaSourced
-                  ? strings('bridge.hardware_wallet_not_supported_solana')
-                  : strings('bridge.hardware_wallet_not_supported')
-              }
+              description={strings(
+                'bridge.hardware_wallet_not_supported_solana',
+              )}
+            />
+          )}
+          {blockaidError && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              title={strings('bridge.blockaid_error_title')}
+              description={blockaidError}
             />
           )}
           <Button
@@ -414,7 +391,8 @@ const BridgeView = () => {
             isDisabled={
               hasInsufficientBalance ||
               isSubmittingTx ||
-              isHardwareAddress
+              (isHardwareAddress && isSolanaSourced) ||
+              !!blockaidError
             }
           />
           <Button
@@ -455,6 +433,12 @@ const BridgeView = () => {
             onFocus={() => setIsInputFocused(true)}
             onBlur={() => setIsInputFocused(false)}
             onInputPress={() => setIsInputFocused(true)}
+            onMaxPress={() => {
+              if (latestSourceBalance?.displayBalance) {
+                dispatch(setSourceAmount(latestSourceBalance.displayBalance));
+              }
+            }}
+            latestAtomicBalance={latestSourceBalance?.atomicBalance}
           />
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>
@@ -507,7 +491,7 @@ const BridgeView = () => {
               >
                 <Keypad
                   style={styles.keypad}
-                  value={sourceAmount}
+                  value={sourceAmount || '0'}
                   onChange={handleKeypadChange}
                   currency={sourceToken?.symbol || 'ETH'}
                   decimals={sourceToken?.decimals || 18}

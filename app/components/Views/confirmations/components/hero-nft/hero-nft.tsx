@@ -83,7 +83,7 @@ export const HeroNft = () => {
       componentAsset={<NftImageAndNetworkBadge chainId={chainId} nft={nft} />}
       hasPaddingTop={isFullScreenConfirmation}
       title={name}
-      subtitle={`#${tokenId}`}
+      subtitle={tokenId === undefined ? '' : `#${tokenId}`}
     />
   );
 };

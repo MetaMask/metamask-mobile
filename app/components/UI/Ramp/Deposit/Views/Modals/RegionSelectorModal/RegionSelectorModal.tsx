@@ -1,11 +1,9 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { View, useWindowDimensions } from 'react-native';
 import {
-  DefaultSectionT,
-  SectionList,
-  SectionListData,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+  FlatList,
+  TouchableWithoutFeedback,
+} from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 
 import Text, {
@@ -16,29 +14,21 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import ListItemSelect from '../../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../../component-library/components/List/ListItemColumn';
 import TextFieldSearch from '../../../../../../../component-library/components/Form/TextFieldSearch';
-import ListItem from '../../../../../../../components/Base/ListItem';
 
 import styleSheet from './RegionSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import { DepositRegion, DEPOSIT_REGIONS } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
+import { useDepositSDK } from '../../../sdk';
+import useAnalytics from '../../../../hooks/useAnalytics';
 
 const MAX_REGION_RESULTS = 20;
-
-interface RegionSelectorModalNavigationDetails {
-  selectedRegionCode?: string;
-  handleSelectRegion?: (region: DepositRegion) => void;
-}
 
 export const createRegionSelectorModalNavigationDetails =
   createNavigationDetails(
@@ -48,15 +38,16 @@ export const createRegionSelectorModalNavigationDetails =
 
 function RegionSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const list = useRef<SectionList<DepositRegion>>(null);
+  const listRef = useRef<FlatList<DepositRegion>>(null);
 
-  const { selectedRegionCode, handleSelectRegion } =
-    useParams<RegionSelectorModalNavigationDetails>();
+  const { selectedRegion, setSelectedRegion, isAuthenticated } =
+    useDepositSDK();
   const [searchString, setSearchString] = useState('');
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
+  const trackEvent = useAnalytics();
 
   const fuseData = useMemo(
     () =>
@@ -77,111 +68,107 @@ function RegionSelectorModal() {
       const results = fuseData
         .search(searchString)
         ?.slice(0, MAX_REGION_RESULTS);
-
-      if (results?.length) {
-        return [
-          {
-            title: null,
-            data: results,
-          },
-        ];
-      }
-      return [];
+      return results || [];
     }
 
-    const popularRegions = DEPOSIT_REGIONS.filter(
-      (region) => region.recommended,
-    );
-
-    if (popularRegions.length) {
-      return [
-        {
-          title: strings('fiat_on_ramp_aggregator.region.popular_regions'),
-          data: popularRegions,
-        },
-        {
-          title: strings('fiat_on_ramp_aggregator.region.regions'),
-          data: DEPOSIT_REGIONS.filter((region) => !region.recommended),
-        },
-      ];
-    }
-
-    return [
-      {
-        title: null,
-        data: DEPOSIT_REGIONS,
-      },
-    ];
+    return [...DEPOSIT_REGIONS].sort((a, b) => {
+      if (a.recommended && !b.recommended) return -1;
+      if (!a.recommended && b.recommended) return 1;
+      return 0;
+    });
   }, [searchString, fuseData]);
 
   const scrollToTop = useCallback(() => {
-    if (list?.current && dataSearchResults?.length) {
-      list.current?.scrollToLocation({
+    if (listRef?.current) {
+      listRef.current.scrollToOffset({
         animated: false,
-        itemIndex: 0,
-        sectionIndex: 0,
+        offset: 0,
       });
     }
-  }, [dataSearchResults?.length]);
+  }, []);
 
   const handleOnRegionPressCallback = useCallback(
     (region: DepositRegion) => {
-      if (region.supported && handleSelectRegion) {
-        handleSelectRegion(region);
+      if (region.supported && setSelectedRegion) {
+        trackEvent('RAMPS_REGION_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          region: region.isoCode,
+          is_authenticated: isAuthenticated,
+        });
+
+        setSelectedRegion(region);
         sheetRef.current?.onCloseBottomSheet();
       }
     },
-    [handleSelectRegion],
+    [setSelectedRegion, isAuthenticated, trackEvent],
   );
 
   const renderRegionItem = useCallback(
-    ({ item: region }: { item: DepositRegion }) => (
-      <ListItemSelect
-        isSelected={selectedRegionCode === region.code}
-        onPress={() => {
-          if (region.supported) {
-            handleOnRegionPressCallback(region);
-          }
-        }}
-        accessibilityRole="button"
-        accessible
-        disabled={!region.supported}
-      >
-        <ListItemColumn widthType={WidthType.Fill}>
-          <View style={styles.region}>
-            <View style={styles.emoji}>
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
-                }
-              >
-                {region.flag}
-              </Text>
-            </View>
-            <View>
-              <Text
-                variant={TextVariant.BodyLGMedium}
-                color={
-                  region.supported ? TextColor.Default : TextColor.Alternative
-                }
-              >
-                {region.name}
-              </Text>
-            </View>
+    ({ item: region }: { item: DepositRegion }) => {
+      const isSelected = selectedRegion?.isoCode === region.isoCode;
+
+      return (
+        <TouchableWithoutFeedback
+          onPress={() => {
+            if (region.supported) {
+              handleOnRegionPressCallback(region);
+            }
+          }}
+          disabled={!region.supported}
+          accessibilityRole="button"
+          accessible
+        >
+          <View
+            style={[
+              styles.listItem,
+              isSelected && styles.selectedItem,
+              !region.supported && styles.disabledItem,
+            ]}
+          >
+            <ListItemColumn widthType={WidthType.Fill}>
+              <View style={styles.region}>
+                <View style={styles.emoji}>
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={
+                      region.supported
+                        ? TextColor.Default
+                        : TextColor.Alternative
+                    }
+                  >
+                    {region.flag}
+                  </Text>
+                </View>
+                <View>
+                  <Text
+                    variant={TextVariant.BodyLGMedium}
+                    color={
+                      region.supported
+                        ? TextColor.Default
+                        : TextColor.Alternative
+                    }
+                  >
+                    {region.name}
+                  </Text>
+                </View>
+              </View>
+            </ListItemColumn>
           </View>
-        </ListItemColumn>
-      </ListItemSelect>
-    ),
+        </TouchableWithoutFeedback>
+      );
+    },
     [
       handleOnRegionPressCallback,
-      selectedRegionCode,
-      styles.region,
+      selectedRegion?.isoCode,
+      styles.disabledItem,
       styles.emoji,
+      styles.listItem,
+      styles.region,
+      styles.selectedItem,
     ],
   );
 
-  const renderEmptyList = useMemo(
+  const renderEmptyList = useCallback(
     () => (
       <View style={styles.emptyList}>
         <Text variant={TextVariant.BodyLGMedium}>
@@ -193,19 +180,6 @@ function RegionSelectorModal() {
     ),
     [searchString, styles.emptyList],
   );
-
-  const renderSectionHeader = ({
-    section: { title: sectionTitle },
-  }: {
-    section: SectionListData<DepositRegion, DefaultSectionT>;
-  }) => {
-    if (!sectionTitle) return null;
-    return (
-      <ListItem style={styles.listItem}>
-        <Text variant={TextVariant.BodyLGMedium}>{sectionTitle}</Text>
-      </ListItem>
-    );
-  };
 
   const handleSearchTextChange = useCallback(
     (text: string) => {
@@ -237,18 +211,19 @@ function RegionSelectorModal() {
           placeholder={strings('deposit.region_modal.search_by_country')}
         />
       </View>
-      <SectionList
-        ref={list}
+      <FlatList
+        ref={listRef}
         style={styles.list}
+        data={dataSearchResults}
+        renderItem={renderRegionItem}
+        extraData={selectedRegion?.isoCode}
+        keyExtractor={(item) => item.isoCode}
+        ListEmptyComponent={renderEmptyList}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"
+        removeClippedSubviews={false}
+        scrollEnabled
         nestedScrollEnabled
-        sections={dataSearchResults}
-        renderItem={renderRegionItem}
-        renderSectionHeader={renderSectionHeader}
-        keyExtractor={(item) => item.code}
-        ListEmptyComponent={renderEmptyList}
-        stickySectionHeadersEnabled={false}
       />
     </BottomSheet>
   );

@@ -23,7 +23,9 @@ export const ResetAccountModal = ({
   styles: any;
 }) => {
   const navigation = useNavigation();
-  const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const chainId = useSelector(selectChainId);
 
   const resetAccount = () => {
@@ -35,21 +37,22 @@ export const ResetAccountModal = ({
   };
 
   return (
-  <ActionModal
-    modalVisible={resetModalVisible}
-    confirmText={strings('app_settings.reset_account_confirm_button')}
-    cancelText={strings('app_settings.reset_account_cancel_button')}
-    onCancelPress={cancelResetAccount}
-    onRequestClose={cancelResetAccount}
-    onConfirmPress={resetAccount}
-  >
-    <View style={styles.modalView}>
-      <Text style={styles.modalTitle} variant={TextVariant.HeadingMD}>
-        {strings('app_settings.reset_account_modal_title')}
-      </Text>
-      <Text style={styles.modalText}>
-        {strings('app_settings.reset_account_modal_message')}
-      </Text>
-    </View>
-  </ActionModal>
-);};
+    <ActionModal
+      modalVisible={resetModalVisible}
+      confirmText={strings('app_settings.reset_account_confirm_button')}
+      cancelText={strings('app_settings.reset_account_cancel_button')}
+      onCancelPress={cancelResetAccount}
+      onRequestClose={cancelResetAccount}
+      onConfirmPress={resetAccount}
+    >
+      <View style={styles.modalView}>
+        <Text style={styles.modalTitle} variant={TextVariant.HeadingMD}>
+          {strings('app_settings.reset_account_modal_title')}
+        </Text>
+        <Text style={styles.modalText}>
+          {strings('app_settings.reset_account_modal_message')}
+        </Text>
+      </View>
+    </ActionModal>
+  );
+};

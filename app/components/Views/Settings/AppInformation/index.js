@@ -25,8 +25,7 @@ import { AboutMetaMaskSelectorsIDs } from '../../../../../e2e/selectors/Settings
 import { useSupportConsent } from '../../../hooks/useSupportConsent';
 import SupportConsentModal from '../../../UI/SupportConsentModal';
 import getSupportUrl from '../../../../util/support';
-
-const IS_QA = process.env['METAMASK_ENVIRONMENT'] === 'qa';
+import { isQa } from '../../../../util/test/utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -235,7 +234,7 @@ export default class AppInformation extends PureComponent {
                 resizeMethod={'auto'}
               />
               <Text style={styles.versionInfo}>{this.state.appInfo}</Text>
-              {IS_QA ? (
+              {isQa ? (
                 <Text style={styles.branchInfo}>
                   {`Branch: ${process.env['GIT_BRANCH']}`}
                 </Text>

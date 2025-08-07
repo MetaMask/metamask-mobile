@@ -13,7 +13,7 @@ const styleSheet = (params: {
   } = params;
 
   return StyleSheet.create({
-    container:{
+    container: {
       flexDirection: 'row',
       alignItems: 'center',
       paddingHorizontal: 8,
@@ -41,10 +41,6 @@ const styleSheet = (params: {
       borderRadius: 16,
       marginStart: 8,
       paddingHorizontal: 12,
-    },
-    networkName: {
-      color: theme.colors.text.default,
-      ...fontStyles.normal,
     },
   });
 };

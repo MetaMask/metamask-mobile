@@ -84,7 +84,7 @@ export const IndividualFiatDisplay: React.FC<IndividualFiatDisplayProps> = ({
     : fiatFormatter(absFiat);
 
   return (
-    <Text {...sharedTextProps} style={styles.base}>
+    <Text {...sharedTextProps} style={styles.base} variant={TextVariant.BodySM}>
       {absFiatFormatted}
     </Text>
   );
@@ -111,7 +111,7 @@ export const TotalFiatDisplay: React.FC<{
   return totalFiat.eq(0) ? (
     <FiatNotAvailableDisplay />
   ) : (
-    <Text {...sharedTextProps} style={styles.base}>
+    <Text {...sharedTextProps} variant={TextVariant.BodySM} style={styles.base}>
       {strings('simulation_details.total_fiat', {
         currency: fiatFormatter(totalFiat.abs()),
       })}

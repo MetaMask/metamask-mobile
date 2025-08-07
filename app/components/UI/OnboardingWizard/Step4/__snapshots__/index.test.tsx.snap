@@ -202,7 +202,7 @@ exports[`Step4 should render correctly 1`] = `
               style={
                 {
                   "color": "#ffffff",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                 }
               }
             >

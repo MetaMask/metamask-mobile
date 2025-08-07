@@ -12,7 +12,6 @@ interface TokenListNavigationParamList {
 }
 
 interface GoToAddEvmTokenProps {
-  setIsAddTokenEnabled: (enabled: boolean) => void;
   navigation: StackNavigationProp<TokenListNavigationParamList, 'AddAsset'>;
   trackEvent: (event: ITrackingEvent, saveDataRecording?: boolean) => void;
   createEventBuilder: (event: IMetaMetricsEvent) => MetricsEventBuilder;
@@ -21,14 +20,12 @@ interface GoToAddEvmTokenProps {
 }
 
 export const goToAddEvmToken = ({
-  setIsAddTokenEnabled,
   navigation,
   trackEvent,
   createEventBuilder,
   getDecimalChainId,
   currentChainId,
 }: GoToAddEvmTokenProps) => {
-  setIsAddTokenEnabled(false);
   navigation.push('AddAsset', { assetType: 'token' });
 
   trackEvent(
@@ -39,6 +36,4 @@ export const goToAddEvmToken = ({
       })
       .build(),
   );
-
-  setIsAddTokenEnabled(true);
 };

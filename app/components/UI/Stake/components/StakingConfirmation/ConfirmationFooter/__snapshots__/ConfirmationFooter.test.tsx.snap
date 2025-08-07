@@ -30,9 +30,8 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -55,9 +54,8 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -89,8 +87,8 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
+          "backgroundColor": "#3c4d9d1a",
+          "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flexBasis": 0,
@@ -99,6 +97,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
           "flexShrink": 0,
           "height": 48,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -109,9 +108,8 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         style={
           {
             "color": "#4459ff",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -133,7 +131,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#4459ff",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flexBasis": 0,
           "flexDirection": "row",
@@ -141,6 +139,7 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
           "flexShrink": 0,
           "height": 48,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -151,9 +150,8 @@ exports[`ConfirmationFooter render matches snapshot 1`] = `
         style={
           {
             "color": "#ffffff",
-            "fontFamily": "CentraNo1-Medium",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
-            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }

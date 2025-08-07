@@ -17,6 +17,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'NftDetectionController',
   'TokenDetectionController',
   'WebSocketService',
+  'MultichainAccountService',
 ] as const;
 
 export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
@@ -71,10 +72,9 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'BridgeController:stateChange',
   'BridgeStatusController:stateChange',
   'EarnController:stateChange',
+  'PerpsController:stateChange',
   'DeFiPositionsController:stateChange',
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   'SeedlessOnboardingController:stateChange',
-  ///: END:ONLY_INCLUDE_IF
 ] as const;
 
 export const swapsSupportedChainIds = [

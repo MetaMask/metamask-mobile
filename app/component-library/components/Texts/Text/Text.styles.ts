@@ -62,12 +62,11 @@ const styleSheet = (params: { theme: Theme; vars: any }) => {
   }
   const { fontWeight, ...variantObject } =
     theme.typography[variant as TextVariant];
-  const finalFontWeight = style?.fontWeight || fontWeight;
+
   const fontObject = {
     ...variantObject,
     color: textColor,
     fontFamily: getFontFamily(variant, style?.fontWeight, style?.fontStyle),
-    fontWeight: finalFontWeight,
   };
 
   return StyleSheet.create({

@@ -53,7 +53,7 @@ exports[`ApprovalModal renders 1`] = `
       onStartShouldSetResponder={[Function]}
       style={
         {
-          "backgroundColor": "#00000066",
+          "backgroundColor": "#3f434a66",
           "bottom": 0,
           "height": 1334,
           "left": 0,

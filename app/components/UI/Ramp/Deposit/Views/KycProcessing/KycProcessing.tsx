@@ -2,11 +2,8 @@ import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import styleSheet from './KycProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
-import StyledButton from '../../../../StyledButton';
 import DepositProgressBar from '../../components/DepositProgressBar';
-import useUserDetailsPolling, {
-  KycStatus,
-} from '../../hooks/useUserDetailsPolling';
+import useUserDetailsPolling from '../../hooks/useUserDetailsPolling';
 import {
   createNavigationDetails,
   useParams,
@@ -24,13 +21,23 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
-import { createVerifyIdentityNavDetails } from '../VerifyIdentity/VerifyIdentity';
-import { createProviderWebviewNavDetails } from '../ProviderWebview/ProviderWebview';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
+import { getCryptoCurrencyFromTransakId } from '../../utils';
+import { KycStatus } from '../../constants';
+import Logger from '../../../../../../util/Logger';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface KycProcessingParams {
   quote: BuyQuote;
+  kycUrl?: string;
 }
 
 export const createKycProcessingNavDetails =
@@ -40,6 +47,17 @@ const KycProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { quote } = useParams<KycProcessingParams>();
+  const trackEvent = useAnalytics();
+
+  const cryptoCurrency = getCryptoCurrencyFromTransakId(
+    quote.cryptoCurrency,
+    quote.network,
+  );
+
+  const { routeAfterAuthentication } = useDepositRouting({
+    cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
+    paymentMethodId: quote.paymentMethod,
+  });
 
   const [{ data: kycForms, error: kycFormsError }] = useDepositSdkMethod(
     {
@@ -60,7 +78,7 @@ const KycProcessing = () => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.kyc_processing.title') },
+        { title: strings('deposit.kyc_processing.navbar_title') },
         theme,
       ),
     );
@@ -70,24 +88,44 @@ const KycProcessing = () => {
     if (kycForms?.forms.length === 0) {
       startPolling();
     }
-  }, [kycForms, startPolling]);
 
-  const handleBrowseTokens = useCallback(() => {
-    stopPolling();
-    navigation.navigate(Routes.BROWSER_TAB_HOME);
-  }, [navigation, stopPolling]);
+    return () => stopPolling();
+  }, [kycForms, startPolling, stopPolling]);
 
-  const handleRetryVerification = useCallback(() => {
-    navigation.navigate(...createVerifyIdentityNavDetails({ quote }));
-  }, [navigation, quote]);
-
-  const handleContinue = useCallback(() => {
-    navigation.navigate(...createProviderWebviewNavDetails({ quote }));
-  }, [navigation, quote]);
+  const handleContinue = useCallback(async () => {
+    try {
+      await routeAfterAuthentication(quote);
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: 'KycProcessing::handleContinue error',
+        quote,
+      });
+    }
+  }, [routeAfterAuthentication, quote]);
 
   const error = userDetailsError || kycFormsError;
   const hasPendingForms = kycForms && kycForms.forms.length > 0;
   const kycStatus = userDetails?.kyc?.l1?.status;
+
+  useEffect(() => {
+    if (kycStatus === KycStatus.REJECTED) {
+      trackEvent('RAMPS_KYC_APPLICATION_FAILED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: userDetails?.kyc?.l1?.type || '',
+      });
+    } else if (kycStatus === KycStatus.APPROVED) {
+      trackEvent('RAMPS_KYC_APPLICATION_APPROVED', {
+        ramp_type: 'DEPOSIT',
+        kyc_type: userDetails?.kyc?.l1?.type || '',
+      });
+    }
+  }, [
+    kycStatus,
+    hasPendingForms,
+    trackEvent,
+    quote.quoteId,
+    userDetails?.kyc?.l1?.type,
+  ]);
 
   if (error || kycStatus === KycStatus.REJECTED || hasPendingForms) {
     return (
@@ -102,20 +140,25 @@ const KycProcessing = () => {
                 color={IconColor.Error}
               />
 
-              <Text variant={TextVariant.BodyMDBold} style={styles.heading}>
+              <Text variant={TextVariant.BodyMD} style={styles.heading}>
                 {strings('deposit.kyc_processing.error_heading')}
               </Text>
               <Text variant={TextVariant.BodyMD} style={styles.description}>
-                {strings('deposit.kyc_processing.error_description')}
+                {error || strings('deposit.kyc_processing.error_description')}
               </Text>
             </View>
           </ScreenLayout.Content>
         </ScreenLayout.Body>
         <ScreenLayout.Footer>
-          <ScreenLayout.Content>
-            <StyledButton type="confirm" onPress={handleRetryVerification}>
-              {strings('deposit.kyc_processing.error_button')}
-            </StyledButton>
+          <ScreenLayout.Content style={styles.footerContent}>
+            <Button
+              size={ButtonSize.Lg}
+              onPress={handleContinue}
+              label={strings('deposit.kyc_processing.error_button')}
+              variant={ButtonVariants.Primary}
+              width={ButtonWidthTypes.Full}
+            />
+            <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
       </ScreenLayout>
@@ -148,10 +191,15 @@ const KycProcessing = () => {
           </ScreenLayout.Content>
         </ScreenLayout.Body>
         <ScreenLayout.Footer>
-          <ScreenLayout.Content>
-            <StyledButton type="confirm" onPress={handleContinue}>
-              {strings('deposit.kyc_processing.success_button')}
-            </StyledButton>
+          <ScreenLayout.Content style={styles.footerContent}>
+            <Button
+              size={ButtonSize.Lg}
+              onPress={handleContinue}
+              label={strings('deposit.kyc_processing.success_button')}
+              variant={ButtonVariants.Primary}
+              width={ButtonWidthTypes.Full}
+            />
+            <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
       </ScreenLayout>
@@ -181,10 +229,8 @@ const KycProcessing = () => {
         </ScreenLayout.Content>
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <StyledButton type="confirm" onPress={handleBrowseTokens}>
-            {strings('deposit.kyc_processing.button')}
-          </StyledButton>
+        <ScreenLayout.Content style={styles.footerContent}>
+          <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

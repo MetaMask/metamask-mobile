@@ -177,11 +177,16 @@ describe('SimulationDetails', () => {
     it('is not a dapp interaction', () => {
       expect(
         renderWithProvider(
-          <SimulationDetails transaction={{
-            id: mockTransactionId,
-            simulationData: simulationDataMock,
-            origin: MMM_ORIGIN,
-          } as TransactionMeta} enableMetrics={false} />,
+          <SimulationDetails
+            transaction={
+              {
+                id: mockTransactionId,
+                simulationData: simulationDataMock,
+                origin: MMM_ORIGIN,
+              } as TransactionMeta
+            }
+            enableMetrics={false}
+          />,
           { state: generateContractInteractionState },
         ).toJSON(),
       ).toBeNull();

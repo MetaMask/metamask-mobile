@@ -229,7 +229,7 @@ describe('DestinationAccountSelector', () => {
     const actions = store.getActions();
     expect(actions).toContainEqual({
       type: 'bridge/setDestAddress',
-      payload: '4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
+      payload: '0x4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi',
     });
   });
 

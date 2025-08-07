@@ -19,7 +19,7 @@ describe('reconnectAll', () => {
         paused: false,
         reconnected: false,
         connections: {},
-        connecting: {}
+        connecting: {},
       },
       getConnected: jest.fn().mockReturnValue({}),
       reconnect: mockReconnect,

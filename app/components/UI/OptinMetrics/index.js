@@ -8,6 +8,7 @@ import {
   Alert,
   TouchableOpacity,
   Platform,
+  StatusBar,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -16,7 +17,11 @@ import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { ONBOARDING_WIZARD } from '../../../constants/storage';
+import {
+  ONBOARDING_WIZARD,
+  OPTIN_META_METRICS_UI_SEEN,
+  TRUE,
+} from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
@@ -47,13 +52,20 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import {
+  updateCachedConsent,
+  flushBufferedTraces,
+  discardBufferedTraces,
+} from '../../../util/trace';
+import { setupSentry } from '../../../util/sentry/utils';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
     root: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
-      paddingTop: 24,
+      paddingTop:
+        Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
     },
     checkbox: {
       display: 'flex',
@@ -145,10 +157,6 @@ class OptinMetrics extends PureComponent {
 
   state = {
     /**
-     * Used to control the action buttons state.
-     */
-    isActionEnabled: false,
-    /**
      * Tracks the scroll view's content height.
      */
     scrollViewContentHeight: undefined,
@@ -230,6 +238,8 @@ class OptinMetrics extends PureComponent {
    * Action to be triggered when pressing any button
    */
   continue = async () => {
+    await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, TRUE);
+
     const onContinue = this.props.route?.params?.onContinue;
     if (onContinue) {
       return onContinue();
@@ -238,10 +248,14 @@ class OptinMetrics extends PureComponent {
     // Get onboarding wizard state
     const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
     if (onboardingWizard) {
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+      this.props.navigation.reset({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
     } else {
       this.props.setOnboardingWizardStep(1);
-      this.props.navigation.reset({ routes: [{ name: 'HomeNav' }] });
+      this.props.navigation.reset({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+      });
     }
   };
 
@@ -324,6 +338,9 @@ class OptinMetrics extends PureComponent {
       // and disable analytics
       clearOnboardingEvents();
       await metrics.enable(false);
+      await setupSentry(); // Re-setup Sentry with enabled: false
+      discardBufferedTraces();
+      updateCachedConsent(false);
     }, 200);
     this.continue();
   };
@@ -340,6 +357,9 @@ class OptinMetrics extends PureComponent {
     } = this.props;
 
     await metrics.enable();
+    await setupSentry(); // Re-setup Sentry with enabled: true
+    await flushBufferedTraces();
+    updateCachedConsent(true);
 
     // Handle null case for marketing consent
     if (
@@ -389,7 +409,6 @@ class OptinMetrics extends PureComponent {
       });
     }
     this.props.clearOnboardingEvents();
-
     this.continue();
   };
 
@@ -491,16 +510,10 @@ class OptinMetrics extends PureComponent {
   };
 
   renderActionButtons = () => {
-    const { isActionEnabled } = this.state;
     const styles = this.getStyles();
-    // Once buttons are refactored, it should auto handle disabled colors.
-    const buttonContainerStyle = [
-      styles.actionContainer,
-      isActionEnabled ? undefined : styles.disabledActionContainer,
-    ];
 
     return (
-      <View style={buttonContainerStyle}>
+      <View style={styles.actionContainer}>
         <Button
           variant={ButtonVariants.Secondary}
           onPress={this.onCancel}
@@ -529,7 +542,6 @@ class OptinMetrics extends PureComponent {
    */
   onScrollEndReached = () => {
     this.setState({ isEndReached: true });
-    this.setState({ isActionEnabled: true });
   };
 
   /**

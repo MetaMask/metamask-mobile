@@ -14,7 +14,10 @@ module.exports = {
         target: '18',
         sources: (filename) => {
           // Match file paths or directories to include in the React Compiler.
-          const pathsToInclude = ['app/components/Nav', 'app/components/UI/DeepLinkModal'];
+          const pathsToInclude = [
+            'app/components/Nav',
+            'app/components/UI/DeepLinkModal',
+          ];
           return pathsToInclude.some((path) => filename.includes(path));
         },
       },
@@ -40,6 +43,24 @@ module.exports = {
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
     {
+      test: './node_modules/@deeeed/hyperliquid-node20',
+      plugins: [
+        [
+          '@babel/plugin-transform-modules-commonjs',
+          { allowTopLevelThis: true },
+        ],
+      ],
+    },
+    {
+      test: './node_modules/@noble/secp256k1',
+      plugins: [
+        [
+          '@babel/plugin-transform-modules-commonjs',
+          { allowTopLevelThis: true },
+        ],
+      ],
+    },
+    {
       test: [
         './node_modules/**/@metamask/rpc-errors/**',
         './node_modules/@metamask/rpc-errors/**',
@@ -62,6 +83,10 @@ module.exports = {
     },
     {
       test: './app/core/NavigationService/NavigationService.ts',
+      plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
+    },
+    {
+      test: './app/core/OAuthService/OAuthLoginHandlers',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
     },
   ],

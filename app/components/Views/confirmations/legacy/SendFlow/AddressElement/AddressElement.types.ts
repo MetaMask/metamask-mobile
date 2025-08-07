@@ -29,5 +29,10 @@ export interface AddressElementProps extends TouchableOpacityProps {
   /**
    * ID of the chain
    */
-  chainId: Hex,
+  chainId: Hex;
+  /**
+   * Whether to display the network badge, defaults to false.
+   * If true, the network badge will be displayed on the bottom right of the avatar.
+   */
+  displayNetworkBadge?: boolean;
 }

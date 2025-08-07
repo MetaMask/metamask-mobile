@@ -346,7 +346,8 @@ export const sortNotifications = (
 };
 
 type KnownChainIds =
-  (typeof NOTIFICATION_CHAINS_ID)[keyof typeof NOTIFICATION_CHAINS_ID];
+  | (typeof NOTIFICATION_CHAINS_ID)[keyof typeof NOTIFICATION_CHAINS_ID]
+  | '8453';
 
 const imageMap = {
   [NOTIFICATION_CHAINS_ID.ETHEREUM]: images.ETHEREUM,
@@ -357,6 +358,7 @@ const imageMap = {
   [NOTIFICATION_CHAINS_ID.AVALANCHE]: images.AVAX,
   [NOTIFICATION_CHAINS_ID.POLYGON]: images.POL,
   [NOTIFICATION_CHAINS_ID.SEI]: images.SEI,
+  '8453': images.BASE,
 } satisfies Record<KnownChainIds, ImageSourcePropType | undefined>;
 
 /**
@@ -366,16 +368,18 @@ const imageMap = {
  */
 export function getNativeTokenDetailsByChainId(chainId: number) {
   const chainIdString = chainId.toString();
+  const knownChainIds: KnownChainIds[] = [
+    ...Object.values(NOTIFICATION_CHAINS_ID),
+    '8453',
+  ];
 
-  if (
-    Object.values(NOTIFICATION_CHAINS_ID).includes(
-      chainIdString as KnownChainIds,
-    )
-  ) {
+  if (knownChainIds.includes(chainIdString as KnownChainIds)) {
     const knownChainId = chainIdString as KnownChainIds;
+    const NAMES = { ...NOTIFICATION_NETWORK_CURRENCY_NAME, '8453': 'Base' };
+    const SYMBOLS = { ...NOTIFICATION_NETWORK_CURRENCY_SYMBOL, '8453': 'ETH' };
     return {
-      name: NOTIFICATION_NETWORK_CURRENCY_NAME[knownChainId],
-      symbol: NOTIFICATION_NETWORK_CURRENCY_SYMBOL[knownChainId],
+      name: NAMES[knownChainId],
+      symbol: SYMBOLS[knownChainId],
       image: imageMap[knownChainId],
     };
   }

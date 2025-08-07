@@ -49,6 +49,7 @@ const BottomModal = ({
       backdropOpacity={1}
       animationInTiming={600}
       animationOutTiming={600}
+      useNativeDriver
       onBackButtonPress={onBackButtonPress ?? onClose}
       onBackdropPress={onBackdropPress ?? onClose}
       onSwipeComplete={onSwipeComplete ?? onClose}

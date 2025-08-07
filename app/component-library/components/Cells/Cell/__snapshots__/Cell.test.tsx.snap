@@ -35,7 +35,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderRadius": 16,
+          "borderRadius": 8,
           "height": 32,
           "marginRight": 16,
           "overflow": "hidden",
@@ -56,7 +56,9 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
               "height": 32,
               "width": 32,
             },
-            undefined,
+            {
+              "borderRadius": 8,
+            },
           ]
         }
       >
@@ -187,9 +189,8 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         style={
           {
             "color": "#121314",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -204,9 +205,8 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -220,9 +220,8 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
         style={
           {
             "color": "#686e7d",
-            "fontFamily": "CentraNo1-Book",
+            "fontFamily": "Geist Regular",
             "fontSize": 16,
-            "fontWeight": "400",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -249,9 +248,8 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 16,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -344,7 +342,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "height": 32,
               "marginRight": 16,
               "overflow": "hidden",
@@ -365,7 +363,9 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                   "height": 32,
                   "width": 32,
                 },
-                undefined,
+                {
+                  "borderRadius": 8,
+                },
               ]
             }
           >
@@ -496,9 +496,8 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -513,9 +512,8 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -529,9 +527,8 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -558,9 +555,8 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -617,7 +613,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderRadius": 16,
+              "borderRadius": 8,
               "height": 32,
               "marginRight": 16,
               "overflow": "hidden",
@@ -638,7 +634,9 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                   "height": 32,
                   "width": 32,
                 },
-                undefined,
+                {
+                  "borderRadius": 8,
+                },
               ]
             }
           >
@@ -769,9 +767,8 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -786,9 +783,8 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -802,9 +798,8 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
             style={
               {
                 "color": "#686e7d",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
@@ -831,9 +826,8 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Book",
+                  "fontFamily": "Geist Regular",
                   "fontSize": 16,
-                  "fontWeight": "400",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }

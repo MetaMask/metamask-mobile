@@ -8,7 +8,10 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../component-library/components/Texts/Text';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import CopyButton from '../UI/copy-button';
 import Expandable from '../UI/expandable';
@@ -36,7 +39,9 @@ const SignatureMessageSection = ({
         <InfoSection>
           <View style={styles.container}>
             <View>
-              <Text style={styles.title}>{strings('confirm.message')}</Text>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('confirm.message')}
+              </Text>
               {messageCollapsed && (
                 <View style={styles.message}>
                   {typeof messageCollapsed === 'string' ? (

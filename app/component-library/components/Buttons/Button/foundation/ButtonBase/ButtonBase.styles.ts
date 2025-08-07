@@ -44,6 +44,7 @@ const styleSheet = (params: {
         justifyContent: 'center',
         borderRadius: isAutoSize ? 0 : 12,
         paddingHorizontal: isAutoSize ? 0 : 16,
+        overflow: 'hidden',
         ...(isDisabled && { opacity: 0.5 }),
         ...widthObject,
       } as ViewStyle,

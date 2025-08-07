@@ -1,92 +1,76 @@
-import type { Mockttp } from 'mockttp';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
-import TestHelpers from '../../helpers';
-import EnableNotificationsModal from '../../pages/Notifications/EnableNotificationsModal';
 import NotificationDetailsView from '../../pages/Notifications/NotificationDetailsView';
 import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
 import WalletView from '../../pages/wallet/WalletView';
 import { SmokeNetworkAbstractions } from '../../tags';
-import Assertions from '../../utils/Assertions';
-import { importWalletWithRecoveryPhrase } from '../../viewHelper';
-import { getMockServerPort } from '../../fixtures/utils';
-import {
-  NOTIFICATIONS_TEAM_PASSWORD,
-  NOTIFICATIONS_TEAM_SEED_PHRASE,
-} from './utils/constants';
+import Assertions from '../../framework/Assertions';
+import { loginToApp } from '../../viewHelper';
 import {
   getMockFeatureAnnouncementItemId,
   getMockWalletNotificationItemIds,
   mockNotificationServices,
 } from './utils/mocks';
-
-const launchAppSettings = (port: number): DeviceLaunchAppConfig => ({
-  newInstance: true,
-  delete: true,
-  permissions: {
-    notifications: 'YES',
-  },
-  launchArgs: { mockServerPort: port },
-});
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { Mockttp } from 'mockttp';
+import { startMockServer } from '../../api-mocking/mock-server';
+import { getMockServerPort } from '../../fixtures/utils';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   let mockServer: Mockttp;
 
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
-
-    // Mock Server
-    mockServer = await startMockServer({}, getMockServerPort());
+    jest.setTimeout(170000);
+    const mockServerPort = getMockServerPort();
+    mockServer = await startMockServer([], mockServerPort);
     await mockNotificationServices(mockServer);
-
-    // Launch App
-    await TestHelpers.launchApp(launchAppSettings(mockServer.port));
   });
 
-  afterAll(async () => {
-    await stopMockServer(mockServer);
-  });
+  it('should enable notifications and view feature announcements and wallet notifications', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
+        restartDevice: true,
+        mockServerInstance: mockServer,
+        permissions: {
+          notifications: 'YES',
+        },
+      },
+      async () => {
+        await loginToApp();
+        // Bell Icon
+        await WalletView.tapBellIcon();
 
-  it('enables notifications through bell icon', async () => {
-    // Onboard - Import SRP
-    await importWalletWithRecoveryPhrase({
-      seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
-      password: NOTIFICATIONS_TEAM_PASSWORD,
-    });
+        await Assertions.expectElementToBeVisible(NotificationMenuView.title);
+        await Assertions.expectElementToBeVisible(
+          NotificationMenuView.selectNotificationItem(
+            getMockFeatureAnnouncementItemId(),
+          ),
+        );
 
-    // Bell Icon
-    await WalletView.tapBellIcon();
+        // Feature Annonucement Details
+        await NotificationMenuView.tapOnNotificationItem(
+          getMockFeatureAnnouncementItemId(),
+        );
+        await Assertions.expectElementToBeVisible(
+          NotificationDetailsView.title,
+        );
+        await NotificationDetailsView.tapOnBackButton();
 
-    // Enable Notifications Modal
-    await Assertions.checkIfVisible(EnableNotificationsModal.title);
-    await EnableNotificationsModal.tapOnConfirm();
-  });
-
-  it('shows notifications visible in the notifications menu', async () => {
-    // Notifications Menu
-    await Assertions.checkIfVisible(NotificationMenuView.title);
-    await Assertions.checkIfVisible(
-      NotificationMenuView.selectNotificationItem(
-        getMockFeatureAnnouncementItemId(),
-      ),
+        // Wallet Announcement Details
+        const walletNotifications = getMockWalletNotificationItemIds();
+        for (const walletNotificationId of walletNotifications) {
+          await NotificationMenuView.scrollToNotificationItem(
+            walletNotificationId,
+          );
+          await NotificationMenuView.tapOnNotificationItem(
+            walletNotificationId,
+          );
+          await Assertions.expectElementToBeVisible(
+            NotificationDetailsView.title,
+          );
+          await NotificationDetailsView.tapOnBackButton();
+        }
+      },
     );
-  });
-
-  it('expands to the notification detail view when an item is pressed', async () => {
-    // Feature Annonucement Details
-    await NotificationMenuView.tapOnNotificationItem(
-      getMockFeatureAnnouncementItemId(),
-    );
-    await Assertions.checkIfVisible(NotificationDetailsView.title);
-    await NotificationDetailsView.tapOnBackButton();
-
-    // Wallet Announcement Details
-    const walletNotifications = getMockWalletNotificationItemIds();
-    for (const walletNotificationId of walletNotifications) {
-      await NotificationMenuView.scrollToNotificationItem(walletNotificationId);
-      await TestHelpers.delay(1000);
-      await NotificationMenuView.tapOnNotificationItem(walletNotificationId);
-      await Assertions.checkIfVisible(NotificationDetailsView.title);
-      await NotificationDetailsView.tapOnBackButton();
-    }
   });
 });

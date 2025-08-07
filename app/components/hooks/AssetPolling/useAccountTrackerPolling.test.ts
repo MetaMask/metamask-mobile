@@ -238,11 +238,17 @@ describe('useAccountTrackerPolling', () => {
     expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
       2,
     );
-    expect(mockedAccountTrackerController.startPolling).toHaveBeenNthCalledWith(1, {
-      networkClientIds: ['specificNetworkClientId1'],
-    });
-    expect(mockedAccountTrackerController.startPolling).toHaveBeenNthCalledWith(2, {
-      networkClientIds: ['specificNetworkClientId2'],
-    });
+    expect(mockedAccountTrackerController.startPolling).toHaveBeenNthCalledWith(
+      1,
+      {
+        networkClientIds: ['specificNetworkClientId1'],
+      },
+    );
+    expect(mockedAccountTrackerController.startPolling).toHaveBeenNthCalledWith(
+      2,
+      {
+        networkClientIds: ['specificNetworkClientId2'],
+      },
+    );
   });
 });

@@ -327,7 +327,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -521,9 +521,8 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontFamily": "Geist Bold",
                                   "fontSize": 24,
-                                  "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 32,
                                   "paddingBottom": 16,
@@ -538,9 +537,8 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Book",
+                                  "fontFamily": "Geist Regular",
                                   "fontSize": 16,
-                                  "fontWeight": "400",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                   "textAlign": "center",
@@ -570,12 +568,13 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#4459ff",
+                                "backgroundColor": "#121314",
                                 "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": undefined,
                                 "justifyContent": "center",
                                 "marginVertical": 10,
+                                "overflow": "hidden",
                                 "padding": 8,
                                 "paddingHorizontal": 16,
                               }
@@ -586,9 +585,8 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               style={
                                 {
                                   "color": "#ffffff",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 16,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }

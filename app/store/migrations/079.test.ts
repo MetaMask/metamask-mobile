@@ -53,7 +53,7 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
     const state = {
       engine: {
         backgroundState: {
-          PermissionController: 'foobar'
+          PermissionController: 'foobar',
         },
       },
     };
@@ -74,8 +74,8 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
       engine: {
         backgroundState: {
           PermissionController: {
-            subjects: 'foobar'
-          }
+            subjects: 'foobar',
+          },
         },
       },
     };
@@ -97,9 +97,9 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
         backgroundState: {
           PermissionController: {
             subjects: {
-            'test.com': 'foobar'
-            }
-          }
+              'test.com': 'foobar',
+            },
+          },
         },
       },
     };
@@ -117,9 +117,9 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
         backgroundState: {
           PermissionController: {
             subjects: {
-            'test.com': {}
-            }
-          }
+              'test.com': {},
+            },
+          },
         },
       },
     };
@@ -137,11 +137,11 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
         backgroundState: {
           PermissionController: {
             subjects: {
-            'test.com': {
-              permissions: 'foobar'
-            }
-          }
-        }
+              'test.com': {
+                permissions: 'foobar',
+              },
+            },
+          },
         },
       },
     };
@@ -159,12 +159,11 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
         backgroundState: {
           PermissionController: {
             subjects: {
-            'test.com': {
-              permissions: {
-              }
-            }
-          }
-        }
+              'test.com': {
+                permissions: {},
+              },
+            },
+          },
         },
       },
     };
@@ -182,13 +181,13 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
         backgroundState: {
           PermissionController: {
             subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': 'foobar'
-              }
-            }
-          }
-          }
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': 'foobar',
+                },
+              },
+            },
+          },
         },
       },
     };
@@ -206,15 +205,15 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
         backgroundState: {
           PermissionController: {
             subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': {
-                  caveats: 'foobar'
-                }
-              }
-            }
-          }
-          }
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': {
+                    caveats: 'foobar',
+                  },
+                },
+              },
+            },
+          },
         },
       },
     };
@@ -232,22 +231,24 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
         backgroundState: {
           PermissionController: {
             subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': {
-                  caveats: [{
-                    type: 'authorizedScopes',
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {},
-                      isMultichainOrigin: true,
-                    }
-                  }]
-                }
-              }
-            }
-            }
-          }
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': {
+                    caveats: [
+                      {
+                        type: 'authorizedScopes',
+                        value: {
+                          requiredScopes: {},
+                          optionalScopes: {},
+                          isMultichainOrigin: true,
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
         },
       },
     };
@@ -261,23 +262,25 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
         backgroundState: {
           PermissionController: {
             subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': {
-                  caveats: [{
-                    type: 'authorizedScopes',
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {},
-                      isMultichainOrigin: true,
-                      sessionProperties: {}
-                    }
-                  }]
-                }
-              }
-            }
-            }
-          }
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': {
+                    caveats: [
+                      {
+                        type: 'authorizedScopes',
+                        value: {
+                          requiredScopes: {},
+                          optionalScopes: {},
+                          isMultichainOrigin: true,
+                          sessionProperties: {},
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
         },
       },
     });
@@ -289,25 +292,27 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
         backgroundState: {
           PermissionController: {
             subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': {
-                  caveats: [{
-                    type: 'authorizedScopes',
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {},
-                      isMultichainOrigin: true,
-                      sessionProperties: {
-                        foo: 'bar'
-                      }
-                    }
-                  }]
-                }
-              }
-            }
-            }
-          }
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': {
+                    caveats: [
+                      {
+                        type: 'authorizedScopes',
+                        value: {
+                          requiredScopes: {},
+                          optionalScopes: {},
+                          isMultichainOrigin: true,
+                          sessionProperties: {
+                            foo: 'bar',
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
         },
       },
     };
@@ -321,25 +326,27 @@ describe(`Migration ${migrationVersion}: Add sessionProperties property to CAIP-
         backgroundState: {
           PermissionController: {
             subjects: {
-            'test.com': {
-              permissions: {
-                'endowment:caip25': {
-                  caveats: [{
-                    type: 'authorizedScopes',
-                    value: {
-                      requiredScopes: {},
-                      optionalScopes: {},
-                      isMultichainOrigin: true,
-                      sessionProperties: {
-                        foo: 'bar'
-                      }
-                    }
-                  }]
-                }
-              }
-            }
-          }
-        }
+              'test.com': {
+                permissions: {
+                  'endowment:caip25': {
+                    caveats: [
+                      {
+                        type: 'authorizedScopes',
+                        value: {
+                          requiredScopes: {},
+                          optionalScopes: {},
+                          isMultichainOrigin: true,
+                          sessionProperties: {
+                            foo: 'bar',
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          },
         },
       },
     });

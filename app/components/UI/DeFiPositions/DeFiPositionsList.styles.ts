@@ -11,6 +11,9 @@ const styleSheet = () =>
       alignItems: 'center',
       marginTop: 180,
     },
+    wrapper: {
+      flex: 1,
+    },
   });
 
 export default styleSheet;

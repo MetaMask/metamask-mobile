@@ -24,7 +24,7 @@ import ButtonBase from '../../../component-library/components/Buttons/Button/fou
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { isTestNet } from '../../../util/networks';
 import {
-  selectEvmChainId,
+  selectChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
@@ -106,7 +106,7 @@ const ActivityView = () => {
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-  const currentChainId = useSelector(selectEvmChainId);
+  const currentChainId = useSelector(selectChainId);
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
@@ -214,6 +214,7 @@ const ActivityView = () => {
           {selectedAddress && isNonEvmAddress(selectedAddress) ? (
             <MultichainTransactionsView
               tabLabel={strings('transactions_view.title')}
+              chainId={currentChainId}
             />
           ) : (
             <TransactionsView tabLabel={strings('transactions_view.title')} />

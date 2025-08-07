@@ -116,40 +116,87 @@ exports[`AddActivationKey renders correctly 1`] = `
                 }
               }
             >
-              <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
-                onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
+              <View
                 style={
-                  {
-                    "alignItems": "center",
-                    "borderRadius": 8,
-                    "height": 32,
-                    "justifyContent": "center",
-                    "marginHorizontal": 16,
-                    "opacity": 1,
-                    "width": 32,
-                  }
-                }
-                testID="back-arrow-button"
-              >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={24}
-                  name="ArrowLeft"
-                  style={
+                  [
                     {
-                      "height": 24,
-                      "width": 24,
+                      "transform": [
+                        {
+                          "scale": 1,
+                        },
+                      ],
+                    },
+                    {
+                      "alignItems": "center",
+                      "justifyContent": "center",
+                    },
+                  ]
+                }
+              >
+                <View
+                  accessibilityState={
+                    {
+                      "busy": undefined,
+                      "checked": undefined,
+                      "disabled": false,
+                      "expanded": undefined,
+                      "selected": undefined,
                     }
                   }
-                  width={24}
-                />
-              </TouchableOpacity>
+                  accessibilityValue={
+                    {
+                      "max": undefined,
+                      "min": undefined,
+                      "now": undefined,
+                      "text": undefined,
+                    }
+                  }
+                  accessible={true}
+                  collapsable={false}
+                  focusable={true}
+                  onBlur={[Function]}
+                  onClick={[Function]}
+                  onFocus={[Function]}
+                  onResponderGrant={[Function]}
+                  onResponderMove={[Function]}
+                  onResponderRelease={[Function]}
+                  onResponderTerminate={[Function]}
+                  onResponderTerminationRequest={[Function]}
+                  onStartShouldSetResponder={[Function]}
+                  style={
+                    [
+                      {
+                        "alignItems": "center",
+                        "backgroundColor": "transparent",
+                        "borderRadius": 2,
+                        "height": 40,
+                        "justifyContent": "center",
+                        "opacity": 1,
+                        "width": 40,
+                      },
+                      {
+                        "marginHorizontal": 16,
+                      },
+                    ]
+                  }
+                  testID="back-arrow-button"
+                >
+                  <SvgMock
+                    fill="currentColor"
+                    name="ArrowLeft"
+                    style={
+                      [
+                        {
+                          "color": "#121314",
+                          "height": 24,
+                          "width": 24,
+                        },
+                        undefined,
+                      ]
+                    }
+                  />
+                </View>
+              </View>
             </View>
             <View
               collapsable={false}
@@ -180,9 +227,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Bold",
+                      "fontFamily": "Geist Bold",
                       "fontSize": 18,
-                      "fontWeight": "700",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -421,9 +467,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Medium",
+                                  "fontFamily": "Geist Medium",
                                   "fontSize": 18,
-                                  "fontWeight": "500",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }
@@ -448,9 +493,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -495,11 +539,11 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     returnKeyType="done"
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
+                                        "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
@@ -530,9 +574,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "CentraNo1-Book",
+                                    "fontFamily": "Geist Regular",
                                     "fontSize": 16,
-                                    "fontWeight": "400",
                                     "letterSpacing": 0,
                                     "lineHeight": 24,
                                   }
@@ -579,11 +622,11 @@ exports[`AddActivationKey renders correctly 1`] = `
                                     spellCheck={false}
                                     style={
                                       {
-                                        "backgroundColor": "#ffffff",
+                                        "backgroundColor": "inherit",
                                         "borderColor": "transparent",
                                         "borderWidth": 1,
                                         "color": "#121314",
-                                        "fontFamily": "CentraNo1-Book",
+                                        "fontFamily": "Geist Regular",
                                         "fontSize": 16,
                                         "fontWeight": "400",
                                         "height": 24,
@@ -623,14 +666,15 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "transparent",
-                                    "borderColor": "#4459ff",
+                                    "backgroundColor": "#3c4d9d1a",
+                                    "borderColor": "transparent",
                                     "borderRadius": 12,
                                     "borderWidth": 1,
                                     "flex": 1,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
+                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }
@@ -639,10 +683,9 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#4459ff",
-                                      "fontFamily": "CentraNo1-Medium",
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -663,13 +706,14 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "flex-start",
-                                    "backgroundColor": "#4459ff",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
                                     "flex": 1,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
                                     "opacity": 0.5,
+                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }
@@ -679,9 +723,8 @@ exports[`AddActivationKey renders correctly 1`] = `
                                   style={
                                     {
                                       "color": "#ffffff",
-                                      "fontFamily": "CentraNo1-Medium",
+                                      "fontFamily": "Geist Medium",
                                       "fontSize": 16,
-                                      "fontWeight": "500",
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }

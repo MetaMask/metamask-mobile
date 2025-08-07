@@ -1,26 +1,12 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import { TouchableOpacity } from 'react-native';
 import { RevealPrivateKey } from './RevealPrivateKey';
 import { internalAccount1 as mockAccount } from '../../../../../util/test/accountsControllerTestUtils';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { strings } from '../../../../../../locales/i18n';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-
-jest.mock('react-native-safe-area-context', () => {
-  const inset = { top: 0, right: 0, bottom: 0, left: 0 };
-  const frame = { width: 0, height: 0, x: 0, y: 0 };
-  return {
-    SafeAreaProvider: jest.fn().mockImplementation(({ children }) => children),
-    SafeAreaConsumer: jest
-      .fn()
-      .mockImplementation(({ children }) => children(inset)),
-    useSafeAreaInsets: jest.fn().mockImplementation(() => inset),
-    useSafeAreaFrame: jest.fn().mockImplementation(() => frame),
-  };
-});
+import { SHEET_HEADER_BACK_BUTTON_ID } from '../../../../../component-library/components/Sheet/SheetHeader/SheetHeader.constants';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -82,12 +68,7 @@ const render = () => {
       },
     },
   };
-  return renderWithProvider(
-    <SafeAreaProvider>
-      <RevealPrivateKey />
-    </SafeAreaProvider>,
-    { state: initialState },
-  );
+  return renderWithProvider(<RevealPrivateKey />, { state: initialState });
 };
 
 describe('RevealPrivateKey', () => {
@@ -123,15 +104,8 @@ describe('RevealPrivateKey', () => {
   });
 
   it('navigates back when the back button is pressed', () => {
-    const rendered = render();
-    const { root } = rendered;
-    const touchableOpacities = root.findAllByType(TouchableOpacity);
-
-    // Hack to get the button
-    const backButton = touchableOpacities.find(
-      (touchable) =>
-        touchable.props.accessible === true && touchable.props.onPress,
-    );
+    const { getByTestId } = render();
+    const backButton = getByTestId(SHEET_HEADER_BACK_BUTTON_ID);
 
     expect(backButton).toBeTruthy();
     if (backButton) {

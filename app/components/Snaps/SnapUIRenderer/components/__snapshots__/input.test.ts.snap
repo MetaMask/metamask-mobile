@@ -96,11 +96,11 @@ exports[`SnapUIInput handles disabled input 1`] = `
                     onFocus={[Function]}
                     style={
                       {
-                        "backgroundColor": "#ffffff",
+                        "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 24,
@@ -223,11 +223,11 @@ exports[`SnapUIInput renders with initial value 1`] = `
                     onFocus={[Function]}
                     style={
                       {
-                        "backgroundColor": "#ffffff",
+                        "backgroundColor": "inherit",
                         "borderColor": "transparent",
                         "borderWidth": 1,
                         "color": "#121314",
-                        "fontFamily": "CentraNo1-Book",
+                        "fontFamily": "Geist Regular",
                         "fontSize": 16,
                         "fontWeight": "400",
                         "height": 24,

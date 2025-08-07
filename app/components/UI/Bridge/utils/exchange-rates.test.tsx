@@ -2,8 +2,13 @@ import '../_mocks_/initialState';
 import { SolScope } from '@metamask/keyring-api';
 import { Hex } from '@metamask/utils';
 import { handleFetch } from '@metamask/controller-utils';
-import { getDisplayCurrencyValue, fetchTokenExchangeRates } from './exchange-rates';
+import {
+  getDisplayCurrencyValue,
+  fetchTokenExchangeRates,
+} from './exchange-rates';
 import { fetchTokenContractExchangeRates } from '@metamask/assets-controllers';
+
+import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 
 jest.mock('@metamask/controller-utils');
 jest.mock('@metamask/assets-controllers');
@@ -80,6 +85,7 @@ describe('exchange-rates', () => {
         currency: 'swift:0/iso4217:USD',
         expirationTime: 1745439745391,
         marketData: {
+          fungible: true,
           allTimeHigh: '293.31',
           allTimeLow: '0.500801',
           circulatingSupply: '517313513.4593564',
@@ -94,6 +100,7 @@ describe('exchange-rates', () => {
         currency: 'swift:0/iso4217:USD',
         expirationTime: 1745439745392,
         marketData: {
+          fungible: true,
           allTimeHigh: '1.17',
           allTimeLow: '0.877647',
           circulatingSupply: '61517136784.14079',
@@ -103,7 +110,7 @@ describe('exchange-rates', () => {
         },
         rate: '0.999915',
       },
-    };
+    } as ReturnType<typeof selectMultichainAssetsRates>;
 
     it('should return zero when token is undefined', () => {
       const result = getDisplayCurrencyValue({
@@ -330,11 +337,11 @@ describe('exchange-rates', () => {
         const result = await fetchTokenExchangeRates(
           solanaChainId,
           currency,
-          ...tokenAddresses
+          ...tokenAddresses,
         );
 
         expect(handleFetch).toHaveBeenCalledWith(
-          expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices')
+          expect.stringContaining('price.api.cx.metamask.io/v3/spot-prices'),
         );
         expect(result).toEqual({
           'sol:token1': 1.5,
@@ -348,7 +355,7 @@ describe('exchange-rates', () => {
         const result = await fetchTokenExchangeRates(
           solanaChainId,
           currency,
-          ...tokenAddresses
+          ...tokenAddresses,
         );
 
         expect(result).toEqual({});
@@ -365,12 +372,14 @@ describe('exchange-rates', () => {
           '0x123': 1.5,
           '0x456': 2.5,
         };
-        (fetchTokenContractExchangeRates as jest.Mock).mockResolvedValue(mockResponse);
+        (fetchTokenContractExchangeRates as jest.Mock).mockResolvedValue(
+          mockResponse,
+        );
 
         const result = await fetchTokenExchangeRates(
           evmChainId,
           currency,
-          ...tokenAddresses
+          ...tokenAddresses,
         );
 
         expect(result).toEqual({
@@ -385,7 +394,7 @@ describe('exchange-rates', () => {
         const result = await fetchTokenExchangeRates(
           evmChainId,
           currency,
-          ...tokenAddresses
+          ...tokenAddresses,
         );
 
         expect(result).toEqual({});
@@ -394,13 +403,11 @@ describe('exchange-rates', () => {
 
     describe('Error handling', () => {
       it('should handle fetch errors gracefully', async () => {
-        (fetchTokenContractExchangeRates as jest.Mock).mockRejectedValue(new Error('API error'));
-
-        const result = await fetchTokenExchangeRates(
-          '0x1',
-          'USD',
-          '0x123'
+        (fetchTokenContractExchangeRates as jest.Mock).mockRejectedValue(
+          new Error('API error'),
         );
+
+        const result = await fetchTokenExchangeRates('0x1', 'USD', '0x123');
 
         expect(result).toEqual({});
       });

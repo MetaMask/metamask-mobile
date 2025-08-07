@@ -11,13 +11,14 @@ import {
   SIGNATURE_LEGACY,
   SIGNATURE_PERMIT2,
 } from '../constants/approvals';
+import { ApproveMethod } from '../types/approve';
 import { parseStandardTokenTransactionData } from './transaction';
 
 export interface ParsedApprovalTransactionData {
   amountOrTokenId?: BigNumber;
   isApproveAll?: boolean;
   isRevokeAll?: boolean;
-  name: string;
+  name: ApproveMethod;
   tokenAddress?: Hex;
 }
 
@@ -51,7 +52,7 @@ export function parseApprovalTransactionData(
     amountOrTokenId,
     isApproveAll,
     isRevokeAll,
-    name,
+    name: name as ApproveMethod,
     tokenAddress,
   };
 }
@@ -94,11 +95,22 @@ export function updateApprovalAmount(
 
 export function calculateApprovalTokenAmount(
   amount: string,
+  decimals = 18,
+): { amount: string; rawAmount: string } {
+  const amountInDecimals = new BigNumber(amount ?? 0).div(10 ** decimals);
+  const isUnlimited = amountInDecimals.gt(TOKEN_VALUE_UNLIMITED_THRESHOLD);
+  const rawAmount = amountInDecimals.toString();
+  return {
+    amount: isUnlimited ? strings('confirm.unlimited') : rawAmount,
+    rawAmount,
+  };
+}
+
+export function calculateTokenBalance(
+  tokenBalance?: string,
   decimals?: number,
 ): string {
-  const amountInDecimals = new BigNumber(amount ?? 0).div(
-    10 ** (decimals ?? 18),
-  );
-  const isUnlimited = amountInDecimals.gt(TOKEN_VALUE_UNLIMITED_THRESHOLD);
-  return isUnlimited ? strings('confirm.unlimited') : amountInDecimals.toString();
+  return new BigNumber(tokenBalance ?? '0')
+    .div(new BigNumber(10).pow(decimals ?? 0))
+    .toString();
 }

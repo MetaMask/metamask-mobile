@@ -263,14 +263,18 @@ import {
   EarnControllerEvents,
   EarnControllerState,
 } from '@metamask/earn-controller';
-///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+import {
+  PerpsController,
+  PerpsControllerState,
+  PerpsControllerActions,
+  PerpsControllerEvents,
+} from '../../components/UI/Perps/controllers/PerpsController';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
   SeedlessOnboardingControllerEvents,
 } from '@metamask/seedless-onboarding-controller';
 import { EncryptionKey } from '../Encryptor/types';
-///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 
 import { Hex } from '@metamask/utils';
 
@@ -289,6 +293,11 @@ import {
   AccountTreeControllerActions,
   AccountTreeControllerEvents,
 } from '@metamask/account-tree-controller';
+import {
+  MultichainAccountService,
+  MultichainAccountServiceActions,
+  MultichainAccountServiceEvents,
+} from '@metamask/multichain-account-service';
 
 /**
  * Controllers that area always instantiated
@@ -354,6 +363,7 @@ type GlobalActions =
   | MultichainAssetsControllerActions
   | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
+  | MultichainAccountServiceActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
@@ -374,6 +384,7 @@ type GlobalActions =
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | EarnControllerActions
+  | PerpsControllerActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
@@ -407,6 +418,7 @@ type GlobalEvents =
   | MultichainAssetsControllerEvents
   | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
+  | MultichainAccountServiceEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -429,10 +441,9 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
+  | PerpsControllerEvents
   | AppMetadataControllerEvents
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   | SeedlessOnboardingControllerEvents
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
   | DeFiPositionsControllerEvents
   | AccountTreeControllerEvents;
 
@@ -496,7 +507,7 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
   CronjobController: CronjobController;
-  WebSocketService: WebSocketService,
+  WebSocketService: WebSocketService;
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -505,15 +516,15 @@ export type Controllers = {
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
   MultichainTransactionsController: MultichainTransactionsController;
+  MultichainAccountService: MultichainAccountService;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  PerpsController: PerpsController;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 };
 
 /**
@@ -579,9 +590,8 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
+  PerpsController: PerpsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
 };
 
 /** Controller names */
@@ -628,6 +638,7 @@ export type ControllersToInitialize =
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
+  | 'MultichainAccountService'
   ///: END:ONLY_INCLUDE_IF
   | 'AccountTreeController'
   | 'AccountsController'
@@ -637,10 +648,9 @@ export type ControllersToInitialize =
   | 'GasFeeController'
   | 'MultichainNetworkController'
   | 'SignatureController'
-  ///: BEGIN:ONLY_INCLUDE_IF(seedless-onboarding)
   | 'SeedlessOnboardingController'
-  ///: END:ONLY_INCLUDE_IF(seedless-onboarding)
-  | 'TransactionController';
+  | 'TransactionController'
+  | 'PerpsController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

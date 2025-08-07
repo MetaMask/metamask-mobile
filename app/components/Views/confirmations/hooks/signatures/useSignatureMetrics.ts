@@ -38,7 +38,10 @@ const getAnalyticsParams = (
   confirmationMetrics: Record<string, unknown>,
 ) => {
   const { meta = {}, from, version } = messageParams;
-  const { ui_customizations = [], ...blockaidProperties } = securityAlertResponse ? getBlockaidMetricsParams(securityAlertResponse) : {};
+  const { ui_customizations = [], ...blockaidProperties } =
+    securityAlertResponse
+      ? getBlockaidMetricsParams(securityAlertResponse)
+      : {};
 
   return {
     account_type: getAddressAccountType(from as string),
@@ -46,7 +49,10 @@ const getAnalyticsParams = (
     signature_type: type,
     version: version || 'N/A',
     chain_id: chainId ? getDecimalChainId(chainId) : '',
-    ui_customizations: ['redesigned_confirmation', ...ui_customizations as string[]],
+    ui_customizations: [
+      'redesigned_confirmation',
+      ...(ui_customizations as string[]),
+    ],
     ...(primaryType ? { eip712_primary_type: primaryType } : {}),
     ...(meta.analytics as Record<string, string>),
     ...getSignatureDecodingEventProps(
@@ -66,10 +72,11 @@ export const useSignatureMetrics = () => {
 
   const { chainId, decodingData, decodingLoading, messageParams, type, id } =
     signatureRequest ?? {};
-  const { primaryType } = parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
+  const { primaryType } =
+    parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
 
   const confirmationMetrics = useSelector((state: RootState) =>
-    selectConfirmationMetricsById(state, id ?? '')
+    selectConfirmationMetricsById(state, id ?? ''),
   );
 
   const analyticsParams = useMemo(() => {
@@ -87,7 +94,17 @@ export const useSignatureMetrics = () => {
       primaryType,
       confirmationMetrics?.properties ?? {},
     );
-  }, [chainId, confirmationMetrics, decodingData, decodingLoading, isSimulationEnabled, messageParams, primaryType, securityAlertResponse, type]);
+  }, [
+    chainId,
+    confirmationMetrics,
+    decodingData,
+    decodingLoading,
+    isSimulationEnabled,
+    messageParams,
+    primaryType,
+    securityAlertResponse,
+    type,
+  ]);
 
   const captureSignatureMetrics = useCallback(
     async (

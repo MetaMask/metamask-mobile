@@ -10,7 +10,7 @@ import { Theme } from '../../../util/theme/models';
  * @param params.vars Inputs that the style sheet depends on.
  * @returns StyleSheet object.
  */
-const styleSheet = ({theme}: {theme: Theme}) =>
+const styleSheet = ({ theme }: { theme: Theme }) =>
   StyleSheet.create({
     balancesContainer: {
       alignItems: 'flex-end',
@@ -34,6 +34,11 @@ const styleSheet = ({theme}: {theme: Theme}) =>
       backgroundColor: theme.colors.border.default,
       opacity: 0.4,
       marginVertical: 8,
+    },
+    listContainer: {
+      flexGrow: 1,
+      flexShrink: 1,
+      flexDirection: 'row',
     },
   });
 

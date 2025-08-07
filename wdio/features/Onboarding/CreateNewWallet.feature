@@ -12,11 +12,12 @@ Feature: Onboarding Create New Wallet
     And Terms of Use is not displayed
     Then Wallet setup screen is displayed
     When On Wallet Setup Screen I tap "Create a new wallet"
-    And On Wallet Setup Screen I tap "Agree"
+    Then I tap "Import using Secret Recovery Phrase"
     Then I am presented with a new Account screen with password fields
     And I input a new password "1234554321"
     And I confirm the new password "1234554321"
     And secure wallet page is presented
     Then I select remind me later on secure wallet screen
     And Select "Skip" on remind secure modal
+    And On Wallet Setup Screen I tap "Agree"
     Then I should proceed to the new wallet

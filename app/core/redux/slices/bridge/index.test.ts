@@ -263,7 +263,9 @@ describe('bridge slice', () => {
         formatChainIdToCaip('0x1')
       ] = undefined;
 
-      const result = selectIsUnifiedSwapsEnabled(mockState as unknown as RootState);
+      const result = selectIsUnifiedSwapsEnabled(
+        mockState as unknown as RootState,
+      );
       expect(result).toBe(false);
     });
 

@@ -129,12 +129,6 @@ class ManualBackupStep3 extends PureComponent {
     this.setState({
       hintText: manualBackup,
     });
-    trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
-      ).build(),
-      this.props.saveOnboardingEvent,
-    );
     BackHandler.addEventListener(HARDWARE_BACK_PRESS, hardwareBackPress);
   };
 

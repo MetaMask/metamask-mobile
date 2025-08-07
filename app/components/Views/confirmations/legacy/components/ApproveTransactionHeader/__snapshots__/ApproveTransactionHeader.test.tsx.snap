@@ -63,9 +63,8 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
         {
           "color": "#686e7d",
           "flexShrink": 1,
-          "fontFamily": "CentraNo1-Book",
+          "fontFamily": "Geist Regular",
           "fontSize": 16,
-          "fontWeight": "400",
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -123,7 +122,7 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "height": 32,
                   "overflow": "hidden",
                   "width": 32,
@@ -143,7 +142,9 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
                       "height": 32,
                       "width": 32,
                     },
-                    undefined,
+                    {
+                      "borderRadius": 8,
+                    },
                   ]
                 }
               >
@@ -346,9 +347,8 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 14,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
               }
@@ -370,9 +370,8 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 16,
-                  "fontWeight": "700",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -389,9 +388,8 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
               "marginLeft": "auto",
@@ -405,9 +403,8 @@ exports[`ApproveTransactionHeader should render correctly 1`] = `
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 16,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
             }
@@ -479,7 +476,7 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
               style={
                 {
                   "backgroundColor": "#ffffff",
-                  "borderRadius": 16,
+                  "borderRadius": 8,
                   "height": 32,
                   "overflow": "hidden",
                   "width": 32,
@@ -499,7 +496,9 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
                       "height": 32,
                       "width": 32,
                     },
-                    undefined,
+                    {
+                      "borderRadius": 8,
+                    },
                   ]
                 }
               >
@@ -702,9 +701,8 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
             style={
               {
                 "color": "#121314",
-                "fontFamily": "CentraNo1-Book",
+                "fontFamily": "Geist Regular",
                 "fontSize": 14,
-                "fontWeight": "400",
                 "letterSpacing": 0,
                 "lineHeight": 22,
               }
@@ -726,9 +724,8 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Bold",
+                  "fontFamily": "Geist Bold",
                   "fontSize": 16,
-                  "fontWeight": "700",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -745,9 +742,8 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
+              "fontFamily": "Geist Regular",
               "fontSize": 14,
-              "fontWeight": "400",
               "letterSpacing": 0,
               "lineHeight": 22,
               "marginLeft": "auto",
@@ -761,9 +757,8 @@ exports[`ApproveTransactionHeader should return origin to be null when not prese
           style={
             {
               "color": "#121314",
-              "fontFamily": "CentraNo1-Bold",
+              "fontFamily": "Geist Bold",
               "fontSize": 16,
-              "fontWeight": "700",
               "letterSpacing": 0,
               "lineHeight": 24,
             }

@@ -39,7 +39,8 @@ const BlockaidModal = () => {
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(createStyles, {});
-  const route = useRoute<RouteProp<{ params: BlockaidModalRouteParams }, 'params'>>();
+  const route =
+    useRoute<RouteProp<{ params: BlockaidModalRouteParams }, 'params'>>();
   const { errorMessage, errorType } = route.params;
 
   const handleClose = () => {

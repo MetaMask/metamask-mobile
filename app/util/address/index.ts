@@ -1,10 +1,15 @@
 import {
-  toChecksumAddress,
   isValidAddress,
   addHexPrefix,
   isValidChecksumAddress,
   isHexPrefixed,
 } from 'ethereumjs-util';
+import {
+  getChecksumAddress,
+  type Hex,
+  isHexString,
+  isStrictHexString,
+} from '@metamask/utils';
 import punycode from 'punycode/punycode';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
@@ -43,7 +48,6 @@ import type {
   NetworkState,
 } from '@metamask/network-controller';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import { type Hex, isHexString } from '@metamask/utils';
 import PREINSTALLED_SNAPS from '../../lib/snaps/preinstalled-snaps';
 import { EntropySourceId } from '@metamask/keyring-api';
 
@@ -310,9 +314,8 @@ export function getInternalAccountByAddress(
   address: string,
 ): InternalAccount | undefined {
   const { accounts } = Engine.context.AccountsController.state.internalAccounts;
-  return Object.values(accounts).find(
-    (a: InternalAccount) =>
-      areAddressesEqual(a.address, address),
+  return Object.values(accounts).find((a: InternalAccount) =>
+    areAddressesEqual(a.address, address),
   );
 }
 
@@ -322,17 +325,23 @@ export function getInternalAccountByAddress(
  * @param {String} address - String corresponding to an address
  * @returns {String} - Returns address's translated label text
  */
-export function getLabelTextByInternalAccount(internalAccount: InternalAccount) {
+export function getLabelTextByInternalAccount(
+  internalAccount: InternalAccount,
+) {
   const { KeyringController } = Engine.context;
   const { keyrings } = KeyringController.state;
 
   // Would be better if we have that mapping elsewhere, so we can index keyring by their
   // entropy source directly?
-  const hdKeyringsIndexByEntropySource: Map<EntropySourceId, number> = new Map();
+  const hdKeyringsIndexByEntropySource: Map<EntropySourceId, number> =
+    new Map();
   for (const keyring of keyrings) {
     if (keyring.type === ExtendedKeyringTypes.hd) {
       // Use the size of the map, so we don't need an extra index variable for this.
-      hdKeyringsIndexByEntropySource.set(keyring.metadata.id, hdKeyringsIndexByEntropySource.size);
+      hdKeyringsIndexByEntropySource.set(
+        keyring.metadata.id,
+        hdKeyringsIndexByEntropySource.size,
+      );
     }
   }
 
@@ -341,7 +350,8 @@ export function getLabelTextByInternalAccount(internalAccount: InternalAccount) 
     const shouldShowSrpPill = hdKeyringsIndexByEntropySource.size > 1;
 
     if (shouldShowSrpPill && hdInternalAccount.options.entropySource) {
-      const entropySource = hdInternalAccount.options.entropySource as EntropySourceId;
+      const entropySource = hdInternalAccount.options
+        .entropySource as EntropySourceId;
 
       const hdKeyringIndex = hdKeyringsIndexByEntropySource.get(entropySource);
       if (hdKeyringIndex !== undefined) {
@@ -351,7 +361,7 @@ export function getLabelTextByInternalAccount(internalAccount: InternalAccount) 
     return null;
   };
 
-  switch (internalAccount.metadata.keyring.type) {
+  switch (internalAccount?.metadata?.keyring?.type) {
     case ExtendedKeyringTypes.hd: {
       // Since @metamask/accounts-controller@28.0.0, HD accounts also have their entropy source
       // within the options bag, so re-use this:
@@ -472,9 +482,27 @@ export function resemblesAddress(address: string) {
   return address && address.length === 2 + 20 * 2;
 }
 
+export function toChecksumAddress(address: string) {
+  try {
+    return getChecksumAddress(address as Hex);
+  } catch (error) {
+    // This is necessary for backward compatibility with the old behavior of
+    // `ethereumjs-util` which would return the original string if the address
+    // was invalid. This should happen only in tests which uses invalid addresses
+    // like 0x1, 0x2 etc.
+    if (error instanceof Error && error.message === 'Invalid hex address.') {
+      if (isStrictHexString(address)) {
+        return address as Hex;
+      }
+      throw new Error('Invalid hex address.');
+    }
+    throw error;
+  }
+}
+
 export function safeToChecksumAddress(address?: string) {
   if (!address) return undefined;
-  return toChecksumAddress(address) as Hex;
+  return toChecksumAddress(address);
 }
 
 /**

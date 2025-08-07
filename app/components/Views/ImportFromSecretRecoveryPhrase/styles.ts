@@ -1,6 +1,6 @@
 import { StyleSheet, Platform } from 'react-native';
 import { scale } from 'react-native-size-matters';
-import { fontStyles } from '../../../styles/common';
+import { fontStyles, colors as importedColors } from '../../../styles/common';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -11,12 +11,9 @@ const createStyles = (colors: any) =>
       flex: 1,
     },
     wrapper: {
-      flex: 1,
+      flexGrow: 1,
       paddingHorizontal: 16,
-    },
-    container: {
-      flex: 1,
-      flexDirection: 'column',
+      paddingBottom: 16,
     },
     importSrpContainer: {
       marginTop: 6,
@@ -33,10 +30,11 @@ const createStyles = (colors: any) =>
     },
     seedPhraseContainer: {
       paddingTop: 16,
-      backgroundColor: colors.background.muted,
+      backgroundColor: colors.background.section,
       borderRadius: 10,
       marginTop: 16,
       minHeight: 264,
+      maxHeight: 'auto',
     },
     seedPhraseInnerContainer: {
       paddingHorizontal: Platform.select({
@@ -58,18 +56,23 @@ const createStyles = (colors: any) =>
       borderTopColor: colors.background.default,
     },
     seedPhraseDefaultInput: {
-      fontSize: 14,
-      color: colors.text.alternative,
       borderWidth: 0,
-      ...fontStyles.normal,
-      backgroundColor: colors.background.muted,
       paddingHorizontal: 0,
+      width: '100%',
+      backgroundColor: importedColors.transparent,
+      height: 66,
+    },
+    textAreaInput: {
+      width: '100%',
+      backgroundColor: importedColors.transparent,
+      fontSize: 16,
+      color: colors.text.alternative,
+      ...fontStyles.normal,
       height: 66,
     },
     seedPhraseInputContainer: {
       flexDirection: 'row',
-      flexWrap: 'wrap', // Allows wrapping to new lines
-      justifyContent: 'center',
+      flexWrap: 'wrap',
       width: '100%',
     },
     inputContainer: {
@@ -154,9 +157,17 @@ const createStyles = (colors: any) =>
       fontSize: 16,
       color: colors.text.default,
       ...fontStyles.normal,
-      flex: 1,
       textAlignVertical: 'center',
       paddingHorizontal: 8,
+    },
+    seedPhraseInputItem: {
+      width: '31.33%', // 100% / 3 = 33.33%, minus some space
+      marginRight: '3%', // Space between columns
+      marginBottom: 8,
+      flex: 0, // Prevent flex growth
+    },
+    seedPhraseInputItemLast: {
+      marginRight: 0, // Remove right margin for last item in row
     },
     passwordContainer: {
       flexDirection: 'column',
@@ -200,6 +211,7 @@ const createStyles = (colors: any) =>
     },
     inputPadding: {
       padding: Platform.OS === 'ios' ? 4 : 3,
+      height: 40,
     },
     createPasswordCtaContainer: {
       width: '100%',

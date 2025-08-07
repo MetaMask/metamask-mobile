@@ -84,6 +84,7 @@ const Price = ({
     '3m': strings('asset_overview.chart_time_period.3m'),
     '1y': strings('asset_overview.chart_time_period.1y'),
     '3y': strings('asset_overview.chart_time_period.3y'),
+    all: strings('asset_overview.chart_time_period.all'),
   };
 
   const price: number = isEvmAssetSelected

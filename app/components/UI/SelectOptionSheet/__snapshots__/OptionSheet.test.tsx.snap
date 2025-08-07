@@ -334,7 +334,7 @@ exports[`OptionSheet render matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -453,9 +453,8 @@ exports[`OptionSheet render matches snapshot 1`] = `
                               style={
                                 {
                                   "color": "#121314",
-                                  "fontFamily": "CentraNo1-Bold",
+                                  "fontFamily": "Geist Bold",
                                   "fontSize": 18,
-                                  "fontWeight": "700",
                                   "letterSpacing": 0,
                                   "lineHeight": 24,
                                 }

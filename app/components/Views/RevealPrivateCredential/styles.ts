@@ -101,7 +101,10 @@ export const createStyles = (theme: Theme) =>
       ...fontStyles.bold,
     },
     tabContent: {
-      padding: 20,
+      paddingVertical: 20,
+    },
+    tabContainer: {
+      paddingHorizontal: 16,
     },
     qrCodeContainer: {
       padding: 8,
@@ -129,7 +132,7 @@ export const createStyles = (theme: Theme) =>
       fontWeight: fontStyles.bold.fontWeight,
     },
     revealModalText: {
-      marginBottom: 20,
+      marginBottom: 24,
     },
     tabBar: {
       borderColor: theme.colors.border.muted,

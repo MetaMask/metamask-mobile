@@ -24,10 +24,46 @@ jest.mock('../../hooks/useFavicon/withFaviconAwareness', () => ({
 }));
 
 describe('WebsiteIcon', () => {
-  it('should render correctly', () => {
+  it('renders correctly when title and url are provided', () => {
     const { toJSON } = render(
       <ThemeContext.Provider value={mockTheme}>
         <WebsiteIcon title="title" url="url.com" />
+      </ThemeContext.Provider>,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly when only title is provided', () => {
+    const { toJSON } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <WebsiteIcon title="title" />
+      </ThemeContext.Provider>,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly when title and url are null', () => {
+    const { toJSON } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <WebsiteIcon title={null} url={null} />
+      </ThemeContext.Provider>,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly when title is null and url is undefined', () => {
+    const { toJSON } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <WebsiteIcon title={null} url={undefined} />
+      </ThemeContext.Provider>,
+    );
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders correctly when title is null and url is provided', () => {
+    const { toJSON } = render(
+      <ThemeContext.Provider value={mockTheme}>
+        <WebsiteIcon title={null} url="url.com" />
       </ThemeContext.Provider>,
     );
     expect(toJSON()).toMatchSnapshot();

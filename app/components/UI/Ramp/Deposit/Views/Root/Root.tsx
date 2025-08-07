@@ -9,7 +9,7 @@ import {
   FIAT_ORDER_STATES,
   FIAT_ORDER_PROVIDERS,
 } from '../../../../../../constants/on-ramp';
-import { createOrderProcessingNavDetails } from '../OrderProcessing/OrderProcessing';
+import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
 
 const Root = () => {
   const navigation = useNavigation();
@@ -30,16 +30,15 @@ const Root = () => {
   useEffect(() => {
     if (initialRoute === null || !getStarted) return;
 
-    const pendingOrder = orders.find(
+    const createdOrder = orders.find(
       (order) =>
         order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT &&
-        (order.state === FIAT_ORDER_STATES.CREATED ||
-          order.state === FIAT_ORDER_STATES.PENDING),
+        order.state === FIAT_ORDER_STATES.CREATED,
     );
 
-    if (pendingOrder) {
-      const [routeName, params] = createOrderProcessingNavDetails({
-        orderId: pendingOrder.id,
+    if (createdOrder) {
+      const [routeName, params] = createBankDetailsNavDetails({
+        orderId: createdOrder.id,
       });
       navigation.reset({
         index: 0,

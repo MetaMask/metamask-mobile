@@ -3,7 +3,6 @@ import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import styleSheet from './OrderProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
-import StyledButton from '../../../../StyledButton';
 import {
   createNavigationDetails,
   useParams,
@@ -12,15 +11,24 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
-import Text, {
-  TextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
 import { getOrderById } from '../../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../../reducers';
 import { strings } from '../../../../../../../locales/i18n';
 import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { TRANSAK_SUPPORT_URL } from '../../constants';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../../component-library/components/Buttons/Button';
+import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
+import useAnalytics from '../../../hooks/useAnalytics';
+import { useDepositSDK } from '../../sdk';
+import {
+  getCryptoCurrencyFromTransakId,
+  hasDepositOrderField,
+} from '../../utils';
+import { DepositOrder } from '@consensys/native-ramps-sdk';
 
 export interface OrderProcessingParams {
   orderId: string;
@@ -35,8 +43,9 @@ const OrderProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { orderId } = useParams<OrderProcessingParams>();
-
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
+  const trackEvent = useAnalytics();
+  const { selectedWalletAddress, selectedRegion } = useDepositSDK();
 
   const handleMainAction = useCallback(() => {
     if (
@@ -54,10 +63,6 @@ const OrderProcessing = () => {
     Linking.openURL(TRANSAK_SUPPORT_URL);
   }, []);
 
-  const handleCancelOrder = useCallback(() => {
-    // TODO: Implement cancel order feature
-  }, []);
-
   useEffect(() => {
     const title =
       order?.state === FIAT_ORDER_STATES.COMPLETED
@@ -72,31 +77,76 @@ const OrderProcessing = () => {
     );
   }, [navigation, theme, order?.state]);
 
+  useEffect(() => {
+    if (order?.state === FIAT_ORDER_STATES.CANCELLED) {
+      navigation.navigate(Routes.WALLET.HOME);
+    }
+  }, [order?.state, navigation, orderId]);
+
+  useEffect(() => {
+    if (!order) return;
+
+    const isCompleted = order.state === FIAT_ORDER_STATES.COMPLETED;
+    const isFailed = order.state === FIAT_ORDER_STATES.FAILED;
+
+    if (isCompleted || isFailed) {
+      if (hasDepositOrderField(order.data, 'cryptoCurrency')) {
+        const cryptoCurrency = getCryptoCurrencyFromTransakId(
+          (order.data as DepositOrder).cryptoCurrency,
+          (order.data as DepositOrder).network,
+        );
+
+        const baseAnalyticsData = {
+          ramp_type: 'DEPOSIT' as const,
+          amount_source: Number(order.data.fiatAmount),
+          amount_destination: Number(order.cryptoAmount),
+          exchange_rate: Number(order.data.exchangeRate),
+          payment_method_id: order.data.paymentMethod,
+          country: selectedRegion?.isoCode || '',
+          chain_id: cryptoCurrency?.chainId || '',
+          currency_destination: cryptoCurrency?.assetId || '',
+          currency_source: order.data.fiatCurrency,
+        };
+
+        if (isCompleted) {
+          trackEvent('RAMPS_TRANSACTION_COMPLETED', {
+            ...baseAnalyticsData,
+            gas_fee: order.data.networkFees
+              ? Number(order.data.networkFees)
+              : 0,
+            processing_fee: order.data.partnerFees
+              ? Number(order.data.partnerFees)
+              : 0,
+            total_fee: Number(order.data.totalFeesFiat),
+          });
+        } else if (isFailed) {
+          trackEvent('RAMPS_TRANSACTION_FAILED', {
+            ...baseAnalyticsData,
+            gas_fee: order.data.networkFees
+              ? Number(order.data.networkFees)
+              : 0,
+            processing_fee: order.data.partnerFees
+              ? Number(order.data.partnerFees)
+              : 0,
+            total_fee: Number(order.data.totalFeesFiat),
+            error_message: order.data.statusDescription || 'transaction_failed',
+          });
+        }
+      }
+    }
+  }, [
+    order,
+    navigation,
+    orderId,
+    trackEvent,
+    selectedWalletAddress,
+    selectedRegion,
+  ]);
+
   if (!order) {
     return (
       <ScreenLayout>
-        <ScreenLayout.Body>
-          <ScreenLayout.Content grow>
-            <View style={styles.errorContainer}>
-              <Text variant={TextVariant.BodyMD}>
-                {strings('deposit.order_processing.no_order_found')}
-              </Text>
-            </View>
-          </ScreenLayout.Content>
-        </ScreenLayout.Body>
-        <ScreenLayout.Footer>
-          <ScreenLayout.Content>
-            <View style={styles.buttonContainer}>
-              <StyledButton
-                type="confirm"
-                onPress={() => navigation.navigate(Routes.WALLET.HOME)}
-                testID="no-order-back-button"
-              >
-                {strings('deposit.order_processing.back_to_wallet')}
-              </StyledButton>
-            </View>
-          </ScreenLayout.Content>
-        </ScreenLayout.Footer>
+        <Loader size="large" color={theme.colors.primary.default} />
       </ScreenLayout>
     );
   }
@@ -110,29 +160,34 @@ const OrderProcessing = () => {
       </ScreenLayout.Body>
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
-          <View style={styles.buttonContainer}>
-            <StyledButton
-              type="confirm"
-              onPress={handleMainAction}
-              testID="main-action-button"
-            >
-              {order.state === FIAT_ORDER_STATES.CANCELLED ||
-              order.state === FIAT_ORDER_STATES.FAILED
-                ? strings('deposit.order_processing.error_button')
-                : strings('deposit.order_processing.button')}
-            </StyledButton>
-            {(order.state === FIAT_ORDER_STATES.CANCELLED ||
-              order.state === FIAT_ORDER_STATES.FAILED) && (
-              <StyledButton type="normal" onPress={handleContactSupport}>
-                {strings('deposit.order_processing.contact_support_button')}
-              </StyledButton>
-            )}
-            {order.state === FIAT_ORDER_STATES.CREATED && (
-              // TODO: Confirm styling of this button
-              <StyledButton type="cancel" onPress={handleCancelOrder}>
-                {strings('deposit.order_processing.cancel_order_button')}
-              </StyledButton>
-            )}
+          <View style={styles.bottomContainer}>
+            <View style={styles.buttonsContainer}>
+              {(order.state === FIAT_ORDER_STATES.CANCELLED ||
+                order.state === FIAT_ORDER_STATES.FAILED) && (
+                <Button
+                  style={styles.button}
+                  variant={ButtonVariants.Secondary}
+                  size={ButtonSize.Lg}
+                  onPress={handleContactSupport}
+                  label={strings(
+                    'deposit.order_processing.contact_support_button',
+                  )}
+                />
+              )}
+              <Button
+                style={styles.button}
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                onPress={handleMainAction}
+                testID="main-action-button"
+                label={
+                  order.state === FIAT_ORDER_STATES.CANCELLED ||
+                  order.state === FIAT_ORDER_STATES.FAILED
+                    ? strings('deposit.order_processing.error_button')
+                    : strings('deposit.order_processing.button')
+                }
+              />
+            </View>
           </View>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

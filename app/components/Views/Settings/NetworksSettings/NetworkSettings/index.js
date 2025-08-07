@@ -35,7 +35,7 @@ import Logger from '../../../../../util/Logger';
 import { isPrefixedFormattedHexString } from '../../../../../util/number';
 import AppConstants from '../../../../../core/AppConstants';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
+import TabBar from '../../../../../component-library/components-temp/TabBar/TabBar';
 import InfoModal from '../../../../UI/Swaps/components/InfoModal';
 import { PRIVATENETWORK, RPC } from '../../../../../constants/network';
 import { ThemeContext, mockTheme } from '../../../../../util/theme';
@@ -104,11 +104,12 @@ import {
   removeItemFromChainIdList,
 } from '../../../../../util/metrics/MultichainAPI/networkMetricUtils';
 
+const formatNetworkRpcUrl = (rpcUrl) => {
+  return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
+};
+
 const createStyles = (colors) =>
   StyleSheet.create({
-    base: {
-      paddingHorizontal: 16,
-    },
     baseAll: {
       padding: 16,
     },
@@ -206,10 +207,9 @@ const createStyles = (colors) =>
     },
     informationWrapper: {
       flex: 1,
+      paddingHorizontal: 16,
     },
-    informationCustomWrapper: {
-      paddingHorizontal: 20,
-    },
+    informationCustomWrapper: {},
     scrollWrapper: {
       flex: 1,
       paddingVertical: 12,
@@ -345,7 +345,6 @@ const createStyles = (colors) =>
     },
     networksWrapper: {
       marginTop: 12,
-      paddingHorizontal: 20,
     },
     popularNetwork: {
       flexDirection: 'row',
@@ -363,9 +362,6 @@ const createStyles = (colors) =>
     textStyle: {
       ...fontStyles.bold,
       fontSize: 14,
-    },
-    tabLabelStyle: {
-      fontSize: scale(11),
     },
     popularNetworkImage: {
       width: 20,
@@ -1677,9 +1673,6 @@ export class NetworkSettings extends PureComponent {
       this.context.themeAppearance || themeAppearanceLight;
     const styles = createStyles(colors);
 
-    const formatNetworkRpcUrl = (rpcUrl) => {
-      return stripProtocol(stripKeyFromInfuraUrl(rpcUrl));
-    };
     const inputStyle = [
       styles.input,
       inputWidth,
@@ -2543,21 +2536,15 @@ export class NetworkSettings extends PureComponent {
   goToLearnMore = () => Linking.openURL(strings('networks.learn_more_url'));
 
   renderTabBar = (props) => {
-    const colors = this.context.colors || mockTheme.colors;
-    const styles = createStyles(colors);
     return (
-      <View style={styles.base}>
-        <DefaultTabBar
-          underlineStyle={styles.tabUnderlineStyle}
-          activeTextColor={colors.primary.default}
-          inactiveTextColor={colors.text.muted}
-          backgroundColor={colors.background.default}
-          tabStyle={styles.tabStyle}
-          tabPadding={16}
-          textStyle={styles.textStyle}
-          {...props}
-        />
-      </View>
+      <TabBar
+        tabStyle={{
+          paddingHorizontal: 16, // Reduce padding to remove gaps
+          paddingVertical: 8,
+          paddingBottom: 8,
+        }}
+        {...props}
+      />
     );
   };
 
@@ -2582,7 +2569,6 @@ export class NetworkSettings extends PureComponent {
             this.customNetwork()
           ) : (
             <ScrollableTabView
-              tabBarTextStyle={styles.tabLabelStyle}
               renderTabBar={this.renderTabBar}
               ref={(tabView) => {
                 this.tabView = tabView;

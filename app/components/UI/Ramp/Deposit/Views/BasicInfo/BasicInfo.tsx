@@ -1,11 +1,11 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { View, TextInput, Keyboard } from 'react-native';
+import { View, TextInput, Keyboard, TouchableOpacity } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useNavigation } from '@react-navigation/native';
-import Text from '../../../../../../component-library/components/Texts/Text';
-import StyledButton from '../../../../StyledButton';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import Row from '../../../Aggregator/components/Row';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './BasicInfo.styles';
@@ -20,12 +20,32 @@ import { useForm } from '../../hooks/useForm';
 import DepositPhoneField from '../../components/DepositPhoneField';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import DepositDateField from '../../components/DepositDateField';
-import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
+import {
+  AddressFormData,
+  createEnterAddressNavDetails,
+} from '../EnterAddress/EnterAddress';
+import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { useDepositSDK } from '../../sdk';
+import { VALIDATION_REGEX } from '../../constants/constants';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../../component-library/components/Icons/Icon';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import PrivacySection from '../../components/PrivacySection';
+import { timestampToTransakFormat } from '../../utils';
+import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
-  kycUrl?: string;
+  previousFormData?: BasicInfoFormData & AddressFormData;
 }
 
 export const createBasicInfoNavDetails =
@@ -36,16 +56,15 @@ export interface BasicInfoFormData {
   lastName: string;
   mobileNumber: string;
   dob: string;
-  ssn: string;
+  ssn?: string;
 }
-
-// TODO: Country Code must be dynamic and not hardcoded to USA
-const COUNTRY_CODE = '1';
 
 const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { quote, kycUrl } = useParams<BasicInfoParams>();
+  const trackEvent = useAnalytics();
+  const { quote, previousFormData } = useParams<BasicInfoParams>();
+  const { selectedRegion } = useDepositSDK();
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -53,36 +72,56 @@ const BasicInfo = (): JSX.Element => {
   const dateInputRef = useRef<TextInput>(null);
   const ssnInputRef = useRef<TextInput>(null);
 
+  const utcDateToPrefill = new Date(previousFormData?.dob || '');
+  const timestamp = utcDateToPrefill.getTime();
+  const localTimestampToUseInternally = isNaN(timestamp)
+    ? ''
+    : (timestamp + utcDateToPrefill.getTimezoneOffset() * 60 * 1000).toString();
+
   const initialFormData: BasicInfoFormData = {
-    firstName: '',
-    lastName: '',
-    mobileNumber: '',
-    dob: '',
-    ssn: '',
+    firstName: previousFormData?.firstName || '',
+    lastName: previousFormData?.lastName || '',
+    mobileNumber: previousFormData?.mobileNumber || '',
+    dob: localTimestampToUseInternally,
+    ssn: previousFormData?.ssn || '',
   };
 
   const validateForm = (
     formData: BasicInfoFormData,
   ): Record<string, string> => {
     const errors: Record<string, string> = {};
+
     if (!formData.firstName.trim()) {
-      errors.firstName = 'First name is required';
+      errors.firstName = strings('deposit.basic_info.first_name_required');
+    } else if (!VALIDATION_REGEX.firstName.test(formData.firstName)) {
+      errors.firstName = strings('deposit.basic_info.first_name_invalid');
     }
 
     if (!formData.lastName.trim()) {
-      errors.lastName = 'Last name is required';
+      errors.lastName = strings('deposit.basic_info.last_name_required');
+    } else if (!VALIDATION_REGEX.lastName.test(formData.lastName)) {
+      errors.lastName = strings('deposit.basic_info.last_name_invalid');
     }
 
     if (!formData.mobileNumber.trim()) {
-      errors.mobileNumber = 'Phone number is required';
+      errors.mobileNumber = strings(
+        'deposit.basic_info.mobile_number_required',
+      );
+    } else if (!VALIDATION_REGEX.mobileNumber.test(formData.mobileNumber)) {
+      errors.mobileNumber = strings('deposit.basic_info.mobile_number_invalid');
     }
 
     if (!formData.dob.trim()) {
-      errors.dob = 'Date of birth is required';
+      errors.dob = strings('deposit.basic_info.dob_required');
+    } else {
+      const transakFormattedDate = timestampToTransakFormat(formData.dob);
+      if (!VALIDATION_REGEX.dateOfBirth.test(transakFormattedDate)) {
+        errors.dob = strings('deposit.basic_info.dob_invalid');
+      }
     }
 
-    if (!formData.ssn.trim()) {
-      errors.ssn = 'Social security number is required';
+    if (selectedRegion?.isoCode === 'US' && !formData.ssn?.trim()) {
+      errors.ssn = strings('deposit.basic_info.ssn_required');
     }
 
     return errors;
@@ -105,7 +144,7 @@ const BasicInfo = (): JSX.Element => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.basic_info.title') },
+        { title: strings('deposit.basic_info.navbar_title') },
         theme,
       ),
     );
@@ -113,27 +152,60 @@ const BasicInfo = (): JSX.Element => {
 
   const handleOnPressContinue = useCallback(() => {
     if (validateFormData()) {
-      const formattedFormData = {
-        ...formData,
-        mobileNumber: `+${COUNTRY_CODE}${formData.mobileNumber}`,
-      };
+      trackEvent('RAMPS_BASIC_INFO_ENTERED', {
+        region: selectedRegion?.isoCode || '',
+        ramp_type: 'DEPOSIT',
+        kyc_type: 'SIMPLE',
+      });
 
       navigation.navigate(
         ...createEnterAddressNavDetails({
-          formData: formattedFormData,
+          previousFormData,
+          formData: {
+            ...formData,
+            dob: formData.dob.trim()
+              ? timestampToTransakFormat(formData.dob)
+              : '',
+          },
           quote,
-          kycUrl,
         }),
       );
     }
-  }, [navigation, validateFormData, formData, quote, kycUrl]);
+  }, [
+    previousFormData,
+    navigation,
+    validateFormData,
+    formData,
+    quote,
+    selectedRegion?.isoCode,
+    trackEvent,
+  ]);
 
-  const handleSubmitEditing = useCallback(
+  const focusNextField = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {
       nextRef.current?.focus();
     },
     [],
   );
+
+  const handleFieldChange = useCallback(
+    (field: keyof BasicInfoFormData, nextAction?: () => void) =>
+      (value: string) => {
+        const currentValue = formData[field] || '';
+        const isAutofill = value.length - currentValue.length > 1;
+
+        handleFormDataChange(field)(value);
+
+        if (isAutofill && nextAction) {
+          nextAction();
+        }
+      },
+    [formData, handleFormDataChange],
+  );
+
+  const handleSsnInfoPress = useCallback(() => {
+    navigation.navigate(...createSsnInfoModalNavigationDetails());
+  }, [navigation]);
 
   return (
     <ScreenLayout>
@@ -144,16 +216,21 @@ const BasicInfo = (): JSX.Element => {
         >
           <ScreenLayout.Content>
             <DepositProgressBar steps={4} currentStep={2} />
+            <Text variant={TextVariant.HeadingLG} style={styles.title}>
+              {strings('deposit.basic_info.title')}
+            </Text>
             <Text style={styles.subtitle}>
               {strings('deposit.basic_info.subtitle')}
             </Text>
-
             <View style={styles.nameInputRow}>
               <DepositTextField
                 label={strings('deposit.basic_info.first_name')}
                 placeholder="John"
                 value={formData.firstName}
-                onChangeText={handleFormDataChange('firstName')}
+                onChangeText={handleFieldChange(
+                  'firstName',
+                  focusNextField(lastNameInputRef),
+                )}
                 error={errors.firstName}
                 returnKeyType="next"
                 testID="first-name-input"
@@ -162,14 +239,17 @@ const BasicInfo = (): JSX.Element => {
                 autoComplete="given-name"
                 textContentType="givenName"
                 autoCapitalize="words"
-                onSubmitEditing={handleSubmitEditing(firstNameInputRef)}
+                onSubmitEditing={focusNextField(lastNameInputRef)}
               />
 
               <DepositTextField
                 label={strings('deposit.basic_info.last_name')}
                 placeholder="Smith"
                 value={formData.lastName}
-                onChangeText={handleFormDataChange('lastName')}
+                onChangeText={handleFieldChange(
+                  'lastName',
+                  focusNextField(phoneInputRef),
+                )}
                 error={errors.lastName}
                 returnKeyType="next"
                 testID="last-name-input"
@@ -178,74 +258,104 @@ const BasicInfo = (): JSX.Element => {
                 autoComplete="family-name"
                 textContentType="familyName"
                 autoCapitalize="words"
-                onSubmitEditing={handleSubmitEditing(lastNameInputRef)}
+                onSubmitEditing={focusNextField(phoneInputRef)}
               />
             </View>
 
             <DepositPhoneField
-              // TODO: Add internationalization for phone number format
-              // TODO: Automatic formatting
-              countryCode={COUNTRY_CODE}
               label={strings('deposit.basic_info.phone_number')}
-              placeholder="(234) 567-8910"
               value={formData.mobileNumber}
-              onChangeText={handleFormDataChange('mobileNumber')}
+              onChangeText={handleFieldChange(
+                'mobileNumber',
+                focusNextField(dateInputRef),
+              )}
               error={errors.mobileNumber}
-              testID="phone-number-input"
-              returnKeyType="next"
               ref={phoneInputRef}
-              autoComplete="tel"
-              textContentType="telephoneNumber"
-              keyboardType="phone-pad"
-              onSubmitEditing={handleSubmitEditing(phoneInputRef)}
+              onSubmitEditing={focusNextField(dateInputRef)}
             />
 
             <DepositDateField
               label={strings('deposit.basic_info.date_of_birth')}
               value={formData.dob}
-              onChangeText={handleFormDataChange('dob')}
+              onChangeText={handleFieldChange('dob', () => {
+                if (selectedRegion?.isoCode === 'US') {
+                  focusNextField(ssnInputRef)();
+                } else {
+                  Keyboard.dismiss();
+                }
+              })}
               error={errors.dob}
-              onSubmitEditing={handleSubmitEditing(dateInputRef)}
+              onSubmitEditing={() => {
+                if (selectedRegion?.isoCode === 'US') {
+                  focusNextField(ssnInputRef)();
+                } else {
+                  Keyboard.dismiss();
+                }
+              }}
+              handleOnPress={() => {
+                Keyboard.dismiss();
+                firstNameInputRef.current?.blur();
+                lastNameInputRef.current?.blur();
+                phoneInputRef.current?.blur();
+                ssnInputRef.current?.blur();
+              }}
               ref={dateInputRef}
               textFieldProps={{
                 testID: 'date-of-birth-input',
               }}
             />
-
-            <DepositTextField
-              label={strings('deposit.basic_info.social_security_number')}
-              placeholder="XXX-XX-XXXX"
-              value={formData.ssn}
-              onChangeText={handleFormDataChange('ssn')}
-              error={errors.ssn}
-              returnKeyType="done"
-              testID="ssn-input"
-              ref={ssnInputRef}
-              autoComplete="off"
-              textContentType="none"
-              secureTextEntry
-              keyboardType="number-pad"
-              maxLength={11}
-              onSubmitEditing={() => {
-                Keyboard.dismiss();
-                handleOnPressContinue();
-              }}
-            />
+            {selectedRegion?.isoCode === 'US' && (
+              <DepositTextField
+                label={
+                  <View style={styles.ssnLabel}>
+                    <Text variant={TextVariant.BodyMD}>
+                      {strings('deposit.basic_info.social_security_number')}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={handleSsnInfoPress}
+                      testID="ssn-info-button"
+                    >
+                      <Icon
+                        name={IconName.Info}
+                        size={IconSize.Sm}
+                        color={IconColor.Alternative}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                }
+                placeholder="XXX-XX-XXXX"
+                value={formData.ssn || ''}
+                onChangeText={handleFieldChange('ssn')}
+                error={errors.ssn}
+                returnKeyType="done"
+                testID="ssn-input"
+                ref={ssnInputRef}
+                autoComplete="off"
+                textContentType="none"
+                secureTextEntry
+                keyboardType="number-pad"
+                maxLength={11}
+                onSubmitEditing={() => {
+                  Keyboard.dismiss();
+                }}
+              />
+            )}
           </ScreenLayout.Content>
         </KeyboardAwareScrollView>
       </ScreenLayout.Body>
 
       <ScreenLayout.Footer>
-        <ScreenLayout.Content>
-          <Row>
-            <StyledButton
-              type="confirm"
-              onPress={handleOnPressContinue}
-              testID="continue-button"
-            >
-              {strings('deposit.basic_info.continue')}
-            </StyledButton>
-          </Row>
+        <ScreenLayout.Content style={styles.footerContent}>
+          <PrivacySection />
+          <Button
+            size={ButtonSize.Lg}
+            onPress={handleOnPressContinue}
+            label={strings('deposit.basic_info.continue')}
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+            testID="continue-button"
+          />
+          <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

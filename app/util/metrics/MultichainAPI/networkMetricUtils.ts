@@ -5,10 +5,10 @@ import {
   isHexString,
   toCaipChainId,
 } from '@metamask/utils';
-import { selectNetworkConfigurations } from '../../../selectors/networkController';
 import { store } from '../../../store';
 import { UserProfileProperty } from '../UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { NetworkConfiguration } from '@metamask/network-controller';
 
 /**
  * Converts a chain ID to CAIP format.
@@ -35,10 +35,31 @@ function caipifyChainId(chainId: CaipChainId | string): CaipChainId {
  * @returns An array of CAIP chain IDs for all configured networks.
  */
 export function getConfiguredCaipChainIds(): CaipChainId[] {
-  const state = store.getState();
-  const networks = selectNetworkConfigurations(state);
+  // We're accessing state with optional chaining here because there's a race condition
+  // that causes redux state to be undefined when we access it.
+  // Issue here: https://github.com/MetaMask/metamask-mobile/issues/17167
 
-  return Object.values(networks).map((n) => caipifyChainId(n.chainId));
+  const state = store.getState();
+  const evmNetworkConfigurations =
+    state?.engine?.backgroundState?.NetworkController
+      ?.networkConfigurationsByChainId || {};
+
+  const multichainNetworkController =
+    state?.engine?.backgroundState?.MultichainNetworkController;
+
+  const nonEvmNetworkConfigurations =
+    multichainNetworkController?.multichainNetworkConfigurationsByChainId || {};
+
+  const allNetworkConfigurations: Record<string, NetworkConfiguration> = {
+    ...evmNetworkConfigurations,
+    ...nonEvmNetworkConfigurations,
+  };
+
+  const chainIds = Object.values(allNetworkConfigurations)
+    .filter((network) => network?.chainId)
+    .map((network) => caipifyChainId(network.chainId));
+
+  return chainIds;
 }
 
 /**

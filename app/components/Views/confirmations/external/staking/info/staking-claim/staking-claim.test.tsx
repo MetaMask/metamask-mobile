@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../../../util/test/renderWithProvide
 import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import StakingClaim from './staking-claim';
+import { endTrace, TraceName } from '../../../../../../../util/trace';
 
 jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
@@ -12,6 +13,9 @@ jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
 
 jest.mock('../../../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
+  controllerMessenger: {
+    subscribeOnceIf: jest.fn(),
+  },
   context: {
     NetworkController: {
       getNetworkConfigurationByNetworkClientId: jest.fn(),
@@ -49,9 +53,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../../util/trace'),
+  endTrace: jest.fn(),
+}));
+
 describe('StakingClaim', () => {
   const mockGetNavbar = jest.mocked(getNavbar);
   const mockUseConfirmActions = jest.mocked(useConfirmActions);
+  const mockEndTrace = jest.mocked(endTrace);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -93,6 +103,22 @@ describe('StakingClaim', () => {
       onReject: mockOnReject,
       addBackButton: false,
       theme: expect.any(Object),
+    });
+  });
+
+  it('ends the EarnClaimConfirmationScreen trace on mount', () => {
+    const mockRoute: RouteProp<{ params: { amountWei: string } }, 'params'> = {
+      key: 'test',
+      name: 'params',
+      params: { amountWei: '1000000000000000000' },
+    };
+
+    renderWithProvider(<StakingClaim route={mockRoute} />, {
+      state: stakingClaimConfirmationState,
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: TraceName.EarnClaimConfirmationScreen,
     });
   });
 });

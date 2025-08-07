@@ -63,9 +63,8 @@ exports[`AccountCard render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -133,7 +132,7 @@ exports[`AccountCard render matches snapshot 1`] = `
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 4,
                       "height": 16,
                       "overflow": "hidden",
                       "width": 16,
@@ -152,7 +151,9 @@ exports[`AccountCard render matches snapshot 1`] = `
                           "height": 16,
                           "width": 16,
                         },
-                        undefined,
+                        {
+                          "borderRadius": 4,
+                        },
                       ]
                     }
                   >
@@ -283,9 +284,8 @@ exports[`AccountCard render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#4459ff",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -345,9 +345,8 @@ exports[`AccountCard render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -415,7 +414,7 @@ exports[`AccountCard render matches snapshot 1`] = `
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 4,
                       "height": 16,
                       "overflow": "hidden",
                       "width": 16,
@@ -434,7 +433,9 @@ exports[`AccountCard render matches snapshot 1`] = `
                           "height": 16,
                           "width": 16,
                         },
-                        undefined,
+                        {
+                          "borderRadius": 4,
+                        },
                       ]
                     }
                   >
@@ -565,9 +566,8 @@ exports[`AccountCard render matches snapshot 1`] = `
                   style={
                     {
                       "color": "#121314",
-                      "fontFamily": "CentraNo1-Book",
+                      "fontFamily": "Geist Regular",
                       "fontSize": 16,
-                      "fontWeight": "400",
                       "letterSpacing": 0,
                       "lineHeight": 24,
                     }
@@ -646,9 +646,8 @@ exports[`AccountCard render matches snapshot 1`] = `
               style={
                 {
                   "color": "#121314",
-                  "fontFamily": "CentraNo1-Medium",
+                  "fontFamily": "Geist Medium",
                   "fontSize": 16,
-                  "fontWeight": "500",
                   "letterSpacing": 0,
                   "lineHeight": 24,
                 }
@@ -725,9 +724,8 @@ exports[`AccountCard render matches snapshot 1`] = `
                 style={
                   {
                     "color": "#121314",
-                    "fontFamily": "CentraNo1-Book",
+                    "fontFamily": "Geist Regular",
                     "fontSize": 16,
-                    "fontWeight": "400",
                     "letterSpacing": 0,
                     "lineHeight": 24,
                   }
