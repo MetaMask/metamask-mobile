@@ -101,7 +101,7 @@ describe('submitEvmTransaction', () => {
     submitEvmTransaction({
       asset: { isNative: true } as AssetType,
       chainId: '0x1',
-      from: '0xeDd1935e28b253C7905Cf5a944f0B5830FFA916a',
+      from: '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477',
       to: '0xeDd1935e28b253C7905Cf5a944f0B5830FFA967b',
       value: '10',
     });
