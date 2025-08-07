@@ -20,6 +20,7 @@ const BLOCKLISTED_HOSTS = [
   'carrot.megaeth.com',
   'mainnet.infura.io',
   'sepolia.infura.io',
+  'palm-mainnet.infura.io',
 ];
 
 /**

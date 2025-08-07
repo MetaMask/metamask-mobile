@@ -5,7 +5,7 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     decimals: 6,
     name: 'Tether USD',
     iconUrl:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xdac17f958d2ee523a2206206994597c13d831ec7.png',
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0xdac17f958d2ee523a2206206994597c13d831ec7.png',
     aggregators: [
       'uniswapLabs',
       'metamask',
@@ -33,7 +33,7 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     decimals: 6,
     name: 'USDCoin',
     iconUrl:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
     aggregators: [
       'uniswapLabs',
       'metamask',
@@ -61,7 +61,7 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     decimals: 18,
     name: 'Dai Stablecoin',
     iconUrl:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b175474e89094c44da98b954eedeac495271d0f.png',
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0x6b175474e89094c44da98b954eedeac495271d0f.png',
     aggregators: [
       'uniswapLabs',
       'metamask',
@@ -91,7 +91,7 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     decimals: 18,
     name: 'Sushi',
     iconUrl:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x6b3595068778dd592e39a122f4f5a5cf09c90fe2.png',
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0x6b3595068778dd592e39a122f4f5a5cf09c90fe2.png',
     aggregators: [
       'uniswapLabs',
       'metamask',
@@ -120,7 +120,7 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     decimals: 18,
     name: 'Aave',
     iconUrl:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9.png',
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9.png',
     aggregators: [
       'uniswapLabs',
       'metamask',
@@ -150,7 +150,7 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     decimals: 18,
     name: '1inch',
     iconUrl:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x111111111117dc0aa78b770fa6a738034120c302.png',
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0x111111111117dc0aa78b770fa6a738034120c302.png',
     aggregators: [
       'uniswapLabs',
       'metamask',
@@ -178,7 +178,7 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     decimals: 18,
     name: 'Wrapped Ether',
     iconUrl:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png',
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2.png',
     aggregators: [
       'uniswapLabs',
       'metamask',
@@ -206,7 +206,7 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     decimals: 8,
     name: 'Wrapped BTC',
     iconUrl:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.png',
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0x2260fac5e5542a773aa44fbcfedf7c193bc2c599.png',
     aggregators: [
       'uniswapLabs',
       'metamask',
@@ -236,7 +236,7 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     decimals: 18,
     name: 'ChainLink Token',
     iconUrl:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x514910771af9ca656af840dff83e8264ecf986ca.png',
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0x514910771af9ca656af840dff83e8264ecf986ca.png',
     aggregators: [
       'uniswapLabs',
       'metamask',
@@ -266,7 +266,7 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     decimals: 18,
     name: 'Uniswap',
     iconUrl:
-      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x1f9840a85d5af5bf1d1762f925bdaddc4201f984.png',
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0x1f9840a85d5af5bf1d1762f925bdaddc4201f984.png',
     aggregators: [
       'uniswapLabs',
       'metamask',

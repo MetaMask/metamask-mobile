@@ -62,6 +62,15 @@ export const DEFAULT_MOCKS = {
     },
     {
       urlEndpoint:
+        'https://dapp-scanning.api.cx.metamask.io/v2/scan?url=portfolio.metamask.io',
+      responseCode: 200,
+      response: {
+        domainName: 'portfolio.metamask.io',
+        recommendedAction: 'NONE',
+      },
+    },
+    {
+      urlEndpoint:
         'https://min-api.cryptocompare.com/data/pricemulti?fsyms=usd&tsyms=usd',
       responseCode: 200,
       response: {
@@ -105,6 +114,17 @@ export const DEFAULT_MOCKS = {
         nonce: 'gxTzW7WWhXSLlbCg',
         identifier:
           '0x030b4cfd21a0a0aca69b038e6d268f8eb83a8ea43610aabcd4ff6a19d13e0d10ba',
+        expires_in: 300,
+      },
+    },
+    {
+      urlEndpoint:
+        'https://authentication.api.cx.metamask.io/api/v2/nonce?identifier=0x0306d1490b98c04a4265247ef4a4337e84be3430221a2156804bab2387bb1169b8',
+      responseCode: 200,
+      response: {
+        nonce: '9kFZyPPFkud2z4Ug',
+        identifier:
+          '0x0306d1490b98c04a4265247ef4a4337e84be3430221a2156804bab2387bb1169b8',
         expires_in: 300,
       },
     },
@@ -191,6 +211,28 @@ export const DEFAULT_MOCKS = {
     },
     {
       urlEndpoint:
+        'https://accounts.api.cx.metamask.io/v2/accounts/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3/balances?networks=1',
+      responseCode: 200,
+      response: {
+        count: 1,
+        balances: [
+          {
+            object: 'token',
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            type: 'native',
+            timestamp: '2015-07-30T15:26:13.000Z',
+            decimals: 18,
+            chainId: 1,
+            balance: '0.000000000000000000',
+          },
+        ],
+        unprocessedNetworks: [],
+      },
+    },
+    {
+      urlEndpoint:
         'https://accounts.api.cx.metamask.io/v1/accounts/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3/transactions?networks=0x1,0x89,0x38,0xe708,0x2105,0xa,0xa4b1,0x82750,0x531&sortDirection=DESC',
       responseCode: 200,
       response: ACCOUNTS_API_TRANSACTIONS_RESPONSE,
@@ -270,6 +312,20 @@ export const DEFAULT_MOCKS = {
         'https://token.api.cx.metamask.io/tokens/1337?occurrenceFloor=3&includeNativeAssets=false&includeTokenFees=false&includeAssetType=false&includeERC20Permit=false&includeStorage=false',
       responseCode: 200,
       response: TOKEN_API_TOKENS_RESPONSE,
+    },
+    {
+      urlEndpoint:
+        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+      responseCode: 200,
+      response: {
+        data: [],
+      },
+    },
+    {
+      urlEndpoint:
+        'https://dweb.link/ipfs/Qmaisz6NMhDB51cCvNWa1GMS7LU1pAxdF4Ld6Ft9kZEP2a#x-ipfs-companion-no-redirect',
+      responseCode: 200,
+      response: 'Hello from IPFS Gateway Checker',
     },
   ],
   POST: [
