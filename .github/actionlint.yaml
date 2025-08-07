@@ -20,4 +20,4 @@ config-variables: null
 paths:
   .github/workflows/test-ios-build-app.yml:
     ignore:
-      - "workflow is empty"
+      - ".*"
