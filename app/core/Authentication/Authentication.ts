@@ -1083,12 +1083,6 @@ class AuthenticationService {
       throw err;
     }
     await this.resetPassword();
-
-    // set discovery pending to true
-    for (const clientType of Object.values(WalletClientType)) {
-      const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
-      await StorageWrapper.setItem(discoveryStorageId, TRUE);
-    }
   };
 
   /**
