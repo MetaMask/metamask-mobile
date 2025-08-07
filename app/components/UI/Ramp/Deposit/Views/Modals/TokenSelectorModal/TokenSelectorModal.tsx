@@ -1,6 +1,10 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
-import { FlatList } from 'react-native-gesture-handler';
+import {
+  FlatList,
+  Gesture,
+  GestureDetector,
+} from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 
@@ -42,6 +46,7 @@ import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
 import { useTheme } from '../../../../../../../util/theme';
+import { noop } from 'lodash';
 interface TokenSelectorModalNavigationDetails {
   selectedAssetId?: string;
   handleSelectAssetId?: (assetId: string) => void;
@@ -121,37 +126,47 @@ function TokenSelectorModal() {
       });
       const depositNetworkName =
         DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
+
+      const tap = Gesture.Tap()
+        .runOnJS(true)
+        .onEnd(() => handleSelectAssetIdCallback(token.assetId));
+
       return (
-        <ListItemSelect
-          isSelected={selectedAssetId === token.assetId}
-          onPress={() => handleSelectAssetIdCallback(token.assetId)}
-          accessibilityRole="button"
-          accessible
-        >
-          <ListItemColumn widthType={WidthType.Auto}>
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                <BadgeNetwork
-                  name={networkName}
-                  imageSource={networkImageSource}
+        <GestureDetector gesture={tap}>
+          <ListItemSelect
+            isSelected={selectedAssetId === token.assetId}
+            onPress={noop}
+            accessibilityRole="button"
+            accessible
+          >
+            <ListItemColumn widthType={WidthType.Auto}>
+              <BadgeWrapper
+                badgePosition={BadgePosition.BottomRight}
+                badgeElement={
+                  <BadgeNetwork
+                    name={networkName}
+                    imageSource={networkImageSource}
+                  />
+                }
+              >
+                <AvatarToken
+                  name={token.name}
+                  imageSource={{ uri: token.iconUrl }}
+                  size={AvatarSize.Md}
                 />
-              }
-            >
-              <AvatarToken
-                name={token.name}
-                imageSource={{ uri: token.iconUrl }}
-                size={AvatarSize.Md}
-              />
-            </BadgeWrapper>
-          </ListItemColumn>
-          <ListItemColumn widthType={WidthType.Fill}>
-            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
-            <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
-              {depositNetworkName ?? networkName}
-            </Text>
-          </ListItemColumn>
-        </ListItemSelect>
+              </BadgeWrapper>
+            </ListItemColumn>
+            <ListItemColumn widthType={WidthType.Fill}>
+              <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={colors.text.alternative}
+              >
+                {depositNetworkName ?? networkName}
+              </Text>
+            </ListItemColumn>
+          </ListItemSelect>
+        </GestureDetector>
       );
     },
     [
