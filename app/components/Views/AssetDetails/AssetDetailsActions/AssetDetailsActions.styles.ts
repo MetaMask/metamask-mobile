@@ -2,33 +2,18 @@ import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { theme } = params;
   return StyleSheet.create({
     activitiesButton: {
-      display: 'flex',
-      flexDirection: 'row',
-      justifyContent: 'space-evenly',
-      paddingVertical: 16,
-    },
-    buttonWrapper: {
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-    },
-    buttonText: {
-      ...theme.typography.sBodyMD,
-      fontWeight: '400',
-    },
-    containerStyle: {
       width: '100%',
       flexDirection: 'row',
-      justifyContent: 'flex-start',
-      alignItems: 'flex-start',
-      paddingTop: 16,
-      paddingVertical: 2,
+      paddingTop: 12,
+      paddingHorizontal: 16,
+      gap: 12,
     },
-    icon: {
-      marginHorizontal: 16,
+    buttonContainer: {
+      flex: 1,
     },
   });
 };

@@ -34,8 +34,8 @@ const styleSheet = (params: {
         backgroundColor,
         borderRadius: 12,
         padding: 8,
-        minWidth: 68,
-        minHeight: 68,
+        minWidth: 70,
+        minHeight: 70,
         justifyContent: 'center',
         alignItems: 'center',
         opacity: isDisabled ? 0.5 : 1,
@@ -43,7 +43,7 @@ const styleSheet = (params: {
       style,
     ),
     pressed: {
-      backgroundColor: theme.colors.background.pressed,
+      backgroundColor: theme.colors.background.mutedPressed,
     },
     container: {
       alignItems: 'center',
