@@ -216,8 +216,6 @@ const main = async () => {
         'wallet_registerOnboarding',
         'eth_getEncryptionPublicKey',
         'wallet_watchAsset',
-        'personal_sign', // quarantined for now due to mysterious flakiness, resolution tracked here: https://github.com/MetaMask/MetaMask-planning/issues/5207
-        'eth_signTypedData_v4', // quarantined for now due to mysterious flakiness, resolution tracked here: https://github.com/MetaMask/MetaMask-planning/issues/5207
       ];
 
       const results = await rpcCoverageTool({

@@ -25,13 +25,18 @@ export const addToQueue = ({ task, resolve, reject, name }) => {
   return processQueue();
 };
 
-const pollResult = async (driver, generatedKey) => {
+const pollResult = async (driver, generatedKey, attempt = 0) => {
   let result;
+  if (attempt > 20) {
+    console.log('timeout polling', {generatedKey})
+    throw new Error('timeout polling');
+  }
   // eslint-disable-next-line no-loop-func
   await new Promise((resolve, reject) => {
     addToQueue({
       name: 'pollResult',
       task: async () => {
+        console.log('polling', {generatedKey, attempt})
         await TestHelpers.delay(500);
         const text = await driver.runScript(
           (el, g) => window[g],
@@ -59,11 +64,12 @@ const pollResult = async (driver, generatedKey) => {
   if (result !== undefined) {
     return result;
   }
-  return pollResult(driver, generatedKey);
+  return pollResult(driver, generatedKey, attempt + 1);
 };
 
 export const createDriverTransport = (driver) => (_, method, params) => {
   const generatedKey = uuid();
+  console.log({generatedKey, method})
   return new Promise((resolve, reject) => {
     const execute = async () => {
       await addToQueue({

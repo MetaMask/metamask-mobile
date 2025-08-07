@@ -295,6 +295,8 @@ export class Engine {
   ) {
     logEngineCreation(initialState, initialKeyringState);
 
+    console.log(JSON.stringify(initialState, null, 2));
+
     this.controllerMessenger = new ExtendedControllerMessenger();
 
     const isBasicFunctionalityToggleEnabled = () =>
