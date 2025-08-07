@@ -5,7 +5,6 @@ import {
   selectAccountGroups,
   selectAccountGroupsByWallet,
   selectSelectedAccountGroup,
-  selectValidatedAccountTreeState,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
 import { AccountWalletType } from '@metamask/account-api';
@@ -73,32 +72,9 @@ const createMockState = (
   } as unknown as RootState);
 
 describe('AccountTreeController Selectors', () => {
-  describe('selectValidatedAccountTreeState', () => {
-    it.each([
-      ['undefined accountTree', undefined, false],
-      ['disabled multichain accounts', { accountTree: { wallets: {} } }, false],
-      ['empty wallets', { accountTree: { wallets: {} } }, false],
-      [
-        'valid wallets',
-        {
-          accountTree: {
-            wallets: {
-              [WALLET_ID_1]: createMockWallet(WALLET_ID_1, 'Wallet 1'),
-            },
-          },
-        },
-        true,
-      ],
-    ])('returns %s correctly', (_, accountTreeController, expectedIsValid) => {
-      const mockState = createMockState(accountTreeController, expectedIsValid);
-      const result = selectValidatedAccountTreeState(mockState);
-      expect(result.isValid).toBe(expectedIsValid);
-    });
-  });
-
   describe('selectAccountSections', () => {
     it.each([
-      ['disabled multichain accounts', { accountTree: { wallets: {} } }, []],
+      ['undefined accountTree', undefined, []],
       ['empty wallets', { accountTree: { wallets: {} } }, []],
     ])('returns %s correctly', (_, accountTreeController, expected) => {
       const mockState = createMockState(accountTreeController);
@@ -455,12 +431,7 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it.each([
-      [
-        'disabled multichain accounts',
-        { accountTree: { wallets: { [WALLET_ID_1]: mockWallet } } },
-        ACCOUNT_ID_1,
-        null,
-      ],
+      ['undefined accountTree', undefined, ACCOUNT_ID_1, null],
       ['empty wallets', { accountTree: { wallets: {} } }, ACCOUNT_ID_1, null],
       [
         'account not found',
@@ -471,8 +442,7 @@ describe('AccountTreeController Selectors', () => {
     ])(
       'returns %s correctly',
       (_, accountTreeController, accountId, expected) => {
-        const isDisabled = expected === null && accountTreeController;
-        const mockState = createMockState(accountTreeController, !isDisabled);
+        const mockState = createMockState(accountTreeController);
         const selector = selectWalletByAccount(mockState);
         expect(selector(accountId)).toEqual(expected);
       },

@@ -1674,7 +1674,9 @@
     "account_connect_create_initial_account": {
       "description": "A Solana account is required to connect to this site.",
       "button": "Create Solana account"
-    }
+    },
+    "no_accounts_found": "No accounts found",
+    "search_your_accounts": "Search your accounts"
   },
   "toast": {
     "connected_and_active": "connected and active.",

@@ -1,14 +1,17 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { View } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 
 import { useStyles } from '../../../hooks';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
-import AccountCell from '../AccountCell';
 import TextFieldSearch from '../../../components/Form/TextFieldSearch';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState1Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import AccountListHeader from './AccountListHeader';
+import AccountListCell from './AccountListCell';
+import AccountListFooter from './AccountListFooter';
 
 import {
   MultichainAccountSelectorListProps,
@@ -21,6 +24,7 @@ import {
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
 } from './MultichainAccountSelectorList.constants';
+import { strings } from '../../../../../locales/i18n';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
@@ -30,13 +34,20 @@ const MultichainAccountSelectorList = ({
   ...props
 }: MultichainAccountSelectorListProps) => {
   const { styles } = useStyles(createStyles, {});
+  const isMultichainAccountsEnabled = useSelector(
+    selectMultichainAccountsState1Enabled,
+  );
   const accountSections = useSelector(selectAccountGroupsByWallet);
 
   // TODO: Search state - no search logic implemented yet
   const [searchText, setSearchText] = useState('');
 
   const walletSections = useMemo((): WalletSection[] => {
-    if (!accountSections || accountSections.length === 0) {
+    if (
+      !isMultichainAccountsEnabled ||
+      !accountSections ||
+      accountSections.length === 0
+    ) {
       return [];
     }
 
@@ -45,7 +56,7 @@ const MultichainAccountSelectorList = ({
       data: section.data,
       walletName: section.title,
     }));
-  }, [accountSections]);
+  }, [isMultichainAccountsEnabled, accountSections]);
 
   const flattenedData = useMemo((): FlattenedMultichainAccountListItem[] => {
     if (walletSections.length === 0) {
@@ -92,49 +103,46 @@ const MultichainAccountSelectorList = ({
       ({ item }) => {
         switch (item.type) {
           case 'header': {
-            return (
-              <View style={styles.sectionHeader}>
-                <Text
-                  variant={TextVariant.BodyMDBold}
-                  color={TextColor.Alternative}
-                  style={styles.sectionHeaderText}
-                >
-                  {item.data.title}
-                </Text>
-              </View>
-            );
+            return <AccountListHeader title={item.data.title} />;
           }
 
           case 'cell': {
             const isSelected = item.data.id === selectedAccountGroup?.id;
             return (
-              <TouchableOpacity
-                style={styles.accountItem}
-                onPress={() => handleSelectAccount(item.data)}
-                activeOpacity={0.7}
-              >
-                <AccountCell accountGroup={item.data} isSelected={isSelected} />
-              </TouchableOpacity>
+              <AccountListCell
+                accountGroup={item.data}
+                isSelected={isSelected}
+                onSelectAccount={handleSelectAccount}
+              />
             );
           }
 
           case 'footer': {
-            return <View style={styles.footerSpacing} />;
+            return <AccountListFooter />;
           }
 
           default:
             return null;
         }
       },
-      [
-        styles.sectionHeader,
-        styles.sectionHeaderText,
-        styles.accountItem,
-        styles.footerSpacing,
-        selectedAccountGroup,
-        handleSelectAccount,
-      ],
+      [selectedAccountGroup, handleSelectAccount],
     );
+
+  const keyExtractor = useCallback(
+    (item: FlattenedMultichainAccountListItem, index: number) => {
+      switch (item.type) {
+        case 'header':
+          return `header-${item.data.walletName}`;
+        case 'cell':
+          return `account-${item.data.id}`;
+        case 'footer':
+          return `footer-${item.data.walletName}`;
+        default:
+          return `item-${index}`;
+      }
+    },
+    [],
+  );
 
   if (flattenedData.length === 0) {
     return (
@@ -148,7 +156,7 @@ const MultichainAccountSelectorList = ({
             color={TextColor.Muted}
             style={styles.emptyStateText}
           >
-            No accounts found
+            {strings('accounts.no_accounts_found')}
           </Text>
         </View>
       </View>
@@ -161,7 +169,7 @@ const MultichainAccountSelectorList = ({
         <TextFieldSearch
           value={searchText}
           onChangeText={setSearchText}
-          placeholder="Search accounts..."
+          placeholder={strings('accounts.search_your_accounts')}
           testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID}
           autoFocus={false}
           style={styles.searchTextField}
@@ -172,20 +180,10 @@ const MultichainAccountSelectorList = ({
           ref={listRef}
           data={flattenedData}
           renderItem={renderItem}
-          estimatedItemSize={70}
+          estimatedItemSize={64}
           showsVerticalScrollIndicator={false}
-          keyExtractor={(item, index) => {
-            switch (item.type) {
-              case 'header':
-                return `header-${item.data.walletName}`;
-              case 'cell':
-                return `account-${item.data.id}`;
-              case 'footer':
-                return `footer-${item.data.walletName}`;
-              default:
-                return `item-${index}`;
-            }
-          }}
+          getItemType={(item) => item.type}
+          keyExtractor={keyExtractor}
           {...props}
         />
       </View>

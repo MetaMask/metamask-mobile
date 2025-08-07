@@ -40,6 +40,7 @@ import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
 import { selectAccountSections } from '../../../selectors/multichainAccounts/accountTreeController';
+import { selectMultichainAccountsState1Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 
 import {
   AccountSection,
@@ -101,13 +102,16 @@ const EvmAccountSelectorList = ({
     shallowEqual,
   );
 
+  const isMultichainAccountsState1Enabled = useSelector(
+    selectMultichainAccountsState1Enabled,
+  );
   const accountTreeSections = useSelector(selectAccountSections);
 
   const internalAccounts = useSelector(selectInternalAccounts);
   const internalAccountsById = useSelector(selectInternalAccountsById);
 
   const accountSections = useMemo((): AccountSection[] => {
-    if (accountTreeSections) {
+    if (isMultichainAccountsState1Enabled) {
       const accountsById = new Map<string, Account>();
       internalAccounts.forEach((account) => {
         const accountObj = accounts.find((a) => a.id === account.id);
@@ -127,7 +131,12 @@ const EvmAccountSelectorList = ({
     }
     // Fallback for old behavior
     return accounts.length > 0 ? [{ title: 'Accounts', data: accounts }] : [];
-  }, [accounts, accountTreeSections, internalAccounts]);
+  }, [
+    accounts,
+    isMultichainAccountsState1Enabled,
+    accountTreeSections,
+    internalAccounts,
+  ]);
 
   // Flatten sections into a single array for FlatList
   const flattenedData = useMemo((): FlattenedAccountListItem[] => {
@@ -135,7 +144,7 @@ const EvmAccountSelectorList = ({
     let accountIndex = 0;
 
     accountSections.forEach((section, sectionIndex) => {
-      if (accountTreeSections) {
+      if (isMultichainAccountsState1Enabled) {
         items.push({
           type: 'header',
           data: section,
@@ -153,7 +162,10 @@ const EvmAccountSelectorList = ({
         accountIndex++;
       });
 
-      if (accountTreeSections && sectionIndex < accountSections.length - 1) {
+      if (
+        isMultichainAccountsState1Enabled &&
+        sectionIndex < accountSections.length - 1
+      ) {
         items.push({
           type: 'footer',
           data: section,
@@ -163,7 +175,7 @@ const EvmAccountSelectorList = ({
     });
 
     return items;
-  }, [accountSections, accountTreeSections]);
+  }, [accountSections, isMultichainAccountsState1Enabled]);
 
   const getKeyExtractor = (item: FlattenedAccountListItem) => {
     if (item.type === 'header') {
@@ -181,7 +193,7 @@ const EvmAccountSelectorList = ({
     [],
   );
 
-  const useMultichainAccountDesign = Boolean(accountTreeSections);
+  const useMultichainAccountDesign = Boolean(isMultichainAccountsState1Enabled);
 
   const selectedAddressesLookup = useMemo(() => {
     if (!selectedAddresses?.length) return undefined;
@@ -414,7 +426,7 @@ const EvmAccountSelectorList = ({
 
       const internalAccount = internalAccountsById[id];
       const shortAddress = formatAddress(address, 'short');
-      const tagLabel = accountTreeSections
+      const tagLabel = isMultichainAccountsState1Enabled
         ? undefined
         : getLabelTextByInternalAccount(internalAccount);
       const ensName = ensByAccountAddress[address];
@@ -525,7 +537,7 @@ const EvmAccountSelectorList = ({
       onNavigateToAccountActions,
       navigate,
       styles.titleText,
-      accountTreeSections,
+      isMultichainAccountsState1Enabled,
       renderSectionHeader,
       renderSectionFooter,
       internalAccountsById,
