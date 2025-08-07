@@ -366,14 +366,6 @@ const WalletActions = () => {
     });
   }, [closeBottomSheetAndNavigate, navigate]);
 
-  const sendIconStyle = useMemo(
-    () => ({
-      transform: [{ rotate: '-45deg' }],
-      ...styles.icon,
-    }),
-    [styles.icon],
-  );
-
   const isEarnWalletActionEnabled = useMemo(() => {
     if (
       !isStablecoinLendingEnabled ||
