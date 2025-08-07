@@ -447,7 +447,7 @@ exports[`Amount converts ERC-20 token value to USD 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#4459ff",
+                                        "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -1151,7 +1151,7 @@ exports[`Amount converts ETH to USD 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#4459ff",
+                                        "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -1855,7 +1855,7 @@ exports[`Amount converts USD to ERC-20 token value 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#4459ff",
+                                        "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -2576,7 +2576,7 @@ exports[`Amount converts USD to ETH 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#4459ff",
+                                        "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -3297,7 +3297,7 @@ exports[`Amount displays correct balance 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#4459ff",
+                                        "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -4000,7 +4000,7 @@ exports[`Amount does not show a warning when conversion rate is available 1`] = 
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#4459ff",
+                                        "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -6716,8 +6716,7 @@ exports[`Amount renders correctly 1`] = `
                               style={
                                 {
                                   "lineHeight": 20,
-                                  "paddingLeft": 10,
-                                  "paddingRight": 10,
+                                  "paddingLeft": 4,
                                 }
                               }
                             >
@@ -6845,7 +6844,7 @@ exports[`Amount renders correctly 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#4459ff",
+                                        "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",
@@ -6912,7 +6911,7 @@ exports[`Amount renders correctly 1`] = `
                                     }
                                   }
                                 >
-                                  Balance: 0 undefined
+                                  Balance: 0 
                                 </Text>
                               </View>
                             </View>
@@ -7414,8 +7413,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                               style={
                                 {
                                   "lineHeight": 20,
-                                  "paddingLeft": 10,
-                                  "paddingRight": 10,
+                                  "paddingLeft": 4,
                                 }
                               }
                             >
@@ -7543,7 +7541,7 @@ exports[`Amount shows a warning when conversion rate is not available 1`] = `
                                     style={
                                       {
                                         "alignSelf": "flex-end",
-                                        "color": "#4459ff",
+                                        "color": "#686e7d",
                                         "fontFamily": "CentraNo1-Book",
                                         "fontSize": 12,
                                         "fontWeight": "400",

@@ -1,17 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { toHex } from '@metamask/controller-utils';
 
 import { strings } from '../../../../locales/i18n';
 import AccountBalance from '../../../component-library/components-temp/Accounts/AccountBalance';
 import { BadgeVariant } from '../../../component-library/components/Badges/Badge';
 import Text from '../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../component-library/hooks';
-import { selectAccountsByChainId } from '../../../selectors/accountTrackerController';
-import {
-  selectEvmNetworkImageSource,
-  selectEvmNetworkName,
-} from '../../../selectors/networkInfos';
+import { selectNetworkConfigurationByChainId } from '../../../selectors/networkController';
+import { RootState } from '../../../reducers';
 import {
   getLabelTextByAddress,
   renderAccountName,
@@ -20,8 +18,15 @@ import {
 import useAddressBalance from '../../hooks/useAddressBalance/useAddressBalance';
 import stylesheet from './AddressFrom.styles';
 import { selectInternalEvmAccounts } from '../../../selectors/accountsController';
-import useNetworkInfo from '../../Views/confirmations/hooks/useNetworkInfo';
-import { isPerDappSelectedNetworkEnabled } from '../../../util/networks';
+import {
+  isRemoveGlobalNetworkSelectorEnabled,
+  getNetworkImageSource,
+} from '../../../util/networks';
+import {
+  selectEvmNetworkImageSource,
+  selectEvmNetworkName,
+} from '../../../selectors/networkInfos';
+import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 
 interface Asset {
   isETH?: boolean;
@@ -56,22 +61,50 @@ const AddressFrom = ({
     asset,
     from,
     dontWatchAsset,
-    isPerDappSelectedNetworkEnabled() ? chainId : undefined,
+    chainId,
   );
 
-  const accountsByChainId = useSelector(selectAccountsByChainId);
+  const hexChainId = useMemo(
+    () => (chainId ? toHex(chainId) : null),
+    [chainId],
+  );
+  const networkConfiguration = useSelector((state: RootState) =>
+    hexChainId ? selectNetworkConfigurationByChainId(state, hexChainId) : null,
+  );
 
   const internalAccounts = useSelector(selectInternalEvmAccounts);
-  const activeAddress = toChecksumAddress(from);
 
-  const networkName = useSelector(selectEvmNetworkName);
-  const networkImage = useSelector(selectEvmNetworkImageSource);
-  const perDappNetworkInfo = useNetworkInfo(chainId);
+  const globalNetworkName = useSelector(selectEvmNetworkName);
+  const globalNetworkImage = useSelector(selectEvmNetworkImageSource);
 
   const useBlockieIcon = useSelector(
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (state: any) => state.settings.useBlockieIcon,
+    (state: RootState) => state.settings.useBlockieIcon,
+  );
+
+  const activeAddress = useMemo(() => toChecksumAddress(from), [from]);
+  const isContextualNetworkEnabled = useMemo(
+    () => isRemoveGlobalNetworkSelectorEnabled(),
+    [],
+  );
+
+  const perDappNetworkInfo = useNetworkInfo(origin || '');
+
+  const sendFlowNetworkData = useMemo(() => {
+    if (!isContextualNetworkEnabled) {
+      return { name: null, imageSource: null };
+    }
+
+    const name = networkConfiguration?.name || null;
+    const imageSource = hexChainId
+      ? getNetworkImageSource({ chainId: hexChainId })
+      : null;
+
+    return { name, imageSource };
+  }, [isContextualNetworkEnabled, networkConfiguration, hexChainId]);
+
+  const accountTypeLabel = useMemo(
+    () => getLabelTextByAddress(activeAddress),
+    [activeAddress],
   );
 
   useEffect(() => {
@@ -79,41 +112,66 @@ const AddressFrom = ({
       ? renderAccountName(activeAddress, internalAccounts)
       : '';
     setAccountName(accountNameVal);
+  }, [activeAddress, internalAccounts]);
 
-    if (!origin) {
-      return;
+  const displayNetworkName = useMemo(() => {
+    if (origin && perDappNetworkInfo) {
+      return perDappNetworkInfo.networkName;
     }
-  }, [accountsByChainId, internalAccounts, activeAddress, origin]);
+    if (isContextualNetworkEnabled) {
+      return sendFlowNetworkData.name;
+    }
+    return globalNetworkName;
+  }, [
+    origin,
+    perDappNetworkInfo,
+    isContextualNetworkEnabled,
+    sendFlowNetworkData,
+    globalNetworkName,
+  ]);
 
-  const displayNetworkName = isPerDappSelectedNetworkEnabled()
-    ? perDappNetworkInfo.networkName
-    : networkName;
+  const displayNetworkImage = useMemo(() => {
+    if (origin && perDappNetworkInfo) {
+      return perDappNetworkInfo.networkImageSource;
+    }
+    if (isContextualNetworkEnabled) {
+      return sendFlowNetworkData.imageSource;
+    }
+    return globalNetworkImage;
+  }, [
+    origin,
+    perDappNetworkInfo,
+    isContextualNetworkEnabled,
+    sendFlowNetworkData,
+    globalNetworkImage,
+  ]);
 
-  const displayNetworkImage = isPerDappSelectedNetworkEnabled()
-    ? perDappNetworkInfo.networkImage
-    : networkImage;
+  const badgeProps = useMemo(
+    () => ({
+      variant: BadgeVariant.Network as const,
+      name: displayNetworkName || undefined,
+      imageSource: displayNetworkImage || undefined,
+    }),
+    [displayNetworkName, displayNetworkImage],
+  );
 
-  const accountTypeLabel = getLabelTextByAddress(activeAddress);
+  const accountBalanceLabel = useMemo(() => strings('transaction.balance'), []);
+
+  const fromLabel = useMemo(() => strings('transaction.fromWithColon'), []);
 
   return (
     <View style={styles.container}>
       <View style={styles.fromTextContainer}>
-        <Text style={styles.fromText}>
-          {strings('transaction.fromWithColon')}
-        </Text>
+        <Text style={styles.fromText}>{fromLabel}</Text>
       </View>
       <AccountBalance
         accountAddress={activeAddress}
         accountTokenBalance={addressBalance}
         accountName={accountName}
-        accountBalanceLabel={strings('transaction.balance')}
+        accountBalanceLabel={accountBalanceLabel}
         accountTypeLabel={accountTypeLabel as string}
         accountNetwork={String(displayNetworkName)}
-        badgeProps={{
-          variant: BadgeVariant.Network,
-          name: displayNetworkName,
-          imageSource: displayNetworkImage,
-        }}
+        badgeProps={badgeProps}
         useBlockieIcon={useBlockieIcon}
       />
     </View>
