@@ -548,7 +548,8 @@ class Confirm extends PureComponent {
     const { TransactionController, NetworkController } = Engine.context;
     const transactionParams = this.prepareTransactionToSend();
     const currentNetworkClientId = isRemoveGlobalNetworkSelectorEnabled()
-      ? NetworkController.findNetworkClientIdByChainId(chainId)
+      ? NetworkController.findNetworkClientIdByChainId(chainId) ||
+        globalNetworkClientId
       : globalNetworkClientId;
 
     let result, transactionMeta;
@@ -557,9 +558,7 @@ class Confirm extends PureComponent {
         transactionParams,
         {
           deviceConfirmedOn: WalletDevice.MM_MOBILE,
-          networkClientId: isRemoveGlobalNetworkSelectorEnabled()
-            ? currentNetworkClientId
-            : globalNetworkClientId,
+          networkClientId: currentNetworkClientId,
           origin: TransactionTypes.MMM,
         },
       ));
