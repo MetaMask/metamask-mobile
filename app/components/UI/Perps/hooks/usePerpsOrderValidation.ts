@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
-import type { OrderType, OrderParams } from '../controllers/types';
+import type { OrderParams } from '../controllers/types';
 import type { OrderFormState } from '../types';
 import { usePerpsTrading } from './usePerpsTrading';
 import {
@@ -13,7 +13,6 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 interface UsePerpsOrderValidationParams {
   orderForm: OrderFormState;
-  orderType: OrderType;
   positionSize: string;
   assetPrice: number;
   availableBalance: number;
@@ -38,7 +37,6 @@ export function usePerpsOrderValidation(
 ): ValidationResult {
   const {
     orderForm,
-    orderType,
     positionSize,
     assetPrice,
     availableBalance,
@@ -65,7 +63,7 @@ export function usePerpsOrderValidation(
         coin: orderForm.asset,
         isBuy: orderForm.direction === 'long',
         size: positionSize, // Use BTC amount, not USD amount
-        orderType,
+        orderType: orderForm.type,
         price: orderForm.limitPrice,
         leverage: orderForm.leverage,
         currentPrice: assetPrice,
@@ -147,7 +145,7 @@ export function usePerpsOrderValidation(
     orderForm.direction,
     orderForm.leverage,
     orderForm.limitPrice,
-    orderType,
+    orderForm.type,
     positionSize,
     assetPrice,
     availableBalance,

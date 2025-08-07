@@ -9,13 +9,14 @@ const mockState = {
 
 describe('getMaxValueFn', () => {
   it('return undefined if no asset is passed', () => {
-    expect(getMaxValueFn()).toStrictEqual(undefined);
+    expect(getMaxValueFn()).toStrictEqual({ balance: '0', maxAmount: '0' });
   });
 
   it('return undefined if native asset is passed', () => {
-    expect(getMaxValueFn({ isNative: true } as AssetType)).toStrictEqual(
-      undefined,
-    );
+    expect(getMaxValueFn({ isNative: true } as AssetType)).toStrictEqual({
+      balance: undefined,
+      maxAmount: undefined,
+    });
   });
 
   it('return correct value for non-native token', () => {
@@ -23,7 +24,7 @@ describe('getMaxValueFn', () => {
       getMaxValueFn({
         balance: '120',
       } as AssetType),
-    ).toStrictEqual('120');
+    ).toStrictEqual({ balance: '120', maxAmount: '120' });
   });
 });
 

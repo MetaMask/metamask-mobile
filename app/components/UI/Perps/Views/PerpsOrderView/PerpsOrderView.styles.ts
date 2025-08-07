@@ -156,7 +156,6 @@ const createStyles = (colors: Colors) =>
     },
     infoIcon: {
       marginLeft: 8,
-      padding: 4,
     },
     payWithRight: {
       flexDirection: 'row',
