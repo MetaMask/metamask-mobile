@@ -69,17 +69,17 @@ describe('deriveSentryEnvironment', () => {
     expect(env).toBe('production-flask');
   });
 
-  it('returns local-flask for non-dev undefined environment and flask build type', async () => {
+  it('returns flask-dev for non-dev undefined environment and flask build type', async () => {
     const METAMASK_BUILD_TYPE = 'flask';
     const isDev = false;
 
     const env = deriveSentryEnvironment(isDev, undefined, METAMASK_BUILD_TYPE);
-    expect(env).toBe('local-flask');
+    expect(env).toBe(`flask-dev`);
   });
 
-  it('returns debug-flask for non-dev flask environment debug build type', async () => {
+  it('returns flask-main for non-dev flask environment main build type', async () => {
     const METAMASK_BUILD_TYPE = 'flask';
-    const METAMASK_ENVIRONMENT = 'debug';
+    const METAMASK_ENVIRONMENT = 'main';
     const isDev = false;
 
     const env = deriveSentryEnvironment(
@@ -87,15 +87,15 @@ describe('deriveSentryEnvironment', () => {
       METAMASK_ENVIRONMENT,
       METAMASK_BUILD_TYPE,
     );
-    expect(env).toBe('debug-flask');
+    expect(env).toBe(`flask-main`);
   });
 
-  it('returns local for non-dev local environment and undefined build type', async () => {
+  it('returns dev for non-dev dev environment and undefined build type', async () => {
     const isDev = false;
-    const METAMASK_ENVIRONMENT = 'local';
+    const METAMASK_ENVIRONMENT = 'dev';
 
     const env = deriveSentryEnvironment(isDev, METAMASK_ENVIRONMENT);
-    expect(env).toBe('local');
+    expect(env).toBe('dev');
   });
 
   it('returns local for non-dev with both undefined environment and build type', async () => {

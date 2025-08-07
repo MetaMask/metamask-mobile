@@ -525,6 +525,8 @@ export function deriveSentryEnvironment(
 
   if (metamaskBuildType === 'main') {
     switch (metamaskEnvironment) {
+      case 'production':
+        return 'production';
       case 'beta':
         return 'main-beta';
       case 'rc':
@@ -540,7 +542,7 @@ export function deriveSentryEnvironment(
     }
   }
 
-  return `${metamaskEnvironment}-${metamaskBuildType}`;
+  return `${metamaskBuildType}-${metamaskEnvironment}`;
 }
 
 // Setup sentry remote error reporting
