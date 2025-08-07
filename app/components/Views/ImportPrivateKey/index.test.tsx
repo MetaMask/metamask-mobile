@@ -162,7 +162,7 @@ describe('ImportPrivateKey', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/accounts-and-addresses/what-are-imported-accounts-/',
+        url: 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key',
         title: strings('drawer.metamask_support'),
       },
     });
