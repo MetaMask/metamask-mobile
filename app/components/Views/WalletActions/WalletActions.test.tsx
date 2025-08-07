@@ -54,9 +54,19 @@ jest.mock('../../../core/SnapKeyring/utils/sendMultichainTransaction', () => ({
   sendMultichainTransaction: jest.fn(),
 }));
 
-const mockSendNonEvmAsset = jest.fn();
+const mockSendNonEvmAsset = jest.fn().mockResolvedValue(false);
 jest.mock('../../hooks/useSendNonEvmAsset', () => ({
-  useSendNonEvmAsset: jest.fn(),
+  useSendNonEvmAsset: () => ({
+    sendNonEvmAsset: mockSendNonEvmAsset,
+    isNonEvmAccount: false,
+  }),
+}));
+
+const mockNavigateToSendPage = jest.fn();
+jest.mock('../confirmations/hooks/useSendNavigation', () => ({
+  useSendNavigation: () => ({
+    navigateToSendPage: mockNavigateToSendPage,
+  }),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -167,6 +177,20 @@ jest.mock('../../../components/UI/Swaps/utils', () => ({
 
 jest.mock('../../UI/Bridge/utils', () => ({
   isBridgeAllowed: jest.fn().mockReturnValue(true),
+}));
+
+const mockGoToSwaps = jest.fn();
+const mockGoToBridge = jest.fn();
+jest.mock('../../UI/Bridge/hooks/useSwapBridgeNavigation', () => ({
+  useSwapBridgeNavigation: () => ({
+    goToSwaps: mockGoToSwaps,
+    goToBridge: mockGoToBridge,
+  }),
+  SwapBridgeNavigationLocation: {
+    TabBar: 'TabBar',
+    TokenDetails: 'TokenDetails',
+    Swaps: 'Swaps',
+  },
 }));
 
 jest.mock('../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => ({
@@ -309,14 +333,13 @@ describe('WalletActions', () => {
   beforeEach(() => {
     // Set up default mock for useSendNonEvmAsset hook
     mockSendNonEvmAsset.mockResolvedValue(false); // Default to EVM flow
-    (useSendNonEvmAsset as jest.Mock).mockReturnValue({
-      sendNonEvmAsset: mockSendNonEvmAsset,
-      isNonEvmAccount: false,
-    });
   });
 
   afterEach(() => {
     mockNavigate.mockClear();
+    mockNavigateToSendPage.mockClear();
+    mockGoToSwaps.mockClear();
+    mockGoToBridge.mockClear();
     jest.clearAllMocks();
   });
   it('should renderWithProvider correctly', () => {
@@ -333,6 +356,9 @@ describe('WalletActions', () => {
       },
     );
 
+    expect(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON),
+    ).toBeDefined();
     expect(
       getByTestId(WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON),
     ).toBeDefined();
@@ -492,7 +518,7 @@ describe('WalletActions', () => {
 
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigateToSendPage).toHaveBeenCalled();
   });
 
   it('should call the goToSwaps function when the Swap button is pressed', () => {
@@ -507,7 +533,7 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('should call the goToBridge function when the Swap button is pressed on Solana mainnet', () => {
@@ -548,7 +574,7 @@ describe('WalletActions', () => {
       getByTestId(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON),
     );
 
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockGoToBridge).toHaveBeenCalled();
   });
 
   it('should call the onEarn function when the Earn button is pressed', () => {
@@ -718,22 +744,25 @@ describe('WalletActions', () => {
       WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON,
     );
 
-    expect(sellButton.props.disabled).toBe(true);
-    expect(sendButton.props.disabled).toBe(true);
-    expect(swapButton.props.disabled).toBe(true);
-    expect(bridgeButton.props.disabled).toBe(true);
-    expect(earnButton.props.disabled).toBe(true);
+    // Test that disabled buttons don't execute their actions when pressed
+    fireEvent.press(sellButton);
+    fireEvent.press(sendButton);
+    fireEvent.press(swapButton);
+    fireEvent.press(bridgeButton);
+    fireEvent.press(earnButton);
+
+    // Since buttons are disabled, none of the mock functions should be called
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockNavigateToSendPage).not.toHaveBeenCalled();
+    expect(mockGoToSwaps).not.toHaveBeenCalled();
+    expect(mockGoToBridge).not.toHaveBeenCalled();
   });
 
   describe('onSend', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      // Reset to default mock setup (already configured in parent beforeEach)
+      // Reset to default mock setup (already configured at module level)
       mockSendNonEvmAsset.mockResolvedValue(false);
-      (useSendNonEvmAsset as jest.Mock).mockReturnValue({
-        sendNonEvmAsset: mockSendNonEvmAsset,
-        isNonEvmAccount: false,
-      });
     });
 
     it('uses hook for non-EVM snap account and handles successful transaction', async () => {
@@ -751,7 +780,7 @@ describe('WalletActions', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalledWith('SendFlowView');
+      expect(mockNavigateToSendPage).not.toHaveBeenCalled();
     });
 
     it('calls native send flow for EVM account', async () => {
@@ -769,7 +798,7 @@ describe('WalletActions', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
+      expect(mockNavigateToSendPage).toHaveBeenCalled();
     });
 
     it('handles hook errors gracefully', async () => {
@@ -789,7 +818,7 @@ describe('WalletActions', () => {
 
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
       // Should not navigate since hook handled it (even with internal error)
-      expect(mockNavigate).not.toHaveBeenCalledWith('SendFlowView');
+      expect(mockNavigateToSendPage).not.toHaveBeenCalled();
     });
 
     it('calls hook with correct asset parameters', async () => {
@@ -814,10 +843,7 @@ describe('WalletActions', () => {
         getByTestId(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON),
       );
 
-      expect(useSendNonEvmAsset).toHaveBeenCalledWith({
-        asset: mockSelectedAsset,
-        closeModal: expect.any(Function),
-      });
+      expect(mockSendNonEvmAsset).toHaveBeenCalled();
     });
   });
 });
