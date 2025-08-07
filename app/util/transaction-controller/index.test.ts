@@ -97,6 +97,7 @@ jest.mock('../../core/Engine', () => ({
       updateTransactionGasFees: jest.fn(),
       updateAtomicBatchData: jest.fn(),
       addTransactionBatch: jest.fn(),
+      updateSelectedGasFeeToken: jest.fn(),
     },
   },
 }));
@@ -574,4 +575,13 @@ describe('Transaction Controller Util', () => {
       updaterFunctionParams: [ID_MOCK, EIP_1559_TRANSACTION_PARAMS_MOCK],
     });
   });
+
+  describe('updateSelectedGasFeeToken', () => {
+    it('calls updateSelectedGasFeeToken with transactionId and selectedGasFeeToken', () => {
+      const transactionId = '0xabcdef1234567890abcdef1234567890abcdef';
+      const selectedGasFeeToken = '0x1234567890abcdef1234567890abcdef12345678';
+      TransactionControllerUtils.updateSelectedGasFeeToken(transactionId, selectedGasFeeToken);
+      expect(Engine.context.TransactionController.updateSelectedGasFeeToken).toHaveBeenCalledWith(transactionId, selectedGasFeeToken);
+    });
+ });
 });
