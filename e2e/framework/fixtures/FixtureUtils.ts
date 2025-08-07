@@ -29,24 +29,6 @@ function getServerPort(defaultPort: number) {
 }
 
 /**
- * Kills a service based on its PID.
- * @param {number} pid - The process ID of the service to kill.
- * @returns {boolean} True if the process was killed successfully, false otherwise.
- */
-export async function killServiceByPid(pid: number): Promise<boolean> {
-  try {
-    process.kill(pid, 'SIGKILL');
-
-    // Explicitly adding a timeout in case the process is not killed immediately
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return true;
-  } catch (error) {
-    // Process may not exist or permission denied
-    return false;
-  }
-}
-
-/**
  * Gets the URL for the second test dapp.
  * This function is used instead of a constant to ensure device.getPlatform() is called
  * after Detox is properly initialized, preventing initialization errors in the apiSpecs tests.

@@ -1,8 +1,12 @@
+/* eslint-disable import/no-nodejs-modules */
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../framework/fixtures/FixtureUtils';
 import { AnvilNodeOptions } from '../framework/types';
 import { createLogger } from '../framework/logger';
+import net from 'net';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 const logger = createLogger({
   name: 'AnvilManager',
@@ -71,6 +75,7 @@ export const defaultOptions = {
  */
 class AnvilManager {
   private server: AnvilType | undefined;
+  private serverPort: number | undefined;
 
   /**
    * Check if the Anvil server is running
@@ -78,6 +83,48 @@ class AnvilManager {
    */
   isRunning(): boolean {
     return this.server !== undefined;
+  }
+
+  /**
+   * Check if a specific port is in use
+   * @param {number} port - The port to check
+   * @returns {Promise<boolean>} True if the port is in use, false otherwise
+   */
+  async isPortInUse(port: number): Promise<boolean> {
+    return new Promise((resolve) => {
+      const server = net
+        .createServer()
+        .once('error', () => {
+          // Port is in use
+          resolve(true);
+        })
+        .once('listening', () => {
+          // Port is free
+          server.close();
+          resolve(false);
+        })
+        .listen(port);
+    });
+  }
+
+  /**
+   * Attempts to kill any process using the specified port
+   * @param {number} port - The port to free up
+   * @returns {Promise<boolean>} True if successful, false otherwise
+   */
+  async killProcessOnPort(port: number): Promise<boolean> {
+    const execAsync = promisify(exec);
+
+    try {
+      // macOS/Linux command to find and kill process on port
+      const cmd = `lsof -i :${port} -t | xargs kill -9`;
+      await execAsync(cmd);
+      return true;
+    } catch (error) {
+      // Error could be normal if no process was found
+      logger.debug(`Attempted to kill process on port ${port}: ${error}`);
+      return false;
+    }
   }
 
   /**
@@ -99,6 +146,28 @@ class AnvilManager {
   async start(opts: AnvilNodeOptions = {}): Promise<void> {
     const options = { ...defaultOptions, ...opts, port: AnvilPort() };
     const { port } = options;
+    this.serverPort = port;
+
+    // Check if port is already in use
+    if (await this.isPortInUse(port)) {
+      logger.warn(
+        `Port ${port} is already in use. Attempting to free it up...`,
+      );
+
+      // Try to kill the process using the port
+      const freed = await this.killProcessOnPort(port);
+
+      if (!freed) {
+        logger.error(
+          `Failed to free up port ${port}. Cannot start Anvil server.`,
+        );
+        throw new Error(
+          `Failed to free up port ${port}. Cannot start Anvil server.`,
+        );
+      }
+
+      logger.debug(`Successfully freed up port ${port}`);
+    }
 
     try {
       logger.debug('Starting Anvil server...');
@@ -112,6 +181,8 @@ class AnvilManager {
       logger.debug(`Server started on port ${port}`);
     } catch (error) {
       logger.error('Failed to start server:', error);
+      this.server = undefined;
+      this.serverPort = undefined;
       throw error;
     }
   }
@@ -192,15 +263,39 @@ class AnvilManager {
    */
   async quit(): Promise<void> {
     if (!this.server) {
-      throw new Error('Anvil server not running yet');
+      // Instead of throwing an error, check if the port is in use
+      const port = this.serverPort || AnvilPort();
+      if (await this.isPortInUse(port)) {
+        logger.warn(
+          `Anvil server not running in this instance, but port ${port} is in use.`,
+        );
+        // We can't do much here as we don't have the server reference
+        return;
+      }
+      logger.debug(
+        'Anvil server not running in this instance and port is free.',
+      );
+      return;
     }
+
     try {
-      logger.debug('Stopping Anvil server...');
+      const port = this.serverPort || AnvilPort();
+      logger.debug(`Stopping Anvil server on port ${port}...`);
       await this.server.stop();
-      logger.debug('Anvil server stopped');
+
+      // Verify the port is actually released
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Give it time to release
+      if (await this.isPortInUse(port)) {
+        logger.warn(`Port ${port} still in use after server.stop()`);
+      } else {
+        logger.debug(`Anvil server stopped and port ${port} released`);
+      }
     } catch (e) {
       logger.error(`Error stopping server: ${e}`);
       throw e;
+    } finally {
+      this.server = undefined;
+      this.serverPort = undefined;
     }
   }
 }
