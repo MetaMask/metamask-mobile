@@ -18,8 +18,12 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 8,
       marginBottom: 16,
     },
+    headerTitleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
     headerTitle: {
-      flex: 1,
       textAlign: 'left',
     },
     headerActions: {

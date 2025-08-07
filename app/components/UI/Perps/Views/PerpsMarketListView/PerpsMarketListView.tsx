@@ -34,6 +34,9 @@ import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -141,6 +144,10 @@ const PerpsMarketListView = ({
     } else if (activeTab === 'positions' && !isRefreshingPositions) {
       loadPositions();
     }
+  };
+
+  const handleBackPressed = () => {
+    navigation.goBack();
   };
 
   const filteredMarkets = useMemo(() => {
@@ -311,26 +318,22 @@ const PerpsMarketListView = ({
       />
       {/* Header */}
       <View style={styles.header}>
-        <Text
-          variant={TextVariant.HeadingMD}
-          color={TextColor.Default}
-          style={styles.headerTitle}
-        >
-          {strings('perps.title')}
-        </Text>
-        <View style={styles.headerActions}>
-          {activeTab === 'markets' && (
-            <TouchableOpacity
-              style={styles.searchButton}
-              onPress={handleSearchToggle}
-              testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
-            >
-              <Icon
-                name={isSearchVisible ? IconName.Close : IconName.Search}
-                size={IconSize.Md}
-              />
-            </TouchableOpacity>
-          )}
+        <View style={styles.headerTitleContainer}>
+          <ButtonIcon
+            iconName={IconName.Arrow2Left}
+            size={ButtonIconSizes.Md}
+            onPress={handleBackPressed}
+          />
+          <Text
+            variant={TextVariant.HeadingLG}
+            color={TextColor.Default}
+            style={styles.headerTitle}
+          >
+            {strings('perps.title')}
+          </Text>
+        </View>
+
+        {activeTab === 'markets' && (
           <TouchableOpacity
             onPress={() => handleTutorialClick()}
             testID={PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON}
