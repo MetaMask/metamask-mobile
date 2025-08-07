@@ -176,26 +176,53 @@ export async function isPortInUse(port: number): Promise<boolean> {
 
 /**
  * Attempts to kill any process using the specified port
+ * Cross-platform compatible implementation that works on Windows, macOS, and Linux
  * @param {number} port - The port to free up
  * @returns {Promise<boolean>} True if successful, false otherwise
  */
 export async function killProcessOnPort(port: number): Promise<boolean> {
+  // First check if the port is actually in use
+  const portInUse = await isPortInUse(port);
+  if (!portInUse) {
+    logger.debug(`Port ${port} is already free`);
+    return true;
+  }
+
   const execAsync = promisify(exec);
+  let command = '';
+
+  // Use platform-specific commands to find and kill the process
+  if (process.platform === 'win32') {
+    // Windows command to find and kill process on port
+    command = `for /f "tokens=5" %a in ('netstat -ano ^| find "LISTENING" ^| find ":${port}"') do taskkill /F /PID %a`;
+  } else {
+    // macOS/Linux command
+    // Using a safer approach that handles empty results better
+    command = `lsof -i :${port} -t | xargs -r kill -9`;
+  }
 
   try {
-    // macOS/Linux command to find and kill process on port
-    const cmd = `lsof -i :${port} -t | xargs kill -9`;
-    await execAsync(cmd);
+    logger.debug(`Attempting to free up port ${port} on ${process.platform}`);
+    await execAsync(command);
 
     // Give it a moment to release the port
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // Check if port is now available
-    return !(await isPortInUse(port));
+    // Verify the port is now available
+    const stillInUse = await isPortInUse(port);
+    if (stillInUse) {
+      logger.debug(`Port ${port} is still in use after kill attempt`);
+      return false;
+    }
+
+    logger.debug(`Successfully freed port ${port}`);
+    return true;
   } catch (error) {
-    // Error could be normal if no process was found
-    logger.debug(`Attempted to kill process on port ${port}: ${error}`);
-    return false;
+    logger.debug(`Error freeing port ${port}: ${error}`);
+
+    // Even if the command failed, check if the port is now available
+    // (it might have been released by other means)
+    return !(await isPortInUse(port));
   }
 }
 
