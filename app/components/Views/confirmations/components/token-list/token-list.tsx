@@ -28,11 +28,16 @@ export function TokenList({ tokens }: TokenListProps) {
   );
 
   const renderTokenListItem = useCallback(
-    ({ item }: { item: AssetType }) => <Token asset={item} onPress={handleTokenPress} />,
+    ({ item }: { item: AssetType }) => (
+      <Token asset={item} onPress={handleTokenPress} />
+    ),
     [handleTokenPress],
   );
 
-  const keyExtractor = useCallback((item: AssetType) => `${item.address}-${item.chainId}`, []);
+  const keyExtractor = useCallback(
+    (item: AssetType) => `${item.address}-${item.chainId}`,
+    [],
+  );
 
   return (
     <Box twClassName="flex-1">

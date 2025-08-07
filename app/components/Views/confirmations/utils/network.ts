@@ -1,5 +1,9 @@
 import { Hex, isCaipChainId } from '@metamask/utils';
-import { isTestNet , getTestNetImageByChainId , getDefaultNetworkByChainId } from '../../../../util/networks';
+import {
+  isTestNet,
+  getTestNetImageByChainId,
+  getDefaultNetworkByChainId,
+} from '../../../../util/networks';
 import {
   UnpopularNetworkList,
   CustomNetworkImgMapping,
