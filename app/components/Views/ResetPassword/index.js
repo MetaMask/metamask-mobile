@@ -649,7 +649,7 @@ class ResetPassword extends PureComponent {
   };
 
   learnMore = () => {
-    this.props.navigation.push('Webview', {
+    this.props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
@@ -809,7 +809,7 @@ class ResetPassword extends PureComponent {
   };
 
   learnMoreSocialLogin = () => {
-    this.props.navigation.push('Webview', {
+    this.props.navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: 'https://support.metamask.io/configure/wallet/how-can-i-reset-my-password/',
@@ -825,7 +825,7 @@ class ResetPassword extends PureComponent {
         title: strings('reset_password.warning_password_change_title'),
         description: this.props.isSeedlessOnboardingLoginFlow ? (
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {strings('reset_password.warning_password_change_description')}
+            {strings('reset_password.warning_password_change_description')}{' '}
             <Text
               variant={TextVariant.BodyMD}
               color={TextColor.Primary}
@@ -835,7 +835,7 @@ class ResetPassword extends PureComponent {
             </Text>
           </Text>
         ) : (
-          strings('reset_password.warning_password_change_description')
+          `${strings('reset_password.warning_password_change_description')}.`
         ),
         type: 'error',
         icon: IconName.Danger,

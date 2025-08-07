@@ -318,13 +318,13 @@ describe('ResetPassword', () => {
             title: strings('reset_password.warning_password_change_title'),
             description: (
               <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
-                {strings('reset_password.warning_password_change_description')}
+                {strings('reset_password.warning_password_change_description')}{' '}
                 <Text
                   color={TextColor.Primary}
                   onPress={expect.any(Function)}
                   variant={TextVariant.BodyMD}
                 >
-                  {strings('reset_password.learn_more')}
+                  {`${strings('reset_password.learn_more')}`}
                 </Text>
               </Text>
             ),
@@ -365,10 +365,12 @@ describe('ResetPassword', () => {
     expect(learnMoreLink).toBeOnTheScreen();
 
     // Click the "Learn More" link
-    fireEvent.press(learnMoreLink);
+    await act(async () => {
+      fireEvent.press(learnMoreLink);
+    });
 
     // Verify that the learnMore function was called with correct parameters
-    expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
