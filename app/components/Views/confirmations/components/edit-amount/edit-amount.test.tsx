@@ -8,12 +8,19 @@ import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { useTokenAsset } from '../../hooks/useTokenAsset';
 import { TokenI } from '../../../../UI/Tokens/types';
 import { act, fireEvent } from '@testing-library/react-native';
+import {
+  AlertsContextParams,
+  useAlerts,
+} from '../../context/alert-system-context';
+import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 
 jest.mock('../../hooks/useTokenAmount');
 jest.mock('../../hooks/useTokenAsset');
+jest.mock('../../context/alert-system-context');
 
 const VALUE_MOCK = '1.23';
 const VALUE_2_MOCK = '2.34';
+const ALERT_MESSAGE_MOCK = 'Test Message';
 
 const state = merge(
   simpleSendTransactionControllerMock,
@@ -27,6 +34,7 @@ function render(props: EditAmountProps = {}) {
 describe('EditAmount', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
   const useTokenAssetMock = jest.mocked(useTokenAsset);
+  const useAlertsMock = jest.mocked(useAlerts);
   const updateTokenAmountMock = jest.fn();
 
   beforeEach(() => {
@@ -43,6 +51,10 @@ describe('EditAmount', () => {
       } as TokenI,
       displayName: 'Test Token',
     });
+
+    useAlertsMock.mockReturnValue({
+      fieldAlerts: [],
+    } as unknown as AlertsContextParams);
   });
 
   it('renders amount from current transaction data', () => {
@@ -78,5 +90,35 @@ describe('EditAmount', () => {
     });
 
     expect(getByTestId('edit-amount-input')).toHaveProp('value', VALUE_2_MOCK);
+  });
+
+  it('renders alert if field is amount', () => {
+    useAlertsMock.mockReturnValue({
+      fieldAlerts: [
+        {
+          field: RowAlertKey.Amount,
+          message: ALERT_MESSAGE_MOCK,
+        },
+      ],
+    } as unknown as AlertsContextParams);
+
+    const { getByText } = render();
+
+    expect(getByText(ALERT_MESSAGE_MOCK)).toBeDefined();
+  });
+
+  it('does not render alert if field is not amount', () => {
+    useAlertsMock.mockReturnValue({
+      fieldAlerts: [
+        {
+          field: RowAlertKey.AccountTypeUpgrade,
+          message: ALERT_MESSAGE_MOCK,
+        },
+      ],
+    } as unknown as AlertsContextParams);
+
+    const { queryByText } = render();
+
+    expect(queryByText(ALERT_MESSAGE_MOCK)).toBeNull();
   });
 });

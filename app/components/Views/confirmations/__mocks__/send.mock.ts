@@ -84,6 +84,14 @@ export const evmSendStateMock = {
           },
         },
       },
+      MultichainAssetsRatesController: {
+        conversionRates: {
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+            rate: '175',
+            conversionTime: 0,
+          },
+        },
+      },
     },
   },
 } as ProviderValues['state'];

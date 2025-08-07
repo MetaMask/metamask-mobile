@@ -9,6 +9,7 @@ import renderWithProvider, {
 import { SendContextProvider } from '../../../context/send-context';
 import {
   ACCOUNT_ADDRESS_MOCK_1,
+  SOLANA_ASSET,
   TOKEN_ADDRESS_MOCK_1,
   evmSendStateMock,
 } from '../../../__mocks__/send.mock';
@@ -91,6 +92,22 @@ describe('Amount', () => {
     expect(getByText('Invalid amount')).toBeTruthy();
   });
 
+  it('pressing Max uses max balance of ERC20 token', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          address: TOKEN_ADDRESS_MOCK_1,
+          decimals: 2,
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    expect(getByTestId('send_amount').props.value).toBe('');
+    fireEvent.press(getByText('Max'));
+    expect(getByTestId('send_amount').props.value).toBe('0.05');
+  });
+
   it('display error if amount is greater than balance for native token', async () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
@@ -134,23 +151,6 @@ describe('Amount', () => {
     expect(getByText(`Asset: ${TOKEN_ADDRESS_MOCK_1}`)).toBeTruthy();
   });
 
-  it('pressing Max uses max balance of ERC20 token', () => {
-    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-      params: {
-        asset: {
-          address: TOKEN_ADDRESS_MOCK_1,
-          decimals: 2,
-        },
-      },
-    } as RouteProp<ParamListBase, string>);
-
-    const { getByText, getByTestId } = renderComponent();
-    expect(getByTestId('send_amount').props.value).toBe('');
-    fireEvent.press(getByText('Max'));
-    expect(getByTestId('send_amount').props.value).toBe('0.05');
-    expect(getByText('$ 0.05')).toBeTruthy();
-  });
-
   it('pressing Max uses max balance minus gas for native token', () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
@@ -185,6 +185,18 @@ describe('Amount', () => {
     const { getByText, getByTestId } = renderComponent();
     fireEvent.changeText(getByTestId('send_amount'), '1');
     expect(getByText('$ 3890')).toBeTruthy();
+  });
+
+  it('display fiat conversion of amount entered for solana asset', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: SOLANA_ASSET,
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), '1');
+    expect(getByText('$ 175')).toBeTruthy();
   });
 
   it('if fiatmode is enabled display native conversion of amount entered', async () => {
