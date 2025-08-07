@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "Торговля бессрочными контрактами",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "Общий баланс",
     "available_balance": "Доступный баланс",
     "margin_used": "Использованная маржа",

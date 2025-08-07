@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "영구계약 거래",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "총 잔액",
     "available_balance": "사용 가능한 잔액",
     "margin_used": "사용된 마진",

@@ -786,7 +786,7 @@
   "perps": {
     "title": "Perps",
     "perps_trading": "Perps Trading",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
+    "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage Balance",
     "total_balance": "Total Balance",
     "available_balance": "Available Balance",

@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "Perdagangan Abadi",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "Total Saldo",
     "available_balance": "Saldo Tersedia",
     "margin_used": "Margin yang Digunakan",

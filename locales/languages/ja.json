@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "パーペチュアル取引",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "合計残高",
     "available_balance": "利用可能残高",
     "margin_used": "利用中証拠金",

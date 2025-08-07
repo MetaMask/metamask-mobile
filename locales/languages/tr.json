@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "Sürekli Vadeli İşlem",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "Toplam Bakiye",
     "available_balance": "Kullanılabilir Bakiye",
     "margin_used": "Kullanılan Marj",

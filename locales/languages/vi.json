@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "Giao dịch hợp đồng vĩnh cửu",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "Tổng số dư",
     "available_balance": "Số dư khả dụng",
     "margin_used": "Ký quỹ đã sử dụng",

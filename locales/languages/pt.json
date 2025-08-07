@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "Negociação de perps",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "Saldo total",
     "available_balance": "Saldo disponível",
     "margin_used": "Margem usada",

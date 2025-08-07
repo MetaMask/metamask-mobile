@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "Trading de contrats perpétuels",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "Solde total",
     "available_balance": "Solde disponible",
     "margin_used": "Marge utilisée",

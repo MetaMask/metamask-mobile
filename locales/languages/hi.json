@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "पर्प्स ट्रेडिंग",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "कुल बैलेंस",
     "available_balance": "उपलब्ध बैलेंस",
     "margin_used": "उपयोग किया गया मार्जिन",

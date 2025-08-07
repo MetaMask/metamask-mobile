@@ -761,7 +761,7 @@
   },
   "perps": {
     "title": "Operaciones con contratos perpetuos",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
+    "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage Balance",
     "total_balance": "Saldo total",
     "available_balance": "Saldo disponible",
