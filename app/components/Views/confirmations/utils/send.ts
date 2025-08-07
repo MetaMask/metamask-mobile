@@ -26,8 +26,9 @@ export const handleSendPageNavigation = (
   asset?: AssetType | Nft,
 ) => {
   if (isSendRedesignEnabled()) {
+    const screen = asset ? Routes.SEND.AMOUNT : Routes.SEND.ASSET;
     navigate(Routes.SEND.DEFAULT, {
-      screen: Routes.SEND.ROOT,
+      screen,
       params: {
         asset,
       },
@@ -106,3 +107,16 @@ export const submitNonEvmTransaction = async ({
     assetId: asset.address as CaipAssetType,
   });
 };
+
+export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
+  const decimals = decimalsToShow < 5 ? decimalsToShow : 5;
+  const val = parseFloat(value);
+  if (val) {
+    const minVal = 1 / Math.pow(10, decimals);
+    if (val < minVal) {
+      return `< ${minVal}`;
+    }
+    return val.toFixed(decimals);
+  }
+  return '0';
+}
