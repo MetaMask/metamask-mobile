@@ -8,6 +8,12 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { styleSheet } from './CandlestickChartGridLines.styles';
+import {
+  formatPriceForAxis,
+  getGridLineStyle,
+  getPriceRange,
+  ChartDataPoint,
+} from '../utils/chartUtils';
 
 export interface GridLine {
   price: number;
@@ -17,41 +23,12 @@ export interface GridLine {
 
 interface CandlestickChartGridLinesProps {
   /** Transformed chart data for price calculations */
-  transformedData: {
-    timestamp: number;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-  }[];
+  transformedData: ChartDataPoint[];
   /** Chart height for position calculations */
   height: number;
   /** Test ID for the container */
   testID?: string;
 }
-
-// Helper function to format price for y-axis labels
-const formatPriceForAxis = (price: number): string =>
-  // Round to whole number and add commas for thousands
-  Math.round(price).toLocaleString('en-US');
-
-// Helper function to get grid line style
-const getGridLineStyle = (
-  colors: { border: { muted: string } },
-  isEdge: boolean,
-  position: number,
-) => ({
-  position: 'absolute' as const,
-  left: 0,
-  right: 0,
-  top: position,
-  height: isEdge ? 2 : 1,
-  zIndex: 10,
-  backgroundColor: colors.border.muted,
-  opacity: isEdge
-    ? PERPS_CHART_CONFIG.GRID_LINE_OPACITY.MAJOR
-    : PERPS_CHART_CONFIG.GRID_LINE_OPACITY.MINOR,
-});
 
 /**
  * Component for rendering horizontal grid lines on candlestick charts
@@ -69,15 +46,7 @@ const CandlestickChartGridLines: React.FC<CandlestickChartGridLinesProps> = ({
   const gridLines = useMemo((): GridLine[] => {
     if (transformedData.length === 0) return [];
 
-    const prices = transformedData.flatMap((d) => [
-      d.open,
-      d.high,
-      d.low,
-      d.close,
-    ]);
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
-    const priceRange = maxPrice - minPrice;
+    const { minPrice, priceRange } = getPriceRange(transformedData);
 
     // Create 6 horizontal grid lines (including top and bottom)
     const gridLineCount = PERPS_CHART_CONFIG.GRID_LINE_COUNT;

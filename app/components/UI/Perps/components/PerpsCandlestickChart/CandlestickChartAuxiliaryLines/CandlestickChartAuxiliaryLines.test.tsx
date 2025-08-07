@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
-import CandlestickChartAuxiliaryLine, {
+import CandlestickChartAuxiliaryLines, {
   TPSLLines,
-} from './CandlestickChartAuxiliaryLine';
+} from './CandlestickChartAuxiliaryLines';
 
 // Mock react-native-svg
 jest.mock('react-native-svg', () => {
@@ -81,12 +81,12 @@ const renderWithTheme = (component: React.ReactElement) =>
     </ThemeContext.Provider>,
   );
 
-describe('CandlestickChartAuxiliaryLine', () => {
+describe('CandlestickChartAuxiliaryLines', () => {
   describe('Rendering', () => {
     it('renders nothing when visible is false', () => {
       // Arrange & Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine {...defaultProps} visible={false} />,
+        <CandlestickChartAuxiliaryLines {...defaultProps} visible={false} />,
       );
 
       // Assert
@@ -95,7 +95,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
     it('renders nothing when tpslLines is not provided', () => {
       // Arrange & Act
-      renderWithTheme(<CandlestickChartAuxiliaryLine {...defaultProps} />);
+      renderWithTheme(<CandlestickChartAuxiliaryLines {...defaultProps} />);
 
       // Assert
       expect(screen.queryByTestId('test-auxiliary-lines')).toBeNull();
@@ -104,7 +104,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
     it('renders nothing when transformedData is empty', () => {
       // Arrange & Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           transformedData={[]}
           tpslLines={{ takeProfitPrice: '45000' }}
@@ -123,7 +123,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -143,7 +143,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -161,7 +161,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -181,7 +181,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -199,7 +199,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -219,7 +219,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -239,7 +239,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -260,7 +260,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -281,7 +281,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -303,7 +303,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -325,7 +325,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -348,7 +348,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,
@@ -383,7 +383,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           transformedData={flatData}
           tpslLines={tpslLines}
@@ -404,7 +404,7 @@ describe('CandlestickChartAuxiliaryLine', () => {
 
       // Act
       renderWithTheme(
-        <CandlestickChartAuxiliaryLine
+        <CandlestickChartAuxiliaryLines
           {...defaultProps}
           tpslLines={tpslLines}
         />,

@@ -4,7 +4,7 @@ import Svg, { Line } from 'react-native-svg';
 import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { useTheme } from '../../../../../../util/theme';
 import { useStyles } from '../../../../../../component-library/hooks';
-import { styleSheet } from './CandlestickChartAuxiliaryLine.styles';
+import { styleSheet } from './CandlestickChartAuxiliaryLines.styles';
 
 export interface TPSLLines {
   takeProfitPrice?: string;
@@ -20,7 +20,7 @@ export interface AuxiliaryLinePosition {
   position: number;
 }
 
-interface CandlestickChartAuxiliaryLineProps {
+interface CandlestickChartAuxiliaryLinesProps {
   /** TP/SL line data */
   tpslLines?: TPSLLines;
   /** Transformed chart data for price calculations */
@@ -45,8 +45,8 @@ interface CandlestickChartAuxiliaryLineProps {
  * Component for rendering auxiliary lines on candlestick charts
  * Supports Take Profit, Stop Loss, Entry, Liquidation, and Current Price lines
  */
-const CandlestickChartAuxiliaryLine: React.FC<
-  CandlestickChartAuxiliaryLineProps
+const CandlestickChartAuxiliaryLines: React.FC<
+  CandlestickChartAuxiliaryLinesProps
 > = ({
   tpslLines,
   transformedData,
@@ -194,4 +194,4 @@ const CandlestickChartAuxiliaryLine: React.FC<
   );
 };
 
-export default CandlestickChartAuxiliaryLine;
+export default CandlestickChartAuxiliaryLines;

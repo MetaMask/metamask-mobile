@@ -17,10 +17,11 @@ import PerpsTimeDurationSelector from '../PerpsTimeDurationSelector';
 import PerpsCandlestickChartSkeleton from './PerpsCandlestickChartSkeleton';
 import { strings } from '../../../../../../locales/i18n';
 import type { CandleData } from '../../types';
-import CandlestickChartAuxiliaryLine, {
+import CandlestickChartAuxiliaryLines, {
   TPSLLines,
-} from './CandlestickChartAuxiliaryLine';
+} from './CandlestickChartAuxiliaryLines';
 import CandlestickChartGridLines from './CandlestickChartGridLines';
+import CandlestickChartXAxis from './CandlestickChartXAxis';
 
 interface CandlestickChartComponentProps {
   candleData: CandleData | null;
@@ -174,7 +175,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         testID="candlestick-grid-lines"
       />
       {/* TP/SL Lines - Render first so they're behind everything */}
-      <CandlestickChartAuxiliaryLine
+      <CandlestickChartAuxiliaryLines
         tpslLines={tpslLines}
         transformedData={transformedData}
         height={height}
@@ -203,62 +204,11 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         </View>
 
         {/* X-Axis Time Labels */}
-        <View style={styles.timeAxisContainer}>
-          {transformedData.length > 0 &&
-            (() => {
-              // Create 5 evenly spaced time points from actual data
-              const intervals = [];
-              const dataLength = transformedData.length;
-              const chartWidthForLabels = chartWidth - 65; // Account for y-axis space
-
-              for (let i = 0; i < 5; i++) {
-                const dataIndex = Math.floor((i / 4) * (dataLength - 1));
-                const time = transformedData[dataIndex].timestamp;
-                const position = (i / 4) * chartWidthForLabels;
-                intervals.push({ time, position, index: i });
-              }
-
-              return intervals.map((interval) => (
-                <Text
-                  key={`time-${interval.index}`}
-                  variant={TextVariant.BodyXS}
-                  color={TextColor.Alternative}
-                  style={[
-                    styles.timeLabel,
-                    {
-                      left: interval.position,
-                    },
-                  ]}
-                >
-                  {(() => {
-                    const date = new Date(interval.time);
-                    const hours = date.getHours().toString().padStart(2, '0');
-                    const minutes = date
-                      .getMinutes()
-                      .toString()
-                      .padStart(2, '0');
-                    const monthNames = [
-                      'Jan',
-                      'Feb',
-                      'Mar',
-                      'Apr',
-                      'May',
-                      'Jun',
-                      'Jul',
-                      'Aug',
-                      'Sep',
-                      'Oct',
-                      'Nov',
-                      'Dec',
-                    ];
-                    const month = monthNames[date.getMonth()];
-                    const day = date.getDate();
-                    return `${hours}:${minutes}\n${month} ${day}`;
-                  })()}
-                </Text>
-              ));
-            })()}
-        </View>
+        <CandlestickChartXAxis
+          transformedData={transformedData}
+          chartWidth={chartWidth}
+          testID="candlestick-x-axis"
+        />
 
         {/* Time Duration Selector */}
         <PerpsTimeDurationSelector
