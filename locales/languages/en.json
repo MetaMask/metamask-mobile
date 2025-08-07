@@ -800,7 +800,6 @@
     "refreshing_positions": "Refreshing positions...",
     "deposit": {
       "title": "Amount to deposit",
-      "pay_with": "Pay with",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
       "insufficient_funds": "Insufficient funds",
       "enter_amount": "Enter amount",
@@ -945,7 +944,6 @@
       "margin": "Margin",
       "take_profit": "Take profit",
       "stop_loss": "Stop loss",
-      "select_payment_asset": "Select asset to pay with",
       "button": {
         "long": "Long {{asset}}",
         "short": "Short {{asset}}"
@@ -1136,9 +1134,6 @@
       "countdown": "Countdown",
       "long": "Long",
       "short": "Short"
-    },
-    "network": {
-      "hyperliquid": "Hyperliquid"
     },
     "buttons": {
       "get_account_balance": "Get Account Balance",

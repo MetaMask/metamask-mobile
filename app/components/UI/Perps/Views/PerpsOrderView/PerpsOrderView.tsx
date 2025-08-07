@@ -13,16 +13,7 @@ import React, {
 } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import Badge, {
-  BadgeVariant,
-} from '../../../../../component-library/components/Badges/Badge';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../component-library/components/Badges/BadgeWrapper';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -46,12 +37,6 @@ import {
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectIsIpfsGatewayEnabled } from '../../../../../selectors/preferencesController';
-import { selectTokenList } from '../../../../../selectors/tokenListController';
-import {
-  getDefaultNetworkByChainId,
-  getNetworkImageSource,
-} from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
@@ -60,19 +45,8 @@ import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSh
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
-import PerpsTokenSelector, {
-  type PerpsToken,
-} from '../../components/PerpsTokenSelector';
+import { type PerpsToken } from '../../components/PerpsTokenSelector';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import {
-  ARBITRUM_MAINNET_CHAIN_ID,
-  HYPERLIQUID_MAINNET_CHAIN_ID,
-  HYPERLIQUID_TESTNET_CHAIN_ID,
-  USDC_ARBITRUM_MAINNET_ADDRESS,
-  USDC_DECIMALS,
-  USDC_NAME,
-  USDC_SYMBOL,
-} from '../../constants/hyperLiquidConfig';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import type {
   OrderParams,
@@ -92,7 +66,6 @@ import {
 } from '../../hooks';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
-import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsOrderView.styles';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -132,10 +105,6 @@ const PerpsOrderViewContent: React.FC = () => {
   const toastContext = useContext(ToastContext);
 
   const toastRef = toastContext?.toastRef;
-
-  // Selectors
-  const tokenList = useSelector(selectTokenList);
-  const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
   const cachedAccountState = usePerpsAccount();
 
@@ -223,7 +192,6 @@ const PerpsOrderViewContent: React.FC = () => {
   const [selectedPaymentToken, setSelectedPaymentToken] =
     useState<PerpsToken | null>(null);
 
-  const [isTokenSelectorVisible, setIsTokenSelectorVisible] = useState(false);
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
@@ -277,23 +245,6 @@ const PerpsOrderViewContent: React.FC = () => {
       change: isNaN(change) ? 0 : change,
     };
   }, [currentPrice]);
-
-  // Enhanced USDC token for Pay with
-  const enhancedUsdcToken = useMemo(() => {
-    if (!tokenList) return null;
-
-    return enhanceTokenWithIcon({
-      token: {
-        symbol: USDC_SYMBOL,
-        address: USDC_ARBITRUM_MAINNET_ADDRESS,
-        decimals: USDC_DECIMALS,
-        chainId: `0x${parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10).toString(16)}`,
-        name: USDC_NAME,
-      },
-      tokenList,
-      isIpfsGatewayEnabled,
-    });
-  }, [tokenList, isIpfsGatewayEnabled]);
 
   // Show error toast if market data is not available
   useEffect(() => {
@@ -542,76 +493,6 @@ const PerpsOrderViewContent: React.FC = () => {
             </View>
           )}
 
-          {/* Pay with */}
-          <View style={styles.detailItem}>
-            <TouchableOpacity onPress={() => setIsTokenSelectorVisible(true)}>
-              <ListItem>
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <Text variant={TextVariant.BodyLGMedium}>
-                    {strings('perps.deposit.pay_with')}
-                  </Text>
-                </ListItemColumn>
-                <ListItemColumn widthType={WidthType.Auto}>
-                  <View style={styles.payWithRight}>
-                    <BadgeWrapper
-                      badgeElement={
-                        <Badge
-                          variant={BadgeVariant.Network}
-                          imageSource={getNetworkImageSource({
-                            chainId:
-                              selectedPaymentToken?.chainId ===
-                              HYPERLIQUID_TESTNET_CHAIN_ID
-                                ? HYPERLIQUID_MAINNET_CHAIN_ID // Use mainnet image for testnet
-                                : selectedPaymentToken?.chainId ||
-                                  HYPERLIQUID_MAINNET_CHAIN_ID,
-                          })}
-                          name={
-                            selectedPaymentToken?.chainId ===
-                              HYPERLIQUID_MAINNET_CHAIN_ID ||
-                            selectedPaymentToken?.chainId ===
-                              HYPERLIQUID_TESTNET_CHAIN_ID
-                              ? strings('perps.network.hyperliquid')
-                              : (() => {
-                                  const network = getDefaultNetworkByChainId(
-                                    String(selectedPaymentToken?.chainId),
-                                  ) as { name: string } | undefined;
-                                  return (
-                                    network?.name ||
-                                    strings('perps.network.hyperliquid')
-                                  );
-                                })()
-                          }
-                        />
-                      }
-                      badgePosition={BadgePosition.BottomRight}
-                    >
-                      <AvatarToken
-                        name={selectedPaymentToken?.symbol || 'USDC'}
-                        imageSource={
-                          selectedPaymentToken?.image ||
-                          enhancedUsdcToken?.image
-                            ? {
-                                uri:
-                                  selectedPaymentToken?.image ||
-                                  enhancedUsdcToken?.image,
-                              }
-                            : undefined
-                        }
-                        size={AvatarSize.Md}
-                      />
-                    </BadgeWrapper>
-                    <Text
-                      variant={TextVariant.BodyLGMedium}
-                      style={styles.payWithText}
-                    >
-                      {selectedPaymentToken?.symbol || 'USDC'}
-                    </Text>
-                  </View>
-                </ListItemColumn>
-              </ListItem>
-            </TouchableOpacity>
-          </View>
-
           {/* Take profit */}
           <View style={styles.detailItem}>
             <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
@@ -825,23 +706,6 @@ const PerpsOrderViewContent: React.FC = () => {
           />
         </View>
       )}
-
-      {/* Token Selector */}
-      <PerpsTokenSelector
-        isVisible={isTokenSelectorVisible}
-        onClose={() => setIsTokenSelectorVisible(false)}
-        onTokenSelect={(token) => {
-          setSelectedPaymentToken(token);
-          setIsTokenSelectorVisible(false);
-        }}
-        tokens={paymentTokens}
-        selectedTokenAddress={selectedPaymentToken?.address || ''}
-        selectedTokenChainId={
-          selectedPaymentToken?.chainId || HYPERLIQUID_MAINNET_CHAIN_ID
-        }
-        title={strings('perps.order.select_payment_asset')}
-        minimumBalance={0}
-      />
 
       {/* TP/SL Bottom Sheet */}
       <PerpsTPSLBottomSheet
