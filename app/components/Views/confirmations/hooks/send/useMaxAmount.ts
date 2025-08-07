@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useMemo } from 'react';
 
 import { useEvmMaxAmount } from './evm/useEvmMaxAmount';
 import { useNonEvmMaxAmount } from './non-evm/useNonEvmMaxAmount';
@@ -9,13 +9,14 @@ export const useMaxAmount = () => {
   const { getEvmMaxAmount } = useEvmMaxAmount();
   const { getNonEvmMaxAmount } = useNonEvmMaxAmount();
 
-  const getMaxAmount = useCallback(
+  const { maxAmount, balance } = useMemo(
     () => (isEvmSendType ? getEvmMaxAmount() : getNonEvmMaxAmount()),
     [getEvmMaxAmount, getNonEvmMaxAmount, isEvmSendType],
   );
 
   return {
-    getMaxAmount,
+    balance,
     isMaxAmountSupported: !isNonEvmNativeSendType,
+    maxAmount,
   };
 };
