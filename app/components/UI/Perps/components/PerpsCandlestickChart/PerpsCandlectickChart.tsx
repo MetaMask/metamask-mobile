@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Dimensions } from 'react-native';
 import { CandlestickChart } from 'react-native-wagmi-charts';
-import Svg, { Line } from 'react-native-svg';
 import { getGridLineStyle, styleSheet } from './PerpsCandlestickChart.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
@@ -18,14 +17,9 @@ import PerpsTimeDurationSelector from '../PerpsTimeDurationSelector';
 import PerpsCandlestickChartSkeleton from './PerpsCandlestickChartSkeleton';
 import { strings } from '../../../../../../locales/i18n';
 import type { CandleData } from '../../types';
-
-interface TPSLLines {
-  takeProfitPrice?: string;
-  stopLossPrice?: string;
-  entryPrice?: string;
-  liquidationPrice?: string | null;
-  currentPrice?: string;
-}
+import CandlestickChartAuxiliaryLine, {
+  TPSLLines,
+} from './CandlestickChartAuxiliaryLine';
 
 interface CandlestickChartComponentProps {
   candleData: CandleData | null;
@@ -56,19 +50,19 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   onGearPress,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
-  const [showTPSLLines, setShowTPSLLines] = React.useState(false);
-  const [hasInitiallyLoaded, setHasInitiallyLoaded] = React.useState(false);
+  const [showTPSLLines, setShowTPSLLines] = useState(false);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
 
   // Get candlestick colors from centralized configuration
   // This allows for easy customization and potential user settings integration
   // useMemo prevents object recreation on every render
-  const candlestickColors = React.useMemo(
+  const candlestickColors = useMemo(
     () => getCandlestickColors(theme.colors),
     [theme.colors],
   );
 
   // Transform data to wagmi-charts format with validation
-  const transformedData = React.useMemo(() => {
+  const transformedData = useMemo(() => {
     if (!candleData?.candles || candleData.candles.length === 0) {
       return [];
     }
@@ -118,7 +112,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   }, [tpslLines, isLoading, transformedData.length]);
 
   // Calculate evenly spaced horizontal lines with better visibility
-  const gridLines = React.useMemo(() => {
+  const gridLines = useMemo(() => {
     if (transformedData.length === 0) return [];
 
     const prices = transformedData.flatMap((d) => [
@@ -150,94 +144,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
     return lines;
   }, [transformedData, height]);
-
-  // Calculate TP/SL line positions if they exist and are within chart bounds
-  // Use the same calculation method as grid lines for consistency
-  const tpslLinePositions = React.useMemo(() => {
-    if (!tpslLines || transformedData.length === 0) return null;
-
-    const prices = transformedData.flatMap((d) => [
-      d.open,
-      d.high,
-      d.low,
-      d.close,
-    ]);
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
-    const priceRange = maxPrice - minPrice;
-    const chartHeight = height - PERPS_CHART_CONFIG.PADDING.VERTICAL;
-
-    const lines: {
-      type: 'tp' | 'sl' | 'entry' | 'liquidation' | 'current';
-      price: number;
-      position: number;
-    }[] = [];
-
-    // Take Profit line
-    if (tpslLines.takeProfitPrice) {
-      const tpPrice = parseFloat(tpslLines.takeProfitPrice);
-      if (tpPrice >= minPrice && tpPrice <= maxPrice && priceRange > 0) {
-        // Use exact same calculation as grid lines but for specific price with some additional number tweaks to account for wagmi chart positioning
-        const normalizedPosition = (tpPrice - minPrice) / priceRange;
-        const position = chartHeight * (1.012 - normalizedPosition);
-        lines.push({ type: 'tp', price: tpPrice, position });
-      }
-    }
-
-    // Stop Loss line
-    if (tpslLines.stopLossPrice) {
-      const slPrice = parseFloat(tpslLines.stopLossPrice);
-      if (slPrice >= minPrice && slPrice <= maxPrice && priceRange > 0) {
-        // Use exact same calculation as grid lines but for specific price
-        const normalizedPosition = (slPrice - minPrice) / priceRange;
-        const position = chartHeight * (0.98 - normalizedPosition);
-        lines.push({ type: 'sl', price: slPrice, position });
-      }
-    }
-
-    // Entry Price line
-    if (tpslLines.entryPrice) {
-      const entryPrice = parseFloat(tpslLines.entryPrice);
-      if (entryPrice >= minPrice && entryPrice <= maxPrice && priceRange > 0) {
-        // Use exact same calculation as grid lines but for specific price
-        const normalizedPosition = (entryPrice - minPrice) / priceRange;
-        const position = chartHeight * (1 - normalizedPosition);
-        lines.push({ type: 'entry', price: entryPrice, position });
-      }
-    }
-
-    // Liquidation Price line
-    if (tpslLines.liquidationPrice) {
-      const liquidationPrice = parseFloat(tpslLines.liquidationPrice);
-      if (
-        liquidationPrice >= minPrice &&
-        liquidationPrice <= maxPrice &&
-        priceRange > 0
-      ) {
-        // Use exact same calculation as grid lines but for specific price
-        const normalizedPosition = (liquidationPrice - minPrice) / priceRange;
-        const position = chartHeight * (1 - normalizedPosition);
-        lines.push({ type: 'liquidation', price: liquidationPrice, position });
-      }
-    }
-
-    // Current Price line
-    if (tpslLines.currentPrice) {
-      const currentPrice = parseFloat(tpslLines.currentPrice);
-      if (
-        currentPrice >= minPrice &&
-        currentPrice <= maxPrice &&
-        priceRange > 0
-      ) {
-        // Use exact same calculation as grid lines but for specific price
-        const normalizedPosition = (currentPrice - minPrice) / priceRange;
-        const position = chartHeight * (1 - normalizedPosition);
-        lines.push({ type: 'current', price: currentPrice, position });
-      }
-    }
-
-    return lines.length > 0 ? lines : null;
-  }, [tpslLines, transformedData, height]);
 
   // Only show skeleton on initial load, not on interval changes
   if (isLoading && !hasInitiallyLoaded) {
@@ -326,48 +232,14 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         ))}
       </View>
       {/* TP/SL Lines - Render first so they're behind everything */}
-      {tpslLinePositions && showTPSLLines && (
-        <View style={styles.tpslContainer}>
-          {tpslLinePositions.map((line, index) => {
-            const lineColor =
-              line.type === 'tp'
-                ? theme.colors.success.default // Green for Take Profit
-                : line.type === 'sl'
-                ? theme.colors.border.default // Gray for Stop Loss
-                : line.type === 'entry'
-                ? theme.colors.text.alternative // Light Gray for Entry Price
-                : line.type === 'liquidation'
-                ? theme.colors.error.default // Pink/Red for Liquidation Price
-                : theme.colors.text.default; // White for Current Price
-
-            return (
-              <View
-                key={`tpsl-${line.type}-${index}`}
-                testID={`tpsl-${line.type}-${index}`}
-                style={[
-                  styles.tpslLine,
-                  {
-                    top: line.position,
-                    width: chartWidth - 65, // Match the chart width
-                  },
-                ]}
-              >
-                <Svg height="1" width="100%">
-                  <Line
-                    x1="0"
-                    y1="0.5"
-                    x2="100%"
-                    y2="0.5"
-                    stroke={lineColor}
-                    strokeWidth="1"
-                    strokeDasharray="5, 3" // Dash length, gap length
-                  />
-                </Svg>
-              </View>
-            );
-          })}
-        </View>
-      )}
+      <CandlestickChartAuxiliaryLine
+        tpslLines={tpslLines}
+        transformedData={transformedData}
+        height={height}
+        chartWidth={chartWidth}
+        visible={showTPSLLines}
+        testID="candlestick-auxiliary-lines"
+      />
       <View style={styles.chartContainer}>
         {/* Chart with Custom Grid Lines */}
         <View style={styles.relativeContainer}>

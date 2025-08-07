@@ -53,14 +53,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       zIndex: 1,
       pointerEvents: 'none',
     },
-    tpslContainer: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: -999, // Far below everything including tooltip
-      pointerEvents: 'none',
-    },
     gridLineWithLabel: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -109,15 +101,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       transform: [{ translateX: -25 }], // Adjusted centering for wider label
       lineHeight: 16, // Set line height for better spacing between lines
     },
-    tpslLine: {
-      position: 'absolute',
-      left: 0,
-      height: 1,
-      zIndex: -999, // Far below everything
-      opacity: 0.8,
-      pointerEvents: 'none',
-      backgroundColor: importedColors.transparent,
-    },
+
     noDataContainer: {
       backgroundColor: importedColors.transparent,
       alignItems: 'center',
