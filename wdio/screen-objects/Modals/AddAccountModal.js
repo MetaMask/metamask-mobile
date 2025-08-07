@@ -44,6 +44,14 @@ class AddAccountModal {
     }
   }
 
+  get createEthereumAccountButton() {
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON);
+    }
+  }
+
   async tapNewAccountButton() {
     if (!this._device) {
       await Gestures.waitAndTap(this.newAccountButton);
@@ -81,7 +89,15 @@ class AddAccountModal {
       await element.tap();
     }
   }
-  
+
+  async tapCreateEthereumAccountButton() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.createEthereumAccountButton);
+    } else {
+      const element = await this.createEthereumAccountButton;
+      await element.tap();
+    }
+  }
 }
 
 export default new AddAccountModal();

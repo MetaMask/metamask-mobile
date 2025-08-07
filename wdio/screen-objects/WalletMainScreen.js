@@ -40,7 +40,11 @@ class WalletMainScreen {
   }
 
   get WalletScreenContainer() {
-    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_CONTAINER);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_CONTAINER);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.WALLET_CONTAINER);
+    }
   }
 
   get networkInNavBar() {
@@ -145,6 +149,14 @@ class WalletMainScreen {
 
   async isVisible() {
     await expect(this.WalletScreenContainer).toBeDisplayed();
+  }
+
+  async clickOnMainScreen() { // to close account actions bottom sheet
+    if (!this._device) {
+      await Gestures.waitAndTap(this.WalletScreenContainer);
+    } else {
+      await this._device.tap({ x: 100, y: 100 });
+    }
   }
 
   async isNetworkNameCorrect(network) {
