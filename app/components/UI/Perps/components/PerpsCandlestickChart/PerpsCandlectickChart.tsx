@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Dimensions } from 'react-native';
 import { CandlestickChart } from 'react-native-wagmi-charts';
-import { getGridLineStyle, styleSheet } from './PerpsCandlestickChart.styles';
+import { styleSheet } from './PerpsCandlestickChart.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextColor,
@@ -20,6 +20,7 @@ import type { CandleData } from '../../types';
 import CandlestickChartAuxiliaryLine, {
   TPSLLines,
 } from './CandlestickChartAuxiliaryLine';
+import CandlestickChartGridLines from './CandlestickChartGridLines';
 
 interface CandlestickChartComponentProps {
   candleData: CandleData | null;
@@ -34,11 +35,6 @@ interface CandlestickChartComponentProps {
 
 const screenWidth = Dimensions.get('window').width;
 const chartWidth = screenWidth; // Full screen width, no horizontal padding
-
-// Helper function to format price for y-axis labels
-const formatPriceForAxis = (price: number): string =>
-  // Round to whole number and add commas for thousands
-  Math.round(price).toLocaleString('en-US');
 
 const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   candleData,
@@ -111,40 +107,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     setShowTPSLLines(false);
   }, [tpslLines, isLoading, transformedData.length]);
 
-  // Calculate evenly spaced horizontal lines with better visibility
-  const gridLines = useMemo(() => {
-    if (transformedData.length === 0) return [];
-
-    const prices = transformedData.flatMap((d) => [
-      d.open,
-      d.high,
-      d.low,
-      d.close,
-    ]);
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
-    const priceRange = maxPrice - minPrice;
-
-    // Create 6 horizontal grid lines (including top and bottom)
-    const gridLineCount = PERPS_CHART_CONFIG.GRID_LINE_COUNT;
-    const lines = [];
-
-    for (let i = 0; i < gridLineCount; i++) {
-      const price = minPrice + (priceRange * i) / (gridLineCount - 1);
-      const isEdgeLine = i === 0 || i === gridLineCount - 1;
-
-      lines.push({
-        price,
-        isEdge: isEdgeLine,
-        position:
-          ((gridLineCount - 1 - i) / (gridLineCount - 1)) *
-          (height - PERPS_CHART_CONFIG.PADDING.VERTICAL), // Inverted positioning: higher prices at top
-      });
-    }
-
-    return lines;
-  }, [transformedData, height]);
-
   // Only show skeleton on initial load, not on interval changes
   if (isLoading && !hasInitiallyLoaded) {
     return (
@@ -206,31 +168,11 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   return (
     <CandlestickChart.Provider data={transformedData}>
       {/* Custom Horizontal Grid Lines with Price Labels */}
-      <View style={styles.gridContainer}>
-        {gridLines.map((line, index) => (
-          <View key={`grid-${index}`}>
-            {/* Grid Line */}
-            <View
-              style={getGridLineStyle(theme.colors, line.isEdge, line.position)}
-            />
-            {/* Price Label */}
-            <View
-              style={[
-                styles.gridPriceLabel,
-                {
-                  top: line.position - 10, // Center the label on the line
-                  backgroundColor: theme.colors.background.default,
-                  borderColor: theme.colors.border.muted,
-                },
-              ]}
-            >
-              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
-                ${formatPriceForAxis(line.price)}
-              </Text>
-            </View>
-          </View>
-        ))}
-      </View>
+      <CandlestickChartGridLines
+        transformedData={transformedData}
+        height={height}
+        testID="candlestick-grid-lines"
+      />
       {/* TP/SL Lines - Render first so they're behind everything */}
       <CandlestickChartAuxiliaryLine
         tpslLines={tpslLines}
