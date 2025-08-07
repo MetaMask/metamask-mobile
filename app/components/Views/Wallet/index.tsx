@@ -171,9 +171,6 @@ const createStyles = ({ colors }: Theme) =>
       marginTop: 20,
       paddingHorizontal: 16,
     },
-    carouselContainer: {
-      marginTop: 12,
-    },
     tabStyle: {
       paddingBottom: 8,
       paddingVertical: 8,
@@ -927,7 +924,7 @@ const Wallet = ({
             sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
             receiveButtonActionID={WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON}
           />
-          <Carousel style={styles.carouselContainer} />
+          <Carousel />
           <WalletTokensTabView
             navigation={navigation}
             onChangeTab={onChangeTab}
@@ -939,7 +936,6 @@ const Wallet = ({
     ),
     [
       styles.banner,
-      styles.carouselContainer,
       styles.wrapper,
       basicFunctionalityEnabled,
       defiEnabled,

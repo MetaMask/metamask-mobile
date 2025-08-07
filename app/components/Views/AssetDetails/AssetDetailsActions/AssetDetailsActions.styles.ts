@@ -8,7 +8,7 @@ const styleSheet = (params: { theme: Theme }) => {
     activitiesButton: {
       width: '100%',
       flexDirection: 'row',
-      paddingTop: 12,
+      paddingVertical: 12,
       paddingHorizontal: 16,
       gap: 12,
     },

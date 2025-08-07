@@ -49,51 +49,56 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   return (
     <View style={styles.activitiesButton}>
       {displayBuyButton && (
-        <MainActionButton
-          iconName={IconName.Add}
-          label={strings('asset_overview.buy_button')}
-          onPress={onBuy}
-          isDisabled={!canSignTransactions}
-          testID={buyButtonActionID}
-          style={styles.buttonContainer}
-        />
+        <View style={styles.buttonContainer}>
+          <MainActionButton
+            iconName={IconName.Add}
+            label={strings('asset_overview.buy_button')}
+            onPress={onBuy}
+            isDisabled={!canSignTransactions}
+            testID={buyButtonActionID}
+          />
+        </View>
       )}
       {displaySwapsButton && (
-        <MainActionButton
-          iconName={IconName.SwapVertical}
-          label={strings('asset_overview.swap')}
-          onPress={() => goToSwaps()}
-          isDisabled={!canSignTransactions || !swapsIsLive}
-          testID={swapButtonActionID}
-          style={styles.buttonContainer}
-        />
+        <View style={styles.buttonContainer}>
+          <MainActionButton
+            iconName={IconName.SwapVertical}
+            label={strings('asset_overview.swap')}
+            onPress={() => goToSwaps()}
+            isDisabled={!canSignTransactions || !swapsIsLive}
+            testID={swapButtonActionID}
+          />
+        </View>
       )}
       {displayBridgeButton ? (
-        <MainActionButton
-          iconName={IconName.Bridge}
-          label={strings('asset_overview.bridge')}
-          onPress={goToBridge}
-          isDisabled={!canSignTransactions}
-          testID={bridgeButtonActionID}
-          style={styles.buttonContainer}
-        />
+        <View style={styles.buttonContainer}>
+          <MainActionButton
+            iconName={IconName.Bridge}
+            label={strings('asset_overview.bridge')}
+            onPress={goToBridge}
+            isDisabled={!canSignTransactions}
+            testID={bridgeButtonActionID}
+          />
+        </View>
       ) : null}
-      <MainActionButton
-        iconName={IconName.Send}
-        label={strings('asset_overview.send_button')}
-        onPress={onSend}
-        isDisabled={!canSignTransactions}
-        testID={sendButtonActionID}
-        style={styles.buttonContainer}
-      />
-      <MainActionButton
-        iconName={IconName.Receive}
-        label={strings('asset_overview.receive_button')}
-        onPress={onReceive}
-        isDisabled={false}
-        testID={receiveButtonActionID}
-        style={styles.buttonContainer}
-      />
+      <View style={styles.buttonContainer}>
+        <MainActionButton
+          iconName={IconName.Send}
+          label={strings('asset_overview.send_button')}
+          onPress={onSend}
+          isDisabled={!canSignTransactions}
+          testID={sendButtonActionID}
+        />
+      </View>
+      <View style={styles.buttonContainer}>
+        <MainActionButton
+          iconName={IconName.Received}
+          label={strings('asset_overview.receive_button')}
+          onPress={onReceive}
+          isDisabled={false}
+          testID={receiveButtonActionID}
+        />
+      </View>
     </View>
   );
 };
