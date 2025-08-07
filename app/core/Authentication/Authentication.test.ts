@@ -1112,6 +1112,8 @@ describe('Authentication', () => {
         checkIsPasswordOutdated: jest.fn(),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
       Engine.context.KeyringController = {
+        setLocked: jest.fn(),
+        isUnlocked: jest.fn().mockResolvedValue(true),
         addNewKeyring: jest.fn(),
         createNewVaultAndRestore: jest.fn(),
         withKeyring: jest
