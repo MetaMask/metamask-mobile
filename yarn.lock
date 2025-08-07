@@ -4857,10 +4857,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@73.0.1-preview-e4e5ca5c":
-  version "73.0.1-preview-e4e5ca5c"
-  resolved "https://registry.npmjs.org/@metamask-previews/assets-controllers/-/assets-controllers-73.0.1-preview-e4e5ca5c.tgz#54e7a11ef6f29d9236591bb8dca4b845d5bb4207"
-  integrity sha512-/WwfhWhXCUXoDOFKyAx6cWZ405RDvMOeM3/j/y4cOMMeHwm07oziSqyzjFd0u6hRjeZE+Rbfv6UepDiX35ELhQ==
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@73.0.2-preview-d8fe3a3":
+  version "73.0.2-preview-d8fe3a3"
+  resolved "https://registry.npmjs.org/@metamask-previews/assets-controllers/-/assets-controllers-73.0.2-preview-d8fe3a3.tgz#5497baaf4d6becc34c08f561d0078f502d6cd234"
+  integrity sha512-DH0Trpr2LheETGENS+N5VBcHfAw41GICacFi8jUynGvh+XBKG7J955Nwmj3Q5MRD5EQbyYkqlgG+RElORHR+gg==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4873,7 +4873,7 @@
     "@metamask/contract-metadata" "^2.4.0"
     "@metamask/controller-utils" "^11.11.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/keyring-api" "^19.0.0"
+    "@metamask/keyring-api" "^20.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/rpc-errors" "^7.0.2"
@@ -5424,6 +5424,16 @@
   version "19.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-19.1.0.tgz#5fcf1873bc779774a53025982bd84230d03dcf66"
   integrity sha512-QmKlPuPKtVzFz+wmTX8FbrAatHC0X17t2EwaejoUXDbGdeEH1H3dHGjRHXVkfdjBWdTh2OeCXVUP/TVXwwxKGw==
+  dependencies:
+    "@metamask/keyring-utils" "^3.1.0"
+    "@metamask/superstruct" "^3.1.0"
+    "@metamask/utils" "^11.1.0"
+    bitcoin-address-validation "^2.2.3"
+
+"@metamask/keyring-api@^20.0.0":
+  version "20.0.0"
+  resolved "https://registry.npmjs.org/@metamask/keyring-api/-/keyring-api-20.0.0.tgz#831dee2a44d1521b1f057e095b479ed6a3c88331"
+  integrity sha512-kRJ+dYIiE99MaoH2kmO1lc2m3Jc3sKINJxWp4iBlyiugx7lUd3Fmr+s4rsUv6l/9EXUygOckX/qfYJtR+2I04Q==
   dependencies:
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/superstruct" "^3.1.0"
