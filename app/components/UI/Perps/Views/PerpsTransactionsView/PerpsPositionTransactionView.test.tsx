@@ -130,7 +130,7 @@ describe('PerpsPositionTransactionView', () => {
       state: mockInitialState,
     });
 
-    expect(getByText('P&L')).toBeOnTheScreen();
+    expect(getByText('Net P&L')).toBeOnTheScreen();
     expect(getByText('+$150.75')).toBeOnTheScreen();
   });
 
@@ -156,7 +156,7 @@ describe('PerpsPositionTransactionView', () => {
       },
     );
 
-    expect(queryByText('P&L')).not.toBeOnTheScreen();
+    expect(queryByText('Net P&L')).not.toBeOnTheScreen();
   });
 
   it('should handle negative P&L correctly', () => {
@@ -179,7 +179,7 @@ describe('PerpsPositionTransactionView', () => {
       state: mockInitialState,
     });
 
-    expect(getByText('P&L')).toBeOnTheScreen();
+    expect(getByText('Net P&L')).toBeOnTheScreen();
     expect(getByText('-$75.25')).toBeOnTheScreen();
   });
 
@@ -210,7 +210,7 @@ describe('PerpsPositionTransactionView', () => {
       state: mockInitialState,
     });
 
-    expect(getByText('Fees')).toBeOnTheScreen();
+    expect(getByText('Total fees')).toBeOnTheScreen();
     expect(getByText('$5.00')).toBeOnTheScreen();
   });
 
@@ -232,6 +232,71 @@ describe('PerpsPositionTransactionView', () => {
     });
 
     expect(getByText('$0.005')).toBeOnTheScreen();
+  });
+
+  it('should render points correctly', () => {
+    const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
+      state: mockInitialState,
+    });
+
+    expect(getByText('Points')).toBeOnTheScreen();
+    expect(getByText('+75.50')).toBeOnTheScreen();
+  });
+
+  it('should not render points when not present', () => {
+    const transactionWithoutPoints = {
+      ...mockTransaction,
+      fill: {
+        ...mockTransaction.fill,
+        points: undefined,
+      },
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: transactionWithoutPoints },
+    });
+
+    const { queryByText } = renderWithProvider(
+      <PerpsPositionTransactionView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(queryByText('Points')).not.toBeOnTheScreen();
+  });
+
+  it('should handle different point values correctly', () => {
+    const testCases = [
+      { points: '0', expected: '+0' },
+      { points: '0.00', expected: '+0.00' },
+      { points: '100.00', expected: '+100.00' },
+      { points: '0.50', expected: '+0.50' },
+      { points: '1234.56', expected: '+1234.56' },
+    ];
+
+    testCases.forEach(({ points, expected }) => {
+      const transactionWithPoints = {
+        ...mockTransaction,
+        fill: {
+          ...mockTransaction.fill,
+          points,
+        },
+      };
+
+      mockUseRoute.mockReturnValue({
+        params: { transaction: transactionWithPoints },
+      });
+
+      const { getByText } = renderWithProvider(
+        <PerpsPositionTransactionView />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(getByText(expected)).toBeOnTheScreen();
+    });
   });
 
   it('should navigate to block explorer in browser tab when button is pressed', () => {
@@ -325,8 +390,10 @@ describe('PerpsPositionTransactionView', () => {
       ...mockTransaction,
       fill: {
         ...mockTransaction.fill,
-        action: 'Open',
+        action: 'Closed',
         pnl: '0',
+        amount: '+$0',
+        amountNumber: 0,
       },
     };
 
@@ -334,14 +401,36 @@ describe('PerpsPositionTransactionView', () => {
       params: { transaction: zeroPnLTransaction },
     });
 
-    const { queryByText } = renderWithProvider(
-      <PerpsPositionTransactionView />,
-      {
-        state: mockInitialState,
-      },
-    );
+    const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
+      state: mockInitialState,
+    });
 
-    expect(queryByText('P&L')).not.toBeOnTheScreen();
+    expect(getByText('Net P&L')).toBeOnTheScreen();
+    expect(getByText('+$0')).toBeOnTheScreen();
+  });
+
+  it('should handle zero P&L with decimals correctly', () => {
+    const zeroPnLWithDecimalsTransaction = {
+      ...mockTransaction,
+      fill: {
+        ...mockTransaction.fill,
+        action: 'Closed',
+        pnl: '0.00',
+        amount: '+$0.00',
+        amountNumber: 0,
+      },
+    };
+
+    mockUseRoute.mockReturnValue({
+      params: { transaction: zeroPnLWithDecimalsTransaction },
+    });
+
+    const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
+      state: mockInitialState,
+    });
+
+    expect(getByText('Net P&L')).toBeOnTheScreen();
+    expect(getByText('+$0.00')).toBeOnTheScreen();
   });
 
   it('should format large amounts correctly', () => {

@@ -33,29 +33,42 @@ export function useTransactionPayTokenAmounts() {
       return undefined;
     }
 
-    return values.map((value) =>
-      calculateAmount(value.totalFiat, tokenFiatRate, decimals),
-    );
+    return values.map((value) => {
+      const amountHuman = new BigNumber(value.totalFiat).div(tokenFiatRate);
+      const amountRaw = amountHuman.shiftedBy(decimals).toFixed(0);
+
+      return {
+        amountHuman: amountHuman.toString(10),
+        amountRaw,
+      };
+    });
   }, [decimals, tokenFiatRate, values]);
 
+  const totalHuman = amounts
+    ?.reduce(
+      (acc, { amountHuman }) => acc.plus(new BigNumber(amountHuman ?? '0')),
+      new BigNumber(0),
+    )
+    .toString(10);
+
+  const totalRaw = amounts
+    ?.reduce(
+      (acc, { amountRaw }) => acc.plus(new BigNumber(amountRaw ?? '0')),
+      new BigNumber(0),
+    )
+    .toFixed(0);
+
   useEffect(() => {
-    log('Pay token amounts', amounts);
-  }, [amounts]);
+    log('Pay token amounts', {
+      amounts,
+      totalHuman,
+      totalRaw,
+    });
+  }, [amounts, totalHuman, totalRaw]);
 
-  return amounts;
-}
-
-function calculateAmount(
-  fiatAmount: number | undefined,
-  fiatRate: number,
-  decimals: number,
-) {
-  if (!fiatAmount) {
-    return undefined;
-  }
-
-  const amountDecimals = new BigNumber(fiatAmount).div(fiatRate);
-  const amountRaw = amountDecimals.shiftedBy(decimals).toFixed(0);
-
-  return amountRaw;
+  return {
+    amounts,
+    totalHuman,
+    totalRaw,
+  };
 }

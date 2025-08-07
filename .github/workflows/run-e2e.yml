@@ -7,13 +7,23 @@ on:
   workflow_call:
   workflow_dispatch:
   pull_request:
-    types: [labeled]
+    types: [opened, synchronize]
+
+permissions:
+  contents: write
+  id-token: write
 
 jobs:
+  # Build Android APKs once for all Android tests
+  build-android-apks:
+    name: "Build Android APKs (Shared)"
+    uses: ./.github/workflows/build-android-e2e.yml
+    secrets: inherit
+
   smoke-confirmations-ios:
     name: "Confirmations Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-confirmations-ios
       platform: ios
@@ -22,8 +32,9 @@ jobs:
 
   smoke-confirmations-android:
     name: "Confirmations Smoke (Android)"
-    if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    needs: build-android-apks
+    if: always() && needs.build-android-apks.result != 'failure'
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-confirmations-android
       platform: android
@@ -33,7 +44,7 @@ jobs:
   smoke-confirmations-redesigned-ios:
     name: "Confirmations Redesigned Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-confirmations-redesigned-ios
       platform: ios
@@ -43,7 +54,7 @@ jobs:
   smoke-trade-ios:
     name: "Trade Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-trade-ios
       platform: ios
@@ -52,8 +63,9 @@ jobs:
 
   smoke-trade-android:
     name: "Trade Smoke (Android)"
-    if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    needs: build-android-apks
+    if: always() && needs.build-android-apks.result != 'failure'
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-trade-android
       platform: android
@@ -63,7 +75,7 @@ jobs:
   smoke-wallet-platform-ios:
     name: "Wallet Platform Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-wallet-platform-ios
       platform: ios
@@ -72,8 +84,9 @@ jobs:
 
   smoke-wallet-platform-android:
     name: "Wallet Platform Smoke (Android)"
-    if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    needs: build-android-apks
+    if: always() && needs.build-android-apks.result != 'failure'
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-wallet-platform-android
       platform: android
@@ -83,7 +96,7 @@ jobs:
   smoke-identity-ios:
     name: "Identity Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-identity-ios
       platform: ios
@@ -92,8 +105,9 @@ jobs:
 
   smoke-identity-android:
     name: "Identity Smoke (Android)"
-    if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    needs: build-android-apks
+    if: always() && needs.build-android-apks.result != 'failure'
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-identity-android
       platform: android
@@ -103,7 +117,7 @@ jobs:
   smoke-accounts-ios:
     name: "Accounts Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-accounts-ios
       platform: ios
@@ -112,8 +126,9 @@ jobs:
 
   smoke-accounts-android:
     name: "Accounts Smoke (Android)"
-    if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    needs: build-android-apks
+    if: always() && needs.build-android-apks.result != 'failure'
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-accounts-android
       platform: android
@@ -123,7 +138,7 @@ jobs:
   smoke-network-abstraction-ios:
     name: "Network Abstraction Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-abstraction-ios
       platform: ios
@@ -132,8 +147,9 @@ jobs:
 
   smoke-network-abstraction-android:
     name: "Network Abstraction Smoke (Android)"
-    if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    needs: build-android-apks
+    if: always() && needs.build-android-apks.result != 'failure'
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-abstraction-android
       platform: android
@@ -143,7 +159,7 @@ jobs:
   smoke-network-expansion-ios:
     name: "Network Expansion Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-expansion-ios
       platform: ios
@@ -152,8 +168,9 @@ jobs:
 
   smoke-network-expansion-android:
     name: "Network Expansion Smoke (Android)"
-    if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    needs: build-android-apks
+    if: always() && needs.build-android-apks.result != 'failure'
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-network-expansion-android
       platform: android
@@ -163,7 +180,7 @@ jobs:
   smoke-performance-ios:
     name: "Performance Smoke (iOS)"
     if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-performance-ios
       platform: ios
@@ -172,8 +189,9 @@ jobs:
 
   smoke-performance-android:
     name: "Performance Smoke (Android)"
-    if: false
-    uses: ./.github/workflows/run-e2e-mobile.yml
+    needs: build-android-apks
+    if: always() && needs.build-android-apks.result != 'failure'
+    uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: smoke-performance-android
       platform: android
