@@ -68,6 +68,7 @@ export default async function migrate(state: unknown) {
       const controllers = engine.backgroundState;
       let migratedControllers = 0;
       let failedControllers = 0;
+      const failedControllerStates: Record<string, unknown> = {};
 
       for (const controllerName of CONTROLLER_LIST) {
         try {
@@ -96,6 +97,12 @@ export default async function migrate(state: unknown) {
           );
           failedControllers++;
           captureException(error as Error);
+
+          // Preserve failed controller state to prevent data loss
+          if (hasProperty(controllers, controllerName)) {
+            failedControllerStates[controllerName] =
+              controllers[controllerName];
+          }
         }
       }
 
@@ -103,14 +110,33 @@ export default async function migrate(state: unknown) {
         `Migration 92: Migration completed. Migrated: ${migratedControllers}, Failed: ${failedControllers}`,
       );
 
-      engine.backgroundState = {};
+      // Only clear successfully migrated controllers, preserve failed ones to prevent data loss
+      // Create new state object to maintain immutability
+      const newState = { ...state };
+      newState.engine = {
+        ...engine,
+        backgroundState: failedControllers > 0 ? failedControllerStates : {},
+      };
 
-      Logger.log('Migration 92: Cleared old engine data from redux-persist');
-    } else {
-      Logger.log(
-        'Migration 92: No existing engine data found, skipping migration',
-      );
+      if (failedControllers > 0) {
+        Logger.error(
+          new Error(
+            `Migration 92: ${failedControllers} controllers failed to migrate`,
+          ),
+          'Migration 92: Some controllers failed to migrate, preserving their state in redux-persist',
+        );
+      } else {
+        Logger.log(
+          'Migration 92: All controllers migrated successfully, cleared old engine data from redux-persist',
+        );
+      }
+
+      return newState;
     }
+
+    Logger.log(
+      'Migration 92: No existing engine data found, skipping migration',
+    );
 
     return state;
   } catch (error) {

@@ -75,6 +75,35 @@ describe('Migration 92', () => {
     });
   });
 
+  it('should completely clear backgroundState when all controllers migrate successfully', async () => {
+    const mockState = {
+      engine: {
+        backgroundState: {
+          KeyringController: {
+            vault: 'encrypted-vault-data',
+          },
+          NetworkController: {
+            network: 'mainnet',
+          },
+        },
+      },
+    };
+
+    // All migrations succeed
+    mockFilesystemStorage.setItem.mockResolvedValue();
+
+    const result = await migration92(mockState);
+
+    expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
+
+    // Should completely clear backgroundState when all controllers migrate successfully
+    expect(result).toEqual({
+      engine: {
+        backgroundState: {},
+      },
+    });
+  });
+
   it('should handle empty engine data gracefully', async () => {
     const mockState = {
       engine: {
@@ -138,7 +167,7 @@ describe('Migration 92', () => {
     });
   });
 
-  it('should handle storage errors gracefully', async () => {
+  it('should handle storage errors gracefully and preserve failed controller state', async () => {
     const mockState = {
       engine: {
         backgroundState: {
@@ -160,9 +189,15 @@ describe('Migration 92', () => {
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
 
+    // Should preserve failed controller state to prevent data loss
     expect(result).toEqual({
       engine: {
-        backgroundState: {},
+        backgroundState: {
+          KeyringController: {
+            vault: 'encrypted-vault-data',
+          },
+          // NetworkController should be migrated successfully and removed from backgroundState
+        },
       },
     });
   });
