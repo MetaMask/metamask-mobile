@@ -653,11 +653,11 @@ const Wallet = ({
         const { AccountTrackerController } = Engine.context;
 
         const networkClientIDs = Object.values(evmNetworkConfigurations)
-          .filter((n) => n.chainId !== '0xe705')
           .map(
             ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-          );
+          )
+          .filter((c) => Boolean(c));
 
         AccountTrackerController.refresh(networkClientIDs);
       });
