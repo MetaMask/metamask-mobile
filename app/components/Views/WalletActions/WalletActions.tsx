@@ -18,10 +18,10 @@ import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { getEther } from '../../../util/transactions';
 import { newAssetTransaction } from '../../../actions/transaction';
-import { IconName } from '../../../component-library/components/Icons/Icon';
-import WalletAction from '../../../components/UI/WalletAction';
+import { IconName } from '@metamask/design-system-react-native';
+import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { useStyles } from '../../../component-library/hooks';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
+import { strings } from '../../../../locales/i18n';
 import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
 import Routes from '../../../constants/navigation/Routes';
 import { getDecimalChainId } from '../../../util/networks';
@@ -38,7 +38,7 @@ import {
 import { trace, TraceName } from '../../../util/trace';
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
-import { WalletActionType } from '../../UI/WalletAction/WalletAction.types';
+
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 // eslint-disable-next-line no-duplicate-imports, import/no-duplicates
@@ -365,14 +365,6 @@ const WalletActions = () => {
     });
   }, [closeBottomSheetAndNavigate, navigate]);
 
-  const sendIconStyle = useMemo(
-    () => ({
-      transform: [{ rotate: '-45deg' }],
-      ...styles.icon,
-    }),
-    [styles.icon],
-  );
-
   const isEarnWalletActionEnabled = useMemo(() => {
     if (
       !isStablecoinLendingEnabled ||
@@ -388,98 +380,89 @@ const WalletActions = () => {
     <BottomSheet ref={sheetRef}>
       <View style={styles.actionsContainer}>
         {isDepositEnabled && (
-          <WalletAction
-            actionType={WalletActionType.Deposit}
+          <ActionListItem
+            label={strings('asset_overview.deposit_button')}
+            description={strings('asset_overview.deposit_description')}
             iconName={IconName.Money}
             onPress={onDeposit}
-            actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
+            testID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
           />
         )}
         {isNetworkRampSupported && (
-          <WalletAction
-            actionType={WalletActionType.Buy}
+          <ActionListItem
+            label={strings('asset_overview.buy_button')}
+            description={strings('asset_overview.buy_description')}
             iconName={IconName.Add}
             onPress={onBuy}
-            actionID={WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
+            testID={WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON}
           />
         )}
         {isNetworkRampSupported && (
-          <WalletAction
-            actionType={WalletActionType.Sell}
-            iconName={IconName.MinusBold}
+          <ActionListItem
+            label={strings('asset_overview.sell_button')}
+            description={strings('asset_overview.sell_description')}
+            iconName={IconName.Minus}
             onPress={onSell}
-            actionID={WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions}
+            testID={WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON}
+            isDisabled={!canSignTransactions}
           />
         )}
         {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
-          <WalletAction
-            actionType={WalletActionType.Swap}
-            iconName={IconName.SwapHorizontal}
+          <ActionListItem
+            label={strings('asset_overview.swap')}
+            description={strings('asset_overview.swap_description')}
+            iconName={IconName.SwapVertical}
             onPress={goToSwaps}
-            actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions || !swapsIsLive}
+            testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
+            isDisabled={!canSignTransactions || !swapsIsLive}
           />
         )}
         {AppConstants.BRIDGE.ACTIVE &&
           isBridgeAllowed(chainId) &&
           !isUnifiedSwapsEnabled && (
-            <WalletAction
-              actionType={WalletActionType.Bridge}
+            <ActionListItem
+              label={strings('asset_overview.bridge')}
+              description={strings('asset_overview.bridge_description')}
               iconName={IconName.Bridge}
               onPress={goToBridge}
-              actionID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
-              iconStyle={styles.icon}
-              iconSize={AvatarSize.Md}
-              disabled={!canSignTransactions}
+              testID={WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON}
+              isDisabled={!canSignTransactions}
             />
           )}
         {isPerpsEnabled && (
-          <WalletAction
-            actionType={WalletActionType.Perps}
-            iconName={IconName.TrendUp}
+          <ActionListItem
+            label={strings('asset_overview.perps_button')}
+            description={strings('asset_overview.perps_description')}
+            iconName={IconName.Candlestick}
             onPress={onPerps}
-            actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions}
+            testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
+            isDisabled={!canSignTransactions}
           />
         )}
-        <WalletAction
-          actionType={WalletActionType.Send}
-          iconName={IconName.Arrow2Right}
+        <ActionListItem
+          label={strings('asset_overview.send_button')}
+          description={strings('asset_overview.send_description')}
+          iconName={IconName.Send}
           onPress={onSend}
-          iconStyle={sendIconStyle}
-          actionID={WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON}
-          iconSize={AvatarSize.Md}
-          disabled={!canSignTransactions}
+          testID={WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON}
+          isDisabled={!canSignTransactions}
         />
-        <WalletAction
-          actionType={WalletActionType.Receive}
+        <ActionListItem
+          label={strings('asset_overview.receive_button')}
+          description={strings('asset_overview.receive_description')}
           iconName={IconName.Received}
           onPress={onReceive}
-          actionID={WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON}
-          iconStyle={styles.icon}
-          iconSize={AvatarSize.Md}
-          disabled={false}
+          testID={WalletActionsBottomSheetSelectorsIDs.RECEIVE_BUTTON}
+          isDisabled={false}
         />
         {isEarnWalletActionEnabled && (
-          <WalletAction
-            actionType={WalletActionType.Earn}
-            iconName={IconName.Plant}
+          <ActionListItem
+            label={strings('asset_overview.earn_button')}
+            description={strings('asset_overview.earn_description')}
+            iconName={IconName.Stake}
             onPress={onEarn}
-            actionID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
-            iconStyle={styles.icon}
-            iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions}
+            testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
+            isDisabled={!canSignTransactions}
           />
         )}
       </View>
