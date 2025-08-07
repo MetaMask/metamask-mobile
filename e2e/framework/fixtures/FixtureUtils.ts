@@ -189,21 +189,47 @@ export async function killProcessOnPort(port: number): Promise<boolean> {
   }
 
   const execAsync = promisify(exec);
-  let command = '';
-
-  // Use platform-specific commands to find and kill the process
-  if (process.platform === 'win32') {
-    // Windows command to find and kill process on port
-    command = `for /f "tokens=5" %a in ('netstat -ano ^| find "LISTENING" ^| find ":${port}"') do taskkill /F /PID %a`;
-  } else {
-    // macOS/Linux command
-    // Using a safer approach that handles empty results better
-    command = `lsof -i :${port} -t | xargs -r kill -9`;
-  }
 
   try {
     logger.debug(`Attempting to free up port ${port} on ${process.platform}`);
-    await execAsync(command);
+
+    // Platform-specific approach to find and kill the process
+    if (process.platform === 'win32') {
+      // Windows: First find the PID using netstat
+      const { stdout } = await execAsync(
+        `netstat -ano | findstr :${port} | findstr LISTENING`,
+      );
+
+      if (stdout.trim()) {
+        // Extract PID from the last column of netstat output
+        const pidMatches = stdout.trim().split(/\s+/);
+        if (pidMatches.length > 0) {
+          const pid = pidMatches[pidMatches.length - 1];
+          // Kill the process
+          await execAsync(`taskkill /F /PID ${pid}`);
+        }
+      }
+    } else if (process.platform === 'darwin' || process.platform === 'linux') {
+      // macOS/Linux: First get PIDs using lsof
+      const { stdout } = await execAsync(`lsof -i :${port} -t`);
+
+      if (stdout.trim()) {
+        // Split by newlines in case multiple processes use the port
+        const pids = stdout.trim().split('\n');
+
+        // Kill each process individually to avoid xargs empty input issues
+        for (const pid of pids) {
+          if (pid.trim()) {
+            await execAsync(`kill -9 ${pid.trim()}`);
+          }
+        }
+      }
+    } else {
+      logger.debug(
+        `Unsupported platform: ${process.platform}, using Node.js fallback`,
+      );
+      // For unsupported platforms, we'll rely on the port check below
+    }
 
     // Give it a moment to release the port
     await new Promise((resolve) => setTimeout(resolve, 500));
