@@ -490,9 +490,6 @@ const createStyles = (colors: Colors) =>
     percentageButton: {
       flex: 1,
     },
-    keypad: {
-      backgroundColor: colors.background.default,
-    },
     tooltipContent: {
       paddingBottom: 16,
     },
