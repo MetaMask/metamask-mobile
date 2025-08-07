@@ -19,6 +19,9 @@ jest.mock('../../../../../../core/Engine', () => ({
     AssetsContractController: {
       getERC721AssetSymbol: Promise.resolve(undefined),
     },
+    NetworkController: {
+      findNetworkClientIdByChainId: () => 'mainnet',
+    },
   },
 }));
 
@@ -96,7 +99,7 @@ describe('shouldSkipValidation', () => {
 });
 
 describe('validateToAddress', () => {
-  it('returns warning if address is contract address on mainnet', async () => {
+  it('returns warning if address is contract address', async () => {
     Engine.context.AssetsContractController.getERC721AssetSymbol = () =>
       Promise.resolve('ABC');
     expect(
