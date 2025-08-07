@@ -1,19 +1,17 @@
 import { SnapId } from '@metamask/snaps-sdk';
-import ReduxService, { ReduxStore } from '../redux';
+import ReduxService from '../redux';
 import { CronjobControllerStorageManager } from './CronjobControllerStorageManager';
+import configureStore from '../../util/test/configureStore';
+import { setCronjobControllerState } from '../redux/slices/cronjobController';
 
 describe('CronjobControllerStorageManager', () => {
   beforeEach(() => {
     jest.resetAllMocks();
-    ReduxService.store = {
-      dispatch: jest.fn(),
-      getState: jest.fn(() => ({
-        // Mock the initial state for CronjobController
-        cronjobController: { storage: { events: {} } },
-      })),
-      subscribe: jest.fn(),
-      replaceReducer: jest.fn(),
-    } as unknown as ReduxStore;
+    ReduxService.store = configureStore({
+      cronjobController: {
+        storage: { events: {} },
+      },
+    });
   });
 
   describe('getInitialState', () => {
@@ -28,6 +26,8 @@ describe('CronjobControllerStorageManager', () => {
 
   describe('set', () => {
     it('sets state', async () => {
+      const dispatchSpy = jest.spyOn(ReduxService.store, 'dispatch');
+
       const manager = new CronjobControllerStorageManager();
 
       const cronjobControllerState = {
@@ -48,10 +48,9 @@ describe('CronjobControllerStorageManager', () => {
 
       manager.set(cronjobControllerState);
 
-      expect(ReduxService.store.dispatch).toHaveBeenCalledWith({
-        type: 'cronjobController/setCronjobControllerState',
-        payload: cronjobControllerState,
-      });
+      expect(dispatchSpy).toHaveBeenCalledWith(
+        setCronjobControllerState(cronjobControllerState),
+      );
     });
   });
 });

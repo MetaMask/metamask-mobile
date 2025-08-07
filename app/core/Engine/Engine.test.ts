@@ -15,7 +15,8 @@ import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
-import ReduxService, { ReduxStore } from '../redux';
+import ReduxService from '../redux';
+import configureStore from '../../util/test/configureStore';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -66,15 +67,7 @@ describe('Engine', () => {
   let mockAppStateListener: (state: AppStateStatus) => void;
 
   beforeEach(() => {
-    ReduxService.store = {
-      dispatch: jest.fn(),
-      getState: jest.fn(() => ({
-        engine: {},
-        cronjobController: { storage: undefined },
-      })),
-      subscribe: jest.fn(),
-      replaceReducer: jest.fn(),
-    } as unknown as ReduxStore;
+    ReduxService.store = configureStore({});
   });
 
   afterEach(() => {

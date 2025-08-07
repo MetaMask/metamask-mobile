@@ -79,4 +79,29 @@ describe('cronjobControllerSlice', () => {
       ).toEqual({ storage: mockCronjobControllerState });
     });
   });
+
+  describe('selectCronjobControllerStorage', () => {
+    it('selects the cronjob controller storage', () => {
+      const mockCronjobControllerState = {
+        events: {
+          baz: {
+            id: 'baz',
+            scheduledAt: '1234567892',
+            snapId: 'snapId3' as SnapId,
+            date: '2023-10-03T00:00:00Z',
+            recurring: true,
+            schedule: '0 0 * * *',
+            request: {
+              method: 'testMethod3',
+            },
+          },
+        },
+      };
+      store.dispatch(setCronjobControllerState(mockCronjobControllerState));
+
+      expect(
+        selectCronjobControllerState(store.getState() as RootState).storage,
+      ).toEqual(mockCronjobControllerState);
+    });
+  });
 });
