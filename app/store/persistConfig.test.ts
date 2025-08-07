@@ -319,9 +319,10 @@ describe('persistConfig', () => {
     });
 
     it('handles overall method failure gracefully', async () => {
-      (FilesystemStorage.getItem as jest.Mock).mockRejectedValue(
-        new Error('Complete storage failure'),
-      );
+      const originalPromiseAll = Promise.all;
+      jest
+        .spyOn(Promise, 'all')
+        .mockRejectedValueOnce(new Error('Promise.all failed'));
 
       const result = await ControllerStorage.getKey();
 
@@ -332,6 +333,8 @@ describe('persistConfig', () => {
           message: 'Failed to gather controller states',
         }),
       );
+
+      Promise.all = originalPromiseAll;
     });
   });
 
