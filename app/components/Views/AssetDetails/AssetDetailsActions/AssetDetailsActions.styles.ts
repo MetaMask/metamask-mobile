@@ -1,8 +1,6 @@
-import { Theme } from '@metamask/design-tokens';
 import { StyleSheet } from 'react-native';
 
-const styleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
+const styleSheet = () => {
   return StyleSheet.create({
     activitiesButton: {
       width: '100%',
