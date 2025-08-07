@@ -442,8 +442,7 @@ const WalletActions = () => {
           <ActionListItem
             label={strings('asset_overview.perps_button')}
             description={strings('asset_overview.perps_description')}
-            // iconName={IconName.Candlestick}
-            iconName={IconName.Usb}
+            iconName={IconName.Candlestick}
             onPress={onPerps}
             testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
             isDisabled={!canSignTransactions}
