@@ -1775,7 +1775,7 @@ export class Engine {
     this.appStateListener = AppState.addEventListener(
       'change',
       (state: AppStateStatus) => {
-        if (state !== 'active' && state !== 'inactive') {
+        if (state !== 'active' && state !== 'background') {
           return;
         }
 

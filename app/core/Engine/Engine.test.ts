@@ -644,7 +644,7 @@ describe('Engine', () => {
     );
   });
 
-  it('calls `SnapController:setClientActive` when app state changes to inactive', () => {
+  it('calls `SnapController:setClientActive` when app state changes to background', () => {
     (AppState.addEventListener as jest.Mock).mockImplementation(
       (_, listener) => {
         mockAppStateListener = listener;
@@ -654,8 +654,8 @@ describe('Engine', () => {
     const engine = Engine.init(backgroundState);
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
-    // Simulate app state change to inactive
-    mockAppStateListener('inactive');
+    // Simulate app state change to background
+    mockAppStateListener('background');
 
     expect(messengerSpy).toHaveBeenCalledWith(
       'SnapController:setClientActive',
@@ -673,8 +673,8 @@ describe('Engine', () => {
     const engine = Engine.init(backgroundState);
     const messengerSpy = jest.spyOn(engine.controllerMessenger, 'call');
 
-    // Simulate app state change to background
-    mockAppStateListener('background');
+    // Simulate app state change to inactive
+    mockAppStateListener('inactive');
 
     expect(messengerSpy).not.toHaveBeenCalledWith(
       'SnapController:setClientActive',
