@@ -50,10 +50,9 @@ exports[`MainActionButton should render correctly 1`] = `
           "backgroundColor": "#3c4d9d0f",
           "borderRadius": 12,
           "justifyContent": "center",
-          "minHeight": 70,
-          "minWidth": 70,
           "opacity": 1,
-          "padding": 8,
+          "paddingHorizontal": 8,
+          "paddingVertical": 16,
         },
         false,
       ]

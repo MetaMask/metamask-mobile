@@ -5,9 +5,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
   style={
     {
       "flexDirection": "row",
-      "gap": 12,
+      "gap": 8,
       "paddingHorizontal": 16,
-      "paddingVertical": 12,
+      "paddingVertical": 20,
       "width": "100%",
     }
   }
@@ -68,10 +68,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "backgroundColor": "#3c4d9d0f",
               "borderRadius": 12,
               "justifyContent": "center",
-              "minHeight": 70,
-              "minWidth": 70,
               "opacity": 0.5,
-              "padding": 8,
+              "paddingHorizontal": 8,
+              "paddingVertical": 16,
             },
             false,
           ]
@@ -175,10 +174,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "backgroundColor": "#3c4d9d0f",
               "borderRadius": 12,
               "justifyContent": "center",
-              "minHeight": 70,
-              "minWidth": 70,
               "opacity": 0.5,
-              "padding": 8,
+              "paddingHorizontal": 8,
+              "paddingVertical": 16,
             },
             false,
           ]
@@ -282,10 +280,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "backgroundColor": "#3c4d9d0f",
               "borderRadius": 12,
               "justifyContent": "center",
-              "minHeight": 70,
-              "minWidth": 70,
               "opacity": 0.5,
-              "padding": 8,
+              "paddingHorizontal": 8,
+              "paddingVertical": 16,
             },
             false,
           ]
@@ -389,10 +386,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "backgroundColor": "#3c4d9d0f",
               "borderRadius": 12,
               "justifyContent": "center",
-              "minHeight": 70,
-              "minWidth": 70,
               "opacity": 0.5,
-              "padding": 8,
+              "paddingHorizontal": 8,
+              "paddingVertical": 16,
             },
             false,
           ]
@@ -496,10 +492,9 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               "backgroundColor": "#3c4d9d0f",
               "borderRadius": 12,
               "justifyContent": "center",
-              "minHeight": 70,
-              "minWidth": 70,
               "opacity": 1,
-              "padding": 8,
+              "paddingHorizontal": 8,
+              "paddingVertical": 16,
             },
             false,
           ]
