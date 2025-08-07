@@ -5947,14 +5947,14 @@
     escape-string-regexp "^4.0.0"
     invariant "2.2.4"
 
-"@metamask/remote-feature-flag-controller@^1.6.0":
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.6.0.tgz#138c0a841e52b00efb704c892fa5915fbe9ef1d8"
-  integrity sha512-yMHHTR4lT38HQ8rl8qakX2eXUztudqk2GaGiumlT7D6tdROo96Oc6sU6ZQlYohIVJ1OH6TNP8ucKKlJ2GDtTHQ==
+"@metamask/remote-feature-flag-controller@^1.7.0":
+  version "1.7.0"
+  resolved "https://registry.yarnpkg.com/@metamask/remote-feature-flag-controller/-/remote-feature-flag-controller-1.7.0.tgz#f96c8e826b17cc11bccd698d39acdd0898823efa"
+  integrity sha512-cat2VVquij6pfDgkJuWR4FHXVrnKM5qmsSM2qrKbmzjcpOJfbbuv1HS4r5frOyjK9SvQMu43cgyDdPruqIPsfQ==
   dependencies:
-    "@metamask/base-controller" "^8.0.0"
-    "@metamask/controller-utils" "^11.5.0"
-    "@metamask/utils" "^11.2.0"
+    "@metamask/base-controller" "^8.0.1"
+    "@metamask/controller-utils" "^11.11.0"
+    "@metamask/utils" "^11.4.2"
     uuid "^8.3.2"
 
 "@metamask/rpc-errors@7.0.2", "@metamask/rpc-errors@^7.0.2", "@metamask/rpc-errors@^7.0.3":
