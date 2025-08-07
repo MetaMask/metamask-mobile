@@ -1783,19 +1783,37 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Left"
+                                  <Text
+                                    allowFontScaling={false}
+                                    selectable={false}
                                     style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": undefined,
+                                          "fontSize": 12,
+                                        },
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          {
+                                            "fontSize": 25,
+                                            "marginTop": 5,
+                                          },
+                                        ],
+                                        {
+                                          "fontFamily": "Ionicons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        {},
+                                      ]
                                     }
-                                    width={24}
-                                  />
+                                  >
+                                    
+                                  </Text>
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -3651,19 +3669,37 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Left"
+                                  <Text
+                                    allowFontScaling={false}
+                                    selectable={false}
                                     style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": undefined,
+                                          "fontSize": 12,
+                                        },
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          {
+                                            "fontSize": 25,
+                                            "marginTop": 5,
+                                          },
+                                        ],
+                                        {
+                                          "fontFamily": "Ionicons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        {},
+                                      ]
                                     }
-                                    width={24}
-                                  />
+                                  >
+                                    
+                                  </Text>
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -5519,19 +5555,37 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Left"
+                                  <Text
+                                    allowFontScaling={false}
+                                    selectable={false}
                                     style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": undefined,
+                                          "fontSize": 12,
+                                        },
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          {
+                                            "fontSize": 25,
+                                            "marginTop": 5,
+                                          },
+                                        ],
+                                        {
+                                          "fontFamily": "Ionicons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        {},
+                                      ]
                                     }
-                                    width={24}
-                                  />
+                                  >
+                                    
+                                  </Text>
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -7363,19 +7417,37 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Left"
+                                  <Text
+                                    allowFontScaling={false}
+                                    selectable={false}
                                     style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": undefined,
+                                          "fontSize": 12,
+                                        },
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          {
+                                            "fontSize": 25,
+                                            "marginTop": 5,
+                                          },
+                                        ],
+                                        {
+                                          "fontFamily": "Ionicons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        {},
+                                      ]
                                     }
-                                    width={24}
-                                  />
+                                  >
+                                    
+                                  </Text>
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -9207,19 +9279,37 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Left"
+                                  <Text
+                                    allowFontScaling={false}
+                                    selectable={false}
                                     style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": undefined,
+                                          "fontSize": 12,
+                                        },
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          {
+                                            "fontSize": 25,
+                                            "marginTop": 5,
+                                          },
+                                        ],
+                                        {
+                                          "fontFamily": "Ionicons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        {},
+                                      ]
                                     }
-                                    width={24}
-                                  />
+                                  >
+                                    
+                                  </Text>
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -11050,19 +11140,37 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Left"
+                                  <Text
+                                    allowFontScaling={false}
+                                    selectable={false}
                                     style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": undefined,
+                                          "fontSize": 12,
+                                        },
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          {
+                                            "fontSize": 25,
+                                            "marginTop": 5,
+                                          },
+                                        ],
+                                        {
+                                          "fontFamily": "Ionicons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        {},
+                                      ]
                                     }
-                                    width={24}
-                                  />
+                                  >
+                                    
+                                  </Text>
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -12894,19 +13002,37 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Left"
+                                  <Text
+                                    allowFontScaling={false}
+                                    selectable={false}
                                     style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": undefined,
+                                          "fontSize": 12,
+                                        },
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          {
+                                            "fontSize": 25,
+                                            "marginTop": 5,
+                                          },
+                                        ],
+                                        {
+                                          "fontFamily": "Ionicons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        {},
+                                      ]
                                     }
-                                    width={24}
-                                  />
+                                  >
+                                    
+                                  </Text>
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -14738,19 +14864,37 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <SvgMock
-                                    color="#121314"
-                                    fill="currentColor"
-                                    height={24}
-                                    name="Arrow2Left"
+                                  <Text
+                                    allowFontScaling={false}
+                                    selectable={false}
                                     style={
-                                      {
-                                        "height": 24,
-                                        "width": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": undefined,
+                                          "fontSize": 12,
+                                        },
+                                        [
+                                          {
+                                            "color": "#121314",
+                                            "fontSize": 30,
+                                            "textAlign": "center",
+                                          },
+                                          {
+                                            "fontSize": 25,
+                                            "marginTop": 5,
+                                          },
+                                        ],
+                                        {
+                                          "fontFamily": "Ionicons",
+                                          "fontStyle": "normal",
+                                          "fontWeight": "normal",
+                                        },
+                                        {},
+                                      ]
                                     }
-                                    width={24}
-                                  />
+                                  >
+                                    
+                                  </Text>
                                 </TouchableOpacity>
                               </View>
                             </View>
