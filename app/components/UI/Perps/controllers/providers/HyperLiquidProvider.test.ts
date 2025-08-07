@@ -2633,6 +2633,50 @@ describe('HyperLiquidProvider', () => {
         });
       });
     });
+
+    describe('getBlockExplorerUrl', () => {
+      it('should return mainnet explorer URL with address', () => {
+        const address = '0x1234567890abcdef1234567890abcdef12345678';
+        const result = provider.getBlockExplorerUrl(address);
+
+        expect(result).toBe(
+          `https://app.hyperliquid.xyz/explorer/address/${address}`,
+        );
+      });
+
+      it('should return mainnet base explorer URL without address', () => {
+        const result = provider.getBlockExplorerUrl();
+
+        expect(result).toBe('https://app.hyperliquid.xyz/explorer');
+      });
+
+      it('should return testnet explorer URL with address when in testnet mode', () => {
+        // Mock testnet mode
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(true);
+
+        const address = '0xabcdef1234567890abcdef1234567890abcdef12';
+        const result = provider.getBlockExplorerUrl(address);
+
+        expect(result).toBe(
+          `https://app.hyperliquid-testnet.xyz/explorer/address/${address}`,
+        );
+      });
+
+      it('should return testnet base explorer URL without address when in testnet mode', () => {
+        // Mock testnet mode
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(true);
+
+        const result = provider.getBlockExplorerUrl();
+
+        expect(result).toBe('https://app.hyperliquid-testnet.xyz/explorer');
+      });
+
+      it('should handle empty string address', () => {
+        const result = provider.getBlockExplorerUrl('');
+
+        expect(result).toBe('https://app.hyperliquid.xyz/explorer');
+      });
+    });
   });
 
   describe('validateOrder', () => {

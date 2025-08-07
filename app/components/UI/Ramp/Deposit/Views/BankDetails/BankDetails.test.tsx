@@ -39,6 +39,7 @@ const mockOrderData = {
           { name: 'Last Name (Beneficiary)', value: 'doe' },
           { name: 'Account Number', value: '1234567890' },
           { name: 'Bank Name', value: 'test bank' },
+          { name: 'Recipient Address', value: '456 recipient street' },
           { name: 'Bank Address', value: '123 bank street' },
         ],
       },
@@ -171,6 +172,19 @@ describe('BankDetails Component', () => {
     fireEvent.press(screen.getByText('Show bank information'));
 
     expect(screen.getByText('Hide bank information')).toBeTruthy();
+  });
+
+  it('displays beneficiary address when bank information is shown', () => {
+    render(BankDetails);
+
+    // Initially beneficiary address should not be visible
+    expect(screen.queryByText('456 Recipient Street')).toBeNull();
+
+    // Show bank information
+    fireEvent.press(screen.getByText('Show bank information'));
+
+    // Beneficiary address should now be visible
+    expect(screen.getByText('456 Recipient Street')).toBeTruthy();
   });
 
   it('calls setOptions with correct title when component mounts', () => {

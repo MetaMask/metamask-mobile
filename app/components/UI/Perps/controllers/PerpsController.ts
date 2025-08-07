@@ -3,6 +3,7 @@ import {
   BaseController,
   type RestrictedMessenger,
 } from '@metamask/base-controller';
+import { successfulFetch } from '@metamask/controller-utils';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import type {
   TransactionControllerTransactionConfirmedEvent,
@@ -10,7 +11,6 @@ import type {
   TransactionControllerTransactionSubmittedEvent,
   TransactionParams,
 } from '@metamask/transaction-controller';
-import { successfulFetch } from '@metamask/controller-utils';
 import { parseCaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
@@ -35,11 +35,19 @@ import type {
   DepositStatus,
   EditOrderParams,
   FeeCalculationResult,
+  Funding,
   GetAccountStateParams,
+  GetFundingParams,
+  GetOrderFillsParams,
+  GetOrdersParams,
   GetPositionsParams,
   IPerpsProvider,
+  LiquidationPriceParams,
   LiveDataConfig,
+  MaintenanceMarginParams,
   MarketInfo,
+  Order,
+  OrderFill,
   OrderParams,
   OrderResult,
   Position,
@@ -199,6 +207,18 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:getPositions';
       handler: PerpsController['getPositions'];
+    }
+  | {
+      type: 'PerpsController:getOrderFills';
+      handler: PerpsController['getOrderFills'];
+    }
+  | {
+      type: 'PerpsController:getOrders';
+      handler: PerpsController['getOrders'];
+    }
+  | {
+      type: 'PerpsController:getFunding';
+      handler: PerpsController['getFunding'];
     }
   | {
       type: 'PerpsController:getAccountState';
@@ -1021,6 +1041,30 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Get historical user fills (trade executions)
+   */
+  async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
+    const provider = this.getActiveProvider();
+    return provider.getOrderFills(params);
+  }
+
+  /**
+   * Get historical user orders (order lifecycle)
+   */
+  async getOrders(params?: GetOrdersParams): Promise<Order[]> {
+    const provider = this.getActiveProvider();
+    return provider.getOrders(params);
+  }
+
+  /**
+   * Get historical user funding history (funding payments)
+   */
+  async getFunding(params?: GetFundingParams): Promise<Funding[]> {
+    const provider = this.getActiveProvider();
+    return provider.getFunding(params);
+  }
+
+  /**
    * Get account state (balances, etc.)
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
@@ -1215,14 +1259,9 @@ export class PerpsController extends BaseController<
    * Calculate liquidation price for a position
    * Uses provider-specific formulas based on protocol rules
    */
-  async calculateLiquidationPrice(params: {
-    entryPrice: number;
-    leverage: number;
-    direction: 'long' | 'short';
-    positionSize?: number;
-    marginType?: 'isolated' | 'cross';
-    asset?: string;
-  }): Promise<string> {
+  async calculateLiquidationPrice(
+    params: LiquidationPriceParams,
+  ): Promise<string> {
     const provider = this.getActiveProvider();
     return provider.calculateLiquidationPrice(params);
   }
@@ -1231,10 +1270,9 @@ export class PerpsController extends BaseController<
    * Calculate maintenance margin for a specific asset
    * Returns a percentage (e.g., 0.0125 for 1.25%)
    */
-  async calculateMaintenanceMargin(params: {
-    asset: string;
-    positionSize?: number;
-  }): Promise<number> {
+  async calculateMaintenanceMargin(
+    params: MaintenanceMarginParams,
+  ): Promise<number> {
     const provider = this.getActiveProvider();
     return provider.calculateMaintenanceMargin(params);
   }
@@ -1702,5 +1740,15 @@ export class PerpsController extends BaseController<
         state.isEligible = isEligible;
       });
     }
+  }
+
+  /**
+   * Get block explorer URL for an address or just the base URL
+   * @param address - Optional address to append to the base URL
+   * @returns Block explorer URL
+   */
+  getBlockExplorerUrl(address?: string): string {
+    const provider = this.getActiveProvider();
+    return provider.getBlockExplorerUrl(address);
   }
 }
