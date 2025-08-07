@@ -56,7 +56,7 @@ export const useNetworkSelection = ({
   const currentEnabledNetworks = useMemo(
     () =>
       Object.keys(enabledNetworksByNamespace[namespace] || {})
-        .filter((key) => enabledNetworksByNamespace[namespace][key])
+        .filter((key) => enabledNetworksByNamespace[namespace][key as Hex])
         .map((key) => formatChainIdToCaip(key)),
     [enabledNetworksByNamespace, namespace],
   );
@@ -108,10 +108,14 @@ export const useNetworkSelection = ({
   /** Selects a network, automatically handling popular vs custom logic */
   const selectNetwork = useCallback(
     (hexOrCaipChainId: CaipChainId | `0x${string}` | Hex) => {
-      const chainId = toHex(hexOrCaipChainId);
-      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(
-        chainId as `0x${string}`,
-      );
+      const inputString = String(hexOrCaipChainId);
+      const hexChainId = (
+        typeof hexOrCaipChainId === 'string' && inputString.includes(':')
+          ? toHex(inputString.split(':')[1])
+          : toHex(hexOrCaipChainId)
+      ) as `0x${string}`;
+
+      const isPopularNetwork = POPULAR_NETWORK_CHAIN_IDS.has(hexChainId);
       const caipChainId = formatChainIdToCaip(hexOrCaipChainId);
       if (isPopularNetwork) {
         selectPopularNetwork(caipChainId);
