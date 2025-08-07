@@ -5,6 +5,7 @@ import {
   OrderParams,
 } from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { CaipAssetId, Hex } from '@metamask/utils';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
@@ -392,17 +393,17 @@ describe('HyperLiquidProvider', () => {
       // Verify performance measurements were tracked
       const sentryModule = jest.requireMock('@sentry/react-native');
       expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
-        'order_validation_ms',
+        PerpsMeasurementName.ORDER_VALIDATION_MS,
         expect.any(Number),
         'millisecond',
       );
       expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
-        'leverage_ratio',
+        PerpsMeasurementName.LEVERAGE_RATIO,
         10,
         'none',
       );
       expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
-        'position_size_usd',
+        PerpsMeasurementName.POSITION_SIZE_USD,
         expect.any(Number),
         'none',
       );

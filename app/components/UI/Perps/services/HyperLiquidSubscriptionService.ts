@@ -10,6 +10,7 @@ import {
 } from '@deeeed/hyperliquid-node20';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
   trace,
   endTrace,
@@ -430,7 +431,7 @@ export class HyperLiquidSubscriptionService {
         this.notifyAllPriceSubscribers();
 
         setMeasurement(
-          'price_update_process_ms',
+          PerpsMeasurementName.PRICE_UPDATE_PROCESS_MS,
           performance.now() - processStart,
           'millisecond',
         );
@@ -440,7 +441,11 @@ export class HyperLiquidSubscriptionService {
           const messagesPerMinute =
             wsMetrics.messagesReceived /
             ((Date.now() - wsMetrics.startTime) / 60000);
-          setMeasurement('ws_messages_per_minute', messagesPerMinute, 'none');
+          setMeasurement(
+            PerpsMeasurementName.WS_MESSAGES_PER_MINUTE,
+            messagesPerMinute,
+            'none',
+          );
         }
       })
       .then((sub) => {

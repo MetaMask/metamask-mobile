@@ -12,6 +12,7 @@ import type {
 } from '../controllers/types';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from './HyperLiquidSubscriptionService';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
 
 // Mock HyperLiquid SDK types
@@ -598,7 +599,7 @@ describe('HyperLiquidSubscriptionService', () => {
       // Verify performance measurements
       const sentryModule = jest.requireMock('@sentry/react-native');
       expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
-        'price_update_process_ms',
+        PerpsMeasurementName.PRICE_UPDATE_PROCESS_MS,
         expect.any(Number),
         'millisecond',
       );
