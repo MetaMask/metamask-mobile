@@ -1,6 +1,5 @@
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
-import { selectMultichainAccountsState1Enabled } from '../featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { AccountWalletId } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
@@ -18,10 +17,9 @@ export const selectAccountTreeControllerState = (state: RootState) =>
  * For now, this returns a simple structure until the controller is fully integrated
  */
 export const selectAccountSections = createDeepEqualSelector(
-  [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
-  (accountTreeState, multichainAccountsState1Enabled) => {
+  [selectAccountTreeControllerState],
+  (accountTreeState) => {
     if (
-      !multichainAccountsState1Enabled ||
       !accountTreeState?.accountTree?.wallets ||
       Object.keys(accountTreeState.accountTree.wallets).length === 0
     ) {
@@ -45,13 +43,10 @@ export const selectAccountSections = createDeepEqualSelector(
  * @returns The wallet if found, null otherwise
  */
 export const selectWalletById = createDeepEqualSelector(
-  [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
-  (accountTreeState, multichainAccountsState1Enabled) =>
+  [selectAccountTreeControllerState],
+  (accountTreeState) =>
     (walletId: AccountWalletId): AccountWalletObject | null => {
-      if (
-        !multichainAccountsState1Enabled ||
-        !accountTreeState?.accountTree?.wallets
-      ) {
+      if (!accountTreeState?.accountTree?.wallets) {
         return null;
       }
 
@@ -72,13 +67,10 @@ export const selectWalletById = createDeepEqualSelector(
  **/
 // TODO: Use reverse mapping once available, for fast indexing.
 export const selectWalletByAccount = createDeepEqualSelector(
-  [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
-  (accountTreeState, multichainAccountsState1Enabled) =>
+  [selectAccountTreeControllerState],
+  (accountTreeState) =>
     (accountId: AccountId): AccountWalletObject | null => {
-      if (
-        !multichainAccountsState1Enabled ||
-        !accountTreeState?.accountTree?.wallets
-      ) {
+      if (!accountTreeState?.accountTree?.wallets) {
         return null;
       }
 
