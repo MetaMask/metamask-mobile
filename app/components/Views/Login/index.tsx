@@ -380,24 +380,6 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     }
   };
 
-  const handleSentryCapture = (captureError: Error) => {
-    if (isMetricsEnabled()) {
-      // If user has already consented to analytics, report error using regular Sentry
-      captureException(captureError, {
-        tags: {
-          view: 'Login',
-          context: 'OAuth rehydration failed - user consented to analytics',
-        },
-      });
-    } else {
-      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
-      oauthLoginSuccess &&
-        setErrorToThrow(
-          new Error(`OAuth rehydration failed: ${captureError.message}`),
-        );
-    }
-  };
-
   const handleSeedlessOnboardingControllerError = (
     seedlessError:
       | Error
@@ -442,7 +424,27 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     ) {
       setError(strings('login.seedless_password_outdated'));
     } else {
+      // unexpected Error
       defaultSeedlessErrorHandler(seedlessError);
+
+      // if metrice is not enabled, we need to throw an unexpected error to the ErrorBoundary
+      if (!isMetricsEnabled()) {
+        oauthLoginSuccess &&
+          setErrorToThrow(
+            new Error(`OAuth rehydration failed: ${seedlessError.message}`),
+          );
+      }
+    }
+
+    // capture all seedless error if metrics is enabled
+    if (isMetricsEnabled()) {
+      // If user has already consented to analytics, report error using regular Sentry
+      captureException(seedlessError, {
+        tags: {
+          view: 'Login',
+          context: 'OAuth rehydration failed - user consented to analytics',
+        },
+      });
     }
   };
 
@@ -477,14 +479,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
     if (loginErrorMessage.includes('SeedlessOnboardingController')) {
       setLoading(false);
-      if (oauthLoginSuccess) {
-        handleSentryCapture(loginError);
-        if (isMetricsEnabled()) {
-          handleSeedlessOnboardingControllerError(loginError);
-        }
-      } else {
-        handleSeedlessOnboardingControllerError(loginError);
-      }
+      handleSeedlessOnboardingControllerError(loginError);
       return;
     }
 
