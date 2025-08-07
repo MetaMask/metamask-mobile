@@ -116,8 +116,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       zIndex: -999, // Far below everything
       opacity: 0.8,
       pointerEvents: 'none',
-      borderTopWidth: 1,
-      borderStyle: 'dashed',
       backgroundColor: importedColors.transparent,
     },
     noDataContainer: {

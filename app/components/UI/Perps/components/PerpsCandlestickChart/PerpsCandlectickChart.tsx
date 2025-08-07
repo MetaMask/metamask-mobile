@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Dimensions } from 'react-native';
 import { CandlestickChart } from 'react-native-wagmi-charts';
+import Svg, { Line } from 'react-native-svg';
 import { getGridLineStyle, styleSheet } from './PerpsCandlestickChart.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
@@ -327,30 +328,44 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       {/* TP/SL Lines - Render first so they're behind everything */}
       {tpslLinePositions && showTPSLLines && (
         <View style={styles.tpslContainer}>
-          {tpslLinePositions.map((line, index) => (
-            <View
-              key={`tpsl-${line.type}-${index}`}
-              testID={`tpsl-${line.type}-${index}`}
-              style={[
-                styles.tpslLine,
-                {
-                  top: line.position,
-                  width: chartWidth - 65, // Match the chart width
-                  // eslint-disable-next-line react-native/no-color-literals, react-native/no-inline-styles
-                  borderTopColor:
-                    line.type === 'tp'
-                      ? theme.colors.success.default // Green for Take Profit
-                      : line.type === 'sl'
-                      ? theme.colors.border.default // Gray for Stop Loss
-                      : line.type === 'entry'
-                      ? theme.colors.text.alternative // Light Gray for Entry Price
-                      : line.type === 'liquidation'
-                      ? theme.colors.error.default // Pink/Red for Liquidation Price
-                      : theme.colors.text.default, // White for Current Price
-                },
-              ]}
-            />
-          ))}
+          {tpslLinePositions.map((line, index) => {
+            const lineColor =
+              line.type === 'tp'
+                ? theme.colors.success.default // Green for Take Profit
+                : line.type === 'sl'
+                ? theme.colors.border.default // Gray for Stop Loss
+                : line.type === 'entry'
+                ? theme.colors.text.alternative // Light Gray for Entry Price
+                : line.type === 'liquidation'
+                ? theme.colors.error.default // Pink/Red for Liquidation Price
+                : theme.colors.text.default; // White for Current Price
+
+            return (
+              <View
+                key={`tpsl-${line.type}-${index}`}
+                testID={`tpsl-${line.type}-${index}`}
+                style={[
+                  styles.tpslLine,
+                  {
+                    top: line.position,
+                    width: chartWidth - 65, // Match the chart width
+                  },
+                ]}
+              >
+                <Svg height="1" width="100%">
+                  <Line
+                    x1="0"
+                    y1="0.5"
+                    x2="100%"
+                    y2="0.5"
+                    stroke={lineColor}
+                    strokeWidth="1"
+                    strokeDasharray="5, 3" // Dash length, gap length
+                  />
+                </Svg>
+              </View>
+            );
+          })}
         </View>
       )}
       <View style={styles.chartContainer}>
