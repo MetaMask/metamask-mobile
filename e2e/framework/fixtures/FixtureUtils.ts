@@ -2,11 +2,14 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
-import { DEFAULT_FIXTURE_SERVER_PORT } from './FixtureServer';
-import { DEFAULT_DAPP_SERVER_PORT } from './FixtureHelper';
+
 import { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
-export const DEFAULT_MOCKSERVER_PORT = 8000;
+import {
+  DEFAULT_FIXTURE_SERVER_PORT,
+  DEFAULT_MOCKSERVER_PORT,
+  DEFAULT_DAPP_SERVER_PORT,
+} from '../Constants';
 
 function transformToValidPort(defaultPort: number, pid: number) {
   // Improve uniqueness by using a simple transformation

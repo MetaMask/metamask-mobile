@@ -233,6 +233,7 @@ import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { perpsControllerInit } from './controllers/perps-controller';
+import { selectUseTokenDetection } from '../../selectors/preferencesController';
 
 const NON_EMPTY = 'NON_EMPTY';
 
@@ -1370,6 +1371,7 @@ export class Engine {
           'AssetsContractController:getERC1155TokenURI',
           'NetworkController:getNetworkClientById',
           'NetworkController:findNetworkClientIdByChainId',
+          'PhishingController:bulkScanUrls',
         ],
         allowedEvents: [
           'PreferencesController:stateChange',
@@ -1454,6 +1456,8 @@ export class Engine {
             'TokensController:getState',
             'TokensController:addDetectedTokens',
             'AccountsController:getAccount',
+            'TokensController:addTokens',
+            'NetworkController:findNetworkClientIdByChainId',
           ],
           allowedEvents: [
             'KeyringController:lock',
@@ -1487,6 +1491,8 @@ export class Engine {
         platform: 'mobile',
         useAccountsAPI: true,
         disabled: false,
+        useTokenDetection: () => selectUseTokenDetection(store.getState()),
+        useExternalServices: () => isBasicFunctionalityToggleEnabled(),
       }),
       NftDetectionController: new NftDetectionController({
         messenger: this.controllerMessenger.getRestricted({

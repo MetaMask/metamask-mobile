@@ -43,11 +43,13 @@ function runHook({ requests }: { requests: TokenFiatRateRequest[] }) {
             marketData: {
               [CHAIN_ID_1_MOCK]: {
                 [ADDRESS_1_MOCK]: {
+                  tokenAddress: ADDRESS_1_MOCK,
                   price: PRICE_1_MOCK,
                 },
               },
               [CHAIN_ID_2_MOCK]: {
                 [ADDRESS_2_MOCK]: {
+                  tokenAddress: ADDRESS_2_MOCK,
                   price: PRICE_2_MOCK,
                 },
               },

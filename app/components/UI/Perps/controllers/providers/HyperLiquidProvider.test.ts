@@ -17,6 +17,7 @@ import {
   validateAssetSupport,
   validateBalance,
 } from '../../utils/hyperLiquidValidation';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 // Mock dependencies
 jest.mock('../../services/HyperLiquidClientService');
@@ -432,6 +433,485 @@ describe('HyperLiquidProvider', () => {
     });
   });
 
+  describe('closePosition with TP/SL handling', () => {
+    beforeEach(() => {
+      // Mock DevLogger to capture logs
+      jest.spyOn(DevLogger, 'log');
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('should close position without TP/SL successfully', async () => {
+      // Position without TP/SL
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+      // No TP/SL logging expected since we removed this functionality
+    });
+
+    it('should handle position with TP/SL successfully', async () => {
+      // Mock position with TP/SL
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest
+          .fn()
+          .mockResolvedValueOnce([
+            // First call for getPositions
+            {
+              coin: 'BTC',
+              oid: 1001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Market',
+              triggerPx: '55000',
+              isPositionTpsl: true,
+            },
+            {
+              coin: 'BTC',
+              oid: 1002,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Stop Market',
+              triggerPx: '45000',
+              isPositionTpsl: true,
+            },
+          ])
+          .mockResolvedValueOnce([
+            // Second call for closePosition TP/SL check
+            {
+              coin: 'BTC',
+              oid: 1001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Market',
+              triggerPx: '55000',
+              isPositionTpsl: true,
+              side: 'A',
+            },
+            {
+              coin: 'BTC',
+              oid: 1002,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Stop Market',
+              triggerPx: '45000',
+              isPositionTpsl: true,
+              side: 'B',
+            },
+          ]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+
+      // TP/SL orders are automatically handled by Hyperliquid
+      // No additional logging needed
+    });
+
+    it('should handle partial position close with TP/SL', async () => {
+      // Mock position with TP/SL
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'ETH',
+                szi: '1.5',
+                entryPx: '3000',
+                positionValue: '4500',
+                unrealizedPnl: '50',
+                marginUsed: '450',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '2700',
+                maxLeverage: 50,
+                returnOnEquity: '10',
+                cumFunding: {
+                  allTime: '5',
+                  sinceOpen: '2',
+                  sinceChange: '1',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest
+          .fn()
+          .mockResolvedValueOnce([
+            // First call for getPositions
+            {
+              coin: 'ETH',
+              oid: 2001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Limit',
+              triggerPx: '3500',
+              limitPx: '3490',
+              isPositionTpsl: true,
+            },
+          ])
+          .mockResolvedValueOnce([
+            // Second call for closePosition TP/SL check
+            {
+              coin: 'ETH',
+              oid: 2001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Limit',
+              triggerPx: '3500',
+              limitPx: '3490',
+              isPositionTpsl: true,
+              side: 'A',
+            },
+          ]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ ETH: '3000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'ETH',
+        size: '0.5', // Partial close
+        orderType: 'limit',
+        price: '3100',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+
+      // Verify partial close size is used (with HyperLiquid's short property names)
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({
+              s: '0.5', // 's' is the short form for 'sz' (size)
+              r: true, // 'r' is the short form for 'reduceOnly'
+            }),
+          ],
+        }),
+      );
+
+      // TP/SL orders are automatically handled by Hyperliquid for partial closes too
+    });
+
+    it('should handle position without open TP/SL orders', async () => {
+      // Position exists but no open TP/SL orders
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([
+          // No TP/SL orders, just a regular limit order
+          {
+            coin: 'BTC',
+            oid: 9999,
+            reduceOnly: false,
+            isTrigger: false,
+            orderType: 'Limit',
+            limitPx: '49000',
+          },
+        ]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+
+      // Should not log TP/SL related messages
+      expect(DevLogger.log).not.toHaveBeenCalledWith(
+        expect.stringContaining('Found open TP/SL orders'),
+        expect.any(Object),
+      );
+    });
+
+    it('should handle close position when position not found', async () => {
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [], // No positions
+        }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('No position found for BTC');
+    });
+
+    it('should handle short position close with TP/SL', async () => {
+      // Mock short position with TP/SL
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '-0.1', // Short position
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '-100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '55000',
+                maxLeverage: 50,
+                returnOnEquity: '-20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest
+          .fn()
+          .mockResolvedValueOnce([
+            // First call for getPositions - short position TP/SL
+            {
+              coin: 'BTC',
+              oid: 3001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Market',
+              triggerPx: '45000', // TP below entry for short
+              isPositionTpsl: true,
+            },
+            {
+              coin: 'BTC',
+              oid: 3002,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Stop Market',
+              triggerPx: '55000', // SL above entry for short
+              isPositionTpsl: true,
+            },
+          ])
+          .mockResolvedValueOnce([
+            // Second call for closePosition TP/SL check
+            {
+              coin: 'BTC',
+              oid: 3001,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Take Profit Market',
+              triggerPx: '45000',
+              isPositionTpsl: true,
+              side: 'B',
+            },
+            {
+              coin: 'BTC',
+              oid: 3002,
+              reduceOnly: true,
+              isTrigger: true,
+              orderType: 'Stop Market',
+              triggerPx: '55000',
+              isPositionTpsl: true,
+              side: 'A',
+            },
+          ]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      expect(result.success).toBe(true);
+
+      // Verify buy order is placed to close short (with HyperLiquid's short property names)
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: [
+            expect.objectContaining({
+              b: true, // 'b' is the short form for 'isBuy' (Buy to close short)
+              s: '0.1', // 's' is the short form for 'sz' (size)
+              r: true, // 'r' is the short form for 'reduceOnly'
+            }),
+          ],
+        }),
+      );
+
+      // TP/SL orders are automatically handled by Hyperliquid for short positions too
+    });
+
+    it('should handle position close even if TP/SL info is unavailable', async () => {
+      // Mock position exists with TP/SL in positions call
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        frontendOpenOrders: jest.fn().mockResolvedValueOnce([
+          // First call for getPositions with TP/SL
+          {
+            coin: 'BTC',
+            oid: 1001,
+            reduceOnly: true,
+            isTrigger: true,
+            orderType: 'Take Profit Market',
+            triggerPx: '55000',
+            isPositionTpsl: true,
+          },
+        ]),
+        meta: jest.fn().mockResolvedValue({
+          universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+      });
+
+      const closeParams: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.closePosition(closeParams);
+
+      // Should succeed - TP/SL handling is automatic by Hyperliquid
+      expect(result.success).toBe(true);
+    });
+  });
+
   describe('updatePositionTPSL', () => {
     it('should update position TP/SL successfully', async () => {
       const updateParams = {
@@ -794,7 +1274,7 @@ describe('HyperLiquidProvider', () => {
   });
 
   describe('validateDeposit', () => {
-    it('should validate valid deposit parameters', () => {
+    it('should validate valid deposit parameters', async () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
       const params: DepositParams = {
@@ -803,13 +1283,13 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(true);
       expect(result.error).toBeUndefined();
     });
 
-    it('should reject empty amount', () => {
+    it('should reject empty amount', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'Amount is required and must be greater than 0',
@@ -821,7 +1301,7 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
       expect(result.error).toBe(
@@ -829,7 +1309,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should reject zero amount', () => {
+    it('should reject zero amount', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'Amount is required and must be greater than 0',
@@ -841,7 +1321,7 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
       expect(result.error).toBe(
@@ -849,7 +1329,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should reject negative amount', () => {
+    it('should reject negative amount', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'Amount is required and must be greater than 0',
@@ -861,7 +1341,7 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
       expect(result.error).toBe(
@@ -869,7 +1349,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should reject invalid amount format', () => {
+    it('should reject invalid amount format', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'Amount is required and must be greater than 0',
@@ -881,7 +1361,7 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
       expect(result.error).toBe(
@@ -889,7 +1369,7 @@ describe('HyperLiquidProvider', () => {
       );
     });
 
-    it('should reject amount below minimum for mainnet', () => {
+    it('should reject amount below minimum for mainnet', async () => {
       mockClientService.isTestnetMode.mockReturnValue(false);
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
@@ -902,13 +1382,13 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('Minimum deposit amount is 5 USDC');
     });
 
-    it('should reject amount below minimum for testnet', () => {
+    it('should reject amount below minimum for testnet', async () => {
       mockClientService.isTestnetMode.mockReturnValue(true);
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
@@ -921,13 +1401,13 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('Minimum deposit amount is 10 USDC');
     });
 
-    it('should accept amount at minimum for mainnet', () => {
+    it('should accept amount at minimum for mainnet', async () => {
       mockClientService.isTestnetMode.mockReturnValue(false);
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
@@ -937,13 +1417,13 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(true);
       expect(result.error).toBeUndefined();
     });
 
-    it('should accept amount at minimum for testnet', () => {
+    it('should accept amount at minimum for testnet', async () => {
       mockClientService.isTestnetMode.mockReturnValue(true);
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
@@ -953,13 +1433,13 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(true);
       expect(result.error).toBeUndefined();
     });
 
-    it('should reject empty assetId', () => {
+    it('should reject empty assetId', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'AssetId is required for deposit validation',
@@ -970,13 +1450,13 @@ describe('HyperLiquidProvider', () => {
         assetId: '' as CaipAssetId,
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('AssetId is required for deposit validation');
     });
 
-    it('should reject unsupported assetId', () => {
+    it('should reject unsupported assetId', async () => {
       mockValidateDepositParams.mockReturnValue({
         isValid: false,
         error: 'Asset not supported',
@@ -988,13 +1468,13 @@ describe('HyperLiquidProvider', () => {
           'eip155:1/erc20:0x1234567890123456789012345678901234567890/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(false);
       expect(result.error).toContain('not supported');
     });
 
-    it('should handle decimal amounts correctly', () => {
+    it('should handle decimal amounts correctly', async () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
       const params: DepositParams = {
@@ -1003,13 +1483,13 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(true);
       expect(result.error).toBeUndefined();
     });
 
-    it('should handle large amounts correctly', () => {
+    it('should handle large amounts correctly', async () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
       const params: DepositParams = {
@@ -1018,13 +1498,13 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
       expect(result.isValid).toBe(true);
       expect(result.error).toBeUndefined();
     });
 
-    it('should handle scientific notation', () => {
+    it('should handle scientific notation', async () => {
       mockValidateDepositParams.mockReturnValue({ isValid: true });
 
       const params: DepositParams = {
@@ -1033,8 +1513,128 @@ describe('HyperLiquidProvider', () => {
           'eip155:42161/erc20:0xaf88d065e77c8cC2239327C5EDb3A432268e5831/default',
       };
 
-      const result = provider.validateDeposit(params);
+      const result = await provider.validateDeposit(params);
 
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
+  });
+
+  describe('validateClosePosition', () => {
+    it('should validate full close position successfully', async () => {
+      const params: ClosePositionParams = {
+        coin: 'BTC',
+        orderType: 'market',
+      };
+
+      const result = await provider.validateClosePosition(params);
+
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
+
+    it('should validate partial close position successfully', async () => {
+      const params: ClosePositionParams = {
+        coin: 'BTC',
+        size: '0.5',
+        orderType: 'market',
+        currentPrice: 45000,
+      };
+
+      const result = await provider.validateClosePosition(params);
+
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
+
+    it('should reject close position below minimum value on mainnet', async () => {
+      mockClientService.isTestnetMode.mockReturnValue(false);
+
+      const params: ClosePositionParams = {
+        coin: 'BTC',
+        size: '0.0001', // $4.50 at $45,000 BTC, below $10 minimum
+        orderType: 'market',
+        currentPrice: 45000,
+      };
+
+      const result = await provider.validateClosePosition(params);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('perps.order.validation.minimum_amount');
+    });
+
+    it('should reject close position below minimum value on testnet', async () => {
+      mockClientService.isTestnetMode.mockReturnValue(true);
+
+      const params: ClosePositionParams = {
+        coin: 'BTC',
+        size: '0.00022', // $9.90 at $45,000 BTC, below $11 testnet minimum
+        orderType: 'market',
+        currentPrice: 45000,
+      };
+
+      const result = await provider.validateClosePosition(params);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('perps.order.validation.minimum_amount');
+    });
+
+    it('should accept close position at minimum value', async () => {
+      mockClientService.isTestnetMode.mockReturnValue(false);
+
+      const params: ClosePositionParams = {
+        coin: 'BTC',
+        size: '0.00023', // $10.35 at $45,000 BTC, above $10 minimum
+        orderType: 'market',
+        currentPrice: 45000,
+      };
+
+      const result = await provider.validateClosePosition(params);
+
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
+
+    it('should validate limit close position with price', async () => {
+      const params: ClosePositionParams = {
+        coin: 'BTC',
+        size: '1.0',
+        orderType: 'limit',
+        price: '44000',
+        currentPrice: 45000,
+      };
+
+      const result = await provider.validateClosePosition(params);
+
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBeUndefined();
+    });
+
+    it('should reject limit close without price', async () => {
+      const params: ClosePositionParams = {
+        coin: 'BTC',
+        size: '1.0',
+        orderType: 'limit',
+        currentPrice: 45000,
+      };
+
+      const result = await provider.validateClosePosition(params);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('perps.order.validation.limit_price_required');
+    });
+
+    it('should handle validation when currentPrice is not provided', async () => {
+      const params: ClosePositionParams = {
+        coin: 'BTC',
+        size: '0.5',
+        orderType: 'market',
+        // currentPrice not provided
+      };
+
+      const result = await provider.validateClosePosition(params);
+
+      // Should still validate basic params but skip minimum order value check
       expect(result.isValid).toBe(true);
       expect(result.error).toBeUndefined();
     });
@@ -1190,16 +1790,19 @@ describe('HyperLiquidProvider', () => {
       expect(result).toBeCloseTo(0.1667, 4);
     });
 
-    it('should throw error when asset not found', async () => {
+    it('should return default maintenance margin when asset not found', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         meta: jest.fn().mockResolvedValue({
           universe: [],
         }),
       });
 
-      await expect(
-        provider.calculateMaintenanceMargin({ asset: 'UNKNOWN' }),
-      ).rejects.toThrow('Asset UNKNOWN not found');
+      const result = await provider.calculateMaintenanceMargin({
+        asset: 'UNKNOWN',
+      });
+
+      // Should use default max leverage of 3, so maintenance margin = 1/(2*3) = 0.16666...
+      expect(result).toBeCloseTo(0.16666666666666666);
     });
   });
 
@@ -1216,26 +1819,28 @@ describe('HyperLiquidProvider', () => {
       expect(result).toBe(30);
     });
 
-    it('should throw error when asset not found', async () => {
+    it('should return default max leverage when asset not found', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         meta: jest.fn().mockResolvedValue({
           universe: [],
         }),
       });
 
-      await expect(provider.getMaxLeverage('UNKNOWN')).rejects.toThrow(
-        'Asset UNKNOWN not found',
-      );
+      const result = await provider.getMaxLeverage('UNKNOWN');
+
+      // Should return default max leverage of 3
+      expect(result).toBe(3);
     });
 
-    it('should throw error on network failure', async () => {
+    it('should return default max leverage on network failure', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         meta: jest.fn().mockRejectedValue(new Error('Network error')),
       });
 
-      await expect(provider.getMaxLeverage('BTC')).rejects.toThrow(
-        'Network error',
-      );
+      const result = await provider.getMaxLeverage('BTC');
+
+      // Should return default max leverage of 3 on error
+      expect(result).toBe(3);
     });
   });
 
@@ -1908,6 +2513,290 @@ describe('HyperLiquidProvider', () => {
         expect(result.success).toBe(false);
         expect(result.error).toBe('Order cancellation failed');
       });
+    });
+
+    describe('calculateFees', () => {
+      it('should calculate fees for market orders', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        expect(result.feeRate).toBe(0.00045); // 0.045% taker fee
+        expect(result.feeAmount).toBe(45); // 100000 * 0.00045
+      });
+
+      it('should calculate fees for limit orders as taker', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'limit',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        expect(result.feeRate).toBe(0.00045); // 0.045% taker fee
+        expect(result.feeAmount).toBe(45);
+      });
+
+      it('should calculate fees for limit orders as maker', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'limit',
+          isMaker: true,
+          amount: '100000',
+        });
+
+        expect(result.feeRate).toBe(0.00015); // 0.015% maker fee
+        expect(result.feeAmount).toBeCloseTo(15, 10);
+      });
+
+      it('should handle zero amount', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '0',
+        });
+
+        expect(result.feeRate).toBe(0.00045);
+        expect(result.feeAmount).toBe(0);
+      });
+
+      it('should handle undefined amount', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+        });
+
+        expect(result.feeRate).toBe(0.00045);
+        expect(result.feeAmount).toBeUndefined();
+      });
+
+      it('should handle non-numeric amount gracefully', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: 'invalid',
+        });
+
+        expect(result.feeRate).toBe(0.00045);
+        expect(result.feeAmount).toBe(0); // parseFloat('invalid') returns NaN, which * 0.00045 = NaN, but we expect 0
+      });
+
+      it('should return FeeCalculationResult with correct structure', async () => {
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        expect(result).toHaveProperty('feeRate');
+        expect(result).toHaveProperty('feeAmount');
+        expect(typeof result.feeRate).toBe('number');
+        expect(typeof result.feeAmount).toBe('number');
+      });
+
+      it('should be async and return a Promise', () => {
+        const result = provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+        });
+
+        expect(result).toBeInstanceOf(Promise);
+      });
+
+      describe('placeholder methods for future implementation', () => {
+        it('should have getUserVolume method returning 0', async () => {
+          // Access private method for testing
+          interface ProviderWithPrivateMethods {
+            getUserVolume(): Promise<number>;
+            getUserStaking(): Promise<number>;
+          }
+          const testableProvider =
+            provider as unknown as ProviderWithPrivateMethods;
+          const getUserVolume = testableProvider.getUserVolume;
+          expect(getUserVolume).toBeDefined();
+          const volume = await getUserVolume.call(provider);
+          expect(volume).toBe(0);
+        });
+
+        it('should have getUserStaking method returning 0', async () => {
+          // Access private method for testing
+          interface ProviderWithPrivateMethods {
+            getUserVolume(): Promise<number>;
+            getUserStaking(): Promise<number>;
+          }
+          const testableProvider =
+            provider as unknown as ProviderWithPrivateMethods;
+          const getUserStaking = testableProvider.getUserStaking;
+          expect(getUserStaking).toBeDefined();
+          const staking = await getUserStaking.call(provider);
+          expect(staking).toBe(0);
+        });
+      });
+    });
+
+    describe('getBlockExplorerUrl', () => {
+      it('should return mainnet explorer URL with address', () => {
+        const address = '0x1234567890abcdef1234567890abcdef12345678';
+        const result = provider.getBlockExplorerUrl(address);
+
+        expect(result).toBe(
+          `https://app.hyperliquid.xyz/explorer/address/${address}`,
+        );
+      });
+
+      it('should return mainnet base explorer URL without address', () => {
+        const result = provider.getBlockExplorerUrl();
+
+        expect(result).toBe('https://app.hyperliquid.xyz/explorer');
+      });
+
+      it('should return testnet explorer URL with address when in testnet mode', () => {
+        // Mock testnet mode
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(true);
+
+        const address = '0xabcdef1234567890abcdef1234567890abcdef12';
+        const result = provider.getBlockExplorerUrl(address);
+
+        expect(result).toBe(
+          `https://app.hyperliquid-testnet.xyz/explorer/address/${address}`,
+        );
+      });
+
+      it('should return testnet base explorer URL without address when in testnet mode', () => {
+        // Mock testnet mode
+        (mockClientService.isTestnetMode as jest.Mock).mockReturnValue(true);
+
+        const result = provider.getBlockExplorerUrl();
+
+        expect(result).toBe('https://app.hyperliquid-testnet.xyz/explorer');
+      });
+
+      it('should handle empty string address', () => {
+        const result = provider.getBlockExplorerUrl('');
+
+        expect(result).toBe('https://app.hyperliquid.xyz/explorer');
+      });
+    });
+  });
+
+  describe('validateOrder', () => {
+    beforeEach(() => {
+      mockValidateOrderParams.mockReturnValue({ isValid: true });
+    });
+
+    it('should validate order successfully with valid params and price', async () => {
+      const params: OrderParams = {
+        coin: 'BTC',
+        size: '0.1',
+        isBuy: true,
+        orderType: 'market',
+        currentPrice: 50000,
+        leverage: 10,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBeUndefined();
+      expect(mockValidateOrderParams).toHaveBeenCalledWith({
+        coin: 'BTC',
+        size: '0.1',
+        price: undefined,
+      });
+    });
+
+    it('should fail validation when currentPrice is missing', async () => {
+      const params: OrderParams = {
+        coin: 'BTC',
+        size: '0.1',
+        isBuy: true,
+        orderType: 'market',
+        // currentPrice missing
+        leverage: 10,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('perps.order.validation.price_required');
+    });
+
+    it('should fail validation when order value is below minimum', async () => {
+      const params: OrderParams = {
+        coin: 'BTC',
+        size: '0.00001', // Very small size
+        isBuy: true,
+        orderType: 'market',
+        currentPrice: 50000, // 0.00001 * 50000 = $0.5 (below minimum)
+        leverage: 10,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toContain('perps.order.validation.minimum_amount');
+    });
+
+    it('should fail validation when basic params are invalid', async () => {
+      mockValidateOrderParams.mockReturnValue({
+        isValid: false,
+        error: 'Invalid coin',
+      });
+
+      const params: OrderParams = {
+        coin: 'INVALID',
+        size: '0.1',
+        isBuy: true,
+        orderType: 'market',
+        currentPrice: 50000,
+        leverage: 10,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Invalid coin');
+    });
+
+    it('should validate limit order with price', async () => {
+      const params: OrderParams = {
+        coin: 'ETH',
+        size: '1',
+        isBuy: true,
+        orderType: 'limit',
+        price: '3000',
+        currentPrice: 3050,
+        leverage: 5,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(true);
+      expect(mockValidateOrderParams).toHaveBeenCalledWith({
+        coin: 'ETH',
+        size: '1',
+        price: '3000',
+      });
+    });
+
+    it('should handle validation errors gracefully', async () => {
+      mockValidateOrderParams.mockImplementation(() => {
+        throw new Error('Unexpected error');
+      });
+
+      const params: OrderParams = {
+        coin: 'BTC',
+        size: '0.1',
+        isBuy: true,
+        orderType: 'market',
+        currentPrice: 50000,
+        leverage: 10,
+      };
+
+      const result = await provider.validateOrder(params);
+
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Unexpected error');
     });
   });
 });

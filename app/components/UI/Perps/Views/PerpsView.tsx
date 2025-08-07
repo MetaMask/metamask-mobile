@@ -272,6 +272,14 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   const handlePositionsNavigation = async () => {
     navigation.navigate(Routes.PERPS.POSITIONS);
   };
+  const handleTransactionsHistoryNavigation = async () => {
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: {
+        redirectToPerpsTransactions: true,
+      },
+    });
+  };
 
   const handleDepositNavigation = () => {
     navigation.navigate(Routes.PERPS.DEPOSIT);
@@ -410,6 +418,16 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
             width={ButtonWidthTypes.Full}
             label={strings('perps.buttons.positions')}
             onPress={handlePositionsNavigation}
+            loading={isLoading}
+            style={styles.button}
+          />
+
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            label="Transactions History"
+            onPress={handleTransactionsHistoryNavigation}
             loading={isLoading}
             style={styles.button}
           />

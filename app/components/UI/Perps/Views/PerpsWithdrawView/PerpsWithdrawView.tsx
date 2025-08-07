@@ -6,9 +6,10 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ScrollView, View } from 'react-native';
+import { SafeAreaView, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -31,7 +32,6 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../../UI/Box/Box';
 import {
   MAX_INPUT_LENGTH,
@@ -56,7 +56,6 @@ import {
   useWithdrawValidation,
 } from '../../hooks';
 import createStyles from './PerpsWithdrawView.styles';
-import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const PerpsWithdrawView: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
@@ -296,8 +295,7 @@ const PerpsWithdrawView: React.FC = () => {
   const { top } = useSafeAreaInsets();
 
   return (
-    // @ts-expect-error The type is incorrect, this will work
-    <ScreenView contentContainerStyle={[styles.screen, { paddingTop: top }]}>
+    <SafeAreaView style={[styles.screen, { marginTop: top }]}>
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonIcon
@@ -450,7 +448,7 @@ const PerpsWithdrawView: React.FC = () => {
           </View>
         )}
       </View>
-    </ScreenView>
+    </SafeAreaView>
   );
 };
 

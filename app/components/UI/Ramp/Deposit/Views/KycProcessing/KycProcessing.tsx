@@ -92,10 +92,6 @@ const KycProcessing = () => {
     return () => stopPolling();
   }, [kycForms, startPolling, stopPolling]);
 
-  const handleRetryVerification = useCallback(() => {
-    // TODO: Implement retry logic for KYC verification?
-  }, []);
-
   const handleContinue = useCallback(async () => {
     try {
       await routeAfterAuthentication(quote);
@@ -157,7 +153,7 @@ const KycProcessing = () => {
           <ScreenLayout.Content style={styles.footerContent}>
             <Button
               size={ButtonSize.Lg}
-              onPress={handleRetryVerification}
+              onPress={handleContinue}
               label={strings('deposit.kyc_processing.error_button')}
               variant={ButtonVariants.Primary}
               width={ButtonWidthTypes.Full}

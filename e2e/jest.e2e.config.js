@@ -29,6 +29,7 @@ module.exports = {
       'jest-junit',
       {
         outputDirectory: './e2e/reports',
+        classNameTemplate: '{filepath}',
       },
     ],
   ],

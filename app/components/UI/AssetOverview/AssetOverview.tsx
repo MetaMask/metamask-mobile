@@ -75,7 +75,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
+import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 
 interface AssetOverviewProps {
   asset: TokenI;
@@ -110,6 +110,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { trackEvent, createEventBuilder } = useMetrics();
   const allTokenMarketData = useSelector(selectTokenMarketData);
   const selectedChainId = useSelector(selectEvmChainId);
+  const { navigateToSendPage } = useSendNavigation();
 
   const nativeCurrency = useSelector((state: RootState) =>
     selectNativeCurrencyByChainId(state, asset.chainId as Hex),
@@ -155,12 +156,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   });
 
   // Hook for handling non-EVM asset sending
-  const { sendNonEvmAsset } = useSendNonEvmAsset({
-    asset: {
-      chainId: asset.chainId as string,
-      address: asset.address,
-    },
-  });
+  const { sendNonEvmAsset } = useSendNonEvmAsset({ asset });
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();
@@ -235,16 +231,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    if (isSendRedesignEnabled()) {
-      navigation.navigate(Routes.SEND.DEFAULT, {
-        screen: Routes.SEND.ROOT,
-        params: {
-          asset,
-        },
-      });
-    } else {
-      navigation.navigate('SendFlowView', {});
-    }
+    navigateToSendPage(asset);
   };
 
   const onBuy = () => {

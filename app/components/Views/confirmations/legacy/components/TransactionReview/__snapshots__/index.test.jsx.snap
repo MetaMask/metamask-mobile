@@ -28,6 +28,7 @@ exports[`TransactionReview should match snapshot 1`] = `
               "y": 0,
             }
           }
+          showsVerticalScrollIndicator={true}
           style={
             [
               {
@@ -167,7 +168,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                       style={
                                         {
                                           "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
+                                          "borderRadius": 8,
                                           "height": 32,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -187,7 +188,9 @@ exports[`TransactionReview should match snapshot 1`] = `
                                               "height": 32,
                                               "width": 32,
                                             },
-                                            undefined,
+                                            {
+                                              "borderRadius": 8,
+                                            },
                                           ]
                                         }
                                       >
@@ -1091,7 +1094,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                   {
                     "alignItems": "center",
                     "alignSelf": "flex-start",
-                    "backgroundColor": "#3c4d9d1a",
+                    "backgroundColor": "#3c4d9d0f",
                     "borderColor": "transparent",
                     "borderRadius": 12,
                     "borderWidth": 1,

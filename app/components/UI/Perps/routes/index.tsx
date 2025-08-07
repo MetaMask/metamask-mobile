@@ -4,6 +4,7 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import PerpsMarketListView from '../Views/PerpsMarketListView/PerpsMarketListView';
+import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
 import PerpsDepositAmountView from '../Views/PerpsDepositAmountView';
 import PerpsView from '../Views/PerpsView';
 import PerpsPositionDetailsView from '../Views/PerpsPositionDetailsView';
@@ -72,6 +73,15 @@ const PerpsScreenStack = () => (
           headerShown: false,
         }}
       />
+
+      <Stack.Screen
+        name={Routes.PERPS.MARKET_DETAILS}
+        component={PerpsMarketDetailsView}
+        options={{
+          title: strings('perps.market.details.title'),
+          headerShown: false,
+        }}
+      />
       <Stack.Screen
         name={Routes.PERPS.POSITIONS}
         component={PerpsPositionsView}
@@ -111,13 +121,6 @@ const PerpsScreenStack = () => (
           animationEnabled: false,
         }}
       />
-
-      {/*
-      Removed for minimal PR (can be added back in future PRs):
-      - PerpsMarketListView (Market list)
-      - PerpsOrderHistoryView (Order history)
-      - PerpsOrderDetailsView (Order details)
-    */}
     </Stack.Navigator>
   </PerpsConnectionProvider>
 );

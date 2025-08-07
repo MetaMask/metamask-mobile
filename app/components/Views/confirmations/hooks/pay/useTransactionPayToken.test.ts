@@ -8,18 +8,23 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationMetricsReducer from '../../../../../core/redux/slices/confirmationMetrics';
 import { RootState } from '../../../../../reducers';
+import {
+  otherControllersMock,
+  tokenAddress1Mock,
+} from '../../__mocks__/controllers/other-controllers-mock';
 
 const STATE_MOCK = merge(
   simpleSendTransactionControllerMock,
   transactionApprovalControllerMock,
+  otherControllersMock,
 ) as unknown as RootState;
 
 const TRANSACTION_ID_MOCK =
   STATE_MOCK.engine.backgroundState.TransactionController.transactions[0].id;
 
 const PAY_TOKEN_MOCK: ConfirmationMetricsReducer.TransactionPayToken = {
-  address: '0x1234567890abcdef1234567890abcdef12345678',
-  chainId: '0x123',
+  address: tokenAddress1Mock,
+  chainId: '0x1',
 };
 
 function runHook({
@@ -29,7 +34,7 @@ function runHook({
 
   if (payToken) {
     mockState.confirmationMetrics = {
-      metricsById: {},
+      ...ConfirmationMetricsReducer.initialState,
       transactionPayTokenById: {
         [TRANSACTION_ID_MOCK]: payToken,
       },
@@ -57,6 +62,14 @@ describe('useTransactionPayToken', () => {
     });
 
     expect(result.current.payToken).toEqual(PAY_TOKEN_MOCK);
+  });
+
+  it('returns decimals', () => {
+    const { result } = runHook({
+      payToken: PAY_TOKEN_MOCK,
+    });
+
+    expect(result.current.decimals).toEqual(4);
   });
 
   it('sets token in state', () => {

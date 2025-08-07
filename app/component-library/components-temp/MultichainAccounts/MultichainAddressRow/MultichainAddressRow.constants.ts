@@ -1,14 +1,8 @@
 import { MultichainAddressRowProps } from './MultichainAddressRow.types';
-import { ProviderConfig } from '../../../../selectors/networkController';
 
 export const SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS: MultichainAddressRowProps = {
-  network: {
-    nickname: 'Ethereum Mainnet',
-    chainId: '0x1',
-    ticker: 'ETH',
-    type: 'mainnet',
-    rpcPrefs: {},
-  } as ProviderConfig,
+  chainId: 'eip155:1',
+  networkName: 'Ethereum Mainnet',
   address: '0x1234567890123456789012345678901234567890',
 };
 

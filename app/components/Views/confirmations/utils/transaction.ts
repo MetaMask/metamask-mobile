@@ -1,16 +1,16 @@
+import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { Interface } from '@ethersproject/abi';
+import {
+  TransactionMeta,
+  TransactionParams,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import {
   abiERC721,
   abiERC20,
   abiERC1155,
   abiFiatTokenV2,
 } from '@metamask/metamask-eth-abis';
-import {
-  TransactionMeta,
-  TransactionParams,
-  TransactionType,
-} from '@metamask/transaction-controller';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 import ppomUtil from '../../../../lib/ppom/ppom-util';
 import { addTransaction } from '../../../../util/transaction-controller';

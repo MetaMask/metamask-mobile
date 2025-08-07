@@ -1,65 +1,21 @@
-'use strict';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import TestHelpers from '../../helpers';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import { SmokeTrade } from '../../tags';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { getRampsApiMocks } from '../../api-mocking/mock-responses/ramps-mocks';
-import { Mockttp } from 'mockttp';
-
-// Define the region interface based on the fixture builder's expected type
-interface RampsRegion {
-  currencies: string[];
-  emoji: string;
-  id: string;
-  name: string;
-  support: {
-    buy: boolean;
-    sell: boolean;
-    recurringBuy: boolean;
-  };
-  unsupported: boolean;
-  recommended: boolean;
-  detected: boolean;
-}
-
-// Define proper types for withFixtures options
-interface WithFixturesOptions {
-  fixture: object;
-  dapp?: boolean;
-  multichainDapp?: boolean;
-  dappPath?: string;
-  ganacheOptions?: object;
-  languageAndLocale?: object;
-  launchArgs?: object;
-  restartDevice?: boolean;
-  smartContract?: object;
-  testSpecificMock?: object;
-  disableGanache?: boolean;
-  localNodeOptions?: object;
-}
-
-const franceRegion: RampsRegion = {
-  currencies: ['/currencies/fiat/eur'],
-  emoji: '🇫🇷',
-  id: '/regions/fr',
-  name: 'France',
-  support: { buy: true, sell: true, recurringBuy: true },
-  unsupported: false,
-  recommended: false,
-  detected: false,
-};
+import { LocalNodeType } from '../../framework/types';
+import { Hardfork } from '../../seeder/anvil-manager';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 
 // Anvil configuration for local blockchain node
-const localNodeOptions = {
-  hardfork: 'london',
+const anvilLocalNodeOptions = {
+  hardfork: 'London' as Hardfork,
   mnemonic:
     'drive manage close raven tape average sausage pledge riot furnace august tip',
   chainId: 1,
@@ -68,9 +24,6 @@ const localNodeOptions = {
 // Get ramps API mocks from the dedicated mock file
 const rampsApiMocks = getRampsApiMocks();
 
-let mockServer: Mockttp | null = null;
-let mockServerPort: number;
-
 const setupRampsAccountSwitchTest = async (
   testFunction: () => Promise<void>,
 ) => {
@@ -78,16 +31,17 @@ const setupRampsAccountSwitchTest = async (
     {
       fixture: new FixtureBuilder()
         .withImportedHdKeyringAndTwoDefaultAccountsOneImportedHdAccountKeyringController()
-        // @ts-expect-error - FixtureBuilder method accepts region objects despite TypeScript signature
-        .withRampsSelectedRegion(franceRegion)
+        .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.FRANCE])
         .build(),
       restartDevice: true,
-      localNodeOptions,
+      localNodeOptions: [
+        {
+          type: LocalNodeType.anvil,
+          options: anvilLocalNodeOptions,
+        },
+      ],
       testSpecificMock: rampsApiMocks,
-      launchArgs: {
-        mockServerPort,
-      },
-    } as WithFixturesOptions,
+    },
     async () => {
       await loginToApp();
       await testFunction();
@@ -96,35 +50,8 @@ const setupRampsAccountSwitchTest = async (
 };
 
 describe(SmokeTrade('Ramps with Account Switching'), () => {
-  beforeAll(async () => {
-    try {
-      // Use a high port number to avoid conflicts
-      const testPort = 9000 + Math.floor(Math.random() * 1000);
-      mockServer = await startMockServer(rampsApiMocks, testPort);
-      if (mockServer !== null) {
-        mockServerPort = mockServer.port;
-        console.log(`Mock server started on port ${mockServerPort}`);
-      }
-      await TestHelpers.reverseServerPort();
-    } catch (error) {
-      console.error('Failed to start mock server:', error);
-      throw error;
-    }
-  });
-
   beforeEach(async () => {
     jest.setTimeout(150000);
-  });
-
-  afterAll(async () => {
-    try {
-      if (mockServer !== null) {
-        await stopMockServer(mockServer);
-        console.log('Mock server stopped successfully');
-      }
-    } catch (error) {
-      console.error('Error stopping mock server:', error);
-    }
   });
 
   it('should navigate to buy page and switch accounts', async () => {

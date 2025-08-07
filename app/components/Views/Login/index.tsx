@@ -344,18 +344,32 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     [],
   );
 
-  const tooManyAttemptsError = async (remainingTime: number) => {
+  const tooManyAttemptsError = async (initialRemainingTime: number) => {
+    const lockEnd = Date.now() + initialRemainingTime * 1000;
+
     setDisabledInput(true);
-    for (let i = remainingTime; i > 0; i--) {
+    while (Date.now() < lockEnd) {
+      const remainingTime = Math.floor((lockEnd - Date.now()) / 1000);
+      if (remainingTime <= 0) {
+        break;
+      }
+
       if (!isMountedRef.current) {
         setError(null);
         setDisabledInput(false);
         return; // Exit early if component unmounted
       }
 
+      const remainingHours = Math.floor(remainingTime / 3600);
+      const remainingMinutes = Math.floor((remainingTime % 3600) / 60);
+      const remainingSeconds = remainingTime % 60;
+      const displayRemainingTime = `${remainingHours}:${remainingMinutes
+        .toString()
+        .padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+
       setError(
         strings('login.too_many_attempts', {
-          remainingTime: `${Math.floor(i / 60)}m:${i % 60}s`,
+          remainingTime: displayRemainingTime,
         }),
       );
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -653,6 +667,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     return null;
   };
 
+  const handlePasswordChange = (newPassword: string) => {
+    setPassword(newPassword);
+    setError(null);
+  };
+
   return (
     <ErrorBoundary
       navigation={navigation}
@@ -715,7 +734,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 autoCapitalize="none"
                 secureTextEntry
                 ref={fieldRef}
-                onChangeText={setPassword}
+                onChangeText={handlePasswordChange}
                 value={password}
                 onSubmitEditing={onLogin}
                 endAccessory={

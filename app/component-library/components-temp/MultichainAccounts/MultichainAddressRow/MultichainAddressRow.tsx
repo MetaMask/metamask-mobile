@@ -27,7 +27,8 @@ import {
 import useCopyClipboard from '../../../../components/Views/Notifications/Details/hooks/useCopyClipboard';
 
 const MultichainAddressRow = ({
-  network,
+  chainId,
+  networkName,
   address,
   style,
   testID = MULTICHAIN_ADDRESS_ROW_TEST_ID,
@@ -36,10 +37,7 @@ const MultichainAddressRow = ({
   const { styles } = useStyles(styleSheet, { style });
   const copyToClipboard = useCopyClipboard();
 
-  const networkImageSource = getNetworkImageSource({
-    chainId: network.chainId,
-    networkType: network.type,
-  });
+  const networkImageSource = getNetworkImageSource({ chainId });
   const truncatedAddress = formatAddress(address, 'short');
 
   const handleCopyClick = useCallback(() => {
@@ -56,7 +54,7 @@ const MultichainAddressRow = ({
       <Avatar
         variant={AvatarVariant.Network}
         size={AvatarSize.Md}
-        name={network.nickname}
+        name={networkName}
         imageSource={networkImageSource}
         testID={MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID}
       />
@@ -67,7 +65,7 @@ const MultichainAddressRow = ({
           color={TextColor.Default}
           testID={MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID}
         >
-          {network.nickname}
+          {networkName}
         </Text>
         <Text
           variant={TextVariant.BodySM}

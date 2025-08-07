@@ -1,23 +1,19 @@
 import { BigNumber } from 'bignumber.js';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
-import { useSelector } from 'react-redux';
-import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
+import { createProjectLogger } from '@metamask/utils';
+import { useDeepMemo } from '../useDeepMemo';
+
+const log = createProjectLogger('transaction-pay');
 
 /**
  * Calculate the amount of the selected pay token, that is needed for each token required by the transaction.
  */
 export function useTransactionPayTokenAmounts() {
-  const { payToken } = useTransactionPayToken();
+  const { decimals, payToken } = useTransactionPayToken();
   const { address, chainId } = payToken;
-
-  const tokens = useSelector((state) =>
-    selectTokensByChainIdAndAddress(state, chainId),
-  );
-
-  const tokenDecimals = tokens[address.toLowerCase()]?.decimals ?? 18;
 
   const fiatRequest = useMemo(
     () => [
@@ -30,18 +26,23 @@ export function useTransactionPayTokenAmounts() {
   );
 
   const tokenFiatRate = useTokenFiatRates(fiatRequest)[0];
+  const { values } = useTransactionRequiredFiat();
 
-  const { fiatValues } = useTransactionRequiredFiat();
-
-  return useMemo(() => {
+  const amounts = useDeepMemo(() => {
     if (!tokenFiatRate) {
       return undefined;
     }
 
-    return fiatValues.map((fiatValue) =>
-      calculateAmount(fiatValue, tokenFiatRate, tokenDecimals),
+    return values.map((value) =>
+      calculateAmount(value.totalFiat, tokenFiatRate, decimals),
     );
-  }, [fiatValues, tokenFiatRate, tokenDecimals]);
+  }, [decimals, tokenFiatRate, values]);
+
+  useEffect(() => {
+    log('Pay token amounts', amounts);
+  }, [amounts]);
+
+  return amounts;
 }
 
 function calculateAmount(

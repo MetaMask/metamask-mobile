@@ -41,6 +41,7 @@ if (parameters) {
 const getStories = () => {
   return {
     "./app/component-library/base-components/TagBase/TagBase.stories.tsx": require("../app/component-library/base-components/TagBase/TagBase.stories.tsx"),
+    "./app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx": require("../app/component-library/components-temp/ActionListItem/ActionListItem.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonHero/ButtonHero.stories.tsx"),
     "./app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx": require("../app/component-library/components-temp/Buttons/ButtonToggle/ButtonToggle.stories.tsx"),
     "./app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx": require("../app/component-library/components-temp/CellSelectWithMenu/CellSelectWithMenu.stories.tsx"),
@@ -49,6 +50,7 @@ const getStories = () => {
     "./app/component-library/components-temp/MainActionButton/MainActionButton.stories.tsx": require("../app/component-library/components-temp/MainActionButton/MainActionButton.stories.tsx"),
     "./app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.stories.tsx": require("../app/component-library/components-temp/MultichainAccounts/AccountCell/AccountCell.stories.tsx"),
     "./app/component-library/components-temp/MultichainAccounts/MultichainAddressRow/MultichainAddressRow.stories.tsx": require("../app/component-library/components-temp/MultichainAccounts/MultichainAddressRow/MultichainAddressRow.stories.tsx"),
+    "./app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.stories.tsx": require("../app/component-library/components-temp/MultichainAccounts/MultichainAddressRowsList/MultichainAddressRowsList.stories.tsx"),
     "./app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories.tsx": require("../app/component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentage.stories.tsx"),
     "./app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx": require("../app/component-library/components-temp/Price/PercentageChange/PercentageChange.stories.tsx"),
     "./app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx": require("../app/component-library/components-temp/SegmentedControl/SegmentedControl.stories.tsx"),

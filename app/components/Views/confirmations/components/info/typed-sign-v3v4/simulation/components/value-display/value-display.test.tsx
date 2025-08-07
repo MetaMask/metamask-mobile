@@ -90,7 +90,11 @@ describe('SimulationValueDisplay', () => {
         typeof useGetTokenStandardAndDetails
       >
     ).mockReturnValue({
-      details: { decimalsNumber: undefined, standard: undefined },
+      details: {
+        decimalsNumber: undefined,
+        standard: undefined,
+        symbol: undefined,
+      },
       isPending: true,
     });
 
@@ -127,7 +131,11 @@ describe('SimulationValueDisplay', () => {
         typeof useGetTokenStandardAndDetails
       >
     ).mockReturnValue({
-      details: { decimalsNumber: undefined, standard: undefined },
+      details: {
+        decimalsNumber: undefined,
+        standard: undefined,
+        symbol: undefined,
+      },
       isPending: false,
     });
 
