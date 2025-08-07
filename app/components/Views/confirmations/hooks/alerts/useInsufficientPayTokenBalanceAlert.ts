@@ -11,9 +11,10 @@ export function useInsufficientPayTokenBalanceAlert(): Alert[] {
   const { totalHuman } = useTransactionPayTokenAmounts();
   const { balanceHuman } = useTransactionPayToken();
 
-  const isInsufficient = new BigNumber(balanceHuman ?? '0').isLessThan(
-    new BigNumber(totalHuman ?? '0'),
-  );
+  const isInsufficient =
+    new BigNumber(balanceHuman ?? '0').isLessThan(
+      new BigNumber(totalHuman ?? '0'),
+    ) && process.env.MM_CONFIRMATION_INTENTS === 'true';
 
   return useMemo(() => {
     if (!isInsufficient) {
