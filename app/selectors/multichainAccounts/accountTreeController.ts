@@ -4,6 +4,7 @@ import { selectMultichainAccountsState1Enabled } from '../featureFlagController/
 import { AccountWalletId } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
+import { selectInternalAccounts } from '../accountsController';
 
 /**
  * Get the AccountTreeController state
@@ -18,8 +19,12 @@ export const selectAccountTreeControllerState = (state: RootState) =>
  * For now, this returns a simple structure until the controller is fully integrated
  */
 export const selectAccountSections = createDeepEqualSelector(
-  [selectAccountTreeControllerState, selectMultichainAccountsState1Enabled],
-  (accountTreeState, multichainAccountsState1Enabled) => {
+  [
+    selectAccountTreeControllerState,
+    selectInternalAccounts,
+    selectMultichainAccountsState1Enabled,
+  ],
+  (accountTreeState, internalAccounts, multichainAccountsState1Enabled) => {
     if (
       !multichainAccountsState1Enabled ||
       !accountTreeState?.accountTree?.wallets ||
@@ -29,11 +34,21 @@ export const selectAccountSections = createDeepEqualSelector(
     }
 
     return Object.values(accountTreeState.accountTree.wallets).map(
-      (wallet: AccountWalletObject) => ({
-        title: wallet.metadata.name,
-        wallet,
-        data: Object.values(wallet.groups).flatMap((group) => group.accounts),
-      }),
+      (wallet: AccountWalletObject) => {
+        const allAccountsIdInWallet = Object.values(wallet.groups).flatMap(
+          (group) => group.accounts,
+        );
+        // To presevere the order of the accounts in the accounts controller
+        const accountIds = internalAccounts
+          .filter((account) => allAccountsIdInWallet.includes(account.id))
+          .map((account) => account.id);
+
+        return {
+          title: wallet.metadata.name,
+          wallet,
+          data: accountIds,
+        };
+      },
     );
   },
 );
