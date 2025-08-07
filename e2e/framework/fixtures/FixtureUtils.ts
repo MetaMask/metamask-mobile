@@ -1,6 +1,8 @@
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
+  type Caip25CaveatValue,
+  type InternalScopesObject,
 } from '@metamask/chain-agnostic-permission';
 
 import { DEFAULT_GANACHE_PORT } from '../../../app/util/test/ganache';
@@ -71,6 +73,24 @@ function getServerPort(defaultPort: number) {
 }
 
 /**
+ * Kills a service based on its PID.
+ * @param {number} pid - The process ID of the service to kill.
+ * @returns {boolean} True if the process was killed successfully, false otherwise.
+ */
+export async function killServiceByPid(pid: number): Promise<boolean> {
+  try {
+    process.kill(pid, 'SIGKILL');
+
+    // Explicitly adding a timeout in case the process is not killed immediately
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    return true;
+  } catch (error) {
+    // Process may not exist or permission denied
+    return false;
+  }
+}
+
+/**
  * Gets the URL for the second test dapp.
  * This function is used instead of a constant to ensure device.getPlatform() is called
  * after Detox is properly initialized, preventing initialization errors in the apiSpecs tests.
@@ -82,12 +102,14 @@ export function getSecondTestDappLocalUrl() {
   return `http://${host}:${getSecondTestDappPort()}`;
 }
 
-export function getTestDappLocalUrl(dappCounter: number) {
+export function getTestDappLocalUrlByDappCounter(dappCounter: number) {
   const host = device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
   return `http://${host}:${getLocalTestDappPort() + dappCounter}`;
 }
 
-export const TEST_DAPP_LOCAL_URL = `http://localhost:${getLocalTestDappPort()}`;
+export function getTestDappLocalUrl() {
+  return `http://localhost:${getLocalTestDappPort()}`;
+}
 
 export function getGanachePort(): number {
   return getServerPort(DEFAULT_GANACHE_PORT);
@@ -112,14 +134,23 @@ export function getSecondTestDappPort(): number {
   return getServerPort(DEFAULT_DAPP_SERVER_PORT + 1);
 }
 
-export function buildPermissions(chainIds: string[]): Record<string, unknown> {
+interface Caip25Permission {
+  [Caip25EndowmentPermissionName]: {
+    caveats: {
+      type: string;
+      value: Caip25CaveatValue;
+    }[];
+  };
+}
+
+export function buildPermissions(chainIds: string[]): Caip25Permission {
   // default mainnet
-  const optionalScopes = { 'eip155:1': { accounts: [] } };
+  const optionalScopes: InternalScopesObject = {
+    'eip155:1': { accounts: [] },
+  };
 
   for (const chainId of chainIds) {
-    optionalScopes[
-      `eip155:${parseInt(chainId, 10)}` as keyof typeof optionalScopes
-    ] = {
+    optionalScopes[`eip155:${parseInt(chainId, 10)}`] = {
       accounts: [],
     };
   }
