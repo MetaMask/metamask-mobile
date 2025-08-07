@@ -968,7 +968,7 @@ class Amount extends PureComponent {
             ? contextuallySelectedNativeBalance
             : hexToBN(globallySelectedBalance);
 
-          weiBalance = hexToBN(balance);
+          weiBalance = balance;
           weiInput = weiValue.add(estimatedTotalGas);
         } else {
           const globallySelectedBalance =
