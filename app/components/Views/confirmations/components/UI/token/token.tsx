@@ -21,10 +21,9 @@ import { AssetType } from '../../../types/token';
 interface TokenProps {
   asset: AssetType;
   onPress: (asset: AssetType) => void;
-  isSelected?: boolean;
 }
 
-export function Token({ asset, onPress, isSelected }: TokenProps) {
+export function Token({ asset, onPress }: TokenProps) {
   const tw = useTailwind();
 
   const handlePress = useCallback(() => {
@@ -36,7 +35,7 @@ export function Token({ asset, onPress, isSelected }: TokenProps) {
       style={({ pressed }) =>
         tw.style(
           'w-full flex-row items-center justify-between py-2',
-          pressed || isSelected ? 'bg-pressed' : 'bg-transparent',
+          pressed || asset.isSelected ? 'bg-pressed' : 'bg-transparent',
         )
       }
       onPress={handlePress}

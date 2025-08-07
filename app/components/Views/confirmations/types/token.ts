@@ -10,4 +10,5 @@ export enum TokenStandard {
 export interface AssetType extends TokenI {
   networkBadgeSource?: ImageSourcePropType;
   tokenId?: string;
+  isSelected?: boolean;
 }

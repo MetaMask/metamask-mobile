@@ -3,7 +3,10 @@ import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 
 import { selectEvmTokens } from '../../../../../selectors/multichain/evm';
-import { selectSingleTokenBalance , selectTokensBalances } from '../../../../../selectors/tokenBalancesController';
+import {
+  selectSingleTokenBalance,
+  selectTokensBalances,
+} from '../../../../../selectors/tokenBalancesController';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
@@ -16,6 +19,7 @@ import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityM
 import { getNetworkBadgeSource } from '../../utils/network';
 import { convertHexBalanceToDecimal } from '../../utils/conversion';
 import { AssetType } from '../../types/token';
+import { useSendContext } from '../../context/send-context';
 
 // This selector is a temporary solution to get the tokens for the selected account
 // Once we have a proper selector from account group, we will replace this with that
@@ -29,6 +33,7 @@ const selectSelectedEVMAccountTokens = createSelector(
     selectCurrencyRates,
     selectCurrentCurrency,
     (state: RootState) => state,
+    (_: RootState, asset?: AssetType) => asset,
   ],
   (
     evmTokens,
@@ -39,6 +44,7 @@ const selectSelectedEVMAccountTokens = createSelector(
     multiChainCurrencyRates,
     currentCurrency,
     state: RootState,
+    selectedAsset?: AssetType,
   ): AssetType[] => {
     if (!selectedAccountAddress) {
       return [];
@@ -84,10 +90,16 @@ const selectSelectedEVMAccountTokens = createSelector(
                 currentCurrency || '',
               ).balanceFiatCalculation;
 
+        const isSelected =
+          token.address?.toLowerCase() ===
+            selectedAsset?.address?.toLowerCase() &&
+          token.chainId === selectedAsset?.chainId;
+
         return {
           ...token,
           balance: balance || '0',
           balanceFiat: balanceFiat?.toString() || '0',
+          isSelected,
           networkBadgeSource: getNetworkBadgeSource(token.chainId as Hex),
         };
       })
@@ -96,6 +108,10 @@ const selectSelectedEVMAccountTokens = createSelector(
   },
 );
 
-export function useSelectedEVMAccountTokens(): AssetType[] {
-  return useSelector(selectSelectedEVMAccountTokens);
+export function useSelectedEVMAccountTokens() {
+  const { asset } = useSendContext();
+
+  return useSelector((state: RootState) =>
+    selectSelectedEVMAccountTokens(state, asset),
+  );
 }
