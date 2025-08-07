@@ -405,21 +405,16 @@ export const selectEvmTokens = createDeepEqualSelector(
   selectIsPopularNetwork,
   selectIsEvmNetworkSelected,
   selectChainId,
-  // forceSelectAllTokens is used for temporary purpose and it will be removed
-  // https://github.com/MetaMask/metamask-mobile/issues/18071
-  (_: RootState, forceSelectAllTokens?: boolean) => forceSelectAllTokens,
   (
     tokensToDisplay,
     isAllNetworks,
     isPopularNetwork,
     isEvmSelected,
     currentChainId,
-    forceSelectAllTokens,
   ) => {
     // Apply network filtering
     const filteredTokens =
-      forceSelectAllTokens ||
-      (isAllNetworks && isPopularNetwork && isEvmSelected)
+      isAllNetworks && isPopularNetwork && isEvmSelected
         ? tokensToDisplay
         : tokensToDisplay.filter((token) => token.chainId === currentChainId);
 

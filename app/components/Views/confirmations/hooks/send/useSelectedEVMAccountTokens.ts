@@ -2,14 +2,23 @@ import { createSelector } from 'reselect';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 
-import { selectEvmTokens } from '../../../../../selectors/multichain/evm';
+import { selectEvmTokensWithZeroBalanceFilter } from '../../../../../selectors/multichain/evm';
+import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import {
+  // eslint-disable-next-line no-restricted-syntax
+  selectChainId,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+ selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { TokenI } from '../../../../../components/UI/Tokens/types';
 import {
   selectSingleTokenBalance,
   selectTokensBalances,
 } from '../../../../../selectors/tokenBalancesController';
+import { isTestNet } from '../../../../../util/networks';
+import { createDeepEqualSelector } from '../../../../../selectors/util';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
-import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -20,6 +29,54 @@ import { getNetworkBadgeSource } from '../../utils/network';
 import { convertHexBalanceToDecimal } from '../../utils/conversion';
 import { AssetType } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
+
+const selectEvmTokens = createDeepEqualSelector(
+  selectEvmTokensWithZeroBalanceFilter,
+  selectIsAllNetworks,
+  selectIsPopularNetwork,
+  selectIsEvmNetworkSelected,
+  selectChainId,
+  // forceSelectAllTokens is used for temporary purpose and it will be removed
+  // https://github.com/MetaMask/metamask-mobile/issues/18071
+  (_: RootState, forceSelectAllTokens?: boolean) => forceSelectAllTokens,
+  (
+    tokensToDisplay,
+    isAllNetworks,
+    isPopularNetwork,
+    isEvmSelected,
+    currentChainId,
+    forceSelectAllTokens,
+  ) => {
+    // Apply network filtering
+    const filteredTokens =
+      forceSelectAllTokens ||
+      (isAllNetworks && isPopularNetwork && isEvmSelected)
+        ? tokensToDisplay
+        : tokensToDisplay.filter((token) => token.chainId === currentChainId);
+
+    // Categorize tokens as native or non-native, filtering out testnet tokens if applicable
+    const nativeTokens: TokenI[] = [];
+    const nonNativeTokens: TokenI[] = [];
+
+    for (const currToken of filteredTokens) {
+      const token = currToken as TokenI & { chainId: string };
+
+      // Skip tokens if they are on a test network and the current chain is not a test network
+      if (isTestNet(token.chainId) && !isTestNet(currentChainId)) {
+        continue;
+      }
+
+      // Categorize tokens as native or non-native
+      if (token.isNative) {
+        nativeTokens.push(token);
+      } else {
+        nonNativeTokens.push(token);
+      }
+    }
+
+    return [...nativeTokens, ...nonNativeTokens];
+  },
+);
 
 // This selector is a temporary solution to get the tokens for the selected account
 // Once we have a proper selector from account group, we will replace this with that
