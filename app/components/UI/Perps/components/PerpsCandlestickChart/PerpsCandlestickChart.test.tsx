@@ -590,7 +590,7 @@ describe('CandlestickChartComponent', () => {
 
       // Assert - Wait for the timeout to complete
       await waitFor(() => {
-        const tpslElements = screen.getAllByTestId(/tpsl-/);
+        const tpslElements = screen.getAllByTestId(/auxiliary-line-/);
         expect(tpslElements).toHaveLength(2); // One for TP, one for SL
       });
     });
@@ -600,7 +600,7 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...defaultProps} />);
 
       // Assert
-      const tpslElements = screen.queryAllByTestId(/tpsl-/);
+      const tpslElements = screen.queryAllByTestId(/auxiliary-line-/);
       expect(tpslElements).toHaveLength(0);
     });
 
@@ -618,9 +618,9 @@ describe('CandlestickChartComponent', () => {
 
       // Assert - Wait for the timeout to complete
       await waitFor(() => {
-        const tpslElements = screen.getAllByTestId(/tpsl-tp/);
+        const tpslElements = screen.getAllByTestId(/auxiliary-line-tp/);
         expect(tpslElements).toHaveLength(1);
-        const slElements = screen.queryAllByTestId(/tpsl-sl/);
+        const slElements = screen.queryAllByTestId(/auxiliary-line-sl/);
         expect(slElements).toHaveLength(0);
       });
     });
@@ -639,9 +639,9 @@ describe('CandlestickChartComponent', () => {
 
       // Assert - Wait for the timeout to complete
       await waitFor(() => {
-        const tpslElements = screen.getAllByTestId(/tpsl-sl/);
+        const tpslElements = screen.getAllByTestId(/auxiliary-line-sl/);
         expect(tpslElements).toHaveLength(1);
-        const tpElements = screen.queryAllByTestId(/tpsl-tp/);
+        const tpElements = screen.queryAllByTestId(/auxiliary-line-tp/);
         expect(tpElements).toHaveLength(0);
       });
     });
@@ -660,7 +660,7 @@ describe('CandlestickChartComponent', () => {
 
       // Assert - Wait for the timeout to complete
       await waitFor(() => {
-        const entryElements = screen.getAllByTestId(/tpsl-entry/);
+        const entryElements = screen.getAllByTestId(/auxiliary-line-entry/);
         expect(entryElements).toHaveLength(1);
       });
     });
@@ -679,7 +679,9 @@ describe('CandlestickChartComponent', () => {
 
       // Assert - Wait for the timeout to complete
       await waitFor(() => {
-        const liquidationElements = screen.getAllByTestId(/tpsl-liquidation/);
+        const liquidationElements = screen.getAllByTestId(
+          /auxiliary-line-liquidation/,
+        );
         expect(liquidationElements).toHaveLength(1);
       });
     });
@@ -699,10 +701,12 @@ describe('CandlestickChartComponent', () => {
 
       // Assert - Wait for the timeout to complete
       await waitFor(() => {
-        const liquidationElements = screen.queryAllByTestId(/tpsl-liquidation/);
+        const liquidationElements = screen.queryAllByTestId(
+          /auxiliary-line-liquidation/,
+        );
         expect(liquidationElements).toHaveLength(0);
 
-        const entryElements = screen.getAllByTestId(/tpsl-entry/);
+        const entryElements = screen.getAllByTestId(/auxiliary-line-entry/);
         expect(entryElements).toHaveLength(1); // Entry line should still render
       });
     });
@@ -721,7 +725,7 @@ describe('CandlestickChartComponent', () => {
 
       // Assert - Wait for the timeout to complete
       await waitFor(() => {
-        const currentElements = screen.getAllByTestId(/tpsl-current/);
+        const currentElements = screen.getAllByTestId(/auxiliary-line-current/);
         expect(currentElements).toHaveLength(1);
       });
     });
@@ -744,22 +748,24 @@ describe('CandlestickChartComponent', () => {
 
       // Assert - Wait for the timeout to complete
       await waitFor(() => {
-        const tpslElements = screen.getAllByTestId(/tpsl-/);
+        const tpslElements = screen.getAllByTestId(/auxiliary-line-/);
         expect(tpslElements).toHaveLength(5); // One for TP, one for SL, one for entry, one for liquidation, one for current
 
-        const tpElements = screen.getAllByTestId(/tpsl-tp/);
+        const tpElements = screen.getAllByTestId(/auxiliary-line-tp/);
         expect(tpElements).toHaveLength(1);
 
-        const slElements = screen.getAllByTestId(/tpsl-sl/);
+        const slElements = screen.getAllByTestId(/auxiliary-line-sl/);
         expect(slElements).toHaveLength(1);
 
-        const entryElements = screen.getAllByTestId(/tpsl-entry/);
+        const entryElements = screen.getAllByTestId(/auxiliary-line-entry/);
         expect(entryElements).toHaveLength(1);
 
-        const liquidationElements = screen.getAllByTestId(/tpsl-liquidation/);
+        const liquidationElements = screen.getAllByTestId(
+          /auxiliary-line-liquidation/,
+        );
         expect(liquidationElements).toHaveLength(1);
 
-        const currentElements = screen.getAllByTestId(/tpsl-current/);
+        const currentElements = screen.getAllByTestId(/auxiliary-line-current/);
         expect(currentElements).toHaveLength(1);
       });
     });

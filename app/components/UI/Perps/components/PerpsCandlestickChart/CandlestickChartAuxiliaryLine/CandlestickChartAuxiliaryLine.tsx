@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
@@ -60,7 +60,7 @@ const CandlestickChartAuxiliaryLine: React.FC<
   const { colors: themeColors } = theme;
 
   // Calculate line positions based on price data
-  const linePositions = React.useMemo((): AuxiliaryLinePosition[] | null => {
+  const linePositions = useMemo((): AuxiliaryLinePosition[] | null => {
     if (!tpslLines || transformedData.length === 0) return null;
 
     const prices = transformedData.flatMap((d) => [
