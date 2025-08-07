@@ -40,13 +40,17 @@ export const getFiatDisplayValueFn = ({
   conversionRate,
   currentCurrency,
   exchangeRate,
-}: ConversionArgs) =>
-  `${getCurrencySymbol(currentCurrency)} ${getFiatValueFn({
-    conversionRate,
-    exchangeRate,
-    amount: amount ?? '0',
-    decimals: 2,
-  })}`;
+}: ConversionArgs) => {
+  const amt = amount
+    ? getFiatValueFn({
+        conversionRate,
+        exchangeRate,
+        amount: amount ?? '0',
+        decimals: 2,
+      }).toFixed(2)
+    : '0.00';
+  return `${getCurrencySymbol(currentCurrency)} ${amt}`;
+};
 
 export const getNativeValueFn = ({
   amount,
@@ -147,6 +151,7 @@ export const useCurrencyConversions = () => {
   );
 
   return {
+    fiatCurrencySymbol: getCurrencySymbol(currentCurrency),
     getFiatDisplayValue,
     getFiatValue,
     getNativeDisplayValue,

@@ -7,9 +7,11 @@ import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import createStaticServer from '../../create-static-server';
 import {
+  AnvilPort,
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
+  killServiceByPid,
 } from './FixtureUtils';
 import Utilities from '../../utils/Utilities';
 import TestHelpers from '../../helpers';
@@ -175,7 +177,7 @@ async function handleLocalNodes(
         case LocalNodeType.anvil:
           localNode = new AnvilManager();
           localNodeSpecificOptions = nodeOptions as AnvilNodeOptions;
-
+          
           await localNode.start(localNodeSpecificOptions);
           localNodes.push(localNode);
           break;
