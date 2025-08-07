@@ -319,9 +319,7 @@ android {
             def env = System.getenv("METAMASK_ENVIRONMENT")
             def isE2E = System.getenv("E2E")
 
-            if (isE2E) {
-                signingConfig signingConfigs.qaProd
-            } else if (env == 'exp') {
+            if (env == 'exp') {
                 signingConfig signingConfigs.mainExp
             } else if (env == 'test') {
                 signingConfig signingConfigs.mainTest

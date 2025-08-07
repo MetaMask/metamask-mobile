@@ -78,7 +78,10 @@ module.exports = {
       type: 'android.emulator',
       device: {
         avdName: 'emulator',
-      }
+      },
+      // optimized for Bitrise CI runners
+      bootArgs: '-verbose -show-kernel -no-audio -netdelay none -no-snapshot -wipe-data -gpu auto -no-window -no-boot-anim -read-only',
+      forceAdbInstall: true,
     },
     'android.github_ci.emulator': {
       type: 'android.emulator',

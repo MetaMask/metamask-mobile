@@ -62,7 +62,6 @@ jobs:
           platform: ${{ inputs.platform }}
           setup-simulator: ${{ inputs.platform == 'ios' }}
           android-avd-name: emulator
-          android-abi: x86_64
           configure-keystores: false
 
       - name: Build Detox framework cache (iOS)
