@@ -604,6 +604,44 @@ describe('HyperLiquidSubscriptionService', () => {
         'millisecond',
       );
     });
+
+    it('should calculate subscription duration correctly using performance.now()', async () => {
+      const mockCallback = jest.fn();
+      const traceModule = jest.requireMock('../../../../util/trace');
+
+      // Clear previous calls
+      traceModule.endTrace.mockClear();
+
+      const unsubscribe = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+      });
+
+      // Wait a bit to simulate subscription time
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Unsubscribe to trigger endTrace
+      unsubscribe();
+
+      // Verify endTrace was called with correct duration calculation
+      expect(traceModule.endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Perps Market Data Update',
+          data: expect.objectContaining({
+            subscription_duration_ms: expect.any(Number),
+            symbols_count: 1,
+          }),
+        }),
+      );
+
+      // The duration should be a positive number (not negative from Date.now() - performance.now())
+      const endTraceCall = traceModule.endTrace.mock.calls[0][0];
+      expect(endTraceCall.data.subscription_duration_ms).toBeGreaterThan(0);
+      // Should be at least 50ms since we waited that long
+      expect(endTraceCall.data.subscription_duration_ms).toBeGreaterThanOrEqual(
+        40,
+      ); // Allow some margin
+    });
   });
 
   describe('Cleanup and Error Handling', () => {

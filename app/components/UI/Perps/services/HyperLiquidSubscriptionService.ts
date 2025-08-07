@@ -108,6 +108,9 @@ export class HyperLiquidSubscriptionService {
     } = params;
     const unsubscribers: (() => void)[] = [];
 
+    // Track subscription start time using performance.now()
+    const subscriptionStartTime = performance.now();
+
     // Start trace for subscription
     trace({
       name: TraceName.PerpsMarketDataUpdate,
@@ -174,11 +177,11 @@ export class HyperLiquidSubscriptionService {
         }
       });
 
-      // End trace on unsubscribe
+      // End trace on unsubscribe with correct duration calculation
       endTrace({
         name: TraceName.PerpsMarketDataUpdate,
         data: {
-          subscription_duration_ms: Date.now() - performance.now(),
+          subscription_duration_ms: performance.now() - subscriptionStartTime,
           symbols_count: symbols.length,
         },
       });

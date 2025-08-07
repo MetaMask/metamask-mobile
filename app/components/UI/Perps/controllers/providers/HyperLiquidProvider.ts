@@ -396,9 +396,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
         params.leverage || 1,
         'none',
       );
+
+      // Calculate USD position size: size * price
+      const orderPriceForUSD =
+        params.orderType === 'limit' && params.price
+          ? parseFloat(params.price)
+          : params.currentPrice || currentPrice;
+      const positionSizeUSD = parseFloat(params.size) * orderPriceForUSD;
       setMeasurement(
         PerpsMeasurementName.POSITION_SIZE_USD,
-        parseFloat(params.size),
+        positionSizeUSD,
         'none',
       );
       if (params.orderType === 'limit' && params.price && params.currentPrice) {

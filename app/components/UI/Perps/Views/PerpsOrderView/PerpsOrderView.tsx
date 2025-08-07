@@ -358,7 +358,7 @@ const PerpsOrderView: React.FC = () => {
     }
   }, [paymentTokens, selectedPaymentToken]);
 
-  // Track screen load
+  // Track screen load - only on mount/unmount
   useEffect(() => {
     trace({
       name: TraceName.PerpsOrderView,
@@ -371,6 +371,17 @@ const PerpsOrderView: React.FC = () => {
       },
     });
 
+    return () => {
+      endTrace({
+        name: TraceName.PerpsOrderView,
+      });
+    };
+    // Empty dependency array - only track screen mount/unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Track dashboard view event separately with proper dependencies
+  useEffect(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.PERPS_DASHBOARD_VIEWED)
         .addProperties({
@@ -381,12 +392,6 @@ const PerpsOrderView: React.FC = () => {
         })
         .build(),
     );
-
-    return () => {
-      endTrace({
-        name: TraceName.PerpsOrderView,
-      });
-    };
   }, [
     asset,
     cachedAccountState?.availableBalance,
