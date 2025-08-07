@@ -84,6 +84,7 @@ jest.mock('../../../core/Authentication', () => ({
 jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
   isAndroid: jest.fn(),
+  isMediumDevice: jest.fn(),
 }));
 
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
