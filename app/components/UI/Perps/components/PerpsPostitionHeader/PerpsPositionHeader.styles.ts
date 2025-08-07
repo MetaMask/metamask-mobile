@@ -11,7 +11,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
       alignItems: 'center',
       backgroundColor: colors.background.default,
-      marginVertical: 16,
       padding: 16,
     },
     backButton: {

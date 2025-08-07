@@ -1,18 +1,18 @@
-'use strict';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import Browser from '../../../pages/Browser/BrowserView';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
 import AlertSystem from '../../../pages/Browser/Confirmations/AlertSystem';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import TestHelpers from '../../../helpers';
 import { loginToApp } from '../../../viewHelper';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { withFixtures } from '../../../fixtures/fixture-helper';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import { buildPermissions } from '../../../fixtures/utils';
+import { DappVariants } from '../../../framework/Constants';
+import { MockApiEndpoint } from '../../../framework/types';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
@@ -27,20 +27,20 @@ const typedSignRequestBody = {
 };
 
 describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
-  beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
-  });
-
   const runTest = async (
     testSpecificMock: {
-      GET?: Record<string, unknown>[];
-      POST?: Record<string, unknown>[];
+      GET?: MockApiEndpoint[];
+      POST?: MockApiEndpoint[];
     },
     alertAssertion: () => Promise<void>,
   ) => {
     await withFixtures(
       {
-        dapp: true,
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder()
           .withSepoliaNetwork()
           .withPermissionControllerConnectedToTestDapp(
@@ -61,7 +61,9 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
         await TabBarComponent.tapBrowser();
         await Browser.navigateToTestDApp();
         await TestDApp.tapTypedSignButton();
-        await Assertions.checkIfVisible(RequestTypes.TypedSignRequest);
+        await Assertions.expectElementToBeVisible(
+          RequestTypes.TypedSignRequest,
+        );
         await alertAssertion();
       },
     );
@@ -79,7 +81,9 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       };
 
       await runTest(testSpecificMock, async () => {
-        await Assertions.checkIfNotVisible(AlertSystem.securityAlertBanner);
+        await Assertions.expectElementToNotBeVisible(
+          AlertSystem.securityAlertBanner,
+        );
       });
     });
 
@@ -108,17 +112,23 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       };
 
       await runTest(testSpecificMock, async () => {
-        await Assertions.checkIfVisible(AlertSystem.securityAlertBanner);
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
+          AlertSystem.securityAlertBanner,
+        );
+        await Assertions.expectElementToBeVisible(
           AlertSystem.securityAlertResponseMaliciousBanner,
         );
         // Confirm request
         await FooterActions.tapConfirmButton();
-        await Assertions.checkIfVisible(AlertSystem.confirmAlertModal);
+        await Assertions.expectElementToBeVisible(
+          AlertSystem.confirmAlertModal,
+        );
         // Acknowledge and confirm alert
         await AlertSystem.tapConfirmAlertCheckbox();
         await AlertSystem.tapConfirmAlertButton();
-        await Assertions.checkIfNotVisible(RequestTypes.TypedSignRequest);
+        await Assertions.expectElementToNotBeVisible(
+          RequestTypes.TypedSignRequest,
+        );
       });
     });
 
@@ -129,6 +139,9 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
             urlEndpoint:
               'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
             responseCode: 500,
+            response: {
+              message: 'Internal Server Error',
+            },
           },
         ],
         POST: [
@@ -145,8 +158,10 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       };
 
       await runTest(testSpecificMock, async () => {
-        await Assertions.checkIfVisible(AlertSystem.securityAlertBanner);
-        await Assertions.checkIfVisible(
+        await Assertions.expectElementToBeVisible(
+          AlertSystem.securityAlertBanner,
+        );
+        await Assertions.expectElementToBeVisible(
           AlertSystem.securityAlertResponseFailedBanner,
         );
       });
@@ -157,7 +172,11 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
     it('should show mismatch field alert, click the alert, acknowledge and confirm the signature', async () => {
       await withFixtures(
         {
-          dapp: true,
+          dapps: [
+            {
+              dappVariant: DappVariants.TEST_DAPP,
+            },
+          ],
           fixture: new FixtureBuilder()
             .withSepoliaNetwork()
             .withPermissionControllerConnectedToTestDapp(
@@ -174,20 +193,28 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
           await TabBarComponent.tapBrowser();
           await Browser.navigateToTestDApp();
           await TestDApp.tapSIWEBadDomainButton();
-          await Assertions.checkIfVisible(RequestTypes.PersonalSignRequest);
-          await Assertions.checkIfVisible(AlertSystem.inlineAlert);
+          await Assertions.expectElementToBeVisible(
+            RequestTypes.PersonalSignRequest,
+          );
+          await Assertions.expectElementToBeVisible(AlertSystem.inlineAlert);
           // Open alert modal and acknowledge the alert
           await AlertSystem.tapInlineAlert();
-          await Assertions.checkIfVisible(AlertSystem.alertMismatchTitle);
+          await Assertions.expectElementToBeVisible(
+            AlertSystem.alertMismatchTitle,
+          );
           await AlertSystem.tapAcknowledgeAlertModal();
           await AlertSystem.tapGotItAlertModalButton();
           // Confirm request
           await FooterActions.tapConfirmButton();
-          await Assertions.checkIfVisible(AlertSystem.confirmAlertModal);
+          await Assertions.expectElementToBeVisible(
+            AlertSystem.confirmAlertModal,
+          );
           // Acknowledge and confirm alert
           await AlertSystem.tapConfirmAlertCheckbox();
           await AlertSystem.tapConfirmAlertButton();
-          await Assertions.checkIfNotVisible(RequestTypes.PersonalSignRequest);
+          await Assertions.expectElementToNotBeVisible(
+            RequestTypes.PersonalSignRequest,
+          );
         },
       );
     });

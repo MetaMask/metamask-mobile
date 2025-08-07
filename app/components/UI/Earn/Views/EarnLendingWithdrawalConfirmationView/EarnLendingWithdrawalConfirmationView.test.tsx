@@ -140,8 +140,10 @@ const mockLineaAUsdc = {
 jest.mock('../../hooks/useEarnToken', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
-    outputToken: mockLineaAUsdc,
-    earnToken: MOCK_USDC_MAINNET_ASSET,
+    earnTokenPair: {
+      earnToken: MOCK_USDC_MAINNET_ASSET,
+      outputToken: mockLineaAUsdc,
+    },
     getTokenSnapshot: jest.fn(),
   })),
 }));
@@ -379,8 +381,10 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
   it('handles token import and confirmation via subscription listener when no earnToken is present', async () => {
     // Update the mock to return no earnToken
     (useEarnToken as jest.Mock).mockReturnValueOnce({
-      outputToken: mockLineaAUsdc,
-      earnToken: null,
+      earnTokenPair: {
+        earnToken: null,
+        outputToken: mockLineaAUsdc,
+      },
       getTokenSnapshot: jest.fn(),
     });
 
@@ -450,8 +454,10 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
   it('should handle error adding counter-token on confirmation', async () => {
     // Update the mock to return no earnToken
     (useEarnToken as jest.Mock).mockReturnValueOnce({
-      outputToken: mockLineaAUsdc,
-      earnToken: null,
+      earnTokenPair: {
+        earnToken: null,
+        outputToken: mockLineaAUsdc,
+      },
       getTokenSnapshot: jest.fn(),
     });
 

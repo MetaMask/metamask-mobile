@@ -10,6 +10,10 @@ import {
   formatLargeNumber,
   formatPositionSize,
   formatLeverage,
+  parseCurrencyString,
+  parsePercentageString,
+  formatTransactionDate,
+  formatDateSection,
 } from './formatUtils';
 
 // Mock the formatWithThreshold utility
@@ -41,6 +45,12 @@ describe('formatUtils', () => {
 
     it('should handle small decimal values', () => {
       expect(formatPerpsFiat(0.1)).toBe('$0.10'); // Currency standard: at least 2 decimals
+    });
+
+    it('should return $0.00 for NaN values', () => {
+      expect(formatPerpsFiat('invalid')).toBe('$0.00');
+      expect(formatPerpsFiat('')).toBe('$0.00');
+      expect(formatPerpsFiat('abc')).toBe('$0.00');
     });
   });
 
@@ -255,6 +265,183 @@ describe('formatUtils', () => {
     it('should handle very large leverage values', () => {
       expect(formatLeverage(999.9)).toBe('999.9x');
       expect(formatLeverage('1000')).toBe('1000.0x');
+    });
+  });
+
+  describe('parseCurrencyString', () => {
+    it('should parse formatted currency strings', () => {
+      expect(parseCurrencyString('$1,234.56')).toBe(1234.56);
+      expect(parseCurrencyString('$1,000')).toBe(1000);
+      expect(parseCurrencyString('$0.00')).toBe(0);
+      expect(parseCurrencyString('$-123.45')).toBe(-123.45);
+    });
+
+    it('should handle strings without currency symbols', () => {
+      expect(parseCurrencyString('1234.56')).toBe(1234.56);
+      expect(parseCurrencyString('1,000')).toBe(1000);
+    });
+
+    it('should handle invalid inputs', () => {
+      expect(parseCurrencyString('')).toBe(0);
+      expect(parseCurrencyString('invalid')).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parseCurrencyString(null as any)).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parseCurrencyString(undefined as any)).toBe(0);
+    });
+  });
+
+  describe('parsePercentageString', () => {
+    it('should parse formatted percentage strings', () => {
+      expect(parsePercentageString('+2.50%')).toBe(2.5);
+      expect(parsePercentageString('-10.75%')).toBe(-10.75);
+      expect(parsePercentageString('5%')).toBe(5);
+      expect(parsePercentageString('0%')).toBe(0);
+      expect(parsePercentageString('+0.00%')).toBe(0);
+    });
+
+    it('should handle strings without percentage symbols', () => {
+      expect(parsePercentageString('2.5')).toBe(2.5);
+      expect(parsePercentageString('-10.75')).toBe(-10.75);
+      expect(parsePercentageString('+5')).toBe(5);
+    });
+
+    it('should handle spaces in the string', () => {
+      expect(parsePercentageString('+ 2.50 %')).toBe(2.5);
+      expect(parsePercentageString(' -10.75% ')).toBe(-10.75);
+    });
+
+    it('should handle invalid inputs', () => {
+      expect(parsePercentageString('')).toBe(0);
+      expect(parsePercentageString('abc')).toBe(0);
+      expect(parsePercentageString('%')).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parsePercentageString(undefined as any)).toBe(0);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect(parsePercentageString(null as any)).toBe(0);
+    });
+  });
+
+  describe('formatTransactionDate', () => {
+    it('should format timestamp to readable date string', () => {
+      const timestamp = 1642492800000; // January 18, 2022
+      expect(formatTransactionDate(timestamp)).toBe('January 18, 2022');
+    });
+
+    it('should handle different months correctly', () => {
+      // Use a timestamp that accounts for timezone - add 12 hours to ensure we're in the right day
+      const julyTimestamp = 1658188800000 + 12 * 60 * 60 * 1000; // July 19, 2022 12:00:00 UTC
+      expect(formatTransactionDate(julyTimestamp)).toBe('July 19, 2022');
+    });
+
+    it('should handle edge cases', () => {
+      // Use a timestamp that accounts for timezone - add 12 hours to ensure we're in the right day
+      const newYear = 1577836800000 + 12 * 60 * 60 * 1000; // January 1, 2020 12:00:00 UTC
+      expect(formatTransactionDate(newYear)).toBe('January 1, 2020');
+    });
+
+    it('should handle zero timestamp', () => {
+      // Use a timestamp that accounts for timezone - add 12 hours to ensure we're in the right day
+      const zeroTimestamp = 0 + 12 * 60 * 60 * 1000; // January 1, 1970 12:00:00 UTC
+      expect(formatTransactionDate(zeroTimestamp)).toBe('January 1, 1970');
+    });
+  });
+
+  describe('formatDateSection', () => {
+    let originalDate: typeof Date;
+    let mockDateNow: jest.SpyInstance;
+    let mockDateConstructor: jest.SpyInstance;
+
+    beforeEach(() => {
+      // Store the original Date constructor
+      originalDate = global.Date;
+    });
+
+    afterEach(() => {
+      // Restore the original Date constructor
+      global.Date = originalDate;
+      if (mockDateNow) {
+        mockDateNow.mockRestore();
+      }
+      if (mockDateConstructor) {
+        mockDateConstructor.mockRestore();
+      }
+    });
+
+    it('should return "Today" for current date', () => {
+      // Mock Date.now to return a specific timestamp
+      const mockNow = new Date('2022-01-18T12:00:00Z').getTime();
+      mockDateNow = jest.spyOn(Date, 'now').mockReturnValue(mockNow);
+
+      // Mock the Date constructor to return consistent dates
+      mockDateConstructor = jest
+        .spyOn(global, 'Date')
+        .mockImplementation((input?: string | number | Date) => {
+          if (input === undefined) {
+            return new originalDate(mockNow);
+          }
+          return new originalDate(input);
+        });
+
+      const todayTimestamp = mockNow;
+      expect(formatDateSection(todayTimestamp)).toBe('Today');
+    });
+
+    it('should return "Yesterday" for previous day', () => {
+      // Mock Date.now to return a specific timestamp
+      const mockNow = new Date('2022-01-18T12:00:00Z').getTime();
+      mockDateNow = jest.spyOn(Date, 'now').mockReturnValue(mockNow);
+
+      // Mock the Date constructor to return consistent dates
+      mockDateConstructor = jest
+        .spyOn(global, 'Date')
+        .mockImplementation((input?: string | number | Date) => {
+          if (input === undefined) {
+            return new originalDate(mockNow);
+          }
+          return new originalDate(input);
+        });
+
+      const yesterday = new Date('2022-01-17T12:00:00Z').getTime();
+      expect(formatDateSection(yesterday)).toBe('Yesterday');
+    });
+
+    it('should return formatted date for older dates', () => {
+      // Mock Date.now to return a specific timestamp
+      const mockNow = new Date('2022-01-18T12:00:00Z').getTime();
+      mockDateNow = jest.spyOn(Date, 'now').mockReturnValue(mockNow);
+
+      // Mock the Date constructor to return consistent dates
+      mockDateConstructor = jest
+        .spyOn(global, 'Date')
+        .mockImplementation((input?: string | number | Date) => {
+          if (input === undefined) {
+            return new originalDate(mockNow);
+          }
+          return new originalDate(input);
+        });
+
+      const olderDate = new Date('2022-01-15T12:00:00Z').getTime();
+      expect(formatDateSection(olderDate)).toBe('Jan, 15');
+    });
+
+    it('should handle different months', () => {
+      // Mock Date.now to return a specific timestamp
+      const mockNow = new Date('2022-01-18T12:00:00Z').getTime();
+      mockDateNow = jest.spyOn(Date, 'now').mockReturnValue(mockNow);
+
+      // Mock the Date constructor to return consistent dates
+      mockDateConstructor = jest
+        .spyOn(global, 'Date')
+        .mockImplementation((input?: string | number | Date) => {
+          if (input === undefined) {
+            return new originalDate(mockNow);
+          }
+          return new originalDate(input);
+        });
+
+      const julyDate = new Date('2021-07-15T12:00:00Z').getTime();
+      expect(formatDateSection(julyDate)).toBe('Jul, 15');
     });
   });
 });

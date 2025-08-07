@@ -293,6 +293,11 @@ import {
   AccountTreeControllerActions,
   AccountTreeControllerEvents,
 } from '@metamask/account-tree-controller';
+import {
+  MultichainAccountService,
+  MultichainAccountServiceActions,
+  MultichainAccountServiceEvents,
+} from '@metamask/multichain-account-service';
 
 /**
  * Controllers that area always instantiated
@@ -358,6 +363,7 @@ type GlobalActions =
   | MultichainAssetsControllerActions
   | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
+  | MultichainAccountServiceActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
@@ -412,6 +418,7 @@ type GlobalEvents =
   | MultichainAssetsControllerEvents
   | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
+  | MultichainAccountServiceEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -509,6 +516,7 @@ export type Controllers = {
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
   MultichainTransactionsController: MultichainTransactionsController;
+  MultichainAccountService: MultichainAccountService;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -630,6 +638,7 @@ export type ControllersToInitialize =
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
+  | 'MultichainAccountService'
   ///: END:ONLY_INCLUDE_IF
   | 'AccountTreeController'
   | 'AccountsController'

@@ -61,9 +61,18 @@ export interface StabilityOptions {
   interval?: number;
   stableCount?: number;
 }
+export interface RampsRegion {
+  currencies: string[];
+  emoji: string;
+  id: string;
+  name: string;
+  support: { buy: boolean; sell: boolean; recurringBuy: boolean };
+  unsupported: boolean;
+  recommended: boolean;
+  detected: boolean;
+}
 
 // Fixtures and Local Node Types
-
 // Available local node types
 export enum LocalNodeType {
   anvil = 'anvil',

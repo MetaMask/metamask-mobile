@@ -207,7 +207,7 @@ exports[`Login renders matching snapshot 1`] = `
                 secureTextEntry={true}
                 style={
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "inherit",
                     "borderColor": "transparent",
                     "borderWidth": 1,
                     "color": "#121314",
@@ -559,7 +559,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
                 secureTextEntry={true}
                 style={
                   {
-                    "backgroundColor": "#ffffff",
+                    "backgroundColor": "inherit",
                     "borderColor": "transparent",
                     "borderWidth": 1,
                     "color": "#121314",

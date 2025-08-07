@@ -515,7 +515,7 @@ class ChoosePassword extends PureComponent {
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
-        password_strength: getPasswordStrengthWord(this.state.passwordStrength),
+        account_type: provider ? `metamask_${provider}` : 'metamask',
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',

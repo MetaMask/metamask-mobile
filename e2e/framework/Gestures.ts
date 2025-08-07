@@ -92,6 +92,7 @@ export default class Gestures {
       checkEnabled = true,
       elemDescription,
       waitForElementToDisappear = false,
+      delay = 500,
     } = options;
 
     const fn = () =>
@@ -101,6 +102,7 @@ export default class Gestures {
         checkEnabled,
         elemDescription,
         waitForElementToDisappear,
+        delay,
       });
     return Utilities.executeWithRetry(fn, {
       timeout,
@@ -457,7 +459,7 @@ export default class Gestures {
             await waitFor(target).toBeVisible().withTimeout(100);
             return;
           } catch {
-            await scrollableElement.scroll(scrollAmount / 2, direction); // Decrease scroll amount for Android to avoid overshooting
+            await scrollableElement.scroll(scrollAmount, direction);
             await waitFor(target).toBeVisible().withTimeout(100);
           }
         } else {

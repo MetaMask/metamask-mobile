@@ -19,7 +19,17 @@ describe(SmokeNetworkAbstractions('Import all tokens detected'), () => {
   it('should import all tokens detected automatically', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().build(),
+        fixture: new FixtureBuilder()
+          .withDetectedTokens([
+            {
+              address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+              decimals: 18,
+              symbol: 'USDC',
+              chainId: '0x1',
+              name: 'USDCoin',
+            },
+          ])
+          .build(),
         restartDevice: true,
       },
       async () => {

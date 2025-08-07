@@ -24,8 +24,8 @@ export class AccountTreeInitService {
       this.isMultichainAccountsEnabledForState1(enableMultichainAccounts);
 
     if (isMultichainAccountsEnabled) {
-      AccountTreeController.init();
       await AccountsController.updateAccounts();
+      AccountTreeController.init();
     }
   };
 

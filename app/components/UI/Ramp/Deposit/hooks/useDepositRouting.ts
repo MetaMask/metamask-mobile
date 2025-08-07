@@ -20,9 +20,11 @@ import {
 } from '../utils';
 
 import { createKycProcessingNavDetails } from '../Views/KycProcessing/KycProcessing';
-import { createBasicInfoNavDetails } from '../Views/BasicInfo/BasicInfo';
+import {
+  BasicInfoFormData,
+  createBasicInfoNavDetails,
+} from '../Views/BasicInfo/BasicInfo';
 import { createBankDetailsNavDetails } from '../Views/BankDetails/BankDetails';
-import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 import { createWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/WebviewModal';
 import { createKycWebviewModalNavigationDetails } from '../Views/Modals/WebviewModal/KycWebviewModal';
 import { createOrderProcessingNavDetails } from '../Views/OrderProcessing/OrderProcessing';
@@ -31,6 +33,8 @@ import { createVerifyIdentityNavDetails } from '../Views/VerifyIdentity/VerifyId
 import useAnalytics from '../../hooks/useAnalytics';
 import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerification/AdditionalVerification';
 import Logger from '../../../../../../app/util/Logger';
+import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
+import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 
 export interface OttToken {
   token: string;
@@ -141,24 +145,18 @@ export const useDepositRouting = ({
     [navigation, popToBuildQuote, cryptoCurrencyChainId, paymentMethodId],
   );
 
-  const navigateToEnterEmailCallback = useCallback(
-    ({ quote }: { quote: BuyQuote }) => {
+  const navigateToBasicInfoCallback = useCallback(
+    ({
+      quote,
+      previousFormData,
+    }: {
+      quote: BuyQuote;
+      previousFormData?: BasicInfoFormData & AddressFormData;
+    }) => {
       popToBuildQuote();
       navigation.navigate(
-        ...createEnterEmailNavDetails({
-          quote,
-          paymentMethodId,
-          cryptoCurrencyChainId,
-        }),
+        ...createBasicInfoNavDetails({ quote, previousFormData }),
       );
-    },
-    [navigation, paymentMethodId, cryptoCurrencyChainId, popToBuildQuote],
-  );
-
-  const navigateToBasicInfoCallback = useCallback(
-    ({ quote }: { quote: BuyQuote }) => {
-      popToBuildQuote();
-      navigation.navigate(...createBasicInfoNavDetails({ quote }));
     },
     [navigation, popToBuildQuote],
   );
@@ -171,12 +169,16 @@ export const useDepositRouting = ({
       orderId: string;
       shouldUpdate?: boolean;
     }) => {
-      popToBuildQuote();
-      navigation.navigate(
-        ...createBankDetailsNavDetails({ orderId, shouldUpdate }),
-      );
+      const [name, params] = createBankDetailsNavDetails({
+        orderId,
+        shouldUpdate,
+      });
+      navigation.reset({
+        index: 0,
+        routes: [{ name, params }],
+      });
     },
-    [navigation, popToBuildQuote],
+    [navigation],
   );
 
   const navigateToOrderProcessingCallback = useCallback(
@@ -192,12 +194,21 @@ export const useDepositRouting = ({
   );
 
   const navigateToAdditionalVerificationCallback = useCallback(
-    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl: string }) => {
+    ({
+      quote,
+      kycUrl,
+      kycWorkflowRunId,
+    }: {
+      quote: BuyQuote;
+      kycUrl: string;
+      kycWorkflowRunId: string;
+    }) => {
       popToBuildQuote();
       navigation.navigate(
         ...createAdditionalVerificationNavDetails({
           quote,
           kycUrl,
+          kycWorkflowRunId,
           cryptoCurrencyChainId,
           paymentMethodId,
         }),
@@ -257,8 +268,7 @@ export const useDepositRouting = ({
                 payment_method_id: order.paymentMethod,
                 country: selectedRegion?.isoCode || '',
                 chain_id: cryptoCurrency?.chainId || '',
-                currency_destination:
-                  selectedWalletAddress || order.walletAddress,
+                currency_destination: cryptoCurrency?.assetId || '',
                 currency_source: order.fiatCurrency,
               });
             } catch (error) {
@@ -306,12 +316,21 @@ export const useDepositRouting = ({
   );
 
   const navigateToKycWebviewCallback = useCallback(
-    ({ quote, kycUrl }: { quote: BuyQuote; kycUrl: string }) => {
+    ({
+      quote,
+      kycUrl,
+      kycWorkflowRunId,
+    }: {
+      quote: BuyQuote;
+      kycUrl: string;
+      kycWorkflowRunId: string;
+    }) => {
       popToBuildQuote();
       navigation.navigate(
         ...createKycWebviewModalNavigationDetails({
           quote,
           sourceUrl: kycUrl,
+          kycWorkflowRunId,
           cryptoCurrencyChainId,
           paymentMethodId,
         }),
@@ -323,6 +342,19 @@ export const useDepositRouting = ({
   const routeAfterAuthentication = useCallback(
     async (quote: BuyQuote, depth = 0) => {
       try {
+        const userDetails = await fetchUserDetails();
+        const previousFormData = {
+          firstName: userDetails?.firstName || '',
+          lastName: userDetails?.lastName || '',
+          mobileNumber: userDetails?.mobileNumber || '',
+          dob: userDetails?.dob || '',
+          addressLine1: userDetails?.address?.addressLine1 || '',
+          addressLine2: userDetails?.address?.addressLine2 || '',
+          city: userDetails?.address?.city || '',
+          state: userDetails?.address?.state || '',
+          postCode: userDetails?.address?.postCode || '',
+          countryCode: userDetails?.address?.countryCode || '',
+        };
         const forms = await fetchKycForms(quote);
         const { forms: requiredForms } = forms || {};
 
@@ -333,8 +365,6 @@ export const useDepositRouting = ({
         // check kyc status and route to approved or pending flow
         if (requiredForms?.length === 0) {
           try {
-            const userDetails = await fetchUserDetails();
-
             if (!userDetails) {
               throw new Error('Missing user details');
             }
@@ -448,7 +478,7 @@ export const useDepositRouting = ({
             region: selectedRegion?.isoCode || '',
           });
 
-          navigateToBasicInfoCallback({ quote });
+          navigateToBasicInfoCallback({ quote, previousFormData });
           return;
         }
 
@@ -463,6 +493,7 @@ export const useDepositRouting = ({
             navigateToAdditionalVerificationCallback({
               quote,
               kycUrl: idProofData.data.kycUrl,
+              kycWorkflowRunId: idProofData.data.workFlowRunId,
             });
             return;
           }
@@ -472,13 +503,16 @@ export const useDepositRouting = ({
       } catch (error) {
         if ((error as AxiosError).status === 401) {
           await logoutFromProvider(false);
-          navigateToEnterEmailCallback({ quote });
+          popToBuildQuote();
+          navigation.navigate(...createEnterEmailNavDetails({}));
           return;
         }
         throw error;
       }
     },
     [
+      popToBuildQuote,
+      navigation,
       fetchKycForms,
       fetchKycFormData,
       fetchUserDetails,
@@ -489,7 +523,6 @@ export const useDepositRouting = ({
       navigateToKycProcessingCallback,
       submitPurposeOfUsage,
       logoutFromProvider,
-      navigateToEnterEmailCallback,
       navigateToBasicInfoCallback,
       trackEvent,
       navigateToAdditionalVerificationCallback,
@@ -508,12 +541,7 @@ export const useDepositRouting = ({
 
   return {
     routeAfterAuthentication,
-
-    // needed for direct route from Additional Verification Page
     navigateToKycWebview: navigateToKycWebviewCallback,
-
-    // needed for direct route from BQ to Verify Identity starter page, then to Enter Email page before the user logs in
     navigateToVerifyIdentity: navigateToVerifyIdentityCallback,
-    navigateToEnterEmail: navigateToEnterEmailCallback,
   };
 };

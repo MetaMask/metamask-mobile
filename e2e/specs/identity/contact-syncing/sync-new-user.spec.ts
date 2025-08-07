@@ -9,11 +9,11 @@ import { SmokeIdentity } from '../../../tags';
 import ContactsView from '../../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../../pages/Settings/Contacts/AddContactView';
 import SettingsView from '../../../pages/Settings/SettingsView';
-import Assertions from '../../../utils/Assertions';
+import Assertions from '../../../framework/Assertions';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { arrangeTestUtils } from '../utils/helpers';
 import { withIdentityFixtures } from '../utils/withIdentityFixtures';
-import FixtureBuilder from '../../../fixtures/fixture-builder';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { UserStorageMockttpController } from '../utils/user-storage/userStorageMockttpController';
 import { createUserStorageController } from '../utils/mocks';
 
@@ -42,11 +42,13 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
 
         await TabBarComponent.tapSettings();
         await TestHelpers.delay(2000);
-        await Assertions.checkIfVisible(SettingsView.contactsSettingsButton);
+        await Assertions.expectElementToBeVisible(
+          SettingsView.contactsSettingsButton,
+        );
         await SettingsView.tapContacts();
-        await Assertions.checkIfVisible(ContactsView.container);
+        await Assertions.expectElementToBeVisible(ContactsView.container);
         await ContactsView.tapAddContactButton();
-        await Assertions.checkIfVisible(AddContactView.container);
+        await Assertions.expectElementToBeVisible(AddContactView.container);
 
         const { waitUntilSyncedElementsNumberEquals } = arrangeTestUtils(
           userStorageMockttpController,
@@ -58,7 +60,7 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
         await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
         await AddContactView.tapAddContactButton();
         await TestHelpers.delay(2000);
-        await Assertions.checkIfVisible(ContactsView.container);
+        await Assertions.expectElementToBeVisible(ContactsView.container);
         await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
 
         // Verify contact was synced
@@ -83,9 +85,11 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
 
         await TabBarComponent.tapSettings();
         await TestHelpers.delay(2000);
-        await Assertions.checkIfVisible(SettingsView.contactsSettingsButton);
+        await Assertions.expectElementToBeVisible(
+          SettingsView.contactsSettingsButton,
+        );
         await SettingsView.tapContacts();
-        await Assertions.checkIfVisible(ContactsView.container);
+        await Assertions.expectElementToBeVisible(ContactsView.container);
         await TestHelpers.delay(4000);
 
         await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
