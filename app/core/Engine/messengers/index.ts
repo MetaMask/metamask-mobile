@@ -2,6 +2,7 @@ import { noop } from 'lodash';
 import { getAccountsControllerMessenger } from './accounts-controller-messenger';
 import { getAccountTreeControllerMessenger } from '../../../multichain-accounts/messengers/account-tree-controller-messenger';
 import { getMultichainNetworkControllerMessenger } from './multichain-network-controller-messenger/multichain-network-controller-messenger';
+import { getNetworkEnablementControllerMessenger } from './network-enablement-controller-messenger/network-enablement-controller-messenger';
 import { getCurrencyRateControllerMessenger } from './currency-rate-controller-messenger/currency-rate-controller-messenger';
 import { getAppMetadataControllerMessenger } from './app-metadata-controller-messenger';
 import {
@@ -137,6 +138,9 @@ export const CONTROLLER_MESSENGERS = {
   SeedlessOnboardingController: {
     getMessenger: getSeedlessOnboardingControllerMessenger,
     getInitMessenger: noop,
+  },
+  NetworkEnablementController: {
+    getMessenger: getNetworkEnablementControllerMessenger,
   },
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,

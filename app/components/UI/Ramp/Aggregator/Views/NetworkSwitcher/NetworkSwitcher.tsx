@@ -53,7 +53,7 @@ interface NetworkWithAdded extends Network, ExtendedNetwork {
 function NetworkSwitcher() {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const customNetworkStyle = customNetworkStyles();
+  const customNetworkStyle = customNetworkStyles({ colors });
   const trackEvent = useAnalytics();
 
   const [isLoadingNetworks, errorFetchingNetworks, fetchNetworks] =

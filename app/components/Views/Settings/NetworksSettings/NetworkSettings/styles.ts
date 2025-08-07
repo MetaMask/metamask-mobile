@@ -1,7 +1,8 @@
-import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
 import { StyleSheet } from 'react-native';
+import { isNetworkUiRedesignEnabled } from '../../../../../util/networks/isNetworkUiRedesignEnabled';
+import { Colors } from '../../../../../util/theme/models';
 
-const createStyles = () =>
+const createStyles = (params: { colors: Colors }) =>
   StyleSheet.create({
     popularNetwork: {
       flexDirection: 'row',
@@ -22,6 +23,13 @@ const createStyles = () =>
     icon: {
       marginRight: 16,
       marginTop: 4,
+    },
+    listHeader: {
+      color: params.colors.text.alternative,
+      marginVertical: 16,
+    },
+    iconContainer: {
+      marginRight: 12,
     },
   });
 
