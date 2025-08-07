@@ -12,6 +12,10 @@ import {
   otherControllersMock,
   tokenAddress1Mock,
 } from '../../__mocks__/controllers/other-controllers-mock';
+import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
+import { BridgeToken } from '../../../../UI/Bridge/types';
+
+jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
 
 const STATE_MOCK = merge(
   simpleSendTransactionControllerMock,
@@ -47,6 +51,21 @@ function runHook({
 }
 
 describe('useTransactionPayToken', () => {
+  const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+
+    useTokensWithBalanceMock.mockReturnValue([
+      {
+        address: tokenAddress1Mock,
+        balance: '123.456',
+        decimals: 4,
+        chainId: ChainId.mainnet,
+      },
+    ] as unknown as BridgeToken[]);
+  });
+
   it('returns default token if no state', () => {
     const { result } = runHook();
 
@@ -70,6 +89,14 @@ describe('useTransactionPayToken', () => {
     });
 
     expect(result.current.decimals).toEqual(4);
+  });
+
+  it('returns balance', () => {
+    const { result } = runHook({
+      payToken: PAY_TOKEN_MOCK,
+    });
+
+    expect(result.current.balanceHuman).toEqual('123.456');
   });
 
   it('sets token in state', () => {
