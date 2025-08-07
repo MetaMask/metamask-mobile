@@ -1135,8 +1135,7 @@
       "funding_rate": "Funding rate",
       "countdown": "Countdown",
       "long": "Long",
-      "short": "Short",
-      "existing_position_warning": "You have an open {{asset}} position"
+      "short": "Short"
     },
     "network": {
       "hyperliquid": "Hyperliquid"
