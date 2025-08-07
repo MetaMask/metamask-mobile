@@ -61,7 +61,7 @@ const StablecoinsByChainId: Partial<Record<Hex, Set<string>>> = {
  * @param chainId - The chain id of the swap.
  * @returns true if the source and destination tokens are both stablecoins, false otherwise.
  */
-const getIsStablecoinPair = (
+export const getIsStablecoinPair = (
   sourceTokenAddress: string,
   destTokenAddress: string,
   chainId: Hex,
@@ -89,7 +89,7 @@ const getIsStablecoinPair = (
  * @param prevSourceTokenAddress - The previous source token address.
  * @param prevDestTokenAddress - The previous destination token address.
  */
-export const handleStablecoinSlippage = ({
+export const handleEvmStablecoinSlippage = ({
   sourceTokenAddress,
   destTokenAddress,
   chainId,
@@ -153,7 +153,7 @@ export const useStablecoinsDefaultSlippage = ({
   const prevDestTokenAddress = usePrevious(destTokenAddress);
 
   useEffect(() => {
-    handleStablecoinSlippage({
+    handleEvmStablecoinSlippage({
       sourceTokenAddress,
       destTokenAddress,
       chainId,

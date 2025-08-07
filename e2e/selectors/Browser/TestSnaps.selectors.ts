@@ -7,6 +7,7 @@ export const TestSnapViewSelectorWebIDS = {
   connectBip32Button: 'connectbip32',
   connectBip44Button: 'connectbip44',
   connectClientStatusSnapButton: 'connectclient-status',
+  connectDialogSnapButton: 'connectdialogs',
   connectGetEntropyButton: 'connectGetEntropySnap',
   connectGetPreferencesButton: 'connectpreferences',
   connectJsonRpcButton: 'connectjson-rpc',
@@ -15,6 +16,7 @@ export const TestSnapViewSelectorWebIDS = {
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
   connectStateButton: 'connectstate',
+  connectWasmButton: 'connectwasm',
   getPreferencesButton: 'getPreferences',
   getPublicKeyBip44Button: 'sendBip44Test',
   signMessageBip44Button: 'signBip44Message',
@@ -24,7 +26,10 @@ export const TestSnapViewSelectorWebIDS = {
   signMessageBip32Secp256k1Button: 'sendBip32-secp256k1',
   signMessageBip32ed25519Button: 'sendBip32-ed25519',
   signMessageBip32ed25519Bip32Button: 'sendBip32-ed25519Bip32',
+  sendAlertButton: 'sendAlertButton',
   sendClientStatusButton: 'sendClientStatusTest',
+  sendConfirmationButton: 'sendConfirmationButton',
+  sendCustomButton: 'sendCustomButton',
   sendGetStateButton: 'sendGetState',
   sendGetUnencryptedStateButton: 'sendGetUnencryptedState',
   sendManageStateButton: 'sendManageState',
@@ -39,6 +44,7 @@ export const TestSnapViewSelectorWebIDS = {
   getChainIdButton: 'sendEthprovider',
   getAccountsButton: 'sendEthproviderAccounts',
   personalSignButton: 'signPersonalSignMessage',
+  sendWasmMessageButton: 'sendWasmMessage',
   signTypedDataButton: 'signTypedDataButton',
 };
 
@@ -59,6 +65,7 @@ export const TestSnapInputSelectorWebIDS = {
   webSocketUrlInput: 'webSocketUrl',
   personalSignMessageInput: 'personalSignMessage',
   signTypedDataMessageInput: 'signTypedData',
+  wasmInput: 'wasmInput',
 };
 
 export const EntropyDropDownSelectorWebIDS = {
@@ -78,6 +85,7 @@ export const TestSnapResultSelectorWebIDS = {
   clearManageStateResultSpan: 'clearManageStateResult',
   clearUnencryptedManageStateResultSpan: 'clearUnencryptedManageStateResult',
   clientStatusResultSpan: 'clientStatusResult',
+  dialogResultSpan: 'dialogResult',
   encryptedStateResultSpan: 'encryptedStateResult',
   entropySignResultSpan: 'entropySignResult',
   preferencesResultSpan: 'preferencesResult',
@@ -94,6 +102,7 @@ export const TestSnapResultSelectorWebIDS = {
   sendUnencryptedManageStateResultSpan: 'sendUnencryptedManageStateResult',
   signTypedDataResultSpan: 'signTypedDataResult',
   unencryptedStateResultSpan: 'unencryptedStateResult',
+  wasmResultSpan: 'wasmResult',
 };
 
 export const TestSnapBottomSheetSelectorWebIDS = {
