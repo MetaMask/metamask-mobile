@@ -541,10 +541,8 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      // Check that navigation to send flow was called
-      // The actual navigation depends on isSendRedesignEnabled()
       const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView' || call[0] === Routes.SEND.DEFAULT,
+        (call) => call[0] === 'SendFlowView',
       );
       expect(sendFlowNavigationCall).toBeDefined();
     });
@@ -580,10 +578,8 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      // Check that navigation to send flow was called
-      // The actual navigation depends on isSendRedesignEnabled()
       const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView' || call[0] === Routes.SEND.DEFAULT,
+        (call) => call[0] === 'SendFlowView',
       );
       expect(sendFlowNavigationCall).toBeDefined();
     });
@@ -699,7 +695,7 @@ describe('Wallet', () => {
 
       // Should still navigate even if there's an error
       const sendFlowNavigationCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'SendFlowView' || call[0] === Routes.SEND.DEFAULT,
+        (call) => call[0] === 'SendFlowView',
       );
       expect(sendFlowNavigationCall).toBeDefined();
     });
