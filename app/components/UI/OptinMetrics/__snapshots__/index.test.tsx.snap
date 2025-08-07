@@ -205,6 +205,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "paddingBottom": 16,
                           "paddingTop": 24,
                         }
                       }
@@ -218,6 +219,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
+                            "paddingBottom": 16,
                             "paddingTop": 24,
                           }
                         }
@@ -529,7 +531,13 @@ exports[`OptinMetrics Snapshots android render matches snapshot 1`] = `
                                 }
                               }
                             />
-                            <View>
+                            <View
+                              style={
+                                {
+                                  "marginBottom": 24,
+                                }
+                              }
+                            >
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -982,6 +990,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "paddingBottom": 16,
                           "paddingTop": 24,
                         }
                       }
@@ -995,6 +1004,7 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
+                            "paddingBottom": 16,
                             "paddingTop": 24,
                           }
                         }
@@ -1306,7 +1316,13 @@ exports[`OptinMetrics Snapshots android render matches snapshot with status bar 
                                 }
                               }
                             />
-                            <View>
+                            <View
+                              style={
+                                {
+                                  "marginBottom": 24,
+                                }
+                              }
+                            >
                               <Text
                                 accessibilityRole="text"
                                 style={
@@ -1871,6 +1887,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                         {
                           "backgroundColor": "#ffffff",
                           "flex": 1,
+                          "paddingBottom": 16,
                           "paddingTop": 24,
                         }
                       }
@@ -1884,6 +1901,7 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                           {
                             "backgroundColor": "#ffffff",
                             "flex": 1,
+                            "paddingBottom": 16,
                             "paddingTop": 24,
                           }
                         }
@@ -2195,7 +2213,13 @@ exports[`OptinMetrics Snapshots iOS renders correctly 1`] = `
                                 }
                               }
                             />
-                            <View>
+                            <View
+                              style={
+                                {
+                                  "marginBottom": 24,
+                                }
+                              }
+                            >
                               <Text
                                 accessibilityRole="text"
                                 style={

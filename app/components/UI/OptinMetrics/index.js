@@ -66,6 +66,7 @@ const createStyles = ({ colors }) =>
       backgroundColor: colors.background.default,
       paddingTop:
         Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
+      paddingBottom: 16,
     },
     checkbox: {
       display: 'flex',
@@ -93,6 +94,9 @@ const createStyles = ({ colors }) =>
       ...fontStyles.normal,
       fontSize: 12,
       color: colors.text.muted,
+    },
+    privacyPolicyContainer: {
+      marginBottom: 24,
     },
     actionContainer: {
       flexDirection: 'row',
@@ -464,7 +468,7 @@ class OptinMetrics extends PureComponent {
 
     if (isPastPrivacyPolicyDate) {
       return (
-        <View>
+        <View style={styles.privacyPolicyContainer}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('privacy_policy.fine_print_1') + ' '}
             <Text
@@ -481,7 +485,7 @@ class OptinMetrics extends PureComponent {
     }
 
     return (
-      <View>
+      <View style={styles.privacyPolicyContainer}>
         <Text style={styles.privacyPolicy}>
           <Text>{strings('privacy_policy.fine_print_1_legacy')}</Text>
           {'\n\n'}
