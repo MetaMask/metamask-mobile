@@ -30,7 +30,7 @@ describe(Regression('Auto-Lock'), () => {
     );
   });
 
-  it.only('sets auto-lock to immediately then requires password to reopen from background', async () => {
+  it('sets auto-lock to immediately then requires password to reopen from background', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
