@@ -118,6 +118,8 @@ describe('EngineService', () => {
     mockDispatch = jest.fn();
     jest.clearAllMocks();
     jest.resetAllMocks();
+    // Use fake timers to prevent timeout issues after Jest teardown
+    jest.useFakeTimers();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({
         engine: { backgroundState: { KeyringController: {} } },
@@ -126,6 +128,12 @@ describe('EngineService', () => {
     } as unknown as ReduxStore);
 
     engineService = new EngineService();
+  });
+
+  afterEach(() => {
+    // Clean up any pending timers to prevent Jest teardown issues
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   it('should have Engine initialized', async () => {
@@ -165,6 +173,9 @@ describe('EngineService', () => {
   });
 
   it('should have recovered vault on redux store and log initialization', async () => {
+    // Use real timers for this test to handle the Promise-based setTimeout
+    jest.useRealTimers();
+
     await engineService.start();
     const { success } = await engineService.initializeVaultFromBackup();
     expect(success).toBeTruthy();
@@ -175,6 +186,9 @@ describe('EngineService', () => {
         hasState: true,
       },
     );
+
+    // Restore fake timers for other tests
+    jest.useFakeTimers();
   });
 
   it('should navigate to vault recovery if Engine fails to initialize', async () => {
@@ -182,6 +196,10 @@ describe('EngineService', () => {
       throw new Error('Failed to initialize Engine');
     });
     engineService.start();
+
+    // Advance timers to trigger the navigation reset setTimeout (150ms)
+    jest.advanceTimersByTime(150);
+
     await waitFor(() => {
       // Logs error to Sentry
       expect(Logger.error).toHaveBeenCalledWith(
@@ -201,6 +219,9 @@ describe('EngineService', () => {
 
       // @ts-expect-error - accessing private property for testing
       engineService.updateBatcher.add(INIT_BG_STATE_KEY);
+
+      // Advance timers to trigger the batch flush
+      jest.advanceTimersByTime(250);
 
       // Wait for batcher to process
       await waitFor(() => {
@@ -222,6 +243,9 @@ describe('EngineService', () => {
         // @ts-expect-error - accessing private property for testing
         engineService.updateBatcher.add(key);
       });
+
+      // Advance timers to trigger the batch flush
+      jest.advanceTimersByTime(250);
 
       // Wait for batcher to process - should only handle INIT_BG_STATE_KEY
       await waitFor(() => {

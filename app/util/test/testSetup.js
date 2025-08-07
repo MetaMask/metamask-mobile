@@ -63,6 +63,14 @@ jest.mock('react-native-quick-crypto', () => ({
 
 jest.mock('react-native-blob-jsi-helper', () => ({}));
 
+// Create a persistent mock function that survives Jest teardown
+const mockBatchedUpdates = jest.fn((fn) => {
+  if (typeof fn === 'function') {
+    return fn();
+  }
+  return fn;
+});
+
 jest.mock('react-native', () => {
   const originalModule = jest.requireActual('react-native');
 
@@ -70,7 +78,7 @@ jest.mock('react-native', () => {
   originalModule.Platform.OS = 'ios'; // or 'android', depending on what you want to test
 
   // Mock unstable_batchedUpdates directly in the react-native module
-  originalModule.unstable_batchedUpdates = jest.fn((fn) => fn());
+  originalModule.unstable_batchedUpdates = mockBatchedUpdates;
 
   return originalModule;
 });
@@ -78,11 +86,18 @@ jest.mock('react-native', () => {
 // Mock unstable_batchedUpdates more reliably
 const ReactNative = require('react-native');
 if (ReactNative.unstable_batchedUpdates) {
-  ReactNative.unstable_batchedUpdates = jest.fn((fn) => fn());
+  ReactNative.unstable_batchedUpdates = mockBatchedUpdates;
 }
 
 // Also mock it globally as a fallback
-global.unstable_batchedUpdates = jest.fn((fn) => fn());
+global.unstable_batchedUpdates = mockBatchedUpdates;
+
+// Mock the specific module path that might be causing issues
+jest.mock('react-native/index.js', () => {
+  const originalModule = jest.requireActual('react-native');
+  originalModule.unstable_batchedUpdates = mockBatchedUpdates;
+  return originalModule;
+});
 
 /*
  * NOTE: react-native-webview requires a jest mock starting on v12.
