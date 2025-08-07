@@ -1232,6 +1232,7 @@
         "history_will_appear": "Your trading history will appear here"
       }
     },
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by {{provider}}.",
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",

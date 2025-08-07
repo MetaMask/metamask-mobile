@@ -44,6 +44,9 @@ import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types
 import PerpsBottomSheetTooltip, {
   PerpsTooltipContentKey,
 } from '../../components/PerpsBottomSheetTooltip';
+import { useSelector } from 'react-redux';
+import { selectPerpsProvider } from '../../selectors/perpsController';
+import { capitalize } from '../../../../../util/general';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
 }
@@ -67,6 +70,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
   ] = useState(false);
+
+  const perpsProvider = useSelector(selectPerpsProvider);
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
@@ -144,7 +149,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       style={[styles.container, { marginTop: top }]}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.scrollContent}
+      >
         {/* Market Header */}
         <PerpsMarketHeader
           market={market}
@@ -315,6 +323,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               </View>
             </View>
           </View>
+        </View>
+        <View>
+          <Text
+            style={styles.riskDisclaimer}
+            variant={TextVariant.BodyXS}
+            color={TextColor.Alternative}
+          >
+            {strings('perps.risk_disclaimer', {
+              provider: capitalize(perpsProvider),
+            })}
+          </Text>
         </View>
       </ScrollView>
 

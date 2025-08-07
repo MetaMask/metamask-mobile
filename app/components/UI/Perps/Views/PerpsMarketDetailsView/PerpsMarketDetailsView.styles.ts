@@ -19,7 +19,7 @@ export const createStyles = ({
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: 100, // Space for action buttons
+      paddingBottom: 75, // Space for action buttons
     },
     header: {
       flexDirection: 'row',
@@ -124,5 +124,10 @@ export const createStyles = ({
     },
     positionWarningText: {
       textAlign: 'center',
+    },
+    riskDisclaimer: {
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      textAlign: 'left',
     },
   });
