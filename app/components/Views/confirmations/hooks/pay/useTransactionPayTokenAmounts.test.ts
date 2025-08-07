@@ -44,6 +44,7 @@ describe('useTransactionPayTokenAmounts', () => {
     useTokenFiatRatesMock.mockReturnValue([4]);
 
     useTransactionPayTokenMock.mockReturnValue({
+      balanceHuman: '123.456',
       decimals: 4,
       payToken: {
         address: tokenAddress1Mock,
@@ -55,13 +56,32 @@ describe('useTransactionPayTokenAmounts', () => {
 
   it('returns source amounts', () => {
     const sourceAmounts = runHook();
-    expect(sourceAmounts).toEqual(['40308', '101140']);
+
+    expect(sourceAmounts).toEqual(
+      expect.objectContaining({
+        amounts: [
+          { amountHuman: '4.03075', amountRaw: '40308' },
+          { amountHuman: '10.114', amountRaw: '101140' },
+        ],
+      }),
+    );
   });
 
   it('returns undefined if no fiat rate', () => {
     useTokenFiatRatesMock.mockReturnValue([]);
 
     const sourceAmounts = runHook();
-    expect(sourceAmounts).toBeUndefined();
+    expect(sourceAmounts.amounts).toBeUndefined();
+  });
+
+  it('returns total amounts', () => {
+    const sourceAmounts = runHook();
+
+    expect(sourceAmounts).toEqual(
+      expect.objectContaining({
+        totalHuman: '14.14475',
+        totalRaw: '141448',
+      }),
+    );
   });
 });

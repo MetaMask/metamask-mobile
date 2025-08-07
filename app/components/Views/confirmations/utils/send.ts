@@ -107,3 +107,16 @@ export const submitNonEvmTransaction = async ({
     assetId: asset.address as CaipAssetType,
   });
 };
+
+export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
+  const decimals = decimalsToShow < 5 ? decimalsToShow : 5;
+  const val = parseFloat(value);
+  if (val) {
+    const minVal = 1 / Math.pow(10, decimals);
+    if (val < minVal) {
+      return `< ${minVal}`;
+    }
+    return val.toFixed(decimals);
+  }
+  return '0';
+}

@@ -49,6 +49,12 @@
     "batched_unused_approvals": {
       "title": "Unnecessary permission",
       "message": "You're giving someone else permission to withdraw your tokens, even though it's not necessary for this transaction."
+    },
+    "perps_deposit_minimum": {
+      "message": "Min order value is $10"
+    },
+    "insufficient_pay_token_balance": {
+      "message": "Insufficient funds. Select different token."
     }
   },
   "blockaid_banner": {
@@ -490,6 +496,9 @@
     "public_address": "Public Address"
   },
   "send": {
+    "available": "available",
+    "amount_insufficient": "Insufficient funds",
+    "continue": "Continue",
     "title": "Send",
     "deeplink_failure": "Something went wrong. Please try again",
     "warn_network_change": "Network changed to ",
@@ -4811,7 +4820,8 @@
       "now": "Now",
       "switching_to": "Switching To",
       "bridge_estimated_time": "Est. time",
-      "pay_with": "Pay with"
+      "pay_with": "Pay with",
+      "total": "Total"
     },
     "title": {
       "signature": "Signature request",
@@ -4931,7 +4941,8 @@
     "review": "Review",
     "transferRequest": "Transfer request",
     "nested_transaction_heading": "Transaction {{index}}",
-    "transaction": "Transaction"
+    "transaction": "Transaction",
+    "available_balance": "Available: "
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
