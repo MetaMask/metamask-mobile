@@ -56,7 +56,7 @@ jest.mock('./tags', () => ({
 }));
 
 describe('deriveSentryEnvironment', () => {
-  it('returns production-flask for non-dev production environment and flask build type', async () => {
+  it('returns flask-production for non-dev production environment and flask build type', async () => {
     const METAMASK_ENVIRONMENT = 'production';
     const METAMASK_BUILD_TYPE = 'flask';
     const isDev = false;
@@ -66,7 +66,7 @@ describe('deriveSentryEnvironment', () => {
       METAMASK_ENVIRONMENT,
       METAMASK_BUILD_TYPE,
     );
-    expect(env).toBe('production-flask');
+    expect(env).toBe('flask-production');
   });
 
   it('returns flask-dev for non-dev undefined environment and flask build type', async () => {
@@ -98,11 +98,11 @@ describe('deriveSentryEnvironment', () => {
     expect(env).toBe('dev');
   });
 
-  it('returns local for non-dev with both undefined environment and build type', async () => {
+  it('returns dev for non-dev with both undefined environment and build type', async () => {
     const isDev = false;
 
     const env = deriveSentryEnvironment(isDev);
-    expect(env).toBe('local');
+    expect(env).toBe('dev');
   });
 
   it('returns production for non-dev production environment and undefined  build type', async () => {
