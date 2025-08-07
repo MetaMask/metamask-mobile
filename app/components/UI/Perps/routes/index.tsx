@@ -121,13 +121,6 @@ const PerpsScreenStack = () => (
           animationEnabled: false,
         }}
       />
-
-      {/*
-      Removed for minimal PR (can be added back in future PRs):
-      - PerpsMarketListView (Market list)
-      - PerpsOrderHistoryView (Order history)
-      - PerpsOrderDetailsView (Order details)
-    */}
     </Stack.Navigator>
   </PerpsConnectionProvider>
 );

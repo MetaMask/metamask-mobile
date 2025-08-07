@@ -194,6 +194,7 @@ const BankDetails = () => {
       : null;
   const accountType = getFieldValue('Account Type');
   const bankName = getFieldValue('Bank Name');
+  const beneficiaryAddress = getFieldValue('Recipient Address');
   const bankAddress = getFieldValue('Bank Address');
   const routingNumber = getFieldValue('Routing Number');
   const accountNumber = getFieldValue('Account Number');
@@ -391,6 +392,15 @@ const BankDetails = () => {
                       <BankDetailRow
                         label={strings('deposit.bank_details.bank_name')}
                         value={bankName}
+                      />
+                    ) : null}
+
+                    {beneficiaryAddress ? (
+                      <BankDetailRow
+                        label={strings(
+                          'deposit.bank_details.beneficiary_address',
+                        )}
+                        value={beneficiaryAddress}
                       />
                     ) : null}
 
