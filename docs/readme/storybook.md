@@ -10,14 +10,14 @@ Storybook uses the same entry point as our main app (`index.js`), so you'll need
 
 1. **Modify the entry point** - Open `index.js` in the project root
 
-2. **Enable Storybook imports** - Uncomment the following lines (around lines 95-96):
+2. **Enable Storybook imports** - Uncomment the following lines:
 
    ```javascript
    import Storybook from './.storybook';
    AppRegistry.registerComponent(name, () => Storybook);
    ```
 
-3. **Disable the regular app registration** - Comment out the following lines (around lines 101-104):
+3. **Disable the regular app registration** - Comment out the following lines:
 
    ```javascript
    // AppRegistry.registerComponent(name, () =>
