@@ -1199,8 +1199,8 @@
         "size": "Size",
         "entry_price": "Entry price",
         "points": "Points",
-        "fees": "Fees",
-        "pnl": "P&L"
+        "fees": "Total fees",
+        "pnl": "Net P&L"
       },
       "order": {
         "date": "Date",
