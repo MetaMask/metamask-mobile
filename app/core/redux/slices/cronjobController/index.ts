@@ -1,6 +1,7 @@
 import { CronjobControllerState } from '@metamask/snaps-controllers';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { RootState } from '../../../../reducers';
+import { createSelector } from 'reselect';
 
 export interface CronjobControllerStorageState {
   storage?: CronjobControllerState;
@@ -31,5 +32,10 @@ const { actions, reducer } = slice;
 export default reducer;
 
 export const selectCronjobControllerState = (state: RootState) => state[name];
+
+export const selectCronjobControllerStorage = createSelector(
+  [selectCronjobControllerState],
+  ({ storage }) => storage,
+);
 
 export const { setCronjobControllerState } = actions;
