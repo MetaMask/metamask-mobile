@@ -45,8 +45,8 @@ export const useInitialDestToken = (
     defaultDestToken = getNativeSourceToken(destTokenTargetChainId);
   } else if (
     destTokenTargetChainId !== SolScope.Mainnet &&
-    initialSourceToken?.address.toLowerCase() ===
-      defaultDestToken?.address.toLowerCase()
+    initialSourceToken?.address?.toLowerCase() ===
+      defaultDestToken?.address?.toLowerCase()
   ) {
     // EVM addresses are NOT case sensitive
     defaultDestToken = getNativeSourceToken(destTokenTargetChainId);
