@@ -1,0 +1,5 @@
+self-hosted-runner:
+  labels:
+    - "gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl"
+    - "gha-mmsdk-scale-set-ubuntu-22.04-amd64-large"
+    - "gha-mm-scale-set-ubuntu-22.04-amd64-large"
