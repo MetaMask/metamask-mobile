@@ -985,6 +985,7 @@ class AuthenticationService {
         throw new Error('No account data found');
       }
     } catch (error) {
+      this.lockApp({ reset: false });
       Logger.error(error as Error);
       throw error;
     }
