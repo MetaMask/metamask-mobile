@@ -40,6 +40,15 @@ class SwapScreen {
     });
   }
 
+  async selectNetworkAndTokenTo(network, token) {
+    const networkButton = await AppwrightSelectors.getElementByText(this._device, 'USDC');
+    await networkButton.tap();
+    const solanaButton = await AppwrightSelectors.getElementByText(this._device, network);
+    await solanaButton.tap();
+    const tokenButton = await AppwrightSelectors.getElementByText(this._device, token);
+    await tokenButton.tap();
+  }
+
   // Helper method to split amount into digits
   splitAmountIntoDigits(amount) {
     // Convert to string and split into array of digits
