@@ -13,9 +13,20 @@ import { useDeepMemo } from '../useDeepMemo';
 
 const log = createProjectLogger('transaction-pay');
 
-export interface TransactionToken {
+interface TransactionTokenBase {
   address: Hex;
   amount: Hex;
+}
+
+export interface TransactionToken {
+  address: Hex;
+  amountRaw: string;
+  amountHuman: string;
+  balanceRaw: string;
+  balanceHuman: string;
+  decimals: number;
+  missingRaw: string;
+  missingHuman: string;
 }
 
 /**
@@ -36,10 +47,10 @@ export function useTransactionRequiredTokens() {
 
   const requiredTokens = useMemo(
     () =>
-      [gasToken, valueToken, tokenTransferToken].filter(
+      [gasToken, tokenTransferToken, valueToken].filter(
         (t) => t,
-      ) as TransactionToken[],
-    [gasToken, valueToken, tokenTransferToken],
+      ) as TransactionTokenBase[],
+    [gasToken, tokenTransferToken, valueToken],
   );
 
   const finalTokens = getPartialTokens(
@@ -57,7 +68,7 @@ export function useTransactionRequiredTokens() {
   return result;
 }
 
-function useTokenTransferToken(): TransactionToken | undefined {
+function useTokenTransferToken(): TransactionTokenBase | undefined {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { txParams } = transactionMetadata;
   const { data, to } = txParams;
@@ -87,7 +98,7 @@ function useTokenTransferToken(): TransactionToken | undefined {
   }, [transferAmount, to]);
 }
 
-function useValueToken(): TransactionToken | undefined {
+function useValueToken(): TransactionTokenBase | undefined {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { txParams } = transactionMetadata;
   const { value } = txParams;
@@ -104,7 +115,7 @@ function useValueToken(): TransactionToken | undefined {
   }, [value]);
 }
 
-function useGasToken(): TransactionToken | undefined {
+function useGasToken(): TransactionTokenBase | undefined {
   const maxGasCost = useTransactionMaxGasCost() ?? '0x0';
 
   return useMemo(() => {
@@ -117,7 +128,7 @@ function useGasToken(): TransactionToken | undefined {
 }
 
 function getPartialTokens(
-  tokens: TransactionToken[],
+  tokens: TransactionTokenBase[],
   balanceTokens: BridgeToken[],
   chainId: Hex,
 ): TransactionToken[] {
@@ -128,39 +139,36 @@ function getPartialTokens(
         t.chainId === chainId,
     );
 
-    if (!balanceToken?.balance) {
-      acc.push({
-        ...token,
-      });
+    const balanceHuman = balanceToken?.balance ?? '0';
+    const decimals = balanceToken?.decimals ?? 18;
+    const amountRaw = new BigNumber(token.amount, 16);
+    const amountHuman = amountRaw.shiftedBy(-decimals);
+    const balanceRaw = new BigNumber(balanceHuman, 10).shiftedBy(decimals);
+    const missingRaw = amountRaw.minus(balanceRaw);
+    const missingHuman = missingRaw.shiftedBy(-decimals);
 
-      return acc;
-    }
-
-    const { balance } = balanceToken;
-    const decimals = balanceToken.decimals ?? 18;
-
-    const requiredBalance = new BigNumber(token.amount, 16)
-      .shiftedBy(-decimals)
-      .minus(balance);
-
-    const requiredBalanceRaw = add0x(
-      requiredBalance.shiftedBy(decimals).toString(16),
-    );
-
-    if (requiredBalance.lte(0)) {
+    if (missingRaw.lte(0)) {
       return acc;
     }
 
     acc.push({
-      ...token,
-      amount: requiredBalanceRaw,
+      address: token.address,
+      amountHuman: amountHuman.toString(10),
+      amountRaw: amountRaw.toFixed(0),
+      balanceHuman,
+      balanceRaw: balanceRaw.toFixed(0),
+      decimals,
+      missingHuman: missingHuman.toString(),
+      missingRaw: missingRaw.toFixed(0),
     });
 
     return acc;
   }, [] as TransactionToken[]);
 }
 
-function getUniqueTokens(targets: TransactionToken[]): TransactionToken[] {
+function getUniqueTokens(
+  targets: TransactionTokenBase[],
+): TransactionTokenBase[] {
   return targets.reduce((acc, target) => {
     const existingToken = acc.find(
       (t) => t.address.toLowerCase() === target.address.toLowerCase(),
@@ -177,5 +185,5 @@ function getUniqueTokens(targets: TransactionToken[]): TransactionToken[] {
     }
 
     return acc;
-  }, [] as TransactionToken[]);
+  }, [] as TransactionTokenBase[]);
 }

@@ -1,4 +1,6 @@
 import { RpcEndpointType } from '@metamask/network-controller';
+import { SolScope } from '@metamask/keyring-api';
+import { AccountInformation } from '@metamask/assets-controllers';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
   MOCK_ADDRESS_2,
@@ -10,8 +12,6 @@ import {
 } from './accountTrackerController';
 import { mockNetworkState } from '../util/test/network';
 import mockedEngine from '../core/__mocks__/MockedEngine';
-import { SolScope } from '@metamask/keyring-api';
-import { AccountInformation } from '@metamask/assets-controllers';
 
 const MOCK_CHAIN_ID = '0x1';
 

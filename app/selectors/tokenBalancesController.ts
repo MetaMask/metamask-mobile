@@ -138,3 +138,17 @@ export const selectAddressHasTokenBalances = createDeepEqualSelector(
     return false;
   },
 );
+
+export const selectContractBalancesByContextualChainId = createSelector(
+  selectTokenBalancesControllerState,
+  selectSelectedInternalAccountAddress,
+  selectSendFlowContextualChainId,
+  (
+    tokenBalancesControllerState: TokenBalancesControllerState,
+    selectedInternalAccountAddress: string | undefined,
+    contextualChainId: string,
+  ) =>
+    tokenBalancesControllerState.tokenBalances?.[
+      selectedInternalAccountAddress as Hex
+    ]?.[contextualChainId as Hex] ?? {},
+);

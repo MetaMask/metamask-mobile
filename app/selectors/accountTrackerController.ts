@@ -46,3 +46,9 @@ export const selectAccountBalanceByChainId = createDeepEqualSelector(
     return accountsBalance;
   },
 );
+
+export const selectAccountsByContextualChainId = createDeepEqualSelector(
+  [selectAccountsByChainId, selectSendFlowContextualChainId, selectEvmChainId],
+  (accountsByChainId, contextualChainId, chainId) =>
+    accountsByChainId?.[contextualChainId || chainId] || {},
+);
