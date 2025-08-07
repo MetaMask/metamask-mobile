@@ -22,12 +22,6 @@ export const selectAccounts = createDeepEqualSelector(
   (accountsByChainId, chainId) => accountsByChainId?.[chainId] || {},
 );
 
-export const selectAccountsByContextualChainId = createDeepEqualSelector(
-  [selectAccountsByChainId, selectSendFlowContextualChainId, selectEvmChainId],
-  (accountsByChainId, contextualChainId, chainId) =>
-    accountsByChainId?.[contextualChainId || chainId] || {},
-);
-
 export const selectAccountsLength = createSelector(
   selectAccounts,
   (accounts) => Object.keys(accounts).length,
