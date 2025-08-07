@@ -69,6 +69,9 @@ jest.mock('react-native', () => {
   // Set the Platform.OS property to the desired value
   originalModule.Platform.OS = 'ios'; // or 'android', depending on what you want to test
 
+  // Mock unstable_batchedUpdates directly in the react-native module
+  originalModule.unstable_batchedUpdates = jest.fn((fn) => fn());
+
   return originalModule;
 });
 
