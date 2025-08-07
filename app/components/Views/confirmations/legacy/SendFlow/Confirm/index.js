@@ -465,7 +465,7 @@ class Confirm extends PureComponent {
     }
 
     const currentContractBalances = isRemoveGlobalNetworkSelectorEnabled()
-      ? contractBalancesByChainId
+      ? contractBalancesByChainId || {}
       : contractBalances;
 
     const weiBalance = hexToBN(currentContractBalances[selectedAsset.address]);
