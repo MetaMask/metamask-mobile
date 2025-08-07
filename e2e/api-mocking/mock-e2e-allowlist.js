@@ -2,8 +2,9 @@
 // This list is temporary and the goal is to reduce it to 0, meaning all requests are mocked in our e2e tests.
 
 export const ALLOWLISTED_HOSTS = [
-  'localhost',
+  '0.0.0.0',
   '127.0.0.1',
+  'localhost',
   '10.0.2.2', // Android emulator host
   'api.tenderly.co',
   'rpc.tenderly.co',

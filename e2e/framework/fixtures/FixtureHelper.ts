@@ -14,6 +14,7 @@ import {
 import Utilities from '../../utils/Utilities';
 import TestHelpers from '../../helpers';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { DEFAULT_MOCKS } from '../../api-mocking/default-mocks';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
 import {
@@ -37,7 +38,6 @@ import {
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
-import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
 import { type Mockttp } from 'mockttp';
 
 const logger = createLogger({
@@ -317,6 +317,48 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   logger.debug('The fixture server is stopped');
 };
 
+/**
+ * Merges test-specific mocks with default mocks, prioritizing test-specific mocks
+ * @param testSpecificMocks - Test-specific mock events organized by method
+ * @returns Merged mock events with test-specific mocks taking priority
+ */
+const mergeWithDefaultMocks = (
+  testSpecificMocks: TestSpecificMock | undefined,
+) => {
+  if (!testSpecificMocks) {
+    return DEFAULT_MOCKS;
+  }
+
+  const mergedMocks: TestSpecificMock = {};
+
+  // Get all HTTP methods from both test-specific and default mocks
+  const allMethods = new Set([
+    ...Object.keys(testSpecificMocks),
+    ...Object.keys(DEFAULT_MOCKS),
+  ]);
+
+  allMethods.forEach((method) => {
+    const testMocks = testSpecificMocks[method as keyof TestSpecificMock] || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const defaultMocks = (DEFAULT_MOCKS as any)[method] || [];
+
+    // Create a set of URLs that already exist in test-specific mocks
+    const testMockUrls = new Set(testMocks.map((mock) => mock.urlEndpoint));
+
+    // Filter out default mocks that have the same URL as test-specific mocks
+    const filteredDefaultMocks = defaultMocks.filter(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (defaultMock: any) => !testMockUrls.has(defaultMock.urlEndpoint),
+    );
+
+    // Merge test-specific mocks first, then append non-duplicate default mocks
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mergedMocks as any)[method] = [...testMocks, ...filteredDefaultMocks];
+  });
+
+  return mergedMocks;
+};
+
 export const createMockAPIServer = async (
   mockServerInstance?: Mockttp,
   testSpecificMock?: TestSpecificMock,
@@ -348,8 +390,10 @@ export const createMockAPIServer = async (
   // testSpecificMock only
   if (!mockServerInstance && testSpecificMock) {
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+    const mergedMocks = mergeWithDefaultMocks(testSpecificMock);
+    mockServer = await startMockServer(mergedMocks, mockServerPort);
 
+    logger.debug('Merged mocks:', mergedMocks);
     logger.debug(
       `Mock server started from testSpecificMock on port ${mockServerPort}`,
     );
@@ -358,7 +402,8 @@ export const createMockAPIServer = async (
   // neither
   if (!mockServerInstance && !testSpecificMock) {
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer({}, mockServerPort);
+    const mergedMocks = mergeWithDefaultMocks(undefined);
+    mockServer = await startMockServer(mergedMocks, mockServerPort);
 
     logger.debug(
       `Mock server started from testSpecificMock on port ${mockServerPort}`,
@@ -368,9 +413,6 @@ export const createMockAPIServer = async (
   if (!mockServer) {
     throw new Error('Test setup failure, no mock server setup');
   }
-
-  // Additional Global Mocks
-  await mockNotificationServices(mockServer);
 
   return {
     mockServer,
