@@ -59,7 +59,7 @@ jest.mock('../../../../../../util/theme', () => ({
   }),
 }));
 
-jest.mock('../../../hooks/send/useSelectedEVMAccountTokens', () => ({
+jest.mock('../../../hooks/send/evm/useSelectedEVMAccountTokens', () => ({
   useSelectedEVMAccountTokens: () => mockTokens,
 }));
 

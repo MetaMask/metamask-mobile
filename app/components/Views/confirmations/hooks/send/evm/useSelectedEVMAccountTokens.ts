@@ -2,33 +2,34 @@ import { createSelector } from 'reselect';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 
-import { selectEvmTokensWithZeroBalanceFilter } from '../../../../../selectors/multichain/evm';
-import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { selectEvmTokensWithZeroBalanceFilter } from '../../../../../../selectors/multichain/evm';
+import { selectIsEvmNetworkSelected } from '../../../../../../selectors/multichainNetworkController';
 import {
   // eslint-disable-next-line no-restricted-syntax
   selectChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
- selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { TokenI } from '../../../../../components/UI/Tokens/types';
+  selectNetworkConfigurations,
+} from '../../../../../../selectors/networkController';
+import { TokenI } from '../../../../../../components/UI/Tokens/types';
 import {
   selectSingleTokenBalance,
   selectTokensBalances,
-} from '../../../../../selectors/tokenBalancesController';
-import { isTestNet } from '../../../../../util/networks';
-import { createDeepEqualSelector } from '../../../../../selectors/util';
-import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
-import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
+} from '../../../../../../selectors/tokenBalancesController';
+import { isTestNet } from '../../../../../../util/networks';
+import { createDeepEqualSelector } from '../../../../../../selectors/util';
+import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
+import { selectTokenMarketData } from '../../../../../../selectors/tokenRatesController';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
-import { deriveBalanceFromAssetMarketDetails } from '../../../../../components/UI/Tokens/util';
-import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
-import { getNetworkBadgeSource } from '../../utils/network';
-import { convertHexBalanceToDecimal } from '../../utils/conversion';
-import { AssetType } from '../../types/token';
-import { useSendContext } from '../../context/send-context';
+} from '../../../../../../selectors/currencyRateController';
+import { deriveBalanceFromAssetMarketDetails } from '../../../../../../components/UI/Tokens/util';
+import { RootState } from '../../../../../../reducers';
+import { getNetworkBadgeSource } from '../../../utils/network';
+import { AssetType } from '../../../types/token';
+import { useSendContext } from '../../../context/send-context';
+import { renderFromTokenMinimalUnit } from '../../../../../../util/number';
 
 const selectEvmTokens = createDeepEqualSelector(
   selectEvmTokensWithZeroBalanceFilter,
@@ -120,7 +121,7 @@ const selectSelectedEVMAccountTokens = createSelector(
         const hexBalance = tokenBalance[token.address as Hex];
         let balance = token.balance;
         if (!balance && hexBalance) {
-          balance = convertHexBalanceToDecimal(
+          balance = renderFromTokenMinimalUnit(
             hexBalance,
             token.decimals || 18,
           );

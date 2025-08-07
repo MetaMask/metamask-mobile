@@ -7,7 +7,7 @@ import { useTheme } from '../../../../../../util/theme';
 import TabBar from '../../../../../../component-library/components-temp/TabBar/TabBar';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import { TextFieldSize } from '../../../../../../component-library/components/Form/TextField/TextField.types';
-import { useSelectedEVMAccountTokens } from '../../../hooks/send/useSelectedEVMAccountTokens';
+import { useSelectedEVMAccountTokens } from '../../../hooks/send/evm/useSelectedEVMAccountTokens';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
 import { useSendActions } from '../../../hooks/send/useSendActions';
 import { useSendAssetNavbar } from '../../UI/navbar/navbar';
