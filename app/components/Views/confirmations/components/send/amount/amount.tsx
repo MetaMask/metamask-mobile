@@ -1,43 +1,44 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
+import { strings } from '../../../../../../../locales/i18n';
 import Button, {
+  ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import Input from '../../../../../../component-library/components/Form/TextField/foundation/Input';
-import Text, {
-  TextColor,
-} from '../../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../hooks/useStyles';
-import useAmountValidation from '../../../hooks/send/useAmountValidation';
-import useMaxAmount from '../../../hooks/send/useMaxAmount';
-import { useSendContext } from '../../../context/send-context';
-import styleSheet from './amount.styles';
+import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
+import { useRouteParams } from '../../../hooks/send/useRouteParams';
+import { useSendScreenNavigation } from '../../../hooks/send/useSendScreenNavigation';
+import { AmountEdit } from './amount-edit';
+import { styleSheet } from './amount.styles';
 
-const Amount = () => {
+export const Amount = () => {
+  const { gotToSendScreen } = useSendScreenNavigation();
   const { styles } = useStyles(styleSheet, {});
-  const { value, updateValue } = useSendContext();
-  const { updateToMaxAmount } = useMaxAmount();
-  const { amountError } = useAmountValidation();
-  // todo: include to address validation
+  const { invalidAmount, insufficientBalance } = useAmountValidation();
+  useRouteParams();
+
+  const goToNextPage = useCallback(() => {
+    gotToSendScreen(Routes.SEND.RECIPIENT);
+  }, [gotToSendScreen]);
 
   return (
-    <View>
-      <Text>Value:</Text>
-      <Input
-        style={styles.input}
-        value={value}
-        onChangeText={updateValue}
-        testID="send_amount"
-      />
-      <Text color={TextColor.Error}>{amountError}</Text>
-      <Button
-        label="Max"
-        onPress={updateToMaxAmount}
-        variant={ButtonVariants.Secondary}
-      />
+    <View style={styles.container}>
+      <AmountEdit />
+      {!invalidAmount && (
+        <Button
+          label={
+            insufficientBalance
+              ? strings('send.amount_insufficient')
+              : strings('send.continue')
+          }
+          onPress={goToNextPage}
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+        />
+      )}
     </View>
   );
 };
-
-export default Amount;

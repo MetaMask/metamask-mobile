@@ -12,7 +12,7 @@ import {
 /**
  * ActionListItem component props.
  */
-export interface ActionListItemProps extends PressableProps {
+export interface ActionListItemProps extends Omit<PressableProps, 'disabled'> {
   /**
    * Label for the list item - can be string or React node.
    */
@@ -46,4 +46,9 @@ export interface ActionListItemProps extends PressableProps {
    * Optional props to spread to the Icon component when iconName is provided.
    */
   iconProps?: Partial<IconProps>;
+  /**
+   * Whether the list item is disabled.
+   * When true, applies 50% opacity and disables interactions.
+   */
+  isDisabled?: boolean;
 }

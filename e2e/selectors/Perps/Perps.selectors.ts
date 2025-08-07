@@ -9,12 +9,19 @@ export const PerpsCandlestickChartSelectorsIDs = {
   CANDLES: 'candlestick-chart-candles',
   CROSSHAIR: 'candlestick-chart-crosshair',
   TOOLTIP: 'candlestick-chart-tooltip',
+  LOADING_SKELETON: 'perps-chart-loading-skeleton',
+  SKELETON: 'perps-chart-skeleton',
 
   // Chart states
   LOADING_STATE: 'chart-loading-state',
   DATA_STATE: 'chart-data-state',
   SELECTED_INTERVAL: 'chart-selected-interval',
   INTERVAL_CHANGE: 'chart-interval-change',
+
+  // Duration selector states
+  DURATION_SELECTOR: 'perps-chart-duration-selector',
+  DURATION_SELECTOR_LOADING: 'perps-chart-duration-selector-loading',
+  DURATION_SELECTOR_NO_DATA: 'perps-chart-duration-selector-no-data',
 
   // Interval selector states
   INTERVAL_SELECTOR: 'perps-chart-interval-selector',
@@ -147,11 +154,36 @@ export const PerpsPositionsViewSelectorsIDs = {
 
 export const PerpsPositionDetailsViewSelectorsIDs = {
   CANDLESTICK_CHART: 'candlestick-chart',
+  // Bottom sheets
+  TPSL_BOTTOMSHEET: 'perps-tpsl-bottomsheet',
+  CLOSE_POSITION_BOTTOMSHEET: 'perps-close-position-bottomsheet',
+  CONFIRM_CLOSE_POSITION: 'confirm-close-position',
+  CANDLE_PERIOD_BOTTOMSHEET: 'perps-candle-period-bottom-sheet',
+  // Chart component mocks (for tests)
+  CHART_PROVIDER: 'chart-provider',
+  CHART_CANDLES: 'chart-candles',
+  CHART_CROSSHAIR: 'chart-crosshair',
+  CHART_TOOLTIP: 'chart-tooltip',
 };
 
 // Helper functions for dynamic view selectors
 export const getPerpsViewSelector = {
   buttonIcon: (iconName: string) => `button-icon-${iconName.toLowerCase()}`,
+  chartDurationButton: (duration: string) =>
+    `perps-chart-duration-selector-duration-${duration}`,
+};
+
+// Helper functions for PerpsTimeDurationSelector dynamic selectors
+export const getPerpsTimeDurationSelector = {
+  durationButton: (baseTestID: string, duration: string) =>
+    `${baseTestID}-duration-${duration}`,
+  gearButton: (baseTestID: string) => `${baseTestID}-gear-button`,
+};
+
+// Helper functions for PerpsCandlePeriodBottomSheet dynamic selectors
+export const getPerpsCandlePeriodBottomSheetSelector = {
+  periodButton: (baseTestID: string, period: string) =>
+    `${baseTestID}-period-${period}`,
 };
 
 // ========================================
@@ -182,6 +214,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   STATISTICS_FUNDING_COUNTDOWN: 'perps-statistics-funding-countdown',
   LONG_BUTTON: 'perps-long-button',
   SHORT_BUTTON: 'perps-short-button',
+  CANDLE_PERIOD_BOTTOM_SHEET: 'perps-market-candle-period-bottom-sheet',
 };
 
 // ========================================
@@ -214,4 +247,25 @@ export const PerpsTestnetToggleSelectorsIDs = {
 
 export const PerpsDeveloperOptionsSectionSelectorsIDs = {
   PERPS_SANDBOX_BUTTON: 'perps-developer-options-section-perps-sandbox-button',
+};
+
+// ========================================
+// PERPS TRANSACTION SELECTORS
+// ========================================
+
+export const PerpsTransactionSelectorsIDs = {
+  // Transaction Detail Asset Hero
+  TRANSACTION_DETAIL_ASSET_HERO: 'perps-transaction-detail-asset-hero',
+  ASSET_ICON_CONTAINER: 'asset-icon-container',
+
+  // Transaction Item
+  TRANSACTION_ITEM: 'transaction-item',
+  TRANSACTION_ITEM_AVATAR: 'transaction-item-avatar',
+
+  // Transaction Views
+  FUNDING_TRANSACTION_VIEW: 'perps-funding-transaction-view',
+  ORDER_TRANSACTION_VIEW: 'perps-order-transaction-view',
+
+  // Common buttons
+  BLOCK_EXPLORER_BUTTON: 'block-explorer-button',
 };
