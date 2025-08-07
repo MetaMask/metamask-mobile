@@ -22,9 +22,10 @@ jest.mock('../core/EngineService/constants', () => ({
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../util/device';
-import persistConfig from './persistConfig';
+import persistConfig, { ControllerStorage } from './persistConfig';
 import { version } from './migrations';
 import { Transform } from 'redux-persist';
+import Logger from '../util/Logger';
 
 interface FieldMetadata {
   persist: boolean;
@@ -165,6 +166,172 @@ describe('persistConfig', () => {
     it('remove item using FilesystemStorage', async () => {
       await persistConfig.storage.removeItem(mockKey);
       expect(FilesystemStorage.removeItem).toHaveBeenCalledWith(mockKey);
+    });
+  });
+
+  describe('ControllerStorage.getKey()', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('returns empty backgroundState for fresh install (no persisted data)', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockResolvedValue(null);
+
+      const result = await ControllerStorage.getKey();
+
+      expect(result).toEqual({ backgroundState: {} });
+    });
+
+    it('includes only controllers with meaningful state', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === 'persist:KeyringController') {
+          return JSON.stringify({ vault: 'encrypted_data', isUnlocked: false });
+        }
+        if (key === 'persist:PreferencesController') {
+          return JSON.stringify({ selectedAddress: '0x123' });
+        }
+        // Other controllers have no data
+        return null;
+      });
+
+      const result = await ControllerStorage.getKey();
+
+      expect(result).toEqual({
+        backgroundState: {
+          KeyringController: { vault: 'encrypted_data', isUnlocked: false },
+          PreferencesController: { selectedAddress: '0x123' },
+        },
+      });
+    });
+
+    it('excludes controllers with empty state objects', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === 'persist:KeyringController') {
+          return JSON.stringify({ vault: 'encrypted_data' });
+        }
+        if (key === 'persist:PreferencesController') {
+          return JSON.stringify({}); // Empty state
+        }
+        return null;
+      });
+
+      const result = await ControllerStorage.getKey();
+
+      expect(result).toEqual({
+        backgroundState: {
+          KeyringController: { vault: 'encrypted_data' },
+          // PreferencesController excluded because it's empty
+        },
+      });
+    });
+
+    it('handles _persist metadata removal correctly', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === 'persist:KeyringController') {
+          return JSON.stringify({
+            vault: 'encrypted_data',
+            _persist: { version: 1, rehydrated: true },
+          });
+        }
+        return null;
+      });
+
+      const result = await ControllerStorage.getKey();
+
+      expect(result).toEqual({
+        backgroundState: {
+          KeyringController: { vault: 'encrypted_data' },
+          // _persist metadata should be removed
+        },
+      });
+    });
+
+    it('handles invalid JSON data gracefully', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === 'persist:KeyringController') {
+          return 'invalid json';
+        }
+        return null;
+      });
+
+      const result = await ControllerStorage.getKey();
+
+      expect(result).toEqual({ backgroundState: {} });
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: 'Failed to get controller state for KeyringController',
+        }),
+      );
+    });
+
+    it('handles non-object parsed data gracefully', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === 'persist:KeyringController') {
+          return JSON.stringify(null); // Valid JSON but not an object
+        }
+        if (key === 'persist:PreferencesController') {
+          return JSON.stringify('string'); // Valid JSON but string
+        }
+        if (key === 'persist:NetworkController') {
+          return JSON.stringify([1, 2, 3]); // Valid JSON but array
+        }
+        return null;
+      });
+
+      const result = await ControllerStorage.getKey();
+
+      expect(result).toEqual({ backgroundState: {} });
+      expect(Logger.error).toHaveBeenCalledWith(
+        new Error(
+          'Invalid persisted data for KeyringController: not an object',
+        ),
+      );
+      expect(Logger.error).toHaveBeenCalledWith(
+        new Error(
+          'Invalid persisted data for PreferencesController: not an object',
+        ),
+      );
+      expect(Logger.error).toHaveBeenCalledWith(
+        new Error(
+          'Invalid persisted data for NetworkController: not an object',
+        ),
+      );
+    });
+
+    it('handles FilesystemStorage errors gracefully', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockImplementation((key) => {
+        if (key === 'persist:KeyringController') {
+          throw new Error('Storage access failed');
+        }
+        return null;
+      });
+
+      const result = await ControllerStorage.getKey();
+
+      expect(result).toEqual({ backgroundState: {} });
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: 'Failed to get controller state for KeyringController',
+        }),
+      );
+    });
+
+    it('handles overall method failure gracefully', async () => {
+      (FilesystemStorage.getItem as jest.Mock).mockRejectedValue(
+        new Error('Complete storage failure'),
+      );
+
+      const result = await ControllerStorage.getKey();
+
+      expect(result).toEqual({ backgroundState: {} });
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          message: 'Failed to gather controller states',
+        }),
+      );
     });
   });
 

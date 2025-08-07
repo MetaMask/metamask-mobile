@@ -56,7 +56,6 @@ export default async function migrate(state: unknown) {
 
     const { engine } = state;
 
-    // Check if old engine data exists
     if (
       hasProperty(engine, 'backgroundState') &&
       isObject(engine.backgroundState) &&
@@ -70,7 +69,6 @@ export default async function migrate(state: unknown) {
       let migratedControllers = 0;
       let failedControllers = 0;
 
-      // Migrate each controller to individual storage
       for (const controllerName of CONTROLLER_LIST) {
         try {
           if (
@@ -79,7 +77,6 @@ export default async function migrate(state: unknown) {
           ) {
             const controllerState = controllers[controllerName];
 
-            // Save raw controller data to individual file (filtering will be applied later)
             const key = `persist:${controllerName}`;
             const value = JSON.stringify(controllerState);
 
@@ -106,7 +103,6 @@ export default async function migrate(state: unknown) {
         `Migration 92: Migration completed. Migrated: ${migratedControllers}, Failed: ${failedControllers}`,
       );
 
-      // Clear the old engine data from redux-persist
       engine.backgroundState = {};
 
       Logger.log('Migration 92: Cleared old engine data from redux-persist');

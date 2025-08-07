@@ -74,7 +74,6 @@ export const ControllerStorage = {
   },
   async getKey(): Promise<Record<string, unknown>> {
     try {
-      // Gather all controller states from individual storage keys using Promise.all
       const controllerStates = await Promise.all(
         CONTROLLER_LIST.map(async (controllerName) => {
           const key = `persist:${controllerName}`;
@@ -95,11 +94,9 @@ export const ControllerStorage = {
                     `Invalid persisted data for ${controllerName}: not an object`,
                   ),
                 );
-                return null; // Don't include invalid data
+                return null;
               }
 
-              // TODO: Remove _persist metadata if it exists - this needs to be moved later
-              // to the migration that will change the data from redux to simple FileSystem
               const { _persist, ...controllerState } = parsedData;
 
               // Only include controllers that have meaningful state (not empty objects)
@@ -107,7 +104,7 @@ export const ControllerStorage = {
                 return { [controllerName]: controllerState };
               }
             }
-            return null; // Don't include controllers with no data
+            return null;
           } catch (error) {
             Logger.error(error as Error, {
               message: `Failed to get controller state for ${controllerName}`,

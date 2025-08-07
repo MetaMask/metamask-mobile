@@ -1,8 +1,7 @@
-import migration91 from './092';
+import migration92 from './092';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
 
-// Mock FilesystemStorage
 jest.mock('redux-persist-filesystem-storage');
 const mockFilesystemStorage = FilesystemStorage as jest.Mocked<
   typeof FilesystemStorage
@@ -38,7 +37,7 @@ describe('Migration 92', () => {
       },
     };
 
-    const result = await migration91(mockState);
+    const result = await migration92(mockState);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(3);
 
@@ -83,7 +82,7 @@ describe('Migration 92', () => {
       },
     };
 
-    const result = await migration91(mockState);
+    const result = await migration92(mockState);
 
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
 
@@ -95,7 +94,7 @@ describe('Migration 92', () => {
       engine: {},
     };
 
-    const result = await migration91(mockState);
+    const result = await migration92(mockState);
 
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
     // Should return state unchanged
@@ -116,7 +115,7 @@ describe('Migration 92', () => {
       },
     };
 
-    const result = await migration91(mockState);
+    const result = await migration92(mockState);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
 
@@ -157,7 +156,7 @@ describe('Migration 92', () => {
       .mockRejectedValueOnce(new Error('Storage error'))
       .mockResolvedValueOnce();
 
-    const result = await migration91(mockState);
+    const result = await migration92(mockState);
 
     expect(mockFilesystemStorage.setItem).toHaveBeenCalledTimes(2);
 
@@ -171,7 +170,7 @@ describe('Migration 92', () => {
   it('should handle invalid state gracefully', async () => {
     const invalidState = null;
 
-    const result = await migration91(invalidState);
+    const result = await migration92(invalidState);
 
     expect(result).toBe(invalidState);
     expect(mockFilesystemStorage.setItem).not.toHaveBeenCalled();
