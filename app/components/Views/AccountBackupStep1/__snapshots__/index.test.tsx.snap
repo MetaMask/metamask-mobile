@@ -162,6 +162,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               accessibilityRole="button"
               accessible={true}
               activeOpacity={1}
+              collapsable={false}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
@@ -200,6 +201,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot 1`] = `
               accessibilityRole="button"
               accessible={true}
               activeOpacity={1}
+              collapsable={false}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
@@ -405,6 +407,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               accessibilityRole="button"
               accessible={true}
               activeOpacity={1}
+              collapsable={false}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
@@ -443,6 +446,7 @@ exports[`AccountBackupStep1 Snapshots android render matches snapshot with statu
               accessibilityRole="button"
               accessible={true}
               activeOpacity={1}
+              collapsable={false}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
@@ -891,6 +895,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               accessibilityRole="button"
               accessible={true}
               activeOpacity={1}
+              collapsable={false}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
@@ -929,6 +934,7 @@ exports[`AccountBackupStep1 Theme appearance renders dark SRP design image by de
               accessibilityRole="button"
               accessible={true}
               activeOpacity={1}
+              collapsable={false}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
@@ -1134,6 +1140,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               accessibilityRole="button"
               accessible={true}
               activeOpacity={1}
+              collapsable={false}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
@@ -1172,6 +1179,7 @@ exports[`AccountBackupStep1 Theme appearance renders light SRP design image for 
               accessibilityRole="button"
               accessible={true}
               activeOpacity={1}
+              collapsable={false}
               onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
