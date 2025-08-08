@@ -4783,10 +4783,10 @@
     "@metamask/superstruct" "^3.1.0"
     uuid "^9.0.1"
 
-"@metamask/account-tree-controller@npm:@metamask-previews/account-tree-controller@0.7.0-preview-5bf6b6e":
-  version "0.7.0-preview-5bf6b6e"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/account-tree-controller/-/account-tree-controller-0.7.0-preview-5bf6b6e.tgz#e100307a5cbdc903444668627b58bec3bcc466a0"
-  integrity sha512-v3wVw0bfQ0vlJQuNQEEY74/D+hC0OeHOVUQOqmClmJa+NLBavcjLaVjer3qe1ghc+jlNbkRyipIaqNwheJdBYA==
+"@metamask/account-tree-controller@^0.8.0":
+  version "0.8.0"
+  resolved "https://registry.yarnpkg.com/@metamask/account-tree-controller/-/account-tree-controller-0.8.0.tgz#f680d0fb11c90cbfdd8c019fe21a702e76630464"
+  integrity sha512-zvS9a4mgMJFp3p8KdWHYHhFQsczieWsmJG5/l18cLeeuf5bSxI/rrPCoIb0X0au67Y+JnhpWpk8aSs9fY2ZHNQ==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/snaps-sdk" "^9.0.0"
@@ -5572,10 +5572,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
-"@metamask/multichain-account-service@npm:@metamask-previews/multichain-account-service@0.3.0-preview-5bf6b6e":
-  version "0.3.0-preview-5bf6b6e"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/multichain-account-service/-/multichain-account-service-0.3.0-preview-5bf6b6e.tgz#f539a7ed0f39ea6cfffb3266c355bc4679420f19"
-  integrity sha512-R0ZeubMifLnl2Ow7EgelrpMG17OfZNVD68t3ngg6xucqI/1zVYhuBSrNn6Jc1sJKwwLTBbyVsaKOO6mJqmvPNg==
+"@metamask/multichain-account-service@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.4.0.tgz#c00b17b352438454c3e8fa0ab50187ccc4a6f7dd"
+  integrity sha512-LZkPhjrz76auF1usUCoN2M9mJaHs5i1TC+VYkFeB7zrCBRnMMJ/qxvIHn8a3wH0YjSRbcaOc7fIp2Wsql6AW+A==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/eth-snap-keyring" "^16.0.0"
