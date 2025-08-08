@@ -81,7 +81,7 @@ class ImportFromSeedScreen {
       } else {
         for (let i = 1; i <= phraseArray.length; i++) {
           const wordElement = await this.inputOfIndex(i, false);
-          const input = await AppwrightSelectors.getElementByText(this.device, wordElement);
+          const input = await AppwrightSelectors.getElementByResourceId(this.device, wordElement);
           await input.fill(`${phraseArray[i-1]} `);
         }
       }

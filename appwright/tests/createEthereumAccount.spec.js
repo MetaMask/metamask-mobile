@@ -17,6 +17,7 @@ import AccountListComponent from '../../wdio/screen-objects/AccountListComponent
 import WalletMainScreen from '../../wdio/screen-objects/WalletMainScreen.js';
 import NetworkEducationModal from '../../wdio/screen-objects/Modals/NetworkEducationModal.js';
 import AddNewHdAccountComponent from '../../wdio/screen-objects/Modals/AddNewHdAccountComponent.js';
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 test('User creates a new Ethereum account after onboarding', async ({
   device,
@@ -50,8 +51,9 @@ test('User creates a new Ethereum account after onboarding', async ({
 
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapCreateNewWalletButton();
-  await OnboardingSheet.tapImportSeedButton();
-
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await OnboardingSheet.tapImportSeedButton();
+  }
   await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
 
   await CreateNewWalletScreen.inputPasswordInFirstField('123456789');

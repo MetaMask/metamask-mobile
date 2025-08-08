@@ -12,20 +12,16 @@ import OnboardingSheet from '../../wdio/screen-objects/Onboarding/OnboardingShee
 import SolanaFeatureSheet from '../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
 import WalletAccountModal from '../../wdio/screen-objects/Modals/WalletAccountModal.js';
 import SkipAccountSecurityModal from '../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
-import AddAccountModal from '../../wdio/screen-objects/Modals/AddAccountModal.js';
-import AccountListComponent from '../../wdio/screen-objects/AccountListComponent.js';
+import ImportFromSeedScreen from '../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
+import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import WalletMainScreen from '../../wdio/screen-objects/WalletMainScreen.js';
-import NetworkEducationModal from '../../wdio/screen-objects/Modals/NetworkEducationModal.js';
-import AddNewHdAccountComponent from '../../wdio/screen-objects/Modals/AddNewHdAccountComponent.js';
+import AccountListComponent from '../../wdio/screen-objects/AccountListComponent.js';
+import AddAccountModal from '../../wdio/screen-objects/Modals/AddAccountModal.js';
+import CommonScreen from '../../wdio/screen-objects/CommonScreen.js';
+import TokenOverviewScreen from '../../wdio/screen-objects/TokenOverviewScreen.js';
 const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
-test('User creates a new Solana account after onboarding', async ({
-  device,
-}, testInfo) => {
-  const screen1Timer = new TimerHelper(
-    'Time until the user clicks on the "Get Started" button',
-  );
-  screen1Timer.start();
+test('Asset View', async ({ device }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -36,12 +32,18 @@ test('User creates a new Solana account after onboarding', async ({
   SolanaFeatureSheet.device = device;
   WalletAccountModal.device = device;
   SkipAccountSecurityModal.device = device;
-  NetworkEducationModal.device = device;
+  ImportFromSeedScreen.device = device;
+  CreatePasswordScreen.device = device;
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
-  AddNewHdAccountComponent.device = device;
-  //await WelcomeScreen.waitForScreenToDisplay();
+  TokenOverviewScreen.device = device;
+  CommonScreen.device = device;
+
+  console.log('device ->', device);
+  device.webDriverClient.capabilities["appium:settings[snapshotMaxDepth]"] = 80;
+  console.log('device ->', device);
+
   await WelcomeScreen.clickGetStartedButton();
 
   await TermOfUseScreen.isDisplayed();
@@ -50,36 +52,36 @@ test('User creates a new Solana account after onboarding', async ({
   await TermOfUseScreen.tapAcceptButton();
 
   await OnboardingScreen.isScreenTitleVisible();
-  await OnboardingScreen.tapCreateNewWalletButton();
+  await OnboardingScreen.tapHaveAnExistingWallet();
   if (SEEDLESS_ONBOARDING_ENABLED) {
     await OnboardingSheet.tapImportSeedButton();
   }
-  await CreateNewWalletScreen.isNewAccountScreenFieldsVisible();
+  await ImportFromSeedScreen.isScreenTitleVisible();
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(
+    process.env.TEST_SRP_1,
+    true,
+  );
+  await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
+  await ImportFromSeedScreen.tapContinueButton();
 
-  await CreateNewWalletScreen.inputPasswordInFirstField('123456789');
-  await CreateNewWalletScreen.inputConfirmPasswordField('123456789');
-  await CreateNewWalletScreen.tapSubmitButton();
-  await CreateNewWalletScreen.tapRemindMeLater();
-  await SkipAccountSecurityModal.proceedWithoutWalletSecure();
-  
+  await CreatePasswordScreen.enterPassword('123456789');
+  await CreatePasswordScreen.reEnterPassword('123456789');
+  await CreatePasswordScreen.tapIUnderstandCheckBox();
+  await CreatePasswordScreen.tapCreatePasswordButton();
   await MetaMetricsScreen.isScreenTitleVisible();
   await MetaMetricsScreen.tapIAgreeButton();
 
   await OnboardingSucessScreen.tapDone();
-  
   await SolanaFeatureSheet.isVisible();
   await SolanaFeatureSheet.tapNotNowButton();
   await WalletMainScreen.isMainWalletViewVisible();
-  await WalletMainScreen.tapIdenticon();
-  await AccountListComponent.tapAddAccountButton();
-  await AddAccountModal.tapCreateSolanaAccountButton();
-  const solanaAccountTimer = new TimerHelper('Time since the moment the user clicks on Create Solana account until account is created');
-  solanaAccountTimer.start();
-  await AddNewHdAccountComponent.tapConfirm();
-  await NetworkEducationModal.tapGotItButton();
-  await WalletMainScreen.isMainWalletViewVisible();
-  solanaAccountTimer.stop();
+
+  await CommonScreen.tapOnAsset('Ethereum');
+  await device.pause(100000000);
+  await TokenOverviewScreen.isTokenOverviewVisible();
+  await device.pause(100000000);
   const performanceTracker = new PerformanceTracker();
-  performanceTracker.addTimer(solanaAccountTimer);
+
+
   await performanceTracker.attachToTest(testInfo);
 });

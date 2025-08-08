@@ -19,8 +19,9 @@ import AccountListComponent from '../../wdio/screen-objects/AccountListComponent
 import AddAccountModal from '../../wdio/screen-objects/Modals/AddAccountModal.js';
 import WalletActionModal from '../../wdio/screen-objects/Modals/WalletActionModal.js';
 import SwapScreen from '../../wdio/screen-objects/SwapScreen.js';
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
-test('Swap flow - Etherem', async ({ device }, testInfo) => {
+test.only('Swap flow - Etherem', async ({ device }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -48,8 +49,9 @@ test('Swap flow - Etherem', async ({ device }, testInfo) => {
 
   await OnboardingScreen.isScreenTitleVisible();
   await OnboardingScreen.tapHaveAnExistingWallet();
-  await OnboardingSheet.tapImportSeedButton();
-
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await OnboardingSheet.tapImportSeedButton();
+  }
   await ImportFromSeedScreen.isScreenTitleVisible();
   await ImportFromSeedScreen.typeSecretRecoveryPhrase(
     process.env.TEST_SRP_1,

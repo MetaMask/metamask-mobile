@@ -17,6 +17,7 @@ import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePas
 import WalletMainScreen from '../../wdio/screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../wdio/screen-objects/Modals/AddAccountModal.js';
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 test('Import SRPs', async ({ device }, testInfo) => {
   const srp1Timer = new TimerHelper('Onboarding SRP 1 timer');
@@ -60,7 +61,9 @@ test('Import SRPs', async ({ device }, testInfo) => {
   await OnboardingScreen.isScreenTitleVisible();
   screen2Timer.stop();
   await OnboardingScreen.tapHaveAnExistingWallet();
-  await OnboardingSheet.tapImportSeedButton();
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await OnboardingSheet.tapImportSeedButton();
+  }
   const screen4Timer = new TimerHelper(
     'Time until the user import the SRP and password appears',
   );
@@ -97,7 +100,6 @@ test('Import SRPs', async ({ device }, testInfo) => {
   srp1Timer.stop();
   const srp2Timer = new TimerHelper('Importing SRP 2 total timer');
   srp2Timer.start();
-
   await WalletMainScreen.tapIdenticon();
   await AccountListComponent.tapAddAccountButton();
   await AddAccountModal.tapImportSrpButton();
@@ -120,7 +122,6 @@ test('Import SRPs', async ({ device }, testInfo) => {
   /////// Import SRP 3
   const srp3Timer = new TimerHelper('Importing SRP 3 total timer');
   srp3Timer.start();
-
   await WalletMainScreen.tapIdenticon();
   await AccountListComponent.tapAddAccountButton();
   await AddAccountModal.tapImportSrpButton();

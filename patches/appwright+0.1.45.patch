@@ -12,3 +12,16 @@ index 638c5df..71b3d65 100644
                      networkLogs: true,
                      appiumVersion: "2.6.0",
                      enableCameraImageInjection: this.project.use.device?.enableCameraImageInjection,
+diff --git a/node_modules/appwright/dist/providers/emulator/index.js b/node_modules/appwright/dist/providers/emulator/index.js
+index f3bc150..e45fd2a 100644
+--- a/node_modules/appwright/dist/providers/emulator/index.js
++++ b/node_modules/appwright/dist/providers/emulator/index.js
+@@ -75,7 +75,7 @@ Follow the steps mentioned in ${androidSimulatorConfigDocLink} to run test on An
+                 "appium:autoAcceptAlerts": true,
+                 "appium:fullReset": true,
+                 "appium:deviceOrientation": this.project.use.device?.orientation,
+-                "appium:settings[snapshotMaxDepth]": 62,
++                "appium:settings[snapshotMaxDepth]": 80,
+                 "appium:wdaLaunchTimeout": 300_000,
+             },
+         };
