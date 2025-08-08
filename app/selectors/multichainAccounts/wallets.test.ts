@@ -305,8 +305,28 @@ describe('selectMultichainWallets', () => {
     });
     const result = selectMultichainWallets(mockState);
     expect(result).toEqual([
-      { id: MULTICHAIN_WALLET_ID_1 },
-      { id: MULTICHAIN_WALLET_ID_2 },
+      {
+        id: MULTICHAIN_WALLET_ID_1,
+        type: AccountWalletType.Entropy,
+        metadata: {
+          name: 'Multichain Wallet 1',
+          entropy: {
+            id: 'entropy1',
+          },
+        },
+        groups: {},
+      },
+      {
+        id: MULTICHAIN_WALLET_ID_2,
+        type: AccountWalletType.Entropy,
+        metadata: {
+          name: 'Multichain Wallet 2',
+          entropy: {
+            id: 'entropy2',
+          },
+        },
+        groups: {},
+      },
     ]);
   });
 });
