@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import {
-  ActivityIndicator,
   Alert,
   View,
   SafeAreaView,
@@ -74,8 +73,6 @@ import Label from '../../../component-library/components/Form/Label';
 import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
-import fox from '../../../animations/Searching_Fox.json';
-import LottieView from 'lottie-react-native';
 import ErrorBoundary from '../ErrorBoundary';
 import {
   TraceName,
@@ -85,6 +82,7 @@ import {
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
+import { LoadingComponent } from './LoadingComponent';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -99,31 +97,6 @@ const createStyles = (colors) =>
     container: {
       flex: 1,
       flexDirection: 'column',
-    },
-    loadingWrapper: {
-      paddingHorizontal: 40,
-      paddingBottom: 30,
-      alignItems: 'center',
-      flex: 1,
-    },
-    foxWrapper: {
-      width: Device.isIos() ? 90 : 80,
-      height: Device.isIos() ? 90 : 80,
-      marginTop: 30,
-      marginBottom: 30,
-    },
-    image: {
-      alignSelf: 'center',
-      width: 80,
-      height: 80,
-    },
-    title: {
-      justifyContent: 'flex-start',
-      textAlign: 'flex-start',
-      fontSize: 32,
-    },
-    subtitle: {
-      textAlign: 'center',
     },
     field: {
       position: 'relative',
@@ -754,33 +727,7 @@ class ChoosePassword extends PureComponent {
     return (
       <SafeAreaView style={styles.mainWrapper}>
         {loading ? (
-          <View style={styles.loadingWrapper}>
-            <View style={styles.foxWrapper}>
-              <LottieView
-                style={styles.image}
-                autoPlay
-                loop
-                source={fox}
-                resizeMode="contain"
-              />
-            </View>
-            <ActivityIndicator size="large" color={colors.text.default} />
-            <Text
-              variant={TextVariant.HeadingLG}
-              style={styles.title}
-              adjustsFontSizeToFit
-              numberOfLines={1}
-            >
-              {strings(
-                previousScreen === ONBOARDING
-                  ? 'create_wallet.title'
-                  : 'secure_your_wallet.creating_password',
-              )}
-            </Text>
-            <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
-              {strings('create_wallet.subtitle')}
-            </Text>
-          </View>
+          <LoadingComponent previousScreen={previousScreen} />
         ) : (
           <KeyboardAwareScrollView
             contentContainerStyle={styles.wrapper}
