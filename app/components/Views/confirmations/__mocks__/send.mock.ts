@@ -24,7 +24,7 @@ export const SOLANA_ASSET = {
   isNative: true,
   logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
   name: 'Ethereum',
-  symbol: 'ETH',
+  symbol: 'SOL',
 };
 
 export const evmSendStateMock = {

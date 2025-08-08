@@ -5,6 +5,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 import {
+  BNToHex,
   fromTokenMinimalUnitString,
   fromWei,
   hexToBN,
@@ -37,63 +38,71 @@ export const getEstimatedTotalGas = (gasFeeEstimates: GasFeeEstimatesType) => {
   return totalGas.mul(conversionrate);
 };
 
-export interface GetMaxValueArgs {
+export interface GetPercentageValueArgs {
   accounts: Record<Hex, AccountInformation>;
   asset?: AssetType;
   contractBalances: Record<Hex, Hex>;
   from: Hex;
   gasFeeEstimates: GasFeeEstimatesType;
+  percentage: number;
 }
 
-export const getMaxValueFn = ({
+export const getPercentageValueFn = ({
   accounts,
   asset,
   contractBalances,
   from,
   gasFeeEstimates,
-}: GetMaxValueArgs) => {
+  percentage,
+}: GetPercentageValueArgs) => {
   if (!asset) {
-    return { maxAmount: '0', balance: '0' };
+    return '0';
   }
   if (isNativeToken(asset)) {
+    // todo: confirm gas calculation for L2 networks
     const estimatedTotalGas = getEstimatedTotalGas(gasFeeEstimates);
     const accountAddress = Object.keys(accounts).find(
       (address) => address.toLowerCase() === from.toLowerCase(),
     ) as Hex;
     const account = accounts[accountAddress];
-    const balance = hexToBN(account.balance);
-    const realMaxValue = balance.sub(estimatedTotalGas);
-    const maxValue =
-      balance.isZero() || realMaxValue.isNeg() ? hexToBN('0x0') : realMaxValue;
-    return {
-      maxAmount: fromWei(maxValue),
-      balance: fromWei(balance),
-    };
+    let balance = hexToBN(account.balance);
+    if (percentage !== 100) {
+      balance = balance.mul(new BN(percentage)).div(new BN(100));
+    }
+    const realPercentageValue = balance.sub(estimatedTotalGas);
+    const percentageValue =
+      balance.isZero() || realPercentageValue.isNeg()
+        ? hexToBN('0x0')
+        : realPercentageValue;
+    return fromWei(percentageValue);
   }
-  const balance = fromTokenMinimalUnitString(
-    contractBalances[asset.address as Hex],
-    asset.decimals,
-  );
-  return { maxAmount: balance, balance };
+  let balance = contractBalances[asset.address as Hex];
+  if (percentage !== 100) {
+    balance = BNToHex(
+      hexToBN(balance).mul(new BN(percentage)).div(new BN(100)),
+    );
+  }
+  return fromTokenMinimalUnitString(balance, asset.decimals);
 };
 
-export const useEvmMaxAmount = () => {
+export const useEvmPercentageAmount = () => {
   const accounts = useSelector(selectAccounts);
   const contractBalances = useSelector(selectContractBalances);
   const { asset, from } = useSendContext();
   const { gasFeeEstimates } = useGasFeeEstimatesForSend();
 
-  const getEvmMaxAmount = useCallback(
-    () =>
-      getMaxValueFn({
+  const getEvmPercentageAmount = useCallback(
+    (percentage: number) =>
+      getPercentageValueFn({
         accounts,
         asset,
         contractBalances,
         from: from as Hex,
         gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,
+        percentage,
       }),
     [accounts, asset, contractBalances, from, gasFeeEstimates],
   );
 
-  return { getEvmMaxAmount };
+  return { getEvmPercentageAmount };
 };
