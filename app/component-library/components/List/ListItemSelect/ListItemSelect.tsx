@@ -26,10 +26,11 @@ const TouchableOpacity = ({
   children,
   ...props
 }: TouchableOpacityProps & { children?: React.ReactNode }) => {
+  const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
   const tap = Gesture.Tap()
     .runOnJS(true)
     .onEnd(() => {
-      if (onPress && !disabled) {
+      if (onPress && !isDisabled) {
         onPress({} as GestureResponderEvent);
       }
     });
@@ -37,8 +38,8 @@ const TouchableOpacity = ({
   return (
     <GestureDetector gesture={tap}>
       <RNTouchableOpacity
-        disabled={disabled}
-        onPress={undefined} // Remove onPress to prevent double execution
+        disabled={isDisabled}
+        onPress={undefined} // GestureDetector handles the press
         {...props}
       >
         {children}
@@ -60,19 +61,21 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
 
-  // Disable gesture wrapper in E2E test environment to prevent test interference
-  const isE2ETest =
-    __DEV__ && (process.env.NODE_ENV === 'test' || 'detox' in global);
+  // Disable gesture wrapper only in E2E test environment to prevent test interference
+  const isE2ETest = __DEV__ && 'detox' in global;
   const TouchableComponent =
     Platform.OS === 'android' && !isE2ETest
       ? TouchableOpacity
       : RNTouchableOpacity;
 
+  // Handle disabled state properly in test environment
+  const conditionalOnPress = process.env.NODE_ENV === 'test' && isDisabled ? undefined : onPress;
+
   return (
     <TouchableComponent
       style={styles.base}
       disabled={isDisabled}
-      onPress={onPress}
+      onPress={conditionalOnPress}
       onLongPress={onLongPress}
       {...props}
     >
