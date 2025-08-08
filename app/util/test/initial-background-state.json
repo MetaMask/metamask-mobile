@@ -21,7 +21,9 @@
     "accountTree": {
       "selectedAccountGroup": "",
       "wallets": {}
-    }
+    },
+    "accountGroupsMetadata": {},
+    "accountWalletsMetadata": {}
   },
   "AddressBookController": {
     "addressBook": {}
