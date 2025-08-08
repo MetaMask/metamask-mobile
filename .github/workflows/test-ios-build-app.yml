@@ -58,7 +58,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
-          #target: qa
+          target: qa
 
       - name: Print iOS tool versions
         run: |
@@ -87,6 +87,7 @@ jobs:
           METAMASK_ENVIRONMENT: qa
           METAMASK_BUILD_TYPE: main
           IS_TEST: true
+          IS_SIM_BUILD: "true"
           IGNORE_BOXLOGS_DEVELOPMENT: true
           GITHUB_CI: "true"
           CI: "true"
