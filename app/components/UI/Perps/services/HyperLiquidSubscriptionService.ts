@@ -260,6 +260,10 @@ export class HyperLiquidSubscriptionService {
                 price: fill.px,
                 fee: fill.fee,
                 timestamp: fill.time,
+                pnl: fill.closedPnl,
+                direction: fill.dir,
+                feeToken: fill.feeToken,
+                startPosition: fill.startPosition,
               }));
 
               callback(orderFills);

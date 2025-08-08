@@ -60,8 +60,8 @@ export interface TradingDefaultsConfig {
 
 // Fee configuration interface
 export interface FeeRatesConfig {
-  market: number;
-  limit: number;
+  taker: number;
+  maker: number;
 }
 
 // Network type helper

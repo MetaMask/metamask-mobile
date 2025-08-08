@@ -47,8 +47,13 @@ const styleSheet = (params: {
     startAccessory: {
       marginRight: 8,
     },
-    input: {
+    inputContainer: {
       flex: 1,
+    },
+    // This is needed to override the background color of the input and inherit configurable parent background color
+    // eslint-disable-next-line react-native/no-color-literals
+    input: {
+      backgroundColor: 'inherit',
     },
     endAccessory: {
       marginLeft: 8,

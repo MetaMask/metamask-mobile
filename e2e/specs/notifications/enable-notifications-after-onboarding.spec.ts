@@ -1,4 +1,3 @@
-import EnableNotificationsModal from '../../pages/Notifications/EnableNotificationsModal';
 import NotificationDetailsView from '../../pages/Notifications/NotificationDetailsView';
 import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
 import WalletView from '../../pages/wallet/WalletView';
@@ -14,7 +13,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { Mockttp } from 'mockttp';
 import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../fixtures/utils';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   let mockServer: Mockttp;
@@ -40,12 +39,6 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         await loginToApp();
         // Bell Icon
         await WalletView.tapBellIcon();
-
-        // Enable Notifications Modal
-        await Assertions.expectElementToBeVisible(
-          EnableNotificationsModal.title,
-        );
-        await EnableNotificationsModal.tapOnConfirm();
 
         await Assertions.expectElementToBeVisible(NotificationMenuView.title);
         await Assertions.expectElementToBeVisible(

@@ -14,6 +14,8 @@ import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-cont
 import * as LedgerContext from '../context/ledger-context/ledger-context';
 // eslint-disable-next-line import/no-namespace
 import * as SmartTransactionsSelector from '../../../../selectors/smartTransactionsController';
+// eslint-disable-next-line import/no-namespace
+import * as TransactionActions from '../../../../actions/transaction';
 import { useConfirmActions } from './useConfirmActions';
 
 jest.mock('@react-navigation/native', () => ({
@@ -221,6 +223,20 @@ describe('useConfirmAction', () => {
 
     expect(navigateMock).toHaveBeenCalledTimes(1);
     expect(navigateMock).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+  });
+
+  it('reset transaction state if confirmation is transaction', async () => {
+    const resetTransactionSpy = jest.spyOn(
+      TransactionActions,
+      'resetTransaction',
+    );
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(resetTransactionSpy).toHaveBeenCalledTimes(1);
   });
 
   it('call acceptPendingApproval with parameters waitForResult as false for transactions if smart transactions are enabled', async () => {

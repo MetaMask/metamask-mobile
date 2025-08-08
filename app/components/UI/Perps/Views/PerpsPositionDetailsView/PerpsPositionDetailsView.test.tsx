@@ -8,6 +8,8 @@ import {
   PerpsPositionCardSelectorsIDs,
   PerpsPositionHeaderSelectorsIDs,
   PerpsPositionDetailsViewSelectorsIDs,
+  PerpsCandlestickChartSelectorsIDs,
+  getPerpsViewSelector,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock dependencies
@@ -18,6 +20,14 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/usePerpsPositionData', () => ({
   usePerpsPositionData: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePerpsClosePosition', () => ({
+  usePerpsClosePosition: jest.fn(() => ({
+    handleClosePosition: jest.fn(),
+    isClosing: false,
+    error: null,
+  })),
 }));
 
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -38,10 +48,60 @@ jest.mock('../../components/PerpsTPSLBottomSheet', () => ({
   }) => {
     if (!isVisible) return null;
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    const {
+      PerpsPositionDetailsViewSelectorsIDs:
+        PerpsPositionDetailsViewSelectorsIDsMock,
+    } = jest.requireActual(
+      '../../../../../../e2e/selectors/Perps/Perps.selectors',
+    );
     return (
-      <View testID="perps-tpsl-bottomsheet">
+      <View testID={PerpsPositionDetailsViewSelectorsIDsMock.TPSL_BOTTOMSHEET}>
         <TouchableOpacity onPress={onClose}>
           <Text>Close</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
+}));
+
+// Mock PerpsClosePositionBottomSheet to avoid PerpsConnectionProvider requirement
+jest.mock('../../components/PerpsClosePositionBottomSheet', () => ({
+  __esModule: true,
+  default: ({
+    isVisible,
+    onClose,
+    onConfirm,
+    position: _position,
+  }: {
+    isVisible: boolean;
+    onClose: () => void;
+    onConfirm: () => void;
+    position: Position;
+  }) => {
+    if (!isVisible) return null;
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    const {
+      PerpsPositionDetailsViewSelectorsIDs:
+        PerpsPositionDetailsViewSelectorsIDsMock,
+    } = jest.requireActual(
+      '../../../../../../e2e/selectors/Perps/Perps.selectors',
+    );
+    return (
+      <View
+        testID={
+          PerpsPositionDetailsViewSelectorsIDsMock.CLOSE_POSITION_BOTTOMSHEET
+        }
+      >
+        <TouchableOpacity onPress={onClose}>
+          <Text>Close</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={onConfirm}
+          testID={
+            PerpsPositionDetailsViewSelectorsIDsMock.CONFIRM_CLOSE_POSITION
+          }
+        >
+          <Text>Confirm</Text>
         </TouchableOpacity>
       </View>
     );
@@ -51,6 +111,12 @@ jest.mock('../../components/PerpsTPSLBottomSheet', () => ({
 // Mock the wagmi charts library to fix missing getDomain function
 jest.mock('react-native-wagmi-charts', () => {
   const { View } = jest.requireActual('react-native');
+  const {
+    PerpsPositionDetailsViewSelectorsIDs:
+      PerpsPositionDetailsViewSelectorsIDsMock,
+  } = jest.requireActual(
+    '../../../../../../e2e/selectors/Perps/Perps.selectors',
+  );
 
   const MockChart = ({
     children,
@@ -61,7 +127,11 @@ jest.mock('react-native-wagmi-charts', () => {
     height: number;
     width: number;
   }) => (
-    <View testID="candlestick-chart" data-height={height} data-width={width}>
+    <View
+      testID={PerpsPositionDetailsViewSelectorsIDsMock.CANDLESTICK_CHART}
+      data-height={height}
+      data-width={width}
+    >
       {children}
     </View>
   );
@@ -73,7 +143,10 @@ jest.mock('react-native-wagmi-charts', () => {
     children: React.ReactNode;
     data: unknown[];
   }) => (
-    <View testID="chart-provider" data-data-points={data?.length || 0}>
+    <View
+      testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_PROVIDER}
+      data-data-points={data?.length || 0}
+    >
       {children}
     </View>
   );
@@ -86,14 +159,16 @@ jest.mock('react-native-wagmi-charts', () => {
     negativeColor: string;
   }) => (
     <View
-      testID="chart-candles"
+      testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_CANDLES}
       data-positive-color={positiveColor}
       data-negative-color={negativeColor}
     />
   );
 
   MockChart.Crosshair = ({ children }: { children: React.ReactNode }) => (
-    <View testID="chart-crosshair">{children}</View>
+    <View testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_CROSSHAIR}>
+      {children}
+    </View>
   );
 
   MockChart.Tooltip = ({
@@ -106,7 +181,7 @@ jest.mock('react-native-wagmi-charts', () => {
     tooltipTextProps?: unknown;
   }) => (
     <View
-      testID="chart-tooltip"
+      testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_TOOLTIP}
       data-style={style}
       data-text-props={tooltipTextProps}
     >
@@ -233,10 +308,10 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId('perps-chart-interval-selector'),
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId('perps-chart-interval-selector-1h'),
+        screen.getByTestId(getPerpsViewSelector.chartDurationButton('1d')),
       ).toBeOnTheScreen();
     });
   });
@@ -307,9 +382,13 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId('perps-chart-interval-selector-loading'),
+        screen.getByTestId(
+          PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR_LOADING,
+        ),
       ).toBeOnTheScreen();
-      expect(screen.getByText('Loading chart data...')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.LOADING_SKELETON),
+      ).toBeOnTheScreen();
     });
 
     it('displays chart with no data state when candle data is null', () => {
@@ -324,21 +403,25 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId('perps-chart-interval-selector-no-data'),
+        screen.getByTestId(
+          PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR_NO_DATA,
+        ),
       ).toBeOnTheScreen();
       expect(screen.getByText('No chart data available')).toBeOnTheScreen();
     });
 
-    it('handles interval change correctly', () => {
+    it('handles duration change correctly', () => {
       // Act
       render(<PerpsPositionDetailsView />);
-      fireEvent.press(screen.getByTestId('perps-chart-interval-selector-5m'));
+      fireEvent.press(
+        screen.getByTestId(getPerpsViewSelector.chartDurationButton('1w')),
+      );
 
       // Assert
-      // The component should re-render with new interval, but we can't easily test state changes
-      // This test ensures the interval change handler doesn't crash
+      // The component should re-render with new duration, but we can't easily test state changes
+      // This test ensures the duration change handler doesn't crash
       expect(
-        screen.getByTestId('perps-chart-interval-selector'),
+        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR),
       ).toBeOnTheScreen();
     });
   });
@@ -364,7 +447,11 @@ describe('PerpsPositionDetailsView', () => {
       render(<PerpsPositionDetailsView />);
 
       // Bottom sheet should not be visible initially
-      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
+      expect(
+        screen.queryByTestId(
+          PerpsPositionDetailsViewSelectorsIDs.TPSL_BOTTOMSHEET,
+        ),
+      ).toBeNull();
 
       // Press edit button
       fireEvent.press(
@@ -372,7 +459,11 @@ describe('PerpsPositionDetailsView', () => {
       );
 
       // Assert - Bottom sheet should be visible
-      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeDefined();
+      expect(
+        screen.getByTestId(
+          PerpsPositionDetailsViewSelectorsIDs.TPSL_BOTTOMSHEET,
+        ),
+      ).toBeDefined();
 
       // Component should still be on screen
       expect(
@@ -389,6 +480,7 @@ describe('PerpsPositionDetailsView', () => {
       // Assert
       expect(usePerpsPositionData).toHaveBeenCalledWith({
         coin: 'ETH',
+        selectedDuration: '1d',
         selectedInterval: '1h',
       });
     });
@@ -410,6 +502,7 @@ describe('PerpsPositionDetailsView', () => {
       // Assert
       expect(usePerpsPositionData).toHaveBeenCalledWith({
         coin: 'BTC',
+        selectedDuration: '1d',
         selectedInterval: '1h',
       });
       expect(screen.getByText('BTC-USD')).toBeOnTheScreen();

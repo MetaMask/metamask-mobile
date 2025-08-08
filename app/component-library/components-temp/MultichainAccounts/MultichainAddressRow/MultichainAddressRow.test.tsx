@@ -81,17 +81,15 @@ describe('MultichainAddressRow', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should handle network without rpcPrefs', () => {
-    const propsWithoutRpcPrefs = {
+  it('should handle unknown chainId', () => {
+    const propsWithUnknownChainId = {
       ...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS,
-      network: {
-        ...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS.network,
-        rpcPrefs: {},
-      },
+      chainId: 'eip155:999999' as const,
+      networkName: 'Unknown Network',
     };
 
     const { getByTestId } = render(
-      <MultichainAddressRow {...propsWithoutRpcPrefs} />,
+      <MultichainAddressRow {...propsWithUnknownChainId} />,
     );
     const networkIcon = getByTestId(
       MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID,

@@ -30,10 +30,11 @@ import {
   KeyringController,
   KeyringTypes,
   AccountImportStrategy,
+  KeyringMetadata,
 } from '@metamask/keyring-controller';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
-import { BtcScope, SolScope } from '@metamask/keyring-api';
+import { SolScope } from '@metamask/keyring-api';
 import { logOut } from '../../actions/user';
 import { RootState } from '../../reducers';
 import {
@@ -49,11 +50,6 @@ export type RecursivePartial<T> = {
 // mock mnemonicPhraseToBytes
 jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn(),
-}));
-
-// Mock the Vault module
-jest.mock('../Vault', () => ({
-  recreateVaultWithNewPassword: jest.fn(),
 }));
 
 // Mock the accountsController selector
@@ -112,6 +108,11 @@ jest.mock('../Engine', () => ({
       state: {
         keyrings: [{ metadata: { id: 'test-keyring-id' } }],
       },
+    },
+
+    SeedlessOnboardingController: {
+      addNewSecretData: jest.fn(),
+      updateBackupMetadataState: jest.fn(),
     },
   },
 }));
@@ -919,6 +920,7 @@ describe('Authentication', () => {
         clearState: jest.fn(),
         exportEncryptionKey: jest.fn(),
         storeKeyringEncryptionKey: jest.fn(),
+        updateBackupMetadataState: jest.fn(),
       };
       Engine.context.KeyringController.state.keyrings = [
         { metadata: { id: 'test-keyring' } },
@@ -1110,6 +1112,8 @@ describe('Authentication', () => {
         checkIsPasswordOutdated: jest.fn(),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
       Engine.context.KeyringController = {
+        setLocked: jest.fn(),
+        isUnlocked: jest.fn().mockResolvedValue(true),
         addNewKeyring: jest.fn(),
         createNewVaultAndRestore: jest.fn(),
         withKeyring: jest
@@ -1132,7 +1136,7 @@ describe('Authentication', () => {
       jest.clearAllMocks();
     });
 
-    it('should rehydrate with a single seed phrase', async () => {
+    it('rehydrate with a single seed phrase', async () => {
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
@@ -1142,8 +1146,9 @@ describe('Authentication', () => {
           type: SecretType.Mnemonic,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
@@ -1155,17 +1160,16 @@ describe('Authentication', () => {
         mockSeedPhrase1,
         expect.any(Object),
       );
-      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
-        mockAuthData,
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
-    it('should rehydrate with multiple seed phrases', async () => {
+    it('rehydrate with multiple seed phrases', async () => {
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
@@ -1195,8 +1199,9 @@ describe('Authentication', () => {
         getState: jest.fn(() => mockStateLocal),
       } as unknown as ReduxStore);
 
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       (
         Engine.context.KeyringController.addNewKeyring as jest.Mock
@@ -1213,9 +1218,8 @@ describe('Authentication', () => {
         mockSeedPhrase1,
         expect.any(Object),
       );
-      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
-        mockAuthData,
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
@@ -1232,11 +1236,11 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
-    it('should rehydrate with seed phrase and private key', async () => {
+    it('rehydrate with seed phrase and private key', async () => {
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
@@ -1250,8 +1254,9 @@ describe('Authentication', () => {
           type: SecretType.PrivateKey,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       const importAccountFromPrivateKeySpy = jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
@@ -1262,9 +1267,8 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.fetchAllSecretData,
       ).toHaveBeenCalledWith(mockPassword);
-      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
-        mockAuthData,
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
@@ -1275,11 +1279,11 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
-    it('should handle unknown secret type and log error', async () => {
+    it('handle unknown secret type and log error', async () => {
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
@@ -1294,18 +1298,19 @@ describe('Authentication', () => {
         },
       ]);
       const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
-    it('should handle importAccountFromPrivateKey failure and continue', async () => {
+    it('handle importAccountFromPrivateKey failure and continue', async () => {
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
@@ -1319,8 +1324,10 @@ describe('Authentication', () => {
           type: SecretType.PrivateKey,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       const importError = new Error('Import failed');
       const importAccountFromPrivateKeySpy = jest
@@ -1329,14 +1336,14 @@ describe('Authentication', () => {
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
-      expect(newWalletAndRestoreSpy).toHaveBeenCalled();
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
       expect(importAccountFromPrivateKeySpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(importError);
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
-    it('should throw an error if no seed phrases are found', async () => {
+    it('throw an error if no seed phrases are found', async () => {
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
@@ -1346,7 +1353,7 @@ describe('Authentication', () => {
       ).rejects.toThrow('No account data found');
     });
 
-    it('should re-throw errors from fetchAllSeedPhrases', async () => {
+    it('re-throw errors from fetchAllSeedPhrases', async () => {
       const error = new Error('Fetch failed');
       (
         Engine.context.SeedlessOnboardingController
@@ -1357,7 +1364,7 @@ describe('Authentication', () => {
       ).rejects.toThrow('Fetch failed');
     });
 
-    it('should handle errors when adding new keyrings and continue', async () => {
+    it('handle errors when adding new keyrings and continue', async () => {
       (
         Engine.context.SeedlessOnboardingController
           .fetchAllSecretData as jest.Mock
@@ -1371,25 +1378,43 @@ describe('Authentication', () => {
           type: SecretType.Mnemonic,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       const error = new Error('Keyring add failed');
       (
         Engine.context.KeyringController.addNewKeyring as jest.Mock
       ).mockRejectedValueOnce(error);
 
+      const mockState = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data',
+              socialBackupsMetadata: [],
+            },
+          },
+        },
+      };
+
+      // spy redux
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
       expect(
         Engine.context.KeyringController.addNewKeyring,
       ).toHaveBeenCalledTimes(1);
-      expect(newWalletAndRestoreSpy).toHaveBeenCalled();
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(error);
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1423,9 +1448,7 @@ describe('Authentication', () => {
     const mockSelectedAddress = '0x1234567890abcdef';
 
     let Engine: typeof import('../Engine').default;
-    let recreateVaultWithNewPassword: jest.MockedFunction<
-      typeof import('../Vault').recreateVaultWithNewPassword
-    >;
+
     let selectSelectedInternalAccountFormattedAddress: jest.MockedFunction<
       typeof import('../../selectors/accountsController').selectSelectedInternalAccountFormattedAddress
     >;
@@ -1463,8 +1486,7 @@ describe('Authentication', () => {
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
-      recreateVaultWithNewPassword =
-        jest.requireMock('../Vault').recreateVaultWithNewPassword;
+
       selectSelectedInternalAccountFormattedAddress = jest.requireMock(
         '../../selectors/accountsController',
       ).selectSelectedInternalAccountFormattedAddress;
@@ -1497,7 +1519,6 @@ describe('Authentication', () => {
 
     afterEach(() => {
       jest.clearAllMocks();
-      recreateVaultWithNewPassword.mockReset();
       selectSelectedInternalAccountFormattedAddress.mockReset();
     });
 
@@ -1804,9 +1825,7 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
 
       await expect(
-        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword, {
-          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-        }),
+        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
       ).rejects.toThrow('change password failed');
 
       expect(Authentication.lockApp).toHaveBeenCalledWith({ locked: true });
@@ -1944,7 +1963,7 @@ describe('Authentication', () => {
       } as unknown as KeyringController;
     });
 
-    it('should throw an error if not using seedless onboarding flow', async () => {
+    it('throw an error if not using seedless onboarding flow', async () => {
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         dispatch: jest.fn(),
         getState: jest.fn(() => ({
@@ -1969,7 +1988,7 @@ describe('Authentication', () => {
     });
   });
 
-  describe('importMnemonicToVault', () => {
+  describe('importSeedlessMnemonicToVault', () => {
     const Engine = jest.requireMock('../Engine');
     const mockKeyring = {
       getAccounts: jest.fn().mockResolvedValue(['0x1234567890abcdef']),
@@ -1993,6 +2012,7 @@ describe('Authentication', () => {
 
       Engine.context.SeedlessOnboardingController = {
         addNewSecretData: jest.fn().mockResolvedValue(undefined),
+        updateBackupMetadataState: jest.fn(),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
       // Mock Engine.setSelectedAddress
@@ -2007,7 +2027,7 @@ describe('Authentication', () => {
           engine: {
             backgroundState: {
               SeedlessOnboardingController: {
-                vault: null,
+                vault: 'seedless onboarding vault',
                 socialBackupsMetadata: [],
               },
             },
@@ -2016,14 +2036,9 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
     });
 
-    it('should import mnemonic and return account details without seedless flow', async () => {
+    it('throw when call import seedless mnemonic and return account details without seedless flow', async () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
-      const options = {
-        shouldCreateSocialBackup: false,
-        shouldSelectAccount: false,
-        shouldImportAccounts: false,
-      };
 
       // Override Redux store to return seedless flow as true
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -2040,42 +2055,14 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
 
       // Act
-      const result = await Authentication.importMnemonicToVault(
-        mnemonic,
-        options,
-      );
-
-      // Assert
-      expect(
-        Engine.context.KeyringController.addNewKeyring,
-      ).toHaveBeenCalledWith(KeyringTypes.hd, {
-        mnemonic,
-        numberOfAccounts: 1,
-      });
-      expect(Engine.context.KeyringController.withKeyring).toHaveBeenCalledWith(
-        { id: 'test-keyring-id' },
-        expect.any(Function),
-      );
-      expect(mockKeyring.getAccounts).toHaveBeenCalled();
-      expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
-      expect(
-        Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).not.toHaveBeenCalled();
-      expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
-      expect(result).toEqual({
-        newAccountAddress: '0x1234567890abcdef',
-        discoveredAccountsCount: 0,
-      });
+      await expect(
+        Authentication.importSeedlessMnemonicToVault(mnemonic),
+      ).rejects.toThrow('Not in seedless onboarding flow');
     });
 
-    it('should import mnemonic with seedless onboarding flow and social backup', async () => {
+    it('import mnemonic with seedless onboarding flow and social backup', async () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
-      const options = {
-        shouldCreateSocialBackup: true,
-        shouldSelectAccount: true,
-        shouldImportAccounts: false,
-      };
 
       // Override Redux store to return seedless flow as true
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
@@ -2092,9 +2079,8 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
 
       // Act
-      const result = await Authentication.importMnemonicToVault(
+      const result = await Authentication.importSeedlessMnemonicToVault(
         mnemonic,
-        options,
       );
 
       // Assert
@@ -2105,262 +2091,41 @@ describe('Authentication', () => {
         numberOfAccounts: 1,
       });
       expect(
-        Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).toHaveBeenCalledWith(
-        new Uint8Array([1, 2, 3, 4]),
-        SecretType.Mnemonic,
-        {
-          keyringId: 'test-keyring-id',
-        },
-      );
-      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
-        '0x1234567890abcdef',
-      );
+        Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
+      ).toHaveBeenCalledWith({
+        keyringId: 'test-keyring-id',
+        data: new Uint8Array([1, 2, 3, 4]),
+        type: SecretType.Mnemonic,
+      });
       expect(mockSnapClient.addDiscoveredAccounts).not.toHaveBeenCalled();
       expect(result).toEqual({
-        newAccountAddress: '0x1234567890abcdef',
-        discoveredAccountsCount: 0,
+        id: 'test-keyring-id',
       });
     });
 
-    it('should import mnemonic with account discovery', async () => {
+    it('handle KeyringController.addNewKeyring failure', async () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
-      const options = {
-        shouldCreateSocialBackup: false,
-        shouldSelectAccount: false,
-        shouldImportAccounts: true,
-      };
-
-      // Act
-      const result = await Authentication.importMnemonicToVault(
-        mnemonic,
-        options,
-      );
-
-      // Assert
-      expect(
-        Engine.context.KeyringController.addNewKeyring,
-      ).toHaveBeenCalledWith(KeyringTypes.hd, {
-        mnemonic,
-        numberOfAccounts: 1,
-      });
-      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
-        'test-keyring-id',
-        SolScope.Mainnet,
-      );
-      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
-        'test-keyring-id',
-        BtcScope.Mainnet,
-      );
-      expect(result).toEqual({
-        newAccountAddress: '0x1234567890abcdef',
-        discoveredAccountsCount: 2 + 2, // 2 from Solana and 2 from Bitcoin
-      });
-    });
-
-    it('should import mnemonic with all options enabled', async () => {
-      // Arrange
-      const mnemonic = 'test mnemonic phrase for wallet';
-      const options = {
-        shouldCreateSocialBackup: true,
-        shouldSelectAccount: true,
-        shouldImportAccounts: true,
-      };
-
-      // Override Redux store to return seedless flow as true
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        getState: () => ({
-          engine: {
-            backgroundState: {
-              SeedlessOnboardingController: {
-                vault: 'existing vault data',
-                socialBackupsMetadata: [],
-              },
-            },
-          },
-        }),
-      } as unknown as ReduxStore);
-
-      // Act
-      const result = await Authentication.importMnemonicToVault(
-        mnemonic,
-        options,
-      );
-
-      // Assert
-      expect(
-        Engine.context.KeyringController.addNewKeyring,
-      ).toHaveBeenCalledWith(KeyringTypes.hd, {
-        mnemonic,
-        numberOfAccounts: 1,
-      });
-      expect(
-        Engine.context.SeedlessOnboardingController.addNewSecretData,
-      ).toHaveBeenCalledWith(
-        new Uint8Array([1, 2, 3, 4]),
-        SecretType.Mnemonic,
-        {
-          keyringId: 'test-keyring-id',
-        },
-      );
-      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
-        '0x1234567890abcdef',
-      );
-      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
-        'test-keyring-id',
-        SolScope.Mainnet,
-      );
-      expect(mockSnapClient.addDiscoveredAccounts).toHaveBeenCalledWith(
-        'test-keyring-id',
-        BtcScope.Mainnet,
-      );
-      expect(result).toEqual({
-        newAccountAddress: '0x1234567890abcdef',
-        discoveredAccountsCount: 2 + 2, // 2 from Solana and 2 from Bitcoin
-      });
-    });
-
-    it('should handle KeyringController.addNewKeyring failure', async () => {
-      // Arrange
-      const mnemonic = 'test mnemonic phrase for wallet';
-      const options = {
-        shouldCreateSocialBackup: false,
-        shouldSelectAccount: false,
-        shouldImportAccounts: false,
-      };
 
       const error = new Error('Failed to add new keyring');
       Engine.context.KeyringController.addNewKeyring.mockRejectedValue(error);
 
       // Act & Assert
       await expect(
-        Authentication.importMnemonicToVault(mnemonic, options),
+        Authentication.importSeedlessMnemonicToVault(mnemonic),
       ).rejects.toThrow('Failed to add new keyring');
     });
 
-    it('should handle SeedlessOnboardingController.addNewSecretData failure', async () => {
+    it('handle keyring.getAccounts failure', async () => {
       // Arrange
       const mnemonic = 'test mnemonic phrase for wallet';
-      const options = {
-        shouldCreateSocialBackup: true,
-        shouldSelectAccount: false,
-        shouldImportAccounts: false,
-      };
-
-      // Override Redux store to return seedless flow as true
-      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
-        getState: () => ({
-          engine: {
-            backgroundState: {
-              SeedlessOnboardingController: {
-                vault: 'existing vault data',
-                socialBackupsMetadata: [],
-              },
-            },
-          },
-        }),
-      } as unknown as ReduxStore);
-
-      const error = new Error('Failed to add secret data');
-      Engine.context.SeedlessOnboardingController.addNewSecretData.mockRejectedValue(
-        error,
-      );
-
-      // Act & Assert
-      await expect(
-        Authentication.importMnemonicToVault(mnemonic, options),
-      ).rejects.toThrow('Failed to add secret data');
-    });
-
-    it('should handle account discovery failure', async () => {
-      // Arrange
-      const mnemonic = 'test mnemonic phrase for wallet';
-      const options = {
-        shouldCreateSocialBackup: false,
-        shouldSelectAccount: false,
-        shouldImportAccounts: true,
-      };
-
-      const error = new Error('discovery failed');
-      mockSnapClient.addDiscoveredAccounts.mockRejectedValue(error);
-
-      // Act & Assert
-      await expect(
-        Authentication.importMnemonicToVault(mnemonic, options),
-      ).rejects.toThrow('discovery failed');
-    });
-
-    it('should handle keyring.getAccounts failure', async () => {
-      // Arrange
-      const mnemonic = 'test mnemonic phrase for wallet';
-      const options = {
-        shouldCreateSocialBackup: false,
-        shouldSelectAccount: false,
-        shouldImportAccounts: false,
-      };
-
       const error = new Error('Failed to get accounts');
       mockKeyring.getAccounts.mockRejectedValue(error);
 
       // Act & Assert
       await expect(
-        Authentication.importMnemonicToVault(mnemonic, options),
+        Authentication.importSeedlessMnemonicToVault(mnemonic),
       ).rejects.toThrow('Failed to get accounts');
-    });
-
-    it('should handle empty accounts array from keyring', async () => {
-      // Arrange
-      const mnemonic = 'test mnemonic phrase for wallet';
-      const options = {
-        shouldCreateSocialBackup: false,
-        shouldSelectAccount: false,
-        shouldImportAccounts: false,
-      };
-
-      mockKeyring.getAccounts.mockResolvedValue([]);
-
-      // Act
-      const result = await Authentication.importMnemonicToVault(
-        mnemonic,
-        options,
-      );
-
-      // Assert
-      expect(result).toEqual({
-        newAccountAddress: undefined,
-        discoveredAccountsCount: 0,
-      });
-    });
-
-    it('should handle multiple accounts from keyring', async () => {
-      // Arrange
-      const mnemonic = 'test mnemonic phrase for wallet';
-      const options = {
-        shouldCreateSocialBackup: false,
-        shouldSelectAccount: true,
-        shouldImportAccounts: false,
-      };
-
-      mockKeyring.getAccounts.mockResolvedValue([
-        '0x1234567890abcdef',
-        '0xfedcba0987654321',
-      ]);
-
-      // Act
-      const result = await Authentication.importMnemonicToVault(
-        mnemonic,
-        options,
-      );
-
-      // Assert
-      expect(Engine.setSelectedAddress).toHaveBeenCalledWith(
-        '0x1234567890abcdef',
-      );
-      expect(result).toEqual({
-        newAccountAddress: '0x1234567890abcdef',
-        discoveredAccountsCount: 0,
-      });
     });
   });
 
@@ -2405,7 +2170,7 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
     });
 
-    it('should import account from private key without seedless flow', async () => {
+    it('import account from private key without seedless flow', async () => {
       // Arrange
       const options = {
         shouldCreateSocialBackup: false,
@@ -2429,7 +2194,7 @@ describe('Authentication', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('should import account from private key with seedless flow and social backup', async () => {
+    it('import account from private key with seedless flow and social backup', async () => {
       // Arrange
       const options = {
         shouldCreateSocialBackup: true,
@@ -2469,7 +2234,7 @@ describe('Authentication', () => {
       );
     });
 
-    it('should import account from private key with seedless flow but no social backup', async () => {
+    it('import account from private key with seedless flow but no social backup', async () => {
       // Arrange
       const options = {
         shouldCreateSocialBackup: false,
@@ -2509,7 +2274,7 @@ describe('Authentication', () => {
       expect(Engine.setSelectedAddress).not.toHaveBeenCalled();
     });
 
-    it('should handle KeyringController.importAccountWithStrategy failure', async () => {
+    it('handle KeyringController.importAccountWithStrategy failure', async () => {
       // Arrange
       const options = {
         shouldCreateSocialBackup: false,
@@ -2527,7 +2292,7 @@ describe('Authentication', () => {
       ).rejects.toThrow('Failed to import account');
     });
 
-    it('should handle SeedlessOnboardingController.addNewSecretData failure and revert import', async () => {
+    it('handle SeedlessOnboardingController.addNewSecretData failure and revert import', async () => {
       // Arrange
       const options = {
         shouldCreateSocialBackup: true,
@@ -2562,7 +2327,7 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith(mockImportedAddress);
     });
 
-    it('should handle KeyringController.removeAccount failure during revert', async () => {
+    it('handle KeyringController.removeAccount failure during revert', async () => {
       // Arrange
       const options = {
         shouldCreateSocialBackup: true,
@@ -2600,7 +2365,7 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith(mockImportedAddress);
     });
 
-    it('should use default options when none provided', async () => {
+    it('use default options when none provided', async () => {
       // Act
       await Authentication.importAccountFromPrivateKey(mockPrivateKey);
 
@@ -2615,7 +2380,7 @@ describe('Authentication', () => {
       );
     });
 
-    it('should handle private key without 0x prefix', async () => {
+    it('handle private key without 0x prefix', async () => {
       // Arrange
       const privateKeyWithoutPrefix =
         '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
@@ -2638,7 +2403,7 @@ describe('Authentication', () => {
       ]);
     });
 
-    it('should call trace functions correctly', async () => {
+    it('call trace functions correctly', async () => {
       // Arrange
       const options = {
         shouldCreateSocialBackup: false,
@@ -2678,7 +2443,7 @@ describe('Authentication', () => {
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
     });
 
-    it('should add private key backup with social sync', async () => {
+    it('add private key backup with social sync', async () => {
       // Act
       await Authentication.addNewPrivateKeyBackup(
         mockPrivateKey,
@@ -2697,7 +2462,7 @@ describe('Authentication', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('should add private key backup without social sync', async () => {
+    it('add private key backup without social sync', async () => {
       // Act
       await Authentication.addNewPrivateKeyBackup(
         mockPrivateKey,
@@ -2718,7 +2483,7 @@ describe('Authentication', () => {
       });
     });
 
-    it('should use default syncWithSocial value (true)', async () => {
+    it('use default syncWithSocial value (true)', async () => {
       // Act
       await Authentication.addNewPrivateKeyBackup(
         mockPrivateKey,
@@ -2736,7 +2501,7 @@ describe('Authentication', () => {
       ).not.toHaveBeenCalled();
     });
 
-    it('should handle private key without 0x prefix', async () => {
+    it('handle private key without 0x prefix', async () => {
       // Arrange
       const privateKeyWithoutPrefix =
         '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef';
@@ -2756,7 +2521,7 @@ describe('Authentication', () => {
       });
     });
 
-    it('should handle SeedlessOnboardingController.addNewSecretData failure', async () => {
+    it('handle SeedlessOnboardingController.addNewSecretData failure', async () => {
       // Arrange
       const error = new Error('Failed to add secret data');
       Engine.context.SeedlessOnboardingController.addNewSecretData.mockRejectedValue(
@@ -2773,7 +2538,7 @@ describe('Authentication', () => {
       ).rejects.toThrow('Failed to add secret data');
     });
 
-    it('should handle SeedlessOnboardingController.updateBackupMetadataState failure', async () => {
+    it('handle SeedlessOnboardingController.updateBackupMetadataState failure', async () => {
       // Arrange
       const error = new Error('Failed to update backup metadata');
       Engine.context.SeedlessOnboardingController.updateBackupMetadataState.mockImplementation(
@@ -2842,10 +2607,9 @@ describe('Authentication', () => {
       jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
         .mockResolvedValue(undefined);
-      jest.spyOn(Authentication, 'importMnemonicToVault').mockResolvedValue({
-        newAccountAddress: '0x1234567890abcdef',
-        discoveredAccountsCount: 0,
-      });
+      jest
+        .spyOn(Authentication, 'importSeedlessMnemonicToVault')
+        .mockResolvedValue({ id: 'test-keyring-id' } as KeyringMetadata);
 
       // Mock convertEnglishWordlistIndicesToCodepoints
       mockConvertEnglishWordlistIndicesToCodepoints.mockReturnValue(
@@ -2853,7 +2617,7 @@ describe('Authentication', () => {
       );
     });
 
-    it('should sync seed phrases with private key and mnemonic secrets', async () => {
+    it('sync seed phrases with private key and mnemonic secrets', async () => {
       // Act
       await Authentication.syncSeedPhrases();
 
@@ -2874,17 +2638,12 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(Authentication.importMnemonicToVault).toHaveBeenCalledWith(
+      expect(Authentication.importSeedlessMnemonicToVault).toHaveBeenCalledWith(
         'test mnemonic phrase',
-        {
-          shouldCreateSocialBackup: false,
-          shouldSelectAccount: false,
-          shouldImportAccounts: true,
-        },
       );
     });
 
-    it('should skip sync when not in seedless onboarding flow', async () => {
+    it('skip sync when not in seedless onboarding flow', async () => {
       // Arrange
       jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
         getState: () => ({
@@ -2907,10 +2666,12 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController.fetchAllSecretData,
       ).not.toHaveBeenCalled();
       expect(Authentication.importAccountFromPrivateKey).not.toHaveBeenCalled();
-      expect(Authentication.importMnemonicToVault).not.toHaveBeenCalled();
+      expect(
+        Authentication.importSeedlessMnemonicToVault,
+      ).not.toHaveBeenCalled();
     });
 
-    it('should skip secrets that are already in local state', async () => {
+    it('skip secrets that are already in local state', async () => {
       // Arrange
       Engine.context.SeedlessOnboardingController.getSecretDataBackupState
         .mockReturnValueOnce(null) // Private key not in state
@@ -2923,10 +2684,12 @@ describe('Authentication', () => {
       expect(Authentication.importAccountFromPrivateKey).toHaveBeenCalledTimes(
         1,
       );
-      expect(Authentication.importMnemonicToVault).not.toHaveBeenCalled();
+      expect(
+        Authentication.importSeedlessMnemonicToVault,
+      ).not.toHaveBeenCalled();
     });
 
-    it('should handle only private key secrets', async () => {
+    it('handle only private key secrets', async () => {
       // Arrange
       Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
         [mockRootSecret, mockPrivateKeySecret],
@@ -2939,10 +2702,12 @@ describe('Authentication', () => {
       expect(Authentication.importAccountFromPrivateKey).toHaveBeenCalledTimes(
         1,
       );
-      expect(Authentication.importMnemonicToVault).not.toHaveBeenCalled();
+      expect(
+        Authentication.importSeedlessMnemonicToVault,
+      ).not.toHaveBeenCalled();
     });
 
-    it('should handle only mnemonic secrets', async () => {
+    it('handle only mnemonic secrets', async () => {
       // Arrange
       Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
         [mockRootSecret, mockMnemonicSecret],
@@ -2953,10 +2718,12 @@ describe('Authentication', () => {
 
       // Assert
       expect(Authentication.importAccountFromPrivateKey).not.toHaveBeenCalled();
-      expect(Authentication.importMnemonicToVault).toHaveBeenCalledTimes(1);
+      expect(
+        Authentication.importSeedlessMnemonicToVault,
+      ).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle no additional secrets', async () => {
+    it('handle no additional secrets', async () => {
       // Arrange
       Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
         [mockRootSecret],
@@ -2967,10 +2734,12 @@ describe('Authentication', () => {
 
       // Assert
       expect(Authentication.importAccountFromPrivateKey).not.toHaveBeenCalled();
-      expect(Authentication.importMnemonicToVault).not.toHaveBeenCalled();
+      expect(
+        Authentication.importSeedlessMnemonicToVault,
+      ).not.toHaveBeenCalled();
     });
 
-    it('should throw error when no root secret is found', async () => {
+    it('throw error when no root secret is found', async () => {
       // Arrange
       Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
         [],
@@ -2982,7 +2751,7 @@ describe('Authentication', () => {
       );
     });
 
-    it('should throw error when root secret is falsy', async () => {
+    it('throw error when root secret is falsy', async () => {
       // Arrange
       Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockResolvedValue(
         [null],
@@ -2994,7 +2763,7 @@ describe('Authentication', () => {
       );
     });
 
-    it('should handle SeedlessOnboardingController.fetchAllSecretData failure', async () => {
+    it('handle SeedlessOnboardingController.fetchAllSecretData failure', async () => {
       // Arrange
       const error = new Error('Failed to fetch secret data');
       Engine.context.SeedlessOnboardingController.fetchAllSecretData.mockRejectedValue(
@@ -3007,7 +2776,7 @@ describe('Authentication', () => {
       );
     });
 
-    it('should handle importAccountFromPrivateKey failure', async () => {
+    it('handle importAccountFromPrivateKey failure', async () => {
       // Arrange
       const error = new Error('Failed to import private key');
       (
@@ -3020,12 +2789,12 @@ describe('Authentication', () => {
       );
     });
 
-    it('should handle importMnemonicToVault failure', async () => {
+    it('handle importSeedlessMnemonicToVault failure', async () => {
       // Arrange
       const error = new Error('Failed to import mnemonic');
-      (Authentication.importMnemonicToVault as jest.Mock).mockRejectedValue(
-        error,
-      );
+      (
+        Authentication.importSeedlessMnemonicToVault as jest.Mock
+      ).mockRejectedValue(error);
 
       // Act & Assert
       await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
@@ -3033,7 +2802,7 @@ describe('Authentication', () => {
       );
     });
 
-    it('should handle mixed secret types with some failures', async () => {
+    it('handle mixed secret types with some failures', async () => {
       // Arrange
       const mockSecret1 = {
         data: new Uint8Array([1, 2, 3]),
@@ -3051,9 +2820,9 @@ describe('Authentication', () => {
       (
         Authentication.importAccountFromPrivateKey as jest.Mock
       ).mockResolvedValueOnce(undefined);
-      (Authentication.importMnemonicToVault as jest.Mock).mockRejectedValueOnce(
-        new Error('Failed to import mnemonic'),
-      );
+      (
+        Authentication.importSeedlessMnemonicToVault as jest.Mock
+      ).mockRejectedValueOnce(new Error('Failed to import mnemonic'));
 
       // Act & Assert
       await expect(Authentication.syncSeedPhrases()).rejects.toThrow(
@@ -3062,10 +2831,12 @@ describe('Authentication', () => {
       expect(Authentication.importAccountFromPrivateKey).toHaveBeenCalledTimes(
         1,
       );
-      expect(Authentication.importMnemonicToVault).toHaveBeenCalledTimes(1);
+      expect(
+        Authentication.importSeedlessMnemonicToVault,
+      ).toHaveBeenCalledTimes(1);
     });
 
-    it('should handle unknown secret types gracefully', async () => {
+    it('handle unknown secret types gracefully', async () => {
       // Arrange
       const mockUnknownSecret = {
         data: new Uint8Array([1, 2, 3, 4]),
@@ -3080,10 +2851,12 @@ describe('Authentication', () => {
 
       // Assert
       expect(Authentication.importAccountFromPrivateKey).not.toHaveBeenCalled();
-      expect(Authentication.importMnemonicToVault).not.toHaveBeenCalled();
+      expect(
+        Authentication.importSeedlessMnemonicToVault,
+      ).not.toHaveBeenCalled();
     });
 
-    it('should handle empty secret data', async () => {
+    it('handle empty secret data', async () => {
       // Arrange
       const mockEmptySecret = {
         data: new Uint8Array([]),

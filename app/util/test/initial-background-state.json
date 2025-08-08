@@ -19,6 +19,7 @@
   },
   "AccountTreeController": {
     "accountTree": {
+      "selectedAccountGroup": "",
       "wallets": {}
     }
   },
@@ -369,7 +370,8 @@
     "depositError": null,
     "activeDepositTransactions": {},
     "lastError": null,
-    "lastUpdateTimestamp": 0
+    "lastUpdateTimestamp": 0,
+    "isEligible": false
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
