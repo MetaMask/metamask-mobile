@@ -2,7 +2,13 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import {
+  TouchableOpacity as RNTouchableOpacity,
+  TouchableOpacityProps,
+  View,
+  Platform,
+  GestureResponderEvent,
+} from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../../hooks';
@@ -12,6 +18,23 @@ import ListItem from '../../List/ListItem/ListItem';
 import styleSheet from './ListItemSelect.styles';
 import { ListItemSelectProps } from './ListItemSelect.types';
 import { DEFAULT_SELECTITEM_GAP } from './ListItemSelect.constants';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+
+const TouchableOpacity = ({ onPress, ...props }: TouchableOpacityProps) => {
+  const tap = Gesture.Tap()
+    .runOnJS(true)
+    .onEnd(() => {
+      if (onPress) {
+        onPress({} as GestureResponderEvent);
+      }
+    });
+
+  return (
+    <GestureDetector gesture={tap}>
+      <RNTouchableOpacity {...props} />
+    </GestureDetector>
+  );
+};
 
 const ListItemSelect: React.FC<ListItemSelectProps> = ({
   style,
@@ -26,8 +49,11 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
 
+  const TouchableComponent =
+    Platform.OS === 'android' ? TouchableOpacity : RNTouchableOpacity;
+
   return (
-    <TouchableOpacity
+    <TouchableComponent
       style={styles.base}
       disabled={isDisabled}
       onPress={onPress}
@@ -42,7 +68,7 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
           <View style={styles.underlayBar} />
         </View>
       )}
-    </TouchableOpacity>
+    </TouchableComponent>
   );
 };
 

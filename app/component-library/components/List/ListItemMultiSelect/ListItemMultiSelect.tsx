@@ -2,7 +2,13 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import {
+  TouchableOpacity as RNTouchableOpacity,
+  TouchableOpacityProps,
+  View,
+  Platform,
+  GestureResponderEvent,
+} from 'react-native';
 
 // External dependencies.
 import Checkbox from '../../Checkbox';
@@ -13,6 +19,23 @@ import ListItem from '../../List/ListItem/ListItem';
 import styleSheet from './ListItemMultiSelect.styles';
 import { ListItemMultiSelectProps } from './ListItemMultiSelect.types';
 import { DEFAULT_LISTITEMMULTISELECT_GAP } from './ListItemMultiSelect.constants';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+
+const TouchableOpacity = ({ onPress, ...props }: TouchableOpacityProps) => {
+  const tap = Gesture.Tap()
+    .runOnJS(true)
+    .onEnd(() => {
+      if (onPress) {
+        onPress({} as GestureResponderEvent);
+      }
+    });
+
+  return (
+    <GestureDetector gesture={tap}>
+      <RNTouchableOpacity {...props} />
+    </GestureDetector>
+  );
+};
 
 const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   style,
@@ -23,8 +46,12 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   ...props
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
+
+  const TouchableComponent =
+    Platform.OS === 'android' ? TouchableOpacity : RNTouchableOpacity;
+
   return (
-    <TouchableOpacity style={styles.base} disabled={isDisabled} {...props}>
+    <TouchableComponent style={styles.base} disabled={isDisabled} {...props}>
       <ListItem gap={gap} style={styles.listItem}>
         <Checkbox
           style={styles.checkbox}
@@ -36,7 +63,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
       {isSelected && (
         <View style={styles.underlay} accessibilityRole="checkbox" accessible />
       )}
-    </TouchableOpacity>
+    </TouchableComponent>
   );
 };
 

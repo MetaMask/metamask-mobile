@@ -2,7 +2,12 @@
 
 // Third party dependencies.
 import React from 'react';
-import { TouchableOpacity } from 'react-native';
+import {
+  TouchableOpacity as RNTouchableOpacity,
+  TouchableOpacityProps,
+  Platform,
+  GestureResponderEvent,
+} from 'react-native';
 
 // External dependencies.
 import Text from '../../../../Texts/Text';
@@ -19,6 +24,23 @@ import {
   DEFAULT_BUTTONBASE_ICON_SIZE,
   DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
 } from './ButtonBase.constants';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+
+const TouchableOpacity = ({ onPress, ...props }: TouchableOpacityProps) => {
+  const tap = Gesture.Tap()
+    .runOnJS(true)
+    .onEnd(() => {
+      if (onPress) {
+        onPress({} as GestureResponderEvent);
+      }
+    });
+
+  return (
+    <GestureDetector gesture={tap}>
+      <RNTouchableOpacity {...props} />
+    </GestureDetector>
+  );
+};
 
 const ButtonBase = ({
   label,
@@ -40,8 +62,11 @@ const ButtonBase = ({
     isDisabled,
   });
 
+  const TouchableComponent =
+    Platform.OS === 'android' ? TouchableOpacity : RNTouchableOpacity;
+
   return (
-    <TouchableOpacity
+    <TouchableComponent
       disabled={isDisabled}
       activeOpacity={1}
       onPress={onPress}
@@ -77,7 +102,7 @@ const ButtonBase = ({
           style={styles.endIcon}
         />
       )}
-    </TouchableOpacity>
+    </TouchableComponent>
   );
 };
 
