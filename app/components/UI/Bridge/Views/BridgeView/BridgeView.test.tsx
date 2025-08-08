@@ -14,7 +14,6 @@ import BridgeView from '.';
 import type { BridgeRouteParams } from './index';
 import { createBridgeTestState } from '../../testUtils';
 import { RequestStatus, type QuoteResponse } from '@metamask/bridge-controller';
-import mockQuotes from '../../_mocks_/mock-quotes-sol-sol.json';
 import { SolScope } from '@metamask/keyring-api';
 import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
@@ -22,6 +21,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { isHardwareAccount } from '../../../../../util/address';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
+import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeViewMode } from '../../types';
 
 // Mock the account-tree-controller file that imports the problematic module
@@ -529,13 +529,14 @@ describe('BridgeView', () => {
 
   describe('Solana Swap', () => {
     it('should set slippage to undefined when isSolanaSwap is true', async () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
         },
         bridgeReducerOverrides: {
           sourceAmount: '1.0',
@@ -607,13 +608,14 @@ describe('BridgeView', () => {
     });
 
     it('displays "Insufficient funds" when amount exceeds balance', () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: true,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
       });
@@ -659,13 +661,14 @@ describe('BridgeView', () => {
     });
 
     it('displays Continue button and Terms link when amount is valid', () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
@@ -694,13 +697,14 @@ describe('BridgeView', () => {
     });
 
     it('should handle "Confirm Bridge" button press', async () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
@@ -726,13 +730,14 @@ describe('BridgeView', () => {
     });
 
     it('should handle Terms & Conditions press', () => {
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
           quoteRequest: {
             insufficientBal: false,
           },
           quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuotes[0] as unknown as QuoteResponse],
+          quotes: [mockQuote as unknown as QuoteResponse],
           quotesLastFetched: 12,
         },
         bridgeReducerOverrides: {
@@ -863,6 +868,7 @@ describe('BridgeView', () => {
       const mockIsHardwareAccount = jest.fn().mockReturnValue(true);
       jest.mocked(isHardwareAccount).mockImplementation(mockIsHardwareAccount);
 
+      const mockQuote = mockQuoteWithMetadata;
       const testState = createBridgeTestState(
         {
           bridgeControllerOverrides: {
@@ -870,7 +876,7 @@ describe('BridgeView', () => {
               insufficientBal: false,
             },
             quotesLoadingStatus: RequestStatus.FETCHED,
-            quotes: [mockQuotes[0] as unknown as QuoteResponse],
+            quotes: [mockQuote as unknown as QuoteResponse],
             quotesLastFetched: 12,
           },
           bridgeReducerOverrides: {
@@ -1002,10 +1008,11 @@ describe('BridgeView', () => {
   });
 
   describe('handleContinue - Blockaid Validation', () => {
-    const mockQuote = mockQuotes[0] as unknown as QuoteResponse;
+    let mockQuote: QuoteResponse;
 
     beforeEach(() => {
       jest.clearAllMocks();
+      mockQuote = mockQuoteWithMetadata as unknown as QuoteResponse;
       mockValidateBridgeTx.mockResolvedValue({
         result: { validation: { reason: null } },
         error: null,
