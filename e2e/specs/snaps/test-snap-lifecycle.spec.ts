@@ -1,6 +1,6 @@
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { getFixturesServerPort } from '../../fixtures/utils';
+import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import TestHelpers from '../../helpers';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
