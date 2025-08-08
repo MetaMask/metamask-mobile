@@ -25,18 +25,21 @@ export class EngineService {
 
   private updateBatcher = new Batcher<string>((keys) =>
     batchFunc(() => {
-      keys.forEach((key) => {
-        if (key === INIT_BG_STATE_KEY) {
-          // first-time init action
-          ReduxService.store.dispatch({ type: INIT_BG_STATE_KEY });
-        } else {
-          // incremental update action
-          ReduxService.store.dispatch({
-            type: UPDATE_BG_STATE_KEY,
-            payload: { key },
-          });
-        }
-      });
+      if (keys.length === 0) return;
+      const hasInit = keys.includes(INIT_BG_STATE_KEY);
+      const updates = keys.filter((k) => k !== INIT_BG_STATE_KEY);
+
+      if (hasInit) {
+        ReduxService.store.dispatch({ type: INIT_BG_STATE_KEY });
+      }
+
+      if (updates.length > 0) {
+        // Single dispatch to update multiple controllers at once
+        ReduxService.store.dispatch({
+          type: UPDATE_BG_STATE_KEY,
+          payload: { key: updates },
+        });
+      }
     }),
   );
 
@@ -126,9 +129,10 @@ export class EngineService {
     };
 
     BACKGROUND_STATE_CHANGE_EVENT_NAMES.forEach((eventName) => {
-      engine.controllerMessenger.subscribe(eventName, () =>
-        update_bg_state_cb(eventName.split(':')[0]),
-      );
+      engine.controllerMessenger.subscribe(eventName, () => {
+        // Coalesce rapid controller updates into a single Redux dispatch using the batcher
+        update_bg_state_cb(eventName.split(':')[0]);
+      });
     });
   };
 
