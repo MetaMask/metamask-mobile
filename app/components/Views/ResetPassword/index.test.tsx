@@ -412,7 +412,7 @@ describe('ResetPassword', () => {
     expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https: //support.metamask.io/configure/wallet/passwords-and-metamask/',
+        url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
         title: 'support.metamask.io',
       },
     });
