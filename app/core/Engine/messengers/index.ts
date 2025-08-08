@@ -141,6 +141,7 @@ export const CONTROLLER_MESSENGERS = {
   },
   NetworkEnablementController: {
     getMessenger: getNetworkEnablementControllerMessenger,
+    getInitMessenger: noop,
   },
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,
