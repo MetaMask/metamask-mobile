@@ -7,6 +7,7 @@ import React, {
   useEffect,
   memo,
 } from 'react';
+import performance from 'react-native-performance';
 import { View, TouchableOpacity } from 'react-native';
 import {
   Gesture,
@@ -44,6 +45,13 @@ import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 import { strings } from '../../../../../../locales/i18n';
 import { Theme } from '../../../../../util/theme/models';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { measurePerformance } from '../../utils/perpsDebug';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -55,6 +63,7 @@ interface PerpsLeverageBottomSheetProps {
   currentPrice: number;
   liquidationPrice: number;
   direction: 'long' | 'short';
+  asset?: string;
 }
 
 // Custom Leverage Slider Component
@@ -216,20 +225,64 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   currentPrice,
   liquidationPrice,
   direction,
+  asset = '',
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [tempLeverage, setTempLeverage] = useState(initialLeverage);
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const screenLoadStartRef = useRef<number>(0);
 
   useEffect(() => {
     if (isVisible) {
+      screenLoadStartRef.current = performance.now();
       bottomSheetRef.current?.onOpenBottomSheet();
+
+      // Measure and track leverage bottom sheet loaded
+      setTimeout(() => {
+        measurePerformance(
+          PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
+          screenLoadStartRef.current,
+        );
+
+        // Track leverage screen viewed event
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED)
+            .addProperties({
+              [PerpsEventProperties.TIMESTAMP]: Date.now(),
+              [PerpsEventProperties.ASSET]: asset,
+              [PerpsEventProperties.DIRECTION]:
+                direction === 'long'
+                  ? PerpsEventValues.DIRECTION.LONG
+                  : PerpsEventValues.DIRECTION.SHORT,
+            })
+            .build(),
+        );
+      }, 300); // After animation completes
     }
-  }, [isVisible]);
+  }, [isVisible, direction, asset, trackEvent, createEventBuilder]);
 
   const handleConfirm = () => {
     DevLogger.log(`Confirming leverage: ${tempLeverage}`);
+
+    // Track leverage changed event
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_LEVERAGE_CHANGED)
+        .addProperties({
+          [PerpsEventProperties.TIMESTAMP]: Date.now(),
+          [PerpsEventProperties.ASSET]: asset,
+          [PerpsEventProperties.DIRECTION]:
+            direction === 'long'
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.LEVERAGE_USED]: tempLeverage,
+          [PerpsEventProperties.INPUT_METHOD]:
+            PerpsEventValues.INPUT_METHOD.SLIDER,
+        })
+        .build(),
+    );
+
     onConfirm(tempLeverage);
     onClose();
   };

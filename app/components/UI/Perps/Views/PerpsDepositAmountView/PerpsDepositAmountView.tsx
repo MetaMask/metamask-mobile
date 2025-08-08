@@ -20,6 +20,7 @@ import React, {
 } from 'react';
 import { SafeAreaView, ScrollView, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
+import performance from 'react-native-performance';
 
 import { toHex } from '@metamask/controller-utils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -105,6 +106,10 @@ import { usePerpsNetwork, usePerpsTrading } from '../../hooks';
 import { usePerpsDepositQuote } from '../../hooks/usePerpsDepositQuote';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsDepositAmountView.styles';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { PerpsEventProperties } from '../../constants/eventNames';
+import { measurePerformance } from '../../utils/perpsDebug';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 interface PerpsDepositAmountViewProps {}
 
@@ -113,6 +118,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const dispatch = useDispatch();
   const { toastRef } = useContext(ToastContext);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // State
   const [sourceAmount, setSourceAmount] = useState<string | undefined>('');
@@ -125,6 +131,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   // Refs
   const inputRef = useRef<TokenInputAreaRef>(null);
   const prevTokenRef = useRef<PerpsToken | undefined>();
+  const screenLoadStartRef = useRef<number>(performance.now());
 
   // Selectors
   const selectedAddress = useSelector(
@@ -406,6 +413,18 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       setIsSubmittingTx(true);
       setError(null);
 
+      // Track funding initiated
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_FUNDING_INITIATED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.SOURCE_ASSET]: sourceToken.symbol,
+            [PerpsEventProperties.SOURCE_AMOUNT]: parseFloat(sourceAmount),
+            [PerpsEventProperties.SOURCE_CHAIN]: sourceToken.chainId,
+          })
+          .build(),
+      );
+
       const supportedRoutes = getDepositRoutes();
       const selectedTokenAddress = sourceToken.address.toLowerCase();
       const assetId = supportedRoutes.find((route: AssetRoute) =>
@@ -426,9 +445,37 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         assetId,
       };
 
+      // Track funding execution time
+      const fundingStartTime = performance.now();
+
       const depositResult = await deposit(depositParams);
 
+      // Measure transaction submission screen loaded
+      measurePerformance(
+        PerpsMeasurementName.TRANSACTION_SUBMISSION_SCREEN_LOADED,
+        fundingStartTime,
+      );
+
       if (depositResult.success && depositResult.txHash) {
+        // Measure transaction execution confirmation
+        measurePerformance(
+          PerpsMeasurementName.TRANSACTION_EXECUTION_CONFIRMATION_SCREEN_LOADED,
+          fundingStartTime,
+        );
+
+        // Track funding completed
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PERPS_FUNDING_COMPLETED)
+            .addProperties({
+              [PerpsEventProperties.TIMESTAMP]: Date.now(),
+              [PerpsEventProperties.SOURCE_ASSET]: sourceToken.symbol,
+              [PerpsEventProperties.SOURCE_AMOUNT]: parseFloat(sourceAmount),
+              [PerpsEventProperties.COMPLETION_DURATION]:
+                performance.now() - fundingStartTime,
+            })
+            .build(),
+        );
+
         // Show success toast
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -448,6 +495,17 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         // Navigate to trading view
         navigation.navigate(Routes.PERPS.TRADING_VIEW);
       } else {
+        // Track funding failed
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PERPS_FUNDING_FAILED)
+            .addProperties({
+              [PerpsEventProperties.TIMESTAMP]: Date.now(),
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                depositResult.error || 'Unknown error',
+            })
+            .build(),
+        );
+
         // Use centralized error handler for all errors
         const errorMessage = handlePerpsError({
           error: depositResult.error,
@@ -473,6 +531,8 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     deposit,
     toastRef,
     navigation,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const hasAmount = sourceAmount && parseFloat(sourceAmount) > 0;
@@ -481,8 +541,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     sourceToken &&
     !hasInsufficientBalance &&
     !isBelowMinimumDeposit;
-  const shouldDisplayQuoteDetails =
-    hasAmount && sourceToken && (!isQuoteLoading || quoteFetchError);
   const shouldShowPercentageButtons = isInputFocused || !hasAmount;
 
   const getButtonLabel = () => {
@@ -511,6 +569,67 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     }
     return sourceAmount || '0';
   }, [formattedQuoteData.receivingAmount, sourceAmount]);
+
+  const shouldDisplayQuoteDetails = useMemo(
+    () => hasAmount && !isQuoteLoading && !quoteFetchError,
+    [hasAmount, isQuoteLoading, quoteFetchError],
+  );
+
+  // Track funding screen loaded
+  useEffect(() => {
+    if (sourceToken && destToken) {
+      measurePerformance(
+        PerpsMeasurementName.FUNDING_SCREEN_INPUT_LOADED,
+        screenLoadStartRef.current,
+      );
+    }
+  }, [sourceToken, destToken]);
+
+  // Track funding input viewed
+  useEffect(() => {
+    if (hasAmount && sourceToken) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_FUNDING_INPUT_VIEWED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.SOURCE_ASSET]: sourceToken.symbol,
+            [PerpsEventProperties.SOURCE_AMOUNT]: parseFloat(sourceAmount),
+          })
+          .build(),
+      );
+    }
+  }, [hasAmount, sourceToken, sourceAmount, trackEvent, createEventBuilder]);
+
+  // Track funding review viewed
+  useEffect(() => {
+    if (hasAmount && !isQuoteLoading && formattedQuoteData.receivingAmount) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_FUNDING_REVIEW_VIEWED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.SOURCE_ASSET]:
+              sourceToken?.symbol || USDC_SYMBOL,
+            [PerpsEventProperties.SOURCE_AMOUNT]: parseFloat(
+              sourceAmount || '0',
+            ),
+            [PerpsEventProperties.DESTINATION_AMOUNT]: parseFloat(
+              formattedQuoteData.receivingAmount.replace(/[^0-9.]/g, '') || '0',
+            ),
+            [PerpsEventProperties.NETWORK_FEE]: formattedQuoteData.networkFee,
+          })
+          .build(),
+      );
+    }
+  }, [
+    hasAmount,
+    isQuoteLoading,
+    formattedQuoteData.receivingAmount,
+    formattedQuoteData.networkFee,
+    sourceToken,
+    sourceAmount,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const { top } = useSafeAreaInsets();
 

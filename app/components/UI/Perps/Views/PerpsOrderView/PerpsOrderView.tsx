@@ -62,6 +62,7 @@ import {
   TraceName,
   TraceOperation,
 } from '../../../../../util/trace';
+import performance from 'react-native-performance';
 import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
@@ -73,6 +74,12 @@ import PerpsTokenSelector, {
   type PerpsToken,
 } from '../../components/PerpsTokenSelector';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { measurePerformance } from '../../utils/perpsDebug';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
   HYPERLIQUID_MAINNET_CHAIN_ID,
@@ -188,7 +195,7 @@ const PerpsOrderView: React.FC = () => {
       onSuccess: (position) => {
         // Track successful position open
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.PERPS_POSITION_OPENED)
+          createEventBuilder(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_EXECUTED)
             .addProperties({
               market: orderForm.asset,
               direction: orderForm.direction,
@@ -359,6 +366,7 @@ const PerpsOrderView: React.FC = () => {
   }, [paymentTokens, selectedPaymentToken]);
 
   // Track screen load - only on mount/unmount
+  const screenLoadStartRef = useRef<number>(performance.now());
   useEffect(() => {
     trace({
       name: TraceName.PerpsOrderView,
@@ -370,36 +378,46 @@ const PerpsOrderView: React.FC = () => {
         orderType,
       },
     });
+  }, [asset, direction, orderType]);
 
-    return () => {
+  // Track balance display updates
+  useEffect(() => {
+    if (cachedAccountState?.availableBalance !== undefined) {
+      const balanceUpdateStart = performance.now();
+      measurePerformance(
+        PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED,
+        balanceUpdateStart,
+      );
+    }
+  }, [cachedAccountState?.availableBalance]);
+
+  // Clean up trace on unmount
+  useEffect(
+    () => () => {
       endTrace({
         name: TraceName.PerpsOrderView,
       });
-    };
-    // Empty dependency array - only track screen mount/unmount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    },
+    [],
+  );
 
   // Track dashboard view event separately with proper dependencies
   useEffect(() => {
+    const eventProps = {
+      [PerpsEventProperties.TIMESTAMP]: Date.now(),
+      [PerpsEventProperties.ASSET]: asset,
+      [PerpsEventProperties.DIRECTION]:
+        direction === 'long'
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+    };
+
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_DASHBOARD_VIEWED)
-        .addProperties({
-          market: asset,
-          accountBalance: cachedAccountState?.availableBalance,
-          direction,
-          orderType,
-        })
+      createEventBuilder(MetaMetricsEvents.PERPS_TRADING_SCREEN_VIEWED)
+        .addProperties(eventProps)
         .build(),
     );
-  }, [
-    asset,
-    cachedAccountState?.availableBalance,
-    createEventBuilder,
-    direction,
-    orderType,
-    trackEvent,
-  ]);
+  }, [asset, direction, createEventBuilder, trackEvent]);
 
   // Note: Navigation params for order type modal are no longer needed
 
@@ -442,6 +460,45 @@ const PerpsOrderView: React.FC = () => {
       isIpfsGatewayEnabled,
     });
   }, [tokenList, isIpfsGatewayEnabled]);
+
+  // Track screen load time when data is ready
+  useEffect(() => {
+    if (currentPrice && cachedAccountState) {
+      measurePerformance(
+        PerpsMeasurementName.TRADE_SCREEN_LOADED,
+        screenLoadStartRef.current,
+      );
+    }
+  }, [currentPrice, cachedAccountState]);
+
+  // Track order input viewed
+  useEffect(() => {
+    if (orderForm.amount && parseFloat(orderForm.amount) > 0) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_ORDER_TYPE_VIEWED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.ASSET]: orderForm.asset,
+            [PerpsEventProperties.DIRECTION]:
+              orderForm.direction === 'long'
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.ORDER_SIZE]: parseFloat(orderForm.amount),
+            [PerpsEventProperties.LEVERAGE_USED]: orderForm.leverage,
+            [PerpsEventProperties.ORDER_TYPE]: orderType,
+          })
+          .build(),
+      );
+    }
+  }, [
+    orderForm.direction,
+    orderForm.amount,
+    orderForm.leverage,
+    orderForm.asset,
+    orderType,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   // Show error toast if market data is not available
   useEffect(() => {
@@ -519,17 +576,37 @@ const PerpsOrderView: React.FC = () => {
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
+      const metricsUpdateStart = performance.now();
       setAmount(value || '0');
 
-      // Track position size entry
+      // Measure update dependent metrics
+      measurePerformance(
+        PerpsMeasurementName.UPDATE_DEPENDENT_METRICS,
+        metricsUpdateStart,
+      );
+
+      // Track position size entry with proper event properties
+      const eventProps = {
+        [PerpsEventProperties.TIMESTAMP]: Date.now(),
+        [PerpsEventProperties.ASSET]: orderForm.asset,
+        [PerpsEventProperties.DIRECTION]:
+          orderForm.direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
+        [PerpsEventProperties.ORDER_SIZE]: parseFloat(value) || 0,
+        [PerpsEventProperties.MARGIN_USED]: marginRequired,
+        [PerpsEventProperties.ORDER_TYPE]:
+          orderType === 'market'
+            ? PerpsEventValues.ORDER_TYPE.MARKET
+            : PerpsEventValues.ORDER_TYPE.LIMIT,
+        [PerpsEventProperties.INPUT_METHOD]:
+          PerpsEventValues.INPUT_METHOD.KEYBOARD,
+      };
+
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_POSITION_SIZE_ENTERED)
-          .addProperties({
-            market: orderForm.asset,
-            direction: orderForm.direction,
-            orderType,
-            positionSize: value || '0',
-          })
+        createEventBuilder(MetaMetricsEvents.PERPS_ORDER_SIZE_CHANGED)
+          .addProperties(eventProps)
           .build(),
       );
     },
@@ -539,7 +616,9 @@ const PerpsOrderView: React.FC = () => {
       createEventBuilder,
       orderForm.asset,
       orderForm.direction,
+      orderForm.leverage,
       orderType,
+      marginRequired,
     ],
   );
 
@@ -590,9 +669,9 @@ const PerpsOrderView: React.FC = () => {
         hasNoTimeout: true,
       });
 
-      // Track validation failure
+      // Track validation failure as error encountered
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_ORDER_VALIDATION_FAILED)
+        createEventBuilder(MetaMetricsEvents.PERPS_ERROR_ENCOUNTERED)
           .addProperties({
             market: orderForm.asset,
             direction: orderForm.direction,
@@ -622,6 +701,24 @@ const PerpsOrderView: React.FC = () => {
         .build(),
     );
 
+    // Track trade transaction initiated
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_INITIATED)
+        .addProperties({
+          [PerpsEventProperties.TIMESTAMP]: Date.now(),
+          [PerpsEventProperties.ASSET]: orderForm.asset,
+          [PerpsEventProperties.DIRECTION]:
+            orderForm.direction === 'long'
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.ORDER_TYPE]: orderType,
+          [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
+          [PerpsEventProperties.ORDER_SIZE]: positionSize,
+          [PerpsEventProperties.MARGIN_USED]: marginRequired,
+        })
+        .build(),
+    );
+
     // Execute order using the new hook
     const orderParams: OrderParams = {
       coin: orderForm.asset,
@@ -637,7 +734,43 @@ const PerpsOrderView: React.FC = () => {
         : {}),
     };
 
-    await executeOrder(orderParams);
+    try {
+      // Track trade transaction submitted
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_SUBMITTED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.ASSET]: orderForm.asset,
+            [PerpsEventProperties.DIRECTION]:
+              orderForm.direction === 'long'
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.ORDER_TYPE]: orderType,
+            [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
+            [PerpsEventProperties.ORDER_SIZE]: positionSize,
+          })
+          .build(),
+      );
+
+      await executeOrder(orderParams);
+    } catch (error) {
+      // Track trade transaction failed
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.ASSET]: orderForm.asset,
+            [PerpsEventProperties.DIRECTION]:
+              orderForm.direction === 'long'
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.ERROR_MESSAGE]:
+              error instanceof Error ? error.message : 'Unknown error',
+          })
+          .build(),
+      );
+      throw error;
+    }
   }, [
     orderValidation,
     toastRef,
@@ -1086,24 +1219,7 @@ const PerpsOrderView: React.FC = () => {
           setStopLossPrice(stopLossPrice);
           setIsTPSLVisible(false);
 
-          // Track TP/SL set
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.PERPS_TP_SL_SET)
-              .addProperties({
-                market: orderForm.asset,
-                direction: orderForm.direction,
-                orderType,
-                hasTakeProfit: !!takeProfitPrice,
-                hasStopLoss: !!stopLossPrice,
-                takeProfitDistance: takeProfitPrice
-                  ? Math.abs(parseFloat(takeProfitPrice) - assetData.price)
-                  : undefined,
-                stopLossDistance: stopLossPrice
-                  ? Math.abs(parseFloat(stopLossPrice) - assetData.price)
-                  : undefined,
-              })
-              .build(),
-          );
+          // TP/SL set events are tracked in the bottom sheet component
         }}
         asset={orderForm.asset}
         currentPrice={assetData.price}
@@ -1120,9 +1236,9 @@ const PerpsOrderView: React.FC = () => {
           setLeverage(leverage);
           setIsLeverageVisible(false);
 
-          // Track leverage adjustment
+          // Track leverage change
           trackEvent(
-            createEventBuilder(MetaMetricsEvents.PERPS_LEVERAGE_ADJUSTED)
+            createEventBuilder(MetaMetricsEvents.PERPS_LEVERAGE_CHANGED)
               .addProperties({
                 market: orderForm.asset,
                 direction: orderForm.direction,
@@ -1140,6 +1256,7 @@ const PerpsOrderView: React.FC = () => {
         currentPrice={assetData.price}
         liquidationPrice={parseFloat(liquidationPrice)}
         direction={orderForm.direction}
+        asset={orderForm.asset}
       />
 
       {/* Limit Price Bottom Sheet */}

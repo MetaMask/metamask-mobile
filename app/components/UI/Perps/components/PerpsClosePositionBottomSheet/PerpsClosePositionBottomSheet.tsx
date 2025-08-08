@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import performance from 'react-native-performance';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -30,6 +31,13 @@ import {
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
 import PerpsSlider from '../PerpsSlider/PerpsSlider';
 import { createStyles } from './PerpsClosePositionBottomSheet.styles';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { measurePerformance } from '../../utils/perpsDebug';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 interface PerpsClosePositionBottomSheetProps {
   isVisible: boolean;
@@ -50,6 +58,8 @@ const PerpsClosePositionBottomSheet: React.FC<
   const { colors } = theme;
   const styles = createStyles(theme);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const screenLoadStartRef = useRef<number>(0);
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // State for order type tabs
   const [orderType, setOrderType] = useState<OrderType>('market');
@@ -129,18 +139,103 @@ const PerpsClosePositionBottomSheet: React.FC<
 
   useEffect(() => {
     if (isVisible) {
+      screenLoadStartRef.current = performance.now();
       bottomSheetRef.current?.onOpenBottomSheet();
+
+      // Measure close screen loaded
+      setTimeout(() => {
+        measurePerformance(
+          PerpsMeasurementName.CLOSE_SCREEN_LOADED,
+          screenLoadStartRef.current,
+        );
+
+        // Track position close screen viewed
+        trackEvent(
+          createEventBuilder(
+            MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
+          )
+            .addProperties({
+              [PerpsEventProperties.TIMESTAMP]: Date.now(),
+              [PerpsEventProperties.ASSET]: position.coin,
+              [PerpsEventProperties.DIRECTION]: isLong
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+              [PerpsEventProperties.POSITION_SIZE]: absSize,
+              [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
+            })
+            .build(),
+        );
+      }, 300); // After animation
     }
-  }, [isVisible]);
+  }, [
+    isVisible,
+    position.coin,
+    isLong,
+    absSize,
+    pnl,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   // Update close amount when percentage changes
   useEffect(() => {
     const newAmount = (closePercentage / 100) * absSize;
     setCloseAmount(newAmount.toString());
     setCloseAmountUSD(newAmount * currentPrice);
-  }, [closePercentage, absSize, currentPrice]);
+
+    // Track position close value changed
+    if (isVisible && closePercentage !== 100) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_POSITION_CLOSE_VALUE_CHANGED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.ASSET]: position.coin,
+            [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
+            [PerpsEventProperties.CLOSE_VALUE]: newAmount * currentPrice,
+          })
+          .build(),
+      );
+    }
+  }, [
+    closePercentage,
+    absSize,
+    currentPrice,
+    isVisible,
+    position.coin,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const handleConfirm = () => {
+    // Track position close initiated
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED)
+        .addProperties({
+          [PerpsEventProperties.TIMESTAMP]: Date.now(),
+          [PerpsEventProperties.ASSET]: position.coin,
+          [PerpsEventProperties.DIRECTION]: isLong
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.ORDER_TYPE]: orderType,
+          [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
+          [PerpsEventProperties.CLOSE_VALUE]: closingValue,
+          [PerpsEventProperties.PNL_DOLLAR]: pnl * (closePercentage / 100),
+          [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
+        })
+        .build(),
+    );
+
+    // Track position close submitted
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_POSITION_CLOSE_SUBMITTED)
+        .addProperties({
+          [PerpsEventProperties.TIMESTAMP]: Date.now(),
+          [PerpsEventProperties.ASSET]: position.coin,
+          [PerpsEventProperties.ORDER_TYPE]: orderType,
+        })
+        .build(),
+    );
+
     // For full close, don't send size parameter
     const sizeToClose = closePercentage === 100 ? undefined : closeAmount;
 
@@ -205,7 +300,23 @@ const PerpsClosePositionBottomSheet: React.FC<
           <TouchableOpacity
             testID="market-order-tab"
             style={[styles.tab, orderType === 'market' && styles.tabActive]}
-            onPress={() => setOrderType('market')}
+            onPress={() => {
+              setOrderType('market');
+              // Track order type changed
+              trackEvent(
+                createEventBuilder(
+                  MetaMetricsEvents.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED,
+                )
+                  .addProperties({
+                    [PerpsEventProperties.TIMESTAMP]: Date.now(),
+                    [PerpsEventProperties.ASSET]: position.coin,
+                    [PerpsEventProperties.CURRENT_ORDER_TYPE]: orderType,
+                    [PerpsEventProperties.SELECTED_ORDER_TYPE]:
+                      PerpsEventValues.ORDER_TYPE.MARKET,
+                  })
+                  .build(),
+              );
+            }}
           >
             <Text
               variant={TextVariant.BodyMDMedium}
@@ -221,7 +332,23 @@ const PerpsClosePositionBottomSheet: React.FC<
           <TouchableOpacity
             testID="limit-order-tab"
             style={[styles.tab, orderType === 'limit' && styles.tabActive]}
-            onPress={() => setOrderType('limit')}
+            onPress={() => {
+              setOrderType('limit');
+              // Track order type changed
+              trackEvent(
+                createEventBuilder(
+                  MetaMetricsEvents.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED,
+                )
+                  .addProperties({
+                    [PerpsEventProperties.TIMESTAMP]: Date.now(),
+                    [PerpsEventProperties.ASSET]: position.coin,
+                    [PerpsEventProperties.CURRENT_ORDER_TYPE]: orderType,
+                    [PerpsEventProperties.SELECTED_ORDER_TYPE]:
+                      PerpsEventValues.ORDER_TYPE.LIMIT,
+                  })
+                  .build(),
+              );
+            }}
           >
             <Text
               variant={TextVariant.BodyMDMedium}

@@ -4,9 +4,10 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { SafeAreaView, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import performance from 'react-native-performance';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -37,6 +38,13 @@ import {
 } from '../../constants/chartConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { measurePerformance } from '../../utils/perpsDebug';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
 }
@@ -48,6 +56,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market } = route.params || {};
   const { top } = useSafeAreaInsets();
+  const { trackEvent, createEventBuilder } = useMetrics();
+
+  // Track screen load time
+  const screenLoadStartRef = useRef<number>(performance.now());
 
   const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
     TimeDuration.ONE_DAY,
@@ -78,16 +90,77 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       loadOnMount: true,
     });
 
-  const handleDurationChange = useCallback((newDuration: TimeDuration) => {
-    setSelectedDuration(newDuration);
-    // Auto-update candle period to the appropriate default for the new duration
-    const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
-    setSelectedCandlePeriod(defaultPeriod);
-  }, []);
+  // Track screen load and position data loaded
+  useEffect(() => {
+    if (market && marketStats && !isLoadingHistory) {
+      // Track asset screen loaded
+      measurePerformance(
+        PerpsMeasurementName.ASSET_SCREEN_LOADED,
+        screenLoadStartRef.current,
+      );
 
-  const handleCandlePeriodChange = useCallback((newPeriod: CandlePeriod) => {
-    setSelectedCandlePeriod(newPeriod);
-  }, []);
+      // Track asset screen viewed event
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.ASSET]: market.symbol,
+            [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
+          })
+          .build(),
+      );
+    }
+  }, [market, marketStats, isLoadingHistory, trackEvent, createEventBuilder]);
+
+  useEffect(() => {
+    if (!isLoadingPosition && market) {
+      // Track position data loaded for asset screen
+      measurePerformance(
+        PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN,
+        screenLoadStartRef.current,
+      );
+    }
+  }, [isLoadingPosition, market]);
+
+  const handleDurationChange = useCallback(
+    (newDuration: TimeDuration) => {
+      setSelectedDuration(newDuration);
+      // Auto-update candle period to the appropriate default for the new duration
+      const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
+      setSelectedCandlePeriod(defaultPeriod);
+
+      // Track chart time series change
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_CHART_TIME_SERIE_CHANGED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.ASSET]: market?.symbol || '',
+            [PerpsEventProperties.TIME_SERIE_SELECTED]: newDuration,
+          })
+          .build(),
+      );
+    },
+    [market, trackEvent, createEventBuilder],
+  );
+
+  const handleCandlePeriodChange = useCallback(
+    (newPeriod: CandlePeriod) => {
+      setSelectedCandlePeriod(newPeriod);
+
+      // Track chart interaction
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_CHART_INTERACTION)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.ASSET]: market?.symbol || '',
+            [PerpsEventProperties.INTERACTION_TYPE]: 'candle_period_change',
+            [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
+          })
+          .build(),
+      );
+    },
+    [market, trackEvent, createEventBuilder],
+  );
 
   const handleGearPress = useCallback(() => {
     setIsCandlePeriodBottomSheetVisible(true);

@@ -2,11 +2,13 @@ import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, {
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
 import { SafeAreaView, ScrollView, View } from 'react-native';
+import performance from 'react-native-performance';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -32,6 +34,7 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { Box } from '../../../../UI/Box/Box';
 import {
   MAX_INPUT_LENGTH,
@@ -42,11 +45,16 @@ import {
 import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
 import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import {
   HYPERLIQUID_ASSET_CONFIGS,
   METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
   USDC_DECIMALS,
   USDC_SYMBOL,
 } from '../../constants/hyperLiquidConfig';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
   usePerpsNetwork,
@@ -55,6 +63,7 @@ import {
   useWithdrawTokens,
   useWithdrawValidation,
 } from '../../hooks';
+import { measurePerformance } from '../../utils/perpsDebug';
 import createStyles from './PerpsWithdrawView.styles';
 
 const PerpsWithdrawView: React.FC = () => {
@@ -69,15 +78,36 @@ const PerpsWithdrawView: React.FC = () => {
 
   // Refs
   const inputRef = useRef<TokenInputAreaRef>(null);
+  const screenLoadStartRef = useRef<number>(performance.now());
 
   // Hooks
   const { toastRef } = useContext(ToastContext);
   const { withdraw } = usePerpsTrading();
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // TODO: Get network names dynamically once we implement multiple protocol
   const sourceNetworkName = useMemo(() => 'Hyperliquid', []);
+
+  // Track screen load
+  useEffect(() => {
+    measurePerformance(
+      PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED,
+      screenLoadStartRef.current,
+    );
+
+    // Track withdrawal input viewed
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED)
+        .addProperties({
+          [PerpsEventProperties.TIMESTAMP]: Date.now(),
+          [PerpsEventProperties.SOURCE]:
+            PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+        })
+        .build(),
+    );
+  }, [trackEvent, createEventBuilder]);
   const destNetworkName = useMemo(
     () => (isTestnet ? 'Arbitrum Sepolia' : 'Arbitrum'),
     [isTestnet],
@@ -169,6 +199,18 @@ const PerpsWithdrawView: React.FC = () => {
     try {
       setIsSubmittingTx(true);
 
+      // Track withdrawal initiated
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_WITHDRAWAL_INITIATED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.WITHDRAWAL_AMOUNT]:
+              parseFloat(withdrawAmount),
+            [PerpsEventProperties.SOURCE_ASSET]: USDC_SYMBOL,
+          })
+          .build(),
+      );
+
       // Show toast about withdrawal initiation
       toastRef?.current?.showToast({
         variant: ToastVariants.Plain,
@@ -195,13 +237,41 @@ const PerpsWithdrawView: React.FC = () => {
         isTestnet,
       });
 
+      // Track withdrawal execution time
+      const withdrawStartTime = performance.now();
+
       // Initiate withdrawal with required assetId
       const result = await withdraw({
         amount: withdrawAmount,
         assetId: usdcAssetId,
       });
 
+      // Measure withdrawal transaction submission
+      measurePerformance(
+        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED,
+        withdrawStartTime,
+      );
+
       if (result.success) {
+        // Measure withdrawal transaction confirmation
+        measurePerformance(
+          PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+          withdrawStartTime,
+        );
+
+        // Track withdrawal completed
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED)
+            .addProperties({
+              [PerpsEventProperties.TIMESTAMP]: Date.now(),
+              [PerpsEventProperties.WITHDRAWAL_AMOUNT]:
+                parseFloat(withdrawAmount),
+              [PerpsEventProperties.COMPLETION_DURATION]:
+                performance.now() - withdrawStartTime,
+            })
+            .build(),
+        );
+
         // Show success toast - funds will arrive within 5 minutes
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -225,6 +295,17 @@ const PerpsWithdrawView: React.FC = () => {
         // Navigate back immediately - the toast will persist since it's rendered globally
         navigation.goBack();
       } else {
+        // Track withdrawal failed
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED)
+            .addProperties({
+              [PerpsEventProperties.TIMESTAMP]: Date.now(),
+              [PerpsEventProperties.ERROR_MESSAGE]:
+                result.error || 'Unknown error',
+            })
+            .build(),
+        );
+
         // Show error toast - do NOT navigate back on error
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -270,6 +351,8 @@ const PerpsWithdrawView: React.FC = () => {
     isTestnet,
     withdraw,
     navigation,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   // UI state calculations
