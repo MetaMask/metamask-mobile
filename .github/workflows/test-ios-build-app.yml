@@ -91,7 +91,7 @@ jobs:
           GITHUB_CI: "true"
           CI: "true"
 
-          NODE_OPTIONS: "--max_old_space_size=4096" # Increase memory limit for build, specially on GH Runners
+          NODE_OPTIONS: "--max_old_space_size=8192" # Increase memory limit for build, specially on GH Runners
 
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
