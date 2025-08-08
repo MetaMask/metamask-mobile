@@ -1,20 +1,17 @@
 import React from 'react';
 import { useAlerts } from '../../context/alert-system-context';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import styleSheet from './general-alert-banner.styles';
+import styleSheet from './alert-banner.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getBannerAlertSeverity } from '../../utils/alert-system';
 import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 
-export interface GeneralAlertBannerProps {
+export interface AlertBannerProps {
   field?: RowAlertKey;
   inline?: boolean;
 }
 
-const GeneralAlertBanner = ({
-  field,
-  inline,
-}: GeneralAlertBannerProps = {}) => {
+const AlertBanner = ({ field, inline }: AlertBannerProps = {}) => {
   const { generalAlerts, fieldAlerts } = useAlerts();
   const { styles } = useStyles(styleSheet, { inline });
 
@@ -43,4 +40,4 @@ const GeneralAlertBanner = ({
   );
 };
 
-export default GeneralAlertBanner;
+export default AlertBanner;
