@@ -79,7 +79,10 @@ export const createStyles = ({
       padding: 16,
       borderRadius: 8,
     },
-    statisticsLabel: {
+    statisticsLabelContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
       marginBottom: 4,
     },
     statisticsValue: {

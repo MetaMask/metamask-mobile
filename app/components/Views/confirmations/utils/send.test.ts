@@ -8,6 +8,7 @@ import * as SendMultichainTransactionUtils from '../../../../core/SnapKeyring/ut
 import { AssetType } from '../types/token';
 import { SOLANA_ASSET } from '../__mocks__/send.mock';
 import {
+  formatToFixedDecimals,
   handleSendPageNavigation,
   prepareEVMTransaction,
   submitEvmTransaction,
@@ -119,5 +120,21 @@ describe('submitNonEvmTransaction', () => {
       fromAccount: { id: 'solana_account_id' } as InternalAccount,
     });
     expect(mockSendMultichainTransaction).toHaveBeenCalled();
+  });
+});
+
+describe('formatToFixedDecimals', () => {
+  it('return `0` is value is equivalent to 0', () => {
+    expect(formatToFixedDecimals('0.0000')).toEqual('0');
+  });
+  it('return correct string for very small values', () => {
+    expect(formatToFixedDecimals('0.01', 1)).toEqual('< 0.1');
+    expect(formatToFixedDecimals('0.001', 2)).toEqual('< 0.01');
+    expect(formatToFixedDecimals('0.0001', 3)).toEqual('< 0.001');
+    expect(formatToFixedDecimals('0.00001', 4)).toEqual('< 0.0001');
+  });
+  it('formats value with passed number of decimals', () => {
+    expect(formatToFixedDecimals('1', 4)).toEqual('1.0000');
+    expect(formatToFixedDecimals('1.01010101', 4)).toEqual('1.0101');
   });
 });
