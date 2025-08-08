@@ -67,28 +67,22 @@ export const isMultichainAccountsFeatureEnabled = (
 };
 
 /**
- * Overrides the multichain accounts state 2 enabled flag based on the feature versions.
- * This is used to enable the feature locally for development/testing purposes.
- *
- * @param featureVersions - The versions of the feature to check against.
- * @returns Boolean indicating if the multichain accounts state 2 is enabled from the local config.
- */
-const overrideMultichainAccountsState2EnabledFlag = (
-  featureVersions: string[],
-) =>
-  featureVersions.some(
-    (version) => version === MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2,
-  ) &&
-  overrideRemoteFeatureFlags &&
-  enabledMultichainAccountsState2Local;
-
-/**
  * Creates a selector to determine if multichain accounts are enabled based on the feature version.
  * @param featureVersions - The versions of the feature to check against.
  * @returns Boolean indicating if the multichain accounts feature is enabled for the specified versions.
  */
 const createMultichainAccountsStateSelector = (featureVersions: string[]) =>
   createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags): boolean => {
+    // Overrides the multichain accounts state 2 enabled flag based on the feature versions.
+    // This is used to enable the feature locally for development/testing purposes.
+    if (
+      overrideRemoteFeatureFlags &&
+      enabledMultichainAccountsState2Local &&
+      featureVersions.includes(MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2)
+    ) {
+      return true;
+    }
+
     if (overrideMultichainAccountsState2EnabledFlag(featureVersions)) {
       return true;
     }
