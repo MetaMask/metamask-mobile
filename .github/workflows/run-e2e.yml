@@ -14,10 +14,44 @@ permissions:
   id-token: write
 
 jobs:
+  changes:
+    name: Detect mobile build-impacting changes
+    runs-on: ubuntu-latest
+    outputs:
+      android: ${{ steps.filter.outputs.android }}
+      ios: ${{ steps.filter.outputs.ios }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Paths filter (Android/iOS impact)
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            android:
+              - 'android/**'
+              - '**/*.gradle*'
+              - '**/gradle-wrapper.properties'
+              - 'package.json'
+              - 'yarn.lock'
+              - 'scripts/**'
+              - 'app/**'
+            ios:
+              - 'ios/**'
+              - 'package.json'
+              - 'yarn.lock'
+              - 'scripts/**'
+              - 'app/**'
   # Build Android APKs once for all Android tests
   build-android-apks:
     name: "Build Android APKs (Shared)"
+    needs: changes
     uses: ./.github/workflows/build-android-e2e.yml
+    with:
+      should_build_android: ${{ needs.changes.outputs.android == 'true' }}
     secrets: inherit
 
   smoke-confirmations-ios:
