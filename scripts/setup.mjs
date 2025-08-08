@@ -200,6 +200,9 @@ const setupIosTask = {
       tasks.push({
         title: 'Install CocoaPods',
         task: async () => {
+            if (GITHUB_CI) {
+              return task.skip('Skipping install cocoapods in GitHub CI.');
+            }
           await $`yarn pod:install`;
         },
       });
