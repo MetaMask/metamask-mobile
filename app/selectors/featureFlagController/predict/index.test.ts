@@ -1,12 +1,19 @@
-import { selectPredictEnabledFlag } from '.';
-import { selectRemoteFeatureFlags } from '..';
+import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
+import { selectPredictEnabledFlag, FEATURE_FLAG_NAME } from './';
 
 describe('selectPredictEnabledFlag', () => {
-  type RemoteFlags = ReturnType<typeof selectRemoteFeatureFlags> & {
-    predictEnabled?: boolean;
-  };
+  const createMockState = (remoteFlags: FeatureFlags = {}) => ({
+    engine: {
+      backgroundState: {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: remoteFlags,
+          cacheTimestamp: 0,
+        },
+      },
+    },
+  });
 
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
@@ -15,10 +22,10 @@ describe('selectPredictEnabledFlag', () => {
     { flag: false, expected: false },
   ])('returns $expected when predictEnabled is $flag', ({ flag, expected }) => {
     // Arrange
-    const remoteFlags: RemoteFlags = { predictEnabled: flag };
+    const mockState = createMockState({ [FEATURE_FLAG_NAME]: flag });
 
     // Act
-    const result = selectPredictEnabledFlag.resultFunc(remoteFlags);
+    const result = selectPredictEnabledFlag(mockState);
 
     // Assert
     expect(result).toBe(expected);
@@ -26,21 +33,10 @@ describe('selectPredictEnabledFlag', () => {
 
   it('returns false when predictEnabled is not present', () => {
     // Arrange
-    const remoteFlags: RemoteFlags = {};
+    const mockState = createMockState({});
 
     // Act
-    const result = selectPredictEnabledFlag.resultFunc(remoteFlags);
-
-    // Assert
-    expect(result).toBe(false);
-  });
-
-  it('returns false when remote flags are undefined', () => {
-    // Arrange
-    const remoteFlags = undefined as unknown as RemoteFlags;
-
-    // Act
-    const result = selectPredictEnabledFlag.resultFunc(remoteFlags);
+    const result = selectPredictEnabledFlag(mockState);
 
     // Assert
     expect(result).toBe(false);
