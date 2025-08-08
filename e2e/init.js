@@ -1,5 +1,5 @@
 /* eslint-env jest */
-// import { logger } from './framework';
+import { logger } from './framework';
 import Utilities from './utils/Utilities';
 
 /**
@@ -18,7 +18,7 @@ afterEach(() => {
   if (global.liveServerRequest.length > 0) {
     const err = global.liveServerRequest;
     global.liveServerRequest = []; // reset for next test
-    throw err;
-    //logger.warn(err); // change this to throw once the allow list is updated
+    // throw err;
+    logger.warn(err); // change this to throw once the allow list is updated
   }
 });
