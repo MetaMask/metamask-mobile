@@ -42,7 +42,9 @@ describe('CellMultiSelectWithMenu', () => {
     );
 
     // Check if main components are rendered
-    expect(getByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      getByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.BASE_AVATAR)).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.BASE_TITLE)).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.TAG_LABEL)).toBeTruthy();
@@ -61,7 +63,9 @@ describe('CellMultiSelectWithMenu', () => {
     expect(queryByTestId(CellComponentSelectorsIDs.BASE_AVATAR)).toBeNull();
 
     // Other elements should still be present
-    expect(queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      queryByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
     expect(queryByTestId(CellComponentSelectorsIDs.BASE_TITLE)).toBeTruthy();
   });
 
@@ -80,7 +84,9 @@ describe('CellMultiSelectWithMenu', () => {
     );
 
     // Should still render the container
-    expect(getByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      getByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.BASE_AVATAR)).toBeTruthy();
   });
 
@@ -93,7 +99,9 @@ describe('CellMultiSelectWithMenu', () => {
     expect(queryByTestId(CellComponentSelectorsIDs.TAG_LABEL)).toBeNull();
 
     // Other elements should still be present
-    expect(queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      queryByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
     expect(queryByTestId(CellComponentSelectorsIDs.BASE_AVATAR)).toBeTruthy();
     expect(queryByTestId(CellComponentSelectorsIDs.BASE_TITLE)).toBeTruthy();
   });
@@ -108,7 +116,9 @@ describe('CellMultiSelectWithMenu', () => {
     );
 
     // Should render children (check that the component renders without error)
-    expect(getByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      getByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.BASE_AVATAR)).toBeTruthy();
   });
 
@@ -118,7 +128,9 @@ describe('CellMultiSelectWithMenu', () => {
     );
 
     // All components should still be rendered
-    expect(getByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      getByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.BASE_AVATAR)).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.BASE_TITLE)).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.TAG_LABEL)).toBeTruthy();
@@ -130,7 +142,9 @@ describe('CellMultiSelectWithMenu', () => {
     );
 
     // All components should still be rendered
-    expect(getByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      getByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.BASE_AVATAR)).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.BASE_TITLE)).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.TAG_LABEL)).toBeTruthy();
@@ -145,7 +159,9 @@ describe('CellMultiSelectWithMenu', () => {
     );
 
     // Should render with custom title props
-    expect(getByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      getByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
     expect(getByTestId(CellComponentSelectorsIDs.BASE_TITLE)).toBeTruthy();
   });
 
@@ -157,7 +173,9 @@ describe('CellMultiSelectWithMenu', () => {
     );
 
     // Should render with custom style
-    expect(getByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      getByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
   });
 
   it('should render with button props', () => {
@@ -176,7 +194,9 @@ describe('CellMultiSelectWithMenu', () => {
     );
 
     // Should render with button props
-    expect(getByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      getByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
   });
 
   it('should render with onTextClick handler', () => {
@@ -190,7 +210,9 @@ describe('CellMultiSelectWithMenu', () => {
     );
 
     // Should render with text click handler
-    expect(getByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      getByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
   });
 
   it('should render with showButtonIcon prop', () => {
@@ -199,7 +221,9 @@ describe('CellMultiSelectWithMenu', () => {
     );
 
     // Should render with button icon
-    expect(getByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      getByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
   });
 
   it('should render with buttonIcon prop', () => {
@@ -211,6 +235,8 @@ describe('CellMultiSelectWithMenu', () => {
     );
 
     // Should render with button icon
-    expect(getByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBeTruthy();
+    expect(
+      getByTestId(CellComponentSelectorsIDs.MULTISELECT_WITH_MENU),
+    ).toBeTruthy();
   });
 });
