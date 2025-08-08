@@ -44,6 +44,7 @@ describe('useTransactionPayTokenAmounts', () => {
     useTokenFiatRatesMock.mockReturnValue([4]);
 
     useTransactionPayTokenMock.mockReturnValue({
+      balanceFiat: '123.456',
       balanceHuman: '123.456',
       decimals: 4,
       payToken: {

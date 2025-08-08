@@ -19,6 +19,7 @@
   },
   "AccountTreeController": {
     "accountTree": {
+      "selectedAccountGroup": "",
       "wallets": {}
     }
   },
