@@ -28,6 +28,8 @@ const createStyles = () =>
     },
     image: {
       alignSelf: 'center',
+      width: Dimensions.get('window').width * 0.5,
+      height: Dimensions.get('window').width * 0.5,
     },
     title: {
       justifyContent: 'flex-start',
@@ -42,7 +44,6 @@ const createStyles = () =>
 export const LoadingComponent = (props: LoadingComponentProps) => {
   const { colors } = useTheme();
 
-  const foxWidth = Dimensions.get('window').width * 0.5;
   const styles = createStyles();
   const { previousScreen } = props;
 
@@ -50,7 +51,7 @@ export const LoadingComponent = (props: LoadingComponentProps) => {
     <View style={styles.loadingWrapper}>
       <View style={styles.foxWrapper}>
         <LottieView
-          style={{ ...styles.image, width: foxWidth, height: foxWidth }}
+          style={{ ...styles.image }}
           autoPlay
           loop
           source={fox as AnimationObject}
