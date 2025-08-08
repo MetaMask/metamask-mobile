@@ -2,7 +2,7 @@ import enContent from '../../../locales/languages/en.json';
 
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-import { getLocalTestDappUrl } from '../../fixtures/utils';
+import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import { TestDappSelectorsWebIDs } from '../../selectors/Browser/TestDapp.selectors';
 import Browser from '../Browser/BrowserView';
@@ -423,7 +423,7 @@ class TestDApp {
   }: ContractNavigationParams): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(
-      `${getLocalTestDappUrl()}?scrollTo=''&contract=${contractAddress}`,
+      `${getTestDappLocalUrl()}/?scrollTo=''&contract=${contractAddress}`,
     );
   }
 

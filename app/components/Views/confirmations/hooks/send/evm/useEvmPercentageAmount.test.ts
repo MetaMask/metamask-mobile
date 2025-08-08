@@ -6,10 +6,10 @@ import {
 import {
   GasFeeEstimatesType,
   getEstimatedTotalGas,
-  GetMaxValueArgs,
-  getMaxValueFn,
-  useEvmMaxAmount,
-} from './useEvmMaxAmount';
+  GetPercentageValueArgs,
+  getPercentageValueFn,
+  useEvmPercentageAmount,
+} from './useEvmPercentageAmount';
 
 jest.mock('../../gas/useGasFeeEstimates', () => ({
   useGasFeeEstimates: () => ({
@@ -29,6 +29,7 @@ const getMaxFnArguments = (params: Record<string, unknown>) => ({
   gasFeeEstimates: {
     medium: { suggestedMaxFeePerGas: 1.5 },
   },
+  percentage: 100,
   ...params,
 });
 
@@ -50,48 +51,72 @@ describe('getEstimatedTotalGas', () => {
   });
 });
 
-describe('getMaxValueFn', () => {
-  it('return undefined if no asset is passed', () => {
+describe('getPercentageValueFn', () => {
+  it('return default if no asset is passed', () => {
     expect(
-      getMaxValueFn(
-        getMaxFnArguments({ asset: undefined }) as unknown as GetMaxValueArgs,
+      getPercentageValueFn(
+        getMaxFnArguments({
+          asset: undefined,
+        }) as unknown as GetPercentageValueArgs,
       ),
-    ).toStrictEqual(undefined);
+    ).toStrictEqual('0');
   });
 
   it('return correct value for native token', () => {
     expect(
-      getMaxValueFn(
+      getPercentageValueFn(
         getMaxFnArguments({
           asset: {
             isNative: true,
             chainId: '0x1',
           },
-        }) as unknown as GetMaxValueArgs,
+        }) as unknown as GetPercentageValueArgs,
       ),
     ).toStrictEqual('999.9999685');
+    expect(
+      getPercentageValueFn(
+        getMaxFnArguments({
+          asset: {
+            isNative: true,
+            chainId: '0x1',
+          },
+          percentage: 25,
+        }) as unknown as GetPercentageValueArgs,
+      ),
+    ).toStrictEqual('249.9999685');
   });
 
   it('return correct value for ERC20 token', () => {
     expect(
-      getMaxValueFn(
+      getPercentageValueFn(
         getMaxFnArguments({
           asset: {
             address: '0x111',
             decimals: 2,
           },
-        }) as unknown as GetMaxValueArgs,
+        }) as unknown as GetPercentageValueArgs,
       ),
     ).toStrictEqual('10000000');
+    expect(
+      getPercentageValueFn(
+        getMaxFnArguments({
+          asset: {
+            address: '0x111',
+            decimals: 2,
+          },
+          percentage: 50,
+        }) as unknown as GetPercentageValueArgs,
+      ),
+    ).toStrictEqual('5000000');
   });
 });
 
 describe('useEvmMaxAmount', () => {
   it('return function getEvmMaxAmount', () => {
     const { result } = renderHookWithProvider(
-      () => useEvmMaxAmount(),
+      () => useEvmPercentageAmount(),
       mockState,
     );
-    expect(result.current.getEvmMaxAmount).toBeDefined();
+    expect(result.current.getEvmPercentageAmount).toBeDefined();
   });
 });
