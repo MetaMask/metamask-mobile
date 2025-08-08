@@ -346,7 +346,7 @@ const Wallet = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
-  const displayBuyButton = isNetworkRampSupported;
+  const displayFundButton = isNetworkRampSupported;
   const displaySwapsButton =
     AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
   const displayBridgeButton =
@@ -895,7 +895,7 @@ const Wallet = ({
         <>
           <PortfolioBalance />
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
+            displayFundButton={displayFundButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
             swapsIsLive={swapsIsLive}
@@ -903,7 +903,7 @@ const Wallet = ({
             goToSwaps={goToSwaps}
             onReceive={onReceive}
             onSend={onSend}
-            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            fundButtonActionID={WalletViewSelectorsIDs.WALLET_FUND_BUTTON}
             swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
             bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
             sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
@@ -931,7 +931,7 @@ const Wallet = ({
       navigation,
       goToBridge,
       goToSwaps,
-      displayBuyButton,
+      displayFundButton,
       displaySwapsButton,
       displayBridgeButton,
       swapsIsLive,

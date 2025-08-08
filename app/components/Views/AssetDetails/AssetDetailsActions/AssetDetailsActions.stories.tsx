@@ -37,7 +37,7 @@ const Template = (args: AssetDetailsActionsProps) => (
 export const Default = Template.bind(
   {},
   {
-    displayBuyButton: true,
+    displayFundButton: true,
     displaySwapsButton: true,
     displayBridgeButton: true,
     swapsIsLive: true,
@@ -52,7 +52,7 @@ export const Default = Template.bind(
 export const NoBuyButton = Template.bind(
   {},
   {
-    displayBuyButton: false,
+    displayFundButton: false,
     displaySwapsButton: true,
     displayBridgeButton: true,
     swapsIsLive: true,
@@ -67,7 +67,7 @@ export const NoBuyButton = Template.bind(
 export const NoSwapsButton = Template.bind(
   {},
   {
-    displayBuyButton: true,
+    displayFundButton: true,
     displaySwapsButton: false,
     displayBridgeButton: true,
     swapsIsLive: false,
@@ -82,7 +82,7 @@ export const NoSwapsButton = Template.bind(
 export const NoBridgeButton = Template.bind(
   {},
   {
-    displayBuyButton: true,
+    displayFundButton: true,
     displaySwapsButton: true,
     displayBridgeButton: false,
     swapsIsLive: false,
@@ -97,7 +97,7 @@ export const NoBridgeButton = Template.bind(
 export const NoButtons = Template.bind(
   {},
   {
-    displayBuyButton: false,
+    displayFundButton: false,
     displaySwapsButton: false,
     displayBridgeButton: false,
     swapsIsLive: false,
@@ -112,7 +112,7 @@ export const NoButtons = Template.bind(
 export const FundActionMenuNavigation = Template.bind(
   {},
   {
-    displayBuyButton: true,
+    displayFundButton: true,
     displaySwapsButton: true,
     displayBridgeButton: true,
     swapsIsLive: true,

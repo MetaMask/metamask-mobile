@@ -14,7 +14,7 @@ import useRampNetwork from '../../../UI/Ramp/Aggregator/hooks/useRampNetwork';
 import useDepositEnabled from '../../../UI/Ramp/Deposit/hooks/useDepositEnabled';
 
 export interface AssetDetailsActionsProps {
-  displayBuyButton: boolean | undefined;
+  displayFundButton: boolean | undefined;
   displaySwapsButton: boolean | undefined;
   displayBridgeButton: boolean | undefined;
   swapsIsLive: boolean | undefined;
@@ -37,7 +37,7 @@ export interface AssetDetailsActionsProps {
 }
 
 export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
-  displayBuyButton,
+  displayFundButton,
   displaySwapsButton,
   displayBridgeButton,
   swapsIsLive,
@@ -80,7 +80,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
 
   return (
     <View style={styles.activitiesButton}>
-      {displayBuyButton && (
+      {displayFundButton && (
         <View style={styles.buttonContainer}>
           <MainActionButton
             iconName={IconName.Money}

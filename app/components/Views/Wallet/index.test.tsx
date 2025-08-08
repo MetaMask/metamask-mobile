@@ -489,7 +489,7 @@ describe('Wallet', () => {
       // Check that AssetDetailsActions was called with all required props
       expect(mockAssetDetailsActions.mock.calls[0][0]).toEqual(
         expect.objectContaining({
-          displayBuyButton: expect.any(Boolean),
+          displayFundButton: expect.any(Boolean),
           displaySwapsButton: expect.any(Boolean),
           displayBridgeButton: expect.any(Boolean),
           swapsIsLive: expect.any(Boolean),
@@ -497,7 +497,7 @@ describe('Wallet', () => {
           goToSwaps: expect.any(Function),
           onReceive: expect.any(Function),
           onSend: expect.any(Function),
-          buyButtonActionID: 'wallet-buy-button',
+          fundButtonActionID: 'wallet-fund-button',
           swapButtonActionID: 'wallet-swap-button',
           bridgeButtonActionID: 'wallet-bridge-button',
           sendButtonActionID: 'wallet-send-button',
@@ -584,7 +584,7 @@ describe('Wallet', () => {
       // Verify that AssetDetailsActions is called without onBuy prop
       const passedProps = mockAssetDetailsActions.mock.calls[0][0];
       expect(passedProps.onBuy).toBeUndefined();
-      expect(passedProps.buyButtonActionID).toBeDefined();
+      expect(passedProps.fundButtonActionID).toBeDefined();
     });
 
     it('should handle goToBridge callback correctly', () => {

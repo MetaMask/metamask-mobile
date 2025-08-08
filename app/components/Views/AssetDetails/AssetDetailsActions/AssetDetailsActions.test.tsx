@@ -40,7 +40,7 @@ describe('AssetDetailsActions', () => {
   const mockOnReceive = jest.fn();
 
   const defaultProps = {
-    displayBuyButton: true,
+    displayFundButton: true,
     displaySwapsButton: true,
     displayBridgeButton: true,
     swapsIsLive: true,
@@ -177,9 +177,9 @@ describe('AssetDetailsActions', () => {
     expect(mockOnReceive).toHaveBeenCalled();
   });
 
-  it('does not render the buy button when displayBuyButton is false', () => {
+  it('does not render the buy button when displayFundButton is false', () => {
     const { queryByText } = renderWithProvider(
-      <AssetDetailsActions {...defaultProps} displayBuyButton={false} />,
+      <AssetDetailsActions {...defaultProps} displayFundButton={false} />,
       { state: initialRootState },
     );
 
