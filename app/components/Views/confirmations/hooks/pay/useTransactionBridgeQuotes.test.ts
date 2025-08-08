@@ -145,4 +145,18 @@ describe('useTransactionBridgeQuotes', () => {
       quotes: [QUOTE_MOCK, QUOTE_MOCK],
     });
   });
+
+  it('returns empty list if no selected pay token ', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    const result = runHook();
+
+    await act(async () => {
+      // Intentionally empty
+    });
+
+    expect(result.current.quotes).toStrictEqual([]);
+  });
 });

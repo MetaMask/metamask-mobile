@@ -51,11 +51,13 @@ describe('useTransactionRequiredFiat', () => {
         address: tokenAddress1Mock,
         amountHuman: '2',
         balanceHuman: '10',
+        skipIfBalance: false,
       },
       {
         address: tokenAddress2Mock,
         amountHuman: '3',
         balanceHuman: '20',
+        skipIfBalance: true,
       },
     ] as unknown as TransactionToken[]);
 
@@ -71,6 +73,7 @@ describe('useTransactionRequiredFiat', () => {
         amountFiat: 8,
         balanceFiat: 40,
         feeFiat: 0.2,
+        skipIfBalance: false,
         totalFiat: 8.2,
       },
       {
@@ -78,6 +81,7 @@ describe('useTransactionRequiredFiat', () => {
         amountFiat: 15,
         balanceFiat: 100,
         feeFiat: 0.375,
+        skipIfBalance: true,
         totalFiat: 15.375,
       },
     ]);
