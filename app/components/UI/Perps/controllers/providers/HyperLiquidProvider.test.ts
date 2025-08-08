@@ -2799,4 +2799,158 @@ describe('HyperLiquidProvider', () => {
       expect(result.error).toBe('Unexpected error');
     });
   });
+
+  describe('getIsFirstTimeUser', () => {
+    it('should return true for first-time users (missing role)', async () => {
+      // Arrange
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        '0xtest123',
+      );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userRole: jest.fn().mockResolvedValue({ role: 'missing' }),
+      });
+
+      // Act
+      const result = await provider.getIsFirstTimeUser({
+        accountId: 'eip155:1:0x123',
+      });
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
+        'eip155:1:0x123',
+      );
+      expect(mockClientService.getInfoClient().userRole).toHaveBeenCalledWith({
+        user: '0xtest123',
+      });
+    });
+
+    it('should return true for first-time users (no role)', async () => {
+      // Arrange
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        '0xtest123',
+      );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userRole: jest.fn().mockResolvedValue({}),
+      });
+
+      // Act
+      const result = await provider.getIsFirstTimeUser({
+        accountId: 'eip155:1:0x123',
+      });
+
+      // Assert
+      expect(result).toBe(true);
+      expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
+        'eip155:1:0x123',
+      );
+      expect(mockClientService.getInfoClient().userRole).toHaveBeenCalledWith({
+        user: '0xtest123',
+      });
+    });
+
+    it('should return false for returning users', async () => {
+      // Arrange
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        '0xtest123',
+      );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userRole: jest.fn().mockResolvedValue({ role: 'active' }),
+      });
+
+      // Act
+      const result = await provider.getIsFirstTimeUser({
+        accountId: 'eip155:1:0x123',
+      });
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
+        'eip155:1:0x123',
+      );
+      expect(mockClientService.getInfoClient().userRole).toHaveBeenCalledWith({
+        user: '0xtest123',
+      });
+    });
+
+    it('should use default account ID when not provided', async () => {
+      // Arrange
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        '0xtest123',
+      );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userRole: jest.fn().mockResolvedValue({ role: 'active' }),
+      });
+
+      // Act
+      const result = await provider.getIsFirstTimeUser();
+
+      // Assert
+      expect(result).toBe(false);
+      expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
+        undefined,
+      );
+      expect(mockClientService.getInfoClient().userRole).toHaveBeenCalledWith({
+        user: '0xtest123',
+      });
+    });
+
+    it('should return true when no wallet address available', async () => {
+      // Arrange
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        null as unknown as `0x${string}`,
+      );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userRole: jest.fn(),
+      });
+
+      // Mock DevLogger to prevent console noise during test
+      jest.spyOn(DevLogger, 'log').mockImplementation(() => {
+        // Do nothing
+      });
+
+      // Act
+      const result = await provider.getIsFirstTimeUser({
+        accountId: 'eip155:1:0x123',
+      });
+
+      // Assert
+      expect(result).toBe(true); // Should return true when no wallet address (caught by error handler)
+      expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
+        'eip155:1:0x123',
+      );
+    });
+
+    it('should return true (default to show UI) on API error', async () => {
+      // Arrange
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        '0xtest123',
+      );
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        userRole: jest.fn().mockRejectedValue(new Error('API error')),
+      });
+
+      // Mock DevLogger to prevent console noise during test
+      jest.spyOn(DevLogger, 'log').mockImplementation(() => {
+        // Do nothing
+      });
+
+      // Act
+      const result = await provider.getIsFirstTimeUser({
+        accountId: 'eip155:1:0x123',
+      });
+
+      // Assert
+      expect(result).toBe(true); // Should default to true on error (show tutorial)
+      expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
+        'eip155:1:0x123',
+      );
+    });
+  });
 });

@@ -30,7 +30,7 @@ export function usePerpsFirstTimeUser(): {
       const isFirstTime = await perpsController.getIsFirstTimeUser({
         accountId: selectedAccount?.caipAccountId,
       });
-      setIsFirstTimeUser(!isFirstTime);
+      setIsFirstTimeUser(isFirstTime);
     } catch (err) {
       // Default to showing tutorial if we can't determine status
       setIsFirstTimeUser(true);

@@ -411,7 +411,7 @@ export interface IPerpsProvider {
   // Unified asset and route information
   getDepositRoutes(params?: GetSupportedPathsParams): AssetRoute[]; // Assets and their deposit routes
   getWithdrawalRoutes(params?: GetSupportedPathsParams): AssetRoute[]; // Assets and their withdrawal routes
-  getIsFirstTimeUser(params: GetIsFirstTimeUserParams): Promise<boolean>; // Check if this is the first time user is trading
+  getIsFirstTimeUser(params?: GetIsFirstTimeUserParams): Promise<boolean>; // Check if this is the first time user is trading
 
   // Trading operations → Redux (persisted, optimistic updates)
   placeOrder(params: OrderParams): Promise<OrderResult>;

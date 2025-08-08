@@ -9,7 +9,7 @@ import {
   type PerpsControllerState,
 } from './PerpsController';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
-import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
+import { CaipAccountId, CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { DepositStatus } from './types';
 import { CandlePeriod } from '../constants/chartConfig';
 
@@ -128,6 +128,7 @@ describe('PerpsController', () => {
       getOrderFills: jest.fn(),
       getOrders: jest.fn(),
       getFunding: jest.fn(),
+      getIsFirstTimeUser: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -2694,6 +2695,138 @@ describe('PerpsController', () => {
           expect(error).toBeInstanceOf(Error);
           expect((error as Error).message).toBe(errorMessage);
         }
+      });
+    });
+  });
+
+  describe('getIsFirstTimeUser', () => {
+    it('should return true for first-time users', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        mockHyperLiquidProvider.getIsFirstTimeUser.mockResolvedValue(true);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Act
+        const params = { accountId: 'eip155:1:0x123' as CaipAccountId };
+        const result = await controller.getIsFirstTimeUser(params);
+
+        // Assert
+        expect(result).toBe(true);
+        expect(mockHyperLiquidProvider.getIsFirstTimeUser).toHaveBeenCalledWith(
+          params,
+        );
+      });
+    });
+
+    it('should return false for returning users', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        mockHyperLiquidProvider.getIsFirstTimeUser.mockResolvedValue(false);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Act
+        const params = { accountId: 'eip155:1:0x123' as CaipAccountId };
+        const result = await controller.getIsFirstTimeUser(params);
+
+        // Assert
+        expect(result).toBe(false);
+        expect(mockHyperLiquidProvider.getIsFirstTimeUser).toHaveBeenCalledWith(
+          params,
+        );
+      });
+    });
+
+    it('should pass parameters to provider correctly', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        const params = { accountId: 'eip155:1:0x123' as CaipAccountId };
+        mockHyperLiquidProvider.getIsFirstTimeUser.mockResolvedValue(true);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Act
+        const result = await controller.getIsFirstTimeUser(params);
+
+        // Assert
+        expect(result).toBe(true);
+        expect(mockHyperLiquidProvider.getIsFirstTimeUser).toHaveBeenCalledWith(
+          params,
+        );
+      });
+    });
+
+    it('should return false when provider throws error', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        // Mock console.error to suppress error output during test
+        const originalConsoleError = console.error;
+        console.error = jest.fn();
+
+        mockHyperLiquidProvider.getIsFirstTimeUser.mockImplementation(() => {
+          throw new Error('Network error');
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Act
+        const params = { accountId: 'eip155:1:0x123' as CaipAccountId };
+        const result = await controller.getIsFirstTimeUser(params);
+
+        // Assert
+        expect(result).toBe(false);
+        expect(mockHyperLiquidProvider.getIsFirstTimeUser).toHaveBeenCalledWith(
+          params,
+        );
+
+        // Cleanup
+        console.error = originalConsoleError;
+      });
+    });
+
+    it('should return false when provider is not initialized', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange - don't initialize the controller
+        // Mock console.error to suppress error output during test
+        const originalConsoleError = console.error;
+        console.error = jest.fn();
+
+        // @ts-ignore - Accessing private property for testing
+        controller.isInitialized = false;
+
+        // Act
+        const params = { accountId: 'eip155:1:0x123' as CaipAccountId };
+        const result = await controller.getIsFirstTimeUser(params);
+
+        // Assert - should return false (fallback) instead of throwing
+        expect(result).toBe(false);
+
+        // Cleanup
+        console.error = originalConsoleError;
+      });
+    });
+
+    it('should handle undefined parameters', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        mockHyperLiquidProvider.getIsFirstTimeUser.mockResolvedValue(false);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Act
+        const result = await controller.getIsFirstTimeUser();
+
+        // Assert
+        expect(result).toBe(false);
+        expect(mockHyperLiquidProvider.getIsFirstTimeUser).toHaveBeenCalledWith(
+          undefined,
+        );
       });
     });
   });

@@ -1943,7 +1943,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Uses the userState and userFills APIs to determine if the user has ever interacted with the protocol
    * @returns Promise<boolean> - true if this is the first time using perps
    */
-  async getIsFirstTimeUser(params: GetIsFirstTimeUserParams): Promise<boolean> {
+  async getIsFirstTimeUser(
+    params?: GetIsFirstTimeUserParams,
+  ): Promise<boolean> {
     try {
       await this.ensureReady();
 

@@ -1,40 +1,40 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { View, ScrollView, RefreshControl } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import Icon, {
-  IconName,
-  IconColor,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { RefreshControl, ScrollView, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
-  ButtonVariants,
   ButtonSize,
+  ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import styleSheet from './PerpsTabView.styles';
-import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
+import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
   usePerpsConnection,
+  usePerpsFirstTimeUser,
   usePerpsPositions,
   usePerpsTrading,
-  usePerpsFirstTimeUser,
 } from '../../hooks';
-import { strings } from '../../../../../../locales/i18n';
-import type { PerpsNavigationParamList } from '../../controllers/types';
+import styleSheet from './PerpsTabView.styles';
 
 interface PerpsTabViewProps {}
 
@@ -201,25 +201,25 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   return (
     <View style={styles.wrapper}>
-      {!isFirstTimeUser && !isLoading && (
-        <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
-      )}
       {isFirstTimeUser ? (
         <View style={[styles.content, styles.firstTimeContent]}>
           <View style={styles.section}>{renderPositionsSection()}</View>
         </View>
       ) : (
-        <ScrollView
-          style={styles.content}
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-            />
-          }
-        >
-          <View style={styles.section}>{renderPositionsSection()}</View>
-        </ScrollView>
+        <>
+          <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
+          <ScrollView
+            style={styles.content}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+              />
+            }
+          >
+            <View style={styles.section}>{renderPositionsSection()}</View>
+          </ScrollView>
+        </>
       )}
 
       {isBottomSheetVisible && (

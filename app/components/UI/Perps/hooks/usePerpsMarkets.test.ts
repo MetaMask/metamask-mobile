@@ -95,6 +95,7 @@ const mockProvider = {
   getOrderFills: jest.fn(),
   getOrders: jest.fn(),
   getFunding: jest.fn(),
+  getIsFirstTimeUser: jest.fn(),
 } as const;
 
 const mockPerpsController = Engine.context.PerpsController as jest.Mocked<

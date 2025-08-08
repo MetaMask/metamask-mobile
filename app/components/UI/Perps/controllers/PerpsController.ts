@@ -1486,7 +1486,9 @@ export class PerpsController extends BaseController<
    * This determines whether to show the tutorial/onboarding
    * @returns Promise<boolean> - true if user is a first-time perps user
    */
-  async getIsFirstTimeUser(params: GetIsFirstTimeUserParams): Promise<boolean> {
+  async getIsFirstTimeUser(
+    params?: GetIsFirstTimeUserParams,
+  ): Promise<boolean> {
     try {
       const provider = this.getActiveProvider();
       return provider.getIsFirstTimeUser(params);
