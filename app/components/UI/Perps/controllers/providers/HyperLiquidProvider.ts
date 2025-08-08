@@ -1,8 +1,12 @@
 import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
 import { type Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
+import performance from 'react-native-performance';
+import { setMeasurement } from '@sentry/react-native';
 import { strings } from '../../../../../../locales/i18n';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { measurePerformance } from '../../utils/perpsDebug';
 import {
   FEE_RATES,
   getBridgeInfo,
@@ -181,11 +185,18 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Place an order using direct wallet signing (same as working debug test)
    */
   async placeOrder(params: OrderParams): Promise<OrderResult> {
+    const startTime = performance.now();
     try {
       DevLogger.log('Placing order via HyperLiquid SDK:', params);
 
       // Validate order parameters
+      const validationStart = performance.now();
       const validation = validateOrderParams(params);
+      measurePerformance(
+        PerpsMeasurementName.ORDER_VALIDATION_MS,
+        validationStart,
+      );
+
       if (!validation.isValid) {
         throw new Error(validation.error);
       }
@@ -359,10 +370,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // 5. Submit via SDK exchange client instead of direct fetch
       const exchangeClient = this.clientService.getExchangeClient();
+      const submitStart = performance.now();
       const result = await exchangeClient.order({
         orders,
         grouping,
       });
+      measurePerformance(PerpsMeasurementName.ORDER_SUBMISSION_MS, submitStart);
 
       if (result.status !== 'ok') {
         throw new Error(`Order failed: ${JSON.stringify(result)}`);
@@ -372,6 +385,38 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const restingOrder =
         status && 'resting' in status ? status.resting : null;
       const filledOrder = status && 'filled' in status ? status.filled : null;
+
+      // Set position-specific measurements
+      setMeasurement(
+        PerpsMeasurementName.LEVERAGE_RATIO,
+        params.leverage || 1,
+        'none',
+      );
+
+      // Calculate USD position size: size * price
+      const orderPriceForUSD =
+        params.orderType === 'limit' && params.price
+          ? parseFloat(params.price)
+          : params.currentPrice || currentPrice;
+      const positionSizeUSD = parseFloat(params.size) * orderPriceForUSD;
+      setMeasurement(
+        PerpsMeasurementName.POSITION_SIZE_USD,
+        positionSizeUSD,
+        'none',
+      );
+      if (params.orderType === 'limit' && params.price && params.currentPrice) {
+        const priceDistance =
+          (Math.abs(parseFloat(params.price) - params.currentPrice) /
+            params.currentPrice) *
+          10000;
+        setMeasurement(
+          PerpsMeasurementName.LIMIT_PRICE_DISTANCE_BPS,
+          priceDistance,
+          'none',
+        );
+      }
+
+      measurePerformance(PerpsMeasurementName.TOTAL_ORDER_TIME_MS, startTime);
 
       return {
         success: true,
@@ -738,10 +783,15 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Close a position
    */
   async closePosition(params: ClosePositionParams): Promise<OrderResult> {
+    const startTime = performance.now();
+
     try {
       DevLogger.log('Closing position:', params);
 
+      const positionsStart = performance.now();
       const positions = await this.getPositions();
+      measurePerformance(PerpsMeasurementName.GET_POSITIONS_MS, positionsStart);
+
       const position = positions.find((p) => p.coin === params.coin);
 
       if (!position) {
@@ -760,6 +810,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         price: params.price,
         reduceOnly: true,
       });
+
+      measurePerformance(
+        PerpsMeasurementName.TOTAL_CLOSE_POSITION_MS,
+        startTime,
+      );
 
       return result;
     } catch (error) {
@@ -1095,6 +1150,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Get account state
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
+    const startTime = performance.now();
+
     try {
       DevLogger.log('Getting account state via HyperLiquid SDK');
 
@@ -1112,16 +1169,26 @@ export class HyperLiquidProvider implements IPerpsProvider {
       );
 
       // Get both Perps and Spot balances
+      const apiCallStart = performance.now();
       const [perpsState, spotState] = await Promise.all([
         infoClient.clearinghouseState({ user: userAddress }),
         infoClient.spotClearinghouseState({ user: userAddress }),
       ]);
+      measurePerformance(
+        PerpsMeasurementName.ACCOUNT_STATE_API_MS,
+        apiCallStart,
+      );
 
       DevLogger.log('Perps state:', perpsState);
       DevLogger.log('Spot state:', spotState);
 
       const accountState = adaptAccountStateFromSDK(perpsState, spotState);
       DevLogger.log('Adapted account state:', accountState);
+
+      measurePerformance(
+        PerpsMeasurementName.TOTAL_ACCOUNT_STATE_MS,
+        startTime,
+      );
 
       return accountState;
     } catch (error) {
@@ -1136,14 +1203,27 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Get available markets
    */
   async getMarkets(): Promise<MarketInfo[]> {
+    const startTime = performance.now();
+
     try {
       DevLogger.log('Getting markets via HyperLiquid SDK');
 
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
+      const apiStart = performance.now();
       const meta = await infoClient.meta();
-      return meta.universe.map((asset) => adaptMarketFromSDK(asset));
+      measurePerformance(PerpsMeasurementName.MARKETS_API_MS, apiStart);
+
+      const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
+      measurePerformance(PerpsMeasurementName.TOTAL_MARKETS_MS, startTime);
+      setMeasurement(
+        PerpsMeasurementName.MARKETS_COUNT,
+        markets.length,
+        'none',
+      );
+
+      return markets;
     } catch (error) {
       DevLogger.log('Error getting markets:', error);
       return [];

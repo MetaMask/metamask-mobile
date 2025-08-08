@@ -8,6 +8,16 @@ import {
   type PerpsAssetCtx,
   type Book,
 } from '@deeeed/hyperliquid-node20';
+import performance from 'react-native-performance';
+import { setMeasurement } from '@sentry/react-native';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import { measurePerformance } from '../utils/perpsDebug';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type {
   PriceUpdate,
@@ -99,6 +109,20 @@ export class HyperLiquidSubscriptionService {
     } = params;
     const unsubscribers: (() => void)[] = [];
 
+    // Track subscription start time using performance.now()
+    const subscriptionStartTime = performance.now();
+
+    // Start trace for subscription
+    trace({
+      name: TraceName.PerpsMarketDataUpdate,
+      op: TraceOperation.PerpsMarketData,
+      tags: {
+        symbols: symbols.join(','),
+        includeMarketData,
+        includeOrderBook,
+      },
+    });
+
     symbols.forEach((symbol) => {
       unsubscribers.push(
         this.createSubscription(this.priceSubscribers, callback, symbol),
@@ -152,6 +176,15 @@ export class HyperLiquidSubscriptionService {
         if (includeOrderBook) {
           this.cleanupL2BookSubscription(symbol);
         }
+      });
+
+      // End trace on unsubscribe with correct duration calculation
+      endTrace({
+        name: TraceName.PerpsMarketDataUpdate,
+        data: {
+          subscription_duration_ms: performance.now() - subscriptionStartTime,
+          symbols_count: symbols.length,
+        },
       });
     };
   }
@@ -376,8 +409,22 @@ export class HyperLiquidSubscriptionService {
       return;
     }
 
+    // Track WebSocket metrics
+    const wsMetrics = {
+      messagesReceived: 0,
+      lastMessageTime: Date.now(),
+      reconnectCount: 0,
+      startTime: Date.now(),
+    };
+
     subscriptionClient
       .allMids((data: WsAllMids) => {
+        wsMetrics.messagesReceived++;
+        wsMetrics.lastMessageTime = Date.now();
+
+        // Measure message processing time
+        const processStart = performance.now();
+
         // Update cache for ALL available symbols
         Object.entries(data.mids).forEach(([symbol, price]) => {
           const priceUpdate = this.createPriceUpdate(symbol, price.toString());
@@ -386,13 +433,50 @@ export class HyperLiquidSubscriptionService {
 
         // Notify all price subscribers with their requested symbols
         this.notifyAllPriceSubscribers();
+
+        measurePerformance(
+          PerpsMeasurementName.PRICE_UPDATE_PROCESS_MS,
+          processStart,
+        );
+
+        // Track update frequency every 100 messages
+        if (wsMetrics.messagesReceived % 100 === 0) {
+          const messagesPerMinute =
+            wsMetrics.messagesReceived /
+            ((Date.now() - wsMetrics.startTime) / 60000);
+          setMeasurement(
+            PerpsMeasurementName.WS_MESSAGES_PER_MINUTE,
+            messagesPerMinute,
+            'none',
+          );
+        }
       })
       .then((sub) => {
         this.globalAllMidsSubscription = sub;
         DevLogger.log('HyperLiquid: Global allMids subscription established');
+
+        // Trace WebSocket connection
+        trace({
+          name: TraceName.PerpsWebSocketConnected,
+          op: TraceOperation.PerpsMarketData,
+          tags: {
+            subscription_type: 'allMids',
+            is_testnet: this.clientService.isTestnetMode(),
+          },
+        });
       })
       .catch((error) => {
         DevLogger.log(strings('perps.errors.failedToEstablishAllMids'), error);
+
+        // Trace WebSocket error
+        trace({
+          name: TraceName.PerpsWebSocketDisconnected,
+          op: TraceOperation.PerpsMarketData,
+          tags: {
+            subscription_type: 'allMids',
+            error: error.message,
+          },
+        });
       });
   }
 
@@ -414,10 +498,18 @@ export class HyperLiquidSubscriptionService {
       return;
     }
 
+    // Track metrics for this subscription
+    const subscriptionMetrics = {
+      messagesReceived: 0,
+      startTime: Date.now(),
+    };
+
     subscriptionClient
       .activeAssetCtx(
         { coin: symbol },
         (data: WsActiveAssetCtx | WsActiveSpotAssetCtx) => {
+          subscriptionMetrics.messagesReceived++;
+
           if (data.coin === symbol && data.ctx) {
             const ctx = data.ctx;
 
@@ -465,12 +557,34 @@ export class HyperLiquidSubscriptionService {
         DevLogger.log(
           `HyperLiquid: Market data subscription established for ${symbol}`,
         );
+
+        // Trace WebSocket connection for market data
+        trace({
+          name: TraceName.PerpsWebSocketConnected,
+          op: TraceOperation.PerpsMarketData,
+          tags: {
+            subscription_type: 'activeAssetCtx',
+            symbol,
+            is_testnet: this.clientService.isTestnetMode(),
+          },
+        });
       })
       .catch((error) => {
         DevLogger.log(
           strings('perps.errors.failedToEstablishMarketData', { symbol }),
           error,
         );
+
+        // Trace WebSocket error
+        trace({
+          name: TraceName.PerpsWebSocketDisconnected,
+          op: TraceOperation.PerpsMarketData,
+          tags: {
+            subscription_type: 'activeAssetCtx',
+            symbol,
+            error: error.message,
+          },
+        });
       });
   }
 

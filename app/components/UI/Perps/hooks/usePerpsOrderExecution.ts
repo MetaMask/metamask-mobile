@@ -3,6 +3,9 @@ import { strings } from '../../../../../locales/i18n';
 import type { OrderParams, OrderResult, Position } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import performance from 'react-native-performance';
+import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import { measurePerformance } from '../utils/perpsDebug';
 
 interface UsePerpsOrderExecutionParams {
   onSuccess?: (position?: Position) => void;
@@ -41,14 +44,26 @@ export function usePerpsOrderExecution(
           JSON.stringify(orderParams, null, 2),
         );
 
+        // Track order submission toast timing
+        const orderSubmissionStart = performance.now();
+
         const result = await controllerPlaceOrder(orderParams);
         setLastResult(result);
+
+        // Measure order submission toast loaded
+        measurePerformance(
+          PerpsMeasurementName.ORDER_SUBMISSION_TOAST_LOADED,
+          orderSubmissionStart,
+        );
 
         if (result.success) {
           DevLogger.log(
             'usePerpsOrderExecution: Order placed successfully',
             result,
           );
+
+          // Track order confirmation timing
+          const orderConfirmationStart = performance.now();
 
           // Try to fetch the newly created position
           try {
@@ -58,6 +73,12 @@ export function usePerpsOrderExecution(
             const fetchedPositions = await getPositions();
             const newPosition = fetchedPositions.find(
               (p) => p.coin === orderParams.coin,
+            );
+
+            // Measure order confirmation toast loaded
+            measurePerformance(
+              PerpsMeasurementName.ORDER_CONFIRMATION_TOAST_LOADED,
+              orderConfirmationStart,
             );
 
             if (newPosition) {

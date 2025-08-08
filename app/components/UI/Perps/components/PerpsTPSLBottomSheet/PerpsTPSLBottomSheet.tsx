@@ -5,6 +5,7 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
+import performance from 'react-native-performance';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -25,6 +26,13 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import type { Position } from '../../controllers/types';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
 import { usePerpsPrices } from '../../hooks';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { measurePerformance } from '../../utils/perpsDebug';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   isValidTakeProfitPrice,
   isValidStopLossPrice,
@@ -68,6 +76,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const screenLoadStartRef = useRef<number>(0);
 
   const [takeProfitPrice, setTakeProfitPrice] = useState(
     initialTakeProfitPrice ? formatPrice(initialTakeProfitPrice) : '',
@@ -91,6 +100,8 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   // Track if user is using percentage-based calculation (vs manual price input)
   const [tpUsingPercentage, setTpUsingPercentage] = useState(false);
   const [slUsingPercentage, setSlUsingPercentage] = useState(false);
+
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   // Subscribe to real-time price only when visible and we have an asset
   const priceData = usePerpsPrices(isVisible && asset ? [asset] : []);
@@ -126,7 +137,16 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
   useEffect(() => {
     if (isVisible) {
+      screenLoadStartRef.current = performance.now();
       bottomSheetRef.current?.onOpenBottomSheet();
+
+      // Measure TP/SL bottom sheet loaded after animation
+      setTimeout(() => {
+        measurePerformance(
+          PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED,
+          screenLoadStartRef.current,
+        );
+      }, 300); // After animation completes
     }
   }, [isVisible]);
 
@@ -193,6 +213,47 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     const parseStopLossPrice = stopLossPrice
       ? stopLossPrice.replace(/[$,]/g, '')
       : undefined;
+
+    // Track stop loss and take profit set events
+    if (parseStopLossPrice) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_STOP_LOSS_SET)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.ASSET]: asset,
+            [PerpsEventProperties.DIRECTION]:
+              actualDirection === 'long'
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.STOP_LOSS_PRICE]:
+              parseFloat(parseStopLossPrice),
+            [PerpsEventProperties.INPUT_METHOD]: slUsingPercentage
+              ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
+              : PerpsEventValues.INPUT_METHOD.MANUAL,
+          })
+          .build(),
+      );
+    }
+
+    if (parseTakeProfitPrice) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_TAKE_PROFIT_SET)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.ASSET]: asset,
+            [PerpsEventProperties.DIRECTION]:
+              actualDirection === 'long'
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.TAKE_PROFIT_PRICE]:
+              parseFloat(parseTakeProfitPrice),
+            [PerpsEventProperties.INPUT_METHOD]: tpUsingPercentage
+              ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
+              : PerpsEventValues.INPUT_METHOD.MANUAL,
+          })
+          .build(),
+      );
+    }
 
     onConfirm(parseTakeProfitPrice, parseStopLossPrice);
     // Don't close immediately - let the parent handle closing after update completes

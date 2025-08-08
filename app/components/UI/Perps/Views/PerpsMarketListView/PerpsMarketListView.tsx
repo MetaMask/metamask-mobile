@@ -8,6 +8,7 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
+import performance from 'react-native-performance';
 import { FlashList } from '@shopify/flash-list';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -34,6 +35,13 @@ import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { measurePerformance } from '../../utils/perpsDebug';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -135,6 +143,8 @@ const PerpsMarketListView = ({
     }
   };
 
+  const { trackEvent, createEventBuilder } = useMetrics();
+
   const handleRefresh = () => {
     if (activeTab === 'markets' && !isRefreshingMarkets) {
       refreshMarkets();
@@ -160,6 +170,15 @@ const PerpsMarketListView = ({
     if (isSearchVisible) {
       // Clear search when hiding search bar
       setSearchQuery('');
+    } else {
+      // Track search bar clicked event
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_ASSET_SEARCH_BAR_CLICKED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+          })
+          .build(),
+      );
     }
   };
 
@@ -169,15 +188,73 @@ const PerpsMarketListView = ({
     }
   };
 
+  // Track screen load performance
+  const screenLoadStartRef = useRef<number>(performance.now());
+
+  useEffect(() => {
+    // Track markets screen viewed event
+    if (activeTab === 'markets' && markets.length > 0) {
+      // Measure screen load time
+      measurePerformance(
+        PerpsMeasurementName.MARKETS_SCREEN_LOADED,
+        screenLoadStartRef.current,
+      );
+
+      // Track event
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_MARKETS_VIEWED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.SOURCE]:
+              PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
+          })
+          .build(),
+      );
+    }
+  }, [markets, activeTab, trackEvent, createEventBuilder]);
+
   // Load positions when positions tab is selected
   useEffect(() => {
     if (activeTab === 'positions') {
       loadPositions();
+      // Track position data loaded in perp tab
+      if (positions && positions.length >= 0) {
+        const positionLoadStart = performance.now();
+        measurePerformance(
+          PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB,
+          positionLoadStart,
+        );
+
+        // Track homescreen tab viewed event
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED)
+            .addProperties({
+              [PerpsEventProperties.TIMESTAMP]: Date.now(),
+              [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
+                [PerpsEventProperties.ASSET]: p.coin,
+                [PerpsEventProperties.LEVERAGE]: p.leverage.value,
+                [PerpsEventProperties.DIRECTION]:
+                  parseFloat(p.size) > 0
+                    ? PerpsEventValues.DIRECTION.LONG
+                    : PerpsEventValues.DIRECTION.SHORT,
+              })),
+              [PerpsEventProperties.PERP_ACCOUNT_BALANCE]: 0, // TODO: Get actual balance
+            })
+            .build(),
+        );
+      }
     }
     if (activeTab === 'markets') {
       refreshMarkets();
     }
-  }, [activeTab, loadPositions, refreshMarkets]);
+  }, [
+    activeTab,
+    loadPositions,
+    refreshMarkets,
+    positions,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const renderMarketList = () => {
     // Skeleton List

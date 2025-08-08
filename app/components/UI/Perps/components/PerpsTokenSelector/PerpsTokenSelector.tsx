@@ -1,6 +1,7 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect, useRef } from 'react';
 import { FlatList, TouchableOpacity, View } from 'react-native';
 import Modal from 'react-native-modal';
+import performance from 'react-native-performance';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -40,6 +41,8 @@ import {
   HYPERLIQUID_TESTNET_CHAIN_ID,
 } from '../../constants/hyperLiquidConfig';
 import { PerpsTokenSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { measurePerformance } from '../../utils/perpsDebug';
 
 // Re-export BridgeToken as PerpsToken for backward compatibility
 export type PerpsToken = BridgeToken;
@@ -79,6 +82,21 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const navigation = useNavigation();
+  const screenLoadStartRef = useRef<number>(0);
+
+  // Track screen load time when modal opens
+  useEffect(() => {
+    if (isVisible) {
+      screenLoadStartRef.current = performance.now();
+      // Measure after modal animation completes
+      setTimeout(() => {
+        measurePerformance(
+          PerpsMeasurementName.FUNDING_SOURCE_TOKEN_LIST_LOADED,
+          screenLoadStartRef.current,
+        );
+      }, 300);
+    }
+  }, [isVisible]);
 
   const isHyperliquidUsdc = useCallback(
     (token: PerpsToken) =>
