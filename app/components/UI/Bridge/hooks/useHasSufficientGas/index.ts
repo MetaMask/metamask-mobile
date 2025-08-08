@@ -1,13 +1,13 @@
 import {
   formatChainIdToCaip,
   formatChainIdToHex,
-  getNativeAssetForChainId,
   isSolanaChainId,
 } from '@metamask/bridge-controller';
 import { useLatestBalance } from '../useLatestBalance';
 import { ethers } from 'ethers';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { useBridgeQuoteData } from '../useBridgeQuoteData';
+import { getNativeSourceToken } from '../useInitialSourceToken';
 
 interface Props {
   quote: ReturnType<typeof useBridgeQuoteData>['activeQuote'];
@@ -20,10 +20,6 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
   const gasIncluded = quote?.quote.gasIncluded;
 
   const sourceChainId = quote?.quote.srcChainId;
-  const sourceChainNativeAsset =
-    sourceChainId && !gasIncluded
-      ? getNativeAssetForChainId(sourceChainId)
-      : undefined;
 
   let hexOrCaipChainId: CaipChainId | Hex | undefined;
   if (sourceChainId && !gasIncluded) {
@@ -33,6 +29,10 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
       hexOrCaipChainId = formatChainIdToHex(sourceChainId);
     }
   }
+  const sourceChainNativeAsset =
+    hexOrCaipChainId && !gasIncluded
+      ? getNativeSourceToken(hexOrCaipChainId)
+      : undefined;
 
   const gasTokenBalance = useLatestBalance({
     address: sourceChainNativeAsset?.address,
