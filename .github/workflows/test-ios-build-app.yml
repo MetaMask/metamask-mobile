@@ -1,6 +1,7 @@
 name: Test iOS Build QA App
 
 on:
+  push:
   workflow_dispatch:
     inputs:
       retention_days:
@@ -57,7 +58,7 @@ jobs:
         with:
           platform: ios
           setup-simulator: false
-          target: qa
+          #target: qa
 
       - name: Print iOS tool versions
         run: |
@@ -161,10 +162,10 @@ jobs:
           echo "📦 Artifacts available at: ${ARTIFACTS_URL}"
           echo ""
           echo "Upload Status Summary:"
-          echo "-  APP (Simulator): ${{ steps.upload-app.outcome }}"
-          echo "-  IPA (Device): ${{ steps.upload-ipa.outcome }}"
-          echo "-  Archive: ${{ steps.upload-archive.outcome }}"
-          echo "-  Source Map: ${{ steps.upload-sourcemap.outcome }}"
+          echo "- APP (Simulator): ${{ steps.upload-app.outcome }}"
+          echo "- IPA (Device): ${{ steps.upload-ipa.outcome }}"
+          echo "- Archive: ${{ steps.upload-archive.outcome }}"
+          echo "- Source Map: ${{ steps.upload-sourcemap.outcome }}"
 
         env:
           GITHUB_REPOSITORY: "${{ github.repository }}"
