@@ -419,14 +419,25 @@ export const selectEvmTokens = createDeepEqualSelector(
     enabledNetworksByNamespace,
   ) => {
     // Apply network filtering
-    let filteredTokens;
+    let filteredTokens: TokenI[];
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      filteredTokens = tokensToDisplay.filter((currentToken: TokenI) => {
-        const chainId = currentToken.chainId || '';
-        return enabledNetworksByNamespace[KnownCaipNamespace.Eip155]?.[
-          chainId as Hex
-        ];
-      });
+      const enabledEip155Networks =
+        enabledNetworksByNamespace?.[KnownCaipNamespace.Eip155];
+
+      if (!enabledEip155Networks) {
+        // Fall back to default behavior when network enablement data is unavailable
+        filteredTokens =
+          isAllNetworks && isPopularNetwork && isEvmSelected
+            ? tokensToDisplay
+            : tokensToDisplay.filter(
+                (token: TokenI) => token.chainId === currentChainId,
+              );
+      } else {
+        filteredTokens = tokensToDisplay.filter((currentToken: TokenI) => {
+          const chainId = currentToken.chainId || '';
+          return enabledEip155Networks[chainId as Hex];
+        });
+      }
     } else {
       filteredTokens =
         isAllNetworks && isPopularNetwork && isEvmSelected

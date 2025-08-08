@@ -303,17 +303,16 @@ describe('defiPositionsController selectors', () => {
         },
         mockAddress,
         {
-          // No EIP155 namespace - this will cause the selector to fail
-          // This is a known issue: the selector doesn't handle undefined defiPositionByEnabledNetworks
+          // No EIP155 namespace - should return empty object instead of throwing
           [KnownCaipNamespace.Solana]: {
             'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
           },
         },
       );
 
-      // The selector currently throws an error when EIP155 namespace is missing
-      // This test documents the current behavior
-      expect(() => selectDefiPositionsByEnabledNetworks(state)).toThrow();
+      // The selector should return an empty object when EIP155 namespace is missing
+      const result = selectDefiPositionsByEnabledNetworks(state);
+      expect(result).toEqual({});
     });
 
     it('should correctly filter when some networks are enabled and some are not', () => {

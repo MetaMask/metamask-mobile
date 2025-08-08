@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { parseCaipChainId, CaipChainId, Hex } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../core/Engine';
@@ -56,9 +61,13 @@ export const useNetworkEnablement = () => {
     () => (chainId: CaipChainId) => {
       const { namespace: chainNamespace, reference } =
         parseCaipChainId(chainId);
-      const formattedChainIdHex = toHex(reference);
+      // For EVM networks (eip155), use hex format. For non-EVM, use full CAIP chain ID
+      const formattedChainId =
+        chainNamespace === KnownCaipNamespace.Eip155
+          ? toHex(reference)
+          : chainId;
       return (
-        enabledNetworksByNamespace?.[chainNamespace]?.[formattedChainIdHex] ===
+        enabledNetworksByNamespace?.[chainNamespace]?.[formattedChainId] ===
         true
       );
     },

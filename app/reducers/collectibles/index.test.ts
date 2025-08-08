@@ -353,10 +353,10 @@ describe('collectibles selectors', () => {
         },
       });
 
-      // The selector should handle undefined gracefully
-      expect(() =>
-        multichainCollectibleContractsByEnabledNetworksSelector(state),
-      ).toThrow();
+      // The selector should return empty object when EIP155 namespace is missing
+      const result =
+        multichainCollectibleContractsByEnabledNetworksSelector(state);
+      expect(result).toEqual({});
     });
 
     it('should handle different addresses correctly', () => {
@@ -516,10 +516,9 @@ describe('collectibles selectors', () => {
         },
       });
 
-      // The selector should handle undefined gracefully
-      expect(() =>
-        multichainCollectiblesByEnabledNetworksSelector(state),
-      ).toThrow();
+      // The selector should return empty object when EIP155 namespace is missing
+      const result = multichainCollectiblesByEnabledNetworksSelector(state);
+      expect(result).toEqual({});
     });
 
     it('should return empty object when EIP155 namespace exists but is empty', () => {

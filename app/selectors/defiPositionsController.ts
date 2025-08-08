@@ -43,6 +43,10 @@ export const selectDefiPositionsByEnabledNetworks = createDeepEqualSelector(
     const defiPositionByEnabledNetworks =
       enabledNetworks[KnownCaipNamespace.Eip155];
 
+    if (!defiPositionByEnabledNetworks) {
+      return {};
+    }
+
     const enabledChainIdsSet = new Set(
       Object.keys(defiPositionByEnabledNetworks).filter(
         (chainId) => defiPositionByEnabledNetworks[chainId as Hex],
