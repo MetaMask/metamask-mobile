@@ -1,7 +1,6 @@
 name: Test Android Build QA App
 
 on:
-  push:
   workflow_dispatch:
     inputs:
       retention_days:
@@ -36,7 +35,6 @@ jobs:
         with:
           platform: android
           setup-simulator: false
-          target: qa
 
       # Cache Gradle dependencies (most important for build speed)
       - name: Cache Gradle

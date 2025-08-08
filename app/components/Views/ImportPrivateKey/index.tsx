@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { Alert, TextInput, View, DimensionValue } from 'react-native';
+import {
+  Alert,
+  TextInput,
+  View,
+  DimensionValue,
+  SafeAreaView,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -13,6 +19,7 @@ import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/Import
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import { Authentication } from '../../../core';
 import Icon, {
   IconName,
   IconSize,
@@ -98,26 +105,32 @@ const ImportPrivateKey = () => {
     setLoading(true);
     // Import private key
     try {
-      await importAccountFromPrivateKey(privateKeyToProcess);
-      navigation.navigate('ImportPrivateKeyView', {
-        screen: 'ImportPrivateKeySuccess',
-      });
-      setLoading(false);
-      setPrivateKey('');
-      fetchAccountsWithActivity();
+      // check if seedless pwd is outdated skip cache before importing Private Key
+      const isSeedlessPwdOutdated =
+        await Authentication.checkIsSeedlessPasswordOutdated(true);
+      // no need to handle error here, password outdated state will trigger modal that force user to log out
+      if (!isSeedlessPwdOutdated) {
+        await importAccountFromPrivateKey(privateKeyToProcess);
+        navigation.navigate('ImportPrivateKeyView', {
+          screen: 'ImportPrivateKeySuccess',
+        });
+        setPrivateKey('');
+        fetchAccountsWithActivity();
+      }
     } catch (e) {
       Alert.alert(
         strings('import_private_key.error_title'),
         strings('import_private_key.error_message'),
       );
+    } finally {
       setLoading(false);
     }
   };
 
-  const onScanSuccess = (data: { private_key: string; seed: string }) => {
+  const onScanSuccess = async (data: { private_key: string; seed: string }) => {
     if (data.private_key) {
       setPrivateKey(data.private_key);
-      goNext(data.private_key);
+      await goNext(data.private_key);
     } else if (data.seed) {
       Alert.alert(
         strings('wallet.error'),
@@ -140,11 +153,17 @@ const ImportPrivateKey = () => {
   };
 
   return (
-    <View style={styles.mainWrapper}>
+    <SafeAreaView style={styles.mainWrapper}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         style={styles.topOverlay}
         resetScrollToCoords={{ x: 0, y: 0 }}
+        keyboardShouldPersistTaps="always"
+        keyboardDismissMode="none"
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={100}
+        showsVerticalScrollIndicator={false}
       >
         <View
           style={styles.content}
@@ -240,7 +259,7 @@ const ImportPrivateKey = () => {
         </View>
       </KeyboardAwareScrollView>
       <ScreenshotDeterrent enabled isSRP={false} />
-    </View>
+    </SafeAreaView>
   );
 };
 

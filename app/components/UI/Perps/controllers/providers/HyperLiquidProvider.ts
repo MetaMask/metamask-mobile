@@ -1,7 +1,19 @@
 import type { OrderParams as SDKOrderParams } from '@deeeed/hyperliquid-node20/esm/src/types/exchange/requests';
-import type { Hex } from '@metamask/utils';
+import { type Hex } from '@metamask/utils';
+import { v4 as uuidv4 } from 'uuid';
+import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { getBridgeInfo, getChainId } from '../../constants/hyperLiquidConfig';
+import {
+  FEE_RATES,
+  getBridgeInfo,
+  getChainId,
+  HYPERLIQUID_WITHDRAWAL_MINUTES,
+  TRADING_DEFAULTS,
+} from '../../constants/hyperLiquidConfig';
+import {
+  PERPS_CONSTANTS,
+  WITHDRAWAL_CONSTANTS,
+} from '../../constants/perpsConfig';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
@@ -33,18 +45,26 @@ import type {
   DepositParams,
   DisconnectResult,
   EditOrderParams,
+  FeeCalculationParams,
+  FeeCalculationResult,
+  Funding,
   GetAccountStateParams,
+  GetFundingParams,
+  GetOrderFillsParams,
+  GetOrdersParams,
   GetPositionsParams,
   GetSupportedPathsParams,
   InitializeResult,
   IPerpsProvider,
-  LiveDataConfig,
   LiquidationPriceParams,
+  LiveDataConfig,
   MaintenanceMarginParams,
-  PerpsMarketData,
   MarketInfo,
+  Order,
+  OrderFill,
+  OrderParams,
   OrderResult,
-  OrderParams as PerpsOrderParams,
+  PerpsMarketData,
   Position,
   ReadyToTradeResult,
   SubscribeOrderFillsParams,
@@ -55,8 +75,6 @@ import type {
   WithdrawParams,
   WithdrawResult,
 } from '../types';
-import { strings } from '../../../../../../locales/i18n';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 /**
  * HyperLiquid provider implementation
@@ -138,6 +156,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
       assetId,
       chainId: bridgeInfo.chainId,
       contractAddress: bridgeInfo.contractAddress,
+      constraints: {
+        minAmount: WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+        estimatedTime: strings('time.minutes_format', {
+          count: HYPERLIQUID_WITHDRAWAL_MINUTES,
+        }),
+        fees: {
+          fixed: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT,
+          token: WITHDRAWAL_CONSTANTS.DEFAULT_FEE_TOKEN,
+        },
+      },
     }));
   }
 
@@ -152,7 +180,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   /**
    * Place an order using direct wallet signing (same as working debug test)
    */
-  async placeOrder(params: PerpsOrderParams): Promise<OrderResult> {
+  async placeOrder(params: OrderParams): Promise<OrderResult> {
     try {
       DevLogger.log('Placing order via HyperLiquid SDK:', params);
 
@@ -724,7 +752,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const isBuy = positionSize < 0;
       const closeSize = params.size || Math.abs(positionSize).toString();
 
-      return this.placeOrder({
+      const result = await this.placeOrder({
         coin: params.coin,
         isBuy,
         size: closeSize,
@@ -732,6 +760,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
         price: params.price,
         reduceOnly: true,
       });
+
+      return result;
     } catch (error) {
       DevLogger.log('Position closing failed:', error);
       return createErrorResult(error, { success: false });
@@ -883,6 +913,185 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Get historical user fills (trade executions)
+   */
+  async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
+    try {
+      DevLogger.log('Getting user fills via HyperLiquid SDK:', params);
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawFills = await infoClient.userFills({
+        user: userAddress,
+        aggregateByTime: params?.aggregateByTime || false,
+      });
+
+      DevLogger.log('User fills received:', rawFills);
+
+      // Transform HyperLiquid fills to abstract OrderFill type
+      const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
+        // Perps only, no Spots
+        if (!['Buy', 'Sell'].includes(fill.dir)) {
+          acc.push({
+            orderId: fill.oid?.toString() || '',
+            symbol: fill.coin,
+            side: fill.side === 'A' ? 'sell' : 'buy',
+            startPosition: fill.startPosition,
+            size: fill.sz,
+            price: fill.px,
+            fee: fill.fee,
+            feeToken: fill.feeToken,
+            timestamp: fill.time,
+            pnl: fill.closedPnl,
+            direction: fill.dir,
+            success: true,
+          });
+        }
+
+        return acc;
+      }, []);
+
+      return fills;
+    } catch (error) {
+      DevLogger.log('Error getting user fills:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get historical orders (order lifecycle)
+   */
+  async getOrders(params?: GetOrdersParams): Promise<Order[]> {
+    try {
+      DevLogger.log('Getting user orders via HyperLiquid SDK:', params);
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawOrders = await infoClient.historicalOrders({
+        user: userAddress,
+      });
+
+      DevLogger.log('User orders received:', rawOrders);
+
+      // Transform HyperLiquid orders to abstract Order type
+      const orders: Order[] = (rawOrders || []).map((rawOrder) => {
+        const { order, status, statusTimestamp } = rawOrder;
+        // Normalize side: HyperLiquid uses 'A' (Ask/Sell) and 'B' (Bid/Buy)
+        const normalizedSide = order.side === 'B' ? 'buy' : 'sell';
+
+        // Normalize status
+        let normalizedStatus: Order['status'];
+        switch (status) {
+          case 'open':
+            normalizedStatus = 'open';
+            break;
+          case 'filled':
+            normalizedStatus = 'filled';
+            break;
+          case 'canceled':
+          case 'marginCanceled':
+          case 'vaultWithdrawalCanceled':
+          case 'openInterestCapCanceled':
+          case 'selfTradeCanceled':
+          case 'reduceOnlyCanceled':
+          case 'siblingFilledCanceled':
+          case 'delistedCanceled':
+          case 'liquidatedCanceled':
+          case 'scheduledCancel':
+          case 'reduceOnlyRejected':
+            normalizedStatus = 'canceled';
+            break;
+          case 'rejected':
+            // case 'minTradeNtlRejected':
+            normalizedStatus = 'rejected';
+            break;
+          case 'triggered':
+            normalizedStatus = 'triggered';
+            break;
+          default:
+            normalizedStatus = 'queued';
+        }
+
+        // Calculate filled and remaining size
+        const originalSize = parseFloat(order.origSz || order.sz);
+        const currentSize = parseFloat(order.sz);
+        const filledSize = originalSize - currentSize;
+
+        return {
+          orderId: order.oid?.toString() || '',
+          symbol: order.coin,
+          side: normalizedSide,
+          orderType: order.orderType?.toLowerCase().includes('limit')
+            ? 'limit'
+            : 'market',
+          size: order.sz,
+          originalSize: order.origSz || order.sz,
+          price: order.limitPx || '0',
+          filledSize: filledSize.toString(),
+          remainingSize: currentSize.toString(),
+          status: normalizedStatus,
+          timestamp: statusTimestamp,
+          lastUpdated: statusTimestamp,
+        };
+      });
+
+      return orders;
+    } catch (error) {
+      DevLogger.log('Error getting user orders:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get user funding history
+   */
+  async getFunding(params?: GetFundingParams): Promise<Funding[]> {
+    try {
+      DevLogger.log('Getting user funding via HyperLiquid SDK:', params);
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawFunding = await infoClient.userFunding({
+        user: userAddress,
+        startTime: params?.startTime || 0,
+        endTime: params?.endTime,
+      });
+
+      DevLogger.log('User funding received:', rawFunding);
+
+      // Transform HyperLiquid funding to abstract Funding type
+      const funding: Funding[] = (rawFunding || []).map((rawFundingItem) => {
+        const { delta, hash, time } = rawFundingItem;
+
+        return {
+          symbol: delta.coin,
+          amountUsd: delta.usdc,
+          rate: delta.fundingRate,
+          timestamp: time,
+          transactionHash: hash,
+        };
+      });
+
+      return funding;
+    } catch (error) {
+      DevLogger.log('Error getting user funding:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get account state
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
@@ -982,7 +1191,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Validate deposit parameters according to HyperLiquid-specific rules
    * This method enforces protocol-specific requirements like minimum amounts
    */
-  validateDeposit(params: DepositParams): { isValid: boolean; error?: string } {
+  async validateDeposit(
+    params: DepositParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
     return validateDepositParams({
       amount: params.amount,
       assetId: params.assetId,
@@ -991,29 +1202,250 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Validate order parameters according to HyperLiquid-specific rules
+   * This includes minimum order sizes, leverage limits, and other protocol requirements
+   */
+  async validateOrder(
+    params: OrderParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
+    try {
+      // Basic parameter validation
+      const basicValidation = validateOrderParams({
+        coin: params.coin,
+        size: params.size,
+        price: params.price,
+      });
+      if (!basicValidation.isValid) {
+        return basicValidation;
+      }
+
+      // Check minimum order size using consistent defaults (matching useMinimumOrderAmount hook)
+      // Note: For full validation with market-specific limits, use async methods
+      const coinAmount = parseFloat(params.size || '0');
+      const minimumOrderSize = this.clientService.isTestnetMode()
+        ? TRADING_DEFAULTS.amount.testnet
+        : TRADING_DEFAULTS.amount.mainnet;
+
+      // Convert coin amount to USD value for comparison with minimum
+      // Price is required for proper validation
+      if (!params.currentPrice) {
+        return {
+          isValid: false,
+          error: strings('perps.order.validation.price_required'),
+        };
+      }
+
+      const orderValueUSD = coinAmount * params.currentPrice;
+
+      if (orderValueUSD < minimumOrderSize) {
+        return {
+          isValid: false,
+          error: strings('perps.order.validation.minimum_amount', {
+            amount: minimumOrderSize.toString(),
+          }),
+        };
+      }
+
+      // Asset-specific leverage validation
+      if (params.leverage && params.coin) {
+        try {
+          const maxLeverage = await this.getMaxLeverage(params.coin);
+          if (params.leverage < 1 || params.leverage > maxLeverage) {
+            return {
+              isValid: false,
+              error: strings('perps.order.validation.invalid_leverage', {
+                min: '1',
+                max: maxLeverage.toString(),
+              }),
+            };
+          }
+        } catch (error) {
+          // If we can't get max leverage, use the default as fallback
+          const defaultMaxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+          if (params.leverage < 1 || params.leverage > defaultMaxLeverage) {
+            return {
+              isValid: false,
+              error: strings('perps.order.validation.invalid_leverage', {
+                min: '1',
+                max: defaultMaxLeverage.toString(),
+              }),
+            };
+          }
+        }
+      }
+
+      // Validate limit orders have a price
+      if (params.orderType === 'limit' && !params.price) {
+        return {
+          isValid: false,
+          error: strings('perps.order.validation.limit_price_required'),
+        };
+      }
+
+      return { isValid: true };
+    } catch (error) {
+      return {
+        isValid: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
+      };
+    }
+  }
+
+  /**
+   * Validate close position parameters according to HyperLiquid-specific rules
+   * Note: Full validation including remaining position size requires position data
+   * which should be passed from the UI layer
+   */
+  async validateClosePosition(
+    params: ClosePositionParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
+    try {
+      // Basic validation
+      if (!params.coin) {
+        return {
+          isValid: false,
+          error: strings('perps.errors.orderValidation.coinRequired'),
+        };
+      }
+
+      // If closing with limit order, must have price
+      if (params.orderType === 'limit' && !params.price) {
+        return {
+          isValid: false,
+          error: strings('perps.order.validation.limit_price_required'),
+        };
+      }
+
+      // Validate close size if provided
+      if (params.size) {
+        const closeSize = parseFloat(params.size);
+        if (isNaN(closeSize) || closeSize <= 0) {
+          return {
+            isValid: false,
+            error: strings('perps.errors.orderValidation.sizePositive'),
+          };
+        }
+
+        // Note: Remaining position validation should be done in the UI layer
+        // where position data is available. The UI should check:
+        // 1. That closeSize doesn't exceed current position size
+        // 2. That remaining size meets minimum order requirements
+      }
+
+      // Validate minimum order value if we have the necessary data
+      if (params.currentPrice && params.size) {
+        const closeSize = parseFloat(params.size);
+        const price = parseFloat(params.currentPrice.toString());
+        const orderValueUSD = closeSize * price;
+
+        // Get minimum order size based on network
+        const minimumOrderSize = this.clientService.isTestnetMode()
+          ? TRADING_DEFAULTS.amount.testnet
+          : TRADING_DEFAULTS.amount.mainnet;
+
+        if (orderValueUSD < minimumOrderSize) {
+          return {
+            isValid: false,
+            error: strings('perps.order.validation.minimum_amount', {
+              amount: minimumOrderSize.toString(),
+            }),
+          };
+        }
+      }
+      // Note: For full closes (when size is undefined), the validation
+      // should be done in the UI layer where the full position size is known.
+
+      return { isValid: true };
+    } catch (error) {
+      return {
+        isValid: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : strings('perps.errors.unknownError'),
+      };
+    }
+  }
+
+  /**
+   * Validate withdrawal parameters - placeholder for future implementation
+   */
+  async validateWithdrawal(
+    _params: WithdrawParams,
+  ): Promise<{ isValid: boolean; error?: string }> {
+    // Placeholder - to be implemented when needed
+    return { isValid: true };
+  }
+
+  /**
    * Withdraw funds from HyperLiquid trading account
    *
    * This initiates a withdrawal request via HyperLiquid's API (withdraw3 endpoint).
-   * The actual funds transfer happens on HyperLiquid's side after API confirmation.
+   *
+   * HyperLiquid Bridge Process:
+   * - Funds are immediately deducted from L1 balance on HyperLiquid
+   * - Validators sign the withdrawal (2/3 of staking power required)
+   * - Bridge contract on destination chain processes the withdrawal
+   * - After dispute period, USDC is sent to destination address
+   * - Total time: ~5 minutes
+   * - Fee: 1 USDC (covers Arbitrum gas costs)
+   * - No ETH required from user
+   *
+   * Note: Withdrawals won't appear as incoming transactions until the
+   * finalization phase completes (~5 minutes after initiation)
+   *
+   * @param params Withdrawal parameters
+   * @returns Result with txHash (HyperLiquid internal) and withdrawal ID
    */
   async withdraw(params: WithdrawParams): Promise<WithdrawResult> {
     try {
-      DevLogger.log('Withdrawing funds:', params);
+      DevLogger.log('🚀 HyperLiquidProvider: STARTING WITHDRAWAL', {
+        params,
+        timestamp: new Date().toISOString(),
+        assetId: params.assetId,
+        amount: params.amount,
+        destination: params.destination,
+        isTestnet: this.clientService.isTestnetMode(),
+      });
 
-      // Validate withdrawal parameters
+      // Step 1: Validate withdrawal parameters
+      DevLogger.log('🔍 HyperLiquidProvider: VALIDATING PARAMETERS');
       const validation = validateWithdrawalParams(params);
       if (!validation.isValid) {
+        DevLogger.log('❌ HyperLiquidProvider: PARAMETER VALIDATION FAILED', {
+          error: validation.error,
+          params,
+          validationResult: validation,
+        });
         throw new Error(validation.error);
       }
+      DevLogger.log('✅ HyperLiquidProvider: PARAMETERS VALIDATED');
 
-      // Get supported withdrawal routes and validate asset
+      // Step 2: Get supported withdrawal routes and validate asset
+      DevLogger.log('🔍 HyperLiquidProvider: CHECKING ASSET SUPPORT');
       const supportedRoutes = this.getWithdrawalRoutes();
+      DevLogger.log('📋 HyperLiquidProvider: SUPPORTED WITHDRAWAL ROUTES', {
+        routeCount: supportedRoutes.length,
+        routes: supportedRoutes.map((route) => ({
+          assetId: route.assetId,
+          chainId: route.chainId,
+          contractAddress: route.contractAddress,
+        })),
+      });
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.assetId) {
-        throw new Error(
-          strings('perps.errors.withdrawValidation.assetIdRequired'),
+        const error = strings(
+          'perps.errors.withdrawValidation.assetIdRequired',
         );
+        DevLogger.log('❌ HyperLiquidProvider: MISSING ASSET ID', {
+          error,
+          params,
+        });
+        throw new Error(error);
       }
 
       const assetValidation = validateAssetSupport(
@@ -1021,61 +1453,145 @@ export class HyperLiquidProvider implements IPerpsProvider {
         supportedRoutes,
       );
       if (!assetValidation.isValid) {
+        DevLogger.log('❌ HyperLiquidProvider: ASSET NOT SUPPORTED', {
+          error: assetValidation.error,
+          assetId: params.assetId,
+          supportedAssets: supportedRoutes.map((r) => r.assetId),
+        });
         throw new Error(assetValidation.error);
       }
+      DevLogger.log('✅ HyperLiquidProvider: ASSET SUPPORTED', {
+        assetId: params.assetId,
+      });
 
-      // Validate destination address if provided
+      // Step 3: Determine destination address
+      DevLogger.log('🔍 HyperLiquidProvider: DETERMINING DESTINATION ADDRESS');
       let destination: Hex;
       if (params.destination) {
         destination = params.destination;
+        DevLogger.log('📍 HyperLiquidProvider: USING PROVIDED DESTINATION', {
+          destination,
+        });
       } else {
         destination = await this.walletService.getUserAddressWithDefault();
+        DevLogger.log('📍 HyperLiquidProvider: USING USER WALLET ADDRESS', {
+          destination,
+        });
       }
 
-      // Ensure client is ready
+      // Step 4: Ensure client is ready
+      DevLogger.log('🔌 HyperLiquidProvider: ENSURING CLIENT READY');
       await this.ensureReady();
       const exchangeClient = this.clientService.getExchangeClient();
+      DevLogger.log('✅ HyperLiquidProvider: CLIENT READY');
 
-      // Validate amount against account balance
+      // Step 5: Validate amount against account balance
+      DevLogger.log('🔍 HyperLiquidProvider: CHECKING ACCOUNT BALANCE');
       const accountState = await this.getAccountState();
       const availableBalance = parseFloat(accountState.availableBalance);
+      DevLogger.log('💰 HyperLiquidProvider: ACCOUNT BALANCE', {
+        availableBalance,
+        totalBalance: accountState.totalBalance,
+        marginUsed: accountState.marginUsed,
+        unrealizedPnl: accountState.unrealizedPnl,
+      });
 
       // This check is already done in validateWithdrawalParams, but TypeScript needs explicit check
       if (!params.amount) {
-        throw new Error(
-          strings('perps.errors.withdrawValidation.amountRequired'),
-        );
+        const error = strings('perps.errors.withdrawValidation.amountRequired');
+        DevLogger.log('❌ HyperLiquidProvider: MISSING AMOUNT', {
+          error,
+          params,
+        });
+        throw new Error(error);
       }
 
       const withdrawAmount = parseFloat(params.amount);
+      DevLogger.log('🔢 HyperLiquidProvider: WITHDRAWAL AMOUNT', {
+        requestedAmount: withdrawAmount,
+        availableBalance,
+        sufficientBalance: withdrawAmount <= availableBalance,
+      });
 
       const balanceValidation = validateBalance(
         withdrawAmount,
         availableBalance,
       );
       if (!balanceValidation.isValid) {
+        DevLogger.log('❌ HyperLiquidProvider: INSUFFICIENT BALANCE', {
+          error: balanceValidation.error,
+          requestedAmount: withdrawAmount,
+          availableBalance,
+          difference: withdrawAmount - availableBalance,
+        });
         throw new Error(balanceValidation.error);
       }
+      DevLogger.log('✅ HyperLiquidProvider: BALANCE SUFFICIENT');
 
-      // Execute withdrawal via HyperLiquid SDK (API call)
+      // Step 6: Execute withdrawal via HyperLiquid SDK (API call)
+      DevLogger.log('📡 HyperLiquidProvider: CALLING WITHDRAW3 API', {
+        destination,
+        amount: params.amount,
+        endpoint: 'withdraw3',
+        timestamp: new Date().toISOString(),
+      });
+
       const result = await exchangeClient.withdraw3({
         destination,
         amount: params.amount,
       });
 
+      DevLogger.log('📊 HyperLiquidProvider: WITHDRAW3 API RESPONSE', {
+        status: result.status,
+        response: result,
+        timestamp: new Date().toISOString(),
+      });
+
       if (result.status === 'ok') {
+        DevLogger.log(
+          '✅ HyperLiquidProvider: WITHDRAWAL SUBMITTED SUCCESSFULLY',
+          {
+            destination,
+            amount: params.amount,
+            assetId: params.assetId,
+            status: result.status,
+          },
+        );
+
+        const now = Date.now();
+        const withdrawalId = `hl_${uuidv4()}`;
+
         return {
           success: true,
-          txHash: 'Withdrawal submitted successfully',
+          withdrawalId,
+          estimatedArrivalTime: now + 5 * 60 * 1000, // HyperLiquid typically takes ~5 minutes
+          // Don't set txHash if we don't have a real transaction hash
+          // HyperLiquid's withdraw3 API doesn't return a transaction hash immediately
         };
       }
 
+      const errorMessage = `Withdrawal failed: ${result.status}`;
+      DevLogger.log('❌ HyperLiquidProvider: WITHDRAWAL FAILED', {
+        error: errorMessage,
+        status: result.status,
+        response: result,
+        params,
+      });
       return {
         success: false,
-        error: `Withdrawal failed: ${result.status}`,
+        error: errorMessage,
       };
     } catch (error) {
-      DevLogger.log('Withdrawal failed:', error);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      DevLogger.log('💥 HyperLiquidProvider: WITHDRAWAL EXCEPTION', {
+        error: errorMessage,
+        errorType:
+          error instanceof Error ? error.constructor.name : typeof error,
+        stack: error instanceof Error ? error.stack : undefined,
+        params,
+        timestamp: new Date().toISOString(),
+      });
       return createErrorResult(error, { success: false });
     }
   }
@@ -1283,17 +1799,97 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Get maximum leverage allowed for an asset
    */
   async getMaxLeverage(asset: string): Promise<number> {
-    await this.ensureReady();
+    try {
+      await this.ensureReady();
 
-    const infoClient = this.clientService.getInfoClient();
-    const meta = await infoClient.meta();
+      const infoClient = this.clientService.getInfoClient();
+      const meta = await infoClient.meta();
 
-    const assetInfo = meta.universe.find((a) => a.name === asset);
-    if (!assetInfo) {
-      throw new Error(`Asset ${asset} not found`);
+      // Check if meta and universe exist
+      if (!meta?.universe) {
+        console.warn(
+          'Meta or universe not available, using default max leverage',
+        );
+        return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+      }
+
+      const assetInfo = meta.universe.find((a) => a.name === asset);
+      if (!assetInfo) {
+        DevLogger.log(
+          `Asset ${asset} not found in universe, using default max leverage`,
+        );
+        return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+      }
+
+      return assetInfo.maxLeverage;
+    } catch (error) {
+      DevLogger.log('Error getting max leverage:', error);
+      return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
     }
+  }
 
-    return assetInfo.maxLeverage;
+  /**
+   * TODO: Fetch user's 14-day rolling volume when API available
+   * @private
+   */
+  private async getUserVolume(): Promise<number> {
+    // Placeholder - return 0 (base tier)
+    return 0;
+  }
+
+  /**
+   * TODO: Fetch user's $HYPE staking info when API available
+   * @private
+   */
+  private async getUserStaking(): Promise<number> {
+    // Placeholder - return 0 (no staking discount)
+    return 0;
+  }
+
+  /**
+   * Calculate fees based on HyperLiquid's fee structure
+   * Returns fee rate as decimal (e.g., 0.00045 for 0.045%)
+   *
+   * HyperLiquid base fees (Tier 0, no discounts):
+   * - Taker: 0.045% (market orders, aggressive limit orders)
+   * - Maker: 0.015% (limit orders that add liquidity)
+   *
+   * TODO: Apply volume and staking discounts when APIs available
+   */
+  async calculateFees(
+    params: FeeCalculationParams,
+  ): Promise<FeeCalculationResult> {
+    const { orderType, isMaker = false, amount } = params;
+
+    // Use base rates from config
+    const baseRate =
+      orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
+
+    // TODO: When APIs available, apply user-specific discounts
+    // const volume = await this.getUserVolume();
+    // const staking = await this.getUserStaking();
+    // const { volumeTier, volumeDiscount, stakingDiscount } = await this.calculateDiscounts(volume, staking);
+    // const finalRate = baseRate * (1 - volumeDiscount) * (1 - stakingDiscount);
+
+    const parsedAmount = amount ? parseFloat(amount) : 0;
+    const feeAmount =
+      amount !== undefined
+        ? isNaN(parsedAmount)
+          ? 0
+          : parsedAmount * baseRate
+        : undefined;
+
+    return {
+      feeRate: baseRate,
+      feeAmount,
+      // Future: Include breakdown when we have user data
+      // breakdown: {
+      //   baseFeeRate: baseRate,
+      //   volumeTier,
+      //   volumeDiscount,
+      //   stakingDiscount,
+      // },
+    };
   }
 
   /**
@@ -1320,5 +1916,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
     } catch (error) {
       return createErrorResult(error, { success: false });
     }
+  }
+
+  /**
+   * Get block explorer URL for an address or just the base URL
+   * @param address - Optional address to append to the base URL
+   * @returns Block explorer URL
+   */
+  getBlockExplorerUrl(address?: string): string {
+    const network = this.clientService.isTestnetMode() ? 'testnet' : 'mainnet';
+    const baseUrl =
+      network === 'testnet'
+        ? 'https://app.hyperliquid-testnet.xyz'
+        : 'https://app.hyperliquid.xyz';
+
+    if (address) {
+      return `${baseUrl}/explorer/address/${address}`;
+    }
+
+    return `${baseUrl}/explorer`;
   }
 }

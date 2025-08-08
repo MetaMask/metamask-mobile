@@ -39,7 +39,7 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
-import { selectAccountSections } from '../../../multichain-accounts/selectors/accountTreeController';
+import { selectAccountSections } from '../../../selectors/multichainAccounts/accountTreeController';
 
 import {
   AccountSection,
@@ -58,8 +58,8 @@ import {
   selectInternalAccounts,
   selectInternalAccountsById,
 } from '../../../selectors/accountsController';
-import { AccountWallet } from '@metamask/account-tree-controller';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { AccountWalletObject } from '@metamask/account-tree-controller';
+import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -89,7 +89,7 @@ const EvmAccountSelectorList = ({
   /**
    * Ref for the FlashList component.
    */
-  const accountListRef = useRef<FlashList<FlattenedAccountListItem>>(null);
+  const accountListRef = useRef<FlashListRef<FlattenedAccountListItem>>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
@@ -310,7 +310,7 @@ const EvmAccountSelectorList = ({
   );
 
   const onNavigateToWalletDetails = useCallback(
-    (wallet: AccountWallet) => {
+    (wallet: AccountWalletObject) => {
       navigate(Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS, {
         walletId: wallet.id,
       });
@@ -319,7 +319,7 @@ const EvmAccountSelectorList = ({
   );
 
   const renderSectionHeader = useCallback(
-    ({ title, wallet }: { title: string; wallet?: AccountWallet }) => (
+    ({ title, wallet }: { title: string; wallet?: AccountWalletObject }) => (
       <View style={styles.sectionHeader}>
         <Text variant={TextVariant.BodySMMedium} color={TextColor.Alternative}>
           {title}
@@ -560,10 +560,6 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
-  // Needed for the FlashList estimated item size prop: https://shopify.github.io/flash-list/docs/1.x/estimated-item-size
-  // This is a require prop that makes the list rendering more performant
-  const listItemHeight = 80; // Exact height of the Cell component
-
   return (
     <View style={styles.listContainer}>
       <FlashList
@@ -572,13 +568,11 @@ const EvmAccountSelectorList = ({
         data={flattenedData}
         keyExtractor={getKeyExtractor}
         renderItem={renderItem}
-        estimatedItemSize={listItemHeight}
         getItemType={getItemType}
         renderScrollComponent={
           ScrollView as React.ComponentType<ScrollViewProps>
         }
         testID={ACCOUNT_SELECTOR_LIST_TESTID}
-        disableAutoLayout
         {...props}
       />
     </View>

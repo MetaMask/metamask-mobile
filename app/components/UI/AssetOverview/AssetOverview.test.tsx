@@ -259,7 +259,7 @@ describe('AssetOverview', () => {
     // Wait for async operations to complete
     await Promise.resolve();
 
-    expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+    expect(navigate).toHaveBeenLastCalledWith('SendFlowView');
   });
 
   it('should handle send button press for native asset when isETH is false', async () => {
@@ -333,7 +333,7 @@ describe('AssetOverview', () => {
     // Wait for async operations to complete
     await Promise.resolve();
 
-    expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+    expect(navigate).toHaveBeenLastCalledWith('SendFlowView');
     expect(spyOnGetEther).toHaveBeenCalledWith('BNB');
   });
 
@@ -737,8 +737,19 @@ describe('AssetOverview', () => {
       // Verify hook was called with correct parameters
       expect(useSendNonEvmAsset).toHaveBeenCalledWith({
         asset: {
-          chainId: SolScope.Mainnet,
-          address: solanaAsset.address,
+          address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+          aggregators: [],
+          balance: '400',
+          balanceFiat: '1500',
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+          decimals: 18,
+          hasBalanceError: false,
+          image: '',
+          isETH: undefined,
+          isNative: true,
+          logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
+          name: 'Ethereum',
+          symbol: 'ETH',
         },
       });
 
@@ -751,7 +762,7 @@ describe('AssetOverview', () => {
         Engine.context.MultichainNetworkController.setActiveNetwork,
       ).not.toHaveBeenCalled();
 
-      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView');
     });
 
     it('should handle error in multichain send for Solana assets', async () => {
@@ -786,7 +797,7 @@ describe('AssetOverview', () => {
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
 
       // Should not navigate to traditional send flow since hook handled it
-      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView');
     });
 
     it('should handle non-EVM account validation through hook', async () => {
@@ -818,7 +829,7 @@ describe('AssetOverview', () => {
 
       // Hook should be called and handle validation
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView');
     });
 
     it('should delegate snap validation to hook', async () => {
@@ -850,7 +861,7 @@ describe('AssetOverview', () => {
 
       // Hook should handle all snap validation
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      expect(navigate).not.toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).not.toHaveBeenCalledWith('SendFlowView');
     });
 
     it('should use traditional EVM send flow for EVM accounts', async () => {
@@ -883,7 +894,7 @@ describe('AssetOverview', () => {
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
 
       // Should navigate to traditional send flow
-      expect(navigate).toHaveBeenCalledWith('SendFlowView', {});
+      expect(navigate).toHaveBeenLastCalledWith('SendFlowView');
     });
 
     it('should display Solana balance correctly for non-EVM assets', async () => {

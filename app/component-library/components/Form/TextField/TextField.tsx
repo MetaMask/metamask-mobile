@@ -81,7 +81,7 @@ const TextField = React.forwardRef<TextInput, TextFieldProps>(
             {startAccessory}
           </View>
         )}
-        <View style={styles.input}>
+        <View style={styles.inputContainer}>
           {inputElement ?? (
             <Input
               textVariant={TOKEN_TEXTFIELD_INPUT_TEXT_VARIANT}
@@ -90,6 +90,7 @@ const TextField = React.forwardRef<TextInput, TextFieldProps>(
               onBlur={onBlurHandler}
               onFocus={onFocusHandler}
               testID={testID}
+              style={styles.input}
               {...props}
               ref={ref}
               isStateStylesDisabled

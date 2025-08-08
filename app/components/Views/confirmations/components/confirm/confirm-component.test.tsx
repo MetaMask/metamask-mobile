@@ -16,6 +16,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 // eslint-disable-next-line import/no-namespace
 import * as ConfirmationRedesignEnabled from '../../hooks/useConfirmationRedesignEnabled';
 import { Confirm } from './confirm-component';
+import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 
 jest.mock('../../../../../components/hooks/useEditNonce', () => ({
   useEditNonce: jest.fn().mockReturnValue({}),
@@ -136,6 +137,10 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('react-native-gzip', () => ({
   deflate: (str: string) => str,
+}));
+
+jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
+  useTokensWithBalance: () => [] as ReturnType<typeof useTokensWithBalance>,
 }));
 
 describe('Confirm', () => {

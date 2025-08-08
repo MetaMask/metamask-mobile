@@ -1,44 +1,47 @@
 import { StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
+import Device from '../../../util/device';
 
 const createStyles = () =>
   StyleSheet.create({
     scroll: {
-      flex: 1,
+      flexGrow: 1,
+      minHeight: '100%',
     },
     wrapper: {
       flex: 1,
       alignItems: 'center',
-      paddingVertical: 30,
+      paddingTop: 30,
+      minHeight: '100%',
     },
     largeFoxWrapper: {
       alignItems: 'center',
-      paddingTop: 10,
     },
     title: {
       fontSize: 60,
       lineHeight: 60,
       textAlign: 'center',
-      paddingTop: 60,
-      fontFamily: 'MMPoly-Regular',
+      paddingTop: Device.isLargeDevice() ? 40 : 10,
+      fontFamily: 'MM Poly Regular',
     },
     titleDescription: {
       paddingTop: 20,
       textAlign: 'center',
       fontSize: 16,
-      fontFamily: 'MMSans-Regular',
+      fontFamily: 'MM Sans Regular',
     },
     foxImage: {
-      height: 350,
+      height: Device.isLargeDevice() ? 350 : 260,
     },
     ctas: {
       flex: 1,
       position: 'relative',
       width: '100%',
       paddingHorizontal: 30,
+      justifyContent: 'space-between',
     },
     createWrapper: {
-      flex: 1,
+      display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-end',
       rowGap: 5,

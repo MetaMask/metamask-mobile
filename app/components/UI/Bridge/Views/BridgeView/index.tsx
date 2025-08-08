@@ -33,11 +33,8 @@ import {
   selectSourceToken,
   selectBridgeControllerState,
   selectIsEvmSolanaBridge,
-  selectIsSolanaSwap,
-  setSlippage,
   selectIsSubmittingTx,
   setIsSubmittingTx,
-  selectIsSolanaToEvm,
   selectDestAddress,
   selectIsSolanaSourced,
   selectBridgeViewMode,
@@ -73,8 +70,8 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import AppConstants from '../../../../../core/AppConstants';
-import useValidateBridgeTx from '../../../../../util/bridge/hooks/useValidateBridgeTx.ts';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
+import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 
 export interface BridgeRouteParams {
   token?: BridgeToken;
@@ -92,7 +89,6 @@ const BridgeView = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const { colors } = useTheme();
   const { submitBridgeTx } = useSubmitBridgeTx();
-  const { validateBridgeTx } = useValidateBridgeTx();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Needed to get gas fee estimates
@@ -105,15 +101,6 @@ const BridgeView = () => {
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
-  const {
-    activeQuote,
-    isLoading,
-    destTokenAmount,
-    quoteFetchError,
-    isNoQuotesAvailable,
-    isExpired,
-    willRefresh,
-  } = useBridgeQuoteData();
   const { quotesLastFetched } = useSelector(selectBridgeControllerState);
   const { handleSwitchTokens } = useSwitchTokens();
   const selectedAddress = useSelector(
@@ -124,8 +111,6 @@ const BridgeView = () => {
     : false;
 
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
-  const isSolanaSwap = useSelector(selectIsSolanaSwap);
-  const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   // inputRef is used to programmatically blur the input field after a delay
   // This gives users time to type before the keyboard disappears
@@ -143,16 +128,9 @@ const BridgeView = () => {
     endTrace({ name: TraceName.SwapViewLoaded, timestamp: Date.now() });
   }, []);
 
-  // Set slippage to undefined for Solana swaps
-  useEffect(() => {
-    if (isSolanaSwap) {
-      dispatch(setSlippage(undefined));
-    }
-  }, [isSolanaSwap, dispatch]);
+  useInitialSlippage();
 
   const hasDestinationPicker = isEvmSolanaBridge;
-
-  const hasQuoteDetails = activeQuote && !isLoading;
 
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -160,6 +138,21 @@ const BridgeView = () => {
     chainId: sourceToken?.chainId,
     balance: sourceToken?.balance,
   });
+
+  const {
+    activeQuote,
+    isLoading,
+    destTokenAmount,
+    quoteFetchError,
+    isNoQuotesAvailable,
+    isExpired,
+    willRefresh,
+    blockaidError,
+  } = useBridgeQuoteData({
+    latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
+  });
+
+  const hasQuoteDetails = activeQuote && !isLoading;
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -175,6 +168,7 @@ const BridgeView = () => {
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
+    latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
   const shouldDisplayQuoteDetails = hasQuoteDetails && !isInputFocused;
@@ -272,33 +266,9 @@ const BridgeView = () => {
   };
 
   const handleContinue = async () => {
-    let displayValidationError = false;
     try {
       if (activeQuote) {
         dispatch(setIsSubmittingTx(true));
-        if (isSolanaSwap || isSolanaToEvm) {
-          const validationResult = await validateBridgeTx({
-            quoteResponse: activeQuote,
-          });
-          if (
-            validationResult.error ||
-            validationResult.result.validation.reason
-          ) {
-            displayValidationError = true;
-            const isValidationError =
-              !!validationResult.result.validation.reason;
-            navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-              screen: Routes.BRIDGE.MODALS.BLOCKAID_MODAL,
-              params: {
-                errorType: isValidationError ? 'validation' : 'simulation',
-                errorMessage: isValidationError
-                  ? validationResult.result.validation.reason
-                  : validationResult.error,
-              },
-            });
-            return;
-          }
-        }
         await submitBridgeTx({
           quoteResponse: activeQuote,
         });
@@ -307,9 +277,7 @@ const BridgeView = () => {
       console.error('Error submitting bridge tx', error);
     } finally {
       dispatch(setIsSubmittingTx(false));
-      if (activeQuote && !displayValidationError) {
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
-      }
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
   };
 
@@ -393,14 +361,19 @@ const BridgeView = () => {
       activeQuote &&
       quotesLastFetched && (
         <Box style={styles.buttonContainer}>
-          {isHardwareAddress && (
+          {isHardwareAddress && isSolanaSourced && (
             <BannerAlert
               severity={BannerAlertSeverity.Error}
-              description={
-                isSolanaSourced
-                  ? strings('bridge.hardware_wallet_not_supported_solana')
-                  : strings('bridge.hardware_wallet_not_supported')
-              }
+              description={strings(
+                'bridge.hardware_wallet_not_supported_solana',
+              )}
+            />
+          )}
+          {blockaidError && (
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              title={strings('bridge.blockaid_error_title')}
+              description={blockaidError}
             />
           )}
           <Button
@@ -409,7 +382,10 @@ const BridgeView = () => {
             onPress={handleContinue}
             style={styles.button}
             isDisabled={
-              hasInsufficientBalance || isSubmittingTx || isHardwareAddress
+              hasInsufficientBalance ||
+              isSubmittingTx ||
+              (isHardwareAddress && isSolanaSourced) ||
+              !!blockaidError
             }
           />
           <Button
@@ -455,6 +431,7 @@ const BridgeView = () => {
                 dispatch(setSourceAmount(latestSourceBalance.displayBalance));
               }
             }}
+            latestAtomicBalance={latestSourceBalance?.atomicBalance}
           />
           <Box style={styles.arrowContainer}>
             <Box style={styles.arrowCircle}>
@@ -507,7 +484,7 @@ const BridgeView = () => {
               >
                 <Keypad
                   style={styles.keypad}
-                  value={sourceAmount}
+                  value={sourceAmount || '0'}
                   onChange={handleKeypadChange}
                   currency={sourceToken?.symbol || 'ETH'}
                   decimals={sourceToken?.decimals || 18}

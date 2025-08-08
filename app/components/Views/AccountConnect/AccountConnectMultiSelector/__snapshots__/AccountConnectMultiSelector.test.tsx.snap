@@ -399,7 +399,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                     style={
                       {
                         "backgroundColor": "#ffffff",
-                        "borderRadius": 16,
+                        "borderRadius": 8,
                         "height": 32,
                         "marginRight": 16,
                         "overflow": "hidden",
@@ -415,9 +415,14 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                         }
                       }
                       style={
-                        {
-                          "flex": 1,
-                        }
+                        [
+                          {
+                            "flex": 1,
+                          },
+                          {
+                            "borderRadius": 8,
+                          },
+                        ]
                       }
                     />
                   </View>
@@ -573,7 +578,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                     style={
                       {
                         "backgroundColor": "#ffffff",
-                        "borderRadius": 16,
+                        "borderRadius": 8,
                         "height": 32,
                         "marginRight": 16,
                         "overflow": "hidden",
@@ -589,9 +594,14 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                         }
                       }
                       style={
-                        {
-                          "flex": 1,
-                        }
+                        [
+                          {
+                            "flex": 1,
+                          },
+                          {
+                            "borderRadius": 8,
+                          },
+                        ]
                       }
                     />
                   </View>

@@ -5,7 +5,6 @@ import {
   TRUE,
   PASSCODE_DISABLED,
   SEED_PHRASE_HINTS,
-  SOLANA_DISCOVERY_PENDING,
 } from '../../constants/storage';
 import {
   authSuccess,
@@ -33,37 +32,41 @@ import Routes from '../../constants/navigation/Routes';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import ReduxService from '../redux';
 import { retryWithExponentialDelay } from '../../util/exponential-retry';
-///: BEGIN:ONLY_INCLUDE_IF(solana)
 import {
+  WALLET_SNAP_MAP,
   MultichainWalletSnapFactory,
   WalletClientType,
 } from '../SnapKeyring/MultichainWalletSnapClient';
-///: END:ONLY_INCLUDE_IF
 
 import { selectExistingUser } from '../../reducers/user/selectors';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { uint8ArrayToMnemonic } from '../../util/mnemonic';
+import {
+  convertEnglishWordlistIndicesToCodepoints,
+  convertMnemonicToWordlistIndices,
+  uint8ArrayToMnemonic,
+} from '../../util/mnemonic';
 import Logger from '../../util/Logger';
 import { clearAllVaultBackups } from '../BackupVault/backupVault';
 import OAuthService from '../OAuthService/OAuthService';
-import { KeyringTypes } from '@metamask/keyring-controller';
+import {
+  AccountImportStrategy,
+  KeyringMetadata,
+  KeyringTypes,
+} from '@metamask/keyring-controller';
 import {
   SecretType,
   SeedlessOnboardingControllerErrorMessage,
 } from '@metamask/seedless-onboarding-controller';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
-import { SolScope } from '@metamask/keyring-api';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
 import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../Engine/controllers/seedless-onboarding-controller/error';
-
-// to replace with SecretMetadata type from seedless-onboarding-controller when it is exported
-interface SecretMetadata {
-  data: Uint8Array;
-  type: SecretType;
-}
+import { add0x, bytesToHex, hexToBytes, remove0x } from '@metamask/utils';
+import { getTraceTags } from '../../util/sentry/tags';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
+import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -77,7 +80,8 @@ export interface AuthData {
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
-  private dispatchLogin(): void {
+  private async dispatchLogin(): Promise<void> {
+    await AccountTreeInitService.initializeAccountTree();
     ReduxService.store.dispatch(logIn());
   }
 
@@ -103,6 +107,9 @@ class AuthenticationService {
     await KeyringController.submitPassword(password);
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
+      SeedlessOnboardingController.revokeRefreshToken(password).catch((err) => {
+        Logger.error(err, 'Failed to revoke refresh token');
+      });
     }
     password = this.wipeSensitiveData();
   };
@@ -126,63 +133,73 @@ class AuthenticationService {
       password,
       parsedSeedUint8Array,
     );
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn(
-        'Solana account discovery failed during wallet creation:',
-        error,
-      );
-      // Store flag to retry on next unlock
-      StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
-    });
-    ///: END:ONLY_INCLUDE_IF
+
+    await Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+
+        try {
+          await this.attemptAccountDiscovery(clientType);
+        } catch (error) {
+          console.warn(
+            'Account discovery failed during wallet creation:',
+            clientType,
+            error,
+          );
+          // Store flag to retry on next unlock
+          await StorageWrapper.setItem(discoveryStorageId, TRUE);
+        }
+      }),
+    );
 
     password = this.wipeSensitiveData();
     parsedSeed = this.wipeSensitiveData();
   };
 
-  ///: BEGIN:ONLY_INCLUDE_IF(solana)
-  private attemptSolanaAccountDiscovery = async (): Promise<void> => {
-    const performSolanaAccountDiscovery = async (): Promise<void> => {
+  private attemptAccountDiscovery = async (
+    clientType: WalletClientType,
+  ): Promise<void> => {
+    const performAccountDiscovery = async (): Promise<void> => {
       const primaryHdKeyringId =
         Engine.context.KeyringController.state.keyrings[0].metadata.id;
-      const client = MultichainWalletSnapFactory.createClient(
-        WalletClientType.Solana,
-        {
-          setSelectedAccount: false,
-        },
-      );
-      await client.addDiscoveredAccounts(primaryHdKeyringId, SolScope.Mainnet);
+      const client = MultichainWalletSnapFactory.createClient(clientType, {
+        setSelectedAccount: false,
+      });
+      const { discoveryScope, discoveryStorageId } =
+        WALLET_SNAP_MAP[clientType];
 
-      await StorageWrapper.removeItem(SOLANA_DISCOVERY_PENDING);
+      await client.addDiscoveredAccounts(primaryHdKeyringId, discoveryScope);
+      await StorageWrapper.removeItem(discoveryStorageId);
     };
 
     try {
       await retryWithExponentialDelay(
-        performSolanaAccountDiscovery,
+        performAccountDiscovery,
         3, // maxRetries
         1000, // baseDelay
         10000, // maxDelay
       );
     } catch (error) {
-      console.error(
-        'Solana account discovery failed after all retries:',
-        error,
-      );
+      console.error('Account discovery failed after all retries:', error);
     }
   };
 
-  private retrySolanaDiscoveryIfPending = async (): Promise<void> => {
-    try {
-      const isPending = await StorageWrapper.getItem(SOLANA_DISCOVERY_PENDING);
-      if (isPending === 'true') {
-        await this.attemptSolanaAccountDiscovery();
-      }
-    } catch (error) {
-      console.warn('Failed to check/retry Solana discovery:', error);
-    }
+  private retryDiscoveryIfPending = async (): Promise<void> => {
+    await Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+
+        try {
+          const isPending = await StorageWrapper.getItem(discoveryStorageId);
+          if (isPending === TRUE) {
+            await this.attemptAccountDiscovery(clientType);
+          }
+        } catch (error) {
+          console.warn('Failed to check/retry discovery:', clientType, error);
+        }
+      }),
+    );
   };
-  ///: END:ONLY_INCLUDE_IF
 
   /**
    * This method creates a new wallet with all new data
@@ -197,15 +214,23 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    this.attemptSolanaAccountDiscovery().catch((error) => {
-      console.warn(
-        'Solana account discovery failed during wallet creation:',
-        error,
-      );
-      StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, 'true');
-    });
-    ///: END:ONLY_INCLUDE_IF
+    await Promise.all(
+      Object.values(WalletClientType).map(async (clientType) => {
+        const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
+
+        try {
+          await this.attemptAccountDiscovery(clientType);
+        } catch (error) {
+          console.warn(
+            'Account discovery failed during wallet creation:',
+            error,
+          );
+          // Store flag to retry on next unlock
+          await StorageWrapper.setItem(discoveryStorageId, TRUE);
+        }
+      }),
+    );
+
     password = this.wipeSensitiveData();
   };
 
@@ -421,7 +446,7 @@ class AuthenticationService {
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
 
-      this.dispatchLogin();
+      await this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -454,7 +479,7 @@ class AuthenticationService {
       await this.storePassword(password, authData.currentAuthType);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
-      this.dispatchLogin();
+      await this.dispatchLogin();
       this.authData = authData;
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -487,10 +512,10 @@ class AuthenticationService {
 
       if (authData.oauth2Login) {
         // if seedless flow - rehydrate
-        await this.rehydrateSeedPhrase(password, authData);
-      } else if (await this.checkIsSeedlessPasswordOutdated()) {
+        await this.rehydrateSeedPhrase(password);
+      } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
         // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-        await this.syncPasswordAndUnlockWallet(password, authData);
+        await this.syncPasswordAndUnlockWallet(password);
       } else {
         // else srp flow
         await this.loginVaultCreation(password);
@@ -499,14 +524,12 @@ class AuthenticationService {
       endTrace({ name: TraceName.VaultCreation });
 
       await this.storePassword(password, authData.currentAuthType);
-      this.dispatchLogin();
+      await this.dispatchLogin();
       this.authData = authData;
       this.dispatchPasswordSet();
 
-      // Try to complete any pending Solana account discovery
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      this.retrySolanaDiscoveryIfPending();
-      ///: END:ONLY_INCLUDE_IF
+      // Try to complete any pending account discovery
+      this.retryDiscoveryIfPending();
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -572,14 +595,12 @@ class AuthenticationService {
       }
       endTrace({ name: TraceName.VaultCreation });
 
-      this.dispatchLogin();
+      await this.dispatchLogin();
       ReduxService.store.dispatch(authSuccess(bioStateMachineId));
       this.dispatchPasswordSet();
 
-      // Try to complete any pending Solana account discovery
-      ///: BEGIN:ONLY_INCLUDE_IF(solana)
-      this.retrySolanaDiscoveryIfPending();
-      ///: END:ONLY_INCLUDE_IF
+      // Try to complete any pending account discovery
+      this.retryDiscoveryIfPending();
 
       // TODO: Replace "any" with type
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -683,20 +704,217 @@ class AuthenticationService {
     }
   };
 
-  rehydrateSeedPhrase = async (
-    password: string,
-    authData: AuthData,
+  syncSeedPhrases = async (): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
+      return;
+    }
+
+    // 1. fetch all seed phrases
+    const [rootSecret, ...otherSecrets] =
+      await SeedlessOnboardingController.fetchAllSecretData();
+    if (!rootSecret) {
+      throw new Error('No root SRP found');
+    }
+
+    for (const secret of otherSecrets) {
+      // import SRP secret
+      // Get the SRP hash, and find the hash in the local state
+      const secretDataHash =
+        SeedlessOnboardingController.getSecretDataBackupState(
+          secret.data,
+          secret.type,
+        );
+
+      if (!secretDataHash) {
+        // If SRP is not in the local state, import it to the vault
+
+        // import private key secret
+        if (secret.type === SecretType.PrivateKey) {
+          await this.importAccountFromPrivateKey(bytesToHex(secret.data), {
+            shouldCreateSocialBackup: false,
+            shouldSelectAccount: false,
+          });
+          continue;
+        } else if (secret.type === SecretType.Mnemonic) {
+          // convert the seed phrase to a mnemonic (string)
+          const encodedSrp = convertEnglishWordlistIndicesToCodepoints(
+            secret.data,
+            wordlist,
+          );
+          const mnemonicToRestore = Buffer.from(encodedSrp).toString('utf8');
+
+          // import the new mnemonic to the current vault
+          const keyringMetadata = await this.importSeedlessMnemonicToVault(
+            mnemonicToRestore,
+          );
+
+          // discover multichain accounts from imported srp
+          this.addMultichainAccounts([keyringMetadata]);
+        } else {
+          Logger.error(new Error('Unknown secret type'), secret.type);
+        }
+      }
+    }
+  };
+
+  importSeedlessMnemonicToVault = async (
+    mnemonic: string,
+  ): Promise<KeyringMetadata> => {
+    const isSeedlessOnboardingFlow = selectSeedlessOnboardingLoginFlow(
+      ReduxService.store.getState(),
+    );
+    if (!isSeedlessOnboardingFlow) {
+      throw new Error('Not in seedless onboarding flow');
+    }
+    const { KeyringController, SeedlessOnboardingController } = Engine.context;
+
+    const keyringMetadata = await KeyringController.addNewKeyring(
+      KeyringTypes.hd,
+      {
+        mnemonic,
+        numberOfAccounts: 1,
+      },
+    );
+
+    const id = keyringMetadata.id;
+
+    const [newAccountAddress] = await KeyringController.withKeyring(
+      { id },
+      async ({ keyring }) => keyring.getAccounts(),
+    );
+
+    // if social backup is requested, add the seed phrase backup
+    const seedPhraseAsBuffer = Buffer.from(mnemonic, 'utf8');
+    const seedPhraseAsUint8Array = convertMnemonicToWordlistIndices(
+      seedPhraseAsBuffer,
+      wordlist,
+    );
+
+    try {
+      SeedlessOnboardingController.updateBackupMetadataState({
+        keyringId: id,
+        data: seedPhraseAsUint8Array,
+        type: SecretType.Mnemonic,
+      });
+    } catch (error) {
+      // handle seedless controller import error by reverting keyring controller mnemonic import
+      // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+      await KeyringController.removeAccount(newAccountAddress);
+      throw error;
+    }
+
+    return keyringMetadata;
+  };
+
+  addNewPrivateKeyBackup = async (
+    privateKey: string,
+    keyringId: string,
+    syncWithSocial = true,
   ): Promise<void> => {
+    const { SeedlessOnboardingController } = Engine.context;
+    const bufferedPrivateKey = hexToBytes(add0x(privateKey));
+
+    if (syncWithSocial) {
+      await SeedlessOnboardingController.addNewSecretData(
+        bufferedPrivateKey,
+        SecretType.PrivateKey,
+        {
+          keyringId,
+        },
+      );
+    } else {
+      // Do not sync the key to the server, only update the local state
+      SeedlessOnboardingController.updateBackupMetadataState({
+        keyringId,
+        data: bufferedPrivateKey,
+        type: SecretType.PrivateKey,
+      });
+    }
+  };
+
+  importAccountFromPrivateKey = async (
+    privateKey: string,
+    options = {
+      shouldCreateSocialBackup: true,
+      shouldSelectAccount: true,
+    },
+  ): Promise<void> => {
+    trace({
+      name: TraceName.ImportEvmAccount,
+      op: TraceOperation.ImportAccount,
+      tags: getTraceTags(ReduxService.store.getState()),
+    });
+
+    const { KeyringController } = Engine.context;
+    const importedAccountAddress =
+      await KeyringController.importAccountWithStrategy(
+        AccountImportStrategy.privateKey,
+        [remove0x(privateKey)],
+      );
+
+    const isSocialLoginFlow = selectSeedlessOnboardingLoginFlow(
+      ReduxService.store.getState(),
+    );
+    if (isSocialLoginFlow) {
+      try {
+        await this.addNewPrivateKeyBackup(
+          privateKey,
+          importedAccountAddress,
+          options.shouldCreateSocialBackup,
+        );
+      } catch (error) {
+        // handle seedless controller import error by reverting keyring controller mnemonic import
+        // KeyringController.removeAccount will remove keyring when it's emptied, currently there are no other method in keyring controller to remove keyring
+        await KeyringController.removeAccount(importedAccountAddress);
+        throw error;
+      }
+    }
+
+    if (options.shouldSelectAccount) {
+      const checksummedAddress = toChecksumHexAddress(importedAccountAddress);
+      Engine.setSelectedAddress(checksummedAddress);
+    }
+
+    endTrace({
+      name: TraceName.ImportEvmAccount,
+    });
+  };
+
+  /**
+   * Temporary function until the attempt discovery support multi srp acccount discovery
+   * Add multichain accounts to the keyring
+   *
+   * @param keyringMetadataList - List of keyring metadata
+   */
+  addMultichainAccounts = async (
+    keyringMetadataList: KeyringMetadata[],
+  ): Promise<void> => {
+    for (const keyringMetadata of keyringMetadataList) {
+      for (const clientType of Object.values(WalletClientType)) {
+        const id = keyringMetadata.id;
+        const { discoveryScope } = WALLET_SNAP_MAP[clientType];
+        const multichainClient =
+          MultichainWalletSnapFactory.createClient(clientType);
+
+        await multichainClient.addDiscoveredAccounts(id, discoveryScope);
+      }
+    }
+  };
+
+  rehydrateSeedPhrase = async (password: string): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
-      let result: SecretMetadata[] | null = null;
+      let allSRPs: Awaited<
+        ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>
+      > | null = null;
       let fetchSrpsSuccess = false;
       try {
         trace({
           name: TraceName.OnboardingFetchSrps,
           op: TraceOperation.OnboardingSecurityOp,
         });
-        result = await SeedlessOnboardingController.fetchAllSecretData(
+        allSRPs = await SeedlessOnboardingController.fetchAllSecretData(
           password,
         );
         fetchSrpsSuccess = true;
@@ -720,51 +938,54 @@ class AuthenticationService {
           data: { success: fetchSrpsSuccess },
         });
       }
-      const allSRPs = result
-        .filter((item) => item.type === SecretType.Mnemonic)
-        .map((item) => item.data);
 
       if (allSRPs.length > 0) {
-        const { KeyringController } = Engine.context;
-
         const [firstSeedPhrase, ...restOfSeedPhrases] = allSRPs;
-        if (!firstSeedPhrase) {
+        if (!firstSeedPhrase?.data) {
           throw new Error('No seed phrase found');
         }
 
-        const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase, wordlist);
-        await this.newWalletAndRestore(password, authData, seedPhrase, false);
+        const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase.data, wordlist);
+
+        await this.newWalletVaultAndRestore(password, seedPhrase, false);
         // add in more srps
+        const keyringMetadataList: KeyringMetadata[] = [];
         if (restOfSeedPhrases.length > 0) {
           for (const item of restOfSeedPhrases) {
-            // vault add new seedphrase
             try {
-              const keyringMetadata = await KeyringController.addNewKeyring(
-                KeyringTypes.hd,
-                {
-                  mnemonic: uint8ArrayToMnemonic(item, wordlist),
-                  numberOfAccounts: 1,
-                },
-              );
-              SeedlessOnboardingController.updateBackupMetadataState({
-                keyringId: keyringMetadata.id,
-                data: item,
-                type: SecretType.Mnemonic,
-              });
+              // add new private key
+              if (item.type === SecretType.PrivateKey) {
+                await this.importAccountFromPrivateKey(bytesToHex(item.data), {
+                  shouldCreateSocialBackup: false,
+                  shouldSelectAccount: false,
+                });
+              } else if (item.type === SecretType.Mnemonic) {
+                const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
+                const keyringMetadata =
+                  await this.importSeedlessMnemonicToVault(mnemonic);
+                keyringMetadataList.push(keyringMetadata);
+              } else {
+                Logger.error(new Error('Unknown secret type'), item.type);
+              }
             } catch (error) {
               // catch error to prevent unable to login
               Logger.error(error as Error);
             }
           }
         }
-
         await this.syncKeyringEncryptionKey();
 
+        this.addMultichainAccounts(keyringMetadataList);
+
         this.dispatchOauthReset();
+
+        ReduxService.store.dispatch(setExistingUser(true));
+        await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       } else {
         throw new Error('No account data found');
       }
     } catch (error) {
+      this.lockApp({ reset: false });
       Logger.error(error as Error);
       throw error;
     }
@@ -778,7 +999,6 @@ class AuthenticationService {
    */
   syncPasswordAndUnlockWallet = async (
     globalPassword: string,
-    authData: AuthData,
   ): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
 
@@ -817,7 +1037,7 @@ class AuthenticationService {
 
         // rehydrate with social accounts if max keychain length exceeded
         await SeedlessOnboardingController.refreshAuthTokens();
-        await this.rehydrateSeedPhrase(globalPassword, authData);
+        await this.rehydrateSeedPhrase(globalPassword);
         // skip the rest of the flow ( change password and sync keyring encryption key)
         return;
       } else if (
@@ -851,17 +1071,17 @@ class AuthenticationService {
       });
       await KeyringController.changePassword(globalPassword);
       await this.syncKeyringEncryptionKey();
+      SeedlessOnboardingController.revokeRefreshToken(globalPassword).catch(
+        (err) => {
+          Logger.error(err, 'Failed to revoke refresh token');
+        },
+      );
     } catch (err) {
       // lock app again on error after submitPassword succeeded
       await this.lockApp({ locked: true });
       throw err;
     }
     await this.resetPassword();
-
-    // set solana discovery pending to true
-    ///: BEGIN:ONLY_INCLUDE_IF(solana)
-    StorageWrapper.setItem(SOLANA_DISCOVERY_PENDING, TRUE);
-    ///: END:ONLY_INCLUDE_IF
   };
 
   /**

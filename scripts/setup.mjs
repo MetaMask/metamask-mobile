@@ -117,9 +117,6 @@ const copyAndSourceEnvVarsTask = {
 const buildPpomTask = {
   title: 'Build PPOM',
   task: (_, task) => {
-    if (IS_NODE) {
-      return task.skip('Skipping building PPOM.');
-    }
     const $ppom = $({ cwd: 'ppom' });
 
     return task.newListr(
@@ -369,6 +366,13 @@ const generateTermsOfUseTask = {
     ),
 };
 
+const installHuskyTask = {
+  title: 'Install Husky git hooks',
+  task: async () => {
+    await $`npx husky install`;
+  },
+};
+
 /**
  * Tasks that changes node modules and should run sequentially
  */
@@ -386,6 +390,7 @@ const prepareDependenciesTask = {
         patchPackageTask,
         installFoundryTask,
         expoBuildLinks,
+        installHuskyTask,
       ],
       {
         exitOnError: true,

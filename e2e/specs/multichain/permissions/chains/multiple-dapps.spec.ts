@@ -1,41 +1,20 @@
-'use strict';
 import TestHelpers from '../../../../helpers';
 import { SmokeNetworkExpansion } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import NetworkListModal from '../../../../pages/Network/NetworkListModal';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../../../fixtures/fixture-builder';
-import { withFixtures } from '../../../../fixtures/fixture-helper';
+import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../../../viewHelper';
-import Assertions from '../../../../utils/Assertions';
+import Assertions from '../../../../framework/Assertions';
 import WalletView from '../../../../pages/wallet/WalletView';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkEducationModal from '../../../../pages/Network/NetworkEducationModal';
 import PermissionSummaryBottomSheet from '../../../../pages/Browser/PermissionSummaryBottomSheet';
-
-// Define proper types for withFixtures options
-interface DappOptions {
-  numberOfDapps: number;
-}
-
-interface WithFixturesOptions {
-  fixture: object;
-  dapp?: boolean;
-  multichainDapp?: boolean;
-  dappOptions?: DappOptions;
-  dappPath?: string;
-  dappPaths?: string[];
-  ganacheOptions?: object;
-  languageAndLocale?: object;
-  launchArgs?: object;
-  restartDevice?: boolean;
-  smartContract?: object;
-  testSpecificMock?: object;
-  disableGanache?: boolean;
-  localNodeOptions?: object;
-}
+import { DappVariants } from '../../../../framework/Constants';
+import TestDApp from '../../../../pages/Browser/TestDApp';
 
 /*
 Test Steps:
@@ -53,38 +32,43 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
     jest.setTimeout(300000);
     await TestHelpers.reverseServerPort();
   });
-
   it('handles two dapps concurrently', async (): Promise<void> => {
     await withFixtures(
       {
-        dapp: true,
-        dappOptions: { numberOfDapps: 2 },
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp({}, true)
           .withChainPermission()
-          .withSecondTestDappTab()
+          .withExtraTabs(1)
           .build(),
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
         restartDevice: true,
-      } as WithFixturesOptions,
+      },
       async (): Promise<void> => {
         // Step 1: Navigate to browser view
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Assertions.checkIfVisible(Browser.browserScreenID);
+        await Assertions.expectElementToBeVisible(Browser.browserScreenID);
 
         // Step 2: Navigate to 1st test dApp to load page this should be connected to global network selector: Eth mainnet
         await Browser.navigateToTestDApp();
-        await Browser.waitForBrowserPageToLoad();
 
         // Navigate to 2nd test dapp to load page. This is a verification check. It should  be connected to global network selector: Eth mainnet
+        // The delay is used here to ensure the connected notice has been displayed
         await Browser.tapOpenAllTabsButton();
         await Browser.tapSecondTabButton();
-        await Browser.waitForBrowserPageToLoad();
 
         // This is here to debug whether or not the second test dapp loads and connected to chain
         // await TestHelpers.delay(10000)
 
         // Closing tabs because there is a webview challenging while selecting elements with more than 1 webview (tabs) are opened
+        // The delay here is purposely longer as we need to wait for the second dapp to load and only then open the tabs
         await Browser.tapOpenAllTabsButton();
         await Browser.tapCloseSecondTabButton();
 
@@ -104,7 +88,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
         await NetworkNonPemittedBottomSheet.tapLineaSepoliaNetworkName();
         await NetworkConnectMultiSelector.tapUpdateButton();
 
-        await Assertions.checkIfElementHasLabel(
+        await Assertions.expectElementToHaveLabel(
           ConnectedAccountsModal.navigateToEditNetworksPermissionsButton as TypableElement,
           'Use your enabled networks Linea Sepolia',
         );
@@ -119,8 +103,10 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
         await Browser.tapOpenNewTabButton();
 
         // In 2nd Dapp, Should verify that we are connected to Eth mainnet
-
         await Browser.navigateToSecondTestDApp();
+
+        // This will wait for the test dapp to actually connect after loading
+        await TestDApp.isConnectedToTestDapp();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
@@ -131,7 +117,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
         await NetworkConnectMultiSelector.tapUpdateButton();
 
         await device.enableSynchronization(); // re-enabling synchronization
-        await Assertions.checkIfElementHasLabel(
+        await Assertions.expectElementToHaveLabel(
           ConnectedAccountsModal.navigateToEditNetworksPermissionsButton as TypableElement,
           'Use your enabled networks Sepolia',
         );
@@ -154,7 +140,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
 
-        await Assertions.checkIfElementHasLabel(
+        await Assertions.expectElementToHaveLabel(
           ConnectedAccountsModal.navigateToEditNetworksPermissionsButton as TypableElement,
           'Use your enabled networks Sepolia',
         );
@@ -164,7 +150,6 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
         await ConnectedAccountsModal.scrollToBottomOfModal();
 
         // // Going back to test dapp 1 to verify that the network is still  linea sepolia
-        await TestHelpers.delay(2000);
         await Browser.tapOpenAllTabsButton();
         await Browser.tapCloseTabsButton();
         await Browser.tapOpenNewTabButton();
@@ -176,7 +161,7 @@ describe(SmokeNetworkExpansion('Per Dapp Management'), (): void => {
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapPermissionsSummaryTab();
 
-        await Assertions.checkIfElementHasLabel(
+        await Assertions.expectElementToHaveLabel(
           ConnectedAccountsModal.navigateToEditNetworksPermissionsButton as TypableElement,
           'Use your enabled networks Linea Sepolia',
         );

@@ -5751,7 +5751,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       style={
                                         {
                                           "backgroundColor": "#ffffff",
-                                          "borderRadius": 8,
+                                          "borderRadius": 4,
                                           "height": 16,
                                           "overflow": "hidden",
                                           "width": 16,
@@ -5765,9 +5765,14 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           }
                                         }
                                         style={
-                                          {
-                                            "flex": 1,
-                                          }
+                                          [
+                                            {
+                                              "flex": 1,
+                                            },
+                                            {
+                                              "borderRadius": 4,
+                                            },
+                                          ]
                                         }
                                       />
                                     </View>
@@ -7120,7 +7125,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     "backgroundColor": "#f3f5f9",
                                     "paddingHorizontal": 24,
                                   },
-                                  undefined,
                                 ],
                               ]
                             }
@@ -11260,7 +11264,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       style={
                                         {
                                           "backgroundColor": "#ffffff",
-                                          "borderRadius": 8,
+                                          "borderRadius": 4,
                                           "height": 16,
                                           "overflow": "hidden",
                                           "width": 16,
@@ -11274,9 +11278,14 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           }
                                         }
                                         style={
-                                          {
-                                            "flex": 1,
-                                          }
+                                          [
+                                            {
+                                              "flex": 1,
+                                            },
+                                            {
+                                              "borderRadius": 4,
+                                            },
+                                          ]
                                         }
                                       />
                                     </View>
@@ -12675,7 +12684,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     "backgroundColor": "#f3f5f9",
                                     "paddingHorizontal": 24,
                                   },
-                                  undefined,
                                 ],
                               ]
                             }
@@ -14270,7 +14278,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       style={
                                         {
                                           "backgroundColor": "#ffffff",
-                                          "borderRadius": 8,
+                                          "borderRadius": 4,
                                           "height": 16,
                                           "overflow": "hidden",
                                           "width": 16,
@@ -14284,9 +14292,14 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           }
                                         }
                                         style={
-                                          {
-                                            "flex": 1,
-                                          }
+                                          [
+                                            {
+                                              "flex": 1,
+                                            },
+                                            {
+                                              "borderRadius": 4,
+                                            },
+                                          ]
                                         }
                                       />
                                     </View>
@@ -15663,7 +15676,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     "backgroundColor": "#f3f5f9",
                                     "paddingHorizontal": 24,
                                   },
-                                  undefined,
                                 ],
                               ]
                             }

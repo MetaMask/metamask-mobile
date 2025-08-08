@@ -107,7 +107,7 @@ describe('Phishing Detection', () => {
 
       mockPhishingController.scanUrl.mockResolvedValue({
         recommendedAction: RecommendedAction.None,
-        domainName: testOrigin,
+        hostname: testOrigin,
       });
 
       const result = await getPhishingTestResultAsync(testOrigin);
@@ -124,7 +124,7 @@ describe('Phishing Detection', () => {
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
       mockPhishingController.scanUrl.mockResolvedValue({
         recommendedAction: RecommendedAction.None,
-        domainName: 'example.com',
+        hostname: 'example.com',
       });
 
       const result = await getPhishingTestResultAsync('example.com');
@@ -135,7 +135,7 @@ describe('Phishing Detection', () => {
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
       mockPhishingController.scanUrl.mockResolvedValue({
         recommendedAction: RecommendedAction.Warn,
-        domainName: 'example.com',
+        hostname: 'example.com',
       });
 
       const result = await getPhishingTestResultAsync('example.com');
@@ -146,7 +146,7 @@ describe('Phishing Detection', () => {
       mockSelectProductSafetyDappScanningEnabled.mockReturnValue(true);
       mockPhishingController.scanUrl.mockResolvedValue({
         recommendedAction: RecommendedAction.Block,
-        domainName: 'example.com',
+        hostname: 'example.com',
       });
 
       const result = await getPhishingTestResultAsync('example.com');

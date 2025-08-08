@@ -1,5 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
-import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './FixtureServer';
+import FixtureServer from './FixtureServer';
 import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
 import Ganache from '../../../app/util/test/ganache';
 
@@ -7,10 +7,11 @@ import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import createStaticServer from '../../create-static-server';
 import {
-  DEFAULT_MOCKSERVER_PORT,
+  AnvilPort,
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
+  killServiceByPid,
 } from './FixtureUtils';
 import Utilities from '../../utils/Utilities';
 import TestHelpers from '../../helpers';
@@ -27,24 +28,25 @@ import {
   DappOptions,
   AnvilNodeOptions,
   GanacheNodeOptions,
+  TestSpecificMock,
 } from '../types';
-import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
+import {
+  TestDapps,
+  DappVariants,
+  defaultGanacheOptions,
+  DEFAULT_MOCKSERVER_PORT,
+} from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
+import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
+import { type Mockttp } from 'mockttp';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
 
-export const DEFAULT_DAPP_SERVER_PORT = 8085;
-
-// While Appium is still in use it's necessary to check if getFixturesServerPort if defined and provide a fallback in case it's not.
-const getFixturesPort =
-  typeof getFixturesServerPort === 'function'
-    ? getFixturesServerPort
-    : () => DEFAULT_FIXTURE_SERVER_PORT;
-const FIXTURE_SERVER_URL = `http://localhost:${getFixturesPort()}/state.json`;
+const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {
@@ -175,6 +177,12 @@ async function handleLocalNodes(
         case LocalNodeType.anvil:
           localNode = new AnvilManager();
           localNodeSpecificOptions = nodeOptions as AnvilNodeOptions;
+          if (await localNode.isRunning()) {
+            logger.debug('Anvil server is already running');
+            // Force killing the anvil server as it is not reliable anymore
+            await localNode.quit();
+            await killServiceByPid(AnvilPort());
+          }
           await localNode.start(localNodeSpecificOptions);
           localNodes.push(localNode);
           break;
@@ -282,6 +290,7 @@ export const loadFixture = async (
   const state = fixture || new FixtureBuilder({ onboarding: true }).build();
   await fixtureServer.loadJsonState(state, null);
   // Checks if state is loaded
+  logger.debug(`Loading fixture into fixture server: ${FIXTURE_SERVER_URL}`);
   const response = await axios.get(FIXTURE_SERVER_URL);
 
   // Throws if state is not properly loaded
@@ -314,6 +323,67 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   }
   await fixtureServer.stop();
   logger.debug('The fixture server is stopped');
+};
+
+export const createMockAPIServer = async (
+  mockServerInstance?: Mockttp,
+  testSpecificMock?: TestSpecificMock,
+) => {
+  // Handle mock server
+  let mockServer: Mockttp | undefined;
+  let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
+
+  // Both
+  if (mockServerInstance && testSpecificMock) {
+    throw new Error(
+      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
+    );
+  }
+
+  // mockServerInstance only
+  if (mockServerInstance && !testSpecificMock) {
+    mockServer = mockServerInstance;
+    mockServerPort = mockServer.port;
+    logger.debug(
+      `Mock server started from mockServerInstance on port ${mockServerPort}`,
+    );
+
+    const endpoints = await mockServer.getMockedEndpoints();
+
+    logger.debug(`Mocked endpoints: ${endpoints.length}`);
+  }
+
+  // testSpecificMock only
+  if (!mockServerInstance && testSpecificMock) {
+    mockServerPort = getMockServerPort();
+    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+
+    logger.debug(
+      `Mock server started from testSpecificMock on port ${mockServerPort}`,
+    );
+  }
+
+  // neither
+  if (!mockServerInstance && !testSpecificMock) {
+    mockServerPort = getMockServerPort();
+    mockServer = await startMockServer({}, mockServerPort);
+
+    logger.debug(
+      `Mock server started from testSpecificMock on port ${mockServerPort}`,
+    );
+  }
+
+  if (!mockServer) {
+    throw new Error('Test setup failure, no mock server setup');
+  }
+
+  // Additional Global Mocks
+  await mockNotificationServices(mockServer);
+
+  return {
+    mockServer,
+    mockServerPort,
+  };
 };
 
 /**
@@ -351,36 +421,13 @@ export async function withFixtures(
     endTestfn,
   } = options;
 
-  if (mockServerInstance && testSpecificMock) {
-    throw new Error(
-      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
-    );
-  }
+  const { mockServer, mockServerPort } = await createMockAPIServer(
+    mockServerInstance,
+    testSpecificMock,
+  );
 
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
-
-  // Handle mock server
-  let mockServer;
-  let mockServerPort = DEFAULT_MOCKSERVER_PORT;
-
-  if (mockServerInstance && !testSpecificMock) {
-    mockServer = mockServerInstance;
-    mockServerPort = mockServer.port;
-    logger.debug(
-      `Mock server started from mockServerInstance on port ${mockServerPort}`,
-    );
-    const endpoints = await mockServer.getMockedEndpoints();
-    logger.debug(`Mocked endpoints: ${endpoints.length}`);
-  }
-
-  if (testSpecificMock && !mockServerInstance) {
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
-    logger.debug(
-      `Mock server started from testSpecificMock on port ${mockServerPort}`,
-    );
-  }
 
   // Handle local nodes
   let localNodes;

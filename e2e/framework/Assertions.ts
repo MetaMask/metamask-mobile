@@ -2,6 +2,7 @@ import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities';
 import { AssertionOptions } from './types';
 import Matchers from './Matchers';
+import { Json } from '@metamask/utils';
 
 /**
  * Assertions with auto-retry and better error messages
@@ -676,5 +677,17 @@ export default class Assertions {
         description: `Label contains text "${text}"`,
       },
     );
+  }
+
+  static async checkIfJsonEqual(actual: Json, expected: Json): Promise<void> {
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      throw new Error(
+        `Object equality check failed.\nExpected: ${JSON.stringify(
+          expected,
+          null,
+          2,
+        )}\nActual: ${JSON.stringify(actual, null, 2)}`,
+      );
+    }
   }
 }

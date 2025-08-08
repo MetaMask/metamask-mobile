@@ -17,6 +17,14 @@ import {
   setReactNativeDefaultHandler,
 } from './app/core/ErrorHandler';
 
+import { enableFreeze } from 'react-native-screens';
+
+if (__DEV__) {
+  require('./ReactotronConfig');
+}
+
+enableFreeze(true);
+
 // Setup Sentry
 setupSentry();
 

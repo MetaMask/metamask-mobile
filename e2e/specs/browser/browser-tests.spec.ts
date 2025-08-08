@@ -71,7 +71,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
     });
   });
 
-  it('should test phishing sites', async () => {
+  it.skip('should test phishing sites', async () => {
     await withBrowser(async () => {
       await Browser.tapBottomSearchBar();
       // Clear text & Navigate to URL

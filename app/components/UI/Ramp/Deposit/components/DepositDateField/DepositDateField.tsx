@@ -25,7 +25,7 @@ import Icon, {
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
 
-const MAXIMUM_DATE = new Date(2025, 11, 31);
+const MAXIMUM_DATE = new Date(Date.now());
 const MINIMUM_DATE = new Date(1900, 0, 1);
 const DEFAULT_DATE = new Date(2000, 0, 1);
 
@@ -69,8 +69,12 @@ const DepositDateField = forwardRef<TextInput, DepositDateFieldProps>(
 
     const handleOpenPicker = useCallback(() => {
       handleOnPress?.();
+      // if opened with no value set the default date
+      if (!value || value.trim() === '') {
+        setPendingDateSelection(DEFAULT_DATE);
+      }
       setShowDatePicker(true);
-    }, [handleOnPress]);
+    }, [handleOnPress, value]);
 
     const handleClosePicker = useCallback(() => {
       setShowDatePicker(false);
