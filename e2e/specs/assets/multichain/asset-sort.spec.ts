@@ -12,7 +12,7 @@ import Tenderly from '../../../tenderly';
 import { CustomNetworks } from '../../../resources/networks.e2e';
 import ImportTokensView from '../../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import TestHelpers from '../../../helpers';
-import { getFixturesServerPort } from '../../../fixtures/utils';
+import { getFixturesServerPort } from '../../../framework/fixtures/FixtureUtils';
 
 const AAVE_TENDERLY_MAINNET_DETAILS = {
   address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
