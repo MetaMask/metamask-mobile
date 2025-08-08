@@ -65,7 +65,6 @@ export const createTransactionDetailStyles = (theme: Theme) => {
     },
     detailValue: {
       fontSize: 14,
-      color: colors.text.default,
       fontWeight: '400',
     },
 
