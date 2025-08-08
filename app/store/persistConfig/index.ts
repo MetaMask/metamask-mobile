@@ -154,20 +154,26 @@ export const setupEnginePersistence = () => {
         const controllerName = eventName.split(':')[0];
         Engine.controllerMessenger.subscribe(
           eventName,
+          // Debounce to prevent excessive filesystem writes during rapid state changes
+          // WARNING: lodash.debounce with async functions can cause race conditions
           debounce(async (controllerState) => {
             try {
+              // Filter out non-persistent fields based on controller metadata
               const filteredState = getPersistentState(
                 controllerState,
                 // @ts-expect-error - EngineContext have stateless controllers, so metadata is not available
                 Engine.context[controllerName as keyof EngineContext]?.metadata,
               );
 
+              // Save the filtered state to filesystem storage
               await ControllerStorage.setItem(
                 `persist:${controllerName}`,
                 JSON.stringify(filteredState),
               );
               Logger.log(`${controllerName} state persisted successfully`);
 
+              // Notify Redux that this controller's state has been persisted
+              // This updates the Redux store to reflect the persistence status
               ReduxService.store.dispatch({
                 type: UPDATE_BG_STATE_KEY,
                 payload: { key: controllerName },
