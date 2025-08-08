@@ -83,10 +83,6 @@ const createMultichainAccountsStateSelector = (featureVersions: string[]) =>
       return true;
     }
 
-    if (overrideMultichainAccountsState2EnabledFlag(featureVersions)) {
-      return true;
-    }
-
     const enableMultichainAccounts =
       remoteFeatureFlags.enableMultichainAccounts;
     if (!assertMultichainAccountsFeatureFlagType(enableMultichainAccounts)) {
