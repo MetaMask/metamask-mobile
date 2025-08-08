@@ -122,7 +122,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
-        onPress={[Function]}
+        collapsable={false}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
@@ -163,8 +163,8 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
+        collapsable={false}
         disabled={true}
-        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={

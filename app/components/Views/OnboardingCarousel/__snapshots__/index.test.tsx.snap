@@ -2948,7 +2948,7 @@ exports[`OnboardingCarousel Image Padding should use android padding for large s
         accessibilityRole="button"
         accessible={true}
         activeOpacity={1}
-        onPress={[Function]}
+        collapsable={false}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={

@@ -60,7 +60,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
         <Checkbox
           style={styles.checkbox}
           isChecked={isSelected}
-          onPressIn={props.onPress}
+          onPressIn={Platform.OS === 'android' ? undefined : props.onPress}
         />
         {children}
       </ListItem>
