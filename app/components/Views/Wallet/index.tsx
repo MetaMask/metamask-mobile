@@ -150,6 +150,7 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { setIsConnectionRemoved } from '../../../actions/user';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -297,6 +298,7 @@ const Wallet = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
+  const { navigateToSendPage } = useSendNavigation();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
@@ -391,18 +393,18 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigate('SendFlowView', {});
+      navigateToSendPage();
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigate('SendFlowView', {});
+      navigateToSendPage();
     }
   }, [
     nativeCurrency,
-    navigate,
+    navigateToSendPage,
     dispatch,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     sendNonEvmAsset,
