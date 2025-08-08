@@ -202,6 +202,14 @@ describe('OnboardingSuccess', () => {
         ).toHaveBeenCalled();
       });
     });
+
+    it('fails to add networks to the network controller but should render the component', async () => {
+      (
+        Engine.context.NetworkController.addNetwork as jest.Mock
+      ).mockRejectedValue(new Error('Failed to add network'));
+      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
+      expect(toJSON()).toMatchSnapshot();
+    });
   });
 
   describe('route params successFlow is NO_BACKED_UP_SRP', () => {
