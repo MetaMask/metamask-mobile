@@ -638,6 +638,10 @@ describe('BuildQuote Component', () => {
         createMockSDKReturn({ isAuthenticated: true }),
       );
 
+      mockUseRoute.mockReturnValue({
+        params: {},
+      });
+
       render(BuildQuote);
 
       await waitFor(() => {
@@ -652,6 +656,10 @@ describe('BuildQuote Component', () => {
         createMockSDKReturn({ isAuthenticated: false }),
       );
 
+      mockUseRoute.mockReturnValue({
+        params: {},
+      });
+
       render(BuildQuote);
 
       await waitFor(() => {
@@ -663,6 +671,45 @@ describe('BuildQuote Component', () => {
       mockUseDepositSDK.mockReturnValue(
         createMockSDKReturn({ isAuthenticated: true }),
       );
+
+      mockUseRoute.mockReturnValue({
+        params: {},
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockRequestOtt).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('does not fetch OTT token when shouldRouteImmediately is true', async () => {
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockRequestOtt).not.toHaveBeenCalled();
+      });
+    });
+
+    it('fetches OTT token when shouldRouteImmediately is false and user is authenticated', async () => {
+      const mockOttToken = { token: 'test-ott-token' };
+      mockRequestOtt.mockResolvedValue(mockOttToken);
+
+      mockUseDepositSDK.mockReturnValue(
+        createMockSDKReturn({ isAuthenticated: true }),
+      );
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: false },
+      });
 
       render(BuildQuote);
 

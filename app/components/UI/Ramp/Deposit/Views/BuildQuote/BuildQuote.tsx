@@ -202,7 +202,7 @@ const BuildQuote = () => {
     let isMounted = true;
 
     const fetchOtt = async () => {
-      if (isAuthenticated) {
+      if (isAuthenticated && !shouldRouteImmediately) {
         try {
           const ottResult = await requestOtt();
           if (ottResult && isMounted) {
@@ -230,7 +230,7 @@ const BuildQuote = () => {
       isMounted = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, shouldRouteImmediately]);
 
   useEffect(() => {
     if (supportedTokens.length > 0) {
