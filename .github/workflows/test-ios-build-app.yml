@@ -53,12 +53,12 @@ jobs:
         shell: bash
 
       # Install Node.js, Xcode tools, and other iOS development dependencies
-      - name: Installing iOS Environment Setup
-        uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
-        with:
-          platform: ios
-          setup-simulator: false
-          target: qa
+      # - name: Installing iOS Environment Setup
+      #   uses: MetaMask/github-tools/.github/actions/setup-e2e-env@e2e-env-actions
+      #   with:
+      #     platform: ios
+      #     setup-simulator: false
+      #     target: qa
 
       - name: Print iOS tool versions
         run: |
