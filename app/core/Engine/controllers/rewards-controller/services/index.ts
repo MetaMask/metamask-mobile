@@ -12,6 +12,9 @@ export {
   useGetSeasonQuery,
   useGetSeasonStatusQuery,
   useGetPointsEventsQuery,
+  useGetRewardsCatalogQuery,
+  useGetRewardsQuery,
+  useClaimRewardMutation,
   rewardsApiReducer,
   rewardsApiMiddleware,
 } from './rewardsApi';

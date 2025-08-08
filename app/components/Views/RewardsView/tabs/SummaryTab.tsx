@@ -166,7 +166,7 @@ const SummaryTab: React.FC<SummaryTabProps> = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const { seasonData, seasonStatusData } = useRewardsSeason(false);
+  const { seasonData, seasonStatusData } = useRewardsSeason();
   const name = seasonData?.name || 'Upcoming Season';
   const endDate = seasonData?.endDate;
 

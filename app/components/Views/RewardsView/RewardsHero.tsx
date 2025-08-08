@@ -132,7 +132,7 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({
     login(devInput);
   }, [devInput, login]);
 
-  const { seasonData } = useRewardsSeason();
+  const { seasonData } = useRewardsSeason(true);
   const name = seasonData?.name || 'Upcoming Season';
   const endDate = seasonData?.endDate;
 

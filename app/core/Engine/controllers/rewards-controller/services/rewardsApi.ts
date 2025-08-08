@@ -12,6 +12,8 @@ import type {
   SeasonStatusDto,
   PointsEventDto,
   CursorPaginatedResultsDto,
+  SeasonRewardsCatalogDto,
+  RewardDto,
 } from '../types';
 
 /**
@@ -26,6 +28,8 @@ export const rewardsApi = createApi({
     'TokenPrices',
     'Season',
     'SeasonStatus',
+    'SeasonRewardsCatalog',
+    'RewardsStatus',
   ],
   baseQuery: fetchBaseQuery({
     baseUrl: AppConstants.REWARDS_API_URL,
@@ -60,6 +64,7 @@ export const rewardsApi = createApi({
         'PointsEvents',
         'AccountLifetimeSpend',
         'SeasonStatus',
+        'RewardsStatus',
       ],
     }),
     logout: builder.mutation<void, void>({
@@ -72,6 +77,7 @@ export const rewardsApi = createApi({
         'PointsEvents',
         'AccountLifetimeSpend',
         'SeasonStatus',
+        'RewardsStatus',
       ],
     }),
     devOnlyLogin: builder.mutation<void, DevOnlyLoginDto>({
@@ -85,6 +91,7 @@ export const rewardsApi = createApi({
         'PointsEvents',
         'AccountLifetimeSpend',
         'SeasonStatus',
+        'RewardsStatus',
       ],
     }),
 
@@ -143,7 +150,7 @@ export const rewardsApi = createApi({
       providesTags: ['SeasonStatus'],
     }),
 
-    // Points events endpoints
+    // Points events
     getPointsEvents: builder.query<
       CursorPaginatedResultsDto<PointsEventDto>,
       { seasonId: string; cursor?: string }
@@ -165,6 +172,26 @@ export const rewardsApi = createApi({
       },
       providesTags: ['PointsEvents'],
     }),
+
+    // Rewards catalog
+    getRewardsCatalog: builder.query<SeasonRewardsCatalogDto, string>({
+      query: (seasonId) => `/seasons/${seasonId}/rewards-catalog`,
+      providesTags: ['SeasonRewardsCatalog'],
+    }),
+
+    getRewards: builder.query<RewardDto[], string>({
+      query: (seasonId) => `/rewards?season_id=${seasonId}`,
+      providesTags: ['RewardsStatus'],
+    }),
+
+    // Claim reward
+    claimReward: builder.mutation<void, string>({
+      query: (rewardId) => ({
+        url: `/rewards/${rewardId}/claim`,
+        method: 'POST',
+      }),
+      invalidatesTags: ['RewardsStatus'],
+    }),
   }),
 });
 
@@ -181,6 +208,9 @@ export const {
   useGetSeasonQuery,
   useGetSeasonStatusQuery,
   useGetPointsEventsQuery,
+  useGetRewardsCatalogQuery,
+  useGetRewardsQuery,
+  useClaimRewardMutation,
 } = rewardsApi;
 
 // Export the reducer and middleware

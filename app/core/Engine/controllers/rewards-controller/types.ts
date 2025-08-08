@@ -106,6 +106,56 @@ export interface SeasonStatusDto {
   updatedAt: string;
 }
 
+export interface SeasonRewardCatalogDto {
+  id: string;
+  seasonTierId: string;
+  seasonTierType: string;
+  name: string;
+  description: string;
+  imageUri: string;
+  animationUri?: string;
+  rewardType: SeasonRewardType;
+  unlockType: UnlockType;
+}
+
+export interface SeasonRewardsCatalogDto {
+  seasonId: string;
+  seasonName: string;
+  seasonRewards: SeasonRewardCatalogDto[];
+}
+
+export enum SeasonRewardType {
+  TOKEN_ALLOCATION_CLAIM = 'TOKEN_ALLOCATION_CLAIM',
+  ITEM_VOUCHER = 'ITEM_VOUCHER',
+  POINTS_BONUS = 'POINTS_BONUS',
+}
+
+export enum UnlockType {
+  IMMEDIATE = 'IMMEDIATE',
+  SEASON_ENDS = 'SEASON_ENDS',
+}
+
+export interface RewardDto {
+  id: string;
+  seasonRewardId: string;
+  claimStatus: RewardClaimStatus;
+  data: PointsBonusRewardData | null;
+  createdAt: string;
+}
+
+export interface PointsBonusRewardData {
+  seasonPointsBonusId: string;
+  activeUntil: string; // reward expiration date
+  activeFrom: string; // claim date
+}
+
+export enum RewardClaimStatus {
+  UNCLAIMED = 'UNCLAIMED',
+  CLAIMED = 'CLAIMED',
+  CLAIM_IN_PROGRESS = 'CLAIM_IN_PROGRESS',
+  CLAIM_FAILED = 'CLAIM_FAILED',
+}
+
 /**
  * State for the RewardsController
  */
