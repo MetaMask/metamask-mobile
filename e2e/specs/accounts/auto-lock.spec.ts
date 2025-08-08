@@ -10,6 +10,7 @@ import LoginView from '../../pages/wallet/LoginView';
 import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers.js';
 import { logger } from '../../framework/logger';
+import { loginToApp } from '../../viewHelper';
 
 const isIOS = device.getPlatform() === 'ios';
 (isIOS ? describe : describe.skip)(Regression('Auto-Lock'), () => {
@@ -39,6 +40,7 @@ const isIOS = device.getPlatform() === 'ios';
         restartDevice: true,
       },
       async () => {
+        await loginToApp();
         await TabBarComponent.tapSettings();
         await SettingsView.tapSecurityAndPrivacy();
         await SecurityAndPrivacy.scrollToAutoLockSection();
