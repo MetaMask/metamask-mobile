@@ -140,9 +140,13 @@ class WalletView {
     );
   }
   get testCollectible(): DetoxElement {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByID(WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK, 1)
-      : Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
+    return Matchers.getElementByID(WalletViewSelectorsIDs.TEST_COLLECTIBLE, 1);
+  }
+  get testCollectibleFallback(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK,
+      1,
+    );
   }
 
   getCarouselSlide(id: string): DetoxElement {
@@ -256,9 +260,15 @@ class WalletView {
   }
 
   async tapOnNftName(): Promise<void> {
-    await Gestures.waitAndTap(this.testCollectible, {
-      elemDescription: 'NFT Name',
-    });
+    try {
+      await Gestures.waitAndTap(this.testCollectible, {
+        elemDescription: 'NFT Name',
+      });
+    } catch {
+      await Gestures.waitAndTap(this.testCollectibleFallback, {
+        elemDescription: 'NFT Name Fallback',
+      });
+    }
   }
 
   async tapImportTokensButton(): Promise<void> {

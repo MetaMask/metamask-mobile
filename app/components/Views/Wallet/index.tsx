@@ -144,6 +144,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 import { selectIsCardholder } from '../../../core/redux/slices/card';
+import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -173,7 +174,7 @@ const createStyles = ({ colors }: Theme) =>
       paddingHorizontal: 16,
     },
     carouselContainer: {
-      marginTop: 12,
+      marginBottom: 12,
     },
     tabStyle: {
       paddingBottom: 8,
@@ -291,6 +292,7 @@ const Wallet = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
+  const { navigateToSendPage } = useSendNavigation();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
@@ -385,18 +387,18 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigate('SendFlowView', {});
+      navigateToSendPage();
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigate('SendFlowView', {});
+      navigateToSendPage();
     }
   }, [
     nativeCurrency,
-    navigate,
+    navigateToSendPage,
     dispatch,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     sendNonEvmAsset,
