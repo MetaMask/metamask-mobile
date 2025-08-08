@@ -244,6 +244,47 @@ jest.mock('../../UI/Stake/hooks/useStakingChain', () => ({
   })),
 }));
 
+jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
+  useNetworksByNamespace: () => ({
+    networks: [],
+    selectNetwork: jest.fn(),
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+  NetworkType: {
+    Popular: 'popular',
+    Custom: 'custom',
+  },
+}));
+
+jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
+  useNetworkSelection: () => ({
+    selectCustomNetwork: jest.fn(),
+    selectPopularNetwork: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
+  useNetworkEnablement: () => ({
+    namespace: 'eip155',
+    enabledNetworks: { '0x1': true },
+    setEnabledNetwork: jest.fn(),
+    setDisabledNetwork: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
+  useCurrentNetworkInfo: () => ({
+    currentChainId: '0x1',
+    isEvmNetwork: true,
+    networkInfo: {
+      name: 'Ethereum Mainnet',
+      chainId: '0x1',
+    },
+    getNetworkInfo: jest.fn(),
+  }),
+}));
+
 const Stack = createStackNavigator();
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
