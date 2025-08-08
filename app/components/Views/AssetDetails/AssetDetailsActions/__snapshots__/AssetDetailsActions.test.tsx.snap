@@ -112,7 +112,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               }
             }
           >
-            Buy
+            Fund
           </Text>
         </View>
       </View>

@@ -84,7 +84,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
         <View style={styles.buttonContainer}>
           <MainActionButton
             iconName={IconName.Add}
-            label={strings('asset_overview.buy_button')}
+            label={strings('asset_overview.fund_button')}
             onPress={handleBuyPress}
             isDisabled={!canSignTransactions || !isFundingAvailable}
             testID={buyButtonActionID}
