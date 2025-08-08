@@ -346,11 +346,11 @@ stages:
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_performance_ios: {}
+      # - run_tag_smoke_performance_ios: {}
       - run_tag_smoke_performance_android: {}
   run_smoke_e2e_performance_ios_android_stage:
     workflows:
-      - run_tag_smoke_performance_ios: {}
+      # - run_tag_smoke_performance_ios: {}
       - run_tag_smoke_performance_android: {}
   # TODO: This stage does the same thing as build_smoke_e2e_ios_android_stage
   build_regression_e2e_ios_android_stage:
