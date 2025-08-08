@@ -853,7 +853,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -959,7 +959,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -1065,7 +1065,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -1171,7 +1171,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -1277,7 +1277,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -2598,7 +2598,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -2704,7 +2704,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -2810,7 +2810,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -2916,7 +2916,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -3022,7 +3022,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -4343,7 +4343,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -4449,7 +4449,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -4555,7 +4555,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -4661,7 +4661,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -4767,7 +4767,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -6127,7 +6127,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -6233,7 +6233,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -6339,7 +6339,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -6445,7 +6445,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -6551,7 +6551,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -7872,7 +7872,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -7978,7 +7978,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -8084,7 +8084,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -8190,7 +8190,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -8296,7 +8296,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -9617,7 +9617,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -9723,7 +9723,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -9829,7 +9829,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -9935,7 +9935,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -10041,7 +10041,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -11834,7 +11834,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -11940,7 +11940,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -12046,7 +12046,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -12152,7 +12152,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -12258,7 +12258,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
@@ -13579,7 +13579,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -13685,7 +13685,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -13791,7 +13791,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -13897,7 +13897,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 0.5,
@@ -14003,7 +14003,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               [
                                                 {
                                                   "alignItems": "center",
-                                                  "backgroundColor": "#3c4d9d0f",
+                                                  "backgroundColor": "#3c4d9d1a",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
                                                   "opacity": 1,
