@@ -40,7 +40,7 @@ export interface LongPressOptions extends GestureOptions {
 export interface ScrollOptions extends GestureOptions {
   direction?: 'up' | 'down' | 'left' | 'right';
   scrollAmount?: number;
-  delay?: number; // Delay before the scroll action
+  delay?: number;
 }
 
 // Assertions

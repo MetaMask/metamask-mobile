@@ -72,6 +72,7 @@ jobs:
           MM_BRIDGE_ENABLED: "true"
           BRIDGE_USE_DEV_APIS: "true"
           RAMP_INTERNAL_BUILD: "true"
+          SEEDLESS_ONBOARDING_ENABLED: "true"
           SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
           SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
           SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}

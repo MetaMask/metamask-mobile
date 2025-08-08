@@ -178,9 +178,8 @@ export async function killProcessOnPort(port: number): Promise<boolean> {
     // Platform-specific approach to find and kill the process
     if (process.platform === 'win32') {
       // Windows: First find the PID using netstat
-      // Use more precise pattern matching to avoid matching ports like 8080 when searching for 808
       const { stdout } = await execAsync(
-        `netstat -ano | findstr /R "TCP.*:${port}[\\s].*LISTENING"`,
+        `netstat -ano | findstr /R "TCP.*:${port} .*LISTENING"`,
       );
 
       if (stdout.trim()) {
@@ -192,11 +191,16 @@ export async function killProcessOnPort(port: number): Promise<boolean> {
           const pidMatches = line.trim().split(/\s+/);
           if (pidMatches.length > 0) {
             const pid = pidMatches[pidMatches.length - 1];
-            // Kill the process
-            logger.debug(
-              `Killing Windows process with PID ${pid} on port ${port}`,
-            );
-            await execAsync(`taskkill /F /PID ${pid}`);
+            // Validate that the PID is a non-empty numeric value
+            if (pid && /^\d+$/.test(pid)) {
+              // Kill the process
+              logger.debug(
+                `Killing Windows process with PID ${pid} on port ${port}`,
+              );
+              await execAsync(`taskkill /F /PID ${pid}`);
+            } else {
+              logger.debug(`Invalid PID found: "${pid}"`);
+            }
           }
         }
       }
