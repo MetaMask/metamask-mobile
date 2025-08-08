@@ -1,3 +1,15 @@
+// Mock the Analytics module BEFORE any imports
+jest.mock('../../../../../core/Analytics', () => ({
+  MetaMetrics: {
+    getInstance: jest.fn(() => ({
+      addTraitsToUser: jest.fn(),
+    })),
+  },
+  MetaMetricsEvents: {
+    NETWORK_REMOVED: 'Network Removed',
+  },
+}));
+
 import React from 'react';
 import { shallow } from 'enzyme';
 import { RpcEndpointType } from '@metamask/network-controller';
@@ -20,6 +32,9 @@ const { PreferencesController } = Engine.context;
 jest.mock(
   '../../../../../util/metrics/MultichainAPI/networkMetricUtils',
   () => ({
+    addItemToChainIdList: jest.fn().mockReturnValue({
+      chain_id_list: ['eip155:1'],
+    }),
     removeItemFromChainIdList: jest.fn().mockReturnValue({
       chain_id_list: ['eip155:1'],
     }),
@@ -36,17 +51,6 @@ jest.mock('../../../../../components/hooks/useMetrics', () => ({
     })),
   }),
   withMetricsAwareness: (Component: unknown) => Component,
-}));
-
-jest.mock('../../../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn().mockReturnValue({
-      addTraitsToUser: jest.fn(),
-    }),
-  },
-  MetaMetricsEvents: {
-    NETWORK_REMOVED: 'Network Removed',
-  },
 }));
 
 // Mock the entire module
@@ -127,9 +131,8 @@ jest.mock('../../../../../core/Engine', () => ({
       setTokenNetworkFilter: jest.fn(),
     },
     NetworkEnablementController: {
-      setEnabledNetwork: jest.fn(),
-      setDisabledNetwork: jest.fn(),
-      isNetworkEnabled: jest.fn(),
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
     },
   },
 }));
@@ -258,6 +261,7 @@ describe('NetworkSettings', () => {
   let wrapper: any;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     wrapper = shallow(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
@@ -1948,17 +1952,22 @@ describe('NetworkSettings', () => {
         mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
       });
 
-      it('should call NetworkEnablementController.setEnabledNetwork when feature flag is enabled', async () => {
+      it('should call NetworkEnablementController.enableNetwork when feature flag is enabled', async () => {
         const { NetworkEnablementController } = Engine.context;
-        const setEnabledNetworkSpy = jest.spyOn(
+        const enableNetworkSpy = jest.spyOn(
           NetworkEnablementController,
-          'setEnabledNetwork',
+          'enableNetwork',
         );
 
         // Mock validateChainIdOnSubmit to return true so it doesn't return early
         jest
           .spyOn(wrapper.instance(), 'validateChainIdOnSubmit')
           .mockResolvedValue(true);
+
+        // Mock handleNetworkUpdate to prevent actual network addition
+        jest
+          .spyOn(wrapper.instance(), 'handleNetworkUpdate')
+          .mockResolvedValue({});
 
         wrapper.setState({
           rpcUrl: 'http://localhost:8545',
@@ -1977,8 +1986,8 @@ describe('NetworkSettings', () => {
         // Verify that the feature flag is enabled
         expect(mockIsRemoveGlobalNetworkSelectorEnabled()).toBe(true);
 
-        // Verify that setEnabledNetwork was called with the correct chainId
-        expect(setEnabledNetworkSpy).toHaveBeenCalledWith('0x1');
+        // Verify that enableNetwork was called with the correct chainId
+        expect(enableNetworkSpy).toHaveBeenCalledWith('0x1');
       });
 
       it('should have proper Engine controller setup when feature flag is enabled', () => {
@@ -1987,7 +1996,7 @@ describe('NetworkSettings', () => {
 
         // Verify that the necessary controllers are available
         expect(
-          Engine.context.NetworkEnablementController.setEnabledNetwork,
+          Engine.context.NetworkEnablementController.enableNetwork,
         ).toBeDefined();
         expect(Engine.context.NetworkController.addNetwork).toBeDefined();
         expect(Engine.context.NetworkController.updateNetwork).toBeDefined();
@@ -1999,11 +2008,11 @@ describe('NetworkSettings', () => {
         mockIsRemoveGlobalNetworkSelectorEnabled.mockReturnValue(false);
       });
 
-      it('should not call NetworkEnablementController.setEnabledNetwork when feature flag is disabled', async () => {
+      it('should not call NetworkEnablementController.enableNetwork when feature flag is disabled', async () => {
         const { NetworkEnablementController } = Engine.context;
         const setEnabledNetworkSpy = jest.spyOn(
           NetworkEnablementController,
-          'setEnabledNetwork',
+          'enableNetwork',
         );
 
         wrapper.setState({
@@ -2031,7 +2040,7 @@ describe('NetworkSettings', () => {
 
         // Verify that the necessary controllers are still available
         expect(
-          Engine.context.NetworkEnablementController.setEnabledNetwork,
+          Engine.context.NetworkEnablementController.enableNetwork,
         ).toBeDefined();
         expect(Engine.context.NetworkController.addNetwork).toBeDefined();
         expect(Engine.context.NetworkController.updateNetwork).toBeDefined();

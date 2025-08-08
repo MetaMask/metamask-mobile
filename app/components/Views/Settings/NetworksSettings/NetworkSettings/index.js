@@ -985,7 +985,7 @@ export class NetworkSettings extends PureComponent {
 
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       const { NetworkEnablementController } = Engine.context;
-      NetworkEnablementController.setEnabledNetwork(chainId);
+      NetworkEnablementController.enableNetwork(chainId);
     }
 
     await this.handleNetworkUpdate({

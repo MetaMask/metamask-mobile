@@ -41,7 +41,6 @@ import {
 import styleSheet from './NetworkMultiSelectorList.styles';
 import {
   MAIN_CHAIN_IDS,
-  ESTIMATED_ITEM_SIZE,
   DEVICE_HEIGHT_MULTIPLIER,
   ADDITIONAL_NETWORK_SECTION_ID,
   ITEM_TYPE_ADDITIONAL_SECTION,
@@ -267,10 +266,8 @@ const NetworkMultiSelectList = ({
       keyExtractor={getKeyExtractor}
       renderItem={renderNetworkItem}
       getItemType={getItemType}
-      estimatedItemSize={ESTIMATED_ITEM_SIZE}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={contentContainerStyle}
-      disableAutoLayout
       removeClippedSubviews
       viewabilityConfig={{
         waitForInteraction: true,

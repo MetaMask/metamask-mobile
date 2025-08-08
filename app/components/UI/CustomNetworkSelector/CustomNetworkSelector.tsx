@@ -133,7 +133,6 @@ const CustomNetworkSelector = ({ openModal }: CustomNetworkSelectorProps) => {
         data={networks}
         renderItem={renderNetworkItem}
         keyExtractor={(item) => item.caipChainId}
-        estimatedItemSize={60}
         ListFooterComponent={renderFooter}
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={{

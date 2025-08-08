@@ -453,7 +453,9 @@ describe('DeFiPositionsList', () => {
           WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
         ),
       ).toBeOnTheScreen();
-      expect(await findByText(`No positions yet`)).toBeOnTheScreen();
+      expect(
+        await findByText(`Can't find what you're looking for?`),
+      ).toBeOnTheScreen();
     });
 
     it('shows control bar with enabled networks text when feature flag is enabled', async () => {

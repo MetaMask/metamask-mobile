@@ -89,9 +89,9 @@ jest.mock('../../../selectors/preferencesController', () => ({
 }));
 
 jest.mock('../../../component-library/components/Cells/Cell', () => {
+  const ReactActual = jest.requireActual('react');
   const MockCell = function MockCell(props: Record<string, unknown>) {
-    const React = require('react');
-    return React.createElement('View', {
+    return ReactActual.createElement('View', {
       testID: 'mock-cell',
       ...props,
     });
@@ -106,9 +106,9 @@ jest.mock('../../../component-library/components/Cells/Cell', () => {
 });
 
 jest.mock('@shopify/flash-list', () => {
+  const ReactActual = jest.requireActual('react');
   const MockFlashList = function MockFlashList(props: Record<string, unknown>) {
-    const React = require('react');
-    return React.createElement('View', {
+    return ReactActual.createElement('View', {
       testID: 'mock-flash-list',
       ...props,
     });

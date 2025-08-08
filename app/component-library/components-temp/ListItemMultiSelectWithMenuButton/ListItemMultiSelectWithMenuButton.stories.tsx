@@ -69,7 +69,7 @@ export const ListItemWithButtonSelect = {
         <Icon name={IconName.Clock} />
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
-        <Text numberOfLines={1} variant={TextVariant.HeadingSMRegular}>
+        <Text numberOfLines={1} variant={TextVariant.HeadingSM}>
           {'Sample Title'}
         </Text>
         <Text variant={TextVariant.BodyMD}>{'Sample Description'}</Text>

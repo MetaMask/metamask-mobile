@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { KnownCaipNamespace } from '@metamask/utils';
+import { NetworkEnablementController } from '@metamask/network-enablement-controller';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import {
   useNetworksByNamespace,
@@ -64,8 +65,9 @@ jest.mock('../../../util/networks/customNetworks', () => ({
 }));
 
 jest.mock('../NetworkMultiSelectorList/NetworkMultiSelectorList', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
   const mockReact = require('react');
-  return function MockNetworkMultiSelectorList(props: any) {
+  return function MockNetworkMultiSelectorList(props: Record<string, unknown>) {
     return mockReact.createElement('View', {
       testID: 'mock-network-multi-selector-list',
       ...props,
@@ -76,8 +78,9 @@ jest.mock('../NetworkMultiSelectorList/NetworkMultiSelectorList', () => {
 jest.mock(
   '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork',
   () => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
     const mockReact = require('react');
-    return function MockCustomNetwork(props: any) {
+    return function MockCustomNetwork(props: Record<string, unknown>) {
       return mockReact.createElement('View', {
         testID: 'mock-custom-network',
         ...props,
@@ -87,8 +90,9 @@ jest.mock(
 );
 
 jest.mock('../../../component-library/components/Texts/Text', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
   const mockReact = require('react');
-  const MockText = function MockText(props: any) {
+  const MockText = function MockText(props: Record<string, unknown>) {
     return mockReact.createElement(
       'Text',
       {
@@ -141,7 +145,7 @@ describe('NetworkMultiSelector', () => {
       isSelected: false,
       imageSource: { uri: 'polygon.png' },
     },
-  ] as any;
+  ];
 
   const mockEnabledNetworks = {
     eip155: {
@@ -157,7 +161,7 @@ describe('NetworkMultiSelector', () => {
       namespace: KnownCaipNamespace.Eip155,
       enabledNetworksByNamespace: mockEnabledNetworks,
       enabledNetworksForCurrentNamespace: mockEnabledNetworks.eip155,
-      networkEnablementController: {} as any,
+      networkEnablementController: {} as NetworkEnablementController,
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
       toggleNetwork: jest.fn(),
@@ -292,10 +296,10 @@ describe('NetworkMultiSelector', () => {
 
     it('does not render custom network component for non-EIP155 namespace', () => {
       mockUseNetworkEnablement.mockReturnValue({
-        namespace: 'solana' as any,
+        namespace: 'solana' as KnownCaipNamespace,
         enabledNetworksByNamespace: { solana: {} },
         enabledNetworksForCurrentNamespace: {},
-        networkEnablementController: {} as any,
+        networkEnablementController: {} as NetworkEnablementController,
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
         toggleNetwork: jest.fn(),
@@ -328,7 +332,7 @@ describe('NetworkMultiSelector', () => {
         namespace: KnownCaipNamespace.Eip155,
         enabledNetworksByNamespace: { eip155: {} },
         enabledNetworksForCurrentNamespace: {},
-        networkEnablementController: {} as any,
+        networkEnablementController: {} as NetworkEnablementController,
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
         toggleNetwork: jest.fn(),
@@ -381,10 +385,10 @@ describe('NetworkMultiSelector', () => {
 
     it('passes null additionalNetworksComponent for non-EIP155 namespace', () => {
       mockUseNetworkEnablement.mockReturnValue({
-        namespace: 'solana' as any,
+        namespace: 'solana' as KnownCaipNamespace,
         enabledNetworksByNamespace: { solana: {} },
         enabledNetworksForCurrentNamespace: {},
-        networkEnablementController: {} as any,
+        networkEnablementController: {} as NetworkEnablementController,
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
         toggleNetwork: jest.fn(),

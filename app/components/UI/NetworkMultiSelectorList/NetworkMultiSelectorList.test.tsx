@@ -5,10 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { parseCaipChainId, CaipChainId } from '@metamask/utils';
 import { toHex } from '@metamask/controller-utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { debounce } from 'lodash';
+import { debounce, type DebouncedFunc } from 'lodash';
 import { useStyles } from '../../../component-library/hooks/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
-import Device from '../../../util/device/index.js';
 import { selectEvmChainId } from '../../../selectors/networkController';
 import NetworkMultiSelectorList from './NetworkMultiSelectorList';
 import {
@@ -46,11 +45,19 @@ jest.mock('@metamask/bridge-controller', () => ({
 }));
 
 jest.mock('lodash', () => ({
-  debounce: jest.fn((fn) => {
-    const debouncedFn = jest.fn(fn);
-    debouncedFn.cancel = jest.fn();
-    return debouncedFn;
-  }),
+  debounce: jest.fn(
+    (
+      fn: (...args: unknown[]) => unknown,
+      _wait?: number,
+      _options?: unknown,
+    ) => {
+      const debouncedFn = ((...args: unknown[]) =>
+        fn(...args)) as DebouncedFunc<(...args: unknown[]) => unknown>;
+      debouncedFn.cancel = jest.fn();
+      debouncedFn.flush = jest.fn(() => fn());
+      return debouncedFn;
+    },
+  ),
 }));
 
 jest.mock('../../../component-library/hooks/index.ts', () => ({
@@ -75,9 +82,10 @@ jest.mock('../../../selectors/networkController', () => ({
 
 // Mock component library components
 jest.mock('../../../component-library/components/Cells/Cell/index.ts', () => {
-  const React = require('react');
-  const MockCell = function MockCell(props: any) {
-    return React.createElement('View', {
+  /* eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+  const ReactMock = require('react');
+  const MockCell = function MockCell(props: Record<string, unknown>) {
+    return ReactMock.createElement('View', {
       testID: 'mock-cell',
       ...props,
     });
@@ -110,9 +118,10 @@ jest.mock(
 );
 
 jest.mock('@shopify/flash-list', () => {
-  const React = require('react');
-  const MockFlashList = function MockFlashList(props: any) {
-    return React.createElement('View', {
+  /* eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+  const ReactMock = require('react');
+  const MockFlashList = function MockFlashList(props: Record<string, unknown>) {
+    return ReactMock.createElement('View', {
       testID: 'mock-flash-list',
       ...props,
     });
@@ -200,9 +209,11 @@ describe('NetworkMultiSelectorList', () => {
     mockToHex.mockImplementation((value) => `0x${value}`);
     mockFormatChainIdToCaip.mockReturnValue('eip155:1');
     mockIsTestNet.mockReturnValue(false);
-    mockDebounce.mockImplementation((fn) => {
-      const debouncedFn = jest.fn(fn);
+    mockDebounce.mockImplementation((fn: (...args: unknown[]) => unknown) => {
+      const debouncedFn = ((...args: unknown[]) =>
+        fn(...args)) as DebouncedFunc<(...args: unknown[]) => unknown>;
       debouncedFn.cancel = jest.fn();
+      debouncedFn.flush = jest.fn(() => fn());
       return debouncedFn;
     });
   });
