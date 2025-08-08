@@ -1,6 +1,6 @@
 import React from 'react';
 import LottieView, { AnimationObject } from 'lottie-react-native';
-import { ActivityIndicator, Dimensions, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -9,6 +9,7 @@ import Text, {
 import { useTheme } from '../../../util/theme';
 import { ONBOARDING } from '../../../constants/navigation';
 import fox from '../../../animations/Searching_Fox.json';
+import Device from '../../../util/device';
 
 interface LoadingComponentProps {
   previousScreen: string;
@@ -17,27 +18,29 @@ interface LoadingComponentProps {
 const createStyles = () =>
   StyleSheet.create({
     loadingWrapper: {
-      paddingHorizontal: 40,
-      paddingBottom: 30,
+      paddingHorizontal: 16,
       alignItems: 'center',
+      display: 'flex',
+      justifyContent: 'flex-start',
+      alignContent: 'center',
       flex: 1,
+      rowGap: 24,
     },
     foxWrapper: {
-      marginTop: Dimensions.get('window').height * 0.05,
-      marginBottom: Dimensions.get('window').height * 0.05,
+      width: Device.isMediumDevice() ? 180 : 220,
+      height: Device.isMediumDevice() ? 180 : 220,
     },
     image: {
       alignSelf: 'center',
-      width: Dimensions.get('window').width * 0.5,
-      height: Dimensions.get('window').width * 0.5,
+      width: Device.isMediumDevice() ? 180 : 220,
+      height: Device.isMediumDevice() ? 180 : 220,
     },
-    title: {
-      justifyContent: 'flex-start',
-      textAlign: 'left',
-      fontSize: 32,
-    },
-    subtitle: {
-      textAlign: 'center',
+    loadingTextContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      rowGap: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 
@@ -59,21 +62,23 @@ export const LoadingComponent = (props: LoadingComponentProps) => {
         />
       </View>
       <ActivityIndicator size="large" color={colors.text.default} />
-      <Text
-        variant={TextVariant.HeadingLG}
-        style={styles.title}
-        adjustsFontSizeToFit
-        numberOfLines={1}
-      >
-        {strings(
-          previousScreen === ONBOARDING
-            ? 'create_wallet.title'
-            : 'secure_your_wallet.creating_password',
-        )}
-      </Text>
-      <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
-        {strings('create_wallet.subtitle')}
-      </Text>
+      <View style={styles.loadingTextContainer}>
+        <Text
+          variant={TextVariant.HeadingLG}
+          color={colors.text.default}
+          adjustsFontSizeToFit
+          numberOfLines={1}
+        >
+          {strings(
+            previousScreen === ONBOARDING
+              ? 'create_wallet.title'
+              : 'secure_your_wallet.creating_password',
+          )}
+        </Text>
+        <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
+          {strings('create_wallet.subtitle')}
+        </Text>
+      </View>
     </View>
   );
 };
