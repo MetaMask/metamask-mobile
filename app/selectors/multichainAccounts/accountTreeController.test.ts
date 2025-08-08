@@ -28,6 +28,17 @@ const createMockState = (
     | DeepPartial<AccountTreeControllerState>
     | undefined = {},
   multichainAccountsEnabled: boolean = true,
+  internalAccounts: Record<
+    string,
+    {
+      id: string;
+      address: string;
+      methods: string[];
+      options: object;
+      type: string;
+      metadata: { name: string };
+    }
+  > = {},
 ): RootState =>
   ({
     engine: {
@@ -41,6 +52,14 @@ const createMockState = (
               minimumVersion: '1.0.0',
             },
           },
+        },
+        AccountsController: {
+          internalAccounts: {
+            accounts: internalAccounts,
+          },
+        },
+        KeyringController: {
+          keyrings: [],
         },
       },
     },
@@ -67,35 +86,58 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it('returns wallet sections with accounts when wallets exist', () => {
-      const mockState = createMockState({
-        accountTree: {
-          wallets: {
-            [WALLET_ID_1]: {
-              metadata: {
-                name: 'Wallet 1',
-              },
-              groups: {
-                'keyring:1/ethereum': {
-                  accounts: ['account1'],
+      const mockInternalAccounts = {
+        account1: {
+          id: 'account1',
+          address: '0x123',
+          methods: [],
+          options: {},
+          type: 'eip155:eoa',
+          metadata: { name: 'Account 1' },
+        },
+        account2: {
+          id: 'account2',
+          address: '0x456',
+          methods: [],
+          options: {},
+          type: 'eip155:eoa',
+          metadata: { name: 'Account 2' },
+        },
+      };
+
+      const mockState = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [WALLET_ID_1]: {
+                metadata: {
+                  name: 'Wallet 1',
                 },
-                'keyring:2/ethereum': {
-                  accounts: ['account2'],
+                groups: {
+                  'keyring:1/ethereum': {
+                    accounts: ['account1'],
+                  },
+                  'keyring:2/ethereum': {
+                    accounts: ['account2'],
+                  },
                 },
               },
-            },
-            [WALLET_ID_2]: {
-              metadata: {
-                name: 'Wallet 2',
-              },
-              groups: {
-                'keyring:3/ethereum': {
-                  accounts: [],
+              [WALLET_ID_2]: {
+                metadata: {
+                  name: 'Wallet 2',
+                },
+                groups: {
+                  'keyring:3/ethereum': {
+                    accounts: [],
+                  },
                 },
               },
             },
           },
         },
-      });
+        true,
+        mockInternalAccounts,
+      );
 
       const result = selectAccountSections(mockState);
       expect(result).toEqual([
