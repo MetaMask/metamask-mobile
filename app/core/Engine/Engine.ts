@@ -1372,6 +1372,9 @@ export class Engine {
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
+
+    // Notify Snaps that the app is active when the Engine is initialized.
+    this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({
