@@ -1,3 +1,5 @@
+import { SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID } from '../../actions/sendFlow';
+
 export const initialState = {
   networkOnboardedState: {},
   networkState: {
@@ -10,6 +12,7 @@ export const initialState = {
     networkUrl: '',
     networkStatus: false,
   },
+  sendFlowChainId: null,
 };
 
 /**
@@ -27,7 +30,7 @@ function networkOnboardReducer(
     networkStatus: boolean;
     showNetworkOnboarding: boolean;
     type: string;
-    // TODO: Replace "any" with type
+    chainId?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: any;
   } = {
@@ -37,6 +40,7 @@ function networkOnboardReducer(
     networkStatus: false,
     showNetworkOnboarding: false,
     type: '',
+    chainId: undefined,
     payload: undefined,
   },
 ) {
@@ -73,6 +77,12 @@ function networkOnboardReducer(
           [action.payload]: true,
         },
       };
+    case SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID: {
+      return {
+        ...state,
+        sendFlowChainId: action.chainId,
+      };
+    }
     default:
       return state;
   }

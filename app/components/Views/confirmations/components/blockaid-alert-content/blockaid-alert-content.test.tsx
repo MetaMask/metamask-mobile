@@ -10,6 +10,7 @@ import { deflate } from 'react-native-gzip';
 import { BLOCKAID_SUPPORTED_NETWORK_NAMES } from '../../../../../util/networks';
 import BlockaidVersionInfo from '../../../../../lib/ppom/blockaid-version';
 import { ResultType as BlockaidResultType } from '../../constants/signatures';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('react-native-gzip', () => ({
   deflate: jest.fn().mockResolvedValue('compressedData'),
@@ -160,5 +161,24 @@ describe('BlockaidAlertContent', () => {
     await waitFor(() => {
       expect(deflate).not.toHaveBeenCalled();
     });
+  });
+
+  it('renders generic reason message if reason not recognised', () => {
+    const mockSecurityAlertResponseWithUnknownReason: SecurityAlertResponse = {
+      ...mockSecurityAlertResponse,
+      reason: 'unknown_reason' as Reason,
+    };
+
+    const { getByText } = render(
+      <BlockaidAlertContent
+        alertDetails={ALERT_DETAILS_MOCK}
+        securityAlertResponse={mockSecurityAlertResponseWithUnknownReason}
+        onContactUsClicked={mockOnContactUsClicked}
+      />,
+    );
+
+    expect(
+      getByText(strings('blockaid_banner.other_description')),
+    ).toBeDefined();
   });
 });

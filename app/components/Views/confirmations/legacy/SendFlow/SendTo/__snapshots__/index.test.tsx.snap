@@ -395,6 +395,8 @@ exports[`SendTo Component render matches snapshot 1`] = `
             Your Accounts
           </Text>
           <View
+            collapsable={false}
+            onLayout={[Function]}
             style={
               {
                 "flex": 1,
@@ -403,241 +405,39 @@ exports[`SendTo Component render matches snapshot 1`] = `
             }
           >
             <RCTScrollView
-              applyWindowCorrection={[Function]}
-              canChangeSize={true}
-              contentContainerStyle={
-                {
-                  "backgroundColor": undefined,
-                  "minHeight": 1,
-                  "minWidth": 1,
-                  "paddingLeft": 0,
-                  "paddingRight": 0,
-                }
-              }
-              contentHeight={0}
-              contentWidth={400}
-              data={[]}
-              dataProvider={
-                DataProvider {
-                  "_data": [],
-                  "_firstIndexToProcess": 0,
-                  "_hasStableIds": true,
-                  "_requiresDataChangeHandling": false,
-                  "_size": 0,
-                  "getStableId": [Function],
-                  "rowHasChanged": [Function],
-                }
-              }
-              disableRecycling={false}
-              estimatedItemSize={80}
-              extendedState={{}}
-              externalScrollView={[Function]}
-              finalRenderAheadOffset={250}
-              forceNonDeterministicRendering={true}
-              horizontal={false}
-              initialOffset={0}
-              initialRenderIndex={0}
-              isHorizontal={false}
+              collapsable={false}
               keyExtractor={[Function]}
-              layoutProvider={
-                GridLayoutProviderWithProps {
-                  "_acceptableRelayoutDelta": 1,
-                  "_getHeightOrWidth": [Function],
-                  "_getLayoutTypeForIndex": [Function],
-                  "_getSpan": [Function],
-                  "_hasExpired": false,
-                  "_isHorizontal": false,
-                  "_lastLayoutManager": GridLayoutManager {
-                    "_acceptableRelayoutDelta": 1,
-                    "_getSpan": [Function],
-                    "_isGridHorizontal": false,
-                    "_isHorizontal": false,
-                    "_layoutProvider": [Circular],
-                    "_layouts": [],
-                    "_maxSpan": 1,
-                    "_renderWindowSize": {
-                      "height": 900,
-                      "width": 400,
-                    },
-                    "_totalHeight": 0,
-                    "_totalWidth": 400,
-                    "_window": {
-                      "height": 900,
-                      "width": 400,
-                    },
-                  },
-                  "_maxSpan": 1,
-                  "_renderWindowSize": {
-                    "height": 900,
-                    "width": 400,
-                  },
-                  "_setLayoutForType": [Function],
-                  "_tempDim": {
-                    "height": 0,
-                    "width": 0,
-                  },
-                  "averageWindow": AverageWindow {
-                    "currentAverage": 80,
-                    "currentCount": 1,
-                    "inputValues": [
-                      80,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                      ,
-                    ],
-                    "nextIndex": 1,
-                  },
-                  "defaultEstimatedItemSize": 100,
-                  "layoutObject": {
-                    "size": undefined,
-                    "span": undefined,
-                  },
-                  "props": {
-                    "data": [],
-                    "estimatedItemSize": 80,
-                    "keyExtractor": [Function],
-                    "numColumns": 1,
-                    "renderItem": [Function],
-                  },
-                  "renderWindowInsets": {
-                    "height": 0,
-                    "width": 0,
-                  },
-                  "shouldRefreshWithAnchoring": true,
+              maintainVisibleContentPosition={
+                {
+                  "minIndexForVisible": 0,
                 }
               }
-              maxRenderAhead={750}
-              numColumns={1}
-              onEndReached={[Function]}
-              onEndReachedThreshold={0}
-              onEndReachedThresholdRelative={0}
-              onItemLayout={[Function]}
-              onLayout={[Function]}
               onScroll={[Function]}
-              onScrollBeginDrag={[Function]}
-              onSizeChanged={[Function]}
-              onVisibleIndicesChanged={[Function]}
-              removeClippedSubviews={false}
-              renderAheadOffset={0}
-              renderAheadStep={250}
-              renderContentContainer={[Function]}
-              renderItem={[Function]}
-              renderItemContainer={[Function]}
-              rowRenderer={[Function]}
-              scrollEventThrottle={16}
-              scrollThrottle={16}
-              scrollViewProps={
-                {
-                  "contentContainerStyle": {
-                    "backgroundColor": undefined,
-                    "minHeight": 1,
-                    "minWidth": 1,
-                    "paddingLeft": 0,
-                    "paddingRight": 0,
-                  },
-                  "onLayout": [Function],
-                  "onScrollBeginDrag": [Function],
-                  "refreshControl": undefined,
-                  "style": {
-                    "minHeight": 1,
-                    "minWidth": 1,
-                  },
-                }
-              }
-              style={
-                {
-                  "minHeight": 1,
-                  "minWidth": 1,
-                }
-              }
-              suppressBoundedSizeException={true}
-              windowCorrectionConfig={
-                {
-                  "applyToInitialOffset": true,
-                  "applyToItemScroll": true,
-                  "value": {
-                    "endCorrection": 0,
-                    "startCorrection": 0,
-                    "windowShift": -0,
-                  },
-                }
-              }
+              scrollEventThrottle={0.0001}
+              style={{}}
             >
               <View>
                 <View
                   style={
                     {
-                      "flexDirection": "column",
+                      "height": 0,
+                      "left": 0,
+                      "position": "absolute",
+                      "top": 1000000,
                     }
                   }
-                >
-                  <View
-                    style={
-                      {
-                        "paddingLeft": 0,
-                        "paddingTop": 0,
-                      }
+                />
+                <View
+                  style={
+                    {
+                      "height": 0,
+                      "width": undefined,
                     }
-                  />
-                  <View
-                    style={
-                      [
-                        undefined,
-                        undefined,
-                      ]
-                    }
-                  />
-                  <AutoLayoutView
-                    enableInstrumentation={false}
-                    horizontal={false}
-                    onBlankAreaEvent={[Function]}
-                    onLayout={[Function]}
-                    renderAheadOffset={0}
-                    scrollOffset={0}
-                    style={
-                      {
-                        "height": 0,
-                        "width": 400,
-                      }
-                    }
-                    windowSize={900}
-                  />
-                  <CellContainer
-                    index={-1}
-                    style={
-                      [
-                        undefined,
-                        undefined,
-                      ]
-                    }
-                  />
-                  <View
-                    style={
-                      {
-                        "paddingBottom": 0,
-                        "paddingRight": 0,
-                      }
-                    }
-                  />
-                </View>
+                  }
+                />
+                <View
+                  style={false}
+                />
               </View>
             </RCTScrollView>
           </View>

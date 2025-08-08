@@ -1,6 +1,5 @@
 import { SmokeConfirmations } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -9,7 +8,7 @@ import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../fixtures/utils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
