@@ -8,7 +8,7 @@ import TestDApp from '../../../pages/Browser/TestDApp';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { Regression } from '../../../tags';
-import { buildPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../../framework/Constants';
 
