@@ -654,13 +654,14 @@ const Wallet = ({
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
 
-        Object.values(evmNetworkConfigurations).forEach(
-          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-            AccountTrackerController.refresh([
+        const networkClientIDs = Object.values(evmNetworkConfigurations)
+          .map(
+            ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-            ]);
-          },
-        );
+          )
+          .filter((c) => Boolean(c));
+
+        AccountTrackerController.refresh(networkClientIDs);
       });
     },
     /* eslint-disable-next-line */
