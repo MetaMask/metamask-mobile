@@ -30,17 +30,40 @@ const TouchableOpacity = ({
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
   const tap = Gesture.Tap()
     .runOnJS(true)
-    .onEnd(() => {
+    .onEnd((gestureEvent) => {
       if (onPress && !isDisabled) {
-        onPress({} as GestureResponderEvent);
+        // Create a proper GestureResponderEvent-like object from gesture event
+        const syntheticEvent = {
+          nativeEvent: {
+            locationX: gestureEvent.x || 0,
+            locationY: gestureEvent.y || 0,
+            pageX: gestureEvent.absoluteX || 0,
+            pageY: gestureEvent.absoluteY || 0,
+            timestamp: Date.now(),
+          },
+          persist: () => {
+            /* no-op for synthetic event */
+          },
+          preventDefault: () => {
+            /* no-op for synthetic event */
+          },
+          stopPropagation: () => {
+            /* no-op for synthetic event */
+          },
+        } as GestureResponderEvent;
+        onPress(syntheticEvent);
       }
     });
+
+  // Preserve onPress for accessibility (screen readers, keyboard navigation)
+  // but ensure it respects disabled state
+  const accessibleOnPress = isDisabled ? undefined : onPress;
 
   return (
     <GestureDetector gesture={tap}>
       <RNTouchableOpacity
         disabled={isDisabled}
-        onPress={undefined} // GestureDetector handles the press
+        onPress={accessibleOnPress} // Preserve for accessibility
         {...props}
       >
         {children}
@@ -68,12 +91,13 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
       : RNTouchableOpacity;
 
   // Handle disabled state properly in test environment
-  const conditionalOnPress = process.env.NODE_ENV === 'test' && isDisabled ? undefined : onPress;
+  const conditionalOnPress =
+    process.env.NODE_ENV === 'test' && isDisabled ? undefined : onPress;
 
   return (
-    <TouchableComponent 
-      style={styles.base} 
-      disabled={isDisabled} 
+    <TouchableComponent
+      style={styles.base}
+      disabled={isDisabled}
       onPress={conditionalOnPress}
       {...props}
     >
@@ -81,7 +105,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
         <Checkbox
           style={styles.checkbox}
           isChecked={isSelected}
-          onPressIn={Platform.OS === 'android' ? undefined : onPress}
+          onPressIn={Platform.OS === 'android' ? undefined : conditionalOnPress}
         />
         {children}
       </ListItem>

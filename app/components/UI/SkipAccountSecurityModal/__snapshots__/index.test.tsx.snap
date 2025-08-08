@@ -123,6 +123,7 @@ exports[`SkipAccountSecurityModal with empty route params render matches snapsho
         accessible={true}
         activeOpacity={1}
         collapsable={false}
+        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
@@ -369,7 +370,6 @@ exports[`SkipAccountSecurityModal with route params render matches snapshot 1`] 
         accessible={true}
         activeOpacity={1}
         disabled={true}
-        onPress={[Function]}
         onPressIn={[Function]}
         onPressOut={[Function]}
         style={
