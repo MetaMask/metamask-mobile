@@ -132,7 +132,11 @@ export const useBridgeQuoteData = ({
     const { quote, estimatedProcessingTimeInSeconds } = activeQuote;
 
     const priceImpact = quote.priceData?.priceImpact;
-    const priceImpactPercentage = Number(priceImpact) * 100;
+    let priceImpactPercentage;
+
+    if (priceImpact) {
+      priceImpactPercentage = `${(Number(priceImpact) * 100).toFixed(2)}%`;
+    }
 
     const rate = quoteRate
       ? `1 ${sourceToken?.symbol} = ${quoteRate.toFixed(1)} ${
@@ -144,7 +148,7 @@ export const useBridgeQuoteData = ({
       networkFee: getNetworkFee(),
       estimatedTime: `${Math.ceil(estimatedProcessingTimeInSeconds / 60)} min`,
       rate,
-      priceImpact: `${priceImpactPercentage.toFixed(2)}%`,
+      priceImpact: priceImpactPercentage,
       slippage: slippage ? `${slippage}%` : 'Auto',
     };
   }, [

@@ -39,7 +39,7 @@ export function PayWithRow() {
       {showEstimate && (
         <InfoRow label={strings('confirm.label.bridge_estimated_time')}>
           {loading ? (
-            <AnimatedSpinner testID="pay-with-spinner" size={SpinnerSize.SM} />
+            <AnimatedSpinner size={SpinnerSize.SM} />
           ) : (
             <Text>
               {estimatedTimeSeconds} {strings('unit.second')}

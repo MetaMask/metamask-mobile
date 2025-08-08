@@ -12,9 +12,12 @@ import TestDApp from '../../pages/Browser/TestDApp';
 import Assertions from '../../framework/Assertions';
 import AssetWatchBottomSheet from '../../pages/Transactions/AssetWatchBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
-import { buildPermissions } from '../../fixtures/utils';
+import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
-import { setEthAccounts } from '@metamask/chain-agnostic-permission';
+import {
+  setEthAccounts,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 
 const ERC20_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -28,8 +31,8 @@ describe(SmokeNetworkAbstractions('Asset Watch:'), () => {
 
   const buildERC20PermsForAddress = () => {
     const perms = buildPermissions(['0x539']);
-    perms['endowment:caip25'].caveats[0].value = setEthAccounts(
-      perms['endowment:caip25'].caveats[0].value,
+    perms[Caip25EndowmentPermissionName].caveats[0].value = setEthAccounts(
+      perms[Caip25EndowmentPermissionName].caveats[0].value,
       [DEFAULT_FIXTURE_ACCOUNT],
     );
 

@@ -385,8 +385,8 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "height": 1334,
                                 "maxHeight": 1334,

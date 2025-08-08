@@ -109,27 +109,30 @@ const PerpsPositionTransactionView: React.FC = () => {
   ].filter(Boolean);
 
   if (transaction.fill?.pnl && transaction.fill?.action === 'Closed') {
-    const greaterThanZero = BigNumber(transaction.fill?.pnl).isGreaterThan(0);
-    const greaterThanCent = BigNumber(transaction.fill?.pnl).isGreaterThan(
-      0.01,
-    );
-    const lessThanNegCent = BigNumber(transaction.fill?.pnl).isLessThan(-0.01);
+    const pnlValue = BigNumber(transaction.fill?.pnl);
+    const isPositive = pnlValue.isGreaterThanOrEqualTo(0);
+    const absValue = Math.abs(parseFloat(transaction.fill?.pnl));
+
+    // Determine the formatted value based on amount and sign
+    let formattedValue: string;
+
+    if (isPositive) {
+      // Positive PnL
+      if (pnlValue.isGreaterThan(0.01)) {
+        formattedValue = formatPnl(transaction.fill?.pnl);
+      } else {
+        formattedValue = `+$${transaction.fill?.pnl}`;
+      }
+    } else if (pnlValue.isLessThan(-0.01)) {
+      formattedValue = formatPnl(transaction.fill?.pnl);
+    } else {
+      formattedValue = `-$${absValue}`;
+    }
+
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.pnl'),
-      value: greaterThanZero
-        ? `${
-            greaterThanCent
-              ? formatPnl(transaction.fill?.pnl)
-              : `+$${transaction.fill?.pnl}`
-          }`
-        : `${
-            lessThanNegCent
-              ? formatPnl(transaction.fill?.pnl)
-              : `-$${Math.abs(parseFloat(transaction.fill?.pnl))}`
-          }`,
-      textColor: BigNumber(transaction.fill?.pnl).isGreaterThanOrEqualTo(0)
-        ? TextColor.Success
-        : TextColor.Error,
+      value: formattedValue,
+      textColor: isPositive ? TextColor.Success : TextColor.Error,
     });
   }
 
@@ -137,7 +140,7 @@ const PerpsPositionTransactionView: React.FC = () => {
   if (transaction.fill?.points) {
     secondaryDetailRows.push({
       label: strings('perps.transactions.position.points'),
-      value: transaction.fill?.points,
+      value: `+${transaction.fill?.points}`,
       textColor: TextColor.Success,
     });
   }
@@ -157,7 +160,7 @@ const PerpsPositionTransactionView: React.FC = () => {
               (detail, index) =>
                 detail && (
                   <View
-                    key={index}
+                    key={detail.label}
                     style={[
                       styles.detailRow,
                       index === mainDetailRows.length - 1 &&
@@ -190,7 +193,7 @@ const PerpsPositionTransactionView: React.FC = () => {
               (detail, index) =>
                 detail && (
                   <View
-                    key={`secondary-${index}`}
+                    key={detail.label}
                     style={[
                       styles.detailRow,
                       index === secondaryDetailRows.length - 1 &&
