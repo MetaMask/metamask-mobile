@@ -3,7 +3,6 @@ import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
-import { strings } from '../../../../../../../locales/i18n';
 import {
   hexToBN,
   isDecimal,
@@ -30,10 +29,10 @@ export const validateAmountFn = ({
   from: Hex;
 }) => {
   if (!asset || amount === undefined || amount === null || amount === '') {
-    return;
+    return { invalidAmount: true };
   }
   if (!isDecimal(amount) || Number(amount) < 0) {
-    return strings('transaction.invalid_amount');
+    return { invalidAmount: true };
   }
   let weiValue;
   let weiBalance;
@@ -46,7 +45,7 @@ export const validateAmountFn = ({
     try {
       weiValue = toWei(amount);
     } catch (error) {
-      return strings('transaction.invalid_amount');
+      return { invalidAmount: true };
     }
     weiBalance = hexToBN(account?.balance ?? '0');
   } else {
@@ -54,9 +53,9 @@ export const validateAmountFn = ({
     weiBalance = hexToBN(contractBalances[asset.address as Hex]);
   }
   if (weiBalance.cmp(weiValue) === -1) {
-    return strings('transaction.insufficient');
+    return { insufficientBalance: true };
   }
-  return undefined;
+  return {};
 };
 
 export const useEvmAmountValidation = () => {
