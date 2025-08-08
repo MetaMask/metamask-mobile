@@ -76,8 +76,6 @@ export function EditAmountKeyboard({
       <KeypadComponent
         value={value}
         onChange={handleChange}
-        style={styles.container}
-        digitButtonStyle={styles.digitButton}
         currency="native"
       />
     </View>
