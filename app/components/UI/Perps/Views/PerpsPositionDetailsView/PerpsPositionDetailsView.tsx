@@ -163,6 +163,7 @@ const PerpsPositionDetailsView: React.FC = () => {
             position={position}
             onClose={handleCloseClick}
             onEdit={handleEditTPSL}
+            priceData={priceData}
           />
         </View>
       </ScrollView>
