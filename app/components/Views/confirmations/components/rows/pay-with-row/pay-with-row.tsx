@@ -7,16 +7,20 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { strings } from '../../../../../../../locales/i18n';
 import { TouchableOpacity } from 'react-native';
 import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
+import { useTransactionRequiredFiat } from '../../../hooks/pay/useTransactionRequiredFiat';
 
 export function PayWithRow() {
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
+  const { totalFiat } = useTransactionRequiredFiat();
 
   useTransactionBridgeQuotes();
 
   const handleClick = useCallback(() => {
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
-  }, [navigation]);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL, {
+      minimumFiatBalance: totalFiat,
+    });
+  }, [navigation, totalFiat]);
 
   if (!payToken) {
     return null;
