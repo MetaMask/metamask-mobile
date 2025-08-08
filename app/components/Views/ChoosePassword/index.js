@@ -705,13 +705,20 @@ class ChoosePassword extends PureComponent {
   };
 
   learnMore = () => {
-    const learnMoreUrl =
+    let learnMoreUrl =
       'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
+
+    if (this.getOauth2LoginSuccess()) {
+      learnMoreUrl =
+        'https://support.metamask.io/configure/wallet/passwords-and-metamask/';
+    }
+
     this.track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
       location: 'choose_password',
       url: learnMoreUrl,
     });
+
     this.props.navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
