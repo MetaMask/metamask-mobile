@@ -1,6 +1,6 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { RefObject } from 'react';
-import { FlashList, FlashListProps } from '@shopify/flash-list';
+import { FlashListProps, FlashListRef } from '@shopify/flash-list';
 
 /**
  * Flattened item type for the account list
@@ -30,7 +30,7 @@ export interface MultichainAccountSelectorListProps
   /**
    * Reference to the FlashList component
    */
-  listRef?: RefObject<FlashList<FlattenedMultichainAccountListItem>>;
+  listRef?: RefObject<FlashListRef<FlattenedMultichainAccountListItem>>;
 }
 
 /**

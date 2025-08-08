@@ -180,7 +180,6 @@ const MultichainAccountSelectorList = ({
           ref={listRef}
           data={flattenedData}
           renderItem={renderItem}
-          estimatedItemSize={64}
           showsVerticalScrollIndicator={false}
           getItemType={(item) => item.type}
           keyExtractor={keyExtractor}
