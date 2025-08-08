@@ -49,13 +49,13 @@ describe('useTransactionRequiredFiat', () => {
     useTransactionRequiredTokensMock.mockReturnValue([
       {
         address: tokenAddress1Mock,
+        amountHuman: '2',
         balanceHuman: '10',
-        missingHuman: '2',
       },
       {
         address: tokenAddress2Mock,
+        amountHuman: '3',
         balanceHuman: '20',
-        missingHuman: '3',
       },
     ] as unknown as TransactionToken[]);
 
@@ -67,31 +67,24 @@ describe('useTransactionRequiredFiat', () => {
 
     expect(values).toStrictEqual([
       {
+        address: tokenAddress1Mock,
+        amountFiat: 8,
         balanceFiat: 40,
         feeFiat: 0.2,
-        missingFiat: 8,
         totalFiat: 8.2,
-        totalWithBalanceFiat: 48.2,
       },
       {
+        address: tokenAddress2Mock,
+        amountFiat: 15,
         balanceFiat: 100,
         feeFiat: 0.375,
-        missingFiat: 15,
         totalFiat: 15.375,
-        totalWithBalanceFiat: 115.375,
       },
     ]);
   });
 
   it('returns total fiat value', () => {
     const { totalFiat } = runHook();
-
     expect(totalFiat).toBe(23.575);
-  });
-
-  it('returns total fiat value including balance', () => {
-    const { totalWithBalanceFiat } = runHook();
-
-    expect(totalWithBalanceFiat).toBe(163.575);
   });
 });

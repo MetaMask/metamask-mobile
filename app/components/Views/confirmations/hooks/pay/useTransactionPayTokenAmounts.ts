@@ -32,7 +32,7 @@ export function useTransactionPayTokenAmounts() {
   const { values } = useTransactionRequiredFiat();
 
   const amounts = useDeepMemo(() => {
-    if (!tokenFiatRate || !decimals) {
+    if (!address || !chainId || !tokenFiatRate || !decimals) {
       return undefined;
     }
 
@@ -41,11 +41,12 @@ export function useTransactionPayTokenAmounts() {
       const amountRaw = amountHuman.shiftedBy(decimals).toFixed(0);
 
       return {
+        address: value.address,
         amountHuman: amountHuman.toString(10),
         amountRaw,
       };
     });
-  }, [decimals, tokenFiatRate, values]);
+  }, [address, chainId, decimals, tokenFiatRate, values]);
 
   const totalHuman = amounts
     ?.reduce(

@@ -35,11 +35,11 @@ export function useTransactionRequiredFiat() {
       requiredTokens.map((target, index) => {
         const targetFiatRate = tokenFiatRates?.[index] as number;
 
-        const missingFiat = new BigNumber(target.missingHuman).multipliedBy(
+        const amountFiat = new BigNumber(target.amountHuman).multipliedBy(
           targetFiatRate,
         );
 
-        const feeFiat = missingFiat.multipliedBy(
+        const feeFiat = amountFiat.multipliedBy(
           PAY_BRIDGE_SLIPPAGE + PAY_BRIDGE_FEE,
         );
 
@@ -47,15 +47,14 @@ export function useTransactionRequiredFiat() {
           targetFiatRate,
         );
 
-        const totalFiat = missingFiat.plus(feeFiat);
-        const totalWithBalanceFiat = totalFiat.plus(balanceFiat);
+        const totalFiat = amountFiat.plus(feeFiat);
 
         return {
+          address: target.address,
+          amountFiat: amountFiat.toNumber(),
           balanceFiat: balanceFiat.toNumber(),
           feeFiat: feeFiat.toNumber(),
-          missingFiat: missingFiat.toNumber(),
           totalFiat: totalFiat.toNumber(),
-          totalWithBalanceFiat: totalWithBalanceFiat.toNumber(),
         };
       }),
     [requiredTokens, tokenFiatRates],
@@ -66,21 +65,14 @@ export function useTransactionRequiredFiat() {
     0,
   );
 
-  const totalWithBalanceFiat = values.reduce<number>(
-    (acc, value) => acc + value.totalWithBalanceFiat,
-    0,
-  );
-
   useEffect(() => {
     log('Required fiat', values, {
       totalFiat,
-      totalWithBalanceFiat,
     });
-  }, [values, totalFiat, totalWithBalanceFiat]);
+  }, [values, totalFiat]);
 
   return {
     values,
     totalFiat,
-    totalWithBalanceFiat,
   };
 }

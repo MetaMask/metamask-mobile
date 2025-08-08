@@ -163,7 +163,7 @@ describe('useTransactionRequiredTokens', () => {
     );
   });
 
-  it('subtracts balance from tokens', () => {
+  it('returns token balances', () => {
     useTokensWithBalanceMock.mockReturnValue([
       {
         address: NATIVE_TOKEN_ADDRESS,
@@ -202,8 +202,6 @@ describe('useTransactionRequiredTokens', () => {
           balanceHuman: '3',
           balanceRaw: '30000',
           decimals: 4,
-          missingHuman: '7',
-          missingRaw: '70000',
         },
       ]),
     );
