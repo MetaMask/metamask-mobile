@@ -32,6 +32,7 @@ import type {
   Funding,
   GetAccountStateParams,
   GetFundingParams,
+  GetIsFirstTimeUserParams,
   GetOrderFillsParams,
   GetOrdersParams,
   GetPositionsParams,
@@ -1478,5 +1479,21 @@ export class PerpsController extends BaseController<
   getBlockExplorerUrl(address?: string): string {
     const provider = this.getActiveProvider();
     return provider.getBlockExplorerUrl(address);
+  }
+
+  /**
+   * Check if the user is a first-time Perps user
+   * This determines whether to show the tutorial/onboarding
+   * @returns Promise<boolean> - true if user is a first-time perps user
+   */
+  async getIsFirstTimeUser(params: GetIsFirstTimeUserParams): Promise<boolean> {
+    try {
+      const provider = this.getActiveProvider();
+      return provider.getIsFirstTimeUser(params);
+    } catch (error) {
+      console.error('Failed to check if first-time perps user:', error);
+      // Default to false if we can't determine status, so they don't see the tutorial
+      return false;
+    }
   }
 }
