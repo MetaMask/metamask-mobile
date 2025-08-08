@@ -13,6 +13,7 @@ import {
   logOut,
   passwordSet,
   setExistingUser,
+  setIsConnectionRemoved,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -519,10 +520,10 @@ class AuthenticationService {
 
       if (authData.oauth2Login) {
         // if seedless flow - rehydrate
-        await this.rehydrateSeedPhrase(password, authData);
+        await this.rehydrateSeedPhrase(password);
       } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
         // if seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
-        await this.syncPasswordAndUnlockWallet(password, authData);
+        await this.syncPasswordAndUnlockWallet(password);
       } else {
         // else srp flow
         await this.loginVaultCreation(password);
@@ -916,10 +917,7 @@ class AuthenticationService {
     }
   };
 
-  rehydrateSeedPhrase = async (
-    password: string,
-    authData: AuthData,
-  ): Promise<void> => {
+  rehydrateSeedPhrase = async (password: string): Promise<void> => {
     try {
       const { SeedlessOnboardingController } = Engine.context;
       let allSRPs: Awaited<
@@ -963,7 +961,8 @@ class AuthenticationService {
         }
 
         const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase.data, wordlist);
-        await this.newWalletAndRestore(password, authData, seedPhrase, false);
+
+        await this.newWalletVaultAndRestore(password, seedPhrase, false);
         // add in more srps
         const keyringMetadataList: KeyringMetadata[] = [];
         if (restOfSeedPhrases.length > 0) {
@@ -994,10 +993,14 @@ class AuthenticationService {
         this.addMultichainAccounts(keyringMetadataList);
 
         this.dispatchOauthReset();
+
+        ReduxService.store.dispatch(setExistingUser(true));
+        await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
       } else {
         throw new Error('No account data found');
       }
     } catch (error) {
+      this.lockApp({ reset: false });
       Logger.error(error as Error);
       throw error;
     }
@@ -1011,7 +1014,6 @@ class AuthenticationService {
    */
   syncPasswordAndUnlockWallet = async (
     globalPassword: string,
-    authData: AuthData,
   ): Promise<void> => {
     const { SeedlessOnboardingController, KeyringController } = Engine.context;
 
@@ -1050,8 +1052,9 @@ class AuthenticationService {
 
         // rehydrate with social accounts if max keychain length exceeded
         await SeedlessOnboardingController.refreshAuthTokens();
-        await this.rehydrateSeedPhrase(globalPassword, authData);
+        await this.rehydrateSeedPhrase(globalPassword);
         // skip the rest of the flow ( change password and sync keyring encryption key)
+        ReduxService.store.dispatch(setIsConnectionRemoved(true));
         return;
       } else if (
         errorMessage ===

@@ -48,6 +48,7 @@ export interface CandleStick {
 }
 
 import { CandlePeriod } from '../constants/chartConfig';
+import { OrderType } from '../controllers/types';
 
 /**
  * Represents historical candlestick data for a specific coin and interval
@@ -81,4 +82,5 @@ export interface OrderFormState {
   takeProfitPrice?: string;
   stopLossPrice?: string;
   limitPrice?: string;
+  type: OrderType;
 }
