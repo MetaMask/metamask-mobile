@@ -5,7 +5,7 @@ import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './edit-amount.styles';
 import { useAlerts } from '../../context/alert-system-context';
 import { RowAlertKey } from '../UI/info-row/alert-row/constants';
-import { EditAmountKeyboard } from '../edit-amount-keyboard';
+import { DepositKeyboard } from '../deposit-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
@@ -100,7 +100,7 @@ export function EditAmount({
         {children}
       </View>
       {showKeyboard && (
-        <EditAmountKeyboard
+        <DepositKeyboard
           value={amountHuman.toString()}
           onChange={handleChange}
           onDonePress={handleKeyboardDone}

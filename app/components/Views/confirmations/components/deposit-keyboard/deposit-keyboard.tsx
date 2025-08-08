@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import KeypadComponent, { KeypadChangeData } from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from './edit-amount-keyboard.styles';
+import styleSheet from './deposit-keyboard.styles';
 import Button, {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
@@ -12,19 +12,19 @@ import { View } from 'react-native';
 
 const PERCENTAGE_BUTTONS = [10, 25, 50];
 
-export interface EditAmountKeyboardProps {
+export interface DepositKeyboardProps {
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
   onDonePress: () => void;
   value: string;
 }
 
-export function EditAmountKeyboard({
+export function DepositKeyboard({
   onChange,
   onDonePress,
   onPercentagePress,
   value,
-}: EditAmountKeyboardProps) {
+}: DepositKeyboardProps) {
   const { styles } = useStyles(styleSheet, {});
 
   const valueString = value.toString();
@@ -39,7 +39,7 @@ export function EditAmountKeyboard({
   return (
     <View>
       <Box
-        testID="edit-amount-keyboard"
+        testID="deposit-keyboard"
         flexDirection={FlexDirection.Row}
         justifyContent={JustifyContent.spaceBetween}
         gap={10}

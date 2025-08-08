@@ -108,7 +108,7 @@ describe('EditAmount', () => {
   it('displays keyboard automatically when autoKeyboard is true', () => {
     const { getByTestId } = render({ autoKeyboard: true });
 
-    expect(getByTestId('edit-amount-keyboard')).toBeDefined();
+    expect(getByTestId('deposit-keyboard')).toBeDefined();
   });
 
   it('hides keyboard if done button pressed', async () => {
@@ -118,7 +118,7 @@ describe('EditAmount', () => {
       fireEvent.press(getByText('Done'));
     });
 
-    expect(queryByTestId('edit-amount-keyboard')).toBeNull();
+    expect(queryByTestId('deposit-keyboard')).toBeNull();
   });
 
   it('updates token amount if percentage button pressed', async () => {

@@ -1,14 +1,14 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
-import { EditAmountKeyboard } from './edit-amount-keyboard';
+import { DepositKeyboard } from './deposit-keyboard';
 import { noop } from 'lodash';
 
-describe('EditAmountKeyboard', () => {
+describe('DepositKeyboard', () => {
   it('calls onChange when digit pressed', () => {
     const onChangeMock = jest.fn();
 
     const { getByText } = render(
-      <EditAmountKeyboard
+      <DepositKeyboard
         onChange={onChangeMock}
         onDonePress={noop}
         onPercentagePress={noop}
@@ -26,7 +26,7 @@ describe('EditAmountKeyboard', () => {
     const onDonePressMock = jest.fn();
 
     const { getByText } = render(
-      <EditAmountKeyboard
+      <DepositKeyboard
         onChange={noop}
         onDonePress={onDonePressMock}
         onPercentagePress={noop}
@@ -44,7 +44,7 @@ describe('EditAmountKeyboard', () => {
     const onPercentagePressMock = jest.fn();
 
     const { getByText } = render(
-      <EditAmountKeyboard
+      <DepositKeyboard
         onChange={noop}
         onDonePress={noop}
         onPercentagePress={onPercentagePressMock}
