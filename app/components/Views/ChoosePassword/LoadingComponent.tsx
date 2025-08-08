@@ -23,8 +23,8 @@ const createStyles = () =>
       flex: 1,
     },
     foxWrapper: {
-      marginTop: 30,
-      marginBottom: 30,
+      marginTop: Dimensions.get('window').height * 0.05,
+      marginBottom: Dimensions.get('window').height * 0.05,
     },
     image: {
       alignSelf: 'center',
