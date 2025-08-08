@@ -436,7 +436,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 false,
               ]
             }
-            testID="token-buy-button"
+            testID="token-fund-button"
           >
             <View
               style={
@@ -450,7 +450,7 @@ exports[`AssetOverview should render correctly 1`] = `
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Add"
+                name="Money"
                 style={
                   {
                     "height": 20,
@@ -1600,7 +1600,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 false,
               ]
             }
-            testID="token-buy-button"
+            testID="token-fund-button"
           >
             <View
               style={
@@ -1614,7 +1614,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Add"
+                name="Money"
                 style={
                   {
                     "height": 20,
@@ -2800,7 +2800,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 false,
               ]
             }
-            testID="token-buy-button"
+            testID="token-fund-button"
           >
             <View
               style={
@@ -2814,7 +2814,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
                 color="#686e7d"
                 fill="currentColor"
                 height={20}
-                name="Add"
+                name="Money"
                 style={
                   {
                     "height": 20,

@@ -99,7 +99,7 @@ describe('AssetDetailsActions', () => {
       { state: createStateWithSigningCapability() },
     );
 
-    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.FUND_ACTION_MENU,
       params: {
@@ -115,7 +115,7 @@ describe('AssetDetailsActions', () => {
       { state: createStateWithSigningCapability() },
     );
 
-    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
+    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON));
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.MODAL.FUND_ACTION_MENU,
       params: {
@@ -225,7 +225,7 @@ describe('AssetDetailsActions', () => {
     );
 
     // Should have 4 buttons: Buy, Swap, Send, Receive (no Bridge)
-    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeTruthy();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON)).toBeTruthy();
     expect(
@@ -244,7 +244,7 @@ describe('AssetDetailsActions', () => {
     );
 
     // Should have 5 buttons: Buy, Swap, Bridge, Send, Receive
-    expect(queryByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON)).toBeTruthy();
+    expect(queryByTestId(TokenOverviewSelectorsIDs.FUND_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON)).toBeTruthy();
     expect(queryByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON)).toBeTruthy();
@@ -292,7 +292,7 @@ describe('AssetDetailsActions', () => {
     );
 
     const buttons = [
-      TokenOverviewSelectorsIDs.BUY_BUTTON,
+      TokenOverviewSelectorsIDs.FUND_BUTTON,
       TokenOverviewSelectorsIDs.SWAP_BUTTON,
       TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
       TokenOverviewSelectorsIDs.SEND_BUTTON,

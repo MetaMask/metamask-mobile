@@ -23,13 +23,13 @@ export interface AssetDetailsActionsProps {
   goToBridge: () => void;
   onSend: () => void;
   onReceive: () => void;
-  // Asset context for buy flow
+  // Asset context for fund flow
   asset?: {
     address?: string;
     chainId?: string;
   };
   // Optional custom action IDs to avoid test ID conflicts
-  buyButtonActionID?: string;
+  fundButtonActionID?: string;
   swapButtonActionID?: string;
   bridgeButtonActionID?: string;
   sendButtonActionID?: string;
@@ -47,7 +47,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   onSend,
   onReceive,
   asset,
-  buyButtonActionID = TokenOverviewSelectorsIDs.BUY_BUTTON,
+  fundButtonActionID = TokenOverviewSelectorsIDs.FUND_BUTTON,
   swapButtonActionID = TokenOverviewSelectorsIDs.SWAP_BUTTON,
   bridgeButtonActionID = TokenOverviewSelectorsIDs.BRIDGE_BUTTON,
   sendButtonActionID = TokenOverviewSelectorsIDs.SEND_BUTTON,
@@ -65,7 +65,7 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   // Button should be enabled if we have standard funding options OR a custom onBuy function
   const isFundingAvailable = isFundMenuAvailable || !!onBuy;
 
-  const handleBuyPress = () => {
+  const handleFundPress = () => {
     // Navigate to FundActionMenu with both custom onBuy and asset context
     // The menu will prioritize custom onBuy over standard funding options
     // This allows custom funding flows even when deposit/ramp are unavailable
@@ -83,11 +83,11 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
       {displayBuyButton && (
         <View style={styles.buttonContainer}>
           <MainActionButton
-            iconName={IconName.Add}
+            iconName={IconName.Money}
             label={strings('asset_overview.fund_button')}
-            onPress={handleBuyPress}
+            onPress={handleFundPress}
             isDisabled={!canSignTransactions || !isFundingAvailable}
-            testID={buyButtonActionID}
+            testID={fundButtonActionID}
           />
         </View>
       )}

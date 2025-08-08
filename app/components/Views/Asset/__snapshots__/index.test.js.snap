@@ -960,7 +960,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -974,7 +974,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -2802,7 +2802,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -2816,7 +2816,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -4644,7 +4644,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -4658,7 +4658,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -6525,7 +6525,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -6539,7 +6539,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -8367,7 +8367,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -8381,7 +8381,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -10209,7 +10209,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -10223,7 +10223,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -12620,7 +12620,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -12634,7 +12634,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -14462,7 +14462,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -14476,7 +14476,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
