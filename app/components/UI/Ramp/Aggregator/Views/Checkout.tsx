@@ -55,11 +55,6 @@ const CheckoutWebView = () => {
 
   // MODIFY THIS LINE TO ADD THE HARDCODED URL
   const { url: originalUri, customOrderId, provider } = params;
-  
-  // Add this conditional logic to replace Revolut URLs
-  const uri = provider.name.toLowerCase().includes('revolut') 
-    ? 'https://checkout.revolut.codes/revolut-pay/order/a8091c8c-927d-4827-a098-28a5fff3c81b?publicToken=pk_K3RJM1uDOz7xvRldeyfO92tGhzEa61hwaAtNVU05RCxtU6LH&redirectUrls.success=https://google.com&redirectUrls.failure=https://google.com&redirectUrls.cancel=https://google.com'
-    : originalUri;
 
   const handleCancelPress = useCallback(() => {
     if (isBuy) {
