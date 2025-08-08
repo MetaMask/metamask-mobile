@@ -6,7 +6,7 @@ import { SMART_CONTRACTS } from '../../../../app/util/test/smart-contracts';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import Assertions from '../../../framework/Assertions';
-import { buildPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
 import { DappVariants } from '../../../framework/Constants';
 import TestHelpers from '../../../helpers';
