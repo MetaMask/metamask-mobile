@@ -265,7 +265,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             onChange={handleKeypadChange}
             currency="USD"
             decimals={2}
-            style={styles.keypad}
           />
         </View>
       </View>
