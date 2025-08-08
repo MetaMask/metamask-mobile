@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import { cloneDeep, isEqual } from 'lodash';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import { providerErrors } from '@metamask/rpc-errors';
+import { captureException } from '@sentry/react-native';
 import Engine from '../../../../core/Engine';
 import { selectPendingApprovals } from '../../../../selectors/approvalController';
 
@@ -29,12 +30,15 @@ const useApprovalRequest = () => {
       value?: Parameters<typeof Engine.acceptPendingApproval>[1],
     ) => {
       if (!approvalRequest) return;
-
-      await Engine.acceptPendingApproval(
-        approvalRequest.id,
-        { ...approvalRequest.requestData, ...(value || {}) },
-        opts,
-      );
+      try {
+        await Engine.acceptPendingApproval(
+          approvalRequest.id,
+          { ...approvalRequest.requestData, ...(value || {}) },
+          opts,
+        );
+      } catch (error: Error | unknown) {
+        captureException(error);
+      }
     },
     [approvalRequest],
   );

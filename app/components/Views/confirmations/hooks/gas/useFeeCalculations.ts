@@ -10,6 +10,7 @@ import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
 import { isTestNet } from '../../../../../util/networks';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { calculateGasEstimate, getFeesFromHex } from '../../utils/gas';
+import { decimalToHex, multiplyHexes } from '../../../../../util/conversions';
 import { useSupportsEIP1559 } from '../transactions/useSupportsEIP1559';
 import { useEIP1559TxFees } from './useEIP1559TxFees';
 import { useGasFeeEstimates } from './useGasFeeEstimates';
@@ -98,10 +99,29 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
     ],
   );
 
+  // Max fee
+  const maxFee = useMemo(() => multiplyHexes(
+      supportsEIP1559
+        ? (decimalToHex(maxFeePerGas) as Hex)
+        : (txParamsGasPrice as Hex),
+      gasLimitNoBuffer as Hex,
+    ), [supportsEIP1559, maxFeePerGas, txParamsGasPrice, gasLimitNoBuffer]);
+
+  const {
+    currentCurrencyFee: maxFeeFiat,
+    nativeCurrencyFee: maxFeeNative,
+    preciseNativeCurrencyFee: maxFeeNativePrecise,
+    preciseNativeFeeInHex: maxFeeNativeHex,
+  } = getFeesFromHexCallback(maxFee);
+
   return {
     estimatedFeeFiat: estimatedFees.currentCurrencyFee,
     estimatedFeeNative: estimatedFees.nativeCurrencyFee,
     preciseNativeFeeInHex: estimatedFees.preciseNativeFeeInHex,
     calculateGasEstimate: calculateGasEstimateCallback,
+    maxFeeFiat,
+    maxFeeNative,
+    maxFeeNativePrecise,
+    maxFeeNativeHex,
   };
 };
