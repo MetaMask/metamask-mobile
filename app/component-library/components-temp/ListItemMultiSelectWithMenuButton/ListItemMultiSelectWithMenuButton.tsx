@@ -22,7 +22,7 @@ import {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 
-const ListItemMultiSelectButton: React.FC<
+const ListItemMultiSelectWithMenuButton: React.FC<
   ListItemMultiSelectWithMenuButtonProps
 > = ({
   style,
@@ -71,4 +71,4 @@ const ListItemMultiSelectButton: React.FC<
   );
 };
 
-export default ListItemMultiSelectButton;
+export default ListItemMultiSelectWithMenuButton;
