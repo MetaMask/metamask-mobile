@@ -1,7 +1,5 @@
-import BN from 'bnjs4';
 import { useCallback } from 'react';
 
-import { strings } from '../../../../../../../locales/i18n';
 import { isDecimal } from '../../../../../../util/number';
 import { AssetType } from '../../../types/token';
 import { useSendContext } from '../../../context/send-context';
@@ -14,15 +12,16 @@ export const validateAmountFn = ({
   asset?: AssetType;
 }) => {
   if (!asset || amount === undefined || amount === null || amount === '') {
-    return;
+    return { invalidAmount: true };
   }
   if (!isDecimal(amount) || Number(amount) < 0) {
-    return strings('transaction.invalid_amount');
+    return { invalidAmount: true };
   }
-  if (new BN(amount).gt(new BN(asset.balance))) {
-    return strings('transaction.insufficient');
+  // todo: check if parse float can possibly create issue
+  if (parseFloat(amount) > parseFloat(asset.balance)) {
+    return { insufficientBalance: true };
   }
-  return undefined;
+  return {};
 };
 
 export const useNonEvmAmountValidation = () => {

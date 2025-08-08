@@ -30,6 +30,18 @@ describe('AssetDetailsActions', () => {
     onReceive: mockOnReceive,
   };
 
+  // Helper function to create state with accounts that can sign transactions
+  const createStateWithSigningCapability = () => ({
+    ...initialRootState,
+    engine: {
+      ...initialRootState.engine,
+      backgroundState: {
+        ...initialRootState.engine.backgroundState,
+        AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      },
+    },
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -56,42 +68,69 @@ describe('AssetDetailsActions', () => {
   });
 
   it('calls onBuy when the buy button is pressed', () => {
+    const initialState = {
+      ...initialRootState,
+      engine: {
+        ...initialRootState.engine,
+        backgroundState: {
+          ...initialRootState.engine.backgroundState,
+          AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+        },
+      },
+    };
+
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
-      { state: initialRootState },
+      { state: initialState },
     );
 
-    fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
+    const buyButton = getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON);
+
+    fireEvent.press(buyButton);
+
+    // Then the onBuy callback should be called
     expect(mockOnBuy).toHaveBeenCalled();
   });
 
   it('calls goToSwaps when the swap button is pressed', () => {
+    // Given a state with an account that can sign transactions
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
-      { state: initialRootState },
+      { state: createStateWithSigningCapability() },
     );
 
+    // When the button is pressed
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SWAP_BUTTON));
+
+    // Then the goToSwaps callback should be called
     expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('calls goToBridge when the bridge button is pressed', () => {
+    // Given a state with an account that can sign transactions
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
-      { state: initialRootState },
+      { state: createStateWithSigningCapability() },
     );
 
+    // When the button is pressed
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BRIDGE_BUTTON));
+
+    // Then the goToBridge callback should be called
     expect(mockGoToBridge).toHaveBeenCalled();
   });
 
   it('calls onSend when the send button is pressed', () => {
+    // Given a state with an account that can sign transactions
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
-      { state: initialRootState },
+      { state: createStateWithSigningCapability() },
     );
 
+    // When the button is pressed
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.SEND_BUTTON));
+
+    // Then the onSend callback should be called
     expect(mockOnSend).toHaveBeenCalled();
   });
 
@@ -182,10 +221,24 @@ describe('AssetDetailsActions', () => {
   });
 
   it('disables buttons when the account cannot sign transactions', () => {
-    const mockState = { ...MOCK_ACCOUNTS_CONTROLLER_STATE };
-    mockState.internalAccounts.accounts[expectedUuid2].methods = Object.values(
-      EthMethod,
-    ).filter((method) => method !== EthMethod.SignTransaction);
+    // Create a deep copy of the mock state to avoid mutating the original
+    const mockState = {
+      ...MOCK_ACCOUNTS_CONTROLLER_STATE,
+      internalAccounts: {
+        ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts,
+        accounts: {
+          ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts,
+          [expectedUuid2]: {
+            ...MOCK_ACCOUNTS_CONTROLLER_STATE.internalAccounts.accounts[
+              expectedUuid2
+            ],
+            methods: Object.values(EthMethod).filter(
+              (method) => method !== EthMethod.SignTransaction,
+            ),
+          },
+        },
+      },
+    };
 
     const initialState = {
       ...initialRootState,
@@ -213,12 +266,12 @@ describe('AssetDetailsActions', () => {
     ];
 
     buttons.forEach((buttonTestId) => {
-      expect(getByTestId(buttonTestId).props.disabled).toBe(true);
+      const button = getByTestId(buttonTestId);
+      expect(button).toBeDisabled();
     });
 
     // The receive button should always be enabled
-    expect(
-      getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON).props.disabled,
-    ).toBe(false);
+    const receiveButton = getByTestId(TokenOverviewSelectorsIDs.RECEIVE_BUTTON);
+    expect(receiveButton).not.toBeDisabled();
   });
 });

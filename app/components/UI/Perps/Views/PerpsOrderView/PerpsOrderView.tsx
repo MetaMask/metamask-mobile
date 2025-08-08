@@ -54,7 +54,7 @@ import {
   getNetworkImageSource,
 } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
-import useTooltipModal from '../../../../hooks/useTooltipModal';
+// import useTooltipModal from '../../../../hooks/useTooltipModal';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   trace,
@@ -63,7 +63,7 @@ import {
   TraceOperation,
 } from '../../../../../util/trace';
 import performance from 'react-native-performance';
-import Keypad from '../../../Ramp/Aggregator/components/Keypad';
+import Keypad from '../../../../Base/Keypad';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
@@ -96,14 +96,12 @@ import type {
   PerpsNavigationParamList,
 } from '../../controllers/types';
 import {
-  formatFeeRate,
   useHasExistingPosition,
   usePerpsAccount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsOrderExecution,
   usePerpsOrderFees,
-  usePerpsOrderForm,
   usePerpsOrderValidation,
   usePerpsPaymentTokens,
   usePerpsPrices,
@@ -112,6 +110,13 @@ import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsOrderView.styles';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
+import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsOrderProvider,
+  usePerpsOrderContext,
+} from '../../contexts/PerpsOrderContext';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -129,16 +134,21 @@ interface OrderRouteParams {
   limitPriceUpdate?: string;
 }
 
-const PerpsOrderView: React.FC = () => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+// Extract the main content into a separate component that uses context
+const PerpsOrderViewContent: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
   const { top } = useSafeAreaInsets();
+  const { colors } = useTheme();
+
+  const styles = createStyles(colors);
+
+  const [selectedTooltip, setSelectedTooltip] =
+    useState<PerpsTooltipContentKey | null>(null);
+
   const toastContext = useContext(ToastContext);
 
   const toastRef = toastContext?.toastRef;
-  const { openTooltipModal } = useTooltipModal();
+  // const { openTooltipModal } = useTooltipModal(); // Unused for now
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // Ref to access current orderType in callbacks
@@ -148,14 +158,6 @@ const PerpsOrderView: React.FC = () => {
   const tokenList = useSelector(selectTokenList);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
 
-  // Get navigation params
-  const {
-    direction = 'long',
-    asset = 'BTC',
-    amount: paramAmount,
-    leverage: paramLeverage,
-  } = route.params || {};
-
   const cachedAccountState = usePerpsAccount();
 
   // Get real HyperLiquid USDC balance
@@ -163,14 +165,7 @@ const PerpsOrderView: React.FC = () => {
     cachedAccountState?.availableBalance?.toString() || '0',
   );
 
-  // Market data hook
-  const {
-    marketData,
-    isLoading: isLoadingMarketData,
-    error: marketDataError,
-  } = usePerpsMarketData(asset);
-
-  // Order form state management
+  // Get order form state from context instead of hook
   const {
     orderForm,
     setAmount,
@@ -178,16 +173,19 @@ const PerpsOrderView: React.FC = () => {
     setTakeProfitPrice,
     setStopLossPrice,
     setLimitPrice,
+    setOrderType,
     handlePercentageAmount,
     handleMaxAmount,
     handleMinAmount,
     calculations,
-  } = usePerpsOrderForm({
-    initialAsset: asset,
-    initialDirection: direction,
-    initialAmount: paramAmount,
-    initialLeverage: paramLeverage,
-  });
+  } = usePerpsOrderContext();
+
+  // Market data hook - now uses orderForm.asset from context
+  const {
+    marketData,
+    isLoading: isLoadingMarketData,
+    error: marketDataError,
+  } = usePerpsMarketData(orderForm.asset);
 
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
@@ -257,14 +255,14 @@ const PerpsOrderView: React.FC = () => {
         });
       },
     });
-  const [orderType, setOrderType] = useState<OrderType>('market');
+
   const [selectedPaymentToken, setSelectedPaymentToken] =
     useState<PerpsToken | null>(null);
 
   // Update ref when orderType changes
   useEffect(() => {
-    orderTypeRef.current = orderType;
-  }, [orderType]);
+    orderTypeRef.current = orderForm.type;
+  }, [orderForm.type]);
 
   const [isTokenSelectorVisible, setIsTokenSelectorVisible] = useState(false);
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
@@ -283,80 +281,11 @@ const PerpsOrderView: React.FC = () => {
 
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
-    orderType,
+    orderType: orderForm.type,
     amount: orderForm.amount,
     isMaker: false, // Conservative estimate for UI display
   });
   const estimatedFees = feeResults.totalFee;
-
-  // Helper function to create tooltip content with "Got it" button
-  const createTooltipContent = useCallback(
-    (content: React.ReactNode) => (
-      <View>
-        <View style={styles.tooltipContent}>{content}</View>
-        <View style={styles.tooltipButtonContainer}>
-          <Button
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('perps.got_it')}
-            onPress={() => {
-              // Navigate to the current screen to effectively close the modal
-              navigation.navigate(Routes.PERPS.ORDER, route.params || {});
-            }}
-          />
-        </View>
-      </View>
-    ),
-    [navigation, route.params, styles],
-  );
-
-  // Tooltip content for educational info
-  const tooltipContent = useMemo(
-    () => ({
-      leverage: createTooltipContent(
-        <Text variant={TextVariant.BodyMD}>
-          {strings('perps.tooltips.leverage.content')}
-        </Text>,
-      ),
-      liquidationPrice: createTooltipContent(
-        <Text variant={TextVariant.BodyMD}>
-          {strings('perps.tooltips.liquidation_price.content')}
-        </Text>,
-      ),
-      margin: createTooltipContent(
-        <Text variant={TextVariant.BodyMD}>
-          {strings('perps.tooltips.margin.content')}
-        </Text>,
-      ),
-      fees: createTooltipContent(
-        <View style={styles.tooltipFeesContainer}>
-          <View style={styles.tooltipFeeRow}>
-            <Text variant={TextVariant.BodyMD}>
-              {strings('perps.tooltips.fees.metamask_fee')}
-            </Text>
-            <Text variant={TextVariant.BodyMD}>
-              {formatFeeRate(feeResults.metamaskFeeRate)}
-            </Text>
-          </View>
-          <View style={styles.tooltipFeeRow}>
-            <Text variant={TextVariant.BodyMD}>
-              {strings('perps.tooltips.fees.provider_fee')}
-            </Text>
-            <Text variant={TextVariant.BodyMD}>
-              {formatFeeRate(feeResults.protocolFeeRate)}
-            </Text>
-          </View>
-        </View>,
-      ),
-    }),
-    [
-      createTooltipContent,
-      feeResults.metamaskFeeRate,
-      feeResults.protocolFeeRate,
-      styles,
-    ],
-  );
 
   // Set initial selected token to Hyperliquid USDC (always first in array)
   useEffect(() => {
@@ -373,12 +302,12 @@ const PerpsOrderView: React.FC = () => {
       op: TraceOperation.UIStartup,
       tags: {
         screen: 'perps_order_view',
-        market: asset,
-        direction,
-        orderType,
+        market: orderForm.asset,
+        direction: orderForm.direction,
+        orderType: orderForm.type,
       },
     });
-  }, [asset, direction, orderType]);
+  }, [orderForm.asset, orderForm.direction, orderForm.type]);
 
   // Track balance display updates
   useEffect(() => {
@@ -405,9 +334,9 @@ const PerpsOrderView: React.FC = () => {
   useEffect(() => {
     const eventProps = {
       [PerpsEventProperties.TIMESTAMP]: Date.now(),
-      [PerpsEventProperties.ASSET]: asset,
+      [PerpsEventProperties.ASSET]: orderForm.asset,
       [PerpsEventProperties.DIRECTION]:
-        direction === 'long'
+        orderForm.direction === 'long'
           ? PerpsEventValues.DIRECTION.LONG
           : PerpsEventValues.DIRECTION.SHORT,
     };
@@ -417,7 +346,7 @@ const PerpsOrderView: React.FC = () => {
         .addProperties(eventProps)
         .build(),
     );
-  }, [asset, direction, createEventBuilder, trackEvent]);
+  }, [orderForm.asset, orderForm.direction, createEventBuilder, trackEvent]);
 
   // Note: Navigation params for order type modal are no longer needed
 
@@ -430,7 +359,7 @@ const PerpsOrderView: React.FC = () => {
   // - bestAsk: Lowest price sellers are willing to accept
   // - spread: Difference between ask and bid
   // - includeOrderBook: When true, fetches bid/ask data for limit orders
-  const priceData = usePerpsPrices(assetSymbols, orderType === 'limit');
+  const priceData = usePerpsPrices(assetSymbols, orderForm.type === 'limit');
   const currentPrice = priceData[orderForm.asset];
   const assetData = useMemo(() => {
     if (!currentPrice) {
@@ -485,7 +414,7 @@ const PerpsOrderView: React.FC = () => {
                 : PerpsEventValues.DIRECTION.SHORT,
             [PerpsEventProperties.ORDER_SIZE]: parseFloat(orderForm.amount),
             [PerpsEventProperties.LEVERAGE_USED]: orderForm.leverage,
-            [PerpsEventProperties.ORDER_TYPE]: orderType,
+            [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
           })
           .build(),
       );
@@ -495,7 +424,7 @@ const PerpsOrderView: React.FC = () => {
     orderForm.amount,
     orderForm.leverage,
     orderForm.asset,
-    orderType,
+    orderForm.type,
     trackEvent,
     createEventBuilder,
   ]);
@@ -509,7 +438,9 @@ const PerpsOrderView: React.FC = () => {
           { label: strings('perps.order.error.invalid_asset'), isBold: true },
           { label: ': ', isBold: false },
           {
-            label: strings('perps.order.error.asset_not_tradable', { asset }),
+            label: strings('perps.order.error.asset_not_tradable', {
+              asset: orderForm.asset,
+            }),
             isBold: false,
           },
         ],
@@ -526,7 +457,7 @@ const PerpsOrderView: React.FC = () => {
         },
       });
     }
-  }, [marketDataError, asset, toastRef, navigation]);
+  }, [marketDataError, orderForm.asset, toastRef, navigation]);
 
   // Real-time position size calculation
   const positionSize = useMemo(
@@ -559,7 +490,6 @@ const PerpsOrderView: React.FC = () => {
   // Order validation using new hook
   const orderValidation = usePerpsOrderValidation({
     orderForm,
-    orderType,
     positionSize,
     assetPrice: assetData.price,
     availableBalance,
@@ -597,7 +527,7 @@ const PerpsOrderView: React.FC = () => {
         [PerpsEventProperties.ORDER_SIZE]: parseFloat(value) || 0,
         [PerpsEventProperties.MARGIN_USED]: marginRequired,
         [PerpsEventProperties.ORDER_TYPE]:
-          orderType === 'market'
+          orderForm.type === 'market'
             ? PerpsEventValues.ORDER_TYPE.MARKET
             : PerpsEventValues.ORDER_TYPE.LIMIT,
         [PerpsEventProperties.INPUT_METHOD]:
@@ -617,7 +547,7 @@ const PerpsOrderView: React.FC = () => {
       orderForm.asset,
       orderForm.direction,
       orderForm.leverage,
-      orderType,
+      orderForm.type,
       marginRequired,
     ],
   );
@@ -645,7 +575,7 @@ const PerpsOrderView: React.FC = () => {
         .addProperties({
           market: orderForm.asset,
           direction: orderForm.direction,
-          orderType,
+          orderType: orderForm.type,
           leverage: orderForm.leverage,
           positionSize,
           marginRequired,
@@ -675,7 +605,7 @@ const PerpsOrderView: React.FC = () => {
           .addProperties({
             market: orderForm.asset,
             direction: orderForm.direction,
-            orderType,
+            orderType: orderForm.type,
             error: firstError,
           })
           .build(),
@@ -690,7 +620,7 @@ const PerpsOrderView: React.FC = () => {
         .addProperties({
           market: orderForm.asset,
           direction: orderForm.direction,
-          orderType,
+          orderType: orderForm.type,
           leverage: orderForm.leverage,
           positionSize,
           marginRequired,
@@ -711,7 +641,7 @@ const PerpsOrderView: React.FC = () => {
             orderForm.direction === 'long'
               ? PerpsEventValues.DIRECTION.LONG
               : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_TYPE]: orderType,
+          [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
           [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
           [PerpsEventProperties.ORDER_SIZE]: positionSize,
           [PerpsEventProperties.MARGIN_USED]: marginRequired,
@@ -724,12 +654,12 @@ const PerpsOrderView: React.FC = () => {
       coin: orderForm.asset,
       isBuy: orderForm.direction === 'long',
       size: positionSize,
-      orderType,
+      orderType: orderForm.type,
       takeProfitPrice: orderForm.takeProfitPrice,
       stopLossPrice: orderForm.stopLossPrice,
       currentPrice: assetData.price,
       leverage: orderForm.leverage,
-      ...(orderType === 'limit' && orderForm.limitPrice
+      ...(orderForm.type === 'limit' && orderForm.limitPrice
         ? { price: orderForm.limitPrice }
         : {}),
     };
@@ -745,7 +675,7 @@ const PerpsOrderView: React.FC = () => {
               orderForm.direction === 'long'
                 ? PerpsEventValues.DIRECTION.LONG
                 : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: orderType,
+            [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
             [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
             [PerpsEventProperties.ORDER_SIZE]: positionSize,
           })
@@ -778,13 +708,24 @@ const PerpsOrderView: React.FC = () => {
     positionSize,
     assetData.price,
     executeOrder,
-    orderType,
     trackEvent,
     createEventBuilder,
     marginRequired,
     estimatedFees,
     selectedPaymentToken,
   ]);
+
+  // Memoize the tooltip handlers to prevent recreating them on every render
+  const handleTooltipPress = useCallback(
+    (contentKey: PerpsTooltipContentKey) => {
+      setSelectedTooltip(contentKey);
+    },
+    [],
+  );
+
+  const handleTooltipClose = useCallback(() => {
+    setSelectedTooltip(null);
+  }, []);
 
   return (
     <SafeAreaView style={[styles.container, { marginTop: top }]}>
@@ -793,7 +734,7 @@ const PerpsOrderView: React.FC = () => {
         asset={orderForm.asset}
         price={assetData.price}
         priceChange={assetData.change}
-        orderType={orderType}
+        orderType={orderForm.type}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
       />
 
@@ -837,18 +778,14 @@ const PerpsOrderView: React.FC = () => {
                       {strings('perps.order.leverage')}
                     </Text>
                     <TouchableOpacity
-                      onPress={() =>
-                        openTooltipModal(
-                          strings('perps.tooltips.leverage.title'),
-                          tooltipContent.leverage,
-                        )
-                      }
+                      onPress={() => handleTooltipPress('leverage')}
                       style={styles.infoIcon}
                     >
                       <Icon
                         name={IconName.Info}
-                        size={IconSize.Xss}
+                        size={IconSize.Sm}
                         color={IconColor.Muted}
+                        testID={PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON}
                       />
                     </TouchableOpacity>
                   </View>
@@ -863,7 +800,7 @@ const PerpsOrderView: React.FC = () => {
           </View>
 
           {/* Limit price - only show for limit orders */}
-          {orderType === 'limit' && (
+          {orderForm.type === 'limit' && (
             <View style={styles.detailItem}>
               <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
                 <ListItem>
@@ -1003,18 +940,14 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.margin')}
               </Text>
               <TouchableOpacity
-                onPress={() =>
-                  openTooltipModal(
-                    strings('perps.tooltips.margin.title'),
-                    tooltipContent.margin,
-                  )
-                }
+                onPress={() => handleTooltipPress('margin')}
                 style={styles.infoIcon}
               >
                 <Icon
                   name={IconName.Info}
-                  size={IconSize.Xss}
+                  size={IconSize.Sm}
                   color={IconColor.Muted}
+                  testID={PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON}
                 />
               </TouchableOpacity>
             </View>
@@ -1029,18 +962,16 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.liquidation_price')}
               </Text>
               <TouchableOpacity
-                onPress={() =>
-                  openTooltipModal(
-                    strings('perps.tooltips.liquidation_price.title'),
-                    tooltipContent.liquidationPrice,
-                  )
-                }
+                onPress={() => handleTooltipPress('liquidation_price')}
                 style={styles.infoIcon}
               >
                 <Icon
                   name={IconName.Info}
-                  size={IconSize.Xss}
+                  size={IconSize.Sm}
                   color={IconColor.Muted}
+                  testID={
+                    PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON
+                  }
                 />
               </TouchableOpacity>
             </View>
@@ -1057,18 +988,14 @@ const PerpsOrderView: React.FC = () => {
                 {strings('perps.order.fees')}
               </Text>
               <TouchableOpacity
-                onPress={() =>
-                  openTooltipModal(
-                    strings('perps.tooltips.fees.title'),
-                    tooltipContent.fees,
-                  )
-                }
+                onPress={() => handleTooltipPress('fees')}
                 style={styles.infoIcon}
               >
                 <Icon
                   name={IconName.Info}
-                  size={IconSize.Xss}
+                  size={IconSize.Sm}
                   color={IconColor.Muted}
+                  testID={PerpsOrderViewSelectorsIDs.FEES_INFO_ICON}
                 />
               </TouchableOpacity>
             </View>
@@ -1193,7 +1120,7 @@ const PerpsOrderView: React.FC = () => {
               .addProperties({
                 market: orderForm.asset,
                 direction: orderForm.direction,
-                orderType,
+                orderType: orderForm.type,
                 paymentToken: token.symbol,
                 paymentChain: token.chainId,
                 previousToken: selectedPaymentToken?.symbol,
@@ -1291,14 +1218,47 @@ const PerpsOrderView: React.FC = () => {
                 market: orderForm.asset,
                 direction: orderForm.direction,
                 newOrderType: type,
-                previousOrderType: orderType,
+                previousOrderType: orderForm.type,
               })
               .build(),
           );
         }}
-        currentOrderType={orderType}
+        currentOrderType={orderForm.type}
       />
+      {selectedTooltip && (
+        <PerpsBottomSheetTooltip
+          isVisible
+          onClose={handleTooltipClose}
+          contentKey={selectedTooltip}
+          testID={PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
+          key={selectedTooltip}
+        />
+      )}
     </SafeAreaView>
+  );
+};
+
+// Main component that wraps content with context provider
+const PerpsOrderView: React.FC = () => {
+  const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
+
+  // Get navigation params to pass to context provider
+  const {
+    direction = 'long',
+    asset = 'BTC',
+    amount: paramAmount,
+    leverage: paramLeverage,
+  } = route.params || {};
+
+  return (
+    <PerpsOrderProvider
+      initialAsset={asset}
+      initialDirection={direction}
+      initialAmount={paramAmount}
+      initialLeverage={paramLeverage}
+    >
+      <PerpsOrderViewContent />
+    </PerpsOrderProvider>
   );
 };
 

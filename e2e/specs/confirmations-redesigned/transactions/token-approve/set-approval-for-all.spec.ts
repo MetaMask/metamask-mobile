@@ -8,7 +8,7 @@ import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions
 import { mockEvents } from '../../../../api-mocking/mock-config/mock-events.js';
 import Assertions from '../../../../framework/Assertions';
 import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../../fixtures/utils';
+import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
 import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
