@@ -501,7 +501,7 @@ const Wallet = ({
   const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   useEffect(() => {
-    if (isConnectionRemoved && !isSocialLogin) {
+    if (isConnectionRemoved && isSocialLogin) {
       navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
         params: {
