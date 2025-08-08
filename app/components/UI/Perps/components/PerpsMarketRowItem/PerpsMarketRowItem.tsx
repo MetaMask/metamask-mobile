@@ -25,7 +25,11 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const isPositiveChange = !market.change24h.startsWith('-');
 
   return (
-    <TouchableOpacity style={styles.container} onPress={handlePress}>
+    <TouchableOpacity
+      style={styles.container}
+      onPress={handlePress}
+      testID={`perps-market-row-item-${market.symbol}`}
+    >
       <View style={styles.leftSection}>
         <View style={styles.perpIcon}>
           {assetUrl ? (
@@ -35,7 +39,6 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
               variant={AvatarVariant.Network}
               name={market.symbol}
               size={AvatarSize.Lg}
-              testID={`perps-market-row-item-${market.symbol}`}
               style={styles.networkAvatar}
             />
           )}

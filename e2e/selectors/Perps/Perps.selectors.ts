@@ -113,6 +113,8 @@ export const PerpsMarketListViewSelectorsIDs = {
   SEARCH_TOGGLE_BUTTON: 'search-toggle-button',
   CLOSE_BUTTON: 'close-button',
   SEARCH_CLEAR_BUTTON: 'search-clear-button',
+  LIST_HEADER: 'list-header',
+  MARKET_ROW_ITEM: 'market-row-item',
 };
 
 // ========================================
