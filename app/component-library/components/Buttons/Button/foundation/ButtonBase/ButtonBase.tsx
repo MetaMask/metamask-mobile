@@ -26,18 +26,22 @@ import {
 } from './ButtonBase.constants';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
-const TouchableOpacity = ({ onPress, ...props }: TouchableOpacityProps) => {
+const TouchableOpacity = ({
+  onPress,
+  disabled,
+  ...props
+}: TouchableOpacityProps) => {
   const tap = Gesture.Tap()
     .runOnJS(true)
     .onEnd(() => {
-      if (onPress) {
+      if (onPress && !disabled) {
         onPress({} as GestureResponderEvent);
       }
     });
 
   return (
     <GestureDetector gesture={tap}>
-      <RNTouchableOpacity {...props} />
+      <RNTouchableOpacity disabled={disabled} {...props} />
     </GestureDetector>
   );
 };
