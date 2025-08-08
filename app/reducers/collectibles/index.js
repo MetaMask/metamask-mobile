@@ -42,7 +42,7 @@ export const multichainCollectibleContractsByEnabledNetworksSelector =
       }
 
       const enabledNetworksForEip155 =
-        enabledNetworks[KnownCaipNamespace.Eip155] || {};
+        enabledNetworks?.[KnownCaipNamespace.Eip155] || {};
 
       if (
         !enabledNetworksForEip155 ||
@@ -92,7 +92,7 @@ export const multichainCollectiblesByEnabledNetworksSelector =
       }
 
       const enabledNetworksForEip155 =
-        enabledNetworks[KnownCaipNamespace.Eip155] || {};
+        enabledNetworks?.[KnownCaipNamespace.Eip155] || {};
 
       if (
         !enabledNetworksForEip155 ||
