@@ -66,6 +66,7 @@ import { getNetworkImageSource } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import Logger from '../../../../../../util/Logger';
+import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import {
   selectChainId,
@@ -169,6 +170,15 @@ const BuildQuote = () => {
   }, [navigation, theme]);
 
   useEffect(() => {
+    endTrace({
+      name: TraceName.LoadDepositExperience,
+      data: {
+        destination: Routes.DEPOSIT.BUILD_QUOTE,
+      },
+    });
+  }, []);
+
+  useEffect(() => {
     if (selectedRegion?.currency) {
       if (selectedRegion.currency === 'USD') {
         setFiatCurrency(USD_CURRENCY);
@@ -250,6 +260,16 @@ const BuildQuote = () => {
     setIsLoading(true);
     let quote: BuyQuote | undefined;
 
+    trace({
+      name: TraceName.DepositContinueFlow,
+      tags: {
+        amount: amountAsNumber,
+        currency: cryptoCurrency.symbol,
+        paymentMethod: paymentMethod.id,
+        authenticated: isAuthenticated,
+      },
+    });
+
     try {
       trackEvent('RAMPS_ORDER_PROPOSED', {
         ramp_type: 'DEPOSIT',
@@ -275,6 +295,14 @@ const BuildQuote = () => {
         throw new Error(strings('deposit.buildQuote.quoteFetchError'));
       }
     } catch (quoteError) {
+      endTrace({
+        name: TraceName.DepositContinueFlow,
+        data: {
+          error:
+            quoteError instanceof Error ? quoteError.message : 'Unknown error',
+        },
+      });
+
       Logger.error(
         quoteError as Error,
         'Deposit::BuildQuote - Error fetching quote',
