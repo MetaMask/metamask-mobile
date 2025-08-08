@@ -66,7 +66,7 @@ const handleDirectFetch = async (url, method, headers, requestBody) => {
  * @param {number} mockServerPort - The mock server port
  * @returns {string} The original URL or redirected mock server URL
  */
-const redirectBlocklistedHost = (urlEndpoint, mockServerPort) => {
+const redirectBlocklistedHost = (urlEndpoint) => {
   try {
     const urlObj = new URL(urlEndpoint);
     if (BLOCKLISTED_HOSTS.includes(urlObj.host)) {
@@ -148,6 +148,9 @@ export const startMockServer = async (events, port) => {
       );
 
       if (matchingEvent) {
+        logger.debug(
+          `Mocking ${method} request to: ${urlEndpoint} for method: ${method}`,
+        );
         // For POST requests, verify the request body if specified
         if (method === 'POST' && matchingEvent.requestBody) {
           const requestBodyJson = await request.body.getJson();
@@ -221,7 +224,7 @@ export const startMockServer = async (events, port) => {
           : urlEndpoint.replace('localhost', '127.0.0.1');
 
       // Check if host is blocklisted and redirect to mock server
-      updatedUrl = redirectBlocklistedHost(updatedUrl, port);
+      updatedUrl = redirectBlocklistedHost(updatedUrl);
 
       // Check if the URL is in the allowed list
       if (!isUrlAllowed(updatedUrl)) {
@@ -241,7 +244,7 @@ export const startMockServer = async (events, port) => {
   // In case any other requests are made, check allowed list before passing through
   await mockServer.forUnmatchedRequest().thenCallback(async (request) => {
     // Check if host is blocklisted and redirect to mock server
-    const redirectedUrl = redirectBlocklistedHost(request.url, port);
+    const redirectedUrl = redirectBlocklistedHost(request.url);
 
     // Check if the URL is in the allowed list
     if (!isUrlAllowed(redirectedUrl)) {
