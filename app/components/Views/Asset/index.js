@@ -587,7 +587,7 @@ class Asset extends PureComponent {
         ? isBridgeAllowed(asset.chainId)
         : isBridgeAllowed(chainId));
 
-    const displayBuyButton = asset.isETH
+    const displayFundButton = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
       : this.props.isNetworkRampSupported;
 
@@ -604,7 +604,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayBuyButton={displayBuyButton}
+                  displayFundButton={displayFundButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -630,7 +630,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayBuyButton={displayBuyButton}
+                  displayFundButton={displayFundButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}

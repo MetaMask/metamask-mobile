@@ -5,7 +5,7 @@ export const TokenOverviewSelectorsIDs = {
   TOKEN_PRICE: 'token-price',
   SEND_BUTTON: 'token-send-button',
   RECEIVE_BUTTON: 'token-receive-button',
-  BUY_BUTTON: 'token-buy-button',
+  FUND_BUTTON: 'token-fund-button',
   SWAP_BUTTON: 'token-swap-button',
   BRIDGE_BUTTON: 'token-bridge-button',
   ADD_BUTTON: 'token-add-button',

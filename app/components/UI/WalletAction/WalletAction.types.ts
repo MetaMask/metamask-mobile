@@ -17,7 +17,6 @@ export enum WalletActionType {
 export interface WalletActionDetail {
   title: string;
   description: string;
-  disabledDescription: string;
 }
 
 export interface WalletActionProps {
