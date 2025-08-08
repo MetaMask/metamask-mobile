@@ -14,7 +14,7 @@ import FixtureServer from '../../framework/fixtures/FixtureServer.ts';
 import {
   getFixturesServerPort,
   getMockServerPort,
-} from '../../fixtures/utils.js';
+} from '../../framework/fixtures/FixtureUtils.ts';
 import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../utils/Assertions.js';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
