@@ -1,1 +1,1 @@
-export { default } from './general-alert-banner';
+export { default } from './alert-banner';
