@@ -89,14 +89,12 @@ const createStyles = ({ colors }) =>
       flex: 1,
       flexDirection: 'column',
       rowGap: 16,
+      paddingBottom: 80, // Space for fixed action buttons at bottom
     },
     privacyPolicy: {
       ...fontStyles.normal,
       fontSize: 12,
       color: colors.text.muted,
-    },
-    privacyPolicyContainer: {
-      marginBottom: 24,
     },
     actionContainer: {
       flexDirection: 'row',
@@ -468,24 +466,22 @@ class OptinMetrics extends PureComponent {
 
     if (isPastPrivacyPolicyDate) {
       return (
-        <View style={styles.privacyPolicyContainer}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('privacy_policy.fine_print_1') + ' '}
-            <Text
-              color={TextColor.Primary}
-              variant={TextVariant.BodySM}
-              onPress={this.openPrivacyPolicy}
-            >
-              {strings('privacy_policy.privacy_policy_button')}
-            </Text>
-            {' ' + strings('privacy_policy.fine_print_2')}
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {strings('privacy_policy.fine_print_1') + ' '}
+          <Text
+            color={TextColor.Primary}
+            variant={TextVariant.BodySM}
+            onPress={this.openPrivacyPolicy}
+          >
+            {strings('privacy_policy.privacy_policy_button')}
           </Text>
-        </View>
+          {' ' + strings('privacy_policy.fine_print_2')}
+        </Text>
       );
     }
 
     return (
-      <View style={styles.privacyPolicyContainer}>
+      <View>
         <Text style={styles.privacyPolicy}>
           <Text>{strings('privacy_policy.fine_print_1_legacy')}</Text>
           {'\n\n'}
