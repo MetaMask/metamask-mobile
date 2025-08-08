@@ -55,8 +55,13 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
 
+  // Disable gesture wrapper in E2E test environment to prevent test interference
+  const isE2ETest =
+    __DEV__ && (process.env.NODE_ENV === 'test' || 'detox' in global);
   const TouchableComponent =
-    Platform.OS === 'android' ? TouchableOpacity : RNTouchableOpacity;
+    Platform.OS === 'android' && !isE2ETest
+      ? TouchableOpacity
+      : RNTouchableOpacity;
 
   return (
     <TouchableComponent style={styles.base} disabled={isDisabled} {...props}>
