@@ -66,7 +66,7 @@ export function onRpcEndpointUnavailable({
 
   Logger.log(
     `Creating Segment event "${
-      MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE
+      MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE.category
     }" with ${JSON.stringify(properties)}`,
   );
   trackEvent({
@@ -108,7 +108,7 @@ export function onRpcEndpointDegraded({
     event: IMetaMetricsEvent | ITrackingEvent;
     properties: JsonMap;
   }) => void;
-  metaMetricsId: string | null;
+  metaMetricsId: string | undefined;
 }): void {
   if (!shouldCreateRpcServiceEvents(error, metaMetricsId)) {
     return;
@@ -131,7 +131,7 @@ export function onRpcEndpointDegraded({
 
   Logger.log(
     `Creating Segment event "${
-      MetaMetricsEvents.RPC_SERVICE_DEGRADED
+      MetaMetricsEvents.RPC_SERVICE_DEGRADED.category
     }" with ${JSON.stringify(properties)}`,
   );
   trackEvent({

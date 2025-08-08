@@ -420,12 +420,10 @@ export class Engine {
     const networkController = new NetworkController(networkControllerOptions);
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointUnavailable',
-      async ({ chainId, endpointUrl, error }) => {
+      async (data) => {
         onRpcEndpointUnavailable({
-          chainId,
-          endpointUrl,
+          ...data,
           infuraProjectId,
-          error,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
               .addProperties(properties)
@@ -438,10 +436,9 @@ export class Engine {
     );
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointDegraded',
-      async ({ chainId, endpointUrl }) => {
+      async (data) => {
         onRpcEndpointDegraded({
-          chainId,
-          endpointUrl,
+          ...data,
           infuraProjectId,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
