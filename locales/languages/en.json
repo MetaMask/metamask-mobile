@@ -49,6 +49,12 @@
     "batched_unused_approvals": {
       "title": "Unnecessary permission",
       "message": "You're giving someone else permission to withdraw your tokens, even though it's not necessary for this transaction."
+    },
+    "perps_deposit_minimum": {
+      "message": "Min order value is $10"
+    },
+    "insufficient_pay_token_balance": {
+      "message": "Insufficient funds. Select different token."
     }
   },
   "blockaid_banner": {
@@ -319,12 +325,10 @@
     "seedless_password_outdated_modal_confirm": "Continue",
     "security_alert_title": "Security Alert",
     "security_alert_desc": "In order to proceed, you need to turn Passcode on or any biometrics authentication method supported in your device (FaceID, TouchID or Fingerprint)",
-
     "too_many_attempts": "Too many attempts. Please try again in {{remainingTime}}",
     "apple_button": "Sign in with Apple",
     "google_button": "Sign in with Google",
     "other_methods": "Use a different login method",
-
     "forgot_password_desc": "Forgot your password?",
     "forgot_password_desc_2": "MetaMask can’t recover your password for you.",
     "forgot_password_point_1": "If you’re logged into MetaMask on a device with",
@@ -490,6 +494,9 @@
     "public_address": "Public Address"
   },
   "send": {
+    "available": "available",
+    "amount_insufficient": "Insufficient funds",
+    "continue": "Continue",
     "title": "Send",
     "deeplink_failure": "Something went wrong. Please try again",
     "warn_network_change": "Network changed to ",
@@ -523,7 +530,7 @@
     },
     "networks_filter_selector": {
       "select_network": "Select network",
-      "select_all":"Select all",
+      "select_all": "Select all",
       "deselect_all": "Deselect all",
       "apply": "Apply"
     },
@@ -747,6 +754,7 @@
       "bic": "BIC",
       "account_type": "Account type",
       "bank_name": "Bank name",
+      "beneficiary_address": "Beneficiary address",
       "bank_address": "Bank address",
       "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
       "error_message": "We were unable to confirm your bank transfer. Please try again.",
@@ -1134,7 +1142,6 @@
       "view_markets": "View Markets",
       "positions": "Positions"
     },
-    "got_it": "Got it",
     "tooltips": {
       "leverage": {
         "title": "Leverage",
@@ -1152,7 +1159,20 @@
         "title": "Fees",
         "metamask_fee": "MetaMask fee",
         "provider_fee": "Provider fee"
-      }
+      },
+      "open_interest": {
+        "title": "Open interest",
+        "content": "The combined value of all open positions for this perp."
+      },
+      "funding_rate": {
+        "title": "Funding rate",
+        "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
+      },
+      "perps_geo_block": {
+        "title": "Perps geo block",
+        "content": "Perps trading isn’t available in your location due to local restrictions or sanctions."
+      },
+      "got_it_button": "Got it"
     },
     "connection": {
       "failed": "Connection Failed",
@@ -1189,8 +1209,8 @@
         "size": "Size",
         "entry_price": "Entry price",
         "points": "Points",
-        "fees": "Fees",
-        "pnl": "P&L"
+        "fees": "Total fees",
+        "pnl": "Net P&L"
       },
       "order": {
         "date": "Date",
@@ -4819,7 +4839,8 @@
       "now": "Now",
       "switching_to": "Switching To",
       "bridge_estimated_time": "Est. time",
-      "pay_with": "Pay with"
+      "pay_with": "Pay with",
+      "total": "Total"
     },
     "title": {
       "signature": "Signature request",
@@ -4939,7 +4960,8 @@
     "review": "Review",
     "transferRequest": "Transfer request",
     "nested_transaction_heading": "Transaction {{index}}",
-    "transaction": "Transaction"
+    "transaction": "Transaction",
+    "available_balance": "Available: "
   },
   "change_in_simulation_modal": {
     "title": "Results have changed",
@@ -5045,7 +5067,6 @@
     "something_went_wrong_description": "An error occurred while logging in. Try again and if the issue continues, contact",
     "support_button": "MetaMask Support.",
     "error_button": "Try again",
-
     "user_cancelled_title": "Login cancelled",
     "user_cancelled_description": "You cancelled the login process.\nTry again when you’re ready.",
     "user_cancelled_button": "Try again",

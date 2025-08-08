@@ -1,4 +1,5 @@
 export enum RowAlertKey {
+  Amount = 'amount',
   AccountTypeUpgrade = 'accountTypeUpgrade',
   Blockaid = 'blockaid',
   EstimatedFee = 'estimatedFee',

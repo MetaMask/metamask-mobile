@@ -1,7 +1,7 @@
 import { Regression } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import Assertions from '../../../framework/Assertions';
 import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';

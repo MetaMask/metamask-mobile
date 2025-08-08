@@ -53,7 +53,7 @@ export const getMaxValueFn = ({
   gasFeeEstimates,
 }: GetMaxValueArgs) => {
   if (!asset) {
-    return undefined;
+    return { maxAmount: '0', balance: '0' };
   }
   if (isNativeToken(asset)) {
     const estimatedTotalGas = getEstimatedTotalGas(gasFeeEstimates);
@@ -65,12 +65,16 @@ export const getMaxValueFn = ({
     const realMaxValue = balance.sub(estimatedTotalGas);
     const maxValue =
       balance.isZero() || realMaxValue.isNeg() ? hexToBN('0x0') : realMaxValue;
-    return fromWei(maxValue);
+    return {
+      maxAmount: fromWei(maxValue),
+      balance: fromWei(balance),
+    };
   }
-  return fromTokenMinimalUnitString(
+  const balance = fromTokenMinimalUnitString(
     contractBalances[asset.address as Hex],
     asset.decimals,
   );
+  return { maxAmount: balance, balance };
 };
 
 export const useEvmMaxAmount = () => {
