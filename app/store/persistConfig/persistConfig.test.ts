@@ -19,13 +19,39 @@ jest.mock('../../core/EngineService/constants', () => ({
   UPDATE_BG_STATE_KEY: 'UPDATE_BG_STATE',
 }));
 
+jest.mock('../../core/redux', () => ({
+  __esModule: true,
+  default: {
+    store: {
+      dispatch: jest.fn(),
+    },
+  },
+}));
+
+jest.mock('lodash', () => ({
+  ...jest.requireActual('lodash'),
+  debounce: jest.fn((fn) => fn), // Return the original function for simplicity
+}));
+
+jest.mock('../getPersistentState/getPersistentState', () => ({
+  getPersistentState: jest.fn((_state, _metadata) => ({ filtered: 'state' })),
+}));
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
-import persistConfig, { ControllerStorage } from '.';
+import persistConfig, { ControllerStorage, setupEnginePersistence } from '.';
 import { version } from '../migrations';
 import { Transform } from 'redux-persist';
 import Logger from '../../util/Logger';
+import Engine from '../../core/Engine';
+// Note: debounce import not needed as it's mocked at the top
+import ReduxService from '../../core/redux';
+import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
+import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
+import { getPersistentState } from '../getPersistentState/getPersistentState';
+
+// Note: debounce is mocked to return the original function for testing simplicity
 
 interface FieldMetadata {
   persist: boolean;
@@ -358,5 +384,292 @@ describe('persistConfig', () => {
       > & { whitelist?: string[] };
       expect(onboardingTransform.whitelist).toEqual(['onboarding']);
     });
+  });
+
+  describe('setupEnginePersistence', () => {
+    // Mock references for easy access in tests
+    const mockControllerMessenger = Engine.controllerMessenger as jest.Mocked<
+      typeof Engine.controllerMessenger
+    >;
+    const mockDispatch = ReduxService.store.dispatch as jest.MockedFunction<
+      typeof ReduxService.store.dispatch
+    >;
+    // Note: debounce mock is configured at the top of the file
+    const mockGetPersistentState = getPersistentState as jest.MockedFunction<
+      typeof getPersistentState
+    >;
+
+    beforeEach(() => {
+      // Reset specific mocks before each test (but preserve implementations)
+      mockControllerMessenger.subscribe.mockClear();
+      mockDispatch.mockClear();
+      mockGetPersistentState.mockClear();
+      (Logger.log as jest.MockedFunction<typeof Logger.log>).mockClear();
+      (Logger.error as jest.MockedFunction<typeof Logger.error>).mockClear();
+      // Reset Engine context
+      (Engine as { context: unknown }).context = {
+        TestController: {
+          metadata: {
+            field1: { persist: true, anonymous: false },
+            field2: { persist: false, anonymous: true },
+          },
+        },
+      };
+
+      // Reset mock implementations
+      mockGetPersistentState.mockReturnValue({ filtered: 'state' });
+    });
+
+    describe('successful setup', () => {
+      it('sets up subscriptions for all controller state change events', () => {
+        // Arrange
+        // Engine.controllerMessenger is already mocked with subscribe function
+
+        // Act
+        setupEnginePersistence();
+
+        // Then
+        expect(mockControllerMessenger.subscribe).toHaveBeenCalledTimes(
+          BACKGROUND_STATE_CHANGE_EVENT_NAMES.length,
+        );
+        expect(mockControllerMessenger.subscribe).toHaveBeenCalledWith(
+          'TestController:stateChange',
+          expect.any(Function),
+        );
+        expect(Logger.log).toHaveBeenCalledWith(
+          'Individual controller persistence and Redux update subscriptions set up successfully',
+        );
+      });
+
+      it('uses debouncing for subscription callbacks', () => {
+        // Note: We can't easily test the debounce function call directly
+        // due to Jest module hoisting issues, but we can verify the function
+        // works correctly by testing the overall behavior
+        // Act
+        setupEnginePersistence();
+
+        // Then - verify that subscribe was called for each event
+        expect(mockControllerMessenger.subscribe).toHaveBeenCalledTimes(
+          BACKGROUND_STATE_CHANGE_EVENT_NAMES.length,
+        );
+        expect(mockControllerMessenger.subscribe).toHaveBeenCalledWith(
+          'TestController:stateChange',
+          expect.any(Function), // The debounced function
+        );
+      });
+
+      it('logs setup success message', () => {
+        // Act
+        setupEnginePersistence();
+
+        // Then
+        expect(Logger.log).toHaveBeenCalledWith(
+          'Individual controller persistence and Redux update subscriptions set up successfully',
+        );
+      });
+    });
+
+    describe('controller state persistence flow', () => {
+      let subscriptionCallback: (controllerState: unknown) => Promise<void>;
+
+      beforeEach(async () => {
+        // Setup and capture the subscription callback
+        setupEnginePersistence();
+        expect(mockControllerMessenger.subscribe).toHaveBeenCalledWith(
+          'TestController:stateChange',
+          expect.any(Function),
+        );
+
+        // Extract the callback function (it's debounced, but we mocked debounce to return the original function)
+        subscriptionCallback = mockControllerMessenger.subscribe.mock
+          .calls[0][1] as (controllerState: unknown) => Promise<void>;
+      });
+
+      it('filters controller state using getPersistentState', async () => {
+        // Arrange
+        const controllerState = { field1: 'value1', field2: 'value2' };
+
+        // Act
+        await subscriptionCallback(controllerState);
+
+        // Then
+        expect(mockGetPersistentState).toHaveBeenCalledWith(
+          controllerState,
+          (
+            (Engine as { context: unknown }).context as {
+              TestController?: { metadata: unknown };
+            }
+          ).TestController?.metadata,
+        );
+      });
+
+      it('persists filtered state to filesystem storage', async () => {
+        // Arrange
+        const controllerState = { field1: 'value1', field2: 'value2' };
+        const mockSetItem = jest
+          .spyOn(ControllerStorage, 'setItem')
+          .mockResolvedValue();
+
+        // Act
+        await subscriptionCallback(controllerState);
+
+        // Then
+        expect(mockSetItem).toHaveBeenCalledWith(
+          'persist:TestController',
+          JSON.stringify({ filtered: 'state' }),
+        );
+      });
+
+      it('dispatches Redux action after successful persistence', async () => {
+        // Arrange
+        const controllerState = { field1: 'value1' };
+        jest.spyOn(ControllerStorage, 'setItem').mockResolvedValue();
+
+        // Act
+        await subscriptionCallback(controllerState);
+
+        // Then
+        expect(mockDispatch).toHaveBeenCalledWith({
+          type: UPDATE_BG_STATE_KEY,
+          payload: { key: 'TestController' },
+        });
+      });
+
+      it('logs successful persistence', async () => {
+        // Arrange
+        const controllerState = { field1: 'value1' };
+        jest.spyOn(ControllerStorage, 'setItem').mockResolvedValue();
+
+        // Act
+        await subscriptionCallback(controllerState);
+
+        // Then
+        expect(Logger.log).toHaveBeenCalledWith(
+          'TestController state persisted successfully',
+        );
+      });
+
+      it('handles persistence errors gracefully without throwing', async () => {
+        // Arrange
+        const controllerState = { field1: 'value1' };
+        const persistError = new Error('Storage failed');
+        jest
+          .spyOn(ControllerStorage, 'setItem')
+          .mockRejectedValue(persistError);
+
+        // Act & Assert - should not throw
+        await expect(
+          subscriptionCallback(controllerState),
+        ).resolves.toBeUndefined();
+
+        // Then
+        expect(Logger.error).toHaveBeenCalledWith(
+          persistError,
+          'Failed to persist TestController state',
+        );
+        // Should not dispatch Redux action on error
+        expect(mockDispatch).not.toHaveBeenCalled();
+      });
+
+      it('handles getPersistentState errors gracefully', async () => {
+        // Arrange
+        const controllerState = { field1: 'value1' };
+        const filterError = new Error('Filter failed');
+        mockGetPersistentState.mockImplementation(() => {
+          throw filterError;
+        });
+
+        // Act & Assert - should not throw
+        await expect(
+          subscriptionCallback(controllerState),
+        ).resolves.toBeUndefined();
+
+        // Then
+        expect(Logger.error).toHaveBeenCalledWith(
+          filterError,
+          'Failed to persist TestController state',
+        );
+      });
+
+      it('works with controllers that have no metadata', async () => {
+        // Arrange
+        (
+          (Engine as { context: unknown }).context as {
+            TestController?: unknown;
+          }
+        ).TestController = undefined; // Simulate missing metadata
+        const controllerState = { field1: 'value1' };
+        jest.spyOn(ControllerStorage, 'setItem').mockResolvedValue();
+
+        // Act
+        await subscriptionCallback(controllerState);
+
+        // Then
+        expect(mockGetPersistentState).toHaveBeenCalledWith(
+          controllerState,
+          undefined,
+        );
+        expect(ControllerStorage.setItem).toHaveBeenCalled();
+      });
+    });
+
+    describe('error handling', () => {
+      it('handles missing controllerMessenger gracefully', () => {
+        // Arrange
+        (Engine as { controllerMessenger: unknown }).controllerMessenger = null;
+
+        // Act & Assert - should not throw
+        expect(() => setupEnginePersistence()).not.toThrow();
+
+        // Then
+        expect(Logger.log).not.toHaveBeenCalledWith(
+          'Individual controller persistence and Redux update subscriptions set up successfully',
+        );
+      });
+
+      it('handles undefined controllerMessenger gracefully', () => {
+        // Arrange
+        (
+          Engine as unknown as { controllerMessenger: undefined }
+        ).controllerMessenger = undefined;
+
+        // Act & Assert - should not throw
+        expect(() => setupEnginePersistence()).not.toThrow();
+
+        // Then
+        expect(Logger.log).not.toHaveBeenCalledWith(
+          'Individual controller persistence and Redux update subscriptions set up successfully',
+        );
+      });
+
+      // Note: Testing subscription errors during forEach is complex due to
+      // the way forEach handles exceptions. In practice, subscription errors
+      // would be caught by the outer try-catch, but this is hard to test reliably.
+
+      it('handles overall setup errors gracefully', () => {
+        // Arrange
+        const setupError = new Error('Setup failed');
+        // Mock Engine to throw during property access
+        Object.defineProperty(Engine, 'controllerMessenger', {
+          get: () => {
+            throw setupError;
+          },
+          configurable: true,
+        });
+
+        // Act & Assert - should not throw
+        expect(() => setupEnginePersistence()).not.toThrow();
+
+        // Then
+        expect(Logger.error).toHaveBeenCalledWith(
+          setupError,
+          'Failed to set up Engine persistence subscription',
+        );
+      });
+    });
+
+    // Note: Controller name extraction is tested implicitly through the
+    // "controller state persistence flow" tests above which verify the
+    // complete persistence workflow including controller name handling.
   });
 });
