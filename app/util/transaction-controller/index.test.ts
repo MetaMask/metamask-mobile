@@ -580,8 +580,13 @@ describe('Transaction Controller Util', () => {
     it('calls updateSelectedGasFeeToken with transactionId and selectedGasFeeToken', () => {
       const transactionId = '0xabcdef1234567890abcdef1234567890abcdef';
       const selectedGasFeeToken = '0x1234567890abcdef1234567890abcdef12345678';
-      TransactionControllerUtils.updateSelectedGasFeeToken(transactionId, selectedGasFeeToken);
-      expect(Engine.context.TransactionController.updateSelectedGasFeeToken).toHaveBeenCalledWith(transactionId, selectedGasFeeToken);
+      TransactionControllerUtils.updateSelectedGasFeeToken(
+        transactionId,
+        selectedGasFeeToken,
+      );
+      expect(
+        Engine.context.TransactionController.updateSelectedGasFeeToken,
+      ).toHaveBeenCalledWith(transactionId, selectedGasFeeToken);
     });
- });
+  });
 });

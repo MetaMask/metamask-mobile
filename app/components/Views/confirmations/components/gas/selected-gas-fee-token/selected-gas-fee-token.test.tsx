@@ -18,7 +18,9 @@ jest.mock('../../../hooks/gas/useIsGaslessSupported');
 jest.mock('../../../hooks/useNetworkInfo');
 
 describe('SelectedGasFeeToken', () => {
-  const mockUseInsufficientBalanceAlert = jest.mocked(useInsufficientBalanceAlert);
+  const mockUseInsufficientBalanceAlert = jest.mocked(
+    useInsufficientBalanceAlert,
+  );
   const mockUseSelectedGasFeeToken = jest.mocked(useSelectedGasFeeToken);
   const mockUseIsGaslessSupported = jest.mocked(useIsGaslessSupported);
   const mockUseNetworkInfo = jest.mocked(useNetworkInfo);
@@ -47,32 +49,36 @@ describe('SelectedGasFeeToken', () => {
       networkNativeCurrency: 'ETH',
     } as ReturnType<typeof useNetworkInfo>);
 
-    const state = gasFeeTokens.length > 0 
-      ? merge({}, transferTransactionStateMock, {
-          engine: {
-            backgroundState: {
-              TransactionController: {
-                transactions: [
-                  {
-                    id: '699ca2f0-e459-11ef-b6f6-d182277cf5e1',
-                    gasFeeTokens,
-                  },
-                ],
+    const state =
+      gasFeeTokens.length > 0
+        ? merge({}, transferTransactionStateMock, {
+            engine: {
+              backgroundState: {
+                TransactionController: {
+                  transactions: [
+                    {
+                      id: '699ca2f0-e459-11ef-b6f6-d182277cf5e1',
+                      gasFeeTokens,
+                    },
+                  ],
+                },
               },
             },
-          },
-        })
-      : transferTransactionStateMock;
+          })
+        : transferTransactionStateMock;
 
     const renderResult = renderWithProvider(<SelectedGasFeeToken />, { state });
 
     return {
       ...renderResult,
-      pressTokenButton: () => fireEvent.press(renderResult.getByTestId('selected-gas-fee-token')),
+      pressTokenButton: () =>
+        fireEvent.press(renderResult.getByTestId('selected-gas-fee-token')),
       expectModalToOpen: () => {
         expect(renderResult.queryByTestId('gas-fee-token-modal')).toBeNull();
         fireEvent.press(renderResult.getByTestId('selected-gas-fee-token'));
-        expect(renderResult.getByTestId('gas-fee-token-modal')).toBeOnTheScreen();
+        expect(
+          renderResult.getByTestId('gas-fee-token-modal'),
+        ).toBeOnTheScreen();
       },
       expectModalNotToOpen: () => {
         fireEvent.press(renderResult.getByTestId('selected-gas-fee-token'));
@@ -99,7 +105,9 @@ describe('SelectedGasFeeToken', () => {
       } as unknown as ReturnType<typeof useSelectedGasFeeToken>,
       gaslessSupported: true,
       isSmartTransaction: true,
-      gasFeeTokens: [{ tokenAddress: '0xTokenAddress', symbol: 'DAI' }] as unknown as GasFeeToken[],
+      gasFeeTokens: [
+        { tokenAddress: '0xTokenAddress', symbol: 'DAI' },
+      ] as unknown as GasFeeToken[],
     });
 
     expect(getByTestId('selected-gas-fee-token')).toBeOnTheScreen();
@@ -121,7 +129,9 @@ describe('SelectedGasFeeToken', () => {
         } as unknown as ReturnType<typeof useSelectedGasFeeToken>,
         gaslessSupported: true,
         isSmartTransaction: true,
-        gasFeeTokens: [{ tokenAddress: '0xTokenAddress', symbol: 'DAI' }] as unknown as GasFeeToken[],
+        gasFeeTokens: [
+          { tokenAddress: '0xTokenAddress', symbol: 'DAI' },
+        ] as unknown as GasFeeToken[],
       });
 
       expectModalToOpen();
@@ -144,7 +154,9 @@ describe('SelectedGasFeeToken', () => {
         } as unknown as ReturnType<typeof useSelectedGasFeeToken>,
         gaslessSupported: true,
         isSmartTransaction: true,
-        gasFeeTokens: [{ tokenAddress: '0xTokenAddress', symbol: 'DAI' }] as unknown as GasFeeToken[],
+        gasFeeTokens: [
+          { tokenAddress: '0xTokenAddress', symbol: 'DAI' },
+        ] as unknown as GasFeeToken[],
       });
 
       // Open modal
@@ -162,7 +174,9 @@ describe('SelectedGasFeeToken', () => {
           insufficientBalance: [{ reason: 'insufficient' } as unknown as Alert],
           gaslessSupported: true,
           isSmartTransaction: true,
-          gasFeeTokens: [{ tokenAddress: NATIVE_TOKEN_ADDRESS, symbol: 'ETH' }] as unknown as GasFeeToken[],
+          gasFeeTokens: [
+            { tokenAddress: NATIVE_TOKEN_ADDRESS, symbol: 'ETH' },
+          ] as unknown as GasFeeToken[],
         });
 
         expectModalToOpen();
@@ -170,10 +184,14 @@ describe('SelectedGasFeeToken', () => {
 
       it('does not support gas fee tokens when only future native token and insufficient balance but not smart transaction', () => {
         const { expectModalNotToOpen } = setupTest({
-          insufficientBalance: [{ reason: 'insufficient' }] as unknown as Alert[],
+          insufficientBalance: [
+            { reason: 'insufficient' },
+          ] as unknown as Alert[],
           gaslessSupported: true,
           isSmartTransaction: false,
-          gasFeeTokens: [{ tokenAddress: NATIVE_TOKEN_ADDRESS, symbol: 'ETH' }] as unknown as GasFeeToken[],
+          gasFeeTokens: [
+            { tokenAddress: NATIVE_TOKEN_ADDRESS, symbol: 'ETH' },
+          ] as unknown as GasFeeToken[],
         });
 
         expectModalNotToOpen();
@@ -184,7 +202,9 @@ describe('SelectedGasFeeToken', () => {
       const { expectModalNotToOpen } = setupTest({
         gaslessSupported: false,
         isSmartTransaction: true,
-        gasFeeTokens: [{ tokenAddress: '0xTokenAddress', symbol: 'DAI' }] as unknown as GasFeeToken[],
+        gasFeeTokens: [
+          { tokenAddress: '0xTokenAddress', symbol: 'DAI' },
+        ] as unknown as GasFeeToken[],
       });
 
       expectModalNotToOpen();
