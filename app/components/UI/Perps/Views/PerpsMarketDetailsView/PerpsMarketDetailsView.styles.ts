@@ -3,9 +3,10 @@ import type { Theme } from '../../../../../util/theme/models';
 
 export const createStyles = ({
   theme,
+  vars,
 }: {
   theme: Theme;
-  vars: Record<string, never>;
+  vars: { hasActionButtons: boolean };
 }) =>
   StyleSheet.create({
     container: {
@@ -19,7 +20,7 @@ export const createStyles = ({
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: 75, // Space for action buttons
+      paddingBottom: vars.hasActionButtons ? 75 : 16,
     },
     header: {
       flexDirection: 'row',
@@ -57,37 +58,11 @@ export const createStyles = ({
       color: theme.colors.text.default,
     },
     section: {
-      padding: 16,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
     },
     chartSection: {
       paddingTop: 0,
-    },
-    statisticsTitle: {
-      marginBottom: 16,
-    },
-    statisticsGrid: {
-      gap: 12,
-    },
-    statisticsRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: 12,
-    },
-    statisticsItem: {
-      flex: 1,
-      backgroundColor: theme.colors.background.alternative,
-      padding: 16,
-      borderRadius: 8,
-    },
-    statisticsLabelContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      marginBottom: 4,
-    },
-    statisticsValue: {
-      fontSize: 16,
-      fontWeight: '600',
     },
     actionsContainer: {
       position: 'absolute',

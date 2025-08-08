@@ -1135,7 +1135,9 @@
       "long": "Long",
       "short": "Short",
       "add_funds": "Add Funds",
-      "add_funds_to_start_trading_perps": "Add funds to start trading perps"
+      "add_funds_to_start_trading_perps": "Add funds to start trading perps",
+      "position": "Position",
+      "orders": "Orders"
     },
     "buttons": {
       "get_account_balance": "Get Account Balance",
