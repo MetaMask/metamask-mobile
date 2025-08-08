@@ -1,5 +1,5 @@
 // Mock Engine before other imports to prevent lodash dependency issues
-jest.mock('../core/Engine', () => ({
+jest.mock('../../core/Engine', () => ({
   __esModule: true,
   default: {
     context: {},
@@ -11,21 +11,21 @@ jest.mock('../core/Engine', () => ({
 }));
 
 // Mock Engine constants to prevent lodash dependency issues
-jest.mock('../core/Engine/constants', () => ({
+jest.mock('../../core/Engine/constants', () => ({
   BACKGROUND_STATE_CHANGE_EVENT_NAMES: ['TestController:stateChange'],
 }));
 
-jest.mock('../core/EngineService/constants', () => ({
+jest.mock('../../core/EngineService/constants', () => ({
   UPDATE_BG_STATE_KEY: 'UPDATE_BG_STATE',
 }));
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
-import Device from '../util/device';
-import persistConfig, { ControllerStorage } from './persistConfig';
-import { version } from './migrations';
+import Device from '../../util/device';
+import persistConfig, { ControllerStorage } from '.';
+import { version } from '../migrations';
 import { Transform } from 'redux-persist';
-import Logger from '../util/Logger';
+import Logger from '../../util/Logger';
 
 interface FieldMetadata {
   persist: boolean;
@@ -39,8 +39,8 @@ interface ControllerMetadata {
 // Mock dependencies
 jest.mock('@react-native-async-storage/async-storage');
 jest.mock('redux-persist-filesystem-storage');
-jest.mock('../util/device');
-jest.mock('../util/Logger');
+jest.mock('../../util/device');
+jest.mock('../../util/Logger');
 jest.mock('@metamask/base-controller', () => ({
   getPersistentState: (
     state: Record<string, unknown>,
@@ -79,7 +79,7 @@ const mockMigrations = {
   1: (state: unknown) => state,
 };
 
-jest.mock('./migrations', () => ({
+jest.mock('../migrations', () => ({
   version: 1,
   migrations: mockMigrations,
 }));
@@ -204,7 +204,7 @@ describe('persistConfig', () => {
       });
     });
 
-    it('excludes controllers with empty state objects', async () => {
+    it('includes controllers with empty state objects for performance', async () => {
       (FilesystemStorage.getItem as jest.Mock).mockImplementation((key) => {
         if (key === 'persist:KeyringController') {
           return JSON.stringify({ vault: 'encrypted_data' });
@@ -220,7 +220,7 @@ describe('persistConfig', () => {
       expect(result).toEqual({
         backgroundState: {
           KeyringController: { vault: 'encrypted_data' },
-          // PreferencesController excluded because it's empty
+          PreferencesController: {}, // Empty state included for performance
         },
       });
     });

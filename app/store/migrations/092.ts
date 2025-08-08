@@ -1,36 +1,9 @@
 import { hasProperty, isObject } from '@metamask/utils';
 import { ensureValidState } from './util';
-import Logger from '../../util/Logger';
 import { captureException } from '@sentry/react-native';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import Device from '../../util/device';
-
-const CONTROLLER_LIST = [
-  'AccountTrackerController',
-  'AddressBookController',
-  'AssetsContractController',
-  'NftController',
-  'TokensController',
-  'TokenDetectionController',
-  'NftDetectionController',
-  'KeyringController',
-  'NetworkController',
-  'PhishingController',
-  'PreferencesController',
-  'TokenBalancesController',
-  'TokenRatesController',
-  'TransactionController',
-  'SwapsController',
-  'TokenListController',
-  'CurrencyRateController',
-  'GasFeeController',
-  'ApprovalController',
-  'SnapController',
-  'SubjectMetadataController',
-  'PermissionController',
-  'LoggingController',
-  'PPOMController',
-];
+import { CONTROLLER_LIST } from '../persistConfig/constants';
 
 /**
  * Migration to transition from old redux-persist engine data to new individual controller storage system.
@@ -50,10 +23,6 @@ export default async function migrate(state: unknown) {
   }
 
   try {
-    Logger.log(
-      'Migration 92: Starting migration from redux-persist to individual controller storage',
-    );
-
     const { engine } = state;
 
     if (
@@ -61,12 +30,7 @@ export default async function migrate(state: unknown) {
       isObject(engine.backgroundState) &&
       Object.keys(engine.backgroundState).length > 0
     ) {
-      Logger.log(
-        'Migration 92: Found existing engine data, starting migration',
-      );
-
       const controllers = engine.backgroundState;
-      let migratedControllers = 0;
       let failedControllers = 0;
       const failedControllerStates: Record<string, unknown> = {};
 
@@ -82,21 +46,16 @@ export default async function migrate(state: unknown) {
             const value = JSON.stringify(controllerState);
 
             await FilesystemStorage.setItem(key, value, Device.isIos());
-
-            Logger.log(`Migration 92: Successfully migrated ${controllerName}`);
-            migratedControllers++;
-          } else {
-            Logger.log(
-              `Migration 92: No data found for ${controllerName}, skipping`,
-            );
           }
         } catch (error) {
-          Logger.error(
-            error as Error,
-            `Migration 92: Failed to migrate ${controllerName} to individual storage`,
-          );
           failedControllers++;
-          captureException(error as Error);
+          captureException(
+            new Error(
+              `Migration 92: Failed to migrate ${controllerName} to individual storage: ${String(
+                error,
+              )}`,
+            ),
+          );
 
           // Preserve failed controller state to prevent data loss
           if (hasProperty(controllers, controllerName)) {
@@ -105,10 +64,6 @@ export default async function migrate(state: unknown) {
           }
         }
       }
-
-      Logger.log(
-        `Migration 92: Migration completed. Migrated: ${migratedControllers}, Failed: ${failedControllers}`,
-      );
 
       // Only clear successfully migrated controllers, preserve failed ones to prevent data loss
       // Create new state object to maintain immutability
@@ -119,32 +74,25 @@ export default async function migrate(state: unknown) {
       };
 
       if (failedControllers > 0) {
-        Logger.error(
+        captureException(
           new Error(
-            `Migration 92: ${failedControllers} controllers failed to migrate`,
+            `Migration 92: ${failedControllers} controllers failed to migrate, preserving their state in redux-persist`,
           ),
-          'Migration 92: Some controllers failed to migrate, preserving their state in redux-persist',
-        );
-      } else {
-        Logger.log(
-          'Migration 92: All controllers migrated successfully, cleared old engine data from redux-persist',
         );
       }
 
       return newState;
     }
 
-    Logger.log(
-      'Migration 92: No existing engine data found, skipping migration',
-    );
-
     return state;
   } catch (error) {
-    Logger.error(
-      error as Error,
-      'Migration 92: Failed to migrate from redux-persist to individual controller storage',
+    captureException(
+      new Error(
+        `Migration 92: Failed to migrate from redux-persist to individual controller storage: ${String(
+          error,
+        )}`,
+      ),
     );
-    captureException(error as Error);
 
     return state;
   }

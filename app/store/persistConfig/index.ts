@@ -2,43 +2,17 @@ import { createMigrate, createTransform } from 'redux-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import autoMergeLevel2 from 'redux-persist/lib/stateReconciler/autoMergeLevel2';
-import { RootState } from '../reducers';
-import { version, migrations } from './migrations';
-import Logger from '../util/Logger';
-import Device from '../util/device';
-import { UserState } from '../reducers/user';
-import Engine, { EngineContext } from '../core/Engine';
-import { getPersistentState } from './getPersistentState/getPersistentState';
+import { RootState } from '../../reducers';
+import { version, migrations } from '../migrations';
+import Logger from '../../util/Logger';
+import Device from '../../util/device';
+import { UserState } from '../../reducers/user';
+import Engine, { EngineContext } from '../../core/Engine';
+import { getPersistentState } from '../getPersistentState/getPersistentState';
+import { CONTROLLER_LIST } from './constants';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
-
-const CONTROLLER_LIST = [
-  'AccountTrackerController',
-  'AddressBookController',
-  'AssetsContractController',
-  'NftController',
-  'TokensController',
-  'TokenDetectionController',
-  'NftDetectionController',
-  'KeyringController',
-  'NetworkController',
-  'PhishingController',
-  'PreferencesController',
-  'TokenBalancesController',
-  'TokenRatesController',
-  'TransactionController',
-  'SwapsController',
-  'TokenListController',
-  'CurrencyRateController',
-  'GasFeeController',
-  'ApprovalController',
-  'SnapController',
-  'SubjectMetadataController',
-  'PermissionController',
-  'LoggingController',
-  'PPOMController',
-];
 
 export const ControllerStorage = {
   async getItem(key: string) {
@@ -74,7 +48,9 @@ export const ControllerStorage = {
   },
   async getKey(): Promise<Record<string, unknown>> {
     try {
-      const controllerStates = await Promise.all(
+      const backgroundState: Record<string, unknown> = {};
+
+      await Promise.all(
         CONTROLLER_LIST.map(async (controllerName) => {
           const key = `persist:${controllerName}`;
           try {
@@ -94,30 +70,21 @@ export const ControllerStorage = {
                     `Invalid persisted data for ${controllerName}: not an object`,
                   ),
                 );
-                return null;
+                return; // This just skips this controller, doesn't exit getKey()
               }
 
               const { _persist, ...controllerState } = parsedData;
 
-              // Only include controllers that have meaningful state (not empty objects)
-              if (Object.keys(controllerState).length > 0) {
-                return { [controllerName]: controllerState };
-              }
+              backgroundState[controllerName] = controllerState;
             }
-            return null;
           } catch (error) {
             Logger.error(error as Error, {
               message: `Failed to get controller state for ${controllerName}`,
             });
-            return null; // Don't include controllers with errors
+            // Don't include controllers with errors in backgroundState
           }
         }),
       );
-
-      // Combine all controller states into a single object, filtering out null values
-      const backgroundState = controllerStates
-        .filter((state) => state !== null)
-        .reduce((acc, controllerState) => ({ ...acc, ...controllerState }), {});
 
       return { backgroundState };
     } catch (error) {
@@ -176,9 +143,9 @@ const MigratedStorage = {
 };
 
 import { debounce } from 'lodash';
-import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../core/Engine/constants';
-import ReduxService from '../core/redux';
-import { UPDATE_BG_STATE_KEY } from '../core/EngineService/constants';
+import { BACKGROUND_STATE_CHANGE_EVENT_NAMES } from '../../core/Engine/constants';
+import ReduxService from '../../core/redux';
+import { UPDATE_BG_STATE_KEY } from '../../core/EngineService/constants';
 
 export const setupEnginePersistence = () => {
   try {
