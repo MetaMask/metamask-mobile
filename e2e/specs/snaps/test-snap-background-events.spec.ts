@@ -104,4 +104,21 @@ describe(FlaskBuildTests('Background Events Snap Tests'), () => {
       },
     );
   });
+
+  it('shows an error when trying to schedule a background event in the past', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+      },
+      async () => {
+        const pastDate = new Date(Date.now() - 5_000).toISOString();
+
+        await TestSnaps.fillMessage('backgroundEventDateInput', pastDate);
+        await TestSnaps.tapButton('scheduleBackgroundEventWithDateButton');
+        await Assertions.expectTextDisplayed(
+          'Cannot schedule an event in the past.',
+        );
+      },
+    );
+  });
 });
