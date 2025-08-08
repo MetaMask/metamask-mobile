@@ -2248,7 +2248,7 @@ export class Engine {
     this.controllerMessenger.clearSubscriptions();
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    this.appStateListener.remove();
+    this.appStateListener?.remove();
     ///: END:ONLY_INCLUDE_IF
   }
 
