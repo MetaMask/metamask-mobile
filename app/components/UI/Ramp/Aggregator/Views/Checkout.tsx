@@ -53,7 +53,6 @@ const CheckoutWebView = () => {
   const { colors } = useTheme();
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
 
-  // MODIFY THIS LINE TO ADD THE HARDCODED URL
   const { url: uri, customOrderId, provider } = params;
 
   const handleCancelPress = useCallback(() => {
