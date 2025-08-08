@@ -196,6 +196,8 @@ describe('ChoosePassword', () => {
 
   it('render loading state while creating password', async () => {
     jest.spyOn(Device, 'isIos').mockReturnValue(true);
+    jest.spyOn(Device, 'isMediumDevice').mockReturnValue(true);
+
     const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
@@ -243,6 +245,7 @@ describe('ChoosePassword', () => {
     );
     expect(loadingTitle).toBeTruthy();
     jest.spyOn(Device, 'isIos').mockRestore();
+    jest.spyOn(Device, 'isMediumDevice').mockRestore();
   });
 
   it('error message is shown when passwords do not match', async () => {

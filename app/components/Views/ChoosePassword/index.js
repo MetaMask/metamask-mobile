@@ -283,7 +283,7 @@ class ChoosePassword extends PureComponent {
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
-          color={this.state.loading ? colors.icon.muted : colors.icon.default}
+          color={colors.icon.default}
           style={{ marginLeft }}
         />
       </TouchableOpacity>
