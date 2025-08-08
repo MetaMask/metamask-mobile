@@ -22,8 +22,16 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       textAlign: 'left',
     },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    tutorialButton: {
+      padding: 4,
+    },
     searchButton: {
       padding: 4,
+      marginRight: 4,
     },
     tabContainer: {
       flexDirection: 'row',

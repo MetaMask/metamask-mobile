@@ -6,6 +6,12 @@ const styleSheet = (params: { theme: Theme }) => {
   const { colors } = theme;
 
   return StyleSheet.create({
+    firstTimeIcon: {
+      width: 48,
+      height: 48,
+      marginTop: 16,
+      marginBottom: 8,
+    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -17,9 +23,9 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 24,
     },
     sectionHeader: {
-      flexDirection: 'row' as const,
-      justifyContent: 'space-between' as const,
-      alignItems: 'center' as const,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       marginBottom: 12,
     },
     sectionTitle: {
@@ -27,21 +33,43 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     emptyContainer: {
       padding: 24,
-      alignItems: 'center' as const,
+      alignItems: 'center',
     },
     emptyText: {
-      textAlign: 'center' as const,
+      textAlign: 'center',
       marginTop: 8,
     },
     loadingContainer: {
       padding: 24,
-      alignItems: 'center' as const,
+      alignItems: 'center',
     },
     bottomSheetContent: {
       padding: 24,
     },
     actionButton: {
       marginBottom: 12,
+    },
+    firstTimeContainer: {
+      flex: 1,
+      padding: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    firstTimeContent: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    firstTimeTitle: {
+      marginBottom: 8,
+      textAlign: 'center',
+    },
+    firstTimeDescription: {
+      textAlign: 'center',
+      paddingHorizontal: 16,
+    },
+    startTradingButton: {
+      marginTop: 16,
+      width: '100%',
     },
   });
 };

@@ -110,6 +110,7 @@ export const getPerpsPayWithRowSelector = {
 // ========================================
 
 export const PerpsMarketListViewSelectorsIDs = {
+  TUTORIAL_BUTTON: 'tutorial-button',
   SEARCH_TOGGLE_BUTTON: 'search-toggle-button',
   CLOSE_BUTTON: 'close-button',
   SEARCH_CLEAR_BUTTON: 'search-clear-button',
