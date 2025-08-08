@@ -48,7 +48,7 @@ const ListItemMultiSelectWithMenuButton: React.FC<
         style={styles.base}
         disabled={isDisabled}
         onPress={props.onPress}
-        onLongPress={props.onPress}
+        onLongPress={props.onLongPress}
         {...props}
       >
         <ListItem gap={gap} style={styles.containerColumn}>

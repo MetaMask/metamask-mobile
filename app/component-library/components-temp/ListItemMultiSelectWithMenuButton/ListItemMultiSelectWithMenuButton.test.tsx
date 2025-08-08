@@ -18,13 +18,14 @@ describe('ListItemMultiSelectWithMenuButton', () => {
     expect(wrapper).toMatchSnapshot();
   });
 
-  it('should not render the underlay view if isSelected is false', () => {
-    const { queryByRole } = render(
+  it('should not render checkbox icon when isSelected is false', () => {
+    const { queryByTestId } = render(
       <ListItemMultiSelectWithMenuButton>
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
-    expect(queryByRole('checkbox')).toBeNull();
+    // Checkbox icon should not be present when not selected
+    expect(queryByTestId('checkbox-icon-component')).toBeNull();
   });
 
   it('should call onPress when the button is pressed', () => {
@@ -68,12 +69,13 @@ describe('ListItemMultiSelectWithMenuButton', () => {
     expect(mockOnButtonClick).toHaveBeenCalled();
   });
 
-  it('should render checkbox as checked when isSelected is true', () => {
+  it('should render checkbox icon when isSelected is true', () => {
     const { getByTestId } = render(
       <ListItemMultiSelectWithMenuButton isSelected>
         <View />
       </ListItemMultiSelectWithMenuButton>,
     );
+    // Checkbox icon should be present when selected
     expect(getByTestId('checkbox-icon-component')).toBeTruthy();
   });
 

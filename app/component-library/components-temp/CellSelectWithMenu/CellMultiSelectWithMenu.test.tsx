@@ -1,6 +1,7 @@
 // Third party dependencies.
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { View, Text } from 'react-native';
 
 // External dependencies.
 import { CellComponentSelectorsIDs } from '../../../../e2e/selectors/wallet/CellComponent.selectors';
@@ -65,7 +66,11 @@ describe('CellMultiSelectWithMenu', () => {
   });
 
   it('should render with custom title as ReactNode', () => {
-    const CustomTitle = () => <div>Custom Title Component</div>;
+    const CustomTitle = () => (
+      <View>
+        <Text>Custom Title Component</Text>
+      </View>
+    );
 
     const { getByTestId } = render(
       <CellMultiSelectWithMenu
@@ -96,7 +101,9 @@ describe('CellMultiSelectWithMenu', () => {
   it('should render with children', () => {
     const { getByTestId } = render(
       <CellMultiSelectWithMenu {...SAMPLE_CELL_PROPS}>
-        <div>Custom Child Component</div>
+        <View>
+          <Text>Custom Child Component</Text>
+        </View>
       </CellMultiSelectWithMenu>,
     );
 
