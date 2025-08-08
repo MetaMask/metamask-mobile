@@ -23,7 +23,7 @@ export function useNoPayTokenQuotesAlert() {
     selectIsTransactionBridgeQuotesLoadingById(state, transactionId),
   );
 
-  const showAlert = payToken && !quotesLoading && !quotes?.length;
+  const showAlert = payToken && !quotesLoading && quotes === undefined;
 
   return useMemo(() => {
     if (!showAlert) {

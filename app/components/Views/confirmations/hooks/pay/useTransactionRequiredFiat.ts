@@ -55,6 +55,7 @@ export function useTransactionRequiredFiat() {
           balanceFiat: balanceFiat.toNumber(),
           feeFiat: feeFiat.toNumber(),
           totalFiat: totalFiat.toNumber(),
+          skipIfBalance: target.skipIfBalance,
         };
       }),
     [requiredTokens, tokenFiatRates],

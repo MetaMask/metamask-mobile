@@ -36,16 +36,52 @@ export function useTransactionPayTokenAmounts() {
       return undefined;
     }
 
-    return values.map((value) => {
-      const amountHuman = new BigNumber(value.totalFiat).div(tokenFiatRate);
-      const amountRaw = amountHuman.shiftedBy(decimals).toFixed(0);
+    return values
+      .filter((value) => {
+        const hasBalance = value.balanceFiat > value.amountFiat;
 
-      return {
-        address: value.address,
-        amountHuman: amountHuman.toString(10),
-        amountRaw,
-      };
-    });
+        const isSameTokenSelected =
+          address.toLowerCase() === value.address.toLowerCase();
+
+        const hasOtherTokenWithoutBalance = values.some(
+          (v) =>
+            v.address.toLowerCase() !== address.toLowerCase() &&
+            v.balanceFiat < v.amountFiat,
+        );
+
+        if (value.skipIfBalance && hasBalance) {
+          log('Skipping token due to sufficient balance', value.address);
+          return false;
+        }
+
+        if (isSameTokenSelected && hasBalance) {
+          log(
+            'Skipping token due to sufficient balance and matching pay token',
+            value.address,
+          );
+          return false;
+        }
+
+        if (hasBalance && hasOtherTokenWithoutBalance) {
+          log(
+            'Skipping token due to sufficient balance and other token without balance',
+            value.address,
+          );
+          return false;
+        }
+
+        return true;
+      })
+      .map((value) => {
+        const amountHuman = new BigNumber(value.totalFiat).div(tokenFiatRate);
+        const amountRaw = amountHuman.shiftedBy(decimals).toFixed(0);
+
+        return {
+          address: value.address,
+          amountHuman: amountHuman.toString(10),
+          amountRaw,
+        };
+      });
   }, [address, chainId, decimals, tokenFiatRate, values]);
 
   const totalHuman = amounts
