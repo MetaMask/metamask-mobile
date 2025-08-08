@@ -762,6 +762,163 @@ describe('Multichain Selectors', () => {
     });
   });
 
+  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
+    let flagSpy: jest.SpyInstance;
+
+    // Common test configurations
+    const createTestStateWithEnabledNetworks = (
+      enabledNetworks: Record<string, boolean>,
+    ) =>
+      ({
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: enabledNetworks,
+              },
+            },
+            // Ensure only enabled networks have tokens
+            TokensController: {
+              ...mockState.engine.backgroundState.TokensController,
+              allTokens: Object.fromEntries(
+                Object.entries(
+                  mockState.engine.backgroundState.TokensController.allTokens,
+                ).filter(
+                  ([chainId]) => enabledNetworks[chainId as `0x${string}`],
+                ),
+              ),
+            },
+            // Ensure only enabled networks have account balances
+            AccountTrackerController: {
+              ...mockState.engine.backgroundState.AccountTrackerController,
+              accountsByChainId: Object.fromEntries(
+                Object.entries(
+                  mockState.engine.backgroundState.AccountTrackerController
+                    .accountsByChainId,
+                ).filter(
+                  ([chainId]) => enabledNetworks[chainId as `0x${string}`],
+                ),
+              ),
+            },
+            // Ensure only enabled networks have network configurations
+            NetworkController: {
+              ...mockState.engine.backgroundState.NetworkController,
+              networkConfigurationsByChainId: Object.fromEntries(
+                Object.entries(
+                  mockState.engine.backgroundState.NetworkController
+                    .networkConfigurationsByChainId,
+                ).filter(
+                  ([chainId]) => enabledNetworks[chainId as `0x${string}`],
+                ),
+              ),
+            },
+          },
+        },
+      } as unknown as RootState);
+
+    const createTestStateWithSelectedNetwork = (selectedNetworkId: string) =>
+      ({
+        ...mockState,
+        engine: {
+          ...mockState.engine,
+          backgroundState: {
+            ...mockState.engine.backgroundState,
+            NetworkController: {
+              ...mockState.engine.backgroundState.NetworkController,
+              selectedNetworkClientId: selectedNetworkId,
+              networkConfigurationsByChainId: {
+                [selectedNetworkId]:
+                  mockState.engine.backgroundState.NetworkController
+                    .networkConfigurationsByChainId[
+                    selectedNetworkId as `0x${string}`
+                  ] || {},
+              },
+            },
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: {
+                  '0x1': true,
+                  '0x89': true,
+                },
+              },
+            },
+            // Ensure only selected network has tokens
+            TokensController: {
+              ...mockState.engine.backgroundState.TokensController,
+              allTokens: {
+                [selectedNetworkId]:
+                  mockState.engine.backgroundState.TokensController.allTokens[
+                    selectedNetworkId as `0x${string}`
+                  ] || {},
+              },
+            },
+            // Ensure only selected network has account balances
+            AccountTrackerController: {
+              ...mockState.engine.backgroundState.AccountTrackerController,
+              accountsByChainId: {
+                [selectedNetworkId]:
+                  mockState.engine.backgroundState.AccountTrackerController
+                    .accountsByChainId[selectedNetworkId as `0x${string}`] ||
+                  {},
+              },
+            },
+          },
+        },
+      } as unknown as RootState);
+
+    beforeEach(() => {
+      jest.resetModules();
+    });
+
+    afterEach(() => {
+      if (flagSpy) flagSpy.mockRestore();
+    });
+
+    describe('when feature flag is enabled', () => {
+      beforeEach(() => {
+        flagSpy = jest
+          .spyOn(
+            jest.requireActual('../../util/networks'),
+            'isRemoveGlobalNetworkSelectorEnabled',
+          )
+          .mockReturnValue(true);
+      });
+
+      it('should filter tokens by enabled networks', () => {
+        const testState = createTestStateWithEnabledNetworks({
+          '0x1': true, // Only Ethereum enabled
+          '0x89': false, // Polygon disabled
+        });
+
+        const result = selectEvmTokens(testState);
+
+        expect(result.every((token) => token.chainId === '0x1')).toBe(true);
+      });
+    });
+
+    describe('when feature flag is disabled', () => {
+      beforeEach(() => {
+        flagSpy = jest
+          .spyOn(
+            jest.requireActual('../../util/networks'),
+            'isRemoveGlobalNetworkSelectorEnabled',
+          )
+          .mockReturnValue(false);
+      });
+
+      it('should filter tokens by current network', () => {
+        const testState = createTestStateWithSelectedNetwork('0x89');
+
+        const result = selectEvmTokens(testState);
+
+        expect(result.every((token) => token.chainId === '0x89')).toBe(true);
+      });
+    });
+  });
+
   describe('makeSelectAssetByAddressAndChainId', () => {
     const mockAccountId = '0xAddress1';
     const mockAllTokens = {
