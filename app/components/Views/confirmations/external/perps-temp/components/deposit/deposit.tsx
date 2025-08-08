@@ -15,6 +15,8 @@ import { useAutomaticTransactionPayToken } from '../../../../hooks/pay/useAutoma
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import GeneralAlertBanner from '../../../../components/general-alert-banner';
 import { Box } from '../../../../../../UI/Box/Box';
+import InfoRowDivider from '../../../../components/UI/info-row-divider';
+import { InfoRowDividerVariant } from '../../../../components/UI/info-row-divider/info-row-divider.styles';
 
 const AMOUNT_PREFIX = '$';
 
@@ -60,10 +62,11 @@ export function PerpsDeposit() {
           {!isKeyboardVisible && <BridgeTimeRow />}
         </InfoSection>
         {!isKeyboardVisible && (
-          <>
-            <GasFeesDetailsRow disableUpdate hideSpeed fiatOnly />
+          <InfoSection>
+            <GasFeesDetailsRow disableUpdate hideSpeed fiatOnly noSection />
+            <InfoRowDivider variant={InfoRowDividerVariant.Large} />
             <TotalRow />
-          </>
+          </InfoSection>
         )}
       </EditAmount>
     </>
