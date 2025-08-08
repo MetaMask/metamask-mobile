@@ -757,7 +757,7 @@ exports[`Confirm should render correctly 1`] = `
                                       }
                                     }
                                   >
-                                    Ethereum Network default RPC
+                                    Ethereum Main Network
                                   </Text>
                                   <View
                                     style={

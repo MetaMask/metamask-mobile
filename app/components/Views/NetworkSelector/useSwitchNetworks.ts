@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import Engine from '../../../core/Engine';
 import {
   getDecimalChainId,
@@ -39,6 +39,8 @@ import Routes from '../../../constants/navigation/Routes';
 import { AccountSelectorScreens } from '../AccountSelector/AccountSelector.types';
 import { useNavigation } from '@react-navigation/native';
 ///: END:ONLY_INCLUDE_IF
+import { setTransactionSendFlowContextualChainId } from '../../../actions/sendFlow';
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
@@ -48,6 +50,7 @@ interface UseSwitchNetworksProps {
   dismissModal?: () => void;
   closeRpcModal?: () => void;
   parentSpan?: unknown;
+  source?: string;
 }
 
 interface UseSwitchNetworksReturn {
@@ -73,12 +76,14 @@ export function useSwitchNetworks({
   dismissModal,
   closeRpcModal,
   parentSpan,
+  source,
 }: UseSwitchNetworksProps): UseSwitchNetworksReturn {
   const isAllNetwork = useSelector(selectIsAllNetworks);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
   const { trackEvent, createEventBuilder } = useMetrics();
+  const dispatch = useDispatch();
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const isSolanaAccountAlreadyCreated = useSelector(
@@ -139,7 +144,11 @@ export function useSwitchNetworks({
         });
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
-          await MultichainNetworkController.setActiveNetwork(networkClientId);
+          if (source === NETWORK_SELECTOR_SOURCES.SEND_FLOW) {
+            dispatch(setTransactionSendFlowContextualChainId(chainId));
+          } else {
+            await MultichainNetworkController.setActiveNetwork(networkClientId);
+          }
         } catch (error) {
           Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
         }
@@ -169,6 +178,8 @@ export function useSwitchNetworks({
       createEventBuilder,
       parentSpan,
       dismissModal,
+      source,
+      dispatch,
     ],
   );
 
@@ -202,8 +213,16 @@ export function useSwitchNetworks({
             networkConfiguration.defaultRpcEndpointIndex
           ].networkClientId ?? type;
 
-        setTokenNetworkFilter(networkConfiguration.chainId);
-        await MultichainNetworkController.setActiveNetwork(clientId);
+        if (source !== NETWORK_SELECTOR_SOURCES.SEND_FLOW) {
+          setTokenNetworkFilter(networkConfiguration.chainId);
+          await MultichainNetworkController.setActiveNetwork(clientId);
+        } else {
+          dispatch(
+            setTransactionSendFlowContextualChainId(
+              networkConfiguration.chainId,
+            ),
+          );
+        }
 
         closeRpcModal?.();
         AccountTrackerController.refresh([clientId]);
@@ -240,6 +259,8 @@ export function useSwitchNetworks({
       parentSpan,
       dismissModal,
       closeRpcModal,
+      dispatch,
+      source,
     ],
   );
 
