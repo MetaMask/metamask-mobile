@@ -54,7 +54,7 @@ const CheckoutWebView = () => {
   const handleSuccessfulOrder = useHandleSuccessfulOrder();
 
   // MODIFY THIS LINE TO ADD THE HARDCODED URL
-  const { url: originalUri, customOrderId, provider } = params;
+  const { url: uri, customOrderId, provider } = params;
 
   const handleCancelPress = useCallback(() => {
     if (isBuy) {
