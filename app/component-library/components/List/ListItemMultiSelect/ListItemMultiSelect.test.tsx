@@ -92,7 +92,9 @@ describe('ListItemMultiSelect', () => {
       expect(checkbox).toBeTruthy();
 
       // When pressing the overall component, onPress should only be called once
-      fireEvent.press(checkbox.parent);
+      if (checkbox.parent) {
+        fireEvent.press(checkbox.parent);
+      }
       expect(mockOnPress).toHaveBeenCalledTimes(1);
     });
 
@@ -121,7 +123,7 @@ describe('ListItemMultiSelect', () => {
 
       // Should show selected state when isSelected is true
       rerender(
-        <ListItemMultiSelect isSelected={true}>
+        <ListItemMultiSelect isSelected>
           <View />
         </ListItemMultiSelect>,
       );
