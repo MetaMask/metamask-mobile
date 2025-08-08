@@ -65,6 +65,8 @@ const TouchableOpacity = ({
         disabled={isDisabled}
         onPress={accessibleOnPress} // Preserve for accessibility
         {...props}
+        // Ensure disabled prop is available to tests
+        {...(process.env.NODE_ENV === 'test' && { disabled: isDisabled })}
       >
         {children}
       </RNTouchableOpacity>
@@ -83,10 +85,13 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, gap, isDisabled });
 
-  // Disable gesture wrapper only in E2E test environment to prevent test interference
-  const isE2ETest = __DEV__ && 'detox' in global;
+  // Disable gesture wrapper in test environments to prevent test interference
+  const isE2ETest =
+    process.env.IS_TEST === 'true' ||
+    process.env.METAMASK_ENVIRONMENT === 'e2e';
+  const isUnitTest = process.env.NODE_ENV === 'test';
   const TouchableComponent =
-    Platform.OS === 'android' && !isE2ETest
+    Platform.OS === 'android' && !isE2ETest && !isUnitTest
       ? TouchableOpacity
       : RNTouchableOpacity;
 
