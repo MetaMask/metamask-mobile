@@ -14,15 +14,23 @@ Optional function to trigger when pressing the back button.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| Function                                    | No                                                     |
+| Function                                            | No                                                      |
 
 ### `onClose`
 
-Optional function to trigger when pressing the back button.
+Optional function to trigger when pressing the close button.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| Function                                    | No                                                     |
+| Function                                            | No                                                      |
+
+### `alignment`
+
+Optional alignment for the header title. Can be either `center` (default) or `left`.
+
+| <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> | <span style="color:gray;font-size:14px">DEFAULT</span> |
+| :-------------------------------------------------- | :------------------------------------------------------ | :----------------------------------------------------- |
+| BottomSheetHeaderAlignment                          | No                                                      | BottomSheetHeaderAlignment.Center                      |
 
 ## Header Props
 
@@ -31,8 +39,8 @@ Optional function to trigger when pressing the back button.
 Content to wrap to display.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
-| :-------------------------------------------------- | :------------------------------------------------------ |
-| string | ReactNode                                    | Yes                                                     |
+| :-------------------------------------------------- | :------------------------------------------------------ | --- |
+| string                                              | ReactNode                                               | Yes |
 
 ### `startAccessory`
 
@@ -40,7 +48,7 @@ Optional prop to include content to be displayed before the title.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                           | No                                                     |
+| ReactNode                                           | No                                                      |
 
 ### `endAccessory`
 
@@ -48,23 +56,40 @@ Optional prop to include content to be displayed after the title.
 
 | <span style="color:gray;font-size:14px">TYPE</span> | <span style="color:gray;font-size:14px">REQUIRED</span> |
 | :-------------------------------------------------- | :------------------------------------------------------ |
-| ReactNode                                           | No                                                     |
-
+| ReactNode                                           | No                                                      |
 
 ## Usage
 
 ```javascript
-// BottomSheetHeader with String title
-<BottomSheetHeader 
-  onBack={()=> {}}
-  onClose={()=> {}}>
+import {
+  BottomSheetHeader,
+  BottomSheetHeaderAlignment,
+} from './BottomSheetHeader';
+
+// BottomSheetHeader with String title (default center alignment)
+<BottomSheetHeader onBack={() => {}} onClose={() => {}}>
   {SAMPLE_TITLE_STRING}
 </BottomSheetHeader>;
 
 // BottomSheetHeader with custom title
-<BottomSheetHeader 
-  onBack={()=> {}}
-  onClose={()=> {}}>
+<BottomSheetHeader onBack={() => {}} onClose={() => {}}>
   {CUSTOM_TITLE_NODE}
+</BottomSheetHeader>;
+
+// Left-aligned BottomSheetHeader
+<BottomSheetHeader
+  alignment={BottomSheetHeaderAlignment.Left}
+  onClose={() => {}}
+>
+  Left Aligned Title
+</BottomSheetHeader>;
+
+// Left-aligned with back button
+<BottomSheetHeader
+  alignment={BottomSheetHeaderAlignment.Left}
+  onBack={() => {}}
+  onClose={() => {}}
+>
+  Title with Back Button
 </BottomSheetHeader>;
 ```

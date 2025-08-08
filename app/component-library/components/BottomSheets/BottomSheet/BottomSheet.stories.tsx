@@ -12,7 +12,7 @@ import { default as BottomSheetComponent } from './BottomSheet';
 import { BottomSheetProps, BottomSheetRef } from './BottomSheet.types';
 
 const BottomSheetMeta = {
-  title: 'Component Library / BottomSheets',
+  title: 'Component Library / BottomSheets / BottomSheet',
   component: BottomSheetComponent,
   argTypes: {
     isInteractable: {

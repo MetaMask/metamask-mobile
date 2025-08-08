@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleSheet, ViewStyle } from 'react-native';
+import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
@@ -19,15 +19,35 @@ const styleSheet = (params: {
   theme: Theme;
   vars: BottomSheetHeaderStyleSheetVars;
 }) => {
-  const { vars } = params;
+  const { theme, vars } = params;
+  const { colors } = theme;
   const { style } = vars;
+
   return StyleSheet.create({
     base: Object.assign(
       {
         padding: 16,
+        backgroundColor: colors.background.default,
       } as ViewStyle,
       style,
     ) as ViewStyle,
+    leftAlignedContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    } as ViewStyle,
+    leftAccessory: {
+      marginRight: 16,
+    } as ViewStyle,
+    leftAlignedTitleWrapper: {
+      flex: 1,
+    } as ViewStyle,
+    leftAlignedTitle: {
+      textAlign: 'left',
+      color: colors.text.default,
+    } as TextStyle,
+    rightAccessory: {
+      marginLeft: 16,
+    } as ViewStyle,
   });
 };
 
