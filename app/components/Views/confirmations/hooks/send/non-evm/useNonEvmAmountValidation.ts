@@ -1,4 +1,3 @@
-import BN from 'bnjs4';
 import { useCallback } from 'react';
 
 import { isDecimal } from '../../../../../../util/number';
@@ -18,7 +17,8 @@ export const validateAmountFn = ({
   if (!isDecimal(amount) || Number(amount) < 0) {
     return { invalidAmount: true };
   }
-  if (new BN(amount).gt(new BN(asset.balance))) {
+  // todo: check if parse float can possibly create issue
+  if (parseFloat(amount) > parseFloat(asset.balance)) {
     return { insufficientBalance: true };
   }
   return {};
