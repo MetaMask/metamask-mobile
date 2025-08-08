@@ -9,8 +9,8 @@ import { useSelector } from 'react-redux';
 
 import { CardSDK } from './CardSDK';
 import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
-import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { useCardholderCheck } from '../hooks/useCardholderCheck';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 export interface ICardSDK {
   sdk: CardSDK | null;
@@ -70,10 +70,10 @@ export const withCardSDK =
       </CardSDKProvider>
     );
 
-export const CardVerification = () => {
+export const CardVerification: React.FC = () => {
   useCardholderCheck();
 
-  return null; // This component is used to trigger the cardholder check
+  return null;
 };
 
 export default CardSDKContext;
