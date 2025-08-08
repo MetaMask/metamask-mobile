@@ -14,6 +14,30 @@ import Routes from '../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import Engine from '../../../core/Engine/Engine';
+
+jest.mock('../../../core/Engine/Engine', () => ({
+  context: {
+    NetworkController: {
+      addNetwork: jest.fn().mockResolvedValue(undefined),
+      findNetworkClientIdByChainId: jest
+        .fn()
+        .mockResolvedValue('mock-client-id'),
+    },
+    TokenDetectionController: {
+      detectTokens: jest.fn().mockResolvedValue(undefined),
+    },
+    TokenBalancesController: {
+      updateBalancesByChainId: jest.fn().mockResolvedValue(undefined),
+    },
+    TokenListController: {
+      fetchTokenList: jest.fn().mockResolvedValue(undefined),
+    },
+    AccountTrackerController: {
+      refresh: jest.fn().mockResolvedValue(undefined),
+    },
+  },
+}));
 
 const mockNavigate = jest.fn();
 
@@ -155,6 +179,28 @@ describe('OnboardingSuccess', () => {
     it('renders matching snapshot with route params backedUpSRP false and noSRP false', () => {
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('adds networks to the network controller', async () => {
+      const { toJSON } = renderWithProvider(<OnboardingSuccess />);
+      expect(toJSON()).toMatchSnapshot();
+
+      // wait for the useEffect side-effect to call addNetwork
+      await waitFor(() => {
+        expect(Engine.context.NetworkController.addNetwork).toHaveBeenCalled();
+        expect(
+          Engine.context.TokenBalancesController.updateBalancesByChainId,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.TokenListController.fetchTokenList,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.TokenDetectionController.detectTokens,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.AccountTrackerController.refresh,
+        ).toHaveBeenCalled();
+      });
     });
   });
 
