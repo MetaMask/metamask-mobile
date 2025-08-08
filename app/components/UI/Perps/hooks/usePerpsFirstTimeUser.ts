@@ -32,8 +32,8 @@ export function usePerpsFirstTimeUser(): {
       });
       setIsFirstTimeUser(isFirstTime);
     } catch (err) {
-      // Default to showing tutorial if we can't determine status
-      setIsFirstTimeUser(true);
+      // Default to not showing tutorial if we can't determine status
+      setIsFirstTimeUser(false);
       setError((err as Error).message);
     } finally {
       setIsLoading(false);

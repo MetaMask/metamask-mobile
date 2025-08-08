@@ -2920,7 +2920,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       // Assert
-      expect(result).toBe(true); // Should return true when no wallet address (caught by error handler)
+      expect(result).toBe(false); // Should return false when no wallet address (caught by error handler)
       expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
         'eip155:1:0x123',
       );
@@ -2947,7 +2947,7 @@ describe('HyperLiquidProvider', () => {
       });
 
       // Assert
-      expect(result).toBe(true); // Should default to true on error (show tutorial)
+      expect(result).toBe(false); // Should default to false on error (don't show tutorial)
       expect(mockWalletService.getUserAddressWithDefault).toHaveBeenCalledWith(
         'eip155:1:0x123',
       );

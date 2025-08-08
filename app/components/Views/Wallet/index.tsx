@@ -172,7 +172,7 @@ const createStyles = ({ colors }: Theme) =>
       paddingHorizontal: 16,
     },
     carouselContainer: {
-      marginTop: 12,
+      marginBottom: 12,
     },
     tabStyle: {
       paddingBottom: 8,

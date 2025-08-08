@@ -1970,9 +1970,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return false;
     } catch (error) {
-      // If there's an error checking user status, default to true (don't show tutorial)
+      // If there's an error checking user status, default to false (don't show tutorial)
       DevLogger.log('Error checking if first time user', { error });
-      return true;
+      return false;
     }
   }
 }

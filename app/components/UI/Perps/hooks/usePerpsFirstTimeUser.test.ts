@@ -117,7 +117,7 @@ describe('usePerpsFirstTimeUser', () => {
 
     // Assert
     expect(result.current).toEqual({
-      isFirstTimeUser: true, // Default to true on error
+      isFirstTimeUser: false, // Default to false on error
       isLoading: false,
       error: 'Test error',
       refresh: expect.any(Function),
