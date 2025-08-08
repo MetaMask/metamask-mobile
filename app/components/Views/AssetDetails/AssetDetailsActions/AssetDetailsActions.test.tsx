@@ -96,7 +96,7 @@ describe('AssetDetailsActions', () => {
         asset={mockAsset}
         onBuy={mockOnBuy}
       />,
-      { state: initialRootState },
+      { state: createStateWithSigningCapability() },
     );
 
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
@@ -112,7 +112,7 @@ describe('AssetDetailsActions', () => {
   it('navigates to FundActionMenu with neither onBuy nor asset context when no props provided', () => {
     const { getByTestId } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
-      { state: initialState },
+      { state: createStateWithSigningCapability() },
     );
 
     fireEvent.press(getByTestId(TokenOverviewSelectorsIDs.BUY_BUTTON));
