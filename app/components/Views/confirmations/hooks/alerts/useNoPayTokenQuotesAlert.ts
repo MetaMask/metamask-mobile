@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 import { useTransactionPayToken } from '../pay/useTransactionPayToken';
-import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import {
   selectIsTransactionBridgeQuotesLoadingById,
   selectTransactionBridgeQuotesById,
@@ -12,7 +12,8 @@ import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 
 export function useNoPayTokenQuotesAlert() {
-  const { id: transactionId } = useTransactionMetadataOrThrow();
+  const transactionMeta = useTransactionMetadataRequest();
+  const transactionId = transactionMeta?.id ?? '';
   const { payToken } = useTransactionPayToken();
 
   const quotes = useSelector((state: RootState) =>
@@ -32,7 +33,7 @@ export function useNoPayTokenQuotesAlert() {
 
     return [
       {
-        key: AlertKeys.PerpsDepositMinimum,
+        key: AlertKeys.NoPayTokenQuotes,
         field: RowAlertKey.PayWith,
         message: 'Change the amount or select a different token for payment.',
         title: "We couldn't find any quotes.",
