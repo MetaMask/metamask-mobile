@@ -23,8 +23,9 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 const TouchableOpacity = ({
   onPress,
   disabled,
+  children,
   ...props
-}: TouchableOpacityProps) => {
+}: TouchableOpacityProps & { children?: React.ReactNode }) => {
   const tap = Gesture.Tap()
     .runOnJS(true)
     .onEnd(() => {
@@ -39,7 +40,9 @@ const TouchableOpacity = ({
         disabled={disabled}
         onPress={undefined} // Remove onPress to prevent double execution
         {...props}
-      />
+      >
+        {children}
+      </RNTouchableOpacity>
     </GestureDetector>
   );
 };
