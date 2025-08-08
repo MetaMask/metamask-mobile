@@ -2,13 +2,9 @@ import React from 'react';
 import { View } from 'react-native';
 import styleSheet from './AssetDetailsActions.styles';
 import { useStyles } from '../../../../component-library/hooks';
-import WalletAction from '../../../../components/UI/WalletAction';
+import MainActionButton from '../../../../component-library/components-temp/MainActionButton';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import { TokenOverviewSelectorsIDs } from '../../../../../e2e/selectors/wallet/TokenOverview.selectors';
 import { useSelector } from 'react-redux';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
@@ -53,80 +49,55 @@ export const AssetDetailsActions: React.FC<AssetDetailsActionsProps> = ({
   return (
     <View style={styles.activitiesButton}>
       {displayBuyButton && (
-        <View style={styles.buttonWrapper}>
-          <WalletAction
+        <View style={styles.buttonContainer}>
+          <MainActionButton
             iconName={IconName.Add}
+            label={strings('asset_overview.buy_button')}
             onPress={onBuy}
-            iconStyle={styles.icon}
-            containerStyle={styles.containerStyle}
-            iconSize={AvatarSize.Lg}
-            disabled={!canSignTransactions}
-            actionID={buyButtonActionID}
+            isDisabled={!canSignTransactions}
+            testID={buyButtonActionID}
           />
-          <Text variant={TextVariant.BodyMD}>
-            {strings('asset_overview.buy_button')}
-          </Text>
         </View>
       )}
       {displaySwapsButton && (
-        <View style={styles.buttonWrapper}>
-          <WalletAction
-            iconName={IconName.SwapHorizontal}
+        <View style={styles.buttonContainer}>
+          <MainActionButton
+            iconName={IconName.SwapVertical}
+            label={strings('asset_overview.swap')}
             onPress={() => goToSwaps()}
-            iconStyle={styles.icon}
-            containerStyle={styles.containerStyle}
-            iconSize={AvatarSize.Lg}
-            disabled={!canSignTransactions || !swapsIsLive}
-            actionID={swapButtonActionID}
+            isDisabled={!canSignTransactions || !swapsIsLive}
+            testID={swapButtonActionID}
           />
-          <Text variant={TextVariant.BodyMD}>
-            {strings('asset_overview.swap')}
-          </Text>
         </View>
       )}
       {displayBridgeButton ? (
-        <View style={styles.buttonWrapper}>
-          <WalletAction
+        <View style={styles.buttonContainer}>
+          <MainActionButton
             iconName={IconName.Bridge}
+            label={strings('asset_overview.bridge')}
             onPress={goToBridge}
-            iconStyle={styles.icon}
-            containerStyle={styles.containerStyle}
-            iconSize={AvatarSize.Lg}
-            disabled={!canSignTransactions}
-            actionID={bridgeButtonActionID}
+            isDisabled={!canSignTransactions}
+            testID={bridgeButtonActionID}
           />
-          <Text variant={TextVariant.BodyMD}>
-            {strings('asset_overview.bridge')}
-          </Text>
         </View>
       ) : null}
-      <View style={styles.buttonWrapper}>
-        <WalletAction
-          iconName={IconName.Arrow2UpRight}
+      <View style={styles.buttonContainer}>
+        <MainActionButton
+          iconName={IconName.Send}
+          label={strings('asset_overview.send_button')}
           onPress={onSend}
-          iconStyle={styles.icon}
-          containerStyle={styles.containerStyle}
-          iconSize={AvatarSize.Lg}
-          disabled={!canSignTransactions}
-          actionID={sendButtonActionID}
+          isDisabled={!canSignTransactions}
+          testID={sendButtonActionID}
         />
-        <Text variant={TextVariant.BodyMD}>
-          {strings('asset_overview.send_button')}
-        </Text>
       </View>
-      <View style={styles.buttonWrapper}>
-        <WalletAction
-          iconName={IconName.QrCode}
+      <View style={styles.buttonContainer}>
+        <MainActionButton
+          iconName={IconName.Received}
+          label={strings('asset_overview.receive_button')}
           onPress={onReceive}
-          iconStyle={styles.icon}
-          containerStyle={styles.containerStyle}
-          iconSize={AvatarSize.Lg}
-          disabled={false}
-          actionID={receiveButtonActionID}
+          isDisabled={false}
+          testID={receiveButtonActionID}
         />
-        <Text variant={TextVariant.BodyMD}>
-          {strings('asset_overview.receive_button')}
-        </Text>
       </View>
     </View>
   );

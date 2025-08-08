@@ -212,9 +212,12 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   STATISTICS_OPEN_INTEREST: 'perps-statistics-open-interest',
   STATISTICS_FUNDING_RATE: 'perps-statistics-funding-rate',
   STATISTICS_FUNDING_COUNTDOWN: 'perps-statistics-funding-countdown',
-  LONG_BUTTON: 'perps-long-button',
-  SHORT_BUTTON: 'perps-short-button',
+  LONG_BUTTON: 'perps-market-details-long-button',
+  SHORT_BUTTON: 'perps-market-details-short-button',
   CANDLE_PERIOD_BOTTOM_SHEET: 'perps-market-candle-period-bottom-sheet',
+  OPEN_INTEREST_INFO_ICON: 'perps-market-details-open-interest-info-icon',
+  FUNDING_RATE_INFO_ICON: 'perps-market-details-funding-rate-info-icon',
+  BOTTOM_SHEET_TOOLTIP: 'perps-market-details-bottom-sheet-tooltip',
 };
 
 // ========================================
@@ -268,4 +271,47 @@ export const PerpsTransactionSelectorsIDs = {
 
   // Common buttons
   BLOCK_EXPLORER_BUTTON: 'block-explorer-button',
+};
+
+export const PerpsChartGridLinesSelectorsIDs = {
+  // Chart grid lines container
+  CHART_GRID_LINES: 'chart-grid-lines',
+  // Dynamic grid line selectors (use with index)
+  GRID_LINE: 'grid-line', // Use as `grid-line-${index}`
+  GRID_LINE_BAR: 'grid-line-bar', // Use as `grid-line-bar-${index}`
+  GRID_PRICE_LABEL: 'grid-price-label', // Use as `grid-price-label-${index}`
+};
+
+export const PerpsChartAuxiliaryLinesSelectorsIDs = {
+  // Auxiliary lines container (TP/SL lines)
+  AUXILIARY_LINES: 'auxiliary-lines',
+};
+
+export const PerpsChartAdditionalSelectorsIDs = {
+  // Chart axis and components
+  CANDLESTICK_X_AXIS: 'chart-x-axis',
+  CHART_GRID: 'chart-grid',
+  CANDLESTICK_AUXILIARY_LINES: 'candlestick-auxiliary-lines',
+};
+// ========================================
+// PERPS BOTTOM SHEET TOOLTIP SELECTORS
+// ========================================
+
+export const PerpsBottomSheetTooltipSelectorsIDs = {
+  TOOLTIP: 'perps-bottom-sheet-tooltip',
+  TITLE: 'perps-bottom-sheet-tooltip-title',
+  CONTENT: 'perps-bottom-sheet-tooltip-content',
+  GOT_IT_BUTTON: 'perps-bottom-sheet-tooltip-got-it-button',
+};
+
+// ========================================
+// PERPS ORDER VIEW SELECTORS
+// ========================================
+
+export const PerpsOrderViewSelectorsIDs = {
+  BOTTOM_SHEET_TOOLTIP: 'perps-order-view-bottom-sheet-tooltip',
+  LEVERAGE_INFO_ICON: 'perps-order-view-leverage-info-icon',
+  MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
+  LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
+  FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
 };
