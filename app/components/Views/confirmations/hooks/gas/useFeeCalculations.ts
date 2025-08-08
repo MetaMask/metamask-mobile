@@ -100,12 +100,16 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
   );
 
   // Max fee
-  const maxFee = useMemo(() => multiplyHexes(
-      supportsEIP1559
-        ? (decimalToHex(maxFeePerGas) as Hex)
-        : (txParamsGasPrice as Hex),
-      gasLimitNoBuffer as Hex,
-    ), [supportsEIP1559, maxFeePerGas, txParamsGasPrice, gasLimitNoBuffer]);
+  const maxFee = useMemo(
+    () =>
+      multiplyHexes(
+        supportsEIP1559
+          ? (decimalToHex(maxFeePerGas) as Hex)
+          : (txParamsGasPrice as Hex),
+        gasLimitNoBuffer as Hex,
+      ),
+    [supportsEIP1559, maxFeePerGas, txParamsGasPrice, gasLimitNoBuffer],
+  );
 
   const {
     currentCurrencyFee: maxFeeFiat,
