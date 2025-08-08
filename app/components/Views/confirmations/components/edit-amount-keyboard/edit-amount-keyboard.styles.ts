@@ -4,7 +4,7 @@ import { Theme } from '../../../../../util/theme/models';
 const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     additionalButtons: {
-      paddingBottom: 4,
+      paddingBottom: 12,
     },
     wrapper: {
       backgroundColor: params.theme.colors.background.alternative,

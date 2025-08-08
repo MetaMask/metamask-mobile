@@ -9,7 +9,7 @@ const styleSheet = (params: { theme: Theme }) =>
       height: 48,
       flexGrow: 1,
       fontSize: 20,
-      marginBottom: 5,
+      marginBottom: 12,
     },
   });
 
