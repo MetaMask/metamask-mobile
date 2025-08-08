@@ -48,6 +48,7 @@ export interface CandleStick {
 }
 
 import { CandlePeriod } from '../constants/chartConfig';
+import { OrderType } from '../controllers/types';
 
 /**
  * Represents historical candlestick data for a specific coin and interval
@@ -67,4 +68,19 @@ export * from './config';
 export interface PerpsLaunchDarklyFlag {
   enabled: boolean;
   minimumVersion: string;
+}
+
+/**
+ * Order form state for the Perps order view
+ */
+export interface OrderFormState {
+  asset: string;
+  direction: 'long' | 'short';
+  amount: string;
+  leverage: number;
+  balancePercent: number;
+  takeProfitPrice?: string;
+  stopLossPrice?: string;
+  limitPrice?: string;
+  type: OrderType;
 }

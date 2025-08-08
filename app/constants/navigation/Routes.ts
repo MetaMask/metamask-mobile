@@ -223,6 +223,9 @@ const Routes = {
     },
     ORDER_HISTORY: 'PerpsOrderHistory',
     ORDER_DETAILS: 'PerpsOrderDetails',
+    POSITION_TRANSACTION: 'PerpsPositionTransaction',
+    ORDER_TRANSACTION: 'PerpsOrderTransaction',
+    FUNDING_TRANSACTION: 'PerpsFundingTransaction',
   },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
@@ -291,8 +294,10 @@ const Routes = {
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
   SEND: {
+    RECIPIENT: 'Recipient',
+    ASSET: 'Asset',
+    AMOUNT: 'Amount',
     DEFAULT: 'Send',
-    ROOT: 'Root',
   },
 };
 

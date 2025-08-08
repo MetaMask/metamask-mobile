@@ -145,6 +145,10 @@ const PerpsPositionDetailsView: React.FC = () => {
             isLoading={isLoadingHistory}
             height={350}
             selectedDuration={selectedDuration}
+            tpslLines={{
+              takeProfitPrice: position.takeProfitPrice,
+              stopLossPrice: position.stopLossPrice,
+            }}
             onDurationChange={handleDurationChange}
             onGearPress={handleGearPress}
           />
@@ -159,6 +163,7 @@ const PerpsPositionDetailsView: React.FC = () => {
             position={position}
             onClose={handleCloseClick}
             onEdit={handleEditTPSL}
+            priceData={priceData}
           />
         </View>
       </ScrollView>

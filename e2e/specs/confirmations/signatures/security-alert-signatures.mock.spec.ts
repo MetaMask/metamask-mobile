@@ -9,7 +9,7 @@ import Assertions from '../../../framework/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import ConfirmationView from '../../../pages/Confirmation/ConfirmationView';
 import { SmokeConfirmations } from '../../../tags';
-import { buildPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import { MockApiEndpoint } from '../../../framework/types';
 import { DappVariants } from '../../../framework/Constants';
 

@@ -156,7 +156,6 @@ const createStyles = (colors: Colors) =>
     },
     infoIcon: {
       marginLeft: 8,
-      padding: 4,
     },
     payWithRight: {
       flexDirection: 'row',
@@ -493,6 +492,23 @@ const createStyles = (colors: Colors) =>
     },
     keypad: {
       backgroundColor: colors.background.default,
+    },
+    tooltipContent: {
+      paddingBottom: 16,
+    },
+    tooltipButtonContainer: {
+      paddingTop: 8,
+      paddingBottom: 8,
+    },
+    tooltipFeeRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 8,
+      width: '100%',
+    },
+    tooltipFeesContainer: {
+      width: '100%',
     },
   });
 
