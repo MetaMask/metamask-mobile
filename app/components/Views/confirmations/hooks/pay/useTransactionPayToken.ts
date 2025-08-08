@@ -27,7 +27,9 @@ export function useTransactionPayToken() {
   const token = tokens.find(
     (t) =>
       t.chainId === chainId &&
-      t.address.toLowerCase() === selectedPayToken?.address.toLowerCase(),
+      t.address.toLowerCase() ===
+        (selectedPayToken?.address.toLowerCase() ??
+          EMPTY_ADDRESS.toLowerCase()),
   );
 
   const defaultPayToken: TransactionPayToken = {
@@ -37,6 +39,7 @@ export function useTransactionPayToken() {
 
   const decimals = token?.decimals ?? 18;
   const balanceHuman = token?.balance ?? '0';
+  const balanceFiat = token?.tokenFiatAmount?.toString() ?? '0';
 
   const setPayToken = useCallback(
     (payToken: TransactionPayToken) => {
@@ -53,6 +56,7 @@ export function useTransactionPayToken() {
   const payToken = selectedPayToken ?? defaultPayToken;
 
   return {
+    balanceFiat,
     balanceHuman,
     decimals,
     payToken,
