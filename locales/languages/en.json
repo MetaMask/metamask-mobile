@@ -737,6 +737,7 @@
       "bic": "BIC",
       "account_type": "Account type",
       "bank_name": "Bank name",
+      "beneficiary_address": "Beneficiary address",
       "bank_address": "Bank address",
       "info_banner_text": "You should see '{{accountHolderName}}' as the account holder. This helps your bank process the transfer.",
       "error_message": "We were unable to confirm your bank transfer. Please try again.",
