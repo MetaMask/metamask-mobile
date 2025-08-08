@@ -14,7 +14,7 @@ import {
   getPriceRange,
   ChartDataPoint,
 } from '../utils/chartUtils';
-import { PerpsChartGridLinesSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsChartGridLinesSelectorsIDs } from '../../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 export interface GridLine {
   price: number;

@@ -286,6 +286,13 @@ export const PerpsChartAuxiliaryLinesSelectorsIDs = {
   // Auxiliary lines container (TP/SL lines)
   AUXILIARY_LINES: 'auxiliary-lines',
 };
+
+export const PerpsChartAdditionalSelectorsIDs = {
+  // Chart axis and components
+  CANDLESTICK_X_AXIS: 'chart-x-axis',
+  CHART_GRID: 'chart-grid',
+  CANDLESTICK_AUXILIARY_LINES: 'candlestick-auxiliary-lines',
+};
 // ========================================
 // PERPS BOTTOM SHEET TOOLTIP SELECTORS
 // ========================================

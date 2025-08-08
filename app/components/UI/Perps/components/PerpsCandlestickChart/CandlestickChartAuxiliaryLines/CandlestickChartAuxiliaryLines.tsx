@@ -5,7 +5,7 @@ import { PERPS_CHART_CONFIG } from '../../../constants/chartConfig';
 import { useTheme } from '../../../../../../util/theme';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { styleSheet } from './CandlestickChartAuxiliaryLines.styles';
-import { PerpsChartAuxiliaryLinesSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PerpsChartAuxiliaryLinesSelectorsIDs } from '../../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 export interface TPSLLines {
   takeProfitPrice?: string;
