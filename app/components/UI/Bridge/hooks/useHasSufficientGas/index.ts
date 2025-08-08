@@ -17,13 +17,16 @@ interface Props {
  * @returns null if the gas token balance is not available, true if the gas token balance is sufficient, false if the gas token balance is insufficient
  */
 export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
+  const gasIncluded = quote?.quote.gasIncluded;
+
   const sourceChainId = quote?.quote.srcChainId;
-  const sourceChainNativeAsset = sourceChainId
-    ? getNativeAssetForChainId(sourceChainId)
-    : undefined;
+  const sourceChainNativeAsset =
+    sourceChainId && !gasIncluded
+      ? getNativeAssetForChainId(sourceChainId)
+      : undefined;
 
   let hexOrCaipChainId: CaipChainId | Hex | undefined;
-  if (sourceChainId) {
+  if (sourceChainId && !gasIncluded) {
     if (isSolanaChainId(sourceChainId)) {
       hexOrCaipChainId = formatChainIdToCaip(sourceChainId);
     } else {
@@ -37,12 +40,17 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
     decimals: sourceChainNativeAsset?.decimals,
   });
 
-  const atomicGasFee = quote?.gasFee.amount
-    ? ethers.utils.parseUnits(
-        quote.gasFee.amount,
-        sourceChainNativeAsset?.decimals,
-      )
-    : null;
+  const atomicGasFee =
+    quote?.gasFee.amount && !gasIncluded
+      ? ethers.utils.parseUnits(
+          quote.gasFee.amount,
+          sourceChainNativeAsset?.decimals,
+        )
+      : null;
+
+  if (gasIncluded) {
+    return true;
+  }
 
   return gasTokenBalance?.atomicBalance && atomicGasFee
     ? gasTokenBalance.atomicBalance.gte(atomicGasFee)
