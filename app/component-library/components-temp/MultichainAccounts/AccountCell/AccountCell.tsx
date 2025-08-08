@@ -34,6 +34,8 @@ export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
         <Text
           variant={TextVariant.BodyMDBold}
           color={TextColor.Default}
+          numberOfLines={1}
+          style={styles.accountNameText}
           testID={AccountCellIds.ADDRESS}
         >
           {accountGroup.metadata.name}
