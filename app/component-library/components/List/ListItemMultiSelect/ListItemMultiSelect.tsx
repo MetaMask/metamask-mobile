@@ -36,7 +36,11 @@ const TouchableOpacity = ({
 
   return (
     <GestureDetector gesture={tap}>
-      <RNTouchableOpacity disabled={disabled} {...props} />
+      <RNTouchableOpacity
+        disabled={disabled}
+        onPress={undefined} // Remove onPress to prevent double execution
+        {...props}
+      />
     </GestureDetector>
   );
 };
