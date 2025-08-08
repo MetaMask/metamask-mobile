@@ -650,7 +650,9 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'TransactionController'
-  | 'PerpsController';
+  | 'PerpsController'
+  | 'BridgeController'
+  | 'BridgeStatusController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.
