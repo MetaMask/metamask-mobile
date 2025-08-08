@@ -14,6 +14,7 @@ import {
   getPriceRange,
   ChartDataPoint,
 } from '../utils/chartUtils';
+import { PerpsChartGridLinesSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 export interface GridLine {
   price: number;
@@ -37,7 +38,7 @@ interface CandlestickChartGridLinesProps {
 const CandlestickChartGridLines: React.FC<CandlestickChartGridLinesProps> = ({
   transformedData,
   height,
-  testID = 'chart-grid-lines',
+  testID = PerpsChartGridLinesSelectorsIDs.CHART_GRID_LINES,
 }) => {
   const theme = useTheme();
   const { styles } = useStyles(styleSheet, { theme });
@@ -75,11 +76,14 @@ const CandlestickChartGridLines: React.FC<CandlestickChartGridLinesProps> = ({
   return (
     <View style={styles.gridContainer} testID={testID}>
       {gridLines.map((line, index) => (
-        <View key={`grid-${index}`} testID={`grid-line-${index}`}>
+        <View
+          key={`grid-${index}`}
+          testID={`${PerpsChartGridLinesSelectorsIDs.GRID_LINE}-${index}`}
+        >
           {/* Grid Line */}
           <View
             style={getGridLineStyle(theme.colors, line.isEdge, line.position)}
-            testID={`grid-line-bar-${index}`}
+            testID={`${PerpsChartGridLinesSelectorsIDs.GRID_LINE_BAR}-${index}`}
           />
           {/* Price Label */}
           <View
@@ -91,7 +95,7 @@ const CandlestickChartGridLines: React.FC<CandlestickChartGridLinesProps> = ({
                 borderColor: theme.colors.border.muted,
               },
             ]}
-            testID={`grid-price-label-${index}`}
+            testID={`${PerpsChartGridLinesSelectorsIDs.GRID_PRICE_LABEL}-${index}`}
           >
             <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
               ${formatPriceForAxis(line.price)}

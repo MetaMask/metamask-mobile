@@ -12,7 +12,10 @@ import {
   TimeDuration,
   getCandlestickColors,
 } from '../../constants/chartConfig';
-import { PerpsCandlestickChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsCandlestickChartSelectorsIDs,
+  PerpsChartAdditionalSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsTimeDurationSelector from '../PerpsTimeDurationSelector';
 import PerpsCandlestickChartSkeleton from './PerpsCandlestickChartSkeleton';
 import { strings } from '../../../../../../locales/i18n';
@@ -172,7 +175,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       <CandlestickChartGridLines
         transformedData={transformedData}
         height={height}
-        testID="candlestick-grid-lines"
+        testID={PerpsChartAdditionalSelectorsIDs.CHART_GRID}
       />
       {/* TP/SL Lines - Render first so they're behind everything */}
       <CandlestickChartAuxiliaryLines
@@ -181,7 +184,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         height={height}
         chartWidth={chartWidth}
         visible={showTPSLLines}
-        testID="candlestick-auxiliary-lines"
+        testID={PerpsChartAdditionalSelectorsIDs.CANDLESTICK_AUXILIARY_LINES}
       />
       <View style={styles.chartContainer}>
         {/* Chart with Custom Grid Lines */}
@@ -207,7 +210,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         <CandlestickChartXAxis
           transformedData={transformedData}
           chartWidth={chartWidth}
-          testID="candlestick-x-axis"
+          testID={PerpsChartAdditionalSelectorsIDs.CANDLESTICK_X_AXIS}
         />
 
         {/* Time Duration Selector */}
