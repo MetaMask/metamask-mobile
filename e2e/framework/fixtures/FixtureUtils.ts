@@ -205,17 +205,51 @@ export async function killProcessOnPort(port: number): Promise<boolean> {
         }
       }
     } else if (process.platform === 'darwin' || process.platform === 'linux') {
-      // macOS/Linux: First get PIDs using lsof
-      const { stdout } = await execAsync(`lsof -i :${port} -t`);
+      try {
+        // macOS/Linux: First get PIDs using lsof
+        const { stdout } = await execAsync(`lsof -i :${port} -t`);
 
-      if (stdout.trim()) {
-        // Split by newlines in case multiple processes use the port
-        const pids = stdout.trim().split('\n');
+        if (stdout.trim()) {
+          // Split by newlines in case multiple processes use the port
+          const pids = stdout.trim().split('\n');
 
-        // Kill each process individually to avoid xargs empty input issues
-        for (const pid of pids) {
-          if (pid.trim()) {
-            await execAsync(`kill -9 ${pid.trim()}`);
+          // Kill each process individually to avoid xargs empty input issues
+          for (const pid of pids) {
+            if (pid.trim()) {
+              await execAsync(`kill -9 ${pid.trim()}`);
+            }
+          }
+        }
+      } catch (error) {
+        // Fallback for when lsof is not available
+        logger.debug(
+          `lsof not available, trying alternative port release approach for port ${port}`,
+        );
+
+        try {
+          // Use fuser as an alternative (commonly available on many Linux distros)
+          await execAsync(
+            `command -v fuser && fuser -k ${port}/tcp || echo "fuser not available"`,
+          );
+        } catch (fuserError) {
+          logger.debug(`Fallback method also failed: ${fuserError}`);
+
+          // As a last resort, try the Node.js method to forcefully close connections
+          const server = net.createServer();
+          try {
+            await new Promise((resolve, reject) => {
+              server.on('error', reject);
+              // Attempt to bind to the port - this might force existing connections closed
+              server.listen(port, () => {
+                server.close();
+                resolve(true);
+              });
+            });
+            logger.debug(
+              `Successfully used Node.js fallback to free port ${port}`,
+            );
+          } catch (nodeError) {
+            logger.debug(`Node.js fallback also failed: ${nodeError}`);
           }
         }
       }

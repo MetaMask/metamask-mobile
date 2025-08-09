@@ -31,6 +31,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
+        mockServerInstance: mockServer,
         restartDevice: true,
         permissions: {
           notifications: 'YES',
