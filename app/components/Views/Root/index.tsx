@@ -87,4 +87,13 @@ const Root = ({ foxCode }: RootProps) => {
   );
 };
 
+// Enable WDYR tracking on Root in development to ensure at least one tracked component
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (Root as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'Root',
+  };
+}
+
 export default Root;
