@@ -97,6 +97,7 @@ export enum TraceName {
   OnboardingOAuthSeedlessAuthenticateError = 'Onboarding - OAuth Seedless Authenticate Error',
   SwapViewLoaded = 'Swap View Loaded',
   BridgeBalancesUpdated = 'Bridge Balances Updated',
+  Card = 'Card',
   // Earn
   EarnDepositScreen = 'Earn Deposit Screen',
   EarnDepositSpendingCapScreen = 'Earn Deposit Spending Cap Screen',
@@ -137,6 +138,9 @@ export enum TraceOperation {
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
   DiscoverAccounts = 'discover.accounts',
+  CardGetSupportedTokensAllowances = 'card.get.supported.tokens.allowances',
+  CardGetPriorityToken = 'card.get.priority.token',
+  CardIdentifyCardholder = 'card.identify.cardholder',
   OnboardingUserJourney = 'onboarding.user_journey',
   OnboardingSecurityOp = 'onboarding.security_operation',
   OnboardingError = 'onboarding.error',

@@ -56,6 +56,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { isUnifiedSwapsEnvVarEnabled } from '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled';
+import { initialState as cardInitialState } from '../../../core/redux/slices/card';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   IconColor,
@@ -183,6 +184,7 @@ const mockInitialState = {
   wizard: {
     step: 0,
   },
+  card: cardInitialState,
   settings: {
     primaryCurrency: 'usd',
     basicFunctionalityEnabled: true,

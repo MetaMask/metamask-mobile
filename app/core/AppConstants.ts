@@ -34,6 +34,9 @@ export default {
   STAKE: {
     URL: `${PORTFOLIO_URL}/stake`,
   },
+  CARD: {
+    URL: 'https://card.metamask.io',
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,

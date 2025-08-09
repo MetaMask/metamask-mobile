@@ -96,6 +96,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { handleShowNetworkActiveToast } from './utils';
+import { CardVerification } from '../../UI/Card/sdk';
 
 const Stack = createStackNavigator();
 
@@ -470,6 +471,7 @@ const Main = (props) => {
         <Notification navigation={props.navigation} />
         <RampOrders />
         <SwapsLiveness />
+        <CardVerification />
         <BackupAlert
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
