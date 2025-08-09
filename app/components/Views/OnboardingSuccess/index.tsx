@@ -268,6 +268,7 @@ export const OnboardingSuccess = () => {
         TokenBalancesController,
         TokenListController,
         AccountTrackerController,
+        TokenRatesController,
       } = Engine.context;
 
       const addedChainIds: `0x${string}`[] = [];
@@ -338,6 +339,26 @@ export const OnboardingSuccess = () => {
                 Logger.error(
                   error as Error,
                   `Failed to update balances for ${chainId}`,
+                ),
+              ),
+            ),
+          );
+
+          // Batch update rates for all chains
+          await Promise.all(
+            addedChainIds.map((chainId) =>
+              TokenRatesController.updateExchangeRatesByChainId([
+                {
+                  chainId,
+                  nativeCurrency:
+                    selectedNetworks.find(
+                      (network) => network.chainId === chainId,
+                    )?.ticker || 'ETH',
+                },
+              ]).catch((error) =>
+                Logger.error(
+                  error as Error,
+                  `Failed to update rates for ${chainId}`,
                 ),
               ),
             ),
