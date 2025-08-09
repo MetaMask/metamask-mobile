@@ -20,6 +20,22 @@ class CardHomeView {
     return Matchers.getElementByID(CardHomeSelectors.ADD_FUNDS_BUTTON);
   }
 
+  get addFundsBottomSheet(): DetoxElement {
+    return Matchers.getElementByID(CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET);
+  }
+
+  get addFundsBottomSheetDepositOption(): DetoxElement {
+    return Matchers.getElementByID(
+      CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_DEPOSIT_OPTION,
+    );
+  }
+
+  get addFundsBottomSheetSwapOption(): DetoxElement {
+    return Matchers.getElementByID(
+      CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_SWAP_OPTION,
+    );
+  }
+
   get advancedCardManagementItem(): DetoxElement {
     return Matchers.getElementByID(
       CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM,
@@ -49,6 +65,19 @@ class CardHomeView {
   async tapAddFundsButton(): Promise<void> {
     await Gestures.waitAndTap(this.addFundsButton, {
       elemDescription: 'Add Funds Button in Card Home View',
+    });
+  }
+
+  async tapAddFundsBottomSheetDepositOption(): Promise<void> {
+    await Gestures.waitAndTap(this.addFundsBottomSheetDepositOption, {
+      elemDescription:
+        'Add Funds Bottom Sheet Deposit Option in Card Home View',
+    });
+  }
+
+  async tapAddFundsBottomSheetSwapOption(): Promise<void> {
+    await Gestures.waitAndTap(this.addFundsBottomSheetSwapOption, {
+      elemDescription: 'Add Funds Bottom Sheet Swap Option in Card Home View',
     });
   }
 

@@ -30,6 +30,9 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       backgroundColor: theme.colors.background.default,
     },
+    contentContainer: {
+      flexGrow: 1,
+    },
     defaultHorizontalPadding: {
       paddingHorizontal: 16,
     },

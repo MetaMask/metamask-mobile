@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   ScrollView,
@@ -23,7 +23,7 @@ import {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -43,29 +43,11 @@ import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import { AllowanceState } from '../../types';
 import CardAssetItem from '../../components/CardAssetItem';
 import ManageCardListItem from '../../components/ManageCardListItem';
-import {
-  SwapBridgeNavigationLocation,
-  useSwapBridgeNavigation,
-} from '../../../Bridge/hooks/useSwapBridgeNavigation';
-import Routes from '../../../../../constants/navigation/Routes';
 import CardImage from '../../components/CardImage';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { selectCardholderAccounts } from '../../../../../core/redux/slices/card';
 import Logger from '../../../../../util/Logger';
 import { selectChainId } from '../../../../../selectors/networkController';
-import {
-  setDestToken,
-  setSourceToken,
-} from '../../../../../core/redux/slices/bridge';
-import { BridgeToken } from '../../../Bridge/types';
-import { Hex } from '@metamask/utils';
-import {
-  selectEvmTokenFiatBalances,
-  selectEvmTokens,
-} from '../../../../../selectors/multichain';
-import { getHighestFiatToken } from '../../util/getHighestFiatToken';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
-import generateDeviceAnalyticsMetaData from '../../../../../util/metrics';
 import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome.selectors';
 import {
   TOKEN_BALANCE_LOADING,
@@ -73,6 +55,11 @@ import {
   TOKEN_RATE_UNDEFINED,
 } from '../../../Tokens/constants';
 import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
+import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
+import { useOpenSwaps } from '../../hooks/useOpenSwaps';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
 
 /**
  * CardHome Component
@@ -86,32 +73,22 @@ import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
  * @returns JSX element representing the card home screen
  */
 const CardHome = () => {
-  const dispatch = useDispatch();
   const { PreferencesController, NetworkController } = Engine.context;
   const [error, setError] = useState<boolean>(false);
   const [isLoadingNetworkChange, setIsLoadingNetworkChange] = useState(true);
+  const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
+  const sheetRef = useRef<BottomSheetRef>(null);
 
+  const { trackEvent, createEventBuilder } = useMetrics();
   const navigation = useNavigation();
   const theme = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
 
   const styles = createStyles(theme);
 
   const privacyMode = useSelector(selectPrivacyMode);
   const selectedChainId = useSelector(selectChainId);
   const cardholderAddresses = useSelector(selectCardholderAccounts);
-  const evmTokens = useSelector(selectEvmTokens);
-  const tokenFiatBalances = useSelector(selectEvmTokenFiatBalances);
-
-  const tokens = useMemo(
-    () =>
-      evmTokens.map((token, i) => ({
-        ...token,
-        tokenFiatAmount: tokenFiatBalances[i],
-      })),
-    [evmTokens, tokenFiatBalances],
-  );
 
   useFocusEffect(
     useCallback(() => {
@@ -148,70 +125,9 @@ const CardHome = () => {
     cardholderAddresses?.[0],
     selectedChainId === LINEA_CHAIN_ID,
   );
-  const { balanceFiat, asset, mainBalance } = useAssetBalance(priorityToken);
+  const { balanceFiat, mainBalance } = useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
-  const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenDetails,
-    sourcePage: Routes.CARD.HOME,
-  });
-
-  const swapDestinationToken = useMemo(() => {
-    if (!priorityToken) return undefined;
-    return {
-      ...priorityToken,
-      image: asset?.image,
-    } as BridgeToken;
-  }, [priorityToken, asset]);
-
-  const swapSourceToken = useMemo(() => {
-    if (cardholderAddresses?.[0] && priorityToken) {
-      const topToken = getHighestFiatToken(
-        tokens,
-        priorityToken.address as Hex,
-      );
-
-      if (!topToken?.isETH) {
-        return topToken;
-      }
-    }
-  }, [cardholderAddresses, priorityToken, tokens]);
-
-  const openSwaps = useCallback(() => {
-    if (swapDestinationToken) {
-      dispatch(setDestToken(swapDestinationToken));
-
-      if (swapSourceToken) {
-        dispatch(
-          setSourceToken({
-            chainId: swapSourceToken.chainId as Hex,
-            address: swapSourceToken.address,
-            decimals: swapSourceToken.decimals,
-            symbol: swapSourceToken.symbol,
-            balance: swapSourceToken.balance,
-            image: swapSourceToken.image,
-            balanceFiat: swapSourceToken.balanceFiat,
-            name: swapSourceToken.name,
-          }),
-        );
-      }
-
-      goToSwaps();
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED)
-          .addProperties({
-            ...generateDeviceAnalyticsMetaData(),
-          })
-          .build(),
-      );
-    }
-  }, [
-    goToSwaps,
-    dispatch,
-    swapDestinationToken,
-    swapSourceToken,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  const { openSwaps } = useOpenSwaps();
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -237,6 +153,53 @@ const CardHome = () => {
 
     return balanceFiat;
   }, [balanceFiat, mainBalance]);
+
+  const renderAddFundsBottomSheet = useCallback(
+    () => (
+      <AddFundsBottomSheet
+        sheetRef={sheetRef}
+        setOpenAddFundsBottomSheet={setOpenAddFundsBottomSheet}
+        priorityToken={priorityToken}
+        chainId={selectedChainId}
+        cardholderAddresses={cardholderAddresses}
+        navigate={navigation.navigate}
+      />
+    ),
+    [
+      sheetRef,
+      setOpenAddFundsBottomSheet,
+      priorityToken,
+      cardholderAddresses,
+      selectedChainId,
+      navigation,
+    ],
+  );
+
+  const addFundsAction = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
+    );
+
+    if (
+      priorityToken?.symbol &&
+      SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS.includes(priorityToken.symbol)
+    ) {
+      setOpenAddFundsBottomSheet(true);
+    } else if (priorityToken) {
+      openSwaps({
+        priorityToken,
+        chainId: selectedChainId,
+        cardholderAddress: cardholderAddresses?.[0],
+      });
+    }
+  }, [
+    trackEvent,
+    createEventBuilder,
+    priorityToken,
+    openSwaps,
+    selectedChainId,
+    cardholderAddresses,
+  ]);
 
   if (hasError) {
     return (
@@ -298,6 +261,7 @@ const CardHome = () => {
       style={styles.wrapper}
       showsVerticalScrollIndicator={false}
       alwaysBounceVertical={false}
+      contentContainerStyle={styles.contentContainer}
     >
       {priorityToken && (
         <View style={styles.cardBalanceContainer}>
@@ -389,7 +353,7 @@ const CardHome = () => {
               variant={ButtonVariants.Primary}
               label={strings('card.card_home.add_funds')}
               size={ButtonSize.Sm}
-              onPress={openSwaps}
+              onPress={addFundsAction}
               width={ButtonWidthTypes.Full}
               testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
             />
@@ -406,6 +370,8 @@ const CardHome = () => {
         onPress={navigateToCardPage}
         testID={CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM}
       />
+
+      {openAddFundsBottomSheet && renderAddFundsBottomSheet()}
     </ScrollView>
   );
 };

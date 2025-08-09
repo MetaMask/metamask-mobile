@@ -314,6 +314,11 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                   >
                     <RCTScrollView
                       alwaysBounceVertical={false}
+                      contentContainerStyle={
+                        {
+                          "flexGrow": 1,
+                        }
+                      }
                       showsVerticalScrollIndicator={false}
                       style={
                         {
@@ -1387,6 +1392,11 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                   >
                     <RCTScrollView
                       alwaysBounceVertical={false}
+                      contentContainerStyle={
+                        {
+                          "flexGrow": 1,
+                        }
+                      }
                       showsVerticalScrollIndicator={false}
                       style={
                         {

@@ -8,12 +8,20 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Routes from '../../../../../constants/navigation/Routes';
 import { AllowanceState } from '../../types';
 import { useGetPriorityCardToken } from '../../hooks/useGetPriorityCardToken';
+import { useOpenSwaps } from '../../hooks/useOpenSwaps';
+import { useMetrics } from '../../../../hooks/useMetrics';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../../Tokens/constants';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+import {
+  selectDepositActiveFlag,
+  selectDepositMinimumVersionFlag,
+} from '../../../../../selectors/featureFlagController/deposit';
+import { selectChainId } from '../../../../../selectors/networkController';
+import { selectCardholderAccounts } from '../../../../../core/redux/slices/card';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -52,6 +60,14 @@ const mockFetchPriorityToken = jest.fn().mockResolvedValue(mockPriorityToken);
 const mockNavigateToCardPage = jest.fn();
 const mockGoToSwaps = jest.fn();
 const mockDispatch = jest.fn();
+const mockOpenSwaps = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn();
+
+const mockEventBuilder = {
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({ event: 'built' }),
+};
 
 const mockUseAssetBalance = jest.fn(() => ({
   balanceFiat: '$1,000.00',
@@ -88,6 +104,28 @@ jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
   SwapBridgeNavigationLocation: {
     TokenDetails: 'TokenDetails',
   },
+}));
+
+jest.mock('../../hooks/useOpenSwaps', () => ({
+  useOpenSwaps: jest.fn(),
+}));
+
+jest.mock('../../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  MetaMetricsEvents: {
+    CARD_ADD_FUNDS_CLICKED: 'card_add_funds_clicked',
+  },
+}));
+
+// Mock react-native-device-info
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => '1.0.0'),
+}));
+
+// Mock deposit feature flag selectors
+jest.mock('../../../../../selectors/featureFlagController/deposit', () => ({
+  selectDepositActiveFlag: jest.fn(),
+  selectDepositMinimumVersionFlag: jest.fn(),
 }));
 
 // Mock bridge actions
@@ -261,9 +299,32 @@ describe('CardHome Component', () => {
       goToSwaps: mockGoToSwaps,
     });
 
+    (useOpenSwaps as jest.Mock).mockReturnValue({
+      openSwaps: mockOpenSwaps,
+    });
+
+    (useMetrics as jest.Mock).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
+
+    mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPrivacyMode) {
         return false;
+      }
+      if (selector === selectDepositActiveFlag) {
+        return true;
+      }
+      if (selector === selectDepositMinimumVersionFlag) {
+        return '0.9.0';
+      }
+      if (selector === selectChainId) {
+        return '0xe708'; // Linea chain ID
+      }
+      if (selector === selectCardholderAccounts) {
+        return [mockCurrentAddress];
       }
       if (
         selector
@@ -273,10 +334,10 @@ describe('CardHome Component', () => {
         return mockCurrentAddress;
       }
       if (selector.toString().includes('selectChainId')) {
-        return '0xe708'; // Linea chain ID
+        return '0xe708'; // Linea chain ID - fallback for string matching
       }
       if (selector.toString().includes('selectCardholderAccounts')) {
-        return [mockCurrentAddress];
+        return [mockCurrentAddress]; // fallback for string matching
       }
       if (selector.toString().includes('selectEvmTokens')) {
         return [mockPriorityToken];
@@ -305,6 +366,18 @@ describe('CardHome Component', () => {
       if (selector === selectPrivacyMode) {
         return true; // Enable privacy mode for this test
       }
+      if (selector === selectDepositActiveFlag) {
+        return true;
+      }
+      if (selector === selectDepositMinimumVersionFlag) {
+        return '0.9.0';
+      }
+      if (selector === selectChainId) {
+        return '0xe708'; // Linea chain ID
+      }
+      if (selector === selectCardholderAccounts) {
+        return [mockCurrentAddress];
+      }
       if (
         selector
           .toString()
@@ -313,7 +386,7 @@ describe('CardHome Component', () => {
         return mockCurrentAddress;
       }
       if (selector.toString().includes('selectChainId')) {
-        return '0xe708'; // Linea chain ID
+        return '0xe708'; // Linea chain ID - fallback
       }
       if (selector.toString().includes('selectCardholderAccounts')) {
         return [mockCurrentAddress];
@@ -350,7 +423,7 @@ describe('CardHome Component', () => {
     expect(screen.getByTestId(CardHomeSelectors.LOADER)).toBeTruthy();
   });
 
-  it('calls goToSwaps when add funds button is pressed', async () => {
+  it('opens AddFundsBottomSheet when add funds button is pressed with USDC token', async () => {
     render();
 
     const addFundsButton = screen.getByTestId(
@@ -358,8 +431,78 @@ describe('CardHome Component', () => {
     );
     fireEvent.press(addFundsButton);
 
+    // Check that the AddFundsBottomSheet actually appears
     await waitFor(() => {
-      expect(mockGoToSwaps).toHaveBeenCalled();
+      expect(screen.getByTestId('add-funds-bottom-sheet')).toBeTruthy();
+    });
+
+    // Since the default token is USDC, it should open the bottom sheet instead of calling openSwaps
+    expect(mockOpenSwaps).not.toHaveBeenCalled();
+  });
+
+  it('opens AddFundsBottomSheet when add funds button is pressed with USDT token', async () => {
+    // Use USDT token which should also open the bottom sheet
+    const usdtToken = {
+      ...mockPriorityToken,
+      symbol: 'USDT',
+    };
+
+    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+      priorityToken: usdtToken,
+      fetchPriorityToken: mockFetchPriorityToken,
+      isLoading: false,
+      error: null,
+    });
+
+    render();
+
+    const addFundsButton = screen.getByTestId(
+      CardHomeSelectors.ADD_FUNDS_BUTTON,
+    );
+    fireEvent.press(addFundsButton);
+
+    // Check that the AddFundsBottomSheet actually appears
+    await waitFor(() => {
+      expect(screen.getByTestId('add-funds-bottom-sheet')).toBeTruthy();
+    });
+
+    // USDT should also open the bottom sheet, not call openSwaps
+    expect(mockOpenSwaps).not.toHaveBeenCalled();
+  });
+
+  it('calls goToSwaps when add funds button is pressed with non-USDC token', async () => {
+    // Use a non-USDC token
+    const ethToken = {
+      ...mockPriorityToken,
+      symbol: 'ETH',
+    };
+
+    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+      priorityToken: ethToken,
+      fetchPriorityToken: mockFetchPriorityToken,
+      isLoading: false,
+      error: null,
+    });
+
+    render();
+
+    const addFundsButton = screen.getByTestId(
+      CardHomeSelectors.ADD_FUNDS_BUTTON,
+    );
+
+    // Reset mocks to ensure clean state
+    mockOpenSwaps.mockClear();
+    mockTrackEvent.mockClear();
+
+    fireEvent.press(addFundsButton);
+
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockOpenSwaps).toHaveBeenCalledWith({
+        priorityToken: ethToken,
+        chainId: '0xe708',
+        cardholderAddress: mockCurrentAddress,
+      });
     });
   });
 
@@ -536,8 +679,23 @@ describe('CardHome Component', () => {
 
     // Mock being on a different chain initially
     mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectChainId')) {
+      if (selector === selectChainId) {
         return '0x1'; // Ethereum mainnet
+      }
+      if (selector === selectPrivacyMode) {
+        return false;
+      }
+      if (selector === selectDepositActiveFlag) {
+        return true;
+      }
+      if (selector === selectDepositMinimumVersionFlag) {
+        return '0.9.0';
+      }
+      if (selector === selectCardholderAccounts) {
+        return [mockCurrentAddress];
+      }
+      if (selector.toString().includes('selectChainId')) {
+        return '0x1'; // Ethereum mainnet - fallback
       }
       if (selector.toString().includes('selectPrivacyMode')) {
         return false;
@@ -582,8 +740,23 @@ describe('CardHome Component', () => {
 
     // Mock being on a different chain initially
     mockUseSelector.mockImplementation((selector) => {
-      if (selector.toString().includes('selectChainId')) {
+      if (selector === selectChainId) {
         return '0x1'; // Ethereum mainnet
+      }
+      if (selector === selectPrivacyMode) {
+        return false;
+      }
+      if (selector === selectDepositActiveFlag) {
+        return true;
+      }
+      if (selector === selectDepositMinimumVersionFlag) {
+        return '0.9.0';
+      }
+      if (selector === selectCardholderAccounts) {
+        return [mockCurrentAddress];
+      }
+      if (selector.toString().includes('selectChainId')) {
+        return '0x1'; // Ethereum mainnet - fallback
       }
       if (selector.toString().includes('selectPrivacyMode')) {
         return false;
@@ -620,20 +793,42 @@ describe('CardHome Component', () => {
     });
   });
 
-  it('dispatches bridge tokens when opening swaps', async () => {
+  it('dispatches bridge tokens when opening swaps with non-USDC token', async () => {
     // Reset useFocusEffect to default mock for this test
     jest.mocked(useFocusEffect).mockImplementation(jest.fn());
+
+    // Use a non-USDC token to trigger the swaps flow
+    const ethToken = {
+      ...mockPriorityToken,
+      symbol: 'ETH',
+    };
+
+    (useGetPriorityCardToken as jest.Mock).mockReturnValueOnce({
+      priorityToken: ethToken,
+      fetchPriorityToken: mockFetchPriorityToken,
+      isLoading: false,
+      error: null,
+    });
 
     render();
 
     const addFundsButton = screen.getByTestId(
       CardHomeSelectors.ADD_FUNDS_BUTTON,
     );
+
+    // Reset mocks to ensure clean state
+    mockOpenSwaps.mockClear();
+    mockTrackEvent.mockClear();
+
     fireEvent.press(addFundsButton);
 
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalled();
-      expect(mockGoToSwaps).toHaveBeenCalled();
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockOpenSwaps).toHaveBeenCalledWith({
+        priorityToken: ethToken,
+        chainId: '0xe708',
+        cardholderAddress: mockCurrentAddress,
+      });
     });
   });
 

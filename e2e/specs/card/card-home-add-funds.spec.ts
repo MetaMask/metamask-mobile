@@ -56,7 +56,13 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
       await Assertions.expectElementToBeVisible(CardHomeView.cardViewTitle);
       await CardHomeView.tapAddFundsButton();
       await Assertions.expectElementToBeVisible(
-        CardHomeView.swapScreenSourceTokenArea,
+        CardHomeView.addFundsBottomSheet,
+      );
+      await Assertions.expectElementToBeVisible(
+        CardHomeView.addFundsBottomSheetDepositOption,
+      );
+      await Assertions.expectElementToBeVisible(
+        CardHomeView.addFundsBottomSheetSwapOption,
       );
     });
   });
