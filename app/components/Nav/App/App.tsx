@@ -48,6 +48,7 @@ import Toast, {
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
+import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
@@ -1232,6 +1233,7 @@ const App: React.FC = () => {
       <AppFlow />
       <Toast ref={toastRef} />
       <PrivacyOverlay />
+      <ProfilerManager />
     </>
   );
 };

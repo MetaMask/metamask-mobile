@@ -44,6 +44,12 @@ pipelines:
       - bump_version_stage: {}
       - create_build_beta: {}
       - deploy_build_release: {}
+  #Releases MetaMask RC apps and stores apk/ipa into Play(Internal Testing)/App(TestFlight) Store for testing
+  release_rc_builds_to_store_pipeline:
+    stages:
+      - bump_version_stage: {}
+      - create_build_rc: {}
+      - deploy_build_release: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
     stages:
@@ -207,6 +213,10 @@ stages:
     workflows:
       - build_ios_main_prod: {}
       - build_ios_main_beta: {}
+      - build_ios_main_rc: {}
+  create_build_rc:
+    workflows:
+      - build_android_main_rc: {}
       - build_ios_main_rc: {}
   deploy_android_release:
     workflows:
@@ -3402,16 +3412,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.54.0
+      VERSION_NAME: 7.54.99
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2203
+      VERSION_NUMBER: 2244
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.54.0
+      FLASK_VERSION_NAME: 7.54.99
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2203
+      FLASK_VERSION_NUMBER: 2244
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
