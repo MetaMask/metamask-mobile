@@ -49,6 +49,12 @@
     "batched_unused_approvals": {
       "title": "Gereksiz izin",
       "message": "Bu işlem için gerekli olmamasına rağmen bir başkasına token'lerinizi çekme izni veriyorsunuz."
+    },
+    "perps_deposit_minimum": {
+      "message": "Min order value is $10"
+    },
+    "insufficient_pay_token_balance": {
+      "message": "Insufficient funds. Select different token."
     }
   },
   "blockaid_banner": {
@@ -410,7 +416,7 @@
     "confirm_password_placeholder": "Şifrenizi tekrar girin",
     "confirm_btn": "Kaydet",
     "warning_password_change_title": "Emin misiniz?",
-    "warning_password_change_description": "Buradan şifrenizi değiştirdiğinizde kullandığınız diğer cihazlarda MetaMask kilitlenecek. Yeni şifrenizle tekrar oturum açmanız gerekecek.",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password",
     "warning_password_change_button": "Onayla",
     "warning_password_cancel_button": "İptal et",
     "changing_password": "Şifre değiştiriliyor...",
@@ -488,6 +494,9 @@
     "public_address": "Genel Adres"
   },
   "send": {
+    "available": "available",
+    "amount_insufficient": "Insufficient funds",
+    "continue": "Continue",
     "title": "Gönder",
     "deeplink_failure": "Bir şeyler ters gitti. Lütfen tekrar deneyin",
     "warn_network_change": "Ağ değiştirildi:",
@@ -512,8 +521,18 @@
     },
     "token_modal": {
       "select_a_token": "Bir Token seçin",
+      "select_token": "Select token",
       "search_by_name_or_address": "İsme veya adrese göre token ara",
       "no_tokens_found": "\"{{searchString}}\" ile eşleşen token yok"
+    },
+    "networks_filter_bar": {
+      "all_networks": "All networks"
+    },
+    "networks_filter_selector": {
+      "select_network": "Select network",
+      "select_all": "Select all",
+      "deselect_all": "Deselect all",
+      "apply": "Apply"
     },
     "configuration_modal": {
       "title": "Options",
@@ -719,11 +738,11 @@
     },
     "bank_details": {
       "navbar_title": "{{paymentMethod}} banka transferi",
-      "button": "Banka transferi gönderildi",
+      "button": "Confirm transfer",
       "button_cancel": "Emri iptal et",
       "main_title": "Emrinizi tamamlamak için",
       "main_content_1": "Aşağıdaki bilgileri kullanarak tercih ettiğiniz bankadan bir transfer başlatın.",
-      "main_content_2": "Bittiğinde geri gelin ve onaylamak için \"Banka transferi gönderildi\" seçeneğine tıklayın.",
+      "main_content_2": "Once you’re finished, come back and click “Confirm transfer” to confirm.",
       "show_bank_info": "Banka bilgilerini göster",
       "hide_bank_info": "Banka bilgilerini gizle",
       "transfer_amount": "Transfer miktarı",
@@ -735,6 +754,7 @@
       "bic": "BIC",
       "account_type": "Hesap türü",
       "bank_name": "Banka adı",
+      "beneficiary_address": "Beneficiary address",
       "bank_address": "Banka adresi",
       "info_banner_text": "Hesap sahibi olarak şunu görmelisiniz: '{{accountHolderName}}'. Bu, bankanızın transferi gerçekleştirmesini sağlar.",
       "error_message": "Banka transferinizi onaylayamadık. Lütfen tekrar deneyin.",
@@ -896,7 +916,6 @@
         "failed": "Emir doğrulama başarısız oldu",
         "amount_required": "Emir tutarı 0'dan büyük olmalıdır",
         "minimum_amount": "Minimum emir büyüklüğü {{amount}}$",
-        "maximum_amount": "Maksimum emir büyüklüğü {{amount}}$",
         "insufficient_balance": "Bakiye yetersiz. Gereken: {{required}}$, Kullanılabilir: {{available}}$",
         "invalid_leverage": "Kaldıraç {{min}} katı ile {{max}} katı arasında olmalıdır",
         "high_leverage_warning": "Yüksek kaldıraç likidasyon riskini artırır",
@@ -904,7 +923,8 @@
         "invalid_stop_loss": "Zararda dur, {{positionType}} pozisyonlar için {{direction}} güncel fiyat olmalıdır",
         "liquidation_warning": "Pozisyon likidasyon fiyatına yakın",
         "limit_price_required": "Please set a limit price for limit orders",
-        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment"
+        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
+        "existing_position": "You already have an open {{asset}} position. Close it before opening a new one."
       },
       "error": {
         "placement_failed": "Emir verme işlemi başarısız oldu",
@@ -986,7 +1006,12 @@
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
       "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
       "error_title": "Close Position Failed",
-      "fox_points_earned": "{{points}} Fox Points earned!"
+      "fox_points_earned": "{{points}} Fox Points earned!",
+      "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
+      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
+      "small_close_warning": "Warning: You're closing only {{percentage}}% of your position",
+      "negative_receive_amount": "The fees exceed your position value",
+      "no_amount_selected": "Please select an amount to close"
     },
     "tpsl": {
       "title": "Set take profit and stop loss",
@@ -1011,6 +1036,7 @@
       "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "failed_to_toggle_network": "Failed to toggle network",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1102,7 +1128,8 @@
       "funding_rate": "Funding rate",
       "countdown": "Countdown",
       "long": "Long",
-      "short": "Short"
+      "short": "Short",
+      "existing_position_warning": "You have an open {{asset}} position"
     },
     "network": {
       "hyperliquid": "Hyperliquid"
@@ -1114,6 +1141,38 @@
       "switch_to_testnet": "Test Ağına Geç",
       "view_markets": "View Markets",
       "positions": "Pozisyonlar"
+    },
+    "tooltips": {
+      "leverage": {
+        "title": "Leverage",
+        "content": "Leverage lets you trade with more than you put in. It can boost your profits, but also your losses. The higher the leverage, the riskier the trade."
+      },
+      "liquidation_price": {
+        "title": "Liquidation price",
+        "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
+      },
+      "margin": {
+        "title": "Margin",
+        "content": "Margin is the money you put in to open a trade. It acts as collateral, and it's the most you can lose on that trade."
+      },
+      "fees": {
+        "title": "Fees",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee"
+      },
+      "open_interest": {
+        "title": "Open interest",
+        "content": "The combined value of all open positions for this perp."
+      },
+      "funding_rate": {
+        "title": "Funding rate",
+        "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
+      },
+      "perps_geo_block": {
+        "title": "Perps geo block",
+        "content": "Perps trading isn’t available in your location due to local restrictions or sanctions."
+      },
+      "got_it_button": "Got it"
     },
     "connection": {
       "failed": "Bağlantı Başarısız Oldu",
@@ -1129,7 +1188,50 @@
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search"
+    "search": "Search",
+    "perpetual_trading": "Perpetual Trading",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet",
+    "developer_options": {
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "perps_sandbox_button": "Perps Sandbox"
+    },
+    "transactions": {
+      "title": "Perps",
+      "tabs": {
+        "trades": "Trades",
+        "orders": "Orders",
+        "funding": "Funding"
+      },
+      "not_found": "Transaction not found",
+      "position": {
+        "date": "Date",
+        "size": "Size",
+        "entry_price": "Entry price",
+        "points": "Points",
+        "fees": "Total fees",
+        "pnl": "Net P&L"
+      },
+      "order": {
+        "date": "Date",
+        "size": "Size",
+        "limit_price": "Limit price",
+        "filled": "Filled",
+        "metamask_fee": "MetaMask fee",
+        "hyperliquid_fee": "Hyperliquid fee",
+        "total_fee": "Total fee"
+      },
+      "funding": {
+        "date": "Date",
+        "fee": "Fee",
+        "rate": "Rate"
+      },
+      "view_on_explorer": "View on block explorer",
+      "empty_state": {
+        "no_transactions": "No {{type}} transactions yet",
+        "history_will_appear": "Your trading history will appear here"
+      }
+    }
   },
   "receive": {
     "title": "Al"
@@ -2142,7 +2244,6 @@
     "portfolio_button": "Portfolio",
     "earn_button": "Kazan",
     "perps_button": "Sürekli Vadeli İşlemler",
-    "perps_sandbox_button": "Perps Sandbox",
     "add_collectible_button": "Ekle",
     "info": "Bilgi",
     "swap": "Kaydır",
@@ -2157,8 +2258,7 @@
       "send": "Bu hesap için gönderme desteklenmiyor",
       "action": "Bu hesap için bu işlem desteklenmiyor",
       "earn": "Kazanma bu hesap için desteklenmiyor",
-      "perps": "Sürekli vadeli işlemler bu hesap için desteklenmiyor",
-      "perps_sandbox": "Perps sandbox not supported for this account"
+      "perps": "Sürekli vadeli işlemler bu hesap için desteklenmiyor"
     },
     "description": "Açıklama",
     "totalSupply": "Toplam Arz",
@@ -2177,7 +2277,6 @@
     "receive_description": "Kripto alın",
     "earn_description": "Token'lerinizden ödül kazanın",
     "perps_description": "Sürekli vadeli sözleşmelerle işlem yap",
-    "perps_sandbox_description": "Explore perpetual trading",
     "chart_time_period": {
       "1d": "Bugün",
       "7d": "Son 7 gün",
@@ -4729,7 +4828,10 @@
       "signing_in_with": "Şununla giriş yapılıyor:",
       "spender": "Harcayan",
       "now": "Şimdi",
-      "switching_to": "Geçiş Yapılan"
+      "switching_to": "Geçiş Yapılan",
+      "bridge_estimated_time": "Est. time",
+      "pay_with": "Pay with",
+      "total": "Total"
     },
     "title": {
       "signature": "İmza talebi",
@@ -4741,7 +4843,8 @@
       "contract_deployment": "Bir sözleşme kullanın",
       "transfer": "Transfer talebi",
       "switch_account_type": "Hesap güncellemesi",
-      "approve": "Talebi onayla"
+      "approve": "Talebi onayla",
+      "perps_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "Bu site token'larınızı harcamak için izin istiyor.",
@@ -4848,7 +4951,9 @@
     "review": "İncele",
     "transferRequest": "Transfer talebi",
     "nested_transaction_heading": "{{index}} işlemi",
-    "transaction": "İşlem"
+    "transaction": "İşlem",
+    "available_balance": "Available: ",
+    "edit_amount_done": "Done"
   },
   "change_in_simulation_modal": {
     "title": "Sonuçlar değişti",
@@ -4905,6 +5010,9 @@
     "fee_disclaimer": "%0,875 MM ücreti dahildir",
     "hardware_wallet_not_supported": "Donanım cüzdanları henüz desteklenmiyor. Devam etmek için sıcak cüzdan kullanın.",
     "hardware_wallet_not_supported_solana": "Donanım cüzdanları henüz Solana için desteklenmiyor. Devam etmek için sıcak cüzdan kullanın.",
+    "price_impact_warning_title": "Price Impact Warning",
+    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
+    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "blockaid_error_title": "This transaction will be reverted",
     "max": "Maks."
   },
@@ -5124,6 +5232,12 @@
   },
   "pay_with_modal": {
     "title": "Ödeme yöntemi seç"
+  },
+  "connection_removed_modal": {
+    "title": "Connections removed",
+    "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
+    "tryAgain": "Try again",
+    "close": "Close"
   },
   "card": {
     "card": "MetaMask Kartı",
