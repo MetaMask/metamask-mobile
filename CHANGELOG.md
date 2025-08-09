@@ -10,7 +10,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - feat(bridge): add support for deep link parameters in bridge view ([#17187](https://github.com/MetaMask/metamask-mobile/pull/17187))
-- feat: implement privacy screen when app is inactive ([#17303](https://github.com/MetaMask/metamask-mobile/pull/17303)) 
 
 ### Fixed
 
