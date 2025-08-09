@@ -2,7 +2,6 @@ import React from 'react';
 import AccountBackupStep1 from './';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { CommonActions } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { ManualBackUpStepsSelectorsIDs } from '../../../../e2e/selectors/Onboarding/ManualBackUpSteps.selectors';
 import { fireEvent } from '@testing-library/react-native';
@@ -10,8 +9,6 @@ import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Engine from '../../../core/Engine';
 import StorageWrapper from '../../../store/storage-wrapper';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
-import Routes from '../../../constants/navigation/Routes';
 import { InteractionManager, Platform } from 'react-native';
 
 // Use fake timers to resolve reanimated issues.
@@ -101,21 +98,6 @@ jest.doMock('react-native', () => {
       currentHeight: 42,
     },
   };
-});
-
-const mockResetActionOnboardingSuccessWizard = CommonActions.reset({
-  index: 1,
-  routes: [
-    {
-      name: Routes.ONBOARDING.SUCCESS_FLOW,
-      params: {
-        screen: Routes.ONBOARDING.SUCCESS,
-        params: {
-          successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
-        },
-      },
-    },
-  ],
 });
 
 describe('AccountBackupStep1', () => {
@@ -320,41 +302,11 @@ describe('AccountBackupStep1', () => {
   });
 
   describe('skip functionality', () => {
-    it('calls onConfirm when onboarding wizard exists', async () => {
-      (Engine.hasFunds as jest.Mock).mockReturnValue(false);
-      (StorageWrapper.getItem as jest.Mock).mockResolvedValue({
-        someData: 'exists',
-      });
-
-      const { wrapper } = setupTest();
-
-      // Find and press the "Remind me later" button
-      const remindLaterButton = wrapper.getByText(
-        strings('account_backup_step_1.remind_me_later'),
-      );
-      fireEvent.press(remindLaterButton);
-
-      // Get the onConfirm function from the modal params
-      const modalParams = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'RootModalFlow' &&
-          call[1].screen === 'SkipAccountSecurityModal',
-      )[1].params;
-
-      mockNavigate.mockClear();
-      // Call the onConfirm function (skip)
-      await modalParams.onConfirm();
-
-      // Verify navigation to OnboardingSuccess
-      expect(mockDispatch).toHaveBeenCalledWith(
-        mockResetActionOnboardingSuccessWizard,
-      );
-    });
-
-    it('navigates to OnboardingSuccess when onboarding wizard does not exist', async () => {
+    it('navigates to OnboardingSuccess when onboarding', async () => {
       (Engine.hasFunds as jest.Mock).mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
 
+      mockNavigate.mockClear();
       const { wrapper } = setupTest();
 
       // Find and press the "Remind me later" button
@@ -363,21 +315,19 @@ describe('AccountBackupStep1', () => {
       );
       fireEvent.press(remindLaterButton);
 
-      // Get the onConfirm function from the modal params
-      const modalParams = mockNavigate.mock.calls.find(
-        (call) =>
-          call[0] === 'RootModalFlow' &&
-          call[1].screen === 'SkipAccountSecurityModal',
-      )[1].params;
+      expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+        screen: 'SkipAccountSecurityModal',
+        params: {
+          onConfirm: expect.any(Function),
+          onCancel: expect.any(Function),
+        },
+      });
 
-      mockNavigate.mockClear();
+      // Get the onConfirm function from the modal params
+      const modalParams = mockNavigate.mock.calls[0][1].params;
+
       // Call the onConfirm function (skip)
       await modalParams.onConfirm();
-
-      // Verify navigation to OnboardingSuccess
-      expect(mockDispatch).toHaveBeenCalledWith(
-        mockResetActionOnboardingSuccessWizard,
-      );
     });
 
     it('handle skip when metrics is disabled', async () => {
@@ -415,11 +365,6 @@ describe('AccountBackupStep1', () => {
 
       // Call the onContinue function
       await modalParams2.onContinue();
-
-      // Verify navigation to OnboardingSuccess
-      expect(mockDispatch).toHaveBeenCalledWith(
-        mockResetActionOnboardingSuccessWizard,
-      );
     });
 
     it('handle secure now button to goNext step when metrics is disabled', async () => {

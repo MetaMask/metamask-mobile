@@ -247,7 +247,6 @@ export const sentryStateMask = {
     seedphraseBackedUp: true,
     userLoggedIn: true,
   },
-  wizard: true,
 };
 
 const METAMASK_ENVIRONMENT = process.env['METAMASK_ENVIRONMENT'] || 'local'; // eslint-disable-line dot-notation

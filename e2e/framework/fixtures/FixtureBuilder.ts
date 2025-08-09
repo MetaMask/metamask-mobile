@@ -99,7 +99,6 @@ class FixtureBuilder {
     this.fixture.asyncState = {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
-      '@MetaMask:onboardingWizard': 'explored',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
       '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
@@ -558,9 +557,6 @@ class FixtureBuilder {
           appTheme: 'os',
           existingUser: true,
         },
-        wizard: {
-          step: 0,
-        },
         onboarding: {
           events: [],
         },
@@ -732,7 +728,6 @@ class FixtureBuilder {
       asyncState: {
         '@MetaMask:existingUser': 'true',
         '@MetaMask:OptinMetaMetricsUISeen': 'true',
-        '@MetaMask:onboardingWizard': 'explored',
         '@MetaMask:UserTermsAcceptedv1.0': 'true',
         '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
         '@MetaMask:solanaFeatureModalShownV2': 'true',

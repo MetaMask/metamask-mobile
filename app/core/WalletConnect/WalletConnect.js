@@ -362,8 +362,7 @@ class WalletConnect {
           // Show autocomplete
           fromHomepage: false,
           toggleUrlModal: () => null,
-          // Wizard
-          wizardScrollAdjusted: () => null,
+
           tabId: false,
           isWalletConnect: true,
         }),

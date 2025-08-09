@@ -13,15 +13,10 @@ import {
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import setOnboardingWizardStep from '../../../actions/wizard';
 import { connect } from 'react-redux';
 import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import {
-  ONBOARDING_WIZARD,
-  OPTIN_META_METRICS_UI_SEEN,
-  TRUE,
-} from '../../../constants/storage';
+import { OPTIN_META_METRICS_UI_SEEN, TRUE } from '../../../constants/storage';
 import AppConstants from '../../../core/AppConstants';
 import {
   MetaMetricsEvents,
@@ -136,10 +131,6 @@ class OptinMetrics extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
-     * Action to set onboarding wizard step
-     */
-    setOnboardingWizardStep: PropTypes.func,
-    /**
      * Onboarding events array created in previous onboarding views
      */
     events: PropTypes.array,
@@ -247,18 +238,9 @@ class OptinMetrics extends PureComponent {
       return onContinue();
     }
 
-    // Get onboarding wizard state
-    const onboardingWizard = await StorageWrapper.getItem(ONBOARDING_WIZARD);
-    if (onboardingWizard) {
-      this.props.navigation.reset({
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      });
-    } else {
-      this.props.setOnboardingWizardStep(1);
-      this.props.navigation.reset({
-        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-      });
-    }
+    this.props.navigation.reset({
+      routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+    });
   };
 
   /**
@@ -680,7 +662,6 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  setOnboardingWizardStep: (step) => dispatch(setOnboardingWizardStep(step)),
   clearOnboardingEvents: () => dispatch(clearOnboardingEvents()),
   setDataCollectionForMarketing: (value) =>
     dispatch(setDataCollectionForMarketing(value)),

@@ -180,9 +180,6 @@ const mockInitialState = {
     hasOnboarded: false,
     isLive: true,
   },
-  wizard: {
-    step: 0,
-  },
   settings: {
     primaryCurrency: 'usd',
     basicFunctionalityEnabled: true,
