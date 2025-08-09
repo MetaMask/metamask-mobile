@@ -5,11 +5,7 @@ import { createAsyncMiddleware } from '@metamask/json-rpc-engine';
 import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { SetFlowLoadingTextOptions } from '@metamask/approval-controller';
 import { recoverPersonalSignature } from '@metamask/eth-sig-util';
-import {
-  getCaip25PermissionFromLegacyPermissions,
-  rejectOriginPendingApprovals,
-  requestPermittedChainsPermissionIncremental,
-} from '../../util/permissions';
+import { rejectOriginPendingApprovals } from '../../util/permissions';
 import { Hex } from '@metamask/utils';
 import {
   getPermissionsHandler,
@@ -58,6 +54,10 @@ import {
 } from '@metamask/signature-controller';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
 import requestEthereumAccounts from './eth-request-accounts';
+import {
+  getCaip25PermissionFromLegacyPermissions,
+  requestPermittedChainsPermissionIncremental,
+} from '@metamask/chain-agnostic-permission';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -348,6 +348,16 @@ export const getRpcMethodMiddlewareHooks = (origin: string) => ({
     requestPermittedChainsPermissionIncremental({
       ...options,
       origin,
+      hooks: {
+        grantPermissionsIncremental:
+          Engine.context.PermissionController.grantPermissionsIncremental.bind(
+            Engine.context.PermissionController.grantPermissionsIncremental,
+          ),
+        requestPermissionsIncremental:
+          Engine.context.PermissionController.requestPermissionsIncremental.bind(
+            Engine.context.PermissionController.requestPermissionsIncremental,
+          ),
+      },
     }),
   hasApprovalRequestsForOrigin: () =>
     Engine.context.ApprovalController.has({ origin }),
@@ -537,12 +547,11 @@ export const getRpcMethodMiddleware = ({
               {
                 getAccounts: (...args) => getPermittedAccounts(origin, ...args),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
-                  requestedPermissions,
+                  requestedPermissions?: RequestedPermissions,
                 ) =>
                   getCaip25PermissionFromLegacyPermissions(
-                    origin,
                     requestedPermissions,
-                  ),
+                  ) as unknown as RequestedPermissions,
                 requestPermissionsForOrigin: (requestedPermissions) =>
                   Engine.context.PermissionController.requestPermissions(
                     { origin: channelId ?? hostname },
@@ -621,10 +630,9 @@ export const getRpcMethodMiddleware = ({
                 getAccounts: (opts?: { ignoreLock?: boolean }) =>
                   getPermittedAccounts(origin, opts),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
-                  requestedPermissions: RequestedPermissions,
+                  requestedPermissions?: RequestedPermissions,
                 ) =>
                   getCaip25PermissionFromLegacyPermissions(
-                    origin,
                     requestedPermissions,
                   ),
                 requestPermissionsForOrigin: (

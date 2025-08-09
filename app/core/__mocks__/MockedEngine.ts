@@ -111,7 +111,6 @@ export const mockedEngine = {
   },
   hasFunds: jest.fn(),
   resetState: jest.fn(),
-  getCaip25PermissionFromLegacyPermissions: jest.fn(),
 };
 
 export default mockedEngine;
