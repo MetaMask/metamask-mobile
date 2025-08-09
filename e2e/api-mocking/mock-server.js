@@ -1,9 +1,14 @@
 /* eslint-disable no-console */
+/* eslint-disable import/no-nodejs-modules */
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
 import _ from 'lodash';
 import { device } from 'detox';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
+import {
+  isPortInUse,
+  killProcessOnPort,
+} from '../framework/fixtures/FixtureUtils';
 import { createLogger } from '../framework/logger';
 
 const logger = createLogger({
@@ -70,6 +75,8 @@ const isUrlAllowed = (url) => {
   }
 };
 
+// Using shared port utilities from FixtureUtils
+
 /**
  * Starts the mock server and sets up mock events.
  *
@@ -80,8 +87,28 @@ const isUrlAllowed = (url) => {
 export const startMockServer = async (events, port) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
+  // Check if port is already in use
+  if (await isPortInUse(port)) {
+    logger.warn(`Port ${port} is already in use. Attempting to free it up...`);
+    // Try to kill the process using the port
+    const freed = await killProcessOnPort(port);
+    if (!freed) {
+      logger.error(`Failed to free up port ${port}. Will try to start anyway.`);
+    } else {
+      logger.debug(`Successfully freed up port ${port}`);
+    }
 
-  await mockServer.start(port);
+    // Give it a moment to fully release
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  try {
+    await mockServer.start(port);
+  } catch (error) {
+    // If starting fails, log the error and throw it
+    logger.error(`Failed to start mock server on port ${port}: ${error}`);
+    throw new Error(`Failed to start mock server on port ${port}: ${error}`);
+  }
   console.log(`Mockttp server running at http://localhost:${port}`);
 
   await mockServer

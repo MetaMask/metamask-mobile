@@ -546,7 +546,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if text is displayed anywhere on screen
-   * @deprecated Use expectTextNotDisplayed() instead for better error handling and retry mechanisms
+   * @deprecated Use expectTextDisplayed() instead for better error handling and retry mechanisms
    */
   static async checkIfTextIsDisplayed(
     text: string,
@@ -557,7 +557,7 @@ export default class Assertions {
 
   /**
    * Legacy method: Check if text is not displayed
-   * @deprecated Use expectElementToNotBeVisible() or custom assertion instead for better error handling and retry mechanisms
+   * @deprecated Use expectTextNotDisplayed() or custom assertion instead for better error handling and retry mechanisms
    */
   static async checkIfTextIsNotDisplayed(
     text: string,

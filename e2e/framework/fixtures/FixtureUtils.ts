@@ -1,3 +1,4 @@
+/* eslint-disable import/no-nodejs-modules */
 import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
@@ -12,6 +13,14 @@ import {
   DEFAULT_MOCKSERVER_PORT,
   DEFAULT_DAPP_SERVER_PORT,
 } from '../Constants';
+import net from 'net';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import { createLogger } from '../logger';
+
+const logger = createLogger({
+  name: 'FixtureUtils',
+});
 
 /**
  * Determines if tests are running on BrowserStack with local tunnel enabled.
@@ -73,24 +82,6 @@ function getServerPort(defaultPort: number) {
 }
 
 /**
- * Kills a service based on its PID.
- * @param {number} pid - The process ID of the service to kill.
- * @returns {boolean} True if the process was killed successfully, false otherwise.
- */
-export async function killServiceByPid(pid: number): Promise<boolean> {
-  try {
-    process.kill(pid, 'SIGKILL');
-
-    // Explicitly adding a timeout in case the process is not killed immediately
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    return true;
-  } catch (error) {
-    // Process may not exist or permission denied
-    return false;
-  }
-}
-
-/**
  * Gets the URL for the second test dapp.
  * This function is used instead of a constant to ensure device.getPlatform() is called
  * after Detox is properly initialized, preventing initialization errors in the apiSpecs tests.
@@ -141,6 +132,153 @@ interface Caip25Permission {
       value: Caip25CaveatValue;
     }[];
   };
+}
+
+/**
+ * Checks if a specific port is in use
+ * @param {number} port - The port to check
+ * @returns {Promise<boolean>} True if the port is in use, false otherwise
+ */
+export async function isPortInUse(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const server = net
+      .createServer()
+      .once('error', () => {
+        // Port is in use
+        resolve(true);
+      })
+      .once('listening', () => {
+        // Port is free
+        server.close();
+        resolve(false);
+      })
+      .listen(port);
+  });
+}
+
+/**
+ * Attempts to kill any process using the specified port
+ * Cross-platform compatible implementation that works on Windows, macOS, and Linux
+ * @param {number} port - The port to free up
+ * @returns {Promise<boolean>} True if successful, false otherwise
+ */
+export async function killProcessOnPort(port: number): Promise<boolean> {
+  // First check if the port is actually in use
+  const portInUse = await isPortInUse(port);
+  if (!portInUse) {
+    logger.debug(`Port ${port} is already free`);
+    return true;
+  }
+
+  const execAsync = promisify(exec);
+
+  try {
+    logger.debug(`Attempting to free up port ${port} on ${process.platform}`);
+
+    // Platform-specific approach to find and kill the process
+    if (process.platform === 'win32') {
+      // Windows: First find the PID using netstat
+      const { stdout } = await execAsync(
+        `netstat -ano | findstr /R "TCP.*:${port} .*LISTENING"`,
+      );
+
+      if (stdout.trim()) {
+        // Split by newlines to process each line individually
+        const lines = stdout.trim().split('\n');
+
+        for (const line of lines) {
+          // Extract PID from the last column of each netstat output line
+          const pidMatches = line.trim().split(/\s+/);
+          if (pidMatches.length > 0) {
+            const pid = pidMatches[pidMatches.length - 1];
+            // Validate that the PID is a non-empty numeric value
+            if (pid && /^\d+$/.test(pid)) {
+              // Kill the process
+              logger.debug(
+                `Killing Windows process with PID ${pid} on port ${port}`,
+              );
+              await execAsync(`taskkill /F /PID ${pid}`);
+            } else {
+              logger.debug(`Invalid PID found: "${pid}"`);
+            }
+          }
+        }
+      }
+    } else if (process.platform === 'darwin' || process.platform === 'linux') {
+      try {
+        // macOS/Linux: First get PIDs using lsof
+        const { stdout } = await execAsync(`lsof -i :${port} -t`);
+
+        if (stdout.trim()) {
+          // Split by newlines in case multiple processes use the port
+          const pids = stdout.trim().split('\n');
+
+          // Kill each process individually to avoid xargs empty input issues
+          for (const pid of pids) {
+            if (pid.trim()) {
+              await execAsync(`kill -9 ${pid.trim()}`);
+            }
+          }
+        }
+      } catch (error) {
+        // Fallback for when lsof is not available
+        logger.debug(
+          `lsof not available, trying alternative port release approach for port ${port}`,
+        );
+
+        try {
+          // Use fuser as an alternative (commonly available on many Linux distros)
+          await execAsync(
+            `command -v fuser && fuser -k ${port}/tcp || echo "fuser not available"`,
+          );
+        } catch (fuserError) {
+          logger.debug(`Fallback method also failed: ${fuserError}`);
+
+          // As a last resort, try the Node.js method to forcefully close connections
+          const server = net.createServer();
+          try {
+            await new Promise((resolve, reject) => {
+              server.on('error', reject);
+              // Attempt to bind to the port - this might force existing connections closed
+              server.listen(port, () => {
+                server.close();
+                resolve(true);
+              });
+            });
+            logger.debug(
+              `Successfully used Node.js fallback to free port ${port}`,
+            );
+          } catch (nodeError) {
+            logger.debug(`Node.js fallback also failed: ${nodeError}`);
+          }
+        }
+      }
+    } else {
+      logger.debug(
+        `Unsupported platform: ${process.platform}, using Node.js fallback`,
+      );
+      // For unsupported platforms, we'll rely on the port check below
+    }
+
+    // Give it a moment to release the port
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    // Verify the port is now available
+    const stillInUse = await isPortInUse(port);
+    if (stillInUse) {
+      logger.debug(`Port ${port} is still in use after kill attempt`);
+      return false;
+    }
+
+    logger.debug(`Successfully freed port ${port}`);
+    return true;
+  } catch (error) {
+    logger.debug(`Error freeing port ${port}: ${error}`);
+
+    // Even if the command failed, check if the port is now available
+    // (it might have been released by other means)
+    return !(await isPortInUse(port));
+  }
 }
 
 export function buildPermissions(chainIds: string[]): Caip25Permission {
