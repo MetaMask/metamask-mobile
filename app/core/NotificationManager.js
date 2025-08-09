@@ -231,27 +231,35 @@ class NotificationManager {
           TokenDetectionController,
           AccountTrackerController,
           NetworkController,
+          PreferencesController,
         } = Engine.context;
 
-        const networkClientId = NetworkController.findNetworkClientIdByChainId(
-          transactionMeta.chainId,
+        const chainIds = Object.keys(
+          PreferencesController.state.tokenNetworkFilter,
         );
+
+        const networkClientIds = chainIds.map((chainId) =>
+          NetworkController.findNetworkClientIdByChainId(chainId),
+        );
+
         // account balances for ETH txs
         // Detect assets and tokens for ERC20 txs
         // Detect assets for ERC721 txs
         // right after a transaction was confirmed
         const pollPromises = [
-          AccountTrackerController.refresh([networkClientId]),
-          TokenBalancesController.updateBalancesByChainId({
-            chainId: transactionMeta.chainId,
-          }),
+          AccountTrackerController.refresh(networkClientIds),
+          ...chainIds.map((chainId) =>
+            TokenBalancesController.updateBalancesByChainId({
+              chainId,
+            }),
+          ),
         ];
         switch (originalTransaction.assetType) {
           case 'ERC20': {
             pollPromises.push(
               ...[
                 TokenDetectionController.detectTokens({
-                  chainIds: [transactionMeta.chainId],
+                  chainIds,
                 }),
               ],
             );
@@ -449,6 +457,9 @@ class NotificationManager {
         AccountTrackerController,
         AccountsController,
         NetworkController,
+        PreferencesController,
+        TokenBalancesController,
+        TokenDetectionController,
       } = Engine.context;
 
       const selectedInternalAccount = AccountsController.getSelectedAccount();
@@ -496,14 +507,27 @@ class NotificationManager {
         duration: 7000,
       });
 
-      const txChainId = filteredTransactions[0]?.chainId;
-      if (txChainId) {
-        const networkClientId =
-          NetworkController.findNetworkClientIdByChainId(txChainId);
+      const chainIds = Object.keys(
+        PreferencesController.state.tokenNetworkFilter,
+      );
 
-        // Update balance upon detecting a new incoming transaction
-        AccountTrackerController.refresh([networkClientId]);
-      }
+      const networkClientIds = chainIds.map((chainId) =>
+        NetworkController.findNetworkClientIdByChainId(chainId),
+      );
+
+      const promises = [
+        AccountTrackerController.refresh(networkClientIds),
+        ...chainIds.map((chainId) =>
+          TokenBalancesController.updateBalancesByChainId({
+            chainId,
+          }),
+        ),
+        TokenDetectionController.detectTokens({
+          chainIds,
+        }),
+      ];
+
+      Promise.all(promises);
     } catch (error) {
       Logger.log(
         'Notifications',
