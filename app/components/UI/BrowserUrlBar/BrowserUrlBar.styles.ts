@@ -27,12 +27,19 @@ const styleSheet = ({
     textInputWrapper: {
       flex: 1,
     },
+    hidden: {
+      position: 'absolute',
+      opacity: 0,
+    },
     textInput: {
       flex: 1,
-      height: 44,
-      paddingVertical: 0,
       margin: 0,
       paddingLeft: isUrlBarFocused ? 16 : 0,
+      ...fontStyles.normal,
+      fontSize: Device.isAndroid() ? 16 : 14,
+      color: colors.text.default,
+    },
+    urlBarText: {
       ...fontStyles.normal,
       fontSize: Device.isAndroid() ? 16 : 14,
       color: colors.text.default,
