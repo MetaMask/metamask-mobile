@@ -20,7 +20,12 @@ const PickerBase: React.ForwardRefRenderFunction<View, PickerBaseProps> = (
   const { colors } = theme;
 
   return (
-    <TouchableOpacity style={styles.base} {...props} ref={ref}>
+    <TouchableOpacity
+      style={styles.base}
+      {...props}
+      ref={ref}
+      testID={props.testID}
+    >
       {children}
       <Icon
         size={iconSize}

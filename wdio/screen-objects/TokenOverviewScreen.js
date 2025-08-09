@@ -1,10 +1,23 @@
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
 import { TokenOverviewSelectorsIDs } from '../../e2e/selectors/wallet/TokenOverview.selectors';
-
+import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import { expect as expectAppwright } from 'appwright';
 class TokenOverviewScreen {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get tokenAssetOverview() {
-    return Selectors.getElementByPlatform(TokenOverviewSelectorsIDs.CONTAINER);
+    if (!this._device) {
+      return Selectors.getElementByPlatform(TokenOverviewSelectorsIDs.CONTAINER);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, TokenOverviewSelectorsIDs.CONTAINER);
+    }
   }
 
   get sendButton() {
@@ -12,8 +25,14 @@ class TokenOverviewScreen {
   }
 
   async isTokenOverviewVisible() {
-    const element = await this.tokenAssetOverview;
-    await element.waitForDisplayed();
+    if (!this._device) {
+      const element = await this.tokenAssetOverview;
+      await element.waitForDisplayed();
+    } else {
+      console.log('Aqui llega', await this.tokenAssetOverview);
+      const element = await this.tokenAssetOverview;
+      expectAppwright(element).toBeVisible();
+    }
   }
 
   async tapSendButton() {

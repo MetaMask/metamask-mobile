@@ -7,8 +7,18 @@ import { TabBarSelectorIDs } from '../../e2e/selectors/wallet/TabBar.selectors';
 
 import { BACK_BUTTON_SIMPLE_WEBVIEW } from './testIDs/Components/SimpleWebView.testIds';
 import { WalletViewSelectorsIDs } from '../../e2e/selectors/wallet/WalletView.selectors';
+import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
+import { expect as appwrightExpect } from 'appwright';
 
 class WalletMainScreen {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get ImportToken() {
     return Selectors.getElementByPlatform(WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON);
   }
@@ -22,11 +32,19 @@ class WalletMainScreen {
   }
 
   get accountIcon() {
-    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ICON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ICON);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
+    }
   }
 
   get WalletScreenContainer() {
-    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_CONTAINER);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_CONTAINER);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.WALLET_CONTAINER);
+    }
   }
 
   get networkInNavBar() {
@@ -48,7 +66,11 @@ class WalletMainScreen {
   }
 
   get accountActionsButton() {
-    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+    }
   }
 
   get privateKeyActionButton() {
@@ -64,7 +86,11 @@ class WalletMainScreen {
   }
 
   get walletButton() {
-    return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.WALLET);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.WALLET);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, TabBarSelectorIDs.WALLET);
+    }
   }
 
   get goBackSimpleWebViewButton() {
@@ -100,7 +126,12 @@ class WalletMainScreen {
   }
 
   async tapIdenticon() {
-    await Gestures.waitAndTap(this.accountIcon);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.accountIcon);
+    } else {
+      const element = await this.accountIcon;
+      await element.tap();
+    }
   }
 
   async tapNetworkNavBar() {
@@ -120,6 +151,14 @@ class WalletMainScreen {
     await expect(this.WalletScreenContainer).toBeDisplayed();
   }
 
+  async clickOnMainScreen() { // to close account actions bottom sheet
+    if (!this._device) {
+      await Gestures.waitAndTap(this.WalletScreenContainer);
+    } else {
+      await this._device.tap({ x: 100, y: 100 });
+    }
+  }
+
   async isNetworkNameCorrect(network) {
     const networkName = await Selectors.getXpathElementByTextContains(network);
     await networkName.waitForDisplayed();
@@ -132,8 +171,12 @@ class WalletMainScreen {
   }
 
   async isMainWalletViewVisible() {
-    const element = await this.walletButton;
-    await expect(element).toBeDisplayed();
+    if (!this._device) {
+      await this.walletButton.waitForDisplayed();
+    } else {
+      const element = await this.walletButton;
+      await appwrightExpect(element).toBeVisible();
+    }
   }
 
   async isSubmittedNotificationDisplayed() {
@@ -156,7 +199,12 @@ class WalletMainScreen {
   }
 
   async tapAccountActions() {
-    await Gestures.waitAndTap(this.accountActionsButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.accountActionsButton);
+    } else {
+      const element = await this.accountActionsButton;
+      await element.tap();
+    }
   }
 
   async tapShowPrivateKey() {

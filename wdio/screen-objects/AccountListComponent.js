@@ -3,23 +3,50 @@ import Selectors from '../helpers/Selectors';
 import {
   AccountListBottomSheetSelectorsIDs,
 } from '../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import { expect } from 'appwright';
 
 class AccountListComponent {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get accountListContainer() {
-    return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+    }
   }
 
   get addAccountButton() {
-    return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
+    } else {
+      return AppwrightSelectors.getElementByResourceId(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
+    }
   }
 
   async tapAddAccountButton() {
-    await Gestures.waitAndTap(this.addAccountButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.addAccountButton);
+    } else {
+      const element = await this.addAccountButton;
+      await element.tap();
+    }
   }
 
   async isComponentDisplayed() {
-    const container = await this.accountListContainer;
-    await container.waitForDisplayed();
+    if (!this._device) {
+      await this.accountListContainer.waitForDisplayed();
+    } else {
+      const element = await this.accountListContainer;
+      await expect(element).toBeVisible({ timeout: 10000 });
+    }
   }
 
   async isComponentNotDisplayed() {
