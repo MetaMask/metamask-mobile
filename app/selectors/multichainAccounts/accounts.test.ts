@@ -19,14 +19,24 @@ const WALLET_ID_1 = 'keyring:wallet1' as const;
 const WALLET_ID_2 = 'entropy:wallet2' as const;
 const WALLET_ID_3 = 'snap:wallet3' as const;
 
-const ACCOUNT_GROUP_ID_1 = 'keyring:wallet1/ethereum' as const;
-const ACCOUNT_GROUP_ID_2 = 'entropy:wallet2/solana' as const;
-const ACCOUNT_GROUP_ID_3 = 'snap:wallet3/bitcoin' as const;
+// Additional entropy wallet for comprehensive testing
+const ENTROPY_WALLET_ID = 'entropy:testWallet' as const;
+
+const ACCOUNT_GROUP_ID_1 = 'keyring:wallet1/1' as const;
+const ACCOUNT_GROUP_ID_2 = 'entropy:wallet2/2' as const;
+const ACCOUNT_GROUP_ID_3 = 'snap:wallet3/3' as const;
+
+// Entropy wallet account group that contains both EVM and non-EVM accounts
+const ENTROPY_GROUP_ID = 'entropy:testWallet/multichain' as const;
 
 const ACCOUNT_ID_1 = 'account1' as AccountId;
 const ACCOUNT_ID_2 = 'account2' as AccountId;
 const ACCOUNT_ID_3 = 'account3' as AccountId;
 const ACCOUNT_ID_4 = 'account4' as AccountId;
+
+// Additional account IDs for entropy wallet tests
+const ENTROPY_EVM_ACCOUNT_ID = 'entropyEvmAccount' as AccountId;
+const ENTROPY_SOLANA_ACCOUNT_ID = 'entropySolanaAccount' as AccountId;
 
 const EVM_SCOPE = 'eip155:1' as CaipChainId;
 const SOLANA_SCOPE = 'solana:mainnet' as CaipChainId;
@@ -35,7 +45,7 @@ const BITCOIN_SCOPE = 'bip122:000000000019d6689c085ae165831e93' as CaipChainId;
 const mockEvmAccount: InternalAccount = {
   ...createMockInternalAccount('0x123', 'EVM Account'),
   id: ACCOUNT_ID_1,
-  scopes: [EVM_SCOPE, 'eip155:137' as CaipChainId],
+  scopes: [EVM_SCOPE],
 };
 
 const mockSolanaAccount: InternalAccount = {
@@ -58,10 +68,31 @@ const mockBitcoinAccount: InternalAccount = {
   scopes: [BITCOIN_SCOPE],
 };
 
-const mockMultiScopeAccount: InternalAccount = {
-  ...createMockInternalAccount('0x456', 'Multi-scope Account'),
+const mockAnotherSolanaAccount: InternalAccount = {
+  ...createMockSnapInternalAccount(
+    'solana456',
+    'Another Solana Account',
+    SolAccountType.DataAccount,
+  ),
   id: ACCOUNT_ID_4,
-  scopes: [EVM_SCOPE, SOLANA_SCOPE],
+  scopes: [SOLANA_SCOPE],
+};
+
+// Mock accounts for entropy wallet testing
+const mockEntropyEvmAccount: InternalAccount = {
+  ...createMockInternalAccount('0x789', 'Entropy EVM Account'),
+  id: ENTROPY_EVM_ACCOUNT_ID,
+  scopes: [EVM_SCOPE],
+};
+
+const mockEntropySolanaAccount: InternalAccount = {
+  ...createMockSnapInternalAccount(
+    'entropySolana789',
+    'Entropy Solana Account',
+    SolAccountType.DataAccount,
+  ),
+  id: ENTROPY_SOLANA_ACCOUNT_ID,
+  scopes: [SOLANA_SCOPE],
 };
 
 const createMockState = (
@@ -284,7 +315,7 @@ describe('accounts selectors', () => {
       expect(result).toEqual(mockSolanaAccount);
     });
 
-    it('returns account with multiple scopes when EVM scope matches', () => {
+    it('returns EVM account from selected account group when EVM scope matches', () => {
       const mockState = createMockState(
         {
           accountTree: {
@@ -295,43 +326,14 @@ describe('accounts selectors', () => {
                 metadata: { name: 'Wallet 1' },
                 groups: {
                   [ACCOUNT_GROUP_ID_1]: {
-                    accounts: [ACCOUNT_ID_4],
+                    accounts: [ACCOUNT_ID_1],
                   },
                 },
               },
             },
           },
         },
-        { [ACCOUNT_ID_4]: mockMultiScopeAccount },
-      );
-
-      const selector = selectSelectedInternalAccountByScope(mockState);
-      const result = selector(EVM_SCOPE);
-      expect(result).toEqual(mockMultiScopeAccount);
-    });
-
-    it('returns first matching account when multiple accounts exist', () => {
-      const mockState = createMockState(
-        {
-          accountTree: {
-            selectedAccountGroup: ACCOUNT_GROUP_ID_1,
-            wallets: {
-              [WALLET_ID_1]: {
-                id: WALLET_ID_1,
-                metadata: { name: 'Wallet 1' },
-                groups: {
-                  [ACCOUNT_GROUP_ID_1]: {
-                    accounts: [ACCOUNT_ID_1, ACCOUNT_ID_4],
-                  },
-                },
-              },
-            },
-          },
-        },
-        {
-          [ACCOUNT_ID_1]: mockEvmAccount,
-          [ACCOUNT_ID_4]: mockMultiScopeAccount,
-        },
+        { [ACCOUNT_ID_1]: mockEvmAccount },
       );
 
       const selector = selectSelectedInternalAccountByScope(mockState);
@@ -513,7 +515,7 @@ describe('accounts selectors', () => {
       expect(result).toEqual(mockSolanaAccount);
     });
 
-    it('returns account with multiple scopes when EVM scope matches', () => {
+    it('returns EVM account from specific account group when EVM scope matches', () => {
       const mockState = createMockState(
         {
           accountTree: {
@@ -523,72 +525,44 @@ describe('accounts selectors', () => {
                 metadata: { name: 'Wallet 1' },
                 groups: {
                   [ACCOUNT_GROUP_ID_1]: {
-                    accounts: [ACCOUNT_ID_4],
+                    accounts: [ACCOUNT_ID_1],
                   },
                 },
               },
             },
           },
         },
-        { [ACCOUNT_ID_4]: mockMultiScopeAccount },
-      );
-
-      const selector = selectInternalAccountByAccountGroupAndScope(mockState);
-      const result = selector(EVM_SCOPE, ACCOUNT_GROUP_ID_1);
-      expect(result).toEqual(mockMultiScopeAccount);
-    });
-
-    it('returns account with multiple scopes when non-EVM scope matches', () => {
-      const mockState = createMockState(
-        {
-          accountTree: {
-            wallets: {
-              [WALLET_ID_1]: {
-                id: WALLET_ID_1,
-                metadata: { name: 'Wallet 1' },
-                groups: {
-                  [ACCOUNT_GROUP_ID_1]: {
-                    accounts: [ACCOUNT_ID_4],
-                  },
-                },
-              },
-            },
-          },
-        },
-        { [ACCOUNT_ID_4]: mockMultiScopeAccount },
-      );
-
-      const selector = selectInternalAccountByAccountGroupAndScope(mockState);
-      const result = selector(SOLANA_SCOPE, ACCOUNT_GROUP_ID_1);
-      expect(result).toEqual(mockMultiScopeAccount);
-    });
-
-    it('returns first matching account when multiple accounts exist', () => {
-      const mockState = createMockState(
-        {
-          accountTree: {
-            wallets: {
-              [WALLET_ID_1]: {
-                id: WALLET_ID_1,
-                metadata: { name: 'Wallet 1' },
-                groups: {
-                  [ACCOUNT_GROUP_ID_1]: {
-                    accounts: [ACCOUNT_ID_1, ACCOUNT_ID_4],
-                  },
-                },
-              },
-            },
-          },
-        },
-        {
-          [ACCOUNT_ID_1]: mockEvmAccount,
-          [ACCOUNT_ID_4]: mockMultiScopeAccount,
-        },
+        { [ACCOUNT_ID_1]: mockEvmAccount },
       );
 
       const selector = selectInternalAccountByAccountGroupAndScope(mockState);
       const result = selector(EVM_SCOPE, ACCOUNT_GROUP_ID_1);
       expect(result).toEqual(mockEvmAccount);
+    });
+
+    it('returns account when non-EVM scope matches', () => {
+      const mockState = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [WALLET_ID_1]: {
+                id: WALLET_ID_1,
+                metadata: { name: 'Wallet 1' },
+                groups: {
+                  [ACCOUNT_GROUP_ID_1]: {
+                    accounts: [ACCOUNT_ID_4],
+                  },
+                },
+              },
+            },
+          },
+        },
+        { [ACCOUNT_ID_4]: mockAnotherSolanaAccount },
+      );
+
+      const selector = selectInternalAccountByAccountGroupAndScope(mockState);
+      const result = selector(SOLANA_SCOPE, ACCOUNT_GROUP_ID_1);
+      expect(result).toEqual(mockAnotherSolanaAccount);
     });
 
     it('handles empty accounts array in account group', () => {
@@ -664,7 +638,16 @@ describe('accounts selectors', () => {
                 metadata: { name: 'Wallet 1' },
                 groups: {
                   [ACCOUNT_GROUP_ID_1]: {
-                    accounts: [ACCOUNT_ID_1, ACCOUNT_ID_4],
+                    accounts: [ACCOUNT_ID_1],
+                  },
+                },
+              },
+              [WALLET_ID_2]: {
+                id: WALLET_ID_2,
+                metadata: { name: 'Wallet 2' },
+                groups: {
+                  [ACCOUNT_GROUP_ID_2]: {
+                    accounts: [ACCOUNT_ID_4],
                   },
                 },
               },
@@ -683,7 +666,7 @@ describe('accounts selectors', () => {
         {
           [ACCOUNT_ID_1]: mockEvmAccount,
           [ACCOUNT_ID_3]: mockBitcoinAccount,
-          [ACCOUNT_ID_4]: mockMultiScopeAccount,
+          [ACCOUNT_ID_4]: mockAnotherSolanaAccount,
         },
       );
 
@@ -693,8 +676,8 @@ describe('accounts selectors', () => {
       expect(selector(BITCOIN_SCOPE, ACCOUNT_GROUP_ID_3)).toEqual(
         mockBitcoinAccount,
       );
-      expect(selector(SOLANA_SCOPE, ACCOUNT_GROUP_ID_1)).toEqual(
-        mockMultiScopeAccount,
+      expect(selector(SOLANA_SCOPE, ACCOUNT_GROUP_ID_2)).toEqual(
+        mockAnotherSolanaAccount,
       );
       expect(selector(SOLANA_SCOPE, 'nonexistent')).toBeUndefined();
       expect(selector(EVM_SCOPE, ACCOUNT_GROUP_ID_1)).toEqual(mockEvmAccount);
@@ -729,6 +712,215 @@ describe('accounts selectors', () => {
       const selector = selectInternalAccountByAccountGroupAndScope(mockState);
       const result = selector('eip155:1' as CaipChainId, ACCOUNT_GROUP_ID_1);
       expect(result).toEqual(polygonEvmAccount);
+    });
+
+    describe('entropy wallet tests', () => {
+      it('finds EVM account in entropy wallet multichain group when requesting EVM scope', () => {
+        const mockState = createMockState(
+          {
+            accountTree: {
+              wallets: {
+                [ENTROPY_WALLET_ID]: {
+                  id: ENTROPY_WALLET_ID,
+                  metadata: { name: 'Entropy Test Wallet' },
+                  groups: {
+                    [ENTROPY_GROUP_ID]: {
+                      accounts: [
+                        ENTROPY_EVM_ACCOUNT_ID,
+                        ENTROPY_SOLANA_ACCOUNT_ID,
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,
+            [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+          },
+        );
+
+        const selector = selectInternalAccountByAccountGroupAndScope(mockState);
+        const result = selector(EVM_SCOPE, ENTROPY_GROUP_ID);
+        expect(result).toEqual(mockEntropyEvmAccount);
+      });
+
+      it('finds Solana account in entropy wallet multichain group when requesting Solana scope', () => {
+        const mockState = createMockState(
+          {
+            accountTree: {
+              wallets: {
+                [ENTROPY_WALLET_ID]: {
+                  id: ENTROPY_WALLET_ID,
+                  metadata: { name: 'Entropy Test Wallet' },
+                  groups: {
+                    [ENTROPY_GROUP_ID]: {
+                      accounts: [
+                        ENTROPY_EVM_ACCOUNT_ID,
+                        ENTROPY_SOLANA_ACCOUNT_ID,
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,
+            [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+          },
+        );
+
+        const selector = selectInternalAccountByAccountGroupAndScope(mockState);
+        const result = selector(SOLANA_SCOPE, ENTROPY_GROUP_ID);
+        expect(result).toEqual(mockEntropySolanaAccount);
+      });
+
+      it('returns undefined when requesting Bitcoin scope from entropy multichain group', () => {
+        const mockState = createMockState(
+          {
+            accountTree: {
+              wallets: {
+                [ENTROPY_WALLET_ID]: {
+                  id: ENTROPY_WALLET_ID,
+                  metadata: { name: 'Entropy Test Wallet' },
+                  groups: {
+                    [ENTROPY_GROUP_ID]: {
+                      accounts: [
+                        ENTROPY_EVM_ACCOUNT_ID,
+                        ENTROPY_SOLANA_ACCOUNT_ID,
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,
+            [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+          },
+        );
+
+        const selector = selectInternalAccountByAccountGroupAndScope(mockState);
+
+        // Try to find Bitcoin account in multichain group that only has EVM and Solana - should return undefined
+        const result = selector(BITCOIN_SCOPE, ENTROPY_GROUP_ID);
+        expect(result).toBeUndefined();
+      });
+
+      it('works with selectedAccountGroup for entropy wallets', () => {
+        const mockState = createMockState(
+          {
+            accountTree: {
+              selectedAccountGroup: ENTROPY_GROUP_ID,
+              wallets: {
+                [ENTROPY_WALLET_ID]: {
+                  id: ENTROPY_WALLET_ID,
+                  metadata: { name: 'Entropy Test Wallet' },
+                  groups: {
+                    [ENTROPY_GROUP_ID]: {
+                      accounts: [
+                        ENTROPY_EVM_ACCOUNT_ID,
+                        ENTROPY_SOLANA_ACCOUNT_ID,
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,
+            [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+          },
+        );
+
+        const selector = selectSelectedInternalAccountByScope(mockState);
+
+        // Test both EVM and Solana scope matching from the same selected group
+        const evmResult = selector(EVM_SCOPE);
+        expect(evmResult).toEqual(mockEntropyEvmAccount);
+
+        const solanaResult = selector(SOLANA_SCOPE);
+        expect(solanaResult).toEqual(mockEntropySolanaAccount);
+      });
+
+      it('handles multiple entropy wallets with mixed multichain groups', () => {
+        const secondEntropyWallet = 'entropy:secondWallet' as const;
+        const secondEntropyGroup = 'entropy:secondWallet/multichain' as const;
+        const secondEvmAccountId = 'secondEvmAccount' as AccountId;
+        const secondBtcAccountId = 'secondBtcAccount' as AccountId;
+
+        const secondEvmAccount: InternalAccount = {
+          ...createMockInternalAccount('0xABC', 'Second EVM Account'),
+          id: secondEvmAccountId,
+          scopes: [EVM_SCOPE],
+        };
+
+        const secondBtcAccount: InternalAccount = {
+          ...createMockSnapInternalAccount(
+            'btc456',
+            'Second Bitcoin Account',
+            BtcAccountType.P2wpkh,
+          ),
+          id: secondBtcAccountId,
+          scopes: [BITCOIN_SCOPE],
+        };
+
+        const mockState = createMockState(
+          {
+            accountTree: {
+              wallets: {
+                [ENTROPY_WALLET_ID]: {
+                  id: ENTROPY_WALLET_ID,
+                  metadata: { name: 'First Entropy Wallet' },
+                  groups: {
+                    [ENTROPY_GROUP_ID]: {
+                      accounts: [
+                        ENTROPY_EVM_ACCOUNT_ID,
+                        ENTROPY_SOLANA_ACCOUNT_ID,
+                      ],
+                    },
+                  },
+                },
+                [secondEntropyWallet]: {
+                  id: secondEntropyWallet,
+                  metadata: { name: 'Second Entropy Wallet' },
+                  groups: {
+                    [secondEntropyGroup]: {
+                      accounts: [secondEvmAccountId, secondBtcAccountId],
+                    },
+                  },
+                },
+              },
+            },
+          },
+          {
+            [ENTROPY_EVM_ACCOUNT_ID]: mockEntropyEvmAccount,
+            [ENTROPY_SOLANA_ACCOUNT_ID]: mockEntropySolanaAccount,
+            [secondEvmAccountId]: secondEvmAccount,
+            [secondBtcAccountId]: secondBtcAccount,
+          },
+        );
+
+        const selector = selectInternalAccountByAccountGroupAndScope(mockState);
+
+        // Test first entropy wallet (EVM and Solana)
+        const firstEvmResult = selector(EVM_SCOPE, ENTROPY_GROUP_ID);
+        expect(firstEvmResult).toEqual(mockEntropyEvmAccount);
+
+        const firstSolanaResult = selector(SOLANA_SCOPE, ENTROPY_GROUP_ID);
+        expect(firstSolanaResult).toEqual(mockEntropySolanaAccount);
+
+        // Test second entropy wallet (EVM and Bitcoin)
+        const secondEvmResult = selector(EVM_SCOPE, secondEntropyGroup);
+        expect(secondEvmResult).toEqual(secondEvmAccount);
+
+        const secondBtcResult = selector(BITCOIN_SCOPE, secondEntropyGroup);
+        expect(secondBtcResult).toEqual(secondBtcAccount);
+      });
     });
   });
 });

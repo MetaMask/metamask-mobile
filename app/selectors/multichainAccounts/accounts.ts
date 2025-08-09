@@ -5,8 +5,12 @@ import {
   AccountTreeControllerState,
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
-import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
-import { CaipChainId, KnownCaipNamespace } from '@metamask/utils';
+import {
+  AccountGroupId,
+  AccountWalletId,
+  selectOne,
+} from '@metamask/account-api';
+import { CaipChainId } from '@metamask/utils';
 import { selectInternalAccountsById } from '../accountsController';
 import { AccountId } from '@metamask/accounts-controller';
 
@@ -93,20 +97,21 @@ const findInternalAccountByScope = (
     .map((accountId: AccountId) => internalAccountsMap[accountId])
     // filter out undefined accounts. The accounts should never be undefined
     // because the accounts in the accountGroup comes from the accounts controller
-    .filter(Boolean);
+    .filter((account): account is InternalAccount => Boolean(account));
 
-  const isEvmScope = scope.startsWith(KnownCaipNamespace.Eip155);
+  // Handle EVM scope matching: for EVM scopes (eip155:*), match any account with any EVM scope
+  // For non-EVM scopes, require exact scope match
+  const isEvmScope = scope.startsWith('eip155:');
 
-  return accountGroupInternalAccounts.find((account: InternalAccount) => {
-    if (isEvmScope) {
-      return account.scopes.some((accountScope: CaipChainId) =>
-        accountScope.startsWith(KnownCaipNamespace.Eip155),
-      );
-    }
-
-    return account.scopes.some(
-      (accountScope: CaipChainId) => accountScope === scope,
+  if (isEvmScope) {
+    // Find any account that has any EVM scope
+    return accountGroupInternalAccounts.find((account) =>
+      account.scopes.some((accountScope) => accountScope.startsWith('eip155:')),
     );
+  }
+  // For non-EVM scopes, use exact matching
+  return selectOne(accountGroupInternalAccounts, {
+    scopes: [scope],
   });
 };
 
