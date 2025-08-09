@@ -4,7 +4,6 @@ import { AllowanceState, CardTokenAllowance } from '../types';
 import { Hex } from '@metamask/utils';
 import { renderFromTokenMinimalUnit } from '../../../../util/number';
 import Logger from '../../../../util/Logger';
-import { useGetAllowances } from './useGetAllowances';
 import BigNumber from 'bignumber.js';
 import {
   endTrace,
@@ -15,6 +14,83 @@ import {
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 import { useSelector } from 'react-redux';
 import { selectAllTokenBalances } from '../../../../selectors/tokenBalancesController';
+import { CardSDK } from '../sdk/CardSDK';
+import { ARBITRARY_ALLOWANCE } from '../constants';
+
+/**
+ * Fetches token allowances from the Card SDK and maps them to CardTokenAllowance objects.
+ * @param {CardSDK} sdk - The Card SDK instance.
+ * @param {string} selectedAddress - The user's Ethereum address.
+ * @param {string} chainId - The chain ID for which to fetch allowances.
+ * @returns {Promise<CardTokenAllowance[]>} - A promise that resolves to an array of CardTokenAllowance objects.
+ */
+const fetchAllowances = async (
+  sdk: CardSDK,
+  selectedAddress: string,
+  chainId: string,
+) => {
+  try {
+    trace({
+      name: TraceName.Card,
+      op: TraceOperation.CardGetSupportedTokensAllowances,
+    });
+    const supportedTokensAllowances = await sdk.getSupportedTokensAllowances(
+      selectedAddress,
+    );
+
+    const supportedTokens = sdk.supportedTokens;
+
+    const mappedAllowances = supportedTokensAllowances.map((token) => {
+      const tokenInfo = supportedTokens.find(
+        (supportedToken) => supportedToken.address === token.address,
+      );
+      const allowance = token.usAllowance.isZero()
+        ? token.globalAllowance
+        : token.usAllowance;
+      let allowanceState;
+
+      if (allowance.isZero()) {
+        allowanceState = AllowanceState.NotEnabled;
+      } else if (allowance.lt(ARBITRARY_ALLOWANCE)) {
+        allowanceState = AllowanceState.Limited;
+      } else {
+        allowanceState = AllowanceState.Enabled;
+      }
+
+      if (!tokenInfo) {
+        return null;
+      }
+
+      return {
+        allowanceState,
+        address: token.address,
+        tag: allowanceState,
+        isStaked: false,
+        decimals: tokenInfo.decimals ?? null,
+        name: tokenInfo.name ?? null,
+        symbol: tokenInfo.symbol ?? null,
+        allowance,
+        chainId,
+      };
+    });
+
+    const filteredAllowances = mappedAllowances.filter(
+      Boolean,
+    ) as CardTokenAllowance[];
+
+    endTrace({
+      name: TraceName.Card,
+    });
+
+    return filteredAllowances;
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      'fetchAllowances::Failed to fetch token allowances',
+    );
+    throw new Error('Failed to fetch token allowances');
+  }
+};
 
 /**
  * React hook to fetch and determine the priority card token for a given user address.
@@ -41,7 +117,6 @@ export const useGetPriorityCardToken = (
   const { sdk } = useCardSDK();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<boolean>(false);
-  const { fetchAllowances } = useGetAllowances(selectedAddress);
   const [priorityToken, setPriorityToken] = useState<CardTokenAllowance | null>(
     null,
   );
@@ -90,7 +165,11 @@ export const useGetPriorityCardToken = (
           name: TraceName.Card,
           op: TraceOperation.CardGetPriorityToken,
         });
-        const cardTokenAllowances = await fetchAllowances();
+        const cardTokenAllowances = await fetchAllowances(
+          sdk,
+          selectedAddress,
+          LINEA_CHAIN_ID,
+        );
         endTrace({
           name: TraceName.Card,
         });
@@ -175,7 +254,7 @@ export const useGetPriorityCardToken = (
       } finally {
         setIsLoading(false);
       }
-    }, [sdk, selectedAddress, fetchAllowances, getBalancesForChain]);
+    }, [sdk, selectedAddress, getBalancesForChain]);
 
   useEffect(() => {
     if (selectedAddress && shouldFetch) {
