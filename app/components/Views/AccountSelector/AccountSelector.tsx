@@ -49,6 +49,8 @@ import { getTraceTags } from '../../../util/sentry/tags';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
 import { useSyncSRPs } from '../../hooks/useSyncSRPs';
+import { InteractionManager } from 'react-native';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -97,23 +99,47 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [dispatch, reloadAccounts]);
 
+  const currentlySelectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+
   const _onSelectAccount = useCallback(
     (address: string) => {
-      Engine.setSelectedAddress(address);
-      sheetRef.current?.onCloseBottomSheet();
-      onSelectAccount?.(address);
+      // No-op if selecting the already active account
+      if (
+        currentlySelectedAddress &&
+        address.toLowerCase() === currentlySelectedAddress.toLowerCase()
+      ) {
+        sheetRef.current?.onCloseBottomSheet();
+        return;
+      }
 
-      // Track Event: "Switched Account"
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
-          .addProperties({
-            source: 'Wallet Tab',
-            number_of_accounts: accounts?.length,
-          })
-          .build(),
-      );
+      // Close the sheet first to avoid doing heavy work mid-animation
+      sheetRef.current?.onCloseBottomSheet();
+
+      // Defer Engine update until after interactions/animations complete
+      InteractionManager.runAfterInteractions(() => {
+        Engine.setSelectedAddress(address);
+        onSelectAccount?.(address);
+
+        // Track Event: "Switched Account"
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.SWITCHED_ACCOUNT)
+            .addProperties({
+              source: 'Wallet Tab',
+              number_of_accounts: accounts?.length,
+            })
+            .build(),
+        );
+      });
     },
-    [accounts?.length, onSelectAccount, trackEvent, createEventBuilder],
+    [
+      accounts?.length,
+      onSelectAccount,
+      trackEvent,
+      createEventBuilder,
+      currentlySelectedAddress,
+    ],
   );
 
   // Handler for adding accounts
