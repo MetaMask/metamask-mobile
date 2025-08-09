@@ -12,12 +12,13 @@ import { strings } from '../../../../../../locales/i18n';
 export function PayTokenBalance() {
   const { styles } = useStyles(styleSheet, {});
   const { payToken } = useTransactionPayToken();
-  const { address: payTokenAddress, chainId } = payToken;
-  const tokens = useTokensWithBalance({ chainIds: [chainId] });
+  const { address: payTokenAddress, chainId } = payToken ?? {};
+  const chainIds = chainId ? [chainId] : [];
+  const tokens = useTokensWithBalance({ chainIds });
 
   const token = tokens.find(
     (t) =>
-      t.address.toLowerCase() === payTokenAddress.toLowerCase() &&
+      t.address.toLowerCase() === payTokenAddress?.toLowerCase() &&
       t.chainId === chainId,
   );
 

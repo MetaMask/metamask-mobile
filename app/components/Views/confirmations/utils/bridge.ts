@@ -33,13 +33,13 @@ export async function getBridgeQuotes(
     const allQuotes: TransactionBridgeQuote[] = [];
 
     for (const request of requests) {
-      const quotes = await getSingleBridgeQuotes(request);
+      const quote = await getSingleBridgeQuotes(request);
 
-      if (!quotes) {
+      if (!quote) {
         return undefined;
       }
 
-      allQuotes.push(quotes);
+      allQuotes.push(quote);
     }
 
     log('Fetched bridge quotes', allQuotes);
@@ -47,7 +47,7 @@ export async function getBridgeQuotes(
     return allQuotes;
   } catch (error) {
     log('Error fetching bridge quotes', error);
-    return [];
+    return undefined;
   }
 }
 

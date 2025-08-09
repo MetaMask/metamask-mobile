@@ -75,6 +75,10 @@ export function EditAmount({
 
   const handlePercentagePress = useCallback(
     (percentage: number) => {
+      if (!balanceFiat) {
+        return;
+      }
+
       const percentageValue = new BigNumber(balanceFiat)
         .multipliedBy(percentage)
         .dividedBy(100);

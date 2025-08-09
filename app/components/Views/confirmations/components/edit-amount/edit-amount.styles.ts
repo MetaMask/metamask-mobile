@@ -13,7 +13,6 @@ const styleSheet = (params: { theme: Theme; vars: { hasAlert: boolean } }) =>
     primaryContainer: {
       display: 'flex',
       flexDirection: 'column',
-      gap: 16,
     },
     input: {
       textAlign: 'center',
@@ -22,7 +21,7 @@ const styleSheet = (params: { theme: Theme; vars: { hasAlert: boolean } }) =>
       color: params.vars.hasAlert
         ? params.theme.colors.error.default
         : params.theme.colors.text.default,
-      marginBottom: -8,
+      marginBottom: 16,
     },
   });
 

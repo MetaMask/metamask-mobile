@@ -115,7 +115,7 @@ describe('Confirmations Bridge Utils', () => {
       expect(quotes).toStrictEqual([QUOTE_1_MOCK, QUOTE_2_MOCK]);
     });
 
-    it('returns empty array if quotes not found after timeout', async () => {
+    it('returns undefined if quotes not found after timeout', async () => {
       bridgeControllerMock.updateBridgeQuoteRequestParams.mockReset();
 
       const quotesPromise = getBridgeQuotes([
@@ -127,10 +127,10 @@ describe('Confirmations Bridge Utils', () => {
 
       const quotes = await quotesPromise;
 
-      expect(quotes).toStrictEqual([]);
+      expect(quotes).toBeUndefined();
     });
 
-    it('returns empty array if quotes do not match request', async () => {
+    it('returns undefined if quotes do not match request', async () => {
       bridgeControllerMock.updateBridgeQuoteRequestParams.mockReset();
       bridgeControllerMock.updateBridgeQuoteRequestParams
         .mockImplementationOnce(() => {
@@ -165,7 +165,7 @@ describe('Confirmations Bridge Utils', () => {
 
       const quotes = await quotesPromise;
 
-      expect(quotes).toStrictEqual([]);
+      expect(quotes).toBeUndefined();
     });
 
     it('updates bridge request parameters', async () => {

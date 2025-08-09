@@ -15,6 +15,7 @@ import { useSignedOrSubmittedAlert } from './useSignedOrSubmittedAlert';
 import { usePendingTransactionAlert } from './usePendingTransactionAlert';
 import { usePerpsDepositMinimumAlert } from './usePerpsDepositMinimumAlert';
 import { useInsufficientPayTokenBalanceAlert } from './useInsufficientPayTokenBalanceAlert';
+import { useNoPayTokenQuotesAlert } from './useNoPayTokenQuotesAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useDomainMismatchAlerts');
@@ -25,6 +26,7 @@ jest.mock('./usePendingTransactionAlert');
 jest.mock('./useBatchedUnusedApprovalsAlert');
 jest.mock('./usePerpsDepositMinimumAlert');
 jest.mock('./useInsufficientPayTokenBalanceAlert');
+jest.mock('./useNoPayTokenQuotesAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -112,6 +114,15 @@ describe('useConfirmationAlerts', () => {
     },
   ];
 
+  const mockNoPayTokenQuotesAlert: Alert[] = [
+    {
+      key: 'NoPayTokenQuotesAlert',
+      title: 'Test No Pay Token Quotes Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Warning,
+    },
+  ];
+
   beforeEach(() => {
     jest.clearAllMocks();
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
@@ -123,6 +134,7 @@ describe('useConfirmationAlerts', () => {
     (useBatchedUnusedApprovalsAlert as jest.Mock).mockReturnValue([]);
     (usePerpsDepositMinimumAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientPayTokenBalanceAlert as jest.Mock).mockReturnValue([]);
+    (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -184,6 +196,9 @@ describe('useConfirmationAlerts', () => {
     (useInsufficientPayTokenBalanceAlert as jest.Mock).mockReturnValue(
       mockInsufficientPayTokenBalanceAlert,
     );
+    (useNoPayTokenQuotesAlert as jest.Mock).mockReturnValue(
+      mockNoPayTokenQuotesAlert,
+    );
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
@@ -196,6 +211,7 @@ describe('useConfirmationAlerts', () => {
       ...mockSignedOrSubmittedAlert,
       ...mockPerpsDepositMinimumAlert,
       ...mockInsufficientPayTokenBalanceAlert,
+      ...mockNoPayTokenQuotesAlert,
       ...mockUpgradeAccountAlert,
     ]);
   });

@@ -18,7 +18,7 @@ import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useConfirmationRedesignEnabled } from '../../hooks/useConfirmationRedesignEnabled';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
 import { ConfirmationAssetPollingProvider } from '../confirmation-asset-polling-provider/confirmation-asset-polling-provider';
-import GeneralAlertBanner from '../general-alert-banner';
+import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
 import { getNavbar } from '../UI/navbar/navbar';
@@ -49,7 +49,7 @@ const ConfirmWrapped = ({
               >
                 <TouchableWithoutFeedback>
                   <>
-                    <GeneralAlertBanner />
+                    <AlertBanner />
                     <Info route={route} />
                   </>
                 </TouchableWithoutFeedback>

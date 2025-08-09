@@ -143,6 +143,11 @@ jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: () => [] as ReturnType<typeof useTokensWithBalance>,
 }));
 
+jest.mock('../../../../../core/redux/slices/bridge', () => ({
+  ...jest.requireActual('../../../../../core/redux/slices/bridge'),
+  selectEnabledSourceChains: jest.fn().mockReturnValue([]),
+}));
+
 describe('Confirm', () => {
   afterEach(() => {
     jest.restoreAllMocks();

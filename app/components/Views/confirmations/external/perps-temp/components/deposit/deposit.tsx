@@ -11,11 +11,27 @@ import { PayTokenBalance } from '../../../../components/pay-token-balance';
 import { BridgeTimeRow } from '../../../../components/rows/bridge-time-row';
 import { AlertMessage } from '../../../../components/alert-message';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
+import { useAutomaticTransactionPayToken } from '../../../../hooks/pay/useAutomaticTransactionPayToken';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
+import AlertBanner from '../../../../components/alert-banner';
+import { Box } from '../../../../../../UI/Box/Box';
+import InfoRowDivider from '../../../../components/UI/info-row-divider';
+import { InfoRowDividerVariant } from '../../../../components/UI/info-row-divider/info-row-divider.styles';
 
 const AMOUNT_PREFIX = '$';
 
 export function PerpsDeposit() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useAutomaticTransactionPayToken({
+    balanceOverrides: [
+      {
+        address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' as const,
+        balance: 10,
+        chainId: CHAIN_IDS.ARBITRUM,
+      },
+    ],
+  });
 
   useNavbar(strings('confirm.title.perps_deposit'), false);
 
@@ -35,18 +51,24 @@ export function PerpsDeposit() {
         onKeyboardShow={handleKeyboardShow}
         onKeyboardHide={handleKeyboardHide}
       >
-        <PayTokenBalance />
-        <AlertMessage field={RowAlertKey.Amount} />
-        <TokenAmountNative />
+        <Box gap={16}>
+          <PayTokenBalance />
+          <AlertMessage field={RowAlertKey.Amount} />
+          <TokenAmountNative />
+        </Box>
+        {!isKeyboardVisible && (
+          <AlertBanner field={RowAlertKey.PayWith} inline />
+        )}
         <InfoSection>
           <PayWithRow />
           {!isKeyboardVisible && <BridgeTimeRow />}
         </InfoSection>
         {!isKeyboardVisible && (
-          <>
-            <GasFeesDetailsRow disableUpdate hideSpeed fiatOnly />
+          <InfoSection>
+            <GasFeesDetailsRow disableUpdate hideSpeed fiatOnly noSection />
+            <InfoRowDivider variant={InfoRowDividerVariant.Large} />
             <TotalRow />
-          </>
+          </InfoSection>
         )}
       </EditAmount>
     </>

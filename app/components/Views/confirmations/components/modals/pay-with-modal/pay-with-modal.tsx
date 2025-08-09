@@ -69,8 +69,8 @@ export function PayWithModal() {
       const networkName = allNetworkConfigurations[chainId]?.name;
 
       const isSelected =
-        payToken.chainId === chainId &&
-        payToken.address.toLowerCase() === item.address.toLowerCase();
+        payToken?.chainId === chainId &&
+        payToken?.address.toLowerCase() === item.address.toLowerCase();
 
       const networkImageSource = getNetworkImageSource({
         chainId,
