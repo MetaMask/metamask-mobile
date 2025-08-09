@@ -22,6 +22,9 @@ const initialRootState: RootState = {
   legalNotices: undefined,
   collectibles: undefined,
   engine: { backgroundState },
+  cronjobController: {
+    storage: undefined,
+  },
   privacy: undefined,
   bookmarks: undefined,
   browser: undefined,
