@@ -111,7 +111,6 @@ export const createStyles = (theme: Theme) =>
       backgroundColor: theme.colors.background.default,
     },
     qrCodeWrapper: {
-      marginTop: 20,
       alignSelf: 'center',
       justifyContent: 'center',
       padding: 8,

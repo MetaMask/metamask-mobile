@@ -552,11 +552,12 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                           "borderColor": "#4459ff",
                                           "borderRadius": 8,
                                           "borderWidth": 0,
+                                          "display": "flex",
+                                          "flex": 1,
                                           "flexDirection": "row",
                                           "height": 66,
                                           "opacity": 1,
                                           "paddingHorizontal": 0,
-                                          "width": "100%",
                                         }
                                       }
                                       testID="textfield"
@@ -592,6 +593,8 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#686e7d",
+                                              "display": "flex",
+                                              "flex": 1,
                                               "fontFamily": "CentraNo1-Book",
                                               "fontSize": 16,
                                               "fontWeight": "400",
@@ -599,7 +602,6 @@ exports[`ImportFromSecretRecoveryPhrase Import a wallet UI render matches snapsh
                                               "letterSpacing": 0,
                                               "opacity": 1,
                                               "paddingVertical": 0,
-                                              "width": "100%",
                                             }
                                           }
                                           submitBehavior="submit"

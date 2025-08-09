@@ -470,7 +470,7 @@ const RevealPrivateCredential = ({
           >
             <QRCode
               value={clipboardPrivateCredential}
-              size={Dimensions.get('window').width - 176}
+              size={Dimensions.get('window').width - 200}
             />
           </View>
         </CustomTabView>
