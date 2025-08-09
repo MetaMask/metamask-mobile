@@ -49,6 +49,12 @@
     "batched_unused_approvals": {
       "title": "Hindi kinakailangang pahintulot",
       "message": "Binibigyan mo ang ibang tao ng pahintulot na magwithdraw ng iyong mga token, kahit na hindi ito kinakailangan para sa transaksyong ito."
+    },
+    "perps_deposit_minimum": {
+      "message": "Min order value is $10"
+    },
+    "insufficient_pay_token_balance": {
+      "message": "Insufficient funds. Select different token."
     }
   },
   "blockaid_banner": {
@@ -410,7 +416,7 @@
     "confirm_password_placeholder": "Ilagay muli ang iyong password",
     "confirm_btn": "I-save",
     "warning_password_change_title": "Sigurado ka ba?",
-    "warning_password_change_description": "Kapag pinalitan mo iyong password dito, mala-lock ang MetaMask sa ibang mga device na ginagamit mo. Kailangan mong muling mag-log in gamit ang iyong bagong password.",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password",
     "warning_password_change_button": "Kumpirmahin",
     "warning_password_cancel_button": "Kanselahin",
     "changing_password": "Pinapalitan ang password...",
@@ -488,6 +494,9 @@
     "public_address": "Pampublikong Address"
   },
   "send": {
+    "available": "available",
+    "amount_insufficient": "Insufficient funds",
+    "continue": "Continue",
     "title": "Ipadala",
     "deeplink_failure": "Nagkaproblema. Pakisubukang muli",
     "warn_network_change": "Inilipat ang network sa ",
@@ -512,8 +521,18 @@
     },
     "token_modal": {
       "select_a_token": "Pumili ng Token",
+      "select_token": "Select token",
       "search_by_name_or_address": "Maghanap ng token ayon sa pangalan o address",
       "no_tokens_found": "Walang katugmang mga token \"{{searchString}}\""
+    },
+    "networks_filter_bar": {
+      "all_networks": "All networks"
+    },
+    "networks_filter_selector": {
+      "select_network": "Select network",
+      "select_all": "Select all",
+      "deselect_all": "Deselect all",
+      "apply": "Apply"
     },
     "configuration_modal": {
       "title": "Options",
@@ -719,11 +738,11 @@
     },
     "bank_details": {
       "navbar_title": "{{paymentMethod}} bank transfer",
-      "button": "Naipadala na ang bank transfer",
+      "button": "Confirm transfer",
       "button_cancel": "Kanselahin ang order",
       "main_title": "Para makumpleto ang iyong order",
       "main_content_1": "Simulan ang transfer mula sa gusto mong banko gamit ang impormasyon sa ibaba.",
-      "main_content_2": "Kapag tapos ka na, bumalik at i-click ang “Naipadala na ang bank transfer” para kumpirmahin.",
+      "main_content_2": "Once you’re finished, come back and click “Confirm transfer” to confirm.",
       "show_bank_info": "Ipakita ang impormasyon ng bangko",
       "hide_bank_info": "Itago ang impormasyon ng bangko",
       "transfer_amount": "Halagang ita-transfer",
@@ -735,6 +754,7 @@
       "bic": "BIC",
       "account_type": "Uri ng account",
       "bank_name": "Pangalan ng bangko",
+      "beneficiary_address": "Beneficiary address",
       "bank_address": "Address ng bangko",
       "info_banner_text": "Dapat mong makita ang '{{accountHolderName}}' bilang may-ari account. Makatutulong ito sa pagproseso ng iyong bangko sa transfer.",
       "error_message": "Hindi namin makumpirma ang iyong bank transfer. Subukang muli.",
@@ -896,7 +916,6 @@
         "failed": "Pumalya ang pagpapatunay sa order",
         "amount_required": "Dapat na mas mataas sa 0 ang halaga ng order",
         "minimum_amount": "Ang pinakamababang laki ng order ay ${{amount}}",
-        "maximum_amount": "Ang pinakamataas na laki ng order ay ${{amount}}",
         "insufficient_balance": "Hindi sapat ang balanse. Kinakailangan: ${{required}}, Available: ${{available}}",
         "invalid_leverage": "Ang leverage ay dapat nasa pagitan ng {{min}}x at {{max}}x",
         "high_leverage_warning": "Pinapataas ng mataas na leverage ang panganib ng liquidation",
@@ -904,7 +923,8 @@
         "invalid_stop_loss": "Ang stop loss ay dapat na {{direction}} ng kasalukuyang presyo para sa {{positionType}} na mga posisyon",
         "liquidation_warning": "Malapit sa presyo ng liquidation ang posisyon",
         "limit_price_required": "Please set a limit price for limit orders",
-        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment"
+        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
+        "existing_position": "You already have an open {{asset}} position. Close it before opening a new one."
       },
       "error": {
         "placement_failed": "Nabigo ang pag-order",
@@ -986,7 +1006,12 @@
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
       "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
       "error_title": "Close Position Failed",
-      "fox_points_earned": "{{points}} Fox Points earned!"
+      "fox_points_earned": "{{points}} Fox Points earned!",
+      "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
+      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
+      "small_close_warning": "Warning: You're closing only {{percentage}}% of your position",
+      "negative_receive_amount": "The fees exceed your position value",
+      "no_amount_selected": "Please select an amount to close"
     },
     "tpsl": {
       "title": "Set take profit and stop loss",
@@ -1011,6 +1036,7 @@
       "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "failed_to_toggle_network": "Failed to toggle network",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1102,7 +1128,8 @@
       "funding_rate": "Funding rate",
       "countdown": "Countdown",
       "long": "Long",
-      "short": "Short"
+      "short": "Short",
+      "existing_position_warning": "You have an open {{asset}} position"
     },
     "network": {
       "hyperliquid": "Hyperliquid"
@@ -1114,6 +1141,38 @@
       "switch_to_testnet": "Lumipat sa Testnet",
       "view_markets": "View Markets",
       "positions": "Mga Posisyon"
+    },
+    "tooltips": {
+      "leverage": {
+        "title": "Leverage",
+        "content": "Leverage lets you trade with more than you put in. It can boost your profits, but also your losses. The higher the leverage, the riskier the trade."
+      },
+      "liquidation_price": {
+        "title": "Liquidation price",
+        "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
+      },
+      "margin": {
+        "title": "Margin",
+        "content": "Margin is the money you put in to open a trade. It acts as collateral, and it's the most you can lose on that trade."
+      },
+      "fees": {
+        "title": "Fees",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee"
+      },
+      "open_interest": {
+        "title": "Open interest",
+        "content": "The combined value of all open positions for this perp."
+      },
+      "funding_rate": {
+        "title": "Funding rate",
+        "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
+      },
+      "perps_geo_block": {
+        "title": "Perps geo block",
+        "content": "Perps trading isn’t available in your location due to local restrictions or sanctions."
+      },
+      "got_it_button": "Got it"
     },
     "connection": {
       "failed": "Nabigo ang Pagkonekta",
@@ -1129,7 +1188,50 @@
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search"
+    "search": "Search",
+    "perpetual_trading": "Perpetual Trading",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet",
+    "developer_options": {
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "perps_sandbox_button": "Perps Sandbox"
+    },
+    "transactions": {
+      "title": "Perps",
+      "tabs": {
+        "trades": "Trades",
+        "orders": "Orders",
+        "funding": "Funding"
+      },
+      "not_found": "Transaction not found",
+      "position": {
+        "date": "Date",
+        "size": "Size",
+        "entry_price": "Entry price",
+        "points": "Points",
+        "fees": "Total fees",
+        "pnl": "Net P&L"
+      },
+      "order": {
+        "date": "Date",
+        "size": "Size",
+        "limit_price": "Limit price",
+        "filled": "Filled",
+        "metamask_fee": "MetaMask fee",
+        "hyperliquid_fee": "Hyperliquid fee",
+        "total_fee": "Total fee"
+      },
+      "funding": {
+        "date": "Date",
+        "fee": "Fee",
+        "rate": "Rate"
+      },
+      "view_on_explorer": "View on block explorer",
+      "empty_state": {
+        "no_transactions": "No {{type}} transactions yet",
+        "history_will_appear": "Your trading history will appear here"
+      }
+    }
   },
   "receive": {
     "title": "Tumanggap"
@@ -2142,7 +2244,6 @@
     "portfolio_button": "Portfolio",
     "earn_button": "Kumita",
     "perps_button": "Perpetuals",
-    "perps_sandbox_button": "Perps Sandbox",
     "add_collectible_button": "Idagdag",
     "info": "Impormasyon",
     "swap": "Mag-swap",
@@ -2157,8 +2258,7 @@
       "send": "Hindi sinusuportahan ang pagpapadala para sa account na ito",
       "action": "Hindi sinusuportahan ang aksyong ito para sa account na ito",
       "earn": "Hindi sinusuportahan na kumita para sa account na ito",
-      "perps": "Hindi sinusuportahan ang perpetuals trading para sa account na ito",
-      "perps_sandbox": "Perps sandbox not supported for this account"
+      "perps": "Hindi sinusuportahan ang perpetuals trading para sa account na ito"
     },
     "description": "Deskripsyon",
     "totalSupply": "Kabuuang Supply",
@@ -2177,7 +2277,6 @@
     "receive_description": "Tumanggap ng crypto",
     "earn_description": "Kumita ng mga reward sa iyong mga token",
     "perps_description": "Mag-trade ng mga perpetual na kontrata",
-    "perps_sandbox_description": "Explore perpetual trading",
     "chart_time_period": {
       "1d": "Ngayong araw",
       "7d": "Nakalipas na 7 araw",
@@ -4729,7 +4828,10 @@
       "signing_in_with": "Nagsa-sign in gamit ang",
       "spender": "Gumagastos",
       "now": "Ngayon",
-      "switching_to": "Lumilipat Sa"
+      "switching_to": "Lumilipat Sa",
+      "bridge_estimated_time": "Est. time",
+      "pay_with": "Pay with",
+      "total": "Total"
     },
     "title": {
       "signature": "Kahilingan sa paglagda",
@@ -4741,7 +4843,8 @@
       "contract_deployment": "Mag-deploy ng contract",
       "transfer": "Kahilingan sa paglilipat",
       "switch_account_type": "Pag-update ng account",
-      "approve": "Aprubahan ang kahilingan"
+      "approve": "Aprubahan ang kahilingan",
+      "perps_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",
@@ -4848,7 +4951,9 @@
     "review": "Suriin",
     "transferRequest": "Kahilingan sa paglilipat",
     "nested_transaction_heading": "Transaksyon {{index}}",
-    "transaction": "Transaksyon"
+    "transaction": "Transaksyon",
+    "available_balance": "Available: ",
+    "edit_amount_done": "Done"
   },
   "change_in_simulation_modal": {
     "title": "Nagbago ang mga resulta",
@@ -4905,6 +5010,9 @@
     "fee_disclaimer": "Kabilang ang 0.875% bayad sa MM",
     "hardware_wallet_not_supported": "Hindi pa sinusuportahan ang mga wallet na hardware. Gumamit ng hot wallet para magpatuloy.",
     "hardware_wallet_not_supported_solana": "Hindi pa sinusuportahan ang mga wallet na hardware sa Solana. Gumamit ng hot wallet para magpatuloy.",
+    "price_impact_warning_title": "Price Impact Warning",
+    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
+    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "blockaid_error_title": "This transaction will be reverted",
     "max": "Max"
   },
@@ -5124,6 +5232,12 @@
   },
   "pay_with_modal": {
     "title": "Pumili ng paraan ng pagbabayad"
+  },
+  "connection_removed_modal": {
+    "title": "Connections removed",
+    "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
+    "tryAgain": "Try again",
+    "close": "Close"
   },
   "card": {
     "card": "MetaMask Card",

@@ -49,6 +49,12 @@
     "batched_unused_approvals": {
       "title": "不要な権限",
       "message": "このトランザクションには必要ないにもかかわらず、自分のトークンを引き出す権限を他の人に与えています。"
+    },
+    "perps_deposit_minimum": {
+      "message": "Min order value is $10"
+    },
+    "insufficient_pay_token_balance": {
+      "message": "Insufficient funds. Select different token."
     }
   },
   "blockaid_banner": {
@@ -410,7 +416,7 @@
     "confirm_password_placeholder": "パスワードを再入力してください",
     "confirm_btn": "保存",
     "warning_password_change_title": "よろしいですか？",
-    "warning_password_change_description": "ここでパスワードを変更すると、ご利用中の他のデバイス上のMetaMaskはロックされます。新しいパスワードで再度ログインが必要になります。",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password",
     "warning_password_change_button": "確定",
     "warning_password_cancel_button": "キャンセル",
     "changing_password": "パスワードを変更中...",
@@ -488,6 +494,9 @@
     "public_address": "パブリックアドレス"
   },
   "send": {
+    "available": "available",
+    "amount_insufficient": "Insufficient funds",
+    "continue": "Continue",
     "title": "送信",
     "deeplink_failure": "問題が発生しました。もう一度お試しください",
     "warn_network_change": "ネットワークが次に変更されました:",
@@ -512,8 +521,18 @@
     },
     "token_modal": {
       "select_a_token": "トークンを選択",
+      "select_token": "Select token",
       "search_by_name_or_address": "トークンを名前またはアドレスで検索",
       "no_tokens_found": "「{{searchString}}」に一致するトークンがありません"
+    },
+    "networks_filter_bar": {
+      "all_networks": "All networks"
+    },
+    "networks_filter_selector": {
+      "select_network": "Select network",
+      "select_all": "Select all",
+      "deselect_all": "Deselect all",
+      "apply": "Apply"
     },
     "configuration_modal": {
       "title": "Options",
@@ -719,11 +738,11 @@
     },
     "bank_details": {
       "navbar_title": "{{paymentMethod}}による銀行送金",
-      "button": "銀行送金完了",
+      "button": "Confirm transfer",
       "button_cancel": "注文をキャンセル",
       "main_title": "注文を完了する",
       "main_content_1": "以下の情報を使用して、ご利用の銀行から送金してください。",
-      "main_content_2": "送金後にこの画面に戻り「銀行送金済み」をクリックして確定してください。",
+      "main_content_2": "Once you’re finished, come back and click “Confirm transfer” to confirm.",
       "show_bank_info": "銀行情報を表示",
       "hide_bank_info": "銀行情報を非表示",
       "transfer_amount": "送金額",
@@ -735,6 +754,7 @@
       "bic": "BIC",
       "account_type": "口座種別",
       "bank_name": "銀行名",
+      "beneficiary_address": "Beneficiary address",
       "bank_address": "銀行の住所",
       "info_banner_text": "口座名義が「{{accountHolderName}}」であることをご確認ください。これにより、銀行の送金処理がスムーズになります。",
       "error_message": "銀行送金を確定できませんでした。もう一度お試しください。",
@@ -896,7 +916,6 @@
         "failed": "注文の検証に失敗しました",
         "amount_required": "注文金額は0より大きい数字にしてください",
         "minimum_amount": "最低注文サイズは${{amount}}です",
-        "maximum_amount": "最大注文サイズは${{amount}}です",
         "insufficient_balance": "残高が不足しています。必要額: ${{required}}、利用可能額: ${{available}}",
         "invalid_leverage": "レバレッジは{{min}}倍から{{max}}倍までの間にしてください",
         "high_leverage_warning": "レバレッジが高くなると清算リスクが高まります",
@@ -904,7 +923,8 @@
         "invalid_stop_loss": "{{positionType}}ポジションの損切りラインは、現在の価格より{{direction}}である必要があります",
         "liquidation_warning": "ポジションの清算リスクが高まっています",
         "limit_price_required": "Please set a limit price for limit orders",
-        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment"
+        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
+        "existing_position": "You already have an open {{asset}} position. Close it before opening a new one."
       },
       "error": {
         "placement_failed": "注文に失敗しました",
@@ -986,7 +1006,12 @@
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
       "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
       "error_title": "Close Position Failed",
-      "fox_points_earned": "{{points}} Fox Points earned!"
+      "fox_points_earned": "{{points}} Fox Points earned!",
+      "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
+      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
+      "small_close_warning": "Warning: You're closing only {{percentage}}% of your position",
+      "negative_receive_amount": "The fees exceed your position value",
+      "no_amount_selected": "Please select an amount to close"
     },
     "tpsl": {
       "title": "Set take profit and stop loss",
@@ -1011,6 +1036,7 @@
       "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "failed_to_toggle_network": "Failed to toggle network",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1102,7 +1128,8 @@
       "funding_rate": "Funding rate",
       "countdown": "Countdown",
       "long": "Long",
-      "short": "Short"
+      "short": "Short",
+      "existing_position_warning": "You have an open {{asset}} position"
     },
     "network": {
       "hyperliquid": "Hyperliquid"
@@ -1114,6 +1141,38 @@
       "switch_to_testnet": "テストネットに切り替える",
       "view_markets": "View Markets",
       "positions": "ポジション"
+    },
+    "tooltips": {
+      "leverage": {
+        "title": "Leverage",
+        "content": "Leverage lets you trade with more than you put in. It can boost your profits, but also your losses. The higher the leverage, the riskier the trade."
+      },
+      "liquidation_price": {
+        "title": "Liquidation price",
+        "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
+      },
+      "margin": {
+        "title": "Margin",
+        "content": "Margin is the money you put in to open a trade. It acts as collateral, and it's the most you can lose on that trade."
+      },
+      "fees": {
+        "title": "Fees",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee"
+      },
+      "open_interest": {
+        "title": "Open interest",
+        "content": "The combined value of all open positions for this perp."
+      },
+      "funding_rate": {
+        "title": "Funding rate",
+        "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
+      },
+      "perps_geo_block": {
+        "title": "Perps geo block",
+        "content": "Perps trading isn’t available in your location due to local restrictions or sanctions."
+      },
+      "got_it_button": "Got it"
     },
     "connection": {
       "failed": "接続失敗",
@@ -1129,7 +1188,50 @@
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search"
+    "search": "Search",
+    "perpetual_trading": "Perpetual Trading",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet",
+    "developer_options": {
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "perps_sandbox_button": "Perps Sandbox"
+    },
+    "transactions": {
+      "title": "Perps",
+      "tabs": {
+        "trades": "Trades",
+        "orders": "Orders",
+        "funding": "Funding"
+      },
+      "not_found": "Transaction not found",
+      "position": {
+        "date": "Date",
+        "size": "Size",
+        "entry_price": "Entry price",
+        "points": "Points",
+        "fees": "Total fees",
+        "pnl": "Net P&L"
+      },
+      "order": {
+        "date": "Date",
+        "size": "Size",
+        "limit_price": "Limit price",
+        "filled": "Filled",
+        "metamask_fee": "MetaMask fee",
+        "hyperliquid_fee": "Hyperliquid fee",
+        "total_fee": "Total fee"
+      },
+      "funding": {
+        "date": "Date",
+        "fee": "Fee",
+        "rate": "Rate"
+      },
+      "view_on_explorer": "View on block explorer",
+      "empty_state": {
+        "no_transactions": "No {{type}} transactions yet",
+        "history_will_appear": "Your trading history will appear here"
+      }
+    }
   },
   "receive": {
     "title": "受取"
@@ -2142,7 +2244,6 @@
     "portfolio_button": "Portfolio",
     "earn_button": "獲得",
     "perps_button": "パーペチュアル",
-    "perps_sandbox_button": "Perps Sandbox",
     "add_collectible_button": "追加",
     "info": "情報",
     "swap": "スワップ",
@@ -2157,8 +2258,7 @@
       "send": "このアカウントでは送金はサポートされていません",
       "action": "このアカウントではこの操作はサポートされていません",
       "earn": "このアカウントでは獲得はサポートされていません",
-      "perps": "このアカウントではパーペチュアル取引はサポートされていません",
-      "perps_sandbox": "Perps sandbox not supported for this account"
+      "perps": "このアカウントではパーペチュアル取引はサポートされていません"
     },
     "description": "説明",
     "totalSupply": "合計供給量",
@@ -2177,7 +2277,6 @@
     "receive_description": "仮想通貨を受け取ります",
     "earn_description": "トークンに対してリワードを獲得します",
     "perps_description": "パーペチュアル契約を取引します",
-    "perps_sandbox_description": "Explore perpetual trading",
     "chart_time_period": {
       "1d": "今日",
       "7d": "過去7日間",
@@ -4729,7 +4828,10 @@
       "signing_in_with": "サインイン方法",
       "spender": "使用者",
       "now": "現在",
-      "switching_to": "切り替え先"
+      "switching_to": "切り替え先",
+      "bridge_estimated_time": "Est. time",
+      "pay_with": "Pay with",
+      "total": "Total"
     },
     "title": {
       "signature": "署名要求",
@@ -4741,7 +4843,8 @@
       "contract_deployment": "コントラクトのデプロイ",
       "transfer": "送金リクエスト",
       "switch_account_type": "アカウントのアップデート",
-      "approve": "要求の承認"
+      "approve": "要求の承認",
+      "perps_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
@@ -4848,7 +4951,9 @@
     "review": "確認",
     "transferRequest": "送金リクエスト",
     "nested_transaction_heading": "トランザクション {{index}}",
-    "transaction": "トランザクション"
+    "transaction": "トランザクション",
+    "available_balance": "Available: ",
+    "edit_amount_done": "Done"
   },
   "change_in_simulation_modal": {
     "title": "結果が変更になりました",
@@ -4905,6 +5010,9 @@
     "fee_disclaimer": "0.875% のMM手数料込み",
     "hardware_wallet_not_supported": "まだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
     "hardware_wallet_not_supported_solana": "Solanaはまだハードウェアウォレットに対応していません。続行するにはホットウォレットをご使用ください。",
+    "price_impact_warning_title": "Price Impact Warning",
+    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
+    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "blockaid_error_title": "This transaction will be reverted",
     "max": "最大額"
   },
@@ -5124,6 +5232,12 @@
   },
   "pay_with_modal": {
     "title": "支払方法を選択"
+  },
+  "connection_removed_modal": {
+    "title": "Connections removed",
+    "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
+    "tryAgain": "Try again",
+    "close": "Close"
   },
   "card": {
     "card": "MetaMaskカード",
