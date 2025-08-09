@@ -4,6 +4,7 @@ const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 
 // Support
+export const SUPPORT_BASE_URL = 'https://support.metamask.io';
 export const SRP_GUIDE_URL =
   'https://support.metamask.io/getting-started/user-guide-secret-recovery-phrase-password-and-private-keys/';
 export const NON_CUSTODIAL_WALLET_URL =
