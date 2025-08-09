@@ -140,7 +140,7 @@ function getPartialTokens(
     );
 
     const balanceHuman = balanceToken?.balance ?? '0';
-    const decimals = balanceToken?.decimals ?? 18;
+    const decimals = new BigNumber(balanceToken?.decimals ?? 18).toNumber();
     const amountRaw = new BigNumber(token.amount, 16);
     const amountHuman = amountRaw.shiftedBy(-decimals);
     const balanceRaw = new BigNumber(balanceHuman, 10).shiftedBy(decimals);

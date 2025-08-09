@@ -265,6 +265,35 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
     });
 
+    it('on enter key press, the new input field value is created', async () => {
+      const { getByPlaceholderText, getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: initialState },
+      );
+
+      // Enter a valid 12-word seed phrase
+      const input = getByPlaceholderText(
+        strings('import_from_seed.srp_placeholder'),
+      );
+
+      fireEvent.changeText(input, 'say');
+
+      await act(async () => {
+        fireEvent(input, 'onSubmitEditing', {
+          nativeEvent: { key: 'Enter' },
+          index: 0,
+        });
+      });
+
+      await waitFor(() => {
+        const secondInput = getByTestId(
+          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
+        );
+        expect(secondInput).toBeOnTheScreen();
+      });
+    });
+
     it('renders qr code button', async () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
