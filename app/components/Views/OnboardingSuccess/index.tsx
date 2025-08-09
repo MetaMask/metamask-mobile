@@ -269,6 +269,7 @@ export const OnboardingSuccess = () => {
         TokenListController,
         AccountTrackerController,
         TokenRatesController,
+        CurrencyRateController,
       } = Engine.context;
 
       const addedChainIds: `0x${string}`[] = [];
@@ -341,6 +342,15 @@ export const OnboardingSuccess = () => {
                   `Failed to update balances for ${chainId}`,
                 ),
               ),
+            ),
+          );
+
+          // Batch update currency rates
+          await CurrencyRateController.updateExchangeRate(
+            addedChainIds.map(
+              (chainId) =>
+                selectedNetworks.find((network) => network.chainId === chainId)
+                  ?.ticker || 'ETH',
             ),
           );
 

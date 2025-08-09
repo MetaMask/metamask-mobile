@@ -36,6 +36,12 @@ jest.mock('../../../core/Engine/Engine', () => ({
     AccountTrackerController: {
       refresh: jest.fn().mockResolvedValue(undefined),
     },
+    TokenRatesController: {
+      updateExchangeRatesByChainId: jest.fn().mockResolvedValue(undefined),
+    },
+    CurrencyRateController: {
+      updateExchangeRate: jest.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 
@@ -199,6 +205,12 @@ describe('OnboardingSuccess', () => {
         ).toHaveBeenCalled();
         expect(
           Engine.context.AccountTrackerController.refresh,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.TokenRatesController.updateExchangeRatesByChainId,
+        ).toHaveBeenCalled();
+        expect(
+          Engine.context.CurrencyRateController.updateExchangeRate,
         ).toHaveBeenCalled();
       });
     });
