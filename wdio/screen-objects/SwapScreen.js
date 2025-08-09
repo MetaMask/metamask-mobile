@@ -1,6 +1,7 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
+import { PerpsWithdrawViewSelectorsIDs } from '../../e2e/selectors/Perps/Perps.selectors';
 
 class SwapScreen {
   get device() {
@@ -20,6 +21,14 @@ class SwapScreen {
 
   get quoteDisplayed() {
     return AppwrightSelectors.getElementByResourceId(this._device, SWAP_SCREEN_QUOTE_DISPLAYED_ID);
+  }
+  get destinationTokenArea(){
+    return AppwrightSelectors.getElementByResourceId(this._device, PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA);
+
+  }
+  get seeAllDropDown(){
+    return AppwrightSelectors.getElementByText(this._device, "See all");
+
   }
 
   async isQuoteDisplayed() {
@@ -41,10 +50,12 @@ class SwapScreen {
   }
 
   async selectNetworkAndTokenTo(network, token) {
-    const networkButton = await AppwrightSelectors.getElementByText(this._device, 'USDC');
-    await networkButton.tap();
-    const solanaButton = await AppwrightSelectors.getElementByText(this._device, network);
-    await solanaButton.tap();
+    const destinationToken = await this.destinationTokenArea;
+    await destinationToken.tap();
+    const selectAllDropDown = await this.seeAllDropDown;
+    await selectAllDropDown.tap();
+    const networkName = await AppwrightSelectors.getElementByText(this._device, network);
+    await networkName.tap();
     const tokenButton = await AppwrightSelectors.getElementByText(this._device, token);
     await tokenButton.tap();
   }

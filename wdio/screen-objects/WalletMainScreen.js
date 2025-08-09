@@ -125,6 +125,15 @@ class WalletMainScreen {
     await Gestures.tapTextByXpath('NFTs');
   }
 
+  async tapOnToken(token) {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.accountIcon);
+    } else {
+      const tokenName = await AppwrightSelectors.getElementByResourceId(this._device, `ChainLink Token`);
+        await tokenName.tap();
+    }
+    }
+
   async tapIdenticon() {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
