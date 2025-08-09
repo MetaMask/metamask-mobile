@@ -54,6 +54,14 @@ export default class Utilities {
     }
   }
 
+  static async checkElementDisabled(detoxElement: DetoxElement): Promise<void> {
+    const el = (await detoxElement) as Detox.IndexableNativeElement;
+    const attributes = await el.getAttributes();
+    if (!('enabled' in attributes) || attributes.enabled) {
+      throw new Error('🚫 Element is enabled, but should be disabled.');
+    }
+  }
+
   /**
    * Wait for element to be enabled with retry mechanism
    */
