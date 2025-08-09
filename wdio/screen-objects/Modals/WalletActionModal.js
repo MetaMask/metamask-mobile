@@ -24,7 +24,7 @@ class WalletActionModal {
     if (!this._device) {
       return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, 'wallet-swap-button');
+      return AppwrightSelectors.getElementByResourceId(this._device, WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON);
     }
   }
 
