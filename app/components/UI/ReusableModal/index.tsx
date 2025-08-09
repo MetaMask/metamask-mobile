@@ -46,6 +46,9 @@ import {
 // Export to make compatible with components that use this file.
 export type { ReusableModalRef } from './ReusableModal.types';
 
+/**
+ * @deprecated The &lt;ReusableModal&gt; component has been deprecated in favor of the &lt;BottomSheet&gt; component from the component-library.
+ */
 const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
   (
     {
