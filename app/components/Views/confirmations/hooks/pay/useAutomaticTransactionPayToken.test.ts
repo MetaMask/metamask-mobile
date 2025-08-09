@@ -1,7 +1,10 @@
 import { merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
-import { useAutomaticTransactionPayToken } from './useAutomaticTransactionPayToken';
+import {
+  BalanceOverride,
+  useAutomaticTransactionPayToken,
+} from './useAutomaticTransactionPayToken';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
@@ -32,10 +35,15 @@ const STATE_MOCK = merge(
   transactionApprovalControllerMock,
 );
 
-function runHook() {
-  return renderHookWithProvider(useAutomaticTransactionPayToken, {
-    state: STATE_MOCK,
-  });
+function runHook({
+  balanceOverrides,
+}: { balanceOverrides?: BalanceOverride[] } = {}) {
+  return renderHookWithProvider(
+    () => useAutomaticTransactionPayToken({ balanceOverrides }),
+    {
+      state: STATE_MOCK,
+    },
+  );
 }
 
 describe('useAutomaticTransactionPayToken', () => {
@@ -207,5 +215,35 @@ describe('useAutomaticTransactionPayToken', () => {
     runHook();
 
     expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('selects token based on balance override', () => {
+    useTokensWithBalanceMock.mockReturnValue([
+      {
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK + 9,
+      },
+      {
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+        tokenFiatAmount: TOTAL_FIAT_MOCK + 10,
+      },
+    ] as unknown as ReturnType<typeof useTokensWithBalance>);
+
+    runHook({
+      balanceOverrides: [
+        {
+          address: TOKEN_ADDRESS_1_MOCK,
+          balance: TOTAL_FIAT_MOCK + 10,
+          chainId: CHAIN_ID_1_MOCK,
+        },
+      ],
+    });
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
+    });
   });
 });

@@ -13,10 +13,16 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 
 const log = createProjectLogger('transaction-pay');
 
+export interface BalanceOverride {
+  address: Hex;
+  balance: number;
+  chainId: Hex;
+}
+
 export function useAutomaticTransactionPayToken({
   balanceOverrides,
 }: {
-  balanceOverrides?: { address: Hex; balance: number; chainId: Hex }[];
+  balanceOverrides?: BalanceOverride[];
 } = {}) {
   const [isUpdated, setIsUpdated] = useState(false);
 
