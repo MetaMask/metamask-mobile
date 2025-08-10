@@ -141,8 +141,9 @@ describe('OnboardingSuccess', () => {
 
   beforeEach(() => {
     // Reset mocks before each test
-    (useSelector as jest.Mock).mockClear();
+    (useSelector as jest.Mock).mockReset();
   });
+
   describe('route params successFlow is IMPORT_FROM_SEED_PHRASE', () => {
     mockRoute.mockReturnValue({
       params: {
