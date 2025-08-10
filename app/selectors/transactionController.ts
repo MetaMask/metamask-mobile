@@ -6,23 +6,18 @@ import { selectPendingSmartTransactionsBySender } from './smartTransactionsContr
 const selectTransactionControllerState = (state: RootState) =>
   state.engine.backgroundState.TransactionController;
 
-const selectTransactionsStrict = createSelector(
-  selectTransactionControllerState,
-  (transactionControllerState) => transactionControllerState.transactions,
-);
-
 const selectTransactionBatchesStrict = createSelector(
   selectTransactionControllerState,
   (transactionControllerState) => transactionControllerState.transactionBatches,
 );
 
 export const selectTransactions = createDeepEqualSelector(
-  selectTransactionsStrict,
-  (transactions) => transactions,
+  selectTransactionControllerState,
+  (transactionControllerState) => transactionControllerState.transactions,
 );
 
 export const selectNonReplacedTransactions = createDeepEqualSelector(
-  selectTransactionsStrict,
+  selectTransactions,
   (transactions) =>
     transactions.filter(
       ({ replacedBy, replacedById, hash }) =>
@@ -46,7 +41,7 @@ export const selectSwapsTransactions = createSelector(
 );
 
 export const selectTransactionMetadataById = createDeepEqualSelector(
-  selectTransactionsStrict,
+  selectTransactions,
   (_: RootState, id: string) => id,
   (transactions, id) => transactions.find((tx) => tx.id === id),
 );
