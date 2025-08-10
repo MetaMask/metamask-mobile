@@ -10,6 +10,7 @@ import { useMemo } from 'react';
 import { AlertKeys } from '../../constants/alerts';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
+import { strings } from '../../../../../../locales/i18n';
 
 export function useNoPayTokenQuotesAlert() {
   const transactionMeta = useTransactionMetadataRequest();
@@ -35,8 +36,8 @@ export function useNoPayTokenQuotesAlert() {
       {
         key: AlertKeys.NoPayTokenQuotes,
         field: RowAlertKey.PayWith,
-        message: 'Change the amount or select a different token for payment.',
-        title: "We couldn't find any quotes.",
+        message: strings('alert_system.no_pay_token_quotes.message'),
+        title: strings('alert_system.no_pay_token_quotes.title'),
         severity: Severity.Danger,
         isBlocking: true,
       },

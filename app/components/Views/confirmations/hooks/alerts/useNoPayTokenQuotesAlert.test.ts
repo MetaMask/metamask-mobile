@@ -14,6 +14,7 @@ import { ConfirmationMetricsState } from '../../../../../core/redux/slices/confi
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { AlertKeys } from '../../constants/alerts';
 import { TransactionBridgeQuote } from '../../utils/bridge';
+import { strings } from '../../../../../../locales/i18n';
 
 jest.mock('../pay/useTransactionPayToken');
 
@@ -71,8 +72,8 @@ describe('useNoPayTokenQuotesAlert', () => {
       {
         key: AlertKeys.NoPayTokenQuotes,
         field: RowAlertKey.PayWith,
-        message: 'Change the amount or select a different token for payment.',
-        title: "We couldn't find any quotes.",
+        message: strings('alert_system.no_pay_token_quotes.message'),
+        title: strings('alert_system.no_pay_token_quotes.title'),
         severity: Severity.Danger,
         isBlocking: true,
       },
