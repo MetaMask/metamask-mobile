@@ -25,6 +25,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useSwitchNotificationLoadingText } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { FeatureAnnouncementToggle } from './FeatureAnnouncementToggle';
 import { MainNotificationToggle } from './MainNotificationToggle';
+import { PerpsNotificationToggle } from './PerpsNotificationToggle';
 import styleSheet, {
   styles as navigationOptionsStyles,
 } from './NotificationsSettings.styles';
@@ -81,6 +82,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             styles={styles}
           />
           <FeatureAnnouncementToggle />
+          <PerpsNotificationToggle />
 
           {/* Account Notification Toggles */}
           <SessionHeader

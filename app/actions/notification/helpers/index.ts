@@ -63,6 +63,20 @@ export const toggleFeatureAnnouncements = async (
 };
 
 /**
+ * Perps Notifications Switch
+ * - Enables/Disables Perps Notifications
+ * @param perpsNotificationsEnabled boolean to toggle on/off
+ */
+export const togglePerpsNotifications = async (
+  perpsNotificationsEnabled: boolean,
+) => {
+  assertIsFeatureEnabled();
+  await Engine.context.NotificationServicesController.setPerpsNotificationsEnabled(
+    perpsNotificationsEnabled,
+  );
+};
+
+/**
  * Account Notification Settings.
  * - Informs us which accounts have notifications enabled.
  * @param accounts - accounts to check

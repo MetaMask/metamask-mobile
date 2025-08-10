@@ -4,7 +4,6 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
 import React, {
   useCallback,
   useContext,
@@ -14,6 +13,7 @@ import React, {
 } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -37,9 +37,12 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
@@ -48,6 +51,10 @@ import PerpsSlider from '../../components/PerpsSlider';
 import { type PerpsToken } from '../../components/PerpsTokenSelector';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import {
+  PerpsOrderProvider,
+  usePerpsOrderContext,
+} from '../../contexts/PerpsOrderContext';
 import type {
   OrderParams,
   OrderType,
@@ -67,13 +74,6 @@ import {
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import createStyles from './PerpsOrderView.styles';
-import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
-import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import {
-  PerpsOrderProvider,
-  usePerpsOrderContext,
-} from '../../contexts/PerpsOrderContext';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -175,6 +175,7 @@ const PerpsOrderViewContent: React.FC = () => {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: {
             market: navigationMarketData,
+            isNavigationFromOrderSuccess: true,
           },
         });
       },
@@ -416,7 +417,6 @@ const PerpsOrderViewContent: React.FC = () => {
         orderType={orderForm.type}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
       />
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -616,7 +616,6 @@ const PerpsOrderViewContent: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-
       {/* Keypad Section - Show when input is focused */}
       {isInputFocused && (
         <View style={styles.bottomSection}>
@@ -676,7 +675,6 @@ const PerpsOrderViewContent: React.FC = () => {
           />
         </View>
       )}
-
       {/* Fixed Place Order Button - Hide when keypad is active */}
       {!isInputFocused && (
         <View style={styles.fixedBottomContainer}>
@@ -709,7 +707,6 @@ const PerpsOrderViewContent: React.FC = () => {
           />
         </View>
       )}
-
       {/* TP/SL Bottom Sheet */}
       <PerpsTPSLBottomSheet
         isVisible={isTPSLVisible}
@@ -725,7 +722,6 @@ const PerpsOrderViewContent: React.FC = () => {
         initialTakeProfitPrice={orderForm.takeProfitPrice}
         initialStopLossPrice={orderForm.stopLossPrice}
       />
-
       {/* Leverage Selector */}
       <PerpsLeverageBottomSheet
         isVisible={isLeverageVisible}
@@ -743,7 +739,6 @@ const PerpsOrderViewContent: React.FC = () => {
         liquidationPrice={parseFloat(liquidationPrice)}
         direction={orderForm.direction}
       />
-
       {/* Limit Price Bottom Sheet */}
       <PerpsLimitPriceBottomSheet
         isVisible={isLimitPriceVisible}
@@ -756,7 +751,6 @@ const PerpsOrderViewContent: React.FC = () => {
         limitPrice={orderForm.limitPrice}
         currentPrice={assetData.price}
       />
-
       {/* Order Type Bottom Sheet */}
       <PerpsOrderTypeBottomSheet
         isVisible={isOrderTypeVisible}

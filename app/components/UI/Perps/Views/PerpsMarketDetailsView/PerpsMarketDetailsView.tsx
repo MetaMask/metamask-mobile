@@ -19,7 +19,10 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
@@ -46,15 +49,17 @@ import {
   usePerpsOpenOrders,
 } from '../../hooks';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
+import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
+  isNavigationFromOrderSuccess?: boolean;
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market } = route.params || {};
+  const { market, isNavigationFromOrderSuccess } = route.params || {};
   const { top } = useSafeAreaInsets();
 
   const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
@@ -363,6 +368,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           selectedDuration={selectedDuration}
           onPeriodChange={handleCandlePeriodChange}
           testID={PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET}
+        />
+      )}
+
+      {/* Notification Tooltip - Shows after first successful order */}
+      {isNavigationFromOrderSuccess && (
+        <PerpsNotificationTooltip
+          orderSuccess={isNavigationFromOrderSuccess}
+          testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
         />
       )}
     </SafeAreaView>
