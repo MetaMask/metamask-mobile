@@ -5,7 +5,10 @@
 // Important: Metro/Hermes console doesn't support console.group well. Use onlyLogs to avoid grouping.
 // Also, track react-redux useSelector to see hook diffs.
 
-if (__DEV__) {
+export const shouldEnableWhyDidYouRender = () =>
+  __DEV__ && process.env.ENABLE_WHY_DID_YOU_RENDER === 'true';
+
+if (shouldEnableWhyDidYouRender()) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const React = require('react');
   // eslint-disable-next-line @typescript-eslint/no-var-requires
