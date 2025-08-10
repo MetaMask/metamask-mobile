@@ -72,6 +72,24 @@ export class MockttpNotificationTriggerServer {
             request.url,
           )}`,
         );
+        // Extract and pretty print the JSON from the request body
+        request.body
+          .getText()
+          .then((text) => {
+            try {
+              if (text) {
+                const jsonData = JSON.parse(text);
+                console.log('Request body:', JSON.stringify(jsonData, null, 2));
+              } else {
+                console.log('Request body: empty');
+              }
+            } catch (e) {
+              console.log('Request body (raw):', text);
+            }
+          })
+          .catch((err) => {
+            console.log('Could not parse request body:', err.message);
+          });
         return this.getConfig(request);
       });
 
@@ -88,6 +106,24 @@ export class MockttpNotificationTriggerServer {
             request.url,
           )}`,
         );
+        // Extract and pretty print the JSON from the request body
+        request.body
+          .getText()
+          .then((text) => {
+            try {
+              if (text) {
+                const jsonData = JSON.parse(text);
+                console.log('Request body:', JSON.stringify(jsonData, null, 2));
+              } else {
+                console.log('Request body: empty');
+              }
+            } catch (e) {
+              console.log('Request body (raw):', text);
+            }
+          })
+          .catch((err) => {
+            console.log('Could not parse request body:', err.message);
+          });
         return this.updateConfig(request);
       });
   };
