@@ -14,9 +14,13 @@ export function getAccountTreeControllerMessenger(
     allowedEvents: [
       'AccountsController:accountAdded',
       'AccountsController:accountRemoved',
+      'AccountsController:selectedAccountChange',
     ],
     allowedActions: [
       'AccountsController:listMultichainAccounts',
+      'AccountsController:getAccount',
+      'AccountsController:getSelectedAccount',
+      'AccountsController:setSelectedAccount',
       'SnapController:get',
       'KeyringController:getState',
     ],
