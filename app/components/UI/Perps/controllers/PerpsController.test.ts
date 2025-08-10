@@ -2826,4 +2826,45 @@ describe('PerpsController', () => {
       );
     });
   });
+
+  describe('first order notification tracking', () => {
+    it('should initialize with hasPlacedFirstOrder as false', () => {
+      withController(({ controller }) => {
+        expect(controller.state.hasPlacedFirstOrder).toBe(false);
+      });
+    });
+
+    it('should mark hasPlacedFirstOrder as true when markFirstOrderCompleted is called', () => {
+      withController(({ controller }) => {
+        expect(controller.state.hasPlacedFirstOrder).toBe(false);
+
+        controller.markFirstOrderCompleted();
+
+        expect(controller.state.hasPlacedFirstOrder).toBe(true);
+      });
+    });
+
+    it('should persist hasPlacedFirstOrder state between controller instances', () => {
+      // Test with initial state having hasPlacedFirstOrder: true
+      withController(
+        ({ controller }) => {
+          expect(controller.state.hasPlacedFirstOrder).toBe(true);
+        },
+        { state: { hasPlacedFirstOrder: true } },
+      );
+    });
+
+    it('should maintain hasPlacedFirstOrder state after calling markFirstOrderCompleted multiple times', () => {
+      withController(({ controller }) => {
+        expect(controller.state.hasPlacedFirstOrder).toBe(false);
+
+        controller.markFirstOrderCompleted();
+        expect(controller.state.hasPlacedFirstOrder).toBe(true);
+
+        // Call again - should remain true
+        controller.markFirstOrderCompleted();
+        expect(controller.state.hasPlacedFirstOrder).toBe(true);
+      });
+    });
+  });
 });

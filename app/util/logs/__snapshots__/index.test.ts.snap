@@ -365,6 +365,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "currentDepositTxHash": null,
         "depositError": null,
         "depositStatus": "idle",
+        "hasPlacedFirstOrder": false,
         "isEligible": false,
         "isFirstTimeUser": {
           "mainnet": true,

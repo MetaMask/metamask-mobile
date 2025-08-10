@@ -50,6 +50,7 @@ import {
 } from '../../hooks';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
+import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   isNavigationFromOrderSuccess?: boolean;
@@ -180,6 +181,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     candleData,
     refreshCandleData,
   ]);
+
+  // Check if notifications feature is enabled once
+  const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -372,7 +376,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       )}
 
       {/* Notification Tooltip - Shows after first successful order */}
-      {isNavigationFromOrderSuccess && (
+      {isNotificationsEnabled && isNavigationFromOrderSuccess && (
         <PerpsNotificationTooltip
           orderSuccess={isNavigationFromOrderSuccess}
           testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}

@@ -1,5 +1,6 @@
 import { useNavigation, useRoute } from '@react-navigation/native';
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -46,14 +47,21 @@ import {
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsNetwork,
+  usePerpsOrderExecution,
   usePerpsPaymentTokens,
   usePerpsPrices,
   usePerpsTrading,
   usePerpsOrderValidation,
-  usePerpsOrderExecution,
 } from '../../hooks';
 import PerpsOrderView from './PerpsOrderView';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
+
+// Create a reference to the mocked function
+const mockIsNotificationsFeatureEnabled =
+  isNotificationsFeatureEnabled as jest.MockedFunction<
+    typeof isNotificationsFeatureEnabled
+  >;
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -209,6 +217,39 @@ jest.mock('../../components/PerpsSlider', () => ({
     );
   },
 }));
+
+// Mock notifications utility
+jest.mock('../../../../../util/notifications', () => ({
+  ...jest.requireActual('../../../../../util/notifications'),
+  isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
+// Mock PerpsNotificationTooltip
+jest.mock('../../components/PerpsNotificationTooltip', () => {
+  const MockReact = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ({
+      orderSuccess,
+      onComplete,
+      testID,
+    }: {
+      orderSuccess: boolean;
+      onComplete: () => void;
+      testID: string;
+    }) =>
+      orderSuccess
+        ? MockReact.createElement(
+            'View',
+            {
+              testID,
+              onPress: onComplete,
+            },
+            'Notification Tooltip',
+          )
+        : null,
+  };
+});
 
 // Mock network utils - these are external utilities that should be mocked
 jest.mock('../../../../../util/networks', () => ({
@@ -808,6 +849,327 @@ describe('PerpsOrderView', () => {
       const placeOrderButton = await screen.findByText(/Long|Short/);
       expect(placeOrderButton).toBeDefined();
       expect(placeOrderButton.props.accessibilityState?.disabled).toBeFalsy();
+    });
+  });
+
+  describe('notification tooltip functionality', () => {
+    it('shows PerpsNotificationTooltip when order is successful', async () => {
+      let capturedOnSuccess: ((position?: unknown) => void) | null = null;
+
+      const mockPlaceOrder = jest.fn();
+
+      (usePerpsOrderExecution as jest.Mock).mockImplementation(
+        ({ onSuccess }: { onSuccess: (position?: unknown) => void }) => {
+          capturedOnSuccess = onSuccess;
+          return {
+            placeOrder: mockPlaceOrder,
+            isPlacing: false,
+          };
+        },
+      );
+
+      render(<PerpsOrderView />);
+
+      // Simulate successful order by calling the captured onSuccess callback
+      const position = { coin: 'ETH', size: '1.0' };
+      await act(async () => {
+        capturedOnSuccess?.(position);
+      });
+
+      // Since orderSuccess state would be set to true, the notification tooltip should appear
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeTruthy();
+      });
+    });
+
+    it('does not show PerpsNotificationTooltip when order is not successful', () => {
+      render(<PerpsOrderView />);
+
+      // No order success, so tooltip should not be visible
+      expect(
+        screen.queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+      ).toBeNull();
+    });
+
+    it('handles notification tooltip completion and navigation', async () => {
+      let capturedOnSuccess: ((position?: unknown) => void) | null = null;
+
+      const mockPlaceOrder = jest.fn();
+
+      (usePerpsOrderExecution as jest.Mock).mockImplementation(
+        ({ onSuccess }: { onSuccess: (position?: unknown) => void }) => {
+          capturedOnSuccess = onSuccess;
+          return {
+            placeOrder: mockPlaceOrder,
+            isPlacing: false,
+          };
+        },
+      );
+
+      render(<PerpsOrderView />);
+
+      // Simulate successful order
+      const position = { coin: 'ETH', size: '1.0' };
+      await act(async () => {
+        capturedOnSuccess?.(position);
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeTruthy();
+      });
+
+      // Simulate tooltip completion
+      const tooltip = screen.getByTestId(
+        PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP,
+      );
+      fireEvent.press(tooltip);
+
+      // Should navigate after completion
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('PerpsPositionDetails', {
+          position,
+        });
+      });
+    });
+
+    it('navigates to positions view when no position returned from successful order', async () => {
+      let capturedOnSuccess: ((position?: unknown) => void) | null = null;
+
+      const mockPlaceOrder = jest.fn();
+
+      (usePerpsOrderExecution as jest.Mock).mockImplementation(
+        ({ onSuccess }: { onSuccess: (position?: unknown) => void }) => {
+          capturedOnSuccess = onSuccess;
+          return {
+            placeOrder: mockPlaceOrder,
+            isPlacing: false,
+          };
+        },
+      );
+
+      render(<PerpsOrderView />);
+
+      // Simulate successful order without position
+      await act(async () => {
+        capturedOnSuccess?.(null);
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeTruthy();
+      });
+
+      // Simulate tooltip completion
+      const tooltip = screen.getByTestId(
+        PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP,
+      );
+      fireEvent.press(tooltip);
+
+      // Should navigate to positions view
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('PerpsPositions');
+      });
+    });
+
+    it('handles order success and navigates to positions when no specific position returned', async () => {
+      let capturedOnSuccess: ((position?: unknown) => void) | null = null;
+
+      const mockPlaceOrder = jest.fn();
+
+      (usePerpsOrderExecution as jest.Mock).mockImplementation(
+        ({ onSuccess }: { onSuccess: (position?: unknown) => void }) => {
+          capturedOnSuccess = onSuccess;
+          return {
+            placeOrder: mockPlaceOrder,
+            isPlacing: false,
+          };
+        },
+      );
+
+      render(<PerpsOrderView />);
+
+      // Simulate successful order without position (undefined)
+      await act(async () => {
+        capturedOnSuccess?.();
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeTruthy();
+      });
+
+      // Simulate tooltip completion
+      const tooltip = screen.getByTestId(
+        PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP,
+      );
+      fireEvent.press(tooltip);
+
+      // Should navigate to positions list since no specific position was provided
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('PerpsPositions');
+      });
+    });
+
+    it('clears orderSuccess state after tooltip completion', async () => {
+      let capturedOnSuccess: ((position?: unknown) => void) | null = null;
+
+      const mockPlaceOrder = jest.fn();
+
+      (usePerpsOrderExecution as jest.Mock).mockImplementation(
+        ({ onSuccess }: { onSuccess: (position?: unknown) => void }) => {
+          capturedOnSuccess = onSuccess;
+          return {
+            placeOrder: mockPlaceOrder,
+            isPlacing: false,
+          };
+        },
+      );
+
+      render(<PerpsOrderView />);
+
+      // Simulate successful order
+      await act(async () => {
+        capturedOnSuccess?.();
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeTruthy();
+      });
+
+      // Simulate tooltip completion
+      const tooltip = screen.getByTestId(
+        PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP,
+      );
+      fireEvent.press(tooltip);
+
+      // Tooltip should disappear after completion
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeNull();
+      });
+    });
+
+    describe('notifications feature flag behavior', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      it('shows tooltip when notifications feature is enabled', async () => {
+        mockIsNotificationsFeatureEnabled.mockReturnValue(true);
+        let capturedOnSuccess: ((position?: unknown) => void) | null = null;
+
+        const mockPlaceOrder = jest.fn();
+
+        (usePerpsOrderExecution as jest.Mock).mockImplementation(
+          ({ onSuccess }: { onSuccess: (position?: unknown) => void }) => {
+            capturedOnSuccess = onSuccess;
+            return {
+              placeOrder: mockPlaceOrder,
+              isPlacing: false,
+            };
+          },
+        );
+
+        render(<PerpsOrderView />);
+
+        // Simulate successful order
+        const position = { coin: 'ETH', size: '1.0' };
+        await act(async () => {
+          capturedOnSuccess?.(position);
+        });
+
+        // Tooltip should be shown since notifications feature is enabled
+        await waitFor(() => {
+          expect(
+            screen.queryByTestId(
+              PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP,
+            ),
+          ).toBeTruthy();
+        });
+
+        // Navigation should not happen immediately
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
+
+      it('skips tooltip and navigates directly when notifications feature is disabled', async () => {
+        mockIsNotificationsFeatureEnabled.mockReturnValue(false);
+        let capturedOnSuccess: ((position?: unknown) => void) | null = null;
+
+        const mockPlaceOrder = jest.fn();
+
+        (usePerpsOrderExecution as jest.Mock).mockImplementation(
+          ({ onSuccess }: { onSuccess: (position?: unknown) => void }) => {
+            capturedOnSuccess = onSuccess;
+            return {
+              placeOrder: mockPlaceOrder,
+              isPlacing: false,
+            };
+          },
+        );
+
+        render(<PerpsOrderView />);
+
+        // Simulate successful order
+        const position = { coin: 'ETH', size: '1.0' };
+        await act(async () => {
+          capturedOnSuccess?.(position);
+        });
+
+        // Tooltip should NOT be shown since notifications feature is disabled
+        expect(
+          screen.queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeNull();
+
+        // Navigation should happen immediately
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith('PerpsPositionDetails', {
+            position,
+          });
+        });
+      });
+
+      it('navigates to positions when notifications feature is disabled and no position returned', async () => {
+        mockIsNotificationsFeatureEnabled.mockReturnValue(false);
+        let capturedOnSuccess: ((position?: unknown) => void) | null = null;
+
+        const mockPlaceOrder = jest.fn();
+
+        (usePerpsOrderExecution as jest.Mock).mockImplementation(
+          ({ onSuccess }: { onSuccess: (position?: unknown) => void }) => {
+            capturedOnSuccess = onSuccess;
+            return {
+              placeOrder: mockPlaceOrder,
+              isPlacing: false,
+            };
+          },
+        );
+
+        render(<PerpsOrderView />);
+
+        // Simulate successful order without position
+        await act(async () => {
+          capturedOnSuccess?.(null);
+        });
+
+        // Tooltip should NOT be shown since notifications feature is disabled
+        expect(
+          screen.queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeNull();
+
+        // Should navigate to positions view immediately
+        await waitFor(() => {
+          expect(mockNavigate).toHaveBeenCalledWith('PerpsPositions');
+        });
+      });
     });
   });
 });

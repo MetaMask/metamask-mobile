@@ -71,6 +71,7 @@ export const togglePerpsNotifications = async (
   perpsNotificationsEnabled: boolean,
 ) => {
   assertIsFeatureEnabled();
+  // @ts-expect-error - setPerpsNotificationsEnabled not yet implemented
   await Engine.context.NotificationServicesController.setPerpsNotificationsEnabled(
     perpsNotificationsEnabled,
   );
