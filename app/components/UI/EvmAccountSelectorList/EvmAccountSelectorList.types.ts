@@ -5,6 +5,7 @@ import { FlashListProps } from '@shopify/flash-list';
 // External dependencies
 import { Account, UseAccounts } from '../../hooks/useAccounts';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 type FlattenedAccountListItem =
   | { type: 'header'; data: AccountSection; sectionIndex: number }
@@ -13,6 +14,7 @@ type FlattenedAccountListItem =
       data: Account;
       sectionIndex: number;
       accountIndex: number;
+      internalAccount: InternalAccount;
     }
   | { type: 'footer'; data: AccountSection; sectionIndex: number };
 

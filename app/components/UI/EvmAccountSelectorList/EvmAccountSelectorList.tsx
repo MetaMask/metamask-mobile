@@ -101,10 +101,13 @@ const EvmAccountSelectorList = ({
     shallowEqual,
   );
 
-  const accountTreeSections = useSelector(selectAccountSections);
+  const accountTreeSections = useSelector(selectAccountSections, shallowEqual);
 
-  const internalAccounts = useSelector(selectInternalAccounts);
-  const internalAccountsById = useSelector(selectInternalAccountsById);
+  const internalAccounts = useSelector(selectInternalAccounts, shallowEqual);
+  const internalAccountsById = useSelector(
+    selectInternalAccountsById,
+    shallowEqual,
+  );
 
   const accountSections = useMemo((): AccountSection[] => {
     if (accountTreeSections) {
@@ -144,11 +147,13 @@ const EvmAccountSelectorList = ({
       }
 
       section.data.forEach((account) => {
+        const internalAccount = internalAccountsById[account.id];
         items.push({
           type: 'account',
           data: account,
           sectionIndex,
           accountIndex,
+          internalAccount,
         });
         accountIndex++;
       });
@@ -163,9 +168,9 @@ const EvmAccountSelectorList = ({
     });
 
     return items;
-  }, [accountSections, accountTreeSections]);
+  }, [accountSections, accountTreeSections, internalAccountsById]);
 
-  const getKeyExtractor = (item: FlattenedAccountListItem) => {
+  const getKeyExtractor = useCallback((item: FlattenedAccountListItem) => {
     if (item.type === 'header') {
       return `header-${item.sectionIndex}`;
     }
@@ -173,7 +178,7 @@ const EvmAccountSelectorList = ({
       return `footer-${item.sectionIndex}`;
     }
     return item.data.address;
-  };
+  }, []);
 
   // FlashList optimization: Define item types for better recycling
   const getItemType = useCallback(
@@ -402,7 +407,6 @@ const EvmAccountSelectorList = ({
 
       // Render account item
       const {
-        id,
         name,
         address,
         assets,
@@ -412,7 +416,7 @@ const EvmAccountSelectorList = ({
         isLoadingAccount,
       } = item.data;
 
-      const internalAccount = internalAccountsById[id];
+      const internalAccount = item.internalAccount;
       const shortAddress = formatAddress(address, 'short');
       const tagLabel = accountTreeSections
         ? undefined
@@ -528,7 +532,6 @@ const EvmAccountSelectorList = ({
       accountTreeSections,
       renderSectionHeader,
       renderSectionFooter,
-      internalAccountsById,
     ],
   );
 
