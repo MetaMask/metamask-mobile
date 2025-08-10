@@ -54,10 +54,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     isRefreshing,
     loadPositions,
   } = usePerpsPositions();
-  const { isFirstTimeUser, isLoading: isFirstTimeUserLoading } =
-    usePerpsFirstTimeUser();
+  const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
-  const isLoading = isFirstTimeUserLoading || isPositionsLoading;
+  const isLoading = isPositionsLoading;
   const firstTimeUserIconSize = 48 as unknown as IconSize;
   // Automatically load account state on mount and when network changes
   useEffect(() => {

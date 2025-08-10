@@ -173,9 +173,7 @@ describe('PerpsTabView', () => {
     it('should render first-time user view when isFirstTimeUser is true', () => {
       mockUsePerpsFirstTimeUser.mockReturnValue({
         isFirstTimeUser: true,
-        isLoading: false,
-        error: null,
-        refresh: jest.fn(),
+        markTutorialCompleted: jest.fn(),
       });
 
       render(<PerpsTabView />);
@@ -360,9 +358,7 @@ describe('PerpsTabView', () => {
     it('should navigate to tutorial when Start Trading button is pressed in first-time view', () => {
       mockUsePerpsFirstTimeUser.mockReturnValue({
         isFirstTimeUser: true,
-        isLoading: false,
-        error: null,
-        refresh: jest.fn(),
+        markTutorialCompleted: jest.fn(),
       });
 
       render(<PerpsTabView />);

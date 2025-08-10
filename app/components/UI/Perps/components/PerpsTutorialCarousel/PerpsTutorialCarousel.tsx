@@ -1,5 +1,5 @@
 import { NavigationProp, useNavigation } from '@react-navigation/native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -15,8 +15,8 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { PerpsNavigationParamList } from '../../controllers/types';
+import { usePerpsFirstTimeUser } from '../../hooks';
 import createStyles from './PerpsTutorialCarousel.styles';
-import { PerpsTutorialCarouselProps } from './PerpsTutorialCarousel.types';
 
 const tutorialScreens = [
   {
@@ -53,19 +53,20 @@ const tutorialScreens = [
   },
 ];
 
-const PerpsTutorialCarousel: React.FC<PerpsTutorialCarouselProps> = ({
-  onClose,
-  onComplete,
-}) => {
+const PerpsTutorialCarousel: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
   const scrollableTabViewRef = useRef<
     ScrollableTabView & { goToPage: (pageNumber: number) => void }
   >(null);
 
-  const isLastScreen = currentTab === tutorialScreens.length - 1;
+  const isLastScreen = useMemo(
+    () => currentTab === tutorialScreens.length - 1,
+    [currentTab],
+  );
 
   const handleTabChange = useCallback((obj: { i: number }) => {
     setCurrentTab(obj.i);
@@ -73,26 +74,24 @@ const PerpsTutorialCarousel: React.FC<PerpsTutorialCarouselProps> = ({
 
   const handleContinue = useCallback(() => {
     if (isLastScreen) {
-      // Navigate to deposit/add funds flow or back
-      if (onComplete) {
-        onComplete();
-      } else {
-        navigation.navigate(Routes.PERPS.DEPOSIT);
-      }
+      // Mark tutorial as completed
+      markTutorialCompleted();
+      // Navigate to deposit/add funds flow
+      navigation.navigate(Routes.PERPS.DEPOSIT);
     } else {
       // Go to next screen using the ref
       const nextTab = Math.min(currentTab + 1, tutorialScreens.length - 1);
       scrollableTabViewRef.current?.goToPage(nextTab);
     }
-  }, [isLastScreen, onComplete, navigation, currentTab]);
+  }, [isLastScreen, markTutorialCompleted, navigation, currentTab]);
 
   const handleSkip = useCallback(() => {
-    if (onClose) {
-      onClose();
-    } else {
-      navigation.goBack();
+    if (isLastScreen) {
+      // Mark tutorial as completed
+      markTutorialCompleted();
     }
-  }, [onClose, navigation]);
+    navigation.goBack();
+  }, [isLastScreen, markTutorialCompleted, navigation]);
 
   const renderTabBar = () => <View />;
 

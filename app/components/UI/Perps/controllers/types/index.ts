@@ -360,10 +360,6 @@ export interface FeeCalculationParams {
   amount?: string;
 }
 
-export interface GetIsFirstTimeUserParams {
-  accountId?: CaipAccountId;
-}
-
 export interface FeeCalculationResult {
   feeRate: number; // Fee rate as decimal (e.g., 0.00045 for 0.045%)
   feeAmount?: number; // Fee amount in USD (when amount is provided)
@@ -411,7 +407,6 @@ export interface IPerpsProvider {
   // Unified asset and route information
   getDepositRoutes(params?: GetSupportedPathsParams): AssetRoute[]; // Assets and their deposit routes
   getWithdrawalRoutes(params?: GetSupportedPathsParams): AssetRoute[]; // Assets and their withdrawal routes
-  getIsFirstTimeUser(params?: GetIsFirstTimeUserParams): Promise<boolean>; // Check if this is the first time user is trading
 
   // Trading operations → Redux (persisted, optimistic updates)
   placeOrder(params: OrderParams): Promise<OrderResult>;

@@ -15,6 +15,14 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),
 }));
 
+// Mock usePerpsFirstTimeUser hook
+const mockMarkTutorialCompleted = jest.fn();
+jest.mock('../../hooks', () => ({
+  usePerpsFirstTimeUser: () => ({
+    markTutorialCompleted: mockMarkTutorialCompleted,
+  }),
+}));
+
 jest.mock('react-native-scrollable-tab-view', () => {
   const MockReact = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -119,13 +127,14 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.add_funds')));
       });
 
-      // Should navigate to deposit screen
+      // Should mark tutorial as completed and navigate to deposit screen
+      expect(mockMarkTutorialCompleted).toHaveBeenCalled();
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
         Routes.PERPS.DEPOSIT,
       );
     });
 
-    it('should go back when pressing Skip', () => {
+    it('should go back when pressing Skip on first screen', () => {
       render(<PerpsTutorialCarousel />);
 
       act(() => {
@@ -133,11 +142,66 @@ describe('PerpsTutorialCarousel', () => {
       });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
+      expect(mockMarkTutorialCompleted).not.toHaveBeenCalled();
     });
 
-    it('should call onComplete when provided and on last screen', async () => {
-      const mockOnComplete = jest.fn();
-      render(<PerpsTutorialCarousel onComplete={mockOnComplete} />);
+    it('should mark tutorial as completed and go back when pressing Skip on last screen', async () => {
+      render(<PerpsTutorialCarousel />);
+
+      // Navigate to the last screen
+      for (let i = 0; i < 5; i++) {
+        const continueButton = screen.getByText(
+          strings('perps.tutorial.continue'),
+        );
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
+      }
+
+      // Verify we're on the last screen
+      expect(
+        screen.getByText(strings('perps.tutorial.ready_to_trade.title')),
+      ).toBeOnTheScreen();
+
+      // Skip button should say "Got it" on last screen
+      expect(
+        screen.getByText(strings('perps.tutorial.got_it')),
+      ).toBeOnTheScreen();
+
+      // Press the "Got it" button
+      act(() => {
+        fireEvent.press(screen.getByText(strings('perps.tutorial.got_it')));
+      });
+
+      // Should mark tutorial as completed and go back
+      expect(mockMarkTutorialCompleted).toHaveBeenCalled();
+      expect(mockNavigation.goBack).toHaveBeenCalled();
+    });
+
+    it('should mark tutorial as completed when finishing tutorial', async () => {
+      render(<PerpsTutorialCarousel />);
+
+      // Navigate through all screens by pressing Continue 5 times to get to last screen
+      for (let i = 0; i < 5; i++) {
+        const continueButton = screen.getByText(
+          strings('perps.tutorial.continue'),
+        );
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
+      }
+
+      // Press Add funds button on last screen
+      await act(async () => {
+        fireEvent.press(screen.getByText(strings('perps.tutorial.add_funds')));
+      });
+
+      // Should mark tutorial as completed
+      expect(mockMarkTutorialCompleted).toHaveBeenCalled();
+    });
+
+    it('should navigate to deposit when on last screen', async () => {
+      render(<PerpsTutorialCarousel />);
 
       // Navigate through all screens by pressing Continue 5 times
       for (let i = 0; i < 5; i++) {
@@ -154,22 +218,8 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.add_funds')));
       });
 
-      // Should call onComplete
-      expect(mockOnComplete).toHaveBeenCalled();
-      expect(mockNavigation.navigate).not.toHaveBeenCalled(); // Should not navigate when onComplete is provided
-    });
-
-    it('should call onClose when provided and pressing Skip', () => {
-      const mockOnClose = jest.fn();
-      render(<PerpsTutorialCarousel onClose={mockOnClose} />);
-
-      act(() => {
-        fireEvent.press(screen.getByText(strings('perps.tutorial.skip')));
-      });
-
-      // Should call onClose
-      expect(mockOnClose).toHaveBeenCalled();
-      expect(mockNavigation.goBack).not.toHaveBeenCalled(); // Should not go back when onClose is provided
+      // Should navigate to deposit
+      expect(mockNavigation.navigate).toHaveBeenCalledWith('PerpsDeposit');
     });
   });
 });

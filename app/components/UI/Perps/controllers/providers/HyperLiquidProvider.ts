@@ -50,7 +50,6 @@ import type {
   Funding,
   GetAccountStateParams,
   GetFundingParams,
-  GetIsFirstTimeUserParams,
   GetOrderFillsParams,
   GetOrdersParams,
   GetPositionsParams,
@@ -1936,43 +1935,5 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     return `${baseUrl}/explorer`;
-  }
-
-  /**
-   * Check if the user is a first-time Perps user on HyperLiquid
-   * Uses the userState and userFills APIs to determine if the user has ever interacted with the protocol
-   * @returns Promise<boolean> - true if this is the first time using perps
-   */
-  async getIsFirstTimeUser(
-    params?: GetIsFirstTimeUserParams,
-  ): Promise<boolean> {
-    try {
-      await this.ensureReady();
-
-      // Get the wallet address from the wallet service
-      const address = await this.walletService.getUserAddressWithDefault(
-        params?.accountId,
-      );
-      if (!address) {
-        throw new Error('No wallet address available');
-      }
-
-      // Call userState API endpoint using the info client
-      const infoClient = this.clientService.getInfoClient();
-
-      // Get the user role
-      const userRole = await infoClient.userRole({ user: address });
-
-      // If the user has no role or role is missing, they're a new user to HL
-      if (!userRole?.role || userRole.role === 'missing') {
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      // If there's an error checking user status, default to false (don't show tutorial)
-      DevLogger.log('Error checking if first time user', { error });
-      return false;
-    }
   }
 }

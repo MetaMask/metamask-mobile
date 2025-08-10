@@ -1,126 +1,128 @@
-import { renderHook, act } from '@testing-library/react-native';
+import { renderHook } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
 import { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
+import { selectIsFirstTimeUser } from '../controllers/selectors';
+import { usePerpsSelector } from './usePerpsSelector';
+import type { PerpsControllerState } from '../controllers/PerpsController';
 
+// Mock usePerpsSelector
+jest.mock('./usePerpsSelector', () => ({
+  usePerpsSelector: jest.fn(),
+}));
+
+// Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PerpsController: {
-      getIsFirstTimeUser: jest.fn(),
+      markTutorialCompleted: jest.fn(),
     },
   },
 }));
 
-jest.mock('../../Tabs/TabThumbnail/useSelectedAccount', () => ({
-  __esModule: true,
-  default: jest.fn().mockReturnValue({
-    caipAccountId: 'eip155:1:0x1234567890123456789012345678901234567890',
-  }),
-}));
+const mockUsePerpsSelector = usePerpsSelector as jest.MockedFunction<
+  typeof usePerpsSelector
+>;
 
 describe('usePerpsFirstTimeUser', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('should return isFirstTimeUser: true when controller returns true', async () => {
+  it('should return isFirstTimeUser: true when selector returns true', () => {
     // Arrange
-    const mockGetIsFirstTimeUser = Engine.context.PerpsController
-      .getIsFirstTimeUser as jest.Mock;
-    mockGetIsFirstTimeUser.mockResolvedValue(true);
+    mockUsePerpsSelector.mockImplementation(
+      <T>(selector: (state: PerpsControllerState | undefined) => T) => {
+        // Verify the correct selector is passed
+        expect(selector).toBe(selectIsFirstTimeUser);
+        return true as T;
+      },
+    );
 
     // Act
     const { result } = renderHook(() => usePerpsFirstTimeUser());
 
-    // Wait for the hook to finish loading
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
     // Assert
-    expect(mockGetIsFirstTimeUser).toHaveBeenCalledWith({
-      accountId: 'eip155:1:0x1234567890123456789012345678901234567890',
-    });
     expect(result.current).toEqual({
       isFirstTimeUser: true,
-      isLoading: false,
-      error: null,
-      refresh: expect.any(Function),
+      markTutorialCompleted: expect.any(Function),
     });
   });
 
-  it('should return isFirstTimeUser: false when controller returns false', async () => {
+  it('should return isFirstTimeUser: false when selector returns false', () => {
     // Arrange
-    const mockGetIsFirstTimeUser = Engine.context.PerpsController
-      .getIsFirstTimeUser as jest.Mock;
-    mockGetIsFirstTimeUser.mockResolvedValue(false);
+    mockUsePerpsSelector.mockImplementation(
+      <T>(selector: (state: PerpsControllerState | undefined) => T) => {
+        // Verify the correct selector is passed
+        expect(selector).toBe(selectIsFirstTimeUser);
+        return false as T;
+      },
+    );
 
     // Act
     const { result } = renderHook(() => usePerpsFirstTimeUser());
-
-    // Wait for the hook to finish loading
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
 
     // Assert
     expect(result.current).toEqual({
       isFirstTimeUser: false,
-      isLoading: false,
-      error: null,
-      refresh: expect.any(Function),
+      markTutorialCompleted: expect.any(Function),
     });
   });
 
-  it('should refresh when calling refresh function', async () => {
-    // Arrange
-    const mockGetIsFirstTimeUser = Engine.context.PerpsController
-      .getIsFirstTimeUser as jest.Mock;
-    mockGetIsFirstTimeUser.mockResolvedValueOnce(true);
-
-    // Act - first render
-    const { result } = renderHook(() => usePerpsFirstTimeUser());
-
-    // Wait for initial load
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
-    // Verify initial state
-    expect(result.current.isFirstTimeUser).toBe(true);
-
-    // Setup for refresh
-    mockGetIsFirstTimeUser.mockResolvedValueOnce(false);
-
-    // Act - refresh
-    await act(async () => {
-      await result.current.refresh();
-    });
-
-    // Assert
-    expect(mockGetIsFirstTimeUser).toHaveBeenCalledTimes(2);
-    expect(result.current.isFirstTimeUser).toBe(false);
-  });
-
-  it('should handle error and default to isFirstTimeUser: true', async () => {
-    // Arrange
-    const mockGetIsFirstTimeUser = Engine.context.PerpsController
-      .getIsFirstTimeUser as jest.Mock;
-    mockGetIsFirstTimeUser.mockRejectedValue(new Error('Test error'));
+  it('should default to isFirstTimeUser: true when selector returns undefined (simulating undefined state)', () => {
+    // Arrange - mock the selector to return true (which is what the actual selector would do with undefined state)
+    mockUsePerpsSelector.mockImplementation(
+      <T>(selector: (state: PerpsControllerState | undefined) => T) => {
+        // Verify the correct selector is passed
+        expect(selector).toBe(selectIsFirstTimeUser);
+        // Return true since selectIsFirstTimeUser returns true for undefined state
+        return true as T;
+      },
+    );
 
     // Act
     const { result } = renderHook(() => usePerpsFirstTimeUser());
 
-    // Wait for the hook to finish loading
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-
     // Assert
     expect(result.current).toEqual({
-      isFirstTimeUser: false, // Default to false on error
-      isLoading: false,
-      error: 'Test error',
-      refresh: expect.any(Function),
+      isFirstTimeUser: true,
+      markTutorialCompleted: expect.any(Function),
     });
+  });
+
+  it('should call PerpsController.markTutorialCompleted when markTutorialCompleted is called', () => {
+    // Arrange
+    mockUsePerpsSelector.mockImplementation(
+      <T>(selector: (state: PerpsControllerState | undefined) => T) => {
+        expect(selector).toBe(selectIsFirstTimeUser);
+        return true as T;
+      },
+    );
+    const mockMarkTutorialCompleted = Engine.context.PerpsController
+      .markTutorialCompleted as jest.Mock;
+
+    // Act
+    const { result } = renderHook(() => usePerpsFirstTimeUser());
+    result.current.markTutorialCompleted();
+
+    // Assert
+    expect(mockMarkTutorialCompleted).toHaveBeenCalledWith();
+  });
+
+  it('should handle PerpsController being undefined gracefully', () => {
+    // Arrange
+    mockUsePerpsSelector.mockImplementation(
+      <T>(selector: (state: PerpsControllerState | undefined) => T) => {
+        expect(selector).toBe(selectIsFirstTimeUser);
+        return true as T;
+      },
+    );
+    // @ts-expect-error - Testing undefined case
+    Engine.context.PerpsController = undefined;
+
+    // Act
+    const { result } = renderHook(() => usePerpsFirstTimeUser());
+
+    // Should not throw when markTutorialCompleted is called
+    expect(() => result.current.markTutorialCompleted()).not.toThrow();
   });
 });

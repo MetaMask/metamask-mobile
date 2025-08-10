@@ -32,7 +32,6 @@ import type {
   Funding,
   GetAccountStateParams,
   GetFundingParams,
-  GetIsFirstTimeUserParams,
   GetOrderFillsParams,
   GetOrdersParams,
   GetPositionsParams,
@@ -110,6 +109,9 @@ export type PerpsControllerState = {
   // Eligibility (Geo-Blocking)
   isEligible: boolean;
 
+  // Tutorial/First time user tracking
+  isFirstTimeUser: boolean;
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -133,6 +135,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   lastError: null,
   lastUpdateTimestamp: 0,
   isEligible: false,
+  isFirstTimeUser: true,
 });
 
 /**
@@ -153,6 +156,7 @@ const metadata = {
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
   isEligible: { persist: false, anonymous: false },
+  isFirstTimeUser: { persist: true, anonymous: false },
 };
 
 /**
@@ -238,6 +242,10 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:calculateFees';
       handler: PerpsController['calculateFees'];
+    }
+  | {
+      type: 'PerpsController:markTutorialCompleted';
+      handler: PerpsController['markTutorialCompleted'];
     };
 
 /**
@@ -1482,20 +1490,16 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Check if the user is a first-time Perps user
-   * This determines whether to show the tutorial/onboarding
-   * @returns Promise<boolean> - true if user is a first-time perps user
+   * Mark that the user has completed the tutorial/onboarding
+   * This prevents the tutorial from showing again
    */
-  async getIsFirstTimeUser(
-    params?: GetIsFirstTimeUserParams,
-  ): Promise<boolean> {
-    try {
-      const provider = this.getActiveProvider();
-      return provider.getIsFirstTimeUser(params);
-    } catch (error) {
-      console.error('Failed to check if first-time perps user:', error);
-      // Default to false if we can't determine status, so they don't see the tutorial
-      return false;
-    }
+  markTutorialCompleted(): void {
+    DevLogger.log('PerpsController: Marking tutorial as completed', {
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      state.isFirstTimeUser = false;
+    });
   }
 }
