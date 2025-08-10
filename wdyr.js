@@ -13,33 +13,8 @@ if (__DEV__) {
 
   // eslint-disable-next-line no-console
   console.log('[WDYR] initializing');
-  try {
-    // Attempt to load react-redux for trackExtraHooks if available
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const ReactRedux = require('react-redux');
-    whyDidYouRender(React, {
-      trackAllPureComponents: true,
-      trackHooks: true,
-      trackExtraHooks: [[ReactRedux, 'useSelector']],
-      logOwnerReasons: true,
-      logOnDifferentValues: true,
-      onlyLogs: true,
-      collapseGroups: false,
-      hotReloadBufferMs: 800,
-      // Keep logs readable in Metro
-      titleColor: '#058',
-      diffNameColor: 'blue',
-      diffPathColor: 'red',
-    });
-  } catch (e) {
-    // Fallback without react-redux
-    whyDidYouRender(React, {
-      trackAllPureComponents: true,
-      trackHooks: true,
-      logOwnerReasons: true,
-      logOnDifferentValues: true,
-      onlyLogs: true,
-      hotReloadBufferMs: 800,
-    });
-  }
+  whyDidYouRender(React, {
+    trackAllPureComponents: true,
+    onlyLogs: true,
+  });
 }
