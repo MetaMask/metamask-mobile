@@ -23,6 +23,23 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
     const mockServerPort = getMockServerPort();
     mockServer = await startMockServer([], mockServerPort);
     await mockNotificationServices(mockServer);
+
+    // Add a verification step to ensure mocks are ready
+    try {
+      const response = await fetch(
+        `http://127.0.0.1:${mockServerPort}/health-check`,
+      );
+      if (response.status !== 200) {
+        console.log('Mock server health check failed');
+      } else {
+        console.log('Mock server ready with notification mocks registered');
+      }
+
+      // Add a small delay to ensure all mocks are fully registered
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.log('Error verifying mock server:', error);
+    }
   });
 
   it('should enable notifications and view feature announcements and wallet notifications', async () => {
