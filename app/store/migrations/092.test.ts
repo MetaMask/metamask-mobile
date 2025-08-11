@@ -1,7 +1,6 @@
 import migrate from './092';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
-import initialRootState from '../../util/test/initial-root-state';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
@@ -11,6 +10,13 @@ jest.mock('@sentry/react-native', () => ({
 jest.mock('../../util/Logger');
 
 const mockedCaptureException = jest.mocked(captureException);
+
+// Create a minimal base state for testing
+const createBaseState = () => ({
+  engine: {
+    backgroundState: {},
+  },
+});
 
 describe('Migration #92', () => {
   beforeEach(() => {
@@ -25,7 +31,7 @@ describe('Migration #92', () => {
       scenario: 'state is invalid',
     },
     {
-      state: merge({}, initialRootState, {
+      state: merge({}, createBaseState(), {
         engine: null,
       }),
       errorMessage:
@@ -33,7 +39,7 @@ describe('Migration #92', () => {
       scenario: 'engine state is invalid',
     },
     {
-      state: merge({}, initialRootState, {
+      state: merge({}, createBaseState(), {
         engine: {
           backgroundState: null,
         },
@@ -58,7 +64,7 @@ describe('Migration #92', () => {
   );
 
   it('returns state unchanged when SmartTransactionsController is undefined (fresh install)', () => {
-    const state = merge({}, initialRootState, {
+    const state = merge({}, createBaseState(), {
       engine: {
         backgroundState: {
           SmartTransactionsController: undefined,
@@ -73,7 +79,7 @@ describe('Migration #92', () => {
   });
 
   it('wipes all smart transactions when they exist', () => {
-    const oldState = merge({}, initialRootState, {
+    const oldState = merge({}, createBaseState(), {
       engine: {
         backgroundState: {
           SmartTransactionsController: {
@@ -109,10 +115,11 @@ describe('Migration #92', () => {
     });
 
     const expectedState = merge({}, oldState);
-    (
-      expectedState.engine.backgroundState.SmartTransactionsController
-        .smartTransactionsState as any
-    ).smartTransactions = {};
+    const smartTransactionsState = expectedState.engine.backgroundState
+      .SmartTransactionsController.smartTransactionsState as {
+      smartTransactions: Record<string, unknown>;
+    };
+    smartTransactionsState.smartTransactions = {};
 
     const newState = migrate(oldState);
 
@@ -121,7 +128,7 @@ describe('Migration #92', () => {
   });
 
   it('wipes smart transactions with minimal state', () => {
-    const oldState = merge({}, initialRootState, {
+    const oldState = merge({}, createBaseState(), {
       engine: {
         backgroundState: {
           SmartTransactionsController: {
@@ -141,10 +148,11 @@ describe('Migration #92', () => {
     });
 
     const expectedState = merge({}, oldState);
-    (
-      expectedState.engine.backgroundState.SmartTransactionsController
-        .smartTransactionsState as any
-    ).smartTransactions = {};
+    const smartTransactionsState = expectedState.engine.backgroundState
+      .SmartTransactionsController.smartTransactionsState as {
+      smartTransactions: Record<string, unknown>;
+    };
+    smartTransactionsState.smartTransactions = {};
 
     const newState = migrate(oldState);
 
@@ -153,7 +161,7 @@ describe('Migration #92', () => {
   });
 
   it('handles invalid SmartTransactionsController structure gracefully', () => {
-    const state = merge({}, initialRootState, {
+    const state = merge({}, createBaseState(), {
       engine: {
         backgroundState: {
           SmartTransactionsController: {
@@ -170,7 +178,7 @@ describe('Migration #92', () => {
   });
 
   it('handles SmartTransactionsController as non-object', () => {
-    const state = merge({}, initialRootState, {
+    const state = merge({}, createBaseState(), {
       engine: {
         backgroundState: {
           SmartTransactionsController: 'invalid',
@@ -188,7 +196,7 @@ describe('Migration #92', () => {
   });
 
   it('handles empty smart transactions', () => {
-    const state = merge({}, initialRootState, {
+    const state = merge({}, createBaseState(), {
       engine: {
         backgroundState: {
           AccountsController: {
@@ -215,8 +223,19 @@ describe('Migration #92', () => {
     const newState = migrate(state);
 
     // State should remain unchanged but smartTransactions should still be an empty object
+    const stateWithController = newState as {
+      engine: {
+        backgroundState: {
+          SmartTransactionsController: {
+            smartTransactionsState: {
+              smartTransactions: Record<string, unknown>;
+            };
+          };
+        };
+      };
+    };
     expect(
-      (newState as any).engine.backgroundState.SmartTransactionsController
+      stateWithController.engine.backgroundState.SmartTransactionsController
         .smartTransactionsState.smartTransactions,
     ).toStrictEqual({});
     expect(mockedCaptureException).not.toHaveBeenCalled();
