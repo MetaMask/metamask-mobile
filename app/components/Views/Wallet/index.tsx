@@ -124,6 +124,7 @@ import { toFormattedAddress } from '../../../util/address';
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { endTrace, trace, TraceName } from '../../../util/trace';
+import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain';
 
 const createStyles = ({ colors, typography }: Theme) =>
   StyleSheet.create({
@@ -271,6 +272,9 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const solanaOnboardingModalEnabled = useSelector(
+    selectSolanaOnboardingModalEnabled,
+  );
 
   /**
    * Object containing the balance of the current selected account
@@ -354,8 +358,10 @@ const Wallet = ({
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   useEffect(() => {
-    checkAndNavigateToSolanaFeature();
-  }, [checkAndNavigateToSolanaFeature]);
+    if (solanaOnboardingModalEnabled) {
+      checkAndNavigateToSolanaFeature();
+    }
+  }, [checkAndNavigateToSolanaFeature, solanaOnboardingModalEnabled]);
   ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
