@@ -7,7 +7,9 @@ import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
 /**
  * Migration 092: Update Sei Network Name
  *
- * This migration updates the SEI network name from `Sei Network` to `Sei Mainnet`.
+ * This migration updates:
+ * - the SEI network name from `Sei Network` to `Sei Mainnet`.
+ * - the SEI RPC name from `Sei Network` to `Sei Mainnet`.
  */
 export default function migrate(state: unknown): unknown {
   const migrationVersion = 92;
@@ -40,21 +42,52 @@ export default function migrate(state: unknown): unknown {
       isObject(
         state.engine.backgroundState.NetworkController
           .networkConfigurationsByChainId[seiChainId],
-      ) &&
-      hasProperty(
-        state.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration,
-        'name',
-      ) &&
-      (
-        state.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
-      ).name === fromName
+      )
     ) {
-      (
-        state.engine.backgroundState.NetworkController
-          .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
-      ).name = toName;
+      // Update the network name if it matches the expected name
+      if (
+        hasProperty(
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration,
+          'name',
+        ) &&
+        (
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
+        ).name === fromName
+      ) {
+        (
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
+        ).name = toName;
+      }
+
+      if (
+        hasProperty(
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration,
+          'rpcEndpoints',
+        ) &&
+        Array.isArray(
+          (
+            state.engine.backgroundState.NetworkController
+              .networkConfigurationsByChainId[
+              seiChainId
+            ] as NetworkConfiguration
+          ).rpcEndpoints,
+        )
+      ) {
+        // Update the RPC Name if it matches the expected name
+        const rpcEndpoints = (
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
+        ).rpcEndpoints;
+        rpcEndpoints.forEach((endpoint) => {
+          if (endpoint.name === fromName) {
+            endpoint.name = toName;
+          }
+        });
+      }
     }
     return state;
   } catch (error) {

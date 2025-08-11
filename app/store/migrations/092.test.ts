@@ -3,6 +3,7 @@ import { cloneDeep } from 'lodash';
 
 import { ensureValidState } from './util';
 import migrate from './092';
+import { name } from '@metamask/key-tree/dist/curves/ed25519.d.cts';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -78,7 +79,7 @@ describe('Migration 92: Update Sei Network name', () => {
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('does nothing if SEI network name is not `Sei Network`', async () => {
+  it('does not update the SEI network name if it is not `Sei Network`', async () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -130,7 +131,7 @@ describe('Migration 92: Update Sei Network name', () => {
     expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('updates the SEI network name from `Sei Network` to `Sei Mainnet`', async () => {
+  it('does not update the PRC network name if it is not `Sei Network`', async () => {
     const oldState = {
       engine: {
         backgroundState: {
@@ -160,6 +161,85 @@ describe('Migration 92: Update Sei Network name', () => {
                     networkClientId: 'sei-network',
                     url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
                     type: 'infura',
+                    name: 'My Custom Sei Network',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://seitrace.com'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Sei Network',
+                nativeCurrency: 'SEI',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...oldState.engine.backgroundState.NetworkController,
+            networkConfigurationsByChainId: {
+              ...oldState.engine.backgroundState.NetworkController
+                .networkConfigurationsByChainId,
+              '0x531': {
+                ...oldState.engine.backgroundState.NetworkController
+                  .networkConfigurationsByChainId['0x531'],
+                name: 'Sei Mainnet',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                    name: 'My Custom Sei Network',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedState);
+  });
+
+  it('updates the SEI network name and RRC name from `Sei Network` to `Sei Mainnet`', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://etherscan.io'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+              },
+              '0x531': {
+                chainId: '0x531',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                    name: 'Sei Network',
                   },
                 ],
                 defaultRpcEndpointIndex: 0,
@@ -188,6 +268,14 @@ describe('Migration 92: Update Sei Network name', () => {
                 ...oldState.engine.backgroundState.NetworkController
                   .networkConfigurationsByChainId['0x531'],
                 name: 'Sei Mainnet',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                    name: 'Sei Mainnet',
+                  },
+                ],
               },
             },
           },
