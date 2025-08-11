@@ -178,4 +178,201 @@ describe('ListItemMultiSelect', () => {
       expect(mockOnPress).toHaveBeenCalled();
     });
   });
+
+  describe('TouchableOpacity wrapper gesture handling', () => {
+    const originalPlatform = Platform.OS;
+
+    beforeEach(() => {
+      Platform.OS = 'android';
+    });
+
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+    });
+
+    it('should call onPress when item is pressed (Android wrapper active)', () => {
+      // Override test environment detection to enable Android gesture wrapper
+      const originalEnv = process.env.NODE_ENV;
+      const originalIsTest = process.env.IS_TEST;
+      const originalMetaMaskEnv = process.env.METAMASK_ENVIRONMENT;
+
+      process.env.NODE_ENV = 'development';
+      delete process.env.IS_TEST;
+      delete process.env.METAMASK_ENVIRONMENT;
+
+      try {
+        const mockOnPress = jest.fn();
+        const { getByTestId } = render(
+          <ListItemMultiSelect onPress={mockOnPress} testID="list-item-multi">
+            <View />
+          </ListItemMultiSelect>,
+        );
+
+        const listItem = getByTestId('list-item-multi');
+        fireEvent.press(listItem);
+
+        expect(mockOnPress).toHaveBeenCalledTimes(1);
+      } finally {
+        process.env.NODE_ENV = originalEnv;
+        if (originalIsTest) process.env.IS_TEST = originalIsTest;
+        if (originalMetaMaskEnv)
+          process.env.METAMASK_ENVIRONMENT = originalMetaMaskEnv;
+      }
+    });
+
+    it('should handle isDisabled prop in TouchableOpacity wrapper', () => {
+      const mockOnPress = jest.fn();
+      const { getByTestId } = render(
+        <ListItemMultiSelect
+          onPress={mockOnPress}
+          isDisabled
+          testID="list-item-multi"
+        >
+          <View />
+        </ListItemMultiSelect>,
+      );
+
+      const listItem = getByTestId('list-item-multi');
+      fireEvent.press(listItem);
+
+      expect(mockOnPress).not.toHaveBeenCalled();
+    });
+
+    it('should preserve accessibility onPress when not disabled', () => {
+      const mockOnPress = jest.fn();
+      const { getByTestId } = render(
+        <ListItemMultiSelect onPress={mockOnPress} testID="list-item-multi">
+          <View />
+        </ListItemMultiSelect>,
+      );
+
+      const listItem = getByTestId('list-item-multi');
+      expect(listItem.props.onPress).toBeDefined();
+    });
+
+    it('should set accessibility onPress to undefined when disabled', () => {
+      const mockOnPress = jest.fn();
+      const { getByTestId } = render(
+        <ListItemMultiSelect
+          onPress={mockOnPress}
+          isDisabled
+          testID="list-item-multi"
+        >
+          <View />
+        </ListItemMultiSelect>,
+      );
+
+      const listItem = getByTestId('list-item-multi');
+      expect(listItem.props.onPress).toBeUndefined();
+    });
+  });
+
+  describe('Environment-specific component selection', () => {
+    const originalPlatform = Platform.OS;
+    const originalEnv = process.env;
+
+    beforeEach(() => {
+      Platform.OS = 'android';
+      jest.resetModules();
+      process.env = { ...originalEnv };
+    });
+
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+      process.env = originalEnv;
+    });
+
+    it('should use RNTouchableOpacity in E2E test environment', () => {
+      process.env.IS_TEST = 'true';
+      const mockOnPress = jest.fn();
+      const { getByTestId } = render(
+        <ListItemMultiSelect onPress={mockOnPress} testID="list-item-multi">
+          <View />
+        </ListItemMultiSelect>,
+      );
+
+      const listItem = getByTestId('list-item-multi');
+      fireEvent.press(listItem);
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use RNTouchableOpacity in unit test environment', () => {
+      process.env.NODE_ENV = 'test';
+      const mockOnPress = jest.fn();
+      const { getByTestId } = render(
+        <ListItemMultiSelect onPress={mockOnPress} testID="list-item-multi">
+          <View />
+        </ListItemMultiSelect>,
+      );
+
+      const listItem = getByTestId('list-item-multi');
+      fireEvent.press(listItem);
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('should use RNTouchableOpacity in MetaMask E2E environment', () => {
+      process.env.METAMASK_ENVIRONMENT = 'e2e';
+      const mockOnPress = jest.fn();
+      const { getByTestId } = render(
+        <ListItemMultiSelect onPress={mockOnPress} testID="list-item-multi">
+          <View />
+        </ListItemMultiSelect>,
+      );
+
+      const listItem = getByTestId('list-item-multi');
+      fireEvent.press(listItem);
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('should set onPress to undefined when disabled in test environment', () => {
+      process.env.NODE_ENV = 'test';
+      const mockOnPress = jest.fn();
+      const { getByTestId } = render(
+        <ListItemMultiSelect
+          onPress={mockOnPress}
+          isDisabled
+          testID="list-item-multi"
+        >
+          <View />
+        </ListItemMultiSelect>,
+      );
+
+      const listItem = getByTestId('list-item-multi');
+      fireEvent.press(listItem);
+
+      expect(mockOnPress).not.toHaveBeenCalled();
+    });
+
+    it('should expose disabled prop in test environment', () => {
+      process.env.NODE_ENV = 'test';
+      const { getByTestId } = render(
+        <ListItemMultiSelect
+          onPress={() => null}
+          isDisabled
+          testID="list-item-multi"
+        >
+          <View />
+        </ListItemMultiSelect>,
+      );
+
+      const listItem = getByTestId('list-item-multi');
+      expect(listItem.props.disabled).toBe(true);
+    });
+
+    it('should pass conditional onPress to Checkbox onPressIn based on platform', () => {
+      const mockOnPress = jest.fn();
+      const { getByRole } = render(
+        <ListItemMultiSelect onPress={mockOnPress} isSelected>
+          <View />
+        </ListItemMultiSelect>,
+      );
+
+      const checkbox = getByRole('checkbox');
+      // On Android, checkbox should not have onPressIn prop to prevent double execution
+      expect(checkbox.props.onPressIn).toBeUndefined();
+    });
+  });
 });
