@@ -16,14 +16,14 @@ class FooterActions {
   async tapConfirmButton(): Promise<void> {
     await Gestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Confirm button',
-      delay: 1500,
+      delay: 1800,
     });
   }
 
   async tapCancelButton(): Promise<void> {
     await Gestures.waitAndTap(this.cancelButton, {
       elemDescription: 'Cancel button',
-      delay: 1500,
+      delay: 1800,
     });
   }
 }
