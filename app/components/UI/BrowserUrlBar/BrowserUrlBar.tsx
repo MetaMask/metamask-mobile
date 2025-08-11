@@ -212,7 +212,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
               onBlur={onBlurInput}
               onFocus={onFocusInput}
             />
-            {!isUrlBarFocused && (
+            <View style={isUrlBarFocused && styles.hidden}>
               <TouchableWithoutFeedback
                 onPress={() => inputRef?.current?.focus()}
               >
@@ -224,7 +224,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
                   {inputValueRef.current || activeUrl}
                 </Text>
               </TouchableWithoutFeedback>
-            )}
+            </View>
           </View>
           {isUrlBarFocused ? (
             <ButtonIcon
