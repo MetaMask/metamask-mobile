@@ -28,11 +28,13 @@ import {
 } from './TabBar.constants';
 import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
 import { selectChainId } from '../../../../selectors/networkController';
+import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
+  const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
   const tabBarRef = useRef(null);
   const tw = useTailwind();
   /**
@@ -97,7 +99,9 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
             break;
           case Routes.REWARDS_VIEW:
-            navigation.navigate(Routes.REWARDS_VIEW);
+            if (isRewardsEnabled) {
+              navigation.navigate(Routes.REWARDS_VIEW);
+            }
             break;
           case Routes.SETTINGS_VIEW:
             navigation.navigate(Routes.SETTINGS_VIEW, {
@@ -122,13 +126,17 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       );
     },
     [
-      state,
       descriptors,
+      state.index,
+      colors.primary.default,
+      colors.primary.inverse,
+      colors.icon.muted,
       navigation,
-      chainId,
+      tw,
       trackEvent,
       createEventBuilder,
-      tw,
+      chainId,
+      isRewardsEnabled,
     ],
   );
 
