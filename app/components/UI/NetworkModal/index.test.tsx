@@ -38,6 +38,14 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+// Mock Value Type for testing purposes
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MockVal = any;
+
+const mockNetworkControllerAddNetwork = jest.mocked(
+  Engine.context.NetworkController.addNetwork,
+);
+
 const mockAddTraitsToUser = jest.fn();
 jest.mock('../../../components/hooks/useMetrics', () => ({
   useMetrics: () => ({
@@ -350,10 +358,10 @@ describe('NetworkDetails', () => {
       });
 
       await act(async () => {
-        Engine.context.NetworkController.addNetwork.mockResolvedValueOnce({
+        mockNetworkControllerAddNetwork.mockReturnValue({
           rpcEndpoints: [{ networkClientId: 'new-network-id' }],
           defaultRpcEndpointIndex: 0,
-        });
+        } as MockVal);
         const approveButton = getByTestId(
           NetworkApprovalBottomSheetSelectorsIDs.APPROVE_BUTTON,
         );

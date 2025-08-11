@@ -1,6 +1,6 @@
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { DeFiPositionsControllerState } from '@metamask/assets-controllers';
-import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
+import type { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';
@@ -25,7 +25,7 @@ export const selectDefiPositionsByEnabledNetworks = createDeepEqualSelector(
   selectEnabledNetworksByNamespace,
   (
     defiPositionsControllerState: DeFiPositionsControllerState,
-    selectedAddress: string,
+    selectedAddress: string | undefined,
     enabledNetworks: NetworkEnablementControllerState['enabledNetworkMap'],
   ): DeFiPositionsControllerState['allDeFiPositions'][string] | undefined => {
     const defiPositionByAddress =
@@ -41,7 +41,7 @@ export const selectDefiPositionsByEnabledNetworks = createDeepEqualSelector(
 
     const enabledChainIdsSet = new Set(
       Object.keys(defiPositionByEnabledNetworks).filter(
-        (chainId) => defiPositionByEnabledNetworks[chainId],
+        (chainId) => defiPositionByEnabledNetworks[chainId as Hex],
       ),
     );
 

@@ -1,4 +1,4 @@
-import { NetworkMenuModalState } from '../Tokens/TokensBottomSheet/TokenFilterBottomSheet.types';
+import { NetworkMenuModalState } from '../NetworkManager/index.types';
 
 export interface NetworkMultiSelectorProps {
   openModal: (networkMenuModal: NetworkMenuModalState) => void;

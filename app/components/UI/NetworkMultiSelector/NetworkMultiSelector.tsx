@@ -72,7 +72,8 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
   const selectedChainIds = useMemo(
     () =>
       Object.keys(enabledNetworksByNamespace[namespace] || {}).filter(
-        (chainId) => enabledNetworksByNamespace[namespace]?.[chainId],
+        (chainId) =>
+          enabledNetworksByNamespace[namespace]?.[chainId as CaipChainId],
       ) as CaipChainId[],
     [enabledNetworksByNamespace, namespace],
   );

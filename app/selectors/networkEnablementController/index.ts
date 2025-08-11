@@ -1,4 +1,4 @@
-import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
+import type { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 import { Hex } from '@metamask/utils';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';

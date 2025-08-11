@@ -423,7 +423,9 @@ export const selectEvmTokens = createDeepEqualSelector(
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       filteredTokens = tokensToDisplay.filter((currentToken: TokenI) => {
         const chainId = currentToken.chainId || '';
-        return enabledNetworksByNamespace[KnownCaipNamespace.Eip155]?.[chainId];
+        return enabledNetworksByNamespace[KnownCaipNamespace.Eip155]?.[
+          chainId as Hex
+        ];
       });
     } else {
       filteredTokens =
