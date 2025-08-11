@@ -121,6 +121,8 @@ const getStories = () => {
     "./app/components/Base/Keypad/Keypad.stories.tsx": require("../app/components/Base/Keypad/Keypad.stories.tsx"),
     "./app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx": require("../app/components/UI/Swaps/components/LoadingAnimation/ShapesBackgroundAnimation.stories.tsx"),
     "./app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx": require("../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx"),
+    "./app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx"),
+    "./app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx"),
     "./app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx": require("../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx"),
   };
 };
