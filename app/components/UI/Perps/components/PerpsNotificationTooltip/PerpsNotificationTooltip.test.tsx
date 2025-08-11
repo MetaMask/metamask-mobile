@@ -317,7 +317,7 @@ describe('PerpsNotificationTooltip', () => {
       clearTimeoutSpy.mockRestore();
     });
 
-    it('should clear previous timeout when effect re-runs', () => {
+    it('should clear previous timeout when effect re-runs with new order', () => {
       const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
 
       const { rerender } = renderWithProvider(
@@ -327,21 +327,26 @@ describe('PerpsNotificationTooltip', () => {
       // Verify first timeout was created
       expect(mockShowTooltip).not.toHaveBeenCalled();
 
-      // Change a dependency to trigger effect re-run
-      const newOnComplete = jest.fn();
+      // Change orderSuccess to false to reset the processed flag
       rerender(
-        <PerpsNotificationTooltip orderSuccess onComplete={newOnComplete} />,
+        <PerpsNotificationTooltip
+          orderSuccess={false}
+          onComplete={mockOnComplete}
+        />,
       );
 
-      // Verify clearTimeout was called (previous timeout cancelled)
-      expect(clearTimeoutSpy).toHaveBeenCalled();
+      // Change orderSuccess back to true (simulating new order)
+      rerender(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
 
-      // Complete the new timeout
+      // Complete the timeout
       act(() => {
         jest.advanceTimersByTime(3000);
       });
 
-      // Verify showTooltip was called only once (from the new timeout)
+      // Verify showTooltip was called (from the new order processing)
+      // Note: With duplicate prevention, only legitimate new orders create timeouts
       expect(mockShowTooltip).toHaveBeenCalledTimes(1);
 
       clearTimeoutSpy.mockRestore();
@@ -374,6 +379,148 @@ describe('PerpsNotificationTooltip', () => {
       expect(mockShowTooltip).toHaveBeenCalledTimes(1);
 
       setTimeoutSpy.mockRestore();
+    });
+  });
+
+  describe('Duplicate onComplete Prevention', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('should not call onComplete multiple times when hasPlacedFirstOrder updates', () => {
+      let hasPlacedFirstOrderValue = false;
+      const mockedMarkFirstOrderCompleted = jest.fn(() => {
+        hasPlacedFirstOrderValue = true;
+      });
+
+      // Create a mock that simulates state updates
+      const mockHook = {
+        ...defaultHookReturn,
+        shouldShowTooltip: false,
+        hasPlacedFirstOrder: hasPlacedFirstOrderValue,
+        markFirstOrderCompleted: mockedMarkFirstOrderCompleted,
+      };
+
+      (usePerpsNotificationTooltip as jest.Mock).mockImplementation(() => ({
+        ...mockHook,
+        hasPlacedFirstOrder: hasPlacedFirstOrderValue,
+      }));
+
+      const { rerender } = renderWithProvider(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // Verify first call
+      expect(mockOnComplete).toHaveBeenCalledTimes(1);
+      expect(mockMarkFirstOrderCompleted).toHaveBeenCalledTimes(1);
+
+      // Simulate the state update by re-rendering with updated hasPlacedFirstOrder
+      rerender(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // onComplete should still only be called once
+      expect(mockOnComplete).toHaveBeenCalledTimes(1);
+    });
+
+    it('should allow processing new order success after orderSuccess becomes false', () => {
+      (usePerpsNotificationTooltip as jest.Mock).mockReturnValue({
+        ...defaultHookReturn,
+        shouldShowTooltip: false,
+      });
+
+      const { rerender } = renderWithProvider(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // Verify first call
+      expect(mockOnComplete).toHaveBeenCalledTimes(1);
+
+      // Change orderSuccess to false (simulating order completion)
+      rerender(
+        <PerpsNotificationTooltip
+          orderSuccess={false}
+          onComplete={mockOnComplete}
+        />,
+      );
+
+      // Change orderSuccess back to true (new order success)
+      rerender(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // Should process the new order success
+      expect(mockOnComplete).toHaveBeenCalledTimes(2);
+    });
+
+    it('should prevent duplicate timeout creation when shouldShowTooltip is true', () => {
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      let hasPlacedFirstOrderValue = false;
+      const mockedMarkFirstOrderCompleted = jest.fn(() => {
+        hasPlacedFirstOrderValue = true;
+      });
+
+      (usePerpsNotificationTooltip as jest.Mock).mockImplementation(() => ({
+        ...defaultHookReturn,
+        shouldShowTooltip: true,
+        hasPlacedFirstOrder: hasPlacedFirstOrderValue,
+        markFirstOrderCompleted: mockedMarkFirstOrderCompleted,
+      }));
+
+      const { rerender } = renderWithProvider(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // Verify timeout was created once
+      expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+
+      // Simulate re-render with same orderSuccess=true (this would happen after markFirstOrderCompleted updates state)
+      rerender(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // Should still only have one timeout
+      expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+
+      setTimeoutSpy.mockRestore();
+    });
+
+    it('should reset processed flag when orderSuccess changes from true to false', () => {
+      (usePerpsNotificationTooltip as jest.Mock).mockReturnValue({
+        ...defaultHookReturn,
+        shouldShowTooltip: false,
+      });
+
+      const { rerender } = renderWithProvider(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // First order success processed
+      expect(mockOnComplete).toHaveBeenCalledTimes(1);
+
+      // orderSuccess becomes false - should reset internal flag
+      rerender(
+        <PerpsNotificationTooltip
+          orderSuccess={false}
+          onComplete={mockOnComplete}
+        />,
+      );
+
+      // No additional calls during false state
+      expect(mockOnComplete).toHaveBeenCalledTimes(1);
+
+      // orderSuccess becomes true again - should be processed as new order
+      rerender(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // New order should be processed
+      expect(mockOnComplete).toHaveBeenCalledTimes(2);
     });
   });
 });

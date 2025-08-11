@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import PerpsNotificationBottomSheet from '../PerpsNotificationBottomSheet';
 import { usePerpsNotificationTooltip } from '../../hooks/usePerpsNotificationTooltip';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -47,6 +47,18 @@ const PerpsNotificationTooltip = ({
     hasPlacedFirstOrder,
   } = usePerpsNotificationTooltip();
 
+  // Track whether we've already processed this order success to prevent duplicate onComplete calls
+  const processedOrderSuccessRef = useRef(false);
+
+  /**
+   * Reset processed flag when orderSuccess changes from true to false
+   */
+  useEffect(() => {
+    if (!orderSuccess) {
+      processedOrderSuccessRef.current = false;
+    }
+  }, [orderSuccess]);
+
   /**
    * Show tooltip when order is successful and conditions are met
    * Also mark first order as completed to never show again
@@ -54,7 +66,13 @@ const PerpsNotificationTooltip = ({
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | undefined;
 
+    // Prevent processing the same order success multiple times
+    if (orderSuccess && processedOrderSuccessRef.current) {
+      return;
+    }
+
     if (orderSuccess && shouldShowTooltip) {
+      processedOrderSuccessRef.current = true;
       DevLogger.log(
         'PerpsNotificationTooltip: First order success, showing tooltip',
         {
@@ -67,6 +85,7 @@ const PerpsNotificationTooltip = ({
         showTooltip();
       }, 3000);
     } else if (orderSuccess && onComplete) {
+      processedOrderSuccessRef.current = true;
       // mark first order as completed if it's the first order
       // regardless of if tooltip is shown or not
       if (!hasPlacedFirstOrder) {
