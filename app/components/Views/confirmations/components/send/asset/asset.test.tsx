@@ -3,6 +3,8 @@ import { render, screen } from '@testing-library/react-native';
 
 import { Asset } from './asset';
 import { AssetType } from '../../../types/token';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -78,13 +80,8 @@ jest.mock('../../../hooks/send/useSendActions', () => ({
   }),
 }));
 
-jest.mock('../../UI/navbar/navbar', () => ({
-  useSendAssetNavbar: () => ({
-    headerTitle: null,
-    headerLeft: () => null,
-    headerRight: () => null,
-    headerStyle: {},
-  }),
+jest.mock('../../../hooks/send/useSendNavbar', () => ({
+  useSendNavbar: jest.fn(),
 }));
 
 jest.mock('react-native-scrollable-tab-view', () => {
@@ -170,17 +167,12 @@ describe('Asset', () => {
     expect(screen.getByTestId('token-list')).toBeOnTheScreen();
   });
 
-  it('sets navigation options with correct navbar configuration', () => {
+  it('calls useSendNavbar with correct currentRoute', () => {
     render(<Asset />);
 
-    expect(mockSetOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        headerTitle: null,
-        headerLeft: expect.any(Function),
-        headerRight: expect.any(Function),
-        headerStyle: expect.any(Object),
-      }),
-    );
+    expect(useSendNavbar).toHaveBeenCalledWith({
+      currentRoute: Routes.SEND.ASSET,
+    });
   });
 
   it('displays search input with correct placeholder', () => {
