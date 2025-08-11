@@ -10,7 +10,10 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import { buildPermissions, getTestDappLocalUrl } from '../../../framework/fixtures/FixtureUtils';
+import {
+  buildPermissions,
+  getTestDappLocalUrl,
+} from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
 import { MockApiEndpoint } from '../../../framework/types';
 
