@@ -38,8 +38,12 @@ class PerpsMarketListView {
     return Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.LIST_HEADER);
   }
 
-  getMarketRowItemBTC() {
+  get marketRowItemBTC() {
     return Matchers.getElementByID('perps-market-row-item-BTC');
+  }
+
+  async tapMarketRowItemBTC() {
+    await Gestures.tap(this.marketRowItemBTC);
   }
 
   // Token selector elements

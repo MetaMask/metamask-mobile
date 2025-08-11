@@ -1,96 +1,22 @@
-import {
-  PerpsOrderViewSelectorsIDs,
-  PerpsOrderHeaderSelectorsIDs,
-  PerpsAmountDisplaySelectorsIDs,
-  PerpsBottomSheetTooltipSelectorsIDs,
-} from '../../selectors/Perps/Perps.selectors';
+// No selectors needed - using direct element IDs
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 
 class PerpsOrderView {
-  // Order header elements
-  get orderHeader() {
-    return Matchers.getElementByID(PerpsOrderHeaderSelectorsIDs.HEADER);
+  get placeOrderButton() {
+    return Matchers.getElementByID('place-order-button');
   }
 
-  get assetTitle() {
-    return Matchers.getElementByID(PerpsOrderHeaderSelectorsIDs.ASSET_TITLE);
+  get takeProfitButton() {
+    return Matchers.getElementByID('perps-order-view-take-profit-button');
   }
 
-  // Amount display
-  get amountDisplay() {
-    return Matchers.getElementByID(PerpsAmountDisplaySelectorsIDs.CONTAINER);
+  async tapPlaceOrderButton() {
+    await Gestures.waitAndTap(this.placeOrderButton);
   }
 
-  // Info icons
-  get leverageInfoIcon() {
-    return Matchers.getElementByID(
-      PerpsOrderViewSelectorsIDs.LEVERAGE_INFO_ICON,
-    );
-  }
-
-  get marginInfoIcon() {
-    return Matchers.getElementByID(PerpsOrderViewSelectorsIDs.MARGIN_INFO_ICON);
-  }
-
-  get liquidationPriceInfoIcon() {
-    return Matchers.getElementByID(
-      PerpsOrderViewSelectorsIDs.LIQUIDATION_PRICE_INFO_ICON,
-    );
-  }
-
-  get feesInfoIcon() {
-    return Matchers.getElementByID(PerpsOrderViewSelectorsIDs.FEES_INFO_ICON);
-  }
-
-  // Bottom sheet tooltip
-  get bottomSheetTooltip() {
-    return Matchers.getElementByID(
-      PerpsOrderViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP,
-    );
-  }
-
-  get tooltipTitle() {
-    return Matchers.getElementByID(PerpsBottomSheetTooltipSelectorsIDs.TITLE);
-  }
-
-  get tooltipContent() {
-    return Matchers.getElementByID(PerpsBottomSheetTooltipSelectorsIDs.CONTENT);
-  }
-
-  get tooltipGotItButton() {
-    return Matchers.getElementByID(
-      PerpsBottomSheetTooltipSelectorsIDs.GOT_IT_BUTTON,
-    );
-  }
-
-  // Actions
-  async tapLeverageInfoIcon() {
-    await Gestures.waitAndTap(this.leverageInfoIcon);
-  }
-
-  async tapMarginInfoIcon() {
-    await Gestures.waitAndTap(this.marginInfoIcon);
-  }
-
-  async tapLiquidationPriceInfoIcon() {
-    await Gestures.waitAndTap(this.liquidationPriceInfoIcon);
-  }
-
-  async tapFeesInfoIcon() {
-    await Gestures.waitAndTap(this.feesInfoIcon);
-  }
-
-  async tapTooltipGotItButton() {
-    await Gestures.waitAndTap(this.tooltipGotItButton);
-  }
-
-  async waitForOrderViewToLoad() {
-    await Gestures.waitAndTap(this.orderHeader);
-  }
-
-  async waitForTooltipToAppear() {
-    await Gestures.waitAndTap(this.bottomSheetTooltip);
+  async tapTakeProfitButton() {
+    await Gestures.waitAndTap(this.takeProfitButton);
   }
 }
 
