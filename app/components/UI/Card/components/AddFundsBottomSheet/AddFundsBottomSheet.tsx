@@ -35,7 +35,7 @@ import { CardHomeSelectors } from '../../../../../../e2e/selectors/Card/CardHome
 export interface AddFundsBottomSheetProps {
   setOpenAddFundsBottomSheet: (open: boolean) => void;
   sheetRef: React.RefObject<BottomSheetRef>;
-  priorityToken: CardTokenAllowance | null;
+  priorityToken?: CardTokenAllowance;
   chainId: string;
   cardholderAddresses?: string[];
   navigate: (route: string) => void;
@@ -52,7 +52,9 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   const { isDepositEnabled } = useDepositEnabled();
   const theme = useTheme();
   const styles = createStyles(theme);
-  const { openSwaps } = useOpenSwaps();
+  const { openSwaps } = useOpenSwaps({
+    priorityToken,
+  });
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const closeBottomSheetAndNavigate = useCallback(
@@ -65,7 +67,6 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   const handleOpenSwaps = useCallback(() => {
     if (!priorityToken) return;
     openSwaps({
-      priorityToken,
       chainId,
       cardholderAddress: cardholderAddresses?.[0],
       beforeNavigate: (nav) => closeBottomSheetAndNavigate(nav),

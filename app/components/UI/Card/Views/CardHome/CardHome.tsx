@@ -127,7 +127,9 @@ const CardHome = () => {
   );
   const { balanceFiat, mainBalance } = useAssetBalance(priorityToken);
   const { navigateToCardPage } = useNavigateToCardPage(navigation);
-  const { openSwaps } = useOpenSwaps();
+  const { openSwaps } = useOpenSwaps({
+    priorityToken: priorityToken ?? undefined,
+  });
 
   const toggleIsBalanceAndAssetsHidden = useCallback(
     (value: boolean) => {
@@ -159,7 +161,7 @@ const CardHome = () => {
       <AddFundsBottomSheet
         sheetRef={sheetRef}
         setOpenAddFundsBottomSheet={setOpenAddFundsBottomSheet}
-        priorityToken={priorityToken}
+        priorityToken={priorityToken ?? undefined}
         chainId={selectedChainId}
         cardholderAddresses={cardholderAddresses}
         navigate={navigation.navigate}
@@ -187,7 +189,6 @@ const CardHome = () => {
       setOpenAddFundsBottomSheet(true);
     } else if (priorityToken) {
       openSwaps({
-        priorityToken,
         chainId: selectedChainId,
         cardholderAddress: cardholderAddresses?.[0],
       });

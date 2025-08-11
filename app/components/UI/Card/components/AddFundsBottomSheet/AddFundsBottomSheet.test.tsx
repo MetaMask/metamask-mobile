@@ -229,7 +229,6 @@ describe('AddFundsBottomSheet', () => {
     fireEvent.press(getByText('Swap'));
 
     expect(mockOpenSwaps).toHaveBeenCalledWith({
-      priorityToken: mockPriorityToken,
       chainId: '0xe708',
       cardholderAddress: '0xcardholder',
       beforeNavigate: expect.any(Function),
@@ -238,7 +237,7 @@ describe('AddFundsBottomSheet', () => {
 
   it('does not call openSwaps when priority token is null', () => {
     const { getByText } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} priorityToken={null} />
+      <AddFundsBottomSheet {...defaultProps} priorityToken={undefined} />
     ));
 
     fireEvent.press(getByText('Swap'));

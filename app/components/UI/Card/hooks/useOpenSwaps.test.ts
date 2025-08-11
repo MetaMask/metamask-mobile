@@ -3,10 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useOpenSwaps } from './useOpenSwaps';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { getHighestFiatToken } from '../util/getHighestFiatToken';
-import {
-  setDestToken,
-  setSourceToken,
-} from '../../../../core/redux/slices/bridge';
+import { setDestToken } from '../../../../core/redux/slices/bridge';
 import { SwapBridgeNavigationLocation } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import { CardTokenAllowance } from '../types';
 import {
@@ -38,7 +35,6 @@ jest.mock('../util/getHighestFiatToken', () => ({
 
 jest.mock('../../../../core/redux/slices/bridge', () => ({
   setDestToken: jest.fn(),
-  setSourceToken: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/multichain', () => ({
@@ -46,9 +42,18 @@ jest.mock('../../../../selectors/multichain', () => ({
   selectEvmTokenFiatBalances: jest.fn(),
 }));
 
+jest.mock('../../../hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
+  MetaMetricsEvents: {
+    CARD_ADD_FUNDS_SWAPS_CLICKED: 'CARD_ADD_FUNDS_SWAPS_CLICKED',
+  },
+}));
+
 describe('useOpenSwaps', () => {
   const mockDispatch = jest.fn();
   const mockGoToSwaps = jest.fn();
+  const mockTrackEvent = jest.fn();
+  const mockCreateEventBuilder = jest.fn();
 
   const mockEvmTokens = [
     {
@@ -104,13 +109,21 @@ describe('useOpenSwaps', () => {
     );
     useSwapBridgeNavigation.mockReturnValue({ goToSwaps: mockGoToSwaps });
 
+    // Mock useMetrics
+    const useMetricsMock = jest.requireMock('../../../hooks/useMetrics');
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: jest.fn().mockReturnValue({
+        build: jest.fn().mockReturnValue('mock-event'),
+      }),
+    });
+    useMetricsMock.useMetrics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
+
     (buildTokenIconUrl as jest.Mock).mockReturnValue('icon-url');
     (setDestToken as unknown as jest.Mock).mockImplementation((payload) => ({
       type: 'bridge/setDestToken',
-      payload,
-    }));
-    (setSourceToken as unknown as jest.Mock).mockImplementation((payload) => ({
-      type: 'bridge/setSourceToken',
       payload,
     }));
   });
@@ -121,14 +134,15 @@ describe('useOpenSwaps', () => {
     expect(typeof result.current.openSwaps).toBe('function');
   });
 
-  it('dispatches dest and source tokens and navigates to swaps', () => {
+  it('dispatches dest token and navigates to swaps', () => {
     (getHighestFiatToken as jest.Mock).mockReturnValue(mockTopToken);
 
-    const { result } = renderHook(() => useOpenSwaps());
+    const { result } = renderHook(() =>
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+    );
 
     act(() => {
       result.current.openSwaps({
-        priorityToken: mockPriorityToken as CardTokenAllowance,
         chainId: '0xe708',
         cardholderAddress: '0xcard',
       });
@@ -142,45 +156,51 @@ describe('useOpenSwaps', () => {
       }),
     });
 
-    expect(mockDispatch).toHaveBeenCalledWith({
-      type: 'bridge/setSourceToken',
-      payload: expect.objectContaining({
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
+      expect.objectContaining({
         address: '0xbeef',
         symbol: 'ETHX',
       }),
-    });
+    );
 
-    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+    expect(mockTrackEvent).toHaveBeenCalledWith('mock-event');
   });
 
-  it('does not set source token if top token is native (isETH)', () => {
-    (getHighestFiatToken as jest.Mock).mockReturnValue({
+  it('passes source token to goToSwaps even if highest fiat token is native (isETH)', () => {
+    const ethToken = {
       ...mockTopToken,
       isETH: true,
-    });
+    };
+    (getHighestFiatToken as jest.Mock).mockReturnValue(ethToken);
 
-    const { result } = renderHook(() => useOpenSwaps());
+    const { result } = renderHook(() =>
+      useOpenSwaps({
+        priorityToken: mockPriorityToken as CardTokenAllowance,
+      }),
+    );
 
     act(() => {
       result.current.openSwaps({
-        priorityToken: mockPriorityToken as CardTokenAllowance,
         chainId: '0xe708',
         cardholderAddress: '0xcard',
       });
     });
 
-    const sourceDispatch = mockDispatch.mock.calls.find(
-      ([action]) => action.type === 'bridge/setSourceToken',
+    // The sourceToken should be created from the ethToken
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: '0xbeef',
+        symbol: 'ETHX',
+      }),
     );
-    expect(sourceDispatch).toBeUndefined();
-
-    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
   });
 
   it('honors beforeNavigate: closes first, then navigates when callback is invoked', () => {
     (getHighestFiatToken as jest.Mock).mockReturnValue(undefined);
 
-    const { result } = renderHook(() => useOpenSwaps());
+    const { result } = renderHook(() =>
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+    );
 
     let capturedNav: (() => void) | undefined;
     const beforeNavigate = jest.fn((nav: () => void) => {
@@ -189,7 +209,6 @@ describe('useOpenSwaps', () => {
 
     act(() => {
       result.current.openSwaps({
-        priorityToken: mockPriorityToken as CardTokenAllowance,
         chainId: '0xe708',
         cardholderAddress: '0xcard',
         beforeNavigate,
@@ -206,43 +225,50 @@ describe('useOpenSwaps', () => {
     expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
   });
 
-  it('does not set source token if no cardholder address is provided', () => {
-    const { result } = renderHook(() => useOpenSwaps());
+  it('still sets dest token and navigates even if no cardholder address is provided', () => {
+    (getHighestFiatToken as jest.Mock).mockReturnValue(mockTopToken);
+
+    const { result } = renderHook(() =>
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+    );
 
     act(() => {
       result.current.openSwaps({
-        priorityToken: mockPriorityToken as CardTokenAllowance,
         chainId: '0xe708',
       });
     });
 
-    const sourceDispatch = mockDispatch.mock.calls.find(
-      ([action]) => action.type === 'bridge/setSourceToken',
-    );
-    expect(sourceDispatch).toBeUndefined();
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: 'bridge/setDestToken',
+      payload: expect.objectContaining({
+        address: '0xdead',
+        image: 'icon-url',
+      }),
+    });
 
-    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: '0xbeef',
+        symbol: 'ETHX',
+      }),
+    );
   });
 
-  it('does not set source token if getHighestFiatToken returns undefined', () => {
+  it('passes undefined to goToSwaps if getHighestFiatToken returns undefined', () => {
     (getHighestFiatToken as jest.Mock).mockReturnValue(undefined);
 
-    const { result } = renderHook(() => useOpenSwaps());
+    const { result } = renderHook(() =>
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+    );
 
     act(() => {
       result.current.openSwaps({
-        priorityToken: mockPriorityToken as CardTokenAllowance,
         chainId: '0xe708',
         cardholderAddress: '0xcard',
       });
     });
 
-    const sourceDispatch = mockDispatch.mock.calls.find(
-      ([action]) => action.type === 'bridge/setSourceToken',
-    );
-    expect(sourceDispatch).toBeUndefined();
-
-    expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+    expect(mockGoToSwaps).toHaveBeenCalledWith(undefined);
   });
 
   it('uses custom location and sourcePage when provided', () => {
@@ -262,12 +288,13 @@ describe('useOpenSwaps', () => {
   });
 
   it('early returns if priorityToken is not provided', () => {
-    const { result } = renderHook(() => useOpenSwaps());
+    const { result } = renderHook(() =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      useOpenSwaps({ priorityToken: undefined as any }),
+    );
 
     act(() => {
       result.current.openSwaps({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        priorityToken: undefined as any,
         chainId: '0xe708',
       });
     });
@@ -277,11 +304,12 @@ describe('useOpenSwaps', () => {
   });
 
   it('builds correct token icon URL using buildTokenIconUrl', () => {
-    const { result } = renderHook(() => useOpenSwaps());
+    const { result } = renderHook(() =>
+      useOpenSwaps({ priorityToken: mockPriorityToken as CardTokenAllowance }),
+    );
 
     act(() => {
       result.current.openSwaps({
-        priorityToken: mockPriorityToken as CardTokenAllowance,
         chainId: '0xe708',
       });
     });

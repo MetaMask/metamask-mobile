@@ -499,7 +499,6 @@ describe('CardHome Component', () => {
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockOpenSwaps).toHaveBeenCalledWith({
-        priorityToken: ethToken,
         chainId: '0xe708',
         cardholderAddress: mockCurrentAddress,
       });
@@ -825,7 +824,6 @@ describe('CardHome Component', () => {
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalled();
       expect(mockOpenSwaps).toHaveBeenCalledWith({
-        priorityToken: ethToken,
         chainId: '0xe708',
         cardholderAddress: mockCurrentAddress,
       });

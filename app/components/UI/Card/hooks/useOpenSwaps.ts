@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Hex } from 'viem';
 
@@ -15,16 +15,10 @@ import { BridgeToken } from '../../Bridge/types';
 import { CardTokenAllowance } from '../types';
 import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { getHighestFiatToken } from '../util/getHighestFiatToken';
-import {
-  setDestToken,
-  setSourceToken,
-} from '../../../../core/redux/slices/bridge';
+import { setDestToken } from '../../../../core/redux/slices/bridge';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
-import { TokenI } from '../../Tokens/types';
-import Logger from '../../../../util/Logger';
 
 export interface OpenSwapsParams {
-  priorityToken: CardTokenAllowance;
   chainId: string;
   cardholderAddress?: string;
   beforeNavigate?: (navigate: () => void) => void;
@@ -33,17 +27,17 @@ export interface OpenSwapsParams {
 export interface UseOpenSwapsOptions {
   location?: SwapBridgeNavigationLocation;
   sourcePage?: string;
+  priorityToken?: CardTokenAllowance;
 }
 
 export const useOpenSwaps = ({
   location = SwapBridgeNavigationLocation.TokenDetails,
   sourcePage = Routes.CARD.HOME,
+  priorityToken,
 }: UseOpenSwapsOptions = {}) => {
   const dispatch = useDispatch();
   const evmTokens = useSelector(selectEvmTokens);
-  const [storedTopToken, setTopToken] = useState<TokenI | null>(null);
   const tokenFiatBalances = useSelector(selectEvmTokenFiatBalances);
-  const { goToSwaps } = useSwapBridgeNavigation({ location, sourcePage });
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const tokens = useMemo(
@@ -55,15 +49,36 @@ export const useOpenSwaps = ({
     [evmTokens, tokenFiatBalances],
   );
 
-  Logger.log('tokens', tokens);
+  const sourceToken = useMemo(() => {
+    if (priorityToken) {
+      const highestFiatToken = getHighestFiatToken(
+        tokens,
+        priorityToken.address as Hex,
+      );
+
+      return highestFiatToken
+        ? {
+            chainId: highestFiatToken.chainId as Hex,
+            address: highestFiatToken.address,
+            decimals: highestFiatToken.decimals,
+            symbol: highestFiatToken.symbol,
+            balance: highestFiatToken.balance,
+            image: highestFiatToken.image,
+            balanceFiat: highestFiatToken.balanceFiat,
+            name: highestFiatToken.name,
+          }
+        : undefined;
+    }
+  }, [tokens, priorityToken]);
+
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location,
+    sourcePage,
+    sourceToken,
+  });
 
   const openSwaps = useCallback(
-    ({
-      priorityToken,
-      chainId,
-      cardholderAddress,
-      beforeNavigate,
-    }: OpenSwapsParams) => {
+    ({ chainId, beforeNavigate }: OpenSwapsParams) => {
       if (!priorityToken) return;
 
       const destToken: BridgeToken = {
@@ -72,37 +87,12 @@ export const useOpenSwaps = ({
       } as BridgeToken;
       dispatch(setDestToken(destToken));
 
-      if (cardholderAddress) {
-        const topToken = getHighestFiatToken(
-          tokens,
-          priorityToken.address as Hex,
-        );
-        Logger.log('topToken', topToken);
-
-        if (topToken && !topToken.isETH) {
-          Logger.log('========== IS NOT ETH AND TOPTOKEN EXISTS =============');
-          setTopToken(topToken);
-          dispatch(
-            setSourceToken({
-              chainId: topToken.chainId as Hex,
-              address: topToken.address,
-              decimals: topToken.decimals,
-              symbol: topToken.symbol,
-              balance: topToken.balance,
-              image: topToken.image,
-              balanceFiat: topToken.balanceFiat,
-              name: topToken.name,
-            }),
-          );
-        }
-      }
-
       const navigate = () => {
-        goToSwaps();
+        goToSwaps(sourceToken);
         trackEvent(
           createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_SWAPS_CLICKED)
             .addProperties({
-              source_token: storedTopToken?.symbol,
+              source_token: sourceToken?.symbol,
               destination_token: destToken.symbol,
             })
             .build(),
@@ -117,11 +107,11 @@ export const useOpenSwaps = ({
     },
     [
       dispatch,
-      tokens,
       goToSwaps,
       trackEvent,
       createEventBuilder,
-      storedTopToken,
+      sourceToken,
+      priorityToken,
     ],
   );
 
