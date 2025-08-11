@@ -5,6 +5,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { createEnterEmailNavDetails } from '../EnterEmail/EnterEmail';
+import { endTrace } from '../../../../../../util/trace';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -44,6 +45,14 @@ const mockUseDepositSDK = jest.fn().mockReturnValue({
 
 jest.mock('../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
+}));
+
+jest.mock('../../../../../../util/trace', () => ({
+  endTrace: jest.fn(),
+  TraceName: {
+    DepositContinueFlow: 'Deposit Continue Flow',
+    DepositInputOtp: 'Deposit Input OTP',
+  },
 }));
 
 function render(Component: React.ComponentType) {
@@ -130,5 +139,26 @@ describe('VerifyIdentity Component', () => {
     expect(mockLinkingOpenURL).toHaveBeenCalledWith(
       'https://consensys.net/privacy-policy',
     );
+  });
+
+  it('should call endTrace twice when component mounts', () => {
+    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+    mockEndTrace.mockClear();
+
+    render(VerifyIdentity);
+
+    expect(mockEndTrace).toHaveBeenCalledTimes(2);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Continue Flow',
+      data: {
+        destination: 'VerifyIdentity',
+      },
+    });
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Input OTP',
+      data: {
+        destination: 'VerifyIdentity',
+      },
+    });
   });
 });
