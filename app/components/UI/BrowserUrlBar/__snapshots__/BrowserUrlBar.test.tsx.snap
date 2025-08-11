@@ -258,9 +258,7 @@ exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] =
             "lineHeight": 24,
           }
         }
-      >
-        example.com
-      </Text>
+      />
     </View>
   </View>
   <View

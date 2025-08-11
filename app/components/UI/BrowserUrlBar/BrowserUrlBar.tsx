@@ -4,6 +4,7 @@ import {
   TextInput,
   TextInputSubmitEditingEventData,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { useStyles } from '../../../component-library/hooks';
@@ -82,8 +83,12 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       hide: () => onCancelInput(),
       blur: () => inputRef?.current?.blur(),
       focus: () => inputRef?.current?.focus(),
-      setNativeProps: (props: object) =>
-        inputRef?.current?.setNativeProps(props),
+      setNativeProps: (props: object) => {
+        if ('text' in props && typeof props.text === 'string') {
+          inputValueRef.current = props.text;
+        }
+        inputRef?.current?.setNativeProps(props);
+      },
     }));
 
     /**
@@ -201,17 +206,25 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
               returnKeyType={'go'}
               selectTextOnFocus
               keyboardAppearance={themeAppearance}
-              style={styles.textInput}
+              style={[styles.textInput, !isUrlBarFocused && styles.hidden]}
               onChangeText={onChangeTextInput}
               onSubmitEditing={onSubmitEditingInput}
               onBlur={onBlurInput}
               onFocus={onFocusInput}
-              // multiline={false}
-              // allowFontScaling={true}
-              // textAlignVertical="bottom"
-              // textBreakStrategy="highQuality"
-              // lineBreakStrategyIOS="none"
             />
+            {!isUrlBarFocused && (
+              <TouchableWithoutFeedback
+                onPress={() => inputRef?.current?.focus()}
+              >
+                <Text
+                  style={styles.urlBarText}
+                  numberOfLines={1}
+                  ellipsizeMode="head"
+                >
+                  {inputValueRef.current}
+                </Text>
+              </TouchableWithoutFeedback>
+            )}
           </View>
           {isUrlBarFocused ? (
             <ButtonIcon
