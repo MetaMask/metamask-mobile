@@ -216,6 +216,10 @@ export type PerpsControllerActions =
       handler: PerpsController['getOrders'];
     }
   | {
+      type: 'PerpsController:getOpenOrders';
+      handler: PerpsController['getOpenOrders'];
+    }
+  | {
       type: 'PerpsController:getFunding';
       handler: PerpsController['getFunding'];
     }
@@ -856,6 +860,14 @@ export class PerpsController extends BaseController<
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
     const provider = this.getActiveProvider();
     return provider.getOrders(params);
+  }
+
+  /**
+   * Get currently open orders (real-time status)
+   */
+  async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
+    const provider = this.getActiveProvider();
+    return provider.getOpenOrders(params);
   }
 
   /**

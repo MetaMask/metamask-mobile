@@ -449,6 +449,14 @@ export interface IPerpsProvider {
   getOrders(params?: GetOrdersParams): Promise<Order[]>;
 
   /**
+   * Currently active open orders (real-time status).
+   * Purpose: Show orders that are currently open/pending execution (not historical states).
+   * Different from getOrders() which returns complete historical order lifecycle.
+   * Example: Shows only orders that are actually open right now in the exchange.
+   */
+  getOpenOrders(params?: GetOrdersParams): Promise<Order[]>;
+
+  /**
    * Historical funding payments - periodic costs/rewards for holding positions.
    * Purpose: Track ongoing expenses and income from position maintenance.
    * Example: Holding long ETH position → Funding payment of -$5.00 (you pay the funding)

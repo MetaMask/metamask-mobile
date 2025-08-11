@@ -1051,6 +1051,60 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Get currently open orders (real-time status)
+   * Uses frontendOpenOrders API to get only currently active orders
+   */
+  async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
+    try {
+      DevLogger.log('Getting currently open orders via HyperLiquid SDK:', params);
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawOrders = await infoClient.frontendOpenOrders({
+        user: userAddress,
+      });
+
+      DevLogger.log('Currently open orders received:', rawOrders);
+
+      // Transform HyperLiquid open orders to abstract Order type
+      // Note: frontendOpenOrders may have different structure than historicalOrders
+      const orders: Order[] = (rawOrders || []).map((rawOrder) => {
+        // frontendOpenOrders structure - adapt as needed based on actual API response
+        const orderId = rawOrder.oid?.toString() || '';
+        const symbol = rawOrder.coin;
+        const side = rawOrder.side === 'A' ? 'sell' : 'buy';
+        const orderType = rawOrder.orderType?.toLowerCase().includes('limit') ? 'limit' : 'market';
+        const size = rawOrder.sz;
+        const price = rawOrder.limitPx || rawOrder.triggerPx || '0';
+        
+        return {
+          orderId,
+          symbol,
+          side,
+          orderType,
+          size,
+          originalSize: size, // For open orders, size = originalSize
+          price,
+          filledSize: '0', // Open orders haven't been filled yet
+          remainingSize: size,
+          status: 'open' as const, // All frontendOpenOrders are open
+          timestamp: rawOrder.timestamp || Date.now(),
+          lastUpdated: rawOrder.timestamp || Date.now(),
+        };
+      });
+
+      return orders;
+    } catch (error) {
+      DevLogger.log('Error getting currently open orders:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get user funding history
    */
   async getFunding(params?: GetFundingParams): Promise<Funding[]> {
