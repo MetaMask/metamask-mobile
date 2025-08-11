@@ -228,8 +228,16 @@ const BankDetails = () => {
         destination: Routes.DEPOSIT.BANK_DETAILS,
       },
     });
+
     endTrace({
       name: TraceName.DepositContinueFlow,
+      data: {
+        destination: Routes.DEPOSIT.BANK_DETAILS,
+      },
+    });
+
+    endTrace({
+      name: TraceName.DepositInputOtp,
       data: {
         destination: Routes.DEPOSIT.BANK_DETAILS,
       },

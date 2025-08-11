@@ -42,6 +42,13 @@ function KycWebviewModal() {
         destination: Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
       },
     });
+
+    endTrace({
+      name: TraceName.DepositInputOtp,
+      data: {
+        destination: Routes.DEPOSIT.MODALS.KYC_WEBVIEW,
+      },
+    });
   }, []);
 
   useEffect(() => {

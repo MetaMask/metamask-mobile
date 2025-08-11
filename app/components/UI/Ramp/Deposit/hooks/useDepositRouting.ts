@@ -299,6 +299,13 @@ export const useDepositRouting = ({
         },
       });
 
+      endTrace({
+        name: TraceName.DepositInputOtp,
+        data: {
+          destination: Routes.DEPOSIT.MODALS.WEBVIEW,
+        },
+      });
+
       popToBuildQuote();
       navigation.navigate(
         ...createWebviewModalNavigationDetails({

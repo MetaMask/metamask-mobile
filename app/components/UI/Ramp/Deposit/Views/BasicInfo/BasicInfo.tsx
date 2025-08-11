@@ -156,6 +156,13 @@ const BasicInfo = (): JSX.Element => {
         destination: Routes.DEPOSIT.BASIC_INFO,
       },
     });
+
+    endTrace({
+      name: TraceName.DepositInputOtp,
+      data: {
+        destination: Routes.DEPOSIT.BASIC_INFO,
+      },
+    });
   }, [navigation, theme]);
 
   const handleOnPressContinue = useCallback(() => {

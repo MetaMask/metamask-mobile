@@ -59,6 +59,13 @@ const VerifyIdentity = () => {
         destination: Routes.DEPOSIT.VERIFY_IDENTITY,
       },
     });
+
+    endTrace({
+      name: TraceName.DepositInputOtp,
+      data: {
+        destination: Routes.DEPOSIT.VERIFY_IDENTITY,
+      },
+    });
   }, [navigation, theme]);
 
   const handleSubmit = useCallback(async () => {

@@ -260,15 +260,18 @@ const BuildQuote = () => {
     setIsLoading(true);
     let quote: BuyQuote | undefined;
 
-    trace({
-      name: TraceName.DepositContinueFlow,
-      tags: {
-        amount: amountAsNumber,
-        currency: cryptoCurrency.symbol,
-        paymentMethod: paymentMethod.id,
-        authenticated: isAuthenticated,
-      },
-    });
+    // Start tracing the continue flow process (if not coming from OTP)
+    if (!shouldRouteImmediately) {
+      trace({
+        name: TraceName.DepositContinueFlow,
+        tags: {
+          amount: amountAsNumber,
+          currency: cryptoCurrency.symbol,
+          paymentMethod: paymentMethod.id,
+          authenticated: isAuthenticated,
+        },
+      });
+    }
 
     try {
       trackEvent('RAMPS_ORDER_PROPOSED', {
@@ -401,6 +404,7 @@ const BuildQuote = () => {
     amount,
     routeAfterAuthentication,
     navigateToVerifyIdentity,
+    shouldRouteImmediately,
   ]);
 
   const handleKeypadChange = useCallback(

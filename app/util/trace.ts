@@ -57,6 +57,7 @@ export enum TraceName {
   LoadRampExperience = 'Load Ramp Experience',
   LoadDepositExperience = 'Load Deposit Experience',
   DepositContinueFlow = 'Deposit Continue Flow',
+  DepositInputOtp = 'Deposit Input OTP',
   RevealSrp = 'Reveal SRP',
   RevealPrivateKey = 'Reveal Private Key',
   EvmDiscoverAccounts = 'EVM Discover Accounts',
