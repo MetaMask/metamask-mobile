@@ -17,14 +17,14 @@ interface ValidStateWithUser extends ValidState {
 }
 
 /**
- * Migration 89: Move EXISTING_USER flag from MMKV to Redux state
+ * Migration 92: Move EXISTING_USER flag from MMKV to Redux state
  * This unifies user state management and fixes iCloud backup inconsistencies
  *
  * IMPORTANT: After iCloud restore, we should default to existingUser: false
  * because keychain credentials are not backed up, even if MMKV data is restored
  */
 const migration = async (state: unknown): Promise<unknown> => {
-  if (!ensureValidState(state, 89)) {
+  if (!ensureValidState(state, 92)) {
     return state;
   }
 
@@ -36,7 +36,7 @@ const migration = async (state: unknown): Promise<unknown> => {
 
     if (!isObject(newState.user)) {
       const error = new Error(
-        `Migration 89: User state is missing or invalid. Expected object, got: ${typeof newState.user}`,
+        `Migration 92: User state is missing or invalid. Expected object, got: ${typeof newState.user}`,
       );
       captureException(error);
 
