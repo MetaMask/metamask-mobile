@@ -22,7 +22,6 @@ import {
 } from '../../../../../selectors/featureFlagController/deposit';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { selectCardholderAccounts } from '../../../../../core/redux/slices/card';
-
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
@@ -179,6 +178,10 @@ jest.mock('../../../../../core/Engine', () => ({
         setActiveNetwork: jest.fn().mockResolvedValue(undefined),
         findNetworkClientIdByChainId: jest.fn().mockReturnValue(undefined), // Return undefined to prevent network switching
       },
+      AccountsController: {
+        getAccountByAddress: jest.fn().mockReturnValue({ id: 'account-id' }),
+        setSelectedAccount: jest.fn(),
+      },
     },
   },
 }));
@@ -199,6 +202,14 @@ const mockFindNetworkClientIdByChainId = Engine.context.NetworkController
 const mockSetPrivacyMode = Engine.context.PreferencesController
   .setPrivacyMode as jest.MockedFunction<
   typeof Engine.context.PreferencesController.setPrivacyMode
+>;
+const mockGetAccountByAddress = Engine.context.AccountsController
+  .getAccountByAddress as jest.MockedFunction<
+  typeof Engine.context.AccountsController.getAccountByAddress
+>;
+const mockSetSelectedAccount = Engine.context.AccountsController
+  .setSelectedAccount as jest.MockedFunction<
+  typeof Engine.context.AccountsController.setSelectedAccount
 >;
 
 jest.mock('../../../../../../locales/i18n', () => ({
@@ -272,6 +283,20 @@ describe('CardHome Component', () => {
     mockSetActiveNetwork.mockResolvedValue(undefined);
     mockFindNetworkClientIdByChainId.mockReturnValue(''); // Prevent network switching in most tests - empty string is falsy
     mockSetPrivacyMode.mockClear();
+    mockGetAccountByAddress.mockReturnValue({
+      id: 'account-id',
+      type: 'eip155:eoa',
+      address: mockCurrentAddress,
+      options: {},
+      metadata: {
+        name: 'Test Account',
+        importTime: Date.now(),
+        keyring: { type: 'HD Key Tree' },
+      },
+      scopes: [],
+      methods: [],
+    });
+    mockSetSelectedAccount.mockClear();
 
     // Setup the mock for useGetPriorityCardToken
     (useGetPriorityCardToken as jest.Mock).mockReturnValue({
@@ -711,18 +736,18 @@ describe('CardHome Component', () => {
       return [];
     });
 
-    // Mock useFocusEffect to call the callback once after render
-    let focusCallback: (() => void) | null = null;
+    // Mock useFocusEffect to call the callbacks when they're registered
+    const focusCallbacks: (() => void)[] = [];
     jest.mocked(useFocusEffect).mockImplementation((callback: () => void) => {
-      focusCallback = callback;
+      focusCallbacks.push(callback);
     });
 
     render();
 
-    // Manually trigger the focus effect callback
+    // Execute all focus effect callbacks (network change first, then account change)
     await waitFor(async () => {
-      if (focusCallback) {
-        focusCallback();
+      for (const callback of focusCallbacks) {
+        callback();
       }
     });
 
@@ -772,18 +797,18 @@ describe('CardHome Component', () => {
       return [];
     });
 
-    // Mock useFocusEffect to call the callback once after render
-    let focusCallback: (() => void) | null = null;
+    // Mock useFocusEffect to call the callbacks when they're registered
+    const focusCallbacks: (() => void)[] = [];
     jest.mocked(useFocusEffect).mockImplementation((callback: () => void) => {
-      focusCallback = callback;
+      focusCallbacks.push(callback);
     });
 
     render();
 
-    // Manually trigger the focus effect callback
+    // Execute all focus effect callbacks (network change first, then account change)
     await waitFor(async () => {
-      if (focusCallback) {
-        focusCallback();
+      for (const callback of focusCallbacks) {
+        callback();
       }
     });
 

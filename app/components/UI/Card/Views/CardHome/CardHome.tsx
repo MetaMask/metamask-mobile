@@ -60,6 +60,7 @@ import AddFundsBottomSheet from '../../components/AddFundsBottomSheet';
 import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 
 /**
  * CardHome Component
@@ -73,7 +74,8 @@ import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
  * @returns JSX element representing the card home screen
  */
 const CardHome = () => {
-  const { PreferencesController, NetworkController } = Engine.context;
+  const { PreferencesController, NetworkController, AccountsController } =
+    Engine.context;
   const [error, setError] = useState<boolean>(false);
   const [isLoadingNetworkChange, setIsLoadingNetworkChange] = useState(true);
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
@@ -89,11 +91,13 @@ const CardHome = () => {
   const privacyMode = useSelector(selectPrivacyMode);
   const selectedChainId = useSelector(selectChainId);
   const cardholderAddresses = useSelector(selectCardholderAccounts);
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
 
+  // Handle network change first
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        if (selectedChainId !== LINEA_CHAIN_ID) {
+      if (selectedChainId !== LINEA_CHAIN_ID) {
+        (async () => {
           const networkClientId =
             NetworkController.findNetworkClientIdByChainId(LINEA_CHAIN_ID);
 
@@ -109,11 +113,40 @@ const CardHome = () => {
           } finally {
             setIsLoadingNetworkChange(false);
           }
-        } else {
-          setIsLoadingNetworkChange(false);
-        }
-      })();
+        })();
+      } else {
+        setIsLoadingNetworkChange(false);
+      }
     }, [NetworkController, selectedChainId]),
+  );
+
+  // Handle account change after network is correct
+  useFocusEffect(
+    useCallback(() => {
+      // Only run account change if we're on the correct network and not loading
+      if (selectedChainId === LINEA_CHAIN_ID && !isLoadingNetworkChange) {
+        if (
+          selectedAccount?.address.toLowerCase() !==
+          cardholderAddresses?.[0]?.toLowerCase()
+        ) {
+          const account = AccountsController.getAccountByAddress(
+            cardholderAddresses?.[0],
+          );
+
+          if (!account) {
+            setError(true);
+          } else {
+            AccountsController.setSelectedAccount(account.id);
+          }
+        }
+      }
+    }, [
+      AccountsController,
+      cardholderAddresses,
+      selectedAccount,
+      selectedChainId,
+      isLoadingNetworkChange,
+    ]),
   );
 
   const {
