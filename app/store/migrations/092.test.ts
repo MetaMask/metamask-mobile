@@ -3,7 +3,6 @@ import { cloneDeep } from 'lodash';
 
 import { ensureValidState } from './util';
 import migrate from './092';
-import { name } from '@metamask/key-tree/dist/curves/ed25519.d.cts';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
