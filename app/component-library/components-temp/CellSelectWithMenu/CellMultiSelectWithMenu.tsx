@@ -39,7 +39,7 @@ const CellMultiSelectWithMenu = ({
     <ListItemMultiSelectWithMenuButton
       isSelected={isSelected}
       style={styles.base}
-      testID={CellComponentSelectorsIDs.MULTISELECT}
+      testID={CellComponentSelectorsIDs.MULTISELECT_WITH_MENU}
       {...props}
     >
       <View style={styles.cellBase}>

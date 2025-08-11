@@ -102,6 +102,8 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { MetaMetrics } from '../../../core/Analytics';
+import { selectSendFlowContextualChainId } from '../../../selectors/sendFlow';
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 
 interface infuraNetwork {
   name: string;
@@ -122,6 +124,7 @@ interface NetworkSelectorRouteParams {
       origin?: string;
     };
   };
+  source?: string;
 }
 
 const NetworkSelector = () => {
@@ -155,6 +158,7 @@ const NetworkSelector = () => {
   ///: END:ONLY_INCLUDE_IF
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const contextualChainId = useSelector(selectSendFlowContextualChainId);
 
   const route =
     useRoute<RouteProp<Record<string, NetworkSelectorRouteParams>, string>>();
@@ -167,12 +171,20 @@ const NetworkSelector = () => {
     tags: getTraceTags(store.getState()),
     op: TraceOperation.NetworkSwitch,
   });
+
   const {
-    chainId: selectedChainId,
+    chainId: perDappChainId,
     rpcUrl: selectedRpcUrl,
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
+
+  const isContextualChainId =
+    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW &&
+    contextualChainId;
+  const selectedChainId = isContextualChainId
+    ? contextualChainId
+    : perDappChainId;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
@@ -219,6 +231,8 @@ const NetworkSelector = () => {
   const rpcMenuSheetRef = useRef<BottomSheetRef>(null);
 
   const deleteModalSheetRef = useRef<BottomSheetRef>(null);
+
+  const source = route.params?.source;
 
   /**
    * This is used to check if the network has multiple RPC endpoints
@@ -368,6 +382,7 @@ const NetworkSelector = () => {
     dismissModal: () => sheetRef.current?.dismissModal(),
     closeRpcModal,
     parentSpan,
+    source,
   });
 
   useEffect(() => {
@@ -886,7 +901,7 @@ const NetworkSelector = () => {
       {renderRpcNetworks()}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        renderNonEvmNetworks(false)
+        !isContextualChainId && renderNonEvmNetworks(false)
         ///: END:ONLY_INCLUDE_IF
       }
       {isNetworkUiRedesignEnabled() &&
