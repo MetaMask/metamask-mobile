@@ -316,3 +316,13 @@ export const PerpsOrderViewSelectorsIDs = {
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
 };
+
+// ========================================
+// PERPS ORDER CARD SELECTORS
+// ========================================
+
+export const PerpsOrderCardSelectorsIDs = {
+  CARD: 'perps-order-card',
+  CANCEL_BUTTON: 'perps-order-card-cancel-button',
+  EDIT_BUTTON: 'perps-order-card-edit-button',
+};
