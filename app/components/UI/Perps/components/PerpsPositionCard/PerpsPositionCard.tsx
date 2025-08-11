@@ -49,6 +49,7 @@ interface PerpsPositionCardProps {
   expanded?: boolean;
   showIcon?: boolean;
   rightAccessory?: React.ReactNode;
+  onPositionUpdate?: () => Promise<void>;
   // TODO: POST_REBASE_CHECK: Is this still in use?
   isInPerpsNavContext?: boolean; // NEW: Indicates if this is used within the Perps navigation stack
   priceData?: PriceUpdate | null; // Current market price data
@@ -60,6 +61,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   expanded = true, // Default to expanded for backward compatibility
   showIcon = false, // Default to not showing icon
   rightAccessory,
+  onPositionUpdate,
   // TODO: POST_REBASE_CHECK: Is this still in use?
   isInPerpsNavContext = true, // Default to true since most usage is within Perps stack
   priceData,
@@ -82,14 +84,24 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Refresh positions to show updated data
-      loadPositions({ isRefresh: true });
+      loadPositions({ isRefresh: true }).then(() => {
+        // Also call parent's position update callback if provided
+        if (onPositionUpdate) {
+          onPositionUpdate();
+        }
+      });
     },
   });
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition({
     onSuccess: () => {
       // Refresh positions after successful close
-      loadPositions({ isRefresh: true });
+      loadPositions({ isRefresh: true }).then(() => {
+        // Also call parent's position update callback if provided
+        if (onPositionUpdate) {
+          onPositionUpdate();
+        }
+      });
       setIsClosePositionVisible(false);
       setSelectedPosition(null);
     },

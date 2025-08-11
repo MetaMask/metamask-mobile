@@ -10,4 +10,5 @@ export interface MarketDetailsTabsProps {
   position: Position | null;
   isLoadingPosition: boolean;
   unfilledOrders: Order[];
+  onPositionUpdate?: () => Promise<void>;
 }

@@ -27,6 +27,7 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
   position,
   isLoadingPosition,
   unfilledOrders = [],
+  onPositionUpdate,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -171,6 +172,7 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
               position={position}
               expanded
               showIcon
+              onPositionUpdate={onPositionUpdate}
             />
           </View>
         );
