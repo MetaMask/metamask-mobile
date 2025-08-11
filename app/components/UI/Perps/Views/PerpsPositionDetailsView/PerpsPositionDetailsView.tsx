@@ -148,6 +148,9 @@ const PerpsPositionDetailsView: React.FC = () => {
             tpslLines={{
               takeProfitPrice: position.takeProfitPrice,
               stopLossPrice: position.stopLossPrice,
+              entryPrice: position.entryPrice,
+              liquidationPrice: position.liquidationPrice,
+              currentPrice: priceData?.price || position.entryPrice, // Use current price or fallback to entry price
             }}
             onDurationChange={handleDurationChange}
             onGearPress={handleGearPress}

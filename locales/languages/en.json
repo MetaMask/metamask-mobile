@@ -416,7 +416,7 @@
     "confirm_password_placeholder": "Re-enter your password",
     "confirm_btn": "Save",
     "warning_password_change_title": "Are you sure?",
-    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password.",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password",
     "warning_password_change_button": "Confirm",
     "warning_password_cancel_button": "Cancel",
     "changing_password": "Changing password...",
@@ -5001,6 +5001,7 @@
     "receive_at": "Receive at",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
     "insufficient_funds": "Insufficient funds",
+    "insufficient_gas": "Insufficient gas",
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
     "swap_to": "Swap to",
@@ -5232,6 +5233,12 @@
   },
   "pay_with_modal": {
     "title": "Select payment method"
+  },
+  "connection_removed_modal": {
+    "title": "Connections removed",
+    "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
+    "tryAgain": "Try again",
+    "close": "Close"
   },
   "card": {
     "card": "MetaMask Card",

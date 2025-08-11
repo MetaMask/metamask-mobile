@@ -143,7 +143,15 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
+import { selectIsConnectionRemoved } from '../../../reducers/user';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { setIsConnectionRemoved } from '../../../actions/user';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -297,6 +305,9 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const solanaOnboardingModalEnabled = useSelector(
+    selectSolanaOnboardingModalEnabled,
+  );
 
   /**
    * Object containing the balance of the current selected account
@@ -328,7 +339,7 @@ const Wallet = ({
   const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
-    token: {
+    sourceToken: {
       address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: chainId as Hex,
       decimals: 18,
@@ -480,8 +491,10 @@ const Wallet = ({
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   useEffect(() => {
-    checkAndNavigateToSolanaFeature();
-  }, [checkAndNavigateToSolanaFeature]);
+    if (solanaOnboardingModalEnabled) {
+      checkAndNavigateToSolanaFeature();
+    }
+  }, [checkAndNavigateToSolanaFeature, solanaOnboardingModalEnabled]);
   ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
@@ -489,6 +502,30 @@ const Wallet = ({
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
     });
   }, [addTraitsToUser, hdKeyrings.length]);
+
+  const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+
+  useEffect(() => {
+    if (isConnectionRemoved && isSocialLogin) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings('connection_removed_modal.title'),
+          description: strings('connection_removed_modal.content'),
+          primaryButtonLabel: strings('connection_removed_modal.tryAgain'),
+          type: 'error',
+          icon: IconName.Danger,
+          iconColor: IconColor.Warning,
+          isInteractable: false,
+          closeOnPrimaryButtonPress: true,
+          onPrimaryButtonPress: () => {
+            dispatch(setIsConnectionRemoved(false));
+          },
+        },
+      });
+    }
+  }, [navigation, isConnectionRemoved, dispatch, isSocialLogin]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
@@ -654,13 +691,14 @@ const Wallet = ({
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
 
-        Object.values(evmNetworkConfigurations).forEach(
-          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-            AccountTrackerController.refresh([
+        const networkClientIDs = Object.values(evmNetworkConfigurations)
+          .map(
+            ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-            ]);
-          },
-        );
+          )
+          .filter((c) => Boolean(c));
+
+        AccountTrackerController.refresh(networkClientIDs);
       });
     },
     /* eslint-disable-next-line */

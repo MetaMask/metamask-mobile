@@ -21,7 +21,7 @@ export function TotalRow() {
   );
 
   return (
-    <InfoSection>
+    <InfoSection testID="total-row">
       <InfoRow label={strings('confirm.label.total')}>
         {isQuotesLoading ? (
           <AnimatedSpinner size={SpinnerSize.SM} />
