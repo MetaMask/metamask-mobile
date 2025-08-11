@@ -21,10 +21,6 @@ jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
 }));
 
-jest.mock('../../hooks', () => ({
-  usePerpsPositions: jest.fn(),
-}));
-
 // Mock Animated to prevent act() warnings
 jest.mock('react-native', () => {
   const RN = jest.requireActual('react-native');
@@ -48,8 +44,6 @@ jest.mock('react-native', () => {
     Animated: MockedAnimated,
   };
 });
-
-const mockUsePerpsPositions = jest.requireMock('../../hooks').usePerpsPositions;
 
 jest.mock('../../components/PerpsMarketRowItem', () => {
   const {
@@ -249,13 +243,6 @@ describe('PerpsMarketListView', () => {
       error: null,
       refresh: jest.fn(),
       isRefreshing: false,
-    });
-
-    mockUsePerpsPositions.mockReturnValue({
-      positions: [],
-      isLoading: false,
-      isRefreshing: false,
-      loadPositions: jest.fn(),
     });
   });
 
@@ -671,65 +658,6 @@ describe('PerpsMarketListView', () => {
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Tab Switching', () => {
-    it('switches from markets to positions tab', () => {
-      render(<PerpsMarketListView />);
-
-      // Initially markets tab should be active
-      expect(screen.getByText('Perpetual markets')).toBeOnTheScreen();
-      expect(screen.getByText('Your positions')).toBeOnTheScreen();
-
-      // Switch to positions tab
-      const positionsTab = screen.getByText('Your positions');
-      act(() => {
-        fireEvent.press(positionsTab);
-      });
-
-      // Search button should be hidden on positions tab
-      expect(
-        screen.queryByTestId('search-toggle-button'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('calls loadPositions when positions tab is selected', () => {
-      const mockLoadPositions = jest.fn();
-      mockUsePerpsPositions.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: mockLoadPositions,
-      });
-
-      render(<PerpsMarketListView />);
-
-      const positionsTab = screen.getByText('Your positions');
-      act(() => {
-        fireEvent.press(positionsTab);
-      });
-
-      expect(mockLoadPositions).toHaveBeenCalled();
-    });
-
-    it('shows loading state for positions tab', () => {
-      mockUsePerpsPositions.mockReturnValue({
-        positions: [],
-        isLoading: true,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
-      });
-
-      render(<PerpsMarketListView />);
-
-      // Switch to positions tab
-      const positionsTab = screen.getByText('Your positions');
-      act(() => {
-        fireEvent.press(positionsTab);
-      });
-
-      expect(screen.getByText('Loading positions...')).toBeOnTheScreen();
     });
   });
 });

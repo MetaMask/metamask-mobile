@@ -5,8 +5,6 @@ import {
   SafeAreaView,
   Animated,
   TextInput,
-  ScrollView,
-  RefreshControl,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
@@ -21,9 +19,7 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import PerpsMarketRowItem from '../../components/PerpsMarketRowItem';
-import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
-import { usePerpsPositions } from '../../hooks';
 import styleSheet from './PerpsMarketListView.styles';
 import { PerpsMarketListViewProps } from './PerpsMarketListView.types';
 import type {
@@ -104,9 +100,6 @@ const PerpsMarketListView = ({
     pointerEvents: 'box-none' as const,
   };
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'markets' | 'positions'>(
-    'markets',
-  );
   const [isSearchVisible, setIsSearchVisible] = useState(false);
 
   const {
@@ -118,13 +111,6 @@ const PerpsMarketListView = ({
   } = usePerpsMarkets({
     enablePolling: false,
   });
-
-  const {
-    positions,
-    isLoading: isLoadingPositions,
-    isRefreshing: isRefreshingPositions,
-    loadPositions,
-  } = usePerpsPositions();
 
   useEffect(() => {
     if (markets.length > 0) {
@@ -147,11 +133,7 @@ const PerpsMarketListView = ({
   };
 
   const handleRefresh = () => {
-    if (activeTab === 'markets' && !isRefreshingMarkets) {
-      refreshMarkets();
-    } else if (activeTab === 'positions' && !isRefreshingPositions) {
-      loadPositions();
-    }
+    refreshMarkets();
   };
 
   const handleBackPressed = () => {
@@ -183,16 +165,6 @@ const PerpsMarketListView = ({
       navigation.goBack();
     }
   };
-
-  // Load positions when positions tab is selected
-  useEffect(() => {
-    if (activeTab === 'positions') {
-      loadPositions();
-    }
-    if (activeTab === 'markets') {
-      refreshMarkets();
-    }
-  }, [activeTab, loadPositions, refreshMarkets]);
 
   const renderMarketList = () => {
     // Skeleton List
@@ -244,71 +216,11 @@ const PerpsMarketListView = ({
             )}
             keyExtractor={(item: PerpsMarketData) => item.symbol}
             contentContainerStyle={styles.flashListContent}
-            refreshing={
-              activeTab === 'markets'
-                ? isRefreshingMarkets
-                : isRefreshingPositions
-            }
+            refreshing={isRefreshingMarkets}
             onRefresh={handleRefresh}
           />
         </Animated.View>
       </>
-    );
-  };
-
-  const renderPositionsList = () => {
-    // Loading state
-    if (isLoadingPositions) {
-      return (
-        <View style={styles.errorContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {strings('perps.loading_positions')}
-          </Text>
-        </View>
-      );
-    }
-
-    if (isRefreshingPositions) {
-      return (
-        <View style={styles.errorContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {strings('perps.refreshing_positions')}
-          </Text>
-        </View>
-      );
-    }
-
-    // Empty state
-    if (positions.length === 0) {
-      return (
-        <View style={styles.errorContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {strings('perps.no_positions_found')}
-          </Text>
-        </View>
-      );
-    }
-
-    // Positions list
-    return (
-      <ScrollView
-        style={styles.animatedListContainer}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshingPositions}
-            onRefresh={handleRefresh}
-          />
-        }
-      >
-        {positions.map((position, index) => (
-          <PerpsPositionCard
-            key={`${position.coin}-${index}`}
-            position={position}
-            expanded={false}
-            showIcon
-          />
-        ))}
-      </ScrollView>
     );
   };
 
@@ -341,58 +253,28 @@ const PerpsMarketListView = ({
           </Text>
         </View>
 
-        {activeTab === 'markets' && (
+          // POST_REBASE_CHECK: Ensure tutorial changes are still working.
           <TouchableOpacity
-            onPress={() => handleTutorialClick()}
-            testID={PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON}
-            style={styles.tutorialButton}
+          onPress={() => handleTutorialClick()}
+          testID={PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON}
+          style={styles.tutorialButton}
           >
-            <Icon name={IconName.Question} size={IconSize.Md} />
+          <Icon name={IconName.Question} size={IconSize.Md} />
           </TouchableOpacity>
-        </View>
+          
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={handleSearchToggle}
+          testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
+        >
+          <Icon
+            name={isSearchVisible ? IconName.Close : IconName.Search}
+            size={IconSize.Md}
+          />
+        </TouchableOpacity>
       </View>
 
-      {/* Tab Buttons or Search Bar */}
-      {!isSearchVisible ? (
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              activeTab === 'markets'
-                ? styles.tabButtonActive
-                : styles.tabButtonInactive,
-            ]}
-            onPress={() => setActiveTab('markets')}
-          >
-            <Text
-              variant={TextVariant.BodyMDBold}
-              color={
-                activeTab === 'markets' ? TextColor.Default : TextColor.Muted
-              }
-            >
-              {strings('perps.perps_markets')}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              activeTab === 'positions'
-                ? styles.tabButtonActive
-                : styles.tabButtonInactive,
-            ]}
-            onPress={() => setActiveTab('positions')}
-          >
-            <Text
-              variant={TextVariant.BodyMDBold}
-              color={
-                activeTab === 'positions' ? TextColor.Default : TextColor.Muted
-              }
-            >
-              {strings('perps.your_positions')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
+      {isSearchVisible && (
         <View style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
             <Icon
@@ -422,9 +304,7 @@ const PerpsMarketListView = ({
           </View>
         </View>
       )}
-      <View style={styles.listContainer}>
-        {activeTab === 'markets' ? renderMarketList() : renderPositionsList()}
-      </View>
+      <View style={styles.listContainer}>{renderMarketList()}</View>
     </SafeAreaView>
   );
 };
