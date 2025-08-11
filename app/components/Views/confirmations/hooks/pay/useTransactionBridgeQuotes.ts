@@ -11,12 +11,19 @@ import {
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { Hex, createProjectLogger } from '@metamask/utils';
 import { useDeepMemo } from '../useDeepMemo';
+import { useAlerts } from '../../context/alert-system-context';
+import { AlertKeys } from '../../constants/alerts';
 
 const log = createProjectLogger('transaction-pay');
 
 export function useTransactionBridgeQuotes() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataOrThrow();
+  const { alerts } = useAlerts();
+
+  const hasBlockingAlert = alerts.some(
+    (a) => a.isBlocking && a.key !== AlertKeys.NoPayTokenQuotes,
+  );
 
   const {
     chainId: targetChainId,
@@ -32,7 +39,12 @@ export function useTransactionBridgeQuotes() {
   const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
 
   const requests: BridgeQuoteRequest[] = useDeepMemo(() => {
-    if (!sourceTokenAddress || !sourceChainId || !sourceAmounts) {
+    if (
+      !sourceTokenAddress ||
+      !sourceChainId ||
+      !sourceAmounts ||
+      hasBlockingAlert
+    ) {
       return [];
     }
 
@@ -49,7 +61,14 @@ export function useTransactionBridgeQuotes() {
         targetTokenAddress,
       };
     });
-  }, [from, sourceAmounts, sourceChainId, sourceTokenAddress, targetChainId]);
+  }, [
+    from,
+    hasBlockingAlert,
+    sourceAmounts,
+    sourceChainId,
+    sourceTokenAddress,
+    targetChainId,
+  ]);
 
   const { pending: loading, value: quotes } = useAsyncResult(async () => {
     if (!requests.length || requests.some((request) => !request)) {

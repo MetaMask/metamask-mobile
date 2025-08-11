@@ -42,7 +42,7 @@ export function PerpsDeposit() {
         onKeyboardHide={handleKeyboardHide}
       >
         <Box gap={16}>
-          <PayTokenBalance />
+          {isKeyboardVisible && <PayTokenBalance />}
           <AlertMessage field={RowAlertKey.Amount} />
           <TokenAmountNative />
         </Box>
