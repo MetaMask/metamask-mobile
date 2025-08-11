@@ -118,10 +118,10 @@ describe('Migration 92: Update Sei Network name', () => {
               },
             },
           },
-        }
-      }
-    }
-    
+        },
+      },
+    };
+
     mockedEnsureValidState.mockReturnValue(true);
 
     const expectedState = cloneDeep(oldState);
@@ -170,9 +170,9 @@ describe('Migration 92: Update Sei Network name', () => {
               },
             },
           },
-        }
-      }
-    }
+        },
+      },
+    };
 
     mockedEnsureValidState.mockReturnValue(true);
 
@@ -182,17 +182,17 @@ describe('Migration 92: Update Sei Network name', () => {
           NetworkController: {
             ...oldState.engine.backgroundState.NetworkController,
             networkConfigurationsByChainId: {
-              ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId,
+              ...oldState.engine.backgroundState.NetworkController
+                .networkConfigurationsByChainId,
               '0x531': {
-                ...oldState.engine.backgroundState.NetworkController.networkConfigurationsByChainId[
-                  '0x531'
-                ],
+                ...oldState.engine.backgroundState.NetworkController
+                  .networkConfigurationsByChainId['0x531'],
                 name: 'Sei Mainnet',
               },
             },
           },
-        }
-      }
+        },
+      },
     };
 
     const migratedState = await migrate(oldState);
