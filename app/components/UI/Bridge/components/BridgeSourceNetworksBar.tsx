@@ -31,8 +31,6 @@ const createStyles = (params: { theme: Theme }) => {
   });
 };
 
-export const MAX_NETWORK_ICONS = 3;
-
 interface SourceNetworksButtonProps {
   networksToShow: { chainId: Hex | CaipChainId }[];
   networkConfigurations: ReturnType<typeof selectNetworkConfigurations>;
