@@ -6,7 +6,7 @@ import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../selectors/networkController';
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
-import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/network';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 
 interface UseNetworkSelectionOptions {
   /**

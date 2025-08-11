@@ -1,6 +1,4 @@
 import { NetworkType, toHex } from '@metamask/controller-utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../util/networks/customNetworks';
 
 export const INFURA_PROJECT_ID = process.env.MM_INFURA_PROJECT_ID;
 
@@ -121,9 +119,3 @@ export const TEST_NETWORK_IDS = [
   NETWORKS_CHAIN_ID.MEGAETH_TESTNET,
   NETWORKS_CHAIN_ID.MONAD_TESTNET,
 ];
-
-export const POPULAR_NETWORK_CHAIN_IDS = new Set([
-  ...PopularList.map((popular) => popular.chainId),
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.LINEA_MAINNET,
-]);

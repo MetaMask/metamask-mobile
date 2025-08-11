@@ -28,7 +28,7 @@ jest.mock('@metamask/bridge-controller', () => ({
   formatChainIdToCaip: jest.fn(),
 }));
 
-jest.mock('../../../constants/network', () => ({
+jest.mock('../../../constants/popular-networks', () => ({
   POPULAR_NETWORK_CHAIN_IDS: new Set(['0x1', '0x89', '0xa']),
 }));
 
