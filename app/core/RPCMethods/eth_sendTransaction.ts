@@ -12,7 +12,7 @@ import {
 import { rpcErrors } from '@metamask/rpc-errors';
 import ppomUtil, { PPOMRequest } from '../../lib/ppom/ppom-util';
 import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
-import { store } from '../Analytics';
+import { store } from '../../store';
 
 /**
  * A JavaScript object that is not `null`, a function, or an array.

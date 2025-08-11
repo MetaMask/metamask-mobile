@@ -25,7 +25,10 @@ import type {
   TransactionEventHandlerRequest,
   TransactionMetrics,
 } from './types';
-import { getAddressAccountType } from '../../../../util/address';
+import {
+  getAddressAccountType,
+  isValidHexAddress,
+} from '../../../../util/address';
 
 const BATCHED_MESSAGE_TYPE = {
   WALLET_SEND_CALLS: 'wallet_sendCalls',
@@ -165,8 +168,12 @@ export async function generateDefaultTransactionMetrics(
   transactionMeta: TransactionMeta,
   transactionEventHandlerRequest: TransactionEventHandlerRequest,
 ) {
-  const { chainId, status, type, id, origin, txParams } = transactionMeta;
+  const { chainId, status, type, id, origin, txParams } = transactionMeta || {};
   const { from } = txParams || {};
+
+  const accountType = isValidHexAddress(from)
+    ? getAddressAccountType(from)
+    : 'unknown';
 
   const batchProperties = await getBatchProperties(transactionMeta);
   const gasFeeProperties = getGasMetricProperties(transactionMeta);
@@ -186,7 +193,7 @@ export async function generateDefaultTransactionMetrics(
         transaction_envelope_type: transactionMeta.txParams.type,
         transaction_internal_id: id,
         transaction_type: getTransactionTypeValue(type),
-        account_type: getAddressAccountType(from as string),
+        account_type: accountType,
         dapp_host_name: origin ?? 'N/A',
       },
       sensitiveProperties: {

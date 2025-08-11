@@ -43,6 +43,7 @@ jest.mock('../../../Analytics/MetricsEventBuilder', () => ({
 
 jest.mock('../../../../util/address', () => ({
   getAddressAccountType: jest.fn().mockReturnValue('MetaMask'),
+  isValidHexAddress: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../../util/rpc-domain-utils', () => ({
@@ -182,6 +183,7 @@ describe('generateRPCProperties', () => {
 });
 
 describe('generateDefaultTransactionMetrics', () => {
+  const FROM_ADDRESS_MOCK = '0x6D404AfE1a6A07Aa3CbcBf9Fd027671Df628ebFc';
   const mockMetametricsEvent = {
     name: 'test_event',
     category: 'test_category',
@@ -199,7 +201,7 @@ describe('generateDefaultTransactionMetrics', () => {
     userFeeLevel: 'medium',
     txParams: {
       authorizationList: [],
-      from: '0x1',
+      from: FROM_ADDRESS_MOCK,
     },
   };
 
@@ -264,7 +266,7 @@ describe('generateDefaultTransactionMetrics', () => {
         transaction_type: 'simple_send',
       },
       sensitiveProperties: {
-        from_address: '0x1',
+        from_address: FROM_ADDRESS_MOCK,
         sensitive_data: 'sensitive_value',
         to_address: undefined,
         value: undefined,
@@ -304,7 +306,7 @@ describe('generateDefaultTransactionMetrics', () => {
         transaction_type: 'simple_send',
       },
       sensitiveProperties: {
-        from_address: '0x1',
+        from_address: FROM_ADDRESS_MOCK,
         to_address: undefined,
         value: undefined,
       },

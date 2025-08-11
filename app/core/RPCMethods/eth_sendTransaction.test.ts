@@ -14,7 +14,7 @@ import type {
 import eth_sendTransaction from './eth_sendTransaction';
 import PPOMUtil from '../../lib/ppom/ppom-util';
 import { updateConfirmationMetric } from '../redux/slices/confirmationMetrics';
-import { store } from '../Analytics';
+import { store } from '../../store';
 
 jest.mock('../../core/Engine', () => ({
   context: {
