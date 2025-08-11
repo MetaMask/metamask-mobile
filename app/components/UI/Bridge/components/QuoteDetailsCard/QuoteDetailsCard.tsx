@@ -308,20 +308,22 @@ const QuoteDetailsCard = () => {
         {/* Expandable content */}
         {isExpanded && (
           <Box gap={12}>
-            <KeyValueRow
-              field={{
-                label: {
-                  text: strings('bridge.price_impact') || 'Price Impact',
-                  variant: TextVariant.BodyMDMedium,
-                },
-              }}
-              value={{
-                label: {
-                  text: priceImpact,
-                  variant: TextVariant.BodyMD,
-                },
-              }}
-            />
+            {priceImpact && (
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('bridge.price_impact') || 'Price Impact',
+                    variant: TextVariant.BodyMDMedium,
+                  },
+                }}
+                value={{
+                  label: {
+                    text: priceImpact,
+                    variant: TextVariant.BodyMD,
+                  },
+                }}
+              />
+            )}
 
             <KeyValueRow
               field={{
