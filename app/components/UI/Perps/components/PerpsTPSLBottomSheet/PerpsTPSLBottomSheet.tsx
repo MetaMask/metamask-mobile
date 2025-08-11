@@ -512,7 +512,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </TouchableOpacity>
             ))}
           </View>
-          {takeProfitPrice &&
+          {Boolean(takeProfitPrice) &&
             !isValidTakeProfitPrice(takeProfitPrice, {
               currentPrice,
               direction: actualDirection,
@@ -622,7 +622,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </TouchableOpacity>
             ))}
           </View>
-          {stopLossPrice &&
+          {Boolean(stopLossPrice) &&
             !isValidStopLossPrice(stopLossPrice, {
               currentPrice,
               direction: actualDirection,
