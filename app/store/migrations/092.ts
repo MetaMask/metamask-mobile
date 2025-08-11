@@ -33,14 +33,17 @@ export default function migrate(state: unknown) {
 
   if (
     !isObject(smartTransactionsControllerState.smartTransactionsState) ||
-    !isObject(smartTransactionsControllerState.smartTransactionsState.smartTransactions)
+    !isObject(
+      smartTransactionsControllerState.smartTransactionsState.smartTransactions,
+    )
   ) {
     return state;
   }
 
   // Wipe smart transactions for all chains
   // We're resetting the entire smartTransactions object to ensure complete cleanup
-  smartTransactionsControllerState.smartTransactionsState.smartTransactions = {};
+  smartTransactionsControllerState.smartTransactionsState.smartTransactions =
+    {};
 
   Logger.log(
     `Migration ${migrationVersion}: Wiped all smart transactions from state`,

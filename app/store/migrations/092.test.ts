@@ -60,7 +60,7 @@ describe('Migration #92', () => {
   it('returns state unchanged when SmartTransactionsController is undefined (fresh install)', () => {
     const state = merge({}, initialRootState, {
       engine: {
-        backgroundState: { 
+        backgroundState: {
           SmartTransactionsController: undefined,
         },
       },
@@ -109,7 +109,10 @@ describe('Migration #92', () => {
     });
 
     const expectedState = merge({}, oldState);
-    (expectedState.engine.backgroundState.SmartTransactionsController.smartTransactionsState as any).smartTransactions = {};
+    (
+      expectedState.engine.backgroundState.SmartTransactionsController
+        .smartTransactionsState as any
+    ).smartTransactions = {};
 
     const newState = migrate(oldState);
 
@@ -138,7 +141,10 @@ describe('Migration #92', () => {
     });
 
     const expectedState = merge({}, oldState);
-    (expectedState.engine.backgroundState.SmartTransactionsController.smartTransactionsState as any).smartTransactions = {};
+    (
+      expectedState.engine.backgroundState.SmartTransactionsController
+        .smartTransactionsState as any
+    ).smartTransactions = {};
 
     const newState = migrate(oldState);
 
@@ -209,9 +215,10 @@ describe('Migration #92', () => {
     const newState = migrate(state);
 
     // State should remain unchanged but smartTransactions should still be an empty object
-    expect((newState as any).engine.backgroundState.SmartTransactionsController.smartTransactionsState.smartTransactions).toStrictEqual({});
+    expect(
+      (newState as any).engine.backgroundState.SmartTransactionsController
+        .smartTransactionsState.smartTransactions,
+    ).toStrictEqual({});
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
-
-
 });
