@@ -38,7 +38,7 @@ export const selectAccountSections = createDeepEqualSelector(
         const allAccountsIdInWallet = Object.values(wallet.groups).flatMap(
           (group) => group.accounts,
         );
-        // To presevere the order of the accounts in the accounts controller
+        // To preserve the order of the accounts in the accounts controller
         const accountIds = internalAccounts
           .filter((account) => allAccountsIdInWallet.includes(account.id))
           .map((account) => account.id);
