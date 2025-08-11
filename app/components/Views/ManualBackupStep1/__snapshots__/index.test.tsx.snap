@@ -729,7 +729,6 @@ exports[`ManualBackupStep1 Theme appearance renders light SRP design image for l
               accessibilityRole="button"
               accessible={true}
               activeOpacity={1}
-              collapsable={false}
               disabled={true}
               loading={false}
               onPressIn={[Function]}
