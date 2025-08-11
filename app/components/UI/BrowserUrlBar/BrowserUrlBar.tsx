@@ -221,7 +221,7 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
                   numberOfLines={1}
                   ellipsizeMode="head"
                 >
-                  {inputValueRef.current}
+                  {inputValueRef.current || activeUrl}
                 </Text>
               </TouchableWithoutFeedback>
             )}
