@@ -77,13 +77,13 @@ describe('ListItemSelect TouchableOpacity Wrapper Logic', () => {
     const mockOnPress = jest.fn();
 
     const { rerender } = render(
-      <TestTouchableOpacity onPress={mockOnPress} disabled={true}>
+      <TestTouchableOpacity onPress={mockOnPress} disabled>
         <View />
       </TestTouchableOpacity>,
     );
 
     rerender(
-      <TestTouchableOpacity onPress={mockOnPress} isDisabled={true}>
+      <TestTouchableOpacity onPress={mockOnPress} isDisabled>
         <View />
       </TestTouchableOpacity>,
     );
@@ -121,7 +121,7 @@ describe('ListItemSelect TouchableOpacity Wrapper Logic', () => {
   it('should not call onPress when disabled', () => {
     const mockOnPress = jest.fn();
     const { getByTestId } = render(
-      <TestTouchableOpacity onPress={mockOnPress} disabled={true}>
+      <TestTouchableOpacity onPress={mockOnPress} disabled>
         <View />
       </TestTouchableOpacity>,
     );
