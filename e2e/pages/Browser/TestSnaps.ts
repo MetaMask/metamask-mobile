@@ -51,6 +51,12 @@ class TestSnaps {
     );
   }
 
+  get footerButton(): DetoxElement {
+    return Matchers.getElementByID(
+      TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
+    );
+  }
+
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
@@ -117,6 +123,26 @@ class TestSnaps {
     }, options);
   }
 
+  async checkResultSpanNotEmpty(
+    selector: keyof typeof TestSnapResultSelectorWebIDS,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    const webElement = await Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestSnapResultSelectorWebIDS[selector],
+    );
+
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      if (!actualText || actualText.trim() === '') {
+        throw new Error(`Result span is empty`);
+      }
+    }, options);
+  }
+
   async navigateToTestSnap(): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
@@ -152,6 +178,10 @@ class TestSnaps {
   async tapCancelButton() {
     const button = Matchers.getElementByText('Cancel');
     await Gestures.waitAndTap(button);
+  }
+
+  async tapFooterButton() {
+    await Gestures.waitAndTap(this.footerButton);
   }
 
   async getOptionValueByText(
