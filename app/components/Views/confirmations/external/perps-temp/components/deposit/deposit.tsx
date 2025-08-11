@@ -11,29 +11,17 @@ import { PayTokenBalance } from '../../../../components/pay-token-balance';
 import { BridgeTimeRow } from '../../../../components/rows/bridge-time-row';
 import { AlertMessage } from '../../../../components/alert-message';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
-import { useAutomaticTransactionPayToken } from '../../../../hooks/pay/useAutomaticTransactionPayToken';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import AlertBanner from '../../../../components/alert-banner';
 import { Box } from '../../../../../../UI/Box/Box';
 import InfoRowDivider from '../../../../components/UI/info-row-divider';
 import { InfoRowDividerVariant } from '../../../../components/UI/info-row-divider/info-row-divider.styles';
+import { usePerpsDepositData } from '../../hooks/usePerpsDepositData';
 
 const AMOUNT_PREFIX = '$';
 
 export function PerpsDeposit() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-
-  useAutomaticTransactionPayToken({
-    balanceOverrides: [
-      {
-        address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' as const,
-        balance: 10,
-        chainId: CHAIN_IDS.ARBITRUM,
-      },
-    ],
-  });
-
-  useNavbar(strings('confirm.title.perps_deposit'), false);
+  const { isFullView } = usePerpsDepositData({ isKeyboardVisible });
 
   const handleKeyboardShow = () => {
     setIsKeyboardVisible(true);
@@ -42,6 +30,8 @@ export function PerpsDeposit() {
   const handleKeyboardHide = () => {
     setIsKeyboardVisible(false);
   };
+
+  useNavbar(strings('confirm.title.perps_deposit'), false);
 
   return (
     <>
@@ -61,9 +51,9 @@ export function PerpsDeposit() {
         )}
         <InfoSection>
           <PayWithRow />
-          {!isKeyboardVisible && <BridgeTimeRow />}
+          {isFullView && <BridgeTimeRow />}
         </InfoSection>
-        {!isKeyboardVisible && (
+        {isFullView && (
           <InfoSection>
             <GasFeesDetailsRow disableUpdate hideSpeed fiatOnly noSection />
             <InfoRowDivider variant={InfoRowDividerVariant.Large} />
