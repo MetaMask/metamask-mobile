@@ -10,6 +10,7 @@ import Text, { TextVariant, getFontFamily } from '../Texts/Text';
 import HeaderBase from './HeaderBase';
 import {
   DEFAULT_HEADERBASE_TITLE_TEXTVARIANT,
+  HeaderBaseAlign,
   HEADERBASE_TEST_ID,
   HEADERBASE_TITLE_TEST_ID,
 } from './HeaderBase.constants';
@@ -79,5 +80,48 @@ describe('HeaderBase', () => {
     expect(headerBase.props.style).toEqual(
       expect.not.arrayContaining([{ marginTop: mockInsets.top }]),
     );
+  });
+
+  it('defaults to center alignment', () => {
+    const { getByTestId } = render(<HeaderBase>Header Content</HeaderBase>);
+
+    const titleElement = getByTestId(HEADERBASE_TITLE_TEST_ID);
+    expect(titleElement.props.style.textAlign).toBe('center');
+  });
+
+  it('applies center alignment when align prop is set to center', () => {
+    const { getByTestId } = render(
+      <HeaderBase align={HeaderBaseAlign.Center}>Header Content</HeaderBase>,
+    );
+
+    const titleElement = getByTestId(HEADERBASE_TITLE_TEST_ID);
+    expect(titleElement.props.style.textAlign).toBe('center');
+  });
+
+  it('applies left alignment when align prop is set to left', () => {
+    const { getByTestId } = render(
+      <HeaderBase align={HeaderBaseAlign.Left}>Header Content</HeaderBase>,
+    );
+
+    const titleElement = getByTestId(HEADERBASE_TITLE_TEST_ID);
+    expect(titleElement.props.style.textAlign).toBe('left');
+  });
+
+  it('renders snapshot correctly with left alignment', () => {
+    const wrapper = render(
+      <HeaderBase align={HeaderBaseAlign.Left}>
+        Sample HeaderBase Title
+      </HeaderBase>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('renders snapshot correctly with center alignment', () => {
+    const wrapper = render(
+      <HeaderBase align={HeaderBaseAlign.Center}>
+        Sample HeaderBase Title
+      </HeaderBase>,
+    );
+    expect(wrapper).toMatchSnapshot();
   });
 });
