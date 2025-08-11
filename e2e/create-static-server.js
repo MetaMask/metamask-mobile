@@ -6,11 +6,29 @@ import serveHandler from 'serve-handler';
 const createStaticServer = function (rootDirectory) {
   return http.createServer((request, response) => {
     if (request.url.startsWith('/node_modules/')) {
-      request.url = request.url.substr(14);
-      return serveHandler(request, response, {
-        directoryListing: false,
-        public: path.resolve('./node_modules'),
-      });
+      // Only allow serving specific packages from node_modules
+      // Map of allowed packages and their public subfolders
+      const allowedPackages = {
+        'jquery': 'jquery/dist',
+        'bootstrap': 'bootstrap/dist',
+        // Add more allowed packages as needed
+      };
+      // Extract the package name from the URL
+      const urlParts = request.url.substr(14).split('/');
+      const packageName = urlParts[0];
+      const subPath = urlParts.slice(1).join('/');
+      if (allowedPackages[packageName]) {
+        request.url = '/' + subPath;
+        return serveHandler(request, response, {
+          directoryListing: false,
+          public: path.resolve('./node_modules', allowedPackages[packageName]),
+        });
+      } else {
+        // Not allowed, return 404
+        response.statusCode = 404;
+        response.end('Not found');
+        return;
+      }
     }
 
     // Handle test-dapp-multichain URLs by removing the prefix
