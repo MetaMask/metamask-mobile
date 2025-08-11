@@ -10,7 +10,7 @@ import { Theme } from '../../../../util/theme/models';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../util/networks';
-import { FlexDirection, AlignItems, JustifyContent } from '../../Box/box.types';
+import { FlexDirection, AlignItems } from '../../Box/box.types';
 import { strings } from '../../../../../locales/i18n';
 import { selectEnabledSourceChains } from '../../../../core/redux/slices/bridge';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
@@ -32,12 +32,12 @@ const createStyles = (params: { theme: Theme }) => {
     avatarNetwork: {
       marginRight: 0,
     },
-    networkOverflowCircle: {
-      backgroundColor: theme.colors.overlay.default,
+    networkOverflowOverlay: {
+      backgroundColor: theme.colors.overlay.alternative,
       width: 16,
       height: 16,
-      borderRadius: 8,
-      marginLeft: -8,
+      borderRadius: 4,
+      marginLeft: -16,
     },
   });
 };
@@ -108,15 +108,11 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
           <Box
             flexDirection={FlexDirection.Row}
             alignItems={AlignItems.center}
-            gap={-8}
+            gap={10}
           >
             {renderSourceNetworks()}
             {selectedSourceChainIds.length > MAX_NETWORK_ICONS && (
-              <Box
-                style={styles.networkOverflowCircle}
-                justifyContent={JustifyContent.center}
-                alignItems={AlignItems.center}
-              >
+              <Box style={styles.networkOverflowOverlay}>
                 <Text variant={TextVariant.BodyXS} color={TextColor.Inverse}>
                   +{selectedSourceChainIds.length - MAX_NETWORK_ICONS}
                 </Text>
