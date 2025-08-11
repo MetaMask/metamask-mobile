@@ -8,7 +8,6 @@ import {
   Text,
 } from 'react-native';
 import { useTheme } from '../../../../util/theme';
-import { useClaimRewardMutation } from '../../../../core/Engine/controllers/rewards-controller/services/rewardsApi';
 import type { Colors } from '../../../../util/theme/models';
 import { useRewardsCatalog } from '../../../../core/Engine/controllers/rewards-controller/hooks/useRewardsCatalog';
 import {
