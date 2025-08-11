@@ -64,9 +64,9 @@ export function onRpcEndpointUnavailable({
  *
  * @param args - The arguments.
  * @param args.chainId - The chain ID that the endpoint represents.
+ * @param args.endpointUrl - The URL of the endpoint.
  * @param args.error - The connection or response error encountered after making
  * a request to the RPC endpoint.
- * @param args.endpointUrl - The URL of the endpoint.
  * @param args.trackEvent - The function that will create the Segment event.
  * @param args.metaMetricsId - The MetaMetrics ID of the user.
  */
@@ -101,10 +101,11 @@ export function onRpcEndpointDegraded({
  * unavailable.
  *
  * @param args - The arguments.
+ * @param args.event - The Segment event to create.
  * @param args.chainId - The chain ID that the endpoint represents.
+ * @param args.endpointUrl - The URL of the endpoint.
  * @param args.error - The connection or response error encountered after making
  * a request to the RPC endpoint.
- * @param args.endpointUrl - The URL of the endpoint.
  * @param args.trackEvent - The function that will create the Segment event.
  * @param args.metaMetricsId - The MetaMetrics ID of the user.
  */
