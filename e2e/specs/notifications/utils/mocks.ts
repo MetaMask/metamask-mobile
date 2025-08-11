@@ -149,6 +149,13 @@ async function mockAPICall(server: Mockttp, response: ResponseParam) {
         .catch((err) => {
           console.log('Could not parse request body:', err.message);
         });
+
+      // Log the mock response being sent
+      console.log(
+        'Response being mocked:',
+        JSON.stringify(response.response, null, 2),
+      );
+
       return {
         statusCode: 200,
         json: response.response,

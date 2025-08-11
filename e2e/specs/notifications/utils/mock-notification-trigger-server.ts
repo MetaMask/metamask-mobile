@@ -90,7 +90,15 @@ export class MockttpNotificationTriggerServer {
           .catch((err) => {
             console.log('Could not parse request body:', err.message);
           });
-        return this.getConfig(request);
+        const response = this.getConfig(request);
+        // Log the response that will be sent back
+        response.then((res) => {
+          console.log(
+            'Response for getConfig:',
+            JSON.stringify(res.json, null, 2),
+          );
+        });
+        return response;
       });
 
     await server
@@ -124,7 +132,15 @@ export class MockttpNotificationTriggerServer {
           .catch((err) => {
             console.log('Could not parse request body:', err.message);
           });
-        return this.updateConfig(request);
+        const response = this.updateConfig(request);
+        // Log the response that will be sent back
+        response.then((res) => {
+          console.log(
+            'Response for updateConfig:',
+            JSON.stringify(res, null, 2),
+          );
+        });
+        return response;
       });
   };
 

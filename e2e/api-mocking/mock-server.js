@@ -244,6 +244,10 @@ export const startMockServer = async (events, port) => {
  * @param {import('mockttp').Mockttp} mockServer
  */
 export const stopMockServer = async (mockServer) => {
-  await mockServer.stop();
   console.log('Mock server shutting down');
+  try {
+    await mockServer.stop();
+  } catch (error) {
+    console.error('Error stopping mock server:', error);
+  }
 };
