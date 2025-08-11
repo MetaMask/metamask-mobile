@@ -42,7 +42,11 @@ const ConfirmWrapped = ({
           <QRHardwareContextProvider>
             <LedgerContextProvider>
               <Title />
-              <ScrollView style={styles.scrollView} nestedScrollEnabled>
+              <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollViewContent}
+                nestedScrollEnabled
+              >
                 <TouchableWithoutFeedback>
                   <>
                     <GeneralAlertBanner />
@@ -71,7 +75,7 @@ export const Confirm = ({ route }: ConfirmProps) => {
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
 
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles, theme } = useStyles(styleSheet, { isFullScreenConfirmation });
 
   if (!isRedesignedEnabled) {
     navigation.setOptions({

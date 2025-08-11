@@ -48,7 +48,8 @@ export const Footer = () => {
   const isStakingConfirmationBool = isStakingConfirmation(
     transactionMetadata?.type as string,
   );
-  const { isTransactionValueUpdating } = useConfirmationContext();
+  const { isFooterVisible, isTransactionValueUpdating } =
+    useConfirmationContext();
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
@@ -88,6 +89,7 @@ export const Footer = () => {
     isStakingConfirmationBool,
     isFullScreenConfirmation,
   });
+
   const confirmButtonLabel = () => {
     if (isQRSigningInProgress) {
       return strings('confirm.qr_get_sign');
@@ -136,6 +138,10 @@ export const Footer = () => {
       startIconName: getStartIcon(),
     },
   ];
+
+  if (!isFooterVisible) {
+    return null;
+  }
 
   return (
     <>
