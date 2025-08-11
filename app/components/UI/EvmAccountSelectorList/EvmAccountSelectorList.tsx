@@ -126,7 +126,9 @@ const EvmAccountSelectorList = ({
         wallet: section.wallet,
         data: section.data
           .map((accountId: string) => accountsById.get(accountId))
-          .filter((account): account is Account => account !== undefined),
+          .filter(
+            (account: Account | undefined) => account !== undefined,
+          ) as Account[],
       }));
     }
     // Fallback for old behavior

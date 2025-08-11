@@ -406,12 +406,6 @@ describe('BlockExplorersModal', () => {
         PerpsController: {
           connectionStatus: 'disconnected' as const,
         },
-        AccountTreeController: {
-          accountTree: {
-            selectedAccountGroup: '' as const,
-            wallets: {},
-          },
-        },
       },
     },
     settings: {

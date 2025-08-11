@@ -1,6 +1,9 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../../reducers';
-import { selectSelectedInternalAccountId } from '../../selectors/accountsController';
+import {
+  selectInternalAccounts,
+  selectSelectedInternalAccountId,
+} from '../../selectors/accountsController';
 import { AccountWalletId } from '@metamask/account-api';
 import { AccountId } from '@metamask/accounts-controller';
 import {
@@ -29,8 +32,8 @@ export const selectAccountTreeControllerState = (state: RootState) =>
  * For now, this returns a simple structure until the controller is fully integrated
  */
 export const selectAccountSections = createSelector(
-  [selectAccountTreeControllerState],
-  (accountTreeState) => {
+  [selectAccountTreeControllerState, selectInternalAccounts],
+  (accountTreeState, internalAccounts) => {
     if (!accountTreeState?.accountTree?.wallets) {
       return EMPTY_ARR;
     }
