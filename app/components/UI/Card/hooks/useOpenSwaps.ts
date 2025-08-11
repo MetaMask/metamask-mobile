@@ -3,10 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Hex } from 'viem';
 
 import {
-  selectEvmTokenFiatBalances,
-  selectEvmTokens,
-} from '../../../../selectors/multichain';
-import {
   SwapBridgeNavigationLocation,
   useSwapBridgeNavigation,
 } from '../../Bridge/hooks/useSwapBridgeNavigation';
@@ -17,6 +13,8 @@ import { buildTokenIconUrl } from '../util/buildTokenIconUrl';
 import { getHighestFiatToken } from '../util/getHighestFiatToken';
 import { setDestToken } from '../../../../core/redux/slices/bridge';
 import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
+import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 
 export interface OpenSwapsParams {
   chainId: string;
@@ -36,40 +34,25 @@ export const useOpenSwaps = ({
   priorityToken,
 }: UseOpenSwapsOptions = {}) => {
   const dispatch = useDispatch();
-  const evmTokens = useSelector(selectEvmTokens);
-  const tokenFiatBalances = useSelector(selectEvmTokenFiatBalances);
-  const { trackEvent, createEventBuilder } = useMetrics();
-
-  const tokens = useMemo(
-    () =>
-      evmTokens.map((token, i) => ({
-        ...token,
-        tokenFiatAmount: tokenFiatBalances[i],
-      })),
-    [evmTokens, tokenFiatBalances],
+  const popularNetworks = useSelector(selectAllPopularNetworkConfigurations);
+  const chainIds = Object.entries(popularNetworks).map(
+    (network) => network[1].chainId,
   );
+  const tokensWithBalance = useTokensWithBalance({
+    chainIds,
+  });
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const sourceToken = useMemo(() => {
     if (priorityToken) {
       const highestFiatToken = getHighestFiatToken(
-        tokens,
+        tokensWithBalance,
         priorityToken.address as Hex,
       );
 
-      return highestFiatToken
-        ? {
-            chainId: highestFiatToken.chainId as Hex,
-            address: highestFiatToken.address,
-            decimals: highestFiatToken.decimals,
-            symbol: highestFiatToken.symbol,
-            balance: highestFiatToken.balance,
-            image: highestFiatToken.image,
-            balanceFiat: highestFiatToken.balanceFiat,
-            name: highestFiatToken.name,
-          }
-        : undefined;
+      return highestFiatToken;
     }
-  }, [tokens, priorityToken]);
+  }, [tokensWithBalance, priorityToken]);
 
   const { goToSwaps } = useSwapBridgeNavigation({
     location,

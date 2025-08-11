@@ -6,10 +6,8 @@ import { getHighestFiatToken } from '../util/getHighestFiatToken';
 import { setDestToken } from '../../../../core/redux/slices/bridge';
 import { SwapBridgeNavigationLocation } from '../../Bridge/hooks/useSwapBridgeNavigation';
 import { CardTokenAllowance } from '../types';
-import {
-  selectEvmTokens,
-  selectEvmTokenFiatBalances,
-} from '../../../../selectors/multichain';
+import { selectAllPopularNetworkConfigurations } from '../../../../selectors/networkController';
+import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -42,6 +40,14 @@ jest.mock('../../../../selectors/multichain', () => ({
   selectEvmTokenFiatBalances: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/networkController', () => ({
+  selectAllPopularNetworkConfigurations: jest.fn(),
+}));
+
+jest.mock('../../Bridge/hooks/useTokensWithBalance', () => ({
+  useTokensWithBalance: jest.fn(),
+}));
+
 jest.mock('../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
   MetaMetricsEvents: {
@@ -55,7 +61,7 @@ describe('useOpenSwaps', () => {
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
 
-  const mockEvmTokens = [
+  const mockTokensWithBalance = [
     {
       address: '0xbeef',
       symbol: 'ETHX',
@@ -69,7 +75,13 @@ describe('useOpenSwaps', () => {
     },
   ];
 
-  const mockTokenFiatBalances = ['100'];
+  const mockPopularNetworks = {
+    '0xe708': {
+      chainId: '0xe708',
+      name: 'Linea',
+      nativeCurrency: 'ETH',
+    },
+  };
 
   const mockPriorityToken = {
     address: '0xdead',
@@ -96,11 +108,11 @@ describe('useOpenSwaps', () => {
 
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
 
-    // Mock selector return values
-    (selectEvmTokens as unknown as jest.Mock).mockReturnValue(mockEvmTokens);
-    (selectEvmTokenFiatBalances as unknown as jest.Mock).mockReturnValue(
-      mockTokenFiatBalances,
-    );
+    // Mock selector and hook return values
+    (
+      selectAllPopularNetworkConfigurations as unknown as jest.Mock
+    ).mockReturnValue(mockPopularNetworks);
+    (useTokensWithBalance as jest.Mock).mockReturnValue(mockTokensWithBalance);
 
     (useSelector as jest.Mock).mockImplementation((selector) => selector());
 
@@ -317,10 +329,10 @@ describe('useOpenSwaps', () => {
     expect(buildTokenIconUrl).toHaveBeenCalledWith('0xe708', '0xdead');
   });
 
-  it('maps EVM tokens with fiat balances correctly', () => {
+  it('uses tokens with balance correctly', () => {
     const { result } = renderHook(() => useOpenSwaps());
 
-    // The hook should create a tokens array with tokenFiatAmount
+    // The hook should use useTokensWithBalance hook
     expect(result.current).toBeDefined();
     expect(typeof result.current.openSwaps).toBe('function');
   });

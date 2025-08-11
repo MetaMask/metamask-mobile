@@ -1,25 +1,19 @@
 import { getHighestFiatToken } from './getHighestFiatToken';
-import { TokenI } from '../../Tokens/types';
-
-type TokenIWithTokenFiatAmount = TokenI & {
-  tokenFiatAmount: number | undefined;
-};
+import { BridgeToken } from '../../Bridge/types';
 
 // Mock token data for testing
 const createMockToken = (
   address: string,
   tokenFiatAmount: number | undefined,
-  overrides: Partial<TokenI> = {},
-): TokenIWithTokenFiatAmount => ({
+  overrides: Partial<BridgeToken> = {},
+): BridgeToken => ({
   address,
-  aggregators: [],
   decimals: 18,
   image: '',
   name: `Token ${address}`,
   symbol: `TKN${address.slice(-2)}`,
   balance: '1000000000000000000',
-  logo: undefined,
-  isETH: false,
+  chainId: '0x1',
   tokenFiatAmount,
   ...overrides,
 });
@@ -29,26 +23,26 @@ describe('getHighestFiatToken', () => {
     '0x1234567890abcdef1234567890abcdef12345678' as const;
 
   describe('edge cases', () => {
-    it('should return null when tokens array is empty', () => {
+    it('should return undefined when tokens array is empty', () => {
       const result = getHighestFiatToken([], priorityTokenAddress);
-      expect(result).toBeNull();
+      expect(result).toBeUndefined();
     });
 
-    it('should return null when all tokens are filtered out due to priority token', () => {
+    it('should return undefined when all tokens are filtered out due to priority token', () => {
       const tokens = [
         createMockToken(priorityTokenAddress, 100),
         createMockToken(priorityTokenAddress.toUpperCase(), 200),
       ];
 
       const result = getHighestFiatToken(tokens, priorityTokenAddress);
-      expect(result).toBeNull();
+      expect(result).toBeUndefined();
     });
 
-    it('should return null when only priority token exists (case insensitive)', () => {
+    it('should return undefined when only priority token exists (case insensitive)', () => {
       const tokens = [createMockToken(priorityTokenAddress.toUpperCase(), 100)];
 
       const result = getHighestFiatToken(tokens, priorityTokenAddress);
-      expect(result).toBeNull();
+      expect(result).toBeUndefined();
     });
   });
 
@@ -133,9 +127,9 @@ describe('getHighestFiatToken', () => {
       const tokens = [token1, token2];
       const result = getHighestFiatToken(tokens, priorityTokenAddress);
 
-      // Should return null when all tokens have undefined/0 fiat amounts
-      // because the reduce starts with null and no token has > 0 fiat amount
-      expect(result).toBeNull();
+      // Should return undefined when all tokens have undefined/0 fiat amounts
+      // because the reduce starts with undefined and no token has > 0 fiat amount
+      expect(result).toBeUndefined();
     });
 
     it('should handle tokens with zero fiat amounts', () => {
@@ -167,8 +161,8 @@ describe('getHighestFiatToken', () => {
       const tokens = [token1, token2];
       const result = getHighestFiatToken(tokens, priorityTokenAddress);
 
-      // Should return null when all tokens have zero fiat amounts
-      expect(result).toBeNull();
+      // Should return undefined when all tokens have zero fiat amounts
+      expect(result).toBeUndefined();
     });
 
     it('should handle negative fiat amounts', () => {
@@ -252,7 +246,6 @@ describe('getHighestFiatToken', () => {
           name: 'Test Token',
           symbol: 'TEST',
           decimals: 6,
-          isETH: true,
         },
       );
 
@@ -263,7 +256,6 @@ describe('getHighestFiatToken', () => {
       expect(result?.name).toBe('Test Token');
       expect(result?.symbol).toBe('TEST');
       expect(result?.decimals).toBe(6);
-      expect(result?.isETH).toBe(true);
     });
 
     it('should work with large fiat amounts', () => {
