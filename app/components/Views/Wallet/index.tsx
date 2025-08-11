@@ -36,6 +36,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -146,9 +147,6 @@ import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
-    base: {
-      paddingHorizontal: 16,
-    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -172,7 +170,7 @@ const createStyles = ({ colors }: Theme) =>
       paddingHorizontal: 16,
     },
     carouselContainer: {
-      marginTop: 12,
+      marginBottom: 12,
     },
     tabStyle: {
       paddingBottom: 8,
@@ -450,6 +448,12 @@ const Wallet = ({
   const accountName = useAccountName();
   useAccountsWithNetworkActivitySync();
 
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
+
   useEffect(() => {
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -543,10 +547,9 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const selectedNetworkName = useSelector(selectNetworkName);
+  const name = useSelector(selectNetworkName);
 
-  const networkName =
-    networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
+  const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
@@ -652,13 +655,14 @@ const Wallet = ({
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
 
-        Object.values(evmNetworkConfigurations).forEach(
-          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-            AccountTrackerController.refresh([
+        const networkClientIDs = Object.values(evmNetworkConfigurations)
+          .map(
+            ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-            ]);
-          },
-        );
+          )
+          .filter((c) => Boolean(c));
+
+        AccountTrackerController.refresh(networkClientIDs);
       });
     },
     /* eslint-disable-next-line */
@@ -674,6 +678,7 @@ const Wallet = ({
         walletRef,
         selectedInternalAccount,
         accountName,
+        accountAvatarType,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -688,11 +693,12 @@ const Wallet = ({
   }, [
     selectedInternalAccount,
     accountName,
+    accountAvatarType,
+    navigation,
+    colors,
     networkName,
     networkImageSource,
     onTitlePress,
-    navigation,
-    colors,
     isNotificationEnabled,
     isBackupAndSyncEnabled,
     unreadNotificationCount,

@@ -1,6 +1,5 @@
 import { calculateFundingCountdown, calculate24hHighLow } from './marketUtils';
 import type { CandleData } from '../types';
-import { CandlePeriod } from '../constants/chartConfig';
 
 describe('marketUtils', () => {
   describe('calculateFundingCountdown', () => {
@@ -76,7 +75,7 @@ describe('marketUtils', () => {
 
     const mockCandleData: CandleData = {
       coin: 'BTC',
-      interval: CandlePeriod.ONE_HOUR,
+      interval: '1h',
       candles: [
         {
           time: fortyEightHoursAgo,
@@ -129,7 +128,7 @@ describe('marketUtils', () => {
     it('should handle empty candles array', () => {
       const emptyData: CandleData = {
         coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        interval: '1h',
         candles: [],
       };
       const result = calculate24hHighLow(emptyData);
@@ -139,7 +138,7 @@ describe('marketUtils', () => {
     it('should use all candles if none are within 24h', () => {
       const oldCandleData: CandleData = {
         coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        interval: '1h',
         candles: [
           {
             time: fortyEightHoursAgo,
@@ -158,7 +157,7 @@ describe('marketUtils', () => {
     it('should handle candles with string values', () => {
       const stringCandleData: CandleData = {
         coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        interval: '1h',
         candles: [
           {
             time: oneHourAgo,
@@ -177,7 +176,7 @@ describe('marketUtils', () => {
     it('should handle single candle within 24h', () => {
       const singleCandleData: CandleData = {
         coin: 'BTC',
-        interval: CandlePeriod.ONE_HOUR,
+        interval: '1h',
         candles: [
           {
             time: oneHourAgo,

@@ -156,7 +156,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   });
 
   // Hook for handling non-EVM asset sending
-  const { sendNonEvmAsset } = useSendNonEvmAsset({ asset });
+  const { sendNonEvmAsset } = useSendNonEvmAsset({
+    asset: {
+      chainId: asset.chainId as string,
+      address: asset.address,
+    },
+  });
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();

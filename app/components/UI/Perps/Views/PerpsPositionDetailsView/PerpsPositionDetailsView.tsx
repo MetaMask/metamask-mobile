@@ -15,7 +15,6 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../../locales/i18n';
-import { PerpsPositionDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import type { Position } from '../../controllers/types';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
@@ -25,12 +24,6 @@ import { usePerpsTPSLUpdate, usePerpsClosePosition } from '../../hooks';
 import { createStyles } from './PerpsPositionDetailsView.styles';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import PerpsClosePositionBottomSheet from '../../components/PerpsClosePositionBottomSheet';
-import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
-import {
-  getDefaultCandlePeriodForDuration,
-  TimeDuration,
-  CandlePeriod,
-} from '../../constants/chartConfig';
 
 interface PositionDetailsRouteParams {
   position: Position;
@@ -46,19 +39,9 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const { position } = route.params || {};
 
-  const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
-    TimeDuration.ONE_DAY,
-  );
-  const [selectedCandlePeriod, setSelectedCandlePeriod] =
-    useState<CandlePeriod>(() =>
-      getDefaultCandlePeriodForDuration(TimeDuration.ONE_DAY),
-    );
+  const [selectedInterval, setSelectedInterval] = useState('1h');
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
-  const [
-    isCandlePeriodBottomSheetVisible,
-    setIsCandlePeriodBottomSheetVisible,
-  ] = useState(false);
   const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Navigate back to refresh the position
@@ -73,23 +56,11 @@ const PerpsPositionDetailsView: React.FC = () => {
   });
   const { candleData, priceData, isLoadingHistory } = usePerpsPositionData({
     coin: position?.coin || '',
-    selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
-    selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
+    selectedInterval,
   });
 
-  const handleDurationChange = useCallback((newDuration: TimeDuration) => {
-    setSelectedDuration(newDuration);
-    // Auto-update candle period to the appropriate default for the new duration
-    const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
-    setSelectedCandlePeriod(defaultPeriod);
-  }, []);
-
-  const handleCandlePeriodChange = useCallback((newPeriod: CandlePeriod) => {
-    setSelectedCandlePeriod(newPeriod);
-  }, []);
-
-  const handleGearPress = useCallback(() => {
-    setIsCandlePeriodBottomSheetVisible(true);
+  const handleIntervalChange = useCallback((newInterval: string) => {
+    setSelectedInterval(newInterval);
   }, []);
 
   // Handle position close button click
@@ -144,13 +115,8 @@ const PerpsPositionDetailsView: React.FC = () => {
             candleData={candleData}
             isLoading={isLoadingHistory}
             height={350}
-            selectedDuration={selectedDuration}
-            tpslLines={{
-              takeProfitPrice: position.takeProfitPrice,
-              stopLossPrice: position.stopLossPrice,
-            }}
-            onDurationChange={handleDurationChange}
-            onGearPress={handleGearPress}
+            selectedInterval={selectedInterval}
+            onIntervalChange={handleIntervalChange}
           />
         </View>
 
@@ -200,20 +166,6 @@ const PerpsPositionDetailsView: React.FC = () => {
           }}
           position={position}
           isClosing={isClosing}
-        />
-      )}
-
-      {/* Candle Period Bottom Sheet */}
-      {isCandlePeriodBottomSheetVisible && (
-        <PerpsCandlePeriodBottomSheet
-          isVisible
-          onClose={() => setIsCandlePeriodBottomSheetVisible(false)}
-          selectedPeriod={selectedCandlePeriod}
-          selectedDuration={selectedDuration}
-          onPeriodChange={handleCandlePeriodChange}
-          testID={
-            PerpsPositionDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOMSHEET
-          }
         />
       )}
     </SafeAreaView>

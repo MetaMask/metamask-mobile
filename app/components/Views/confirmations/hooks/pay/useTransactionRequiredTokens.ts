@@ -13,20 +13,9 @@ import { useDeepMemo } from '../useDeepMemo';
 
 const log = createProjectLogger('transaction-pay');
 
-interface TransactionTokenBase {
-  address: Hex;
-  amount: Hex;
-}
-
 export interface TransactionToken {
   address: Hex;
-  amountRaw: string;
-  amountHuman: string;
-  balanceRaw: string;
-  balanceHuman: string;
-  decimals: number;
-  missingRaw: string;
-  missingHuman: string;
+  amount: Hex;
 }
 
 /**
@@ -47,10 +36,10 @@ export function useTransactionRequiredTokens() {
 
   const requiredTokens = useMemo(
     () =>
-      [gasToken, tokenTransferToken, valueToken].filter(
+      [gasToken, valueToken, tokenTransferToken].filter(
         (t) => t,
-      ) as TransactionTokenBase[],
-    [gasToken, tokenTransferToken, valueToken],
+      ) as TransactionToken[],
+    [gasToken, valueToken, tokenTransferToken],
   );
 
   const finalTokens = getPartialTokens(
@@ -68,7 +57,7 @@ export function useTransactionRequiredTokens() {
   return result;
 }
 
-function useTokenTransferToken(): TransactionTokenBase | undefined {
+function useTokenTransferToken(): TransactionToken | undefined {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { txParams } = transactionMetadata;
   const { data, to } = txParams;
@@ -98,7 +87,7 @@ function useTokenTransferToken(): TransactionTokenBase | undefined {
   }, [transferAmount, to]);
 }
 
-function useValueToken(): TransactionTokenBase | undefined {
+function useValueToken(): TransactionToken | undefined {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const { txParams } = transactionMetadata;
   const { value } = txParams;
@@ -115,7 +104,7 @@ function useValueToken(): TransactionTokenBase | undefined {
   }, [value]);
 }
 
-function useGasToken(): TransactionTokenBase | undefined {
+function useGasToken(): TransactionToken | undefined {
   const maxGasCost = useTransactionMaxGasCost() ?? '0x0';
 
   return useMemo(() => {
@@ -128,7 +117,7 @@ function useGasToken(): TransactionTokenBase | undefined {
 }
 
 function getPartialTokens(
-  tokens: TransactionTokenBase[],
+  tokens: TransactionToken[],
   balanceTokens: BridgeToken[],
   chainId: Hex,
 ): TransactionToken[] {
@@ -139,36 +128,39 @@ function getPartialTokens(
         t.chainId === chainId,
     );
 
-    const balanceHuman = balanceToken?.balance ?? '0';
-    const decimals = balanceToken?.decimals ?? 18;
-    const amountRaw = new BigNumber(token.amount, 16);
-    const amountHuman = amountRaw.shiftedBy(-decimals);
-    const balanceRaw = new BigNumber(balanceHuman, 10).shiftedBy(decimals);
-    const missingRaw = amountRaw.minus(balanceRaw);
-    const missingHuman = missingRaw.shiftedBy(-decimals);
+    if (!balanceToken?.balance) {
+      acc.push({
+        ...token,
+      });
 
-    if (missingRaw.lte(0)) {
+      return acc;
+    }
+
+    const { balance } = balanceToken;
+    const decimals = balanceToken.decimals ?? 18;
+
+    const requiredBalance = new BigNumber(token.amount, 16)
+      .shiftedBy(-decimals)
+      .minus(balance);
+
+    const requiredBalanceRaw = add0x(
+      requiredBalance.shiftedBy(decimals).toString(16),
+    );
+
+    if (requiredBalance.lte(0)) {
       return acc;
     }
 
     acc.push({
-      address: token.address,
-      amountHuman: amountHuman.toString(10),
-      amountRaw: amountRaw.toFixed(0),
-      balanceHuman,
-      balanceRaw: balanceRaw.toFixed(0),
-      decimals,
-      missingHuman: missingHuman.toString(),
-      missingRaw: missingRaw.toFixed(0),
+      ...token,
+      amount: requiredBalanceRaw,
     });
 
     return acc;
   }, [] as TransactionToken[]);
 }
 
-function getUniqueTokens(
-  targets: TransactionTokenBase[],
-): TransactionTokenBase[] {
+function getUniqueTokens(targets: TransactionToken[]): TransactionToken[] {
   return targets.reduce((acc, target) => {
     const existingToken = acc.find(
       (t) => t.address.toLowerCase() === target.address.toLowerCase(),
@@ -185,5 +177,5 @@ function getUniqueTokens(
     }
 
     return acc;
-  }, [] as TransactionTokenBase[]);
+  }, [] as TransactionToken[]);
 }

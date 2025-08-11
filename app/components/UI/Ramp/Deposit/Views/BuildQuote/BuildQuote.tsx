@@ -80,22 +80,8 @@ import {
   EUR_CURRENCY,
   APPLE_PAY_PAYMENT_METHOD,
 } from '../../constants';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../constants/navigation/Routes';
-
-interface BuildQuoteParams {
-  shouldRouteImmediately?: boolean;
-}
-
-export const createBuildQuoteNavDetails =
-  createNavigationDetails<BuildQuoteParams>(Routes.DEPOSIT.BUILD_QUOTE);
 
 const BuildQuote = () => {
-  const { shouldRouteImmediately } = useParams<BuildQuoteParams>();
-
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
@@ -461,15 +447,6 @@ const BuildQuote = () => {
   const networkImageSource = getNetworkImageSource({
     chainId: cryptoCurrency.chainId,
   });
-
-  useEffect(() => {
-    if (shouldRouteImmediately) {
-      navigation.setParams({
-        shouldRouteImmediately: false,
-      });
-      handleOnPressContinue();
-    }
-  }, [handleOnPressContinue, shouldRouteImmediately, navigation]);
 
   return (
     <ScreenLayout>

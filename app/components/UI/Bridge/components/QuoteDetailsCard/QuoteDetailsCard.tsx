@@ -46,7 +46,6 @@ import {
   selectDestToken,
   selectSourceToken,
   selectIsEvmSolanaBridge,
-  selectBridgeFeatureFlags,
 } from '../../../../../core/redux/slices/bridge';
 
 const ANIMATION_DURATION_MS = 50;
@@ -96,7 +95,6 @@ const QuoteDetailsCard = () => {
   const destToken = useSelector(selectDestToken);
   const sourceAmount = useSelector(selectSourceAmount);
   const isEvmSolanaBridge = useSelector(selectIsEvmSolanaBridge);
-  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
 
   const isSameChainId = sourceToken?.chainId === destToken?.chainId;
   // Initialize expanded state based on whether destination is Solana or it's a Solana swap
@@ -141,15 +139,6 @@ const QuoteDetailsCard = () => {
     });
   };
 
-  const handlePriceImpactWarningPress = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_WARNING_MODAL,
-      params: {
-        isGasIncluded: !!activeQuote?.quote.gasIncluded,
-      },
-    });
-  };
-
   // Early return for invalid states
   if (
     !sourceToken?.chainId ||
@@ -162,19 +151,6 @@ const QuoteDetailsCard = () => {
 
   const { networkFee, estimatedTime, rate, priceImpact, slippage } =
     formattedQuoteData;
-
-  // Check if price impact warning should be shown
-  const gasIncluded = !!activeQuote?.quote.gasIncluded;
-  const rawPriceImpact = activeQuote?.quote.priceData?.priceImpact;
-  const shouldShowPriceImpactWarning =
-    rawPriceImpact !== undefined &&
-    bridgeFeatureFlags?.priceImpactThreshold &&
-    ((gasIncluded &&
-      Number(rawPriceImpact) >=
-        bridgeFeatureFlags.priceImpactThreshold.gasless) ||
-      (!gasIncluded &&
-        Number(rawPriceImpact) >=
-          bridgeFeatureFlags.priceImpactThreshold.normal));
 
   return (
     <Box>
@@ -228,7 +204,7 @@ const QuoteDetailsCard = () => {
             justifyContent={JustifyContent.spaceBetween}
           >
             <Text variant={TextVariant.BodyMDMedium}>
-              {strings('bridge.network_fee')}
+              {strings('bridge.network_fee') || 'Network fee'}
             </Text>
             <Box
               flexDirection={FlexDirection.Row}
@@ -236,7 +212,7 @@ const QuoteDetailsCard = () => {
               gap={8}
             >
               <Text variant={TextVariant.BodyMD}>
-                {strings('bridge.included')}
+                {strings('bridge.included') || 'Included'}
               </Text>
               <Text
                 variant={TextVariant.BodyMD}
@@ -250,7 +226,7 @@ const QuoteDetailsCard = () => {
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.network_fee'),
+                text: strings('bridge.network_fee') || 'Network fee',
                 variant: TextVariant.BodyMDMedium,
               },
             }}
@@ -266,7 +242,7 @@ const QuoteDetailsCard = () => {
         <KeyValueRow
           field={{
             label: {
-              text: strings('bridge.time'),
+              text: strings('bridge.time') || 'Time',
               variant: TextVariant.BodyMDMedium,
             },
           }}
@@ -283,7 +259,7 @@ const QuoteDetailsCard = () => {
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.quote'),
+                text: strings('bridge.quote') || 'Quote',
                 variant: TextVariant.BodyMDMedium,
               },
               tooltip: {
@@ -335,25 +311,14 @@ const QuoteDetailsCard = () => {
             <KeyValueRow
               field={{
                 label: {
-                  text: strings('bridge.price_impact'),
+                  text: strings('bridge.price_impact') || 'Price Impact',
                   variant: TextVariant.BodyMDMedium,
                 },
-                ...(shouldShowPriceImpactWarning && {
-                  tooltip: {
-                    title: strings('bridge.price_impact_warning_title'),
-                    content: strings('bridge.price_impact_normal_warning'),
-                    onPress: handlePriceImpactWarningPress,
-                    size: TooltipSizes.Sm,
-                  },
-                }),
               }}
               value={{
                 label: {
                   text: priceImpact,
                   variant: TextVariant.BodyMD,
-                  color: shouldShowPriceImpactWarning
-                    ? TextColor.Error
-                    : undefined,
                 },
               }}
             />
@@ -373,7 +338,7 @@ const QuoteDetailsCard = () => {
                       style={styles.slippageButton}
                     >
                       <Text variant={TextVariant.BodyMDMedium}>
-                        {strings('bridge.slippage')}
+                        {strings('bridge.slippage') || 'Slippage'}
                       </Text>
                       <Icon
                         name={IconName.Edit}

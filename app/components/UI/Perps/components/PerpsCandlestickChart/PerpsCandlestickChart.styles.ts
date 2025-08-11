@@ -53,14 +53,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       zIndex: 1,
       pointerEvents: 'none',
     },
-    tpslContainer: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: -999, // Far below everything including tooltip
-      pointerEvents: 'none',
-    },
     gridLineWithLabel: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -76,7 +68,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       paddingVertical: 2,
       borderRadius: 4,
       minWidth: 60,
-      zIndex: 10,
     },
 
     // Tooltip styling
@@ -91,7 +82,7 @@ export const styleSheet = (params: { theme: Theme }) => {
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.1,
       shadowRadius: 4,
-      elevation: 20,
+      elevation: 3,
     },
     tooltipText: {
       color: colors.text.default,
@@ -107,18 +98,6 @@ export const styleSheet = (params: { theme: Theme }) => {
     // Add new styles for inline styles
     relativeContainer: {
       position: 'relative',
-    },
-    tpslLine: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      height: 1,
-      zIndex: -999, // Far below everything
-      opacity: 0.8,
-      pointerEvents: 'none',
-      borderTopWidth: 1,
-      borderStyle: 'dashed',
-      backgroundColor: importedColors.transparent,
     },
     noDataContainer: {
       backgroundColor: importedColors.transparent,
