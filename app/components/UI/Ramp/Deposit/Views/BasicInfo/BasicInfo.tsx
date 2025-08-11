@@ -89,7 +89,7 @@ const BasicInfo = (): JSX.Element => {
     lastName: previousFormData?.lastName || '',
     mobileNumber: previousFormData?.mobileNumber || '',
     dob: localTimestampToUseInternally,
-    ssn: previousFormData?.ssn || '',
+    ssn: '',
   };
 
   const validateForm = (
@@ -168,6 +168,10 @@ const BasicInfo = (): JSX.Element => {
     );
   }, [navigation, theme]);
 
+  useEffect(() => {
+    handleFormDataChange('ssn')('');
+  }, [handleFormDataChange]);
+
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
 
@@ -181,30 +185,20 @@ const BasicInfo = (): JSX.Element => {
       setLoading(true);
       setError(null);
 
-      // Prepare the form data with proper date formatting
       const basicInfoData = {
         ...formData,
         dob: formData.dob.trim() ? timestampToTransakFormat(formData.dob) : '',
       };
 
-      // Submit the basic info form data
       await postKycForm(basicInfoData);
 
-      // If SSN is provided, submit it separately
       if (formData.ssn) {
         await submitSsnDetails(formData.ssn);
       }
 
-      // Navigate to EnterAddress with form data
       navigation.navigate(
         ...createEnterAddressNavDetails({
           previousFormData,
-          formData: {
-            ...formData,
-            dob: formData.dob.trim()
-              ? timestampToTransakFormat(formData.dob)
-              : '',
-          },
           quote,
         }),
       );
