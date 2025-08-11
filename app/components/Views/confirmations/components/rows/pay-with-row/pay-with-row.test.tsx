@@ -5,11 +5,9 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { Text as MockText, View as MockView } from 'react-native';
+import { Text as MockText } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
-import { TransactionBridgeQuote } from '../../../utils/bridge';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -18,12 +16,6 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionBridgeQuotes');
-
-jest.mock('../../../../../UI/AnimatedSpinner', () => ({
-  __esModule: true,
-  ...jest.requireActual('../../../../../UI/AnimatedSpinner'),
-  default: () => <MockView testID="pay-with-spinner">{`Spinner`}</MockView>,
-}));
 
 jest.mock('../../token-pill/', () => ({
   TokenPill: (props: TokenPillProps) => (
@@ -51,24 +43,14 @@ describe('PayWithRow', () => {
     jest.resetAllMocks();
 
     jest.mocked(useTransactionPayToken).mockReturnValue({
+      balanceFiat: '$1.23',
+      balanceHuman: '1.23',
       decimals: 18,
       payToken: {
         address: ADDRESS_MOCK,
         chainId: CHAIN_ID_MOCK,
       },
       setPayToken: jest.fn(),
-    });
-
-    jest.mocked(useTransactionBridgeQuotes).mockReturnValue({
-      quotes: [
-        {
-          estimatedProcessingTimeInSeconds: 10,
-        },
-        {
-          estimatedProcessingTimeInSeconds: 15,
-        },
-      ] as TransactionBridgeQuote[],
-      loading: false,
     });
 
     jest.mocked(useNavigation).mockReturnValue({
@@ -79,21 +61,6 @@ describe('PayWithRow', () => {
   it('renders selected pay token', async () => {
     const { getByText } = render();
     expect(getByText(`${ADDRESS_MOCK} ${CHAIN_ID_MOCK}`)).toBeDefined();
-  });
-
-  it('renders total estimated time', async () => {
-    const { getByText } = render();
-    expect(getByText(`25 sec`)).toBeDefined();
-  });
-
-  it('renders spinner if quotes loading', async () => {
-    jest.mocked(useTransactionBridgeQuotes).mockReturnValue({
-      quotes: [],
-      loading: true,
-    });
-
-    const { getByTestId } = render();
-    expect(getByTestId(`pay-with-spinner`)).toBeDefined();
   });
 
   it('navigates to token picker on token pill click', async () => {

@@ -191,6 +191,7 @@ const Routes = {
   SWAPS_AMOUNT_VIEW: 'SwapsAmountView',
   BRIDGE: {
     ROOT: 'Bridge',
+    BRIDGE_VIEW: 'BridgeView',
     MODALS: {
       ROOT: 'BridgeModals',
       SOURCE_TOKEN_SELECTOR: 'BridgeSourceTokenSelector',
@@ -222,6 +223,9 @@ const Routes = {
     },
     ORDER_HISTORY: 'PerpsOrderHistory',
     ORDER_DETAILS: 'PerpsOrderDetails',
+    POSITION_TRANSACTION: 'PerpsPositionTransaction',
+    ORDER_TRANSACTION: 'PerpsOrderTransaction',
+    FUNDING_TRANSACTION: 'PerpsFundingTransaction',
   },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',

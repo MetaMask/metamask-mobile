@@ -26,6 +26,7 @@ import Loader from '../../../../../../component-library/components-temp/Loader/L
 import BankDetailRow from '../../components/BankDetailRow';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
+import { endTrace, TraceName } from '../../../../../../util/trace';
 import {
   FiatOrder,
   getOrderById,
@@ -194,6 +195,7 @@ const BankDetails = () => {
       : null;
   const accountType = getFieldValue('Account Type');
   const bankName = getFieldValue('Bank Name');
+  const beneficiaryAddress = getFieldValue('Recipient Address');
   const bankAddress = getFieldValue('Bank Address');
   const routingNumber = getFieldValue('Routing Number');
   const accountNumber = getFieldValue('Account Number');
@@ -219,6 +221,27 @@ const BankDetails = () => {
         theme,
       ),
     );
+
+    endTrace({
+      name: TraceName.LoadDepositExperience,
+      data: {
+        destination: Routes.DEPOSIT.BANK_DETAILS,
+      },
+    });
+
+    endTrace({
+      name: TraceName.DepositContinueFlow,
+      data: {
+        destination: Routes.DEPOSIT.BANK_DETAILS,
+      },
+    });
+
+    endTrace({
+      name: TraceName.DepositInputOtp,
+      data: {
+        destination: Routes.DEPOSIT.BANK_DETAILS,
+      },
+    });
   }, [navigation, theme, order]);
 
   const handleBankTransferSent = useCallback(async () => {
@@ -391,6 +414,15 @@ const BankDetails = () => {
                       <BankDetailRow
                         label={strings('deposit.bank_details.bank_name')}
                         value={bankName}
+                      />
+                    ) : null}
+
+                    {beneficiaryAddress ? (
+                      <BankDetailRow
+                        label={strings(
+                          'deposit.bank_details.beneficiary_address',
+                        )}
+                        value={beneficiaryAddress}
                       />
                     ) : null}
 
