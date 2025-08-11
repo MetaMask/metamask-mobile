@@ -6,8 +6,12 @@ import {
   resetRewardsState,
 } from '../../../../actions/rewards';
 import { useSeasonStatus } from './useSeasonStatus';
-import { setSeasonStatusLoading } from '../../../../reducers/rewards';
+import {
+  setSeasonStatusLoading,
+  setGeoRewardsMetadata,
+} from '../../../../reducers/rewards';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { useGeoRewardsMetadata } from './useGeoRewardsMetadata';
 
 /**
  * Hook that synchronizes the rewards controller engine state with the UI store state
@@ -25,6 +29,10 @@ export const useRewardsEngineControllerSync = () => {
     subscriptionId: subscriptionId ?? undefined,
     seasonId: 'current',
   });
+
+  // Get geo rewards metadata using the controller
+  const { geoRewardsMetadata, isLoading: isGeoRewardsMetadataLoading } =
+    useGeoRewardsMetadata();
 
   // Sync subscription data with UI store
   useEffect(() => {
@@ -51,9 +59,19 @@ export const useRewardsEngineControllerSync = () => {
     dispatch(setSeasonStatusLoading(isSeasonStatusLoading));
   }, [isSeasonStatusLoading, dispatch]);
 
+  // Sync geo rewards metadata with UI store
+  useEffect(() => {
+    if (geoRewardsMetadata) {
+      dispatch(setGeoRewardsMetadata(geoRewardsMetadata));
+    } else {
+      // Clear geo rewards metadata when not available
+      dispatch(setGeoRewardsMetadata(null));
+    }
+  }, [geoRewardsMetadata, dispatch]);
+
   return {
     subscriptionId,
     seasonStatus,
-    isLoading: isSeasonStatusLoading,
+    isLoading: isSeasonStatusLoading || isGeoRewardsMetadataLoading,
   };
 };

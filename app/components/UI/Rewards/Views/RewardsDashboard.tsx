@@ -30,7 +30,7 @@ import {
 import { useRewardsEngineControllerSync } from '../hooks/useRewardsEngineControllerSync';
 import SeasonStatus from '../components/SeasonStatus/SeasonStatus';
 
-const RewardsView: React.FC = () => {
+const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -164,4 +164,4 @@ const RewardsView: React.FC = () => {
   );
 };
 
-export default RewardsView;
+export default RewardsDashboard;

@@ -5533,6 +5533,32 @@
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
 
+    "onboarding": {
+      "region_not_supported_title": "Region not supported",
+      "region_not_supported_description": "Rewards are not supported in your region yet. We are working on expanding access, so check back later.",
+      "got_it": "Got it",
+      "season_one": "Season 1",
+      "is_live": "is Live",
+      "earn_bonus_description": "Earn bonus points and perks based on your MetaMask activity, unlock rewards, and advance through the levels",
+      "claim_points_now": "Claim 250 points now",
+      "not_now": "Not now",
+      "earn_points_title": "Earn Points on Every Trade",
+      "earn_points_description": "Every swap and perps trade in MetaMask earns you points. No sign-up, no extra steps.",
+      "continue": "Continue",
+      "level_up_title": "Level Up for Bigger Perks",
+      "level_up_description": "Hit points milestones to get perks like 50% off perps fees, exclusive tokens, and a free MetaMask Metal Card.",
+      "seasonal_rewards_title": "Exclusive Seasonal Rewards",
+      "seasonal_rewards_description": "Each season brings new perks. Join in, compete, and claim what you can before time runs out.",
+      "unlocked_points": "You unlocked 250 points!",
+      "signup_bonus": "Sign-up bonus",
+      "points_amount": "250 points",
+      "referral_bonus": "Referral bonus",
+      "referral_placeholder": "Enter referral code (optional)",
+      "claim_points": "Claim points",
+      "join_disclaimer": "Joining means we'll track your on-chain activity to reward you automatically.",
+      "learn_more": "Learn more."
+    },
+
     "referral": {
       "actions": {
         "share_referral_link": "Refer a friend",

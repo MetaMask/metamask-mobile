@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Alert } from 'react-native';
 import { Store } from '@reduxjs/toolkit';
-import RewardsView from './RewardsView';
+import RewardsView from './RewardsDashboard';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import type { RootState } from '../../../../reducers';
 import type { RewardsState } from '../../../../reducers/rewards';

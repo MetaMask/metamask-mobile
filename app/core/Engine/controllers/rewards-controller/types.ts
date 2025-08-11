@@ -183,11 +183,6 @@ export interface SeasonStatusDto {
   currentTierId: string;
 }
 
-export interface SubscriptionReferralDetailsDto {
-  referralCode: string;
-  totalReferees: number;
-}
-
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionReferralDetailsState = {
   referralCode: string;

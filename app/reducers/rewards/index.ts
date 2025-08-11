@@ -2,7 +2,9 @@ import { createSlice, PayloadAction, Action } from '@reduxjs/toolkit';
 import {
   SeasonStatusState,
   SeasonTierDto,
+  GeoRewardsMetadata,
 } from '../../core/Engine/controllers/rewards-controller/types';
+import { OnboardingStep } from './types';
 
 export interface RewardsState {
   activeTab: 'overview' | 'activity' | 'levels' | null;
@@ -30,11 +32,23 @@ export interface RewardsState {
   balanceTotal: number | null;
   balanceRefereePortion: number | null;
   balanceUpdatedAt: Date | null;
+
+  // Onboarding state
+  onboardingActiveStep: OnboardingStep;
+
+  // Geolocation state
+  geoLocation: string | null;
+  optinAllowedForGeo: boolean;
 }
 
 export const initialState: RewardsState = {
   activeTab: 'overview',
   seasonStatusLoading: false,
+
+  seasonName: null,
+  seasonStartDate: null,
+  seasonEndDate: null,
+  seasonTiers: [],
 
   referralCode: null,
   refereeCount: 0,
@@ -48,10 +62,9 @@ export const initialState: RewardsState = {
   balanceRefereePortion: 0,
   balanceUpdatedAt: null,
 
-  seasonName: null,
-  seasonStartDate: null,
-  seasonEndDate: null,
-  seasonTiers: [],
+  onboardingActiveStep: OnboardingStep.STEP_1,
+  geoLocation: null,
+  optinAllowedForGeo: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -133,6 +146,27 @@ const rewardsSlice = createSlice({
     resetRewardsState: (state) => {
       Object.assign(state, initialState);
     },
+
+    setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
+      state.onboardingActiveStep = action.payload;
+    },
+
+    resetOnboarding: (state) => {
+      state.onboardingActiveStep = OnboardingStep.STEP_1;
+    },
+
+    setGeoRewardsMetadata: (
+      state,
+      action: PayloadAction<GeoRewardsMetadata | null>,
+    ) => {
+      if (action.payload) {
+        state.geoLocation = action.payload.geoLocation;
+        state.optinAllowedForGeo = action.payload.optinAllowedForGeo;
+      } else {
+        state.geoLocation = null;
+        state.optinAllowedForGeo = false;
+      }
+    },
   },
   extraReducers: (builder) => {
     builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
@@ -155,6 +189,9 @@ export const {
   setReferralDetails,
   setSeasonStatusLoading,
   resetRewardsState,
+  setOnboardingActiveStep,
+  resetOnboarding,
+  setGeoRewardsMetadata,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;
