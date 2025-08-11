@@ -258,7 +258,9 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
             "lineHeight": 24,
           }
         }
-      />
+      >
+        https://example.com
+      </Text>
     </View>
   </View>
   <View
