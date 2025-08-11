@@ -62,6 +62,7 @@ export default function migrate(state: unknown): unknown {
         ).name = toName;
       }
 
+      // Update the RPC Name if it matches the expected name
       if (
         hasProperty(
           state.engine.backgroundState.NetworkController
@@ -77,7 +78,6 @@ export default function migrate(state: unknown): unknown {
           ).rpcEndpoints,
         )
       ) {
-        // Update the RPC Name if it matches the expected name
         const rpcEndpoints = (
           state.engine.backgroundState.NetworkController
             .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
