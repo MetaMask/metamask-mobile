@@ -2239,11 +2239,20 @@
     "change_password": "Change password",
     "password_hint": "Password hint"
   },
+  "fund_actionmenu": {
+    "deposit": "Deposit",
+    "deposit_description": "Low-fee bank or card transfer",
+    "buy": "Buy",
+    "buy_description": "Good for buying a specific token",
+    "sell": "Withdraw",
+    "sell_description": "Sell crypto for cash"
+  },
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
+    "fund_button": "Fund",
     "token_marketplace": "Token marketplace",
-    "sell_button": "Sell",
+    "sell_button": "Withdraw",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
     "earn_button": "Earn",
@@ -2272,7 +2281,7 @@
     "troubleshooting_missing": "troubleshooting missing balances",
     "for_help": "for help.",
     "troubleshoot": "Troubleshoot",
-    "deposit_description": "Low-cost card or bank transfer",
+    "deposit_description": "Low-fee bank or card transfer",
     "buy_description": "Good for buying a specific token",
     "sell_description": "Sell crypto for cash",
     "swap_description": "Exchange between tokens",
