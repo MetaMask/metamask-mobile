@@ -53,6 +53,11 @@ class AccountListComponent {
     const element = await this.accountListContainer;
     await element.waitForExist({ reverse: true });
   }
+
+  async tapOnAccountByName(name) {
+    const account = await AppwrightSelectors.getElementByText(this.device, name);
+    await account.tap();
+  }
 }
 
 export default new AccountListComponent();

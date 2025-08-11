@@ -17,11 +17,11 @@ import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePas
 import WalletMainScreen from '../../wdio/screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../wdio/screen-objects/Modals/AddAccountModal.js';
-import CommonScreen from '../../wdio/screen-objects/CommonScreen.js';
-import TokenOverviewScreen from '../../wdio/screen-objects/TokenOverviewScreen.js';
+import WalletActionModal from '../../wdio/screen-objects/Modals/WalletActionModal.js';
+import SwapScreen from '../../wdio/screen-objects/SwapScreen.js';
 const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
-test('Asset View', async ({ device }, testInfo) => {
+test('Swap flow - Etherem', async ({ device }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -37,10 +37,8 @@ test('Asset View', async ({ device }, testInfo) => {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
-  TokenOverviewScreen.device = device;
-  CommonScreen.device = device;
-
-  device.webDriverClient.capabilities["appium:settings[snapshotMaxDepth]"] = 80;
+  WalletActionModal.device = device;
+  SwapScreen.device = device;
 
   await WelcomeScreen.clickGetStartedButton();
 
@@ -72,17 +70,89 @@ test('Asset View', async ({ device }, testInfo) => {
   await OnboardingSucessScreen.tapDone();
   await SolanaFeatureSheet.isVisible();
   await SolanaFeatureSheet.tapNotNowButton();
-  await WalletMainScreen.isMainWalletViewVisible();
-
-  const assetViewScreen = new TimerHelper(
-    'Time since the user clicks on the asset view button until the user sees the token overview screen',
+  const swapLoadTimer = new TimerHelper(
+    'Time since the user clicks on the "Swap" button until the swap page is loaded',
   );
-  assetViewScreen.start();
-  await CommonScreen.tapOnAsset('Ethereum');
-  await TokenOverviewScreen.isTokenOverviewVisible();
-  assetViewScreen.stop();
-
+  swapLoadTimer.start();
+  await WalletActionModal.tapSwapButton();
+  swapLoadTimer.stop();
+  const swapTimer = new TimerHelper(
+    'Time since the user enters the amount until the quote is displayed',
+  );
+  await SwapScreen.enterSourceTokenAmount('1');
+  swapTimer.start();
+  await SwapScreen.isQuoteDisplayed();
+  swapTimer.stop();
   const performanceTracker = new PerformanceTracker();
-  performanceTracker.addTimer(assetViewScreen);
+  performanceTracker.addTimer(swapLoadTimer);
+  performanceTracker.addTimer(swapTimer);
+  await performanceTracker.attachToTest(testInfo);
+});
+
+test.only('Swap flow - Etherem - Solana', async ({ device }, testInfo) => {
+  WelcomeScreen.device = device;
+  TermOfUseScreen.device = device;
+  OnboardingScreen.device = device;
+  CreateNewWalletScreen.device = device;
+  MetaMetricsScreen.device = device;
+  OnboardingSucessScreen.device = device;
+  OnboardingSheet.device = device;
+  SolanaFeatureSheet.device = device;
+  WalletAccountModal.device = device;
+  SkipAccountSecurityModal.device = device;
+  ImportFromSeedScreen.device = device;
+  CreatePasswordScreen.device = device;
+  WalletMainScreen.device = device;
+  AccountListComponent.device = device;
+  AddAccountModal.device = device;
+  WalletActionModal.device = device;
+  SwapScreen.device = device;
+
+  await WelcomeScreen.clickGetStartedButton();
+
+  await TermOfUseScreen.isDisplayed();
+  await TermOfUseScreen.tapAgreeCheckBox();
+  await TermOfUseScreen.tapScrollEndButton();
+  await TermOfUseScreen.tapAcceptButton();
+
+  await OnboardingScreen.isScreenTitleVisible();
+  await OnboardingScreen.tapHaveAnExistingWallet();
+  await OnboardingSheet.tapImportSeedButton();
+
+  await ImportFromSeedScreen.isScreenTitleVisible();
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(
+    process.env.TEST_SRP_1,
+    true,
+  );
+  await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
+  await ImportFromSeedScreen.tapContinueButton();
+
+  await CreatePasswordScreen.enterPassword('123456789');
+  await CreatePasswordScreen.reEnterPassword('123456789');
+  await CreatePasswordScreen.tapIUnderstandCheckBox();
+  await CreatePasswordScreen.tapCreatePasswordButton();
+  await MetaMetricsScreen.isScreenTitleVisible();
+  await MetaMetricsScreen.tapIAgreeButton();
+
+  await OnboardingSucessScreen.tapDone();
+  await SolanaFeatureSheet.isVisible();
+  await SolanaFeatureSheet.tapNotNowButton();
+  const swapLoadTimer = new TimerHelper(
+    'Time since the user clicks on the "Swap" button until the swap page is loaded',
+  );
+  swapLoadTimer.start();
+  await WalletActionModal.tapSwapButton();
+  swapLoadTimer.stop();
+  const swapTimer = new TimerHelper(
+    'Time since the user enters the amount until the quote is displayed',
+  );
+  await SwapScreen.selectNetworkAndTokenTo('Solana', 'SOL');
+  await SwapScreen.enterSourceTokenAmount('1');
+  swapTimer.start();
+  await SwapScreen.isQuoteDisplayed();
+  swapTimer.stop();
+  const performanceTracker = new PerformanceTracker();
+  performanceTracker.addTimer(swapLoadTimer);
+  performanceTracker.addTimer(swapTimer);
   await performanceTracker.attachToTest(testInfo);
 });

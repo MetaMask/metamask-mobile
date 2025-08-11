@@ -41,6 +41,7 @@ class SwapScreen {
   }
 
   async selectNetworkAndTokenTo(network, token) {
+    await this.device.pause(100000000);
     const networkButton = await AppwrightSelectors.getElementByText(this._device, 'USDC');
     await networkButton.tap();
     const solanaButton = await AppwrightSelectors.getElementByText(this._device, network);

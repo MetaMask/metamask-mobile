@@ -10,8 +10,18 @@ import {
   UNDERSTAND_WARNING_CONTINUE,
 } from './testIDs/Screens/SendScreen.testIds';
 import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
+import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import { SendViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendView.selectors.js';
 
 class SendScreen {
+  get device() {
+    return this._device;
+  }
+
+  set device(device) {
+    this._device = device;
+  }
+
   get container() {
     return Selectors.getElementByPlatform(SEND_SCREEN_ID);
   }
@@ -50,7 +60,12 @@ class SendScreen {
   }
 
   async typeAddressInSendAddressField(address) {
-    await Gestures.typeText(this.sendAddressInputField, address);
+    if (!this._device) {
+      await Gestures.typeText(this.sendAddressInputField, address);
+    } else {
+      const element = await AppwrightSelectors.getElementByResourceId(this._device, SEND_ADDRESS_INPUT_FIELD);
+      await element.fill(address);
+    }
   }
 
   async isSendWarningMessageVisible(message) {
@@ -93,6 +108,24 @@ class SendScreen {
   async waitForDisplayed() {
     const screen = await this.container;
     await screen.waitForDisplayed();
+  }
+
+  async tapOnContactAddress(contactName) {
+    if (!this._device) {
+      await Gestures.tapTextByXpath(contactName);
+    } else {
+      const element = await AppwrightSelectors.getElementByText(this._device, contactName);
+      await element.tap();
+    }
+  }
+
+  async tapOnNextButton() {
+    if (!this._device) {
+      await Gestures.tapTextByXpath(NEXT_BUTTON);
+    } else {
+      const element = await AppwrightSelectors.getElementByResourceId(this._device, SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON);
+      await element.tap();
+    }
   }
 }
 

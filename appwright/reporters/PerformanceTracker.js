@@ -19,9 +19,11 @@ export class PerformanceTracker {
         totalSeconds += timer.getDurationInSeconds();
       }
       metrics.total = totalSeconds;
+      metrics.device = testInfo.project.use.device;
   
       console.log('testInfo', testInfo);
       console.log('Name ', `performance-metrics-${testInfo.title}`);
+      console.log('device', testInfo.project.use.device);
       await testInfo.attach(`performance-metrics-${testInfo.title}`, {
         body: JSON.stringify(metrics),
         contentType: 'application/json'

@@ -30,7 +30,6 @@ export default class AppwrightSelectors {
   }
 
   static async isAndroid(device) {
-    console.log('isAndroid ->', device);
     return device.webDriverClient.capabilities.platformName === 'android' || await device.webDriverClient.capabilities.platformName === 'Android';
   }
 }
