@@ -1030,10 +1030,19 @@
       "no_amount_selected": "Please select an amount to close"
     },
     "tpsl": {
-      "title": "Set take profit and stop loss",
-      "set_button": "Set",
+      "title": "Take profit and stop loss",
+      "set": "Set",
       "updating": "Updating...",
-      "usd_label": "USD"
+      "off": "Off",
+      "current_price": "Current price",
+      "liquidation_price": "Liquidation price",
+      "take_profit_long": "Take profit when price increases by",
+      "take_profit_short": "Take profit when price decreases by",
+      "stop_loss_long": "Stop loss when price drops by",
+      "stop_loss_short": "Stop loss when price increases by",
+      "trigger_price_placeholder": "Trigger price",
+      "profit_percent_placeholder": "Profit",
+      "loss_percent_placeholder": "Loss"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1116,11 +1125,6 @@
       "details": {
         "error_message": "Position data not found. Please go back and try again.",
         "section_title": "Position"
-      },
-      "tpsl": {
-        "update_success": "TP/SL updated successfully",
-        "update_failed": "Failed to update TP/SL",
-        "update_error": "Error updating TP/SL"
       },
       "account": {
         "summary_title": "Account Summary",

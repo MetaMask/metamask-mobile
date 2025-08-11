@@ -710,8 +710,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orders.push(slOrder);
       }
 
+      // If no new orders, we've just cancelled existing ones (clearing TP/SL)
       if (orders.length === 0) {
-        throw new Error('No TP/SL prices provided');
+        DevLogger.log('No new TP/SL orders to place - existing ones cancelled');
+        return {
+          success: true,
+          // No orderId since we only cancelled orders, didn't place new ones
+        };
       }
 
       // Submit via SDK exchange client with positionTpsl grouping
