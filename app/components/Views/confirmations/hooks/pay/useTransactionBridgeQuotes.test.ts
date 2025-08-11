@@ -66,6 +66,7 @@ describe('useTransactionBridgeQuotes', () => {
     } as unknown as TransactionMeta);
 
     useTransactionPayTokenMock.mockReturnValue({
+      balanceFiat: '123.456',
       balanceHuman: '123.456',
       decimals: 4,
       payToken: {

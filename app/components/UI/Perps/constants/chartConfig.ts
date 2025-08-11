@@ -5,6 +5,7 @@ import { Colors } from '../../../../util/theme/models';
  * Provides type safety and prevents typos when referencing candle periods
  */
 export enum CandlePeriod {
+  ONE_MINUTE = '1m',
   THREE_MINUTES = '3m',
   FIVE_MINUTES = '5m',
   FIFTEEN_MINUTES = '15m',
@@ -102,6 +103,7 @@ export const TIME_DURATIONS = [
 export const DURATION_CANDLE_PERIODS = {
   [TimeDuration.ONE_HOUR]: {
     periods: [
+      { label: '1min', value: CandlePeriod.ONE_MINUTE }, // 60 candles
       { label: '3min', value: CandlePeriod.THREE_MINUTES }, // 20 candles
       { label: '5min', value: CandlePeriod.FIVE_MINUTES }, // 12 candles
       { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES }, // 4 candles
@@ -157,6 +159,7 @@ export const DURATION_CANDLE_PERIODS = {
  * Only includes API-supported intervals
  */
 export const CANDLE_PERIODS = [
+  { label: '1min', value: CandlePeriod.ONE_MINUTE },
   { label: '3min', value: CandlePeriod.THREE_MINUTES },
   { label: '5min', value: CandlePeriod.FIVE_MINUTES },
   { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES },
@@ -206,6 +209,8 @@ export const calculateCandleCount = (
   // Convert candle period to minutes
   const periodInMinutes = (() => {
     switch (candlePeriod) {
+      case CandlePeriod.ONE_MINUTE:
+        return 1;
       case CandlePeriod.THREE_MINUTES:
         return 3;
       case CandlePeriod.FIVE_MINUTES:
