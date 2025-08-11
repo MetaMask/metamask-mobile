@@ -12,9 +12,8 @@ import {
   SmartTransaction,
   Fees,
 } from '@metamask/smart-transactions-controller/dist/types';
-import type { BaseControllerMessenger } from '../../core/Engine';
+import Engine, { type BaseControllerMessenger } from '../../core/Engine';
 import { isProduction } from '../environment';
-import Engine from '../../core/Engine';
 
 const TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT = 10000;
 
@@ -174,8 +173,8 @@ export const getIsAllowedRpcUrlForSmartTransactions = (rpcUrl?: string) => {
  * @param address - The address whose smart transactions should be wiped
  */
 export function wipeSmartTransactions(address: string) {
-  const { SmartTransactionsController } = Engine.context;
-  SmartTransactionsController.wipeSmartTransactions({
+  const { SmartTransactionsController: controller } = Engine.context;
+  controller.wipeSmartTransactions({
     address,
     ignoreNetwork: true,
   });

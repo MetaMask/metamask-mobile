@@ -13,8 +13,7 @@ import {
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 // eslint-disable-next-line import/no-namespace
 import * as environment from '../environment';
-import type { BaseControllerMessenger } from '../../core/Engine';
-import Engine from '../../core/Engine';
+import Engine, { type BaseControllerMessenger } from '../../core/Engine';
 
 jest.mock('../../core/Engine', () => ({
   context: {
