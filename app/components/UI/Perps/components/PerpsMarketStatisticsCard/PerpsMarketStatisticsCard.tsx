@@ -110,16 +110,25 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
               />
             </TouchableOpacity>
           </View>
-          <Text
-            style={styles.statisticsValue}
-            color={
-              parseFloat(marketStats.fundingRate) >= 0
-                ? TextColor.Success
-                : TextColor.Error
-            }
-          >
-            {marketStats.fundingRate}
-          </Text>
+          <View style={styles.fundingRateContainer}>
+            <Text
+              style={styles.statisticsValue}
+              color={
+                parseFloat(marketStats.fundingRate) >= 0
+                  ? TextColor.Success
+                  : TextColor.Error
+              }
+            >
+              {marketStats.fundingRate}
+            </Text>
+            <Text
+              variant={TextVariant.BodyXS}
+              color={TextColor.Alternative}
+              style={styles.fundingCountdown}
+            >
+              ({marketStats.fundingCountdown})
+            </Text>
+          </View>
         </View>
       </View>
     </View>

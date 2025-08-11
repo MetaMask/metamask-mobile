@@ -27,6 +27,14 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       fontSize: 16,
       fontWeight: '600',
     },
+    fundingRateContainer: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: 4,
+    },
+    fundingCountdown: {
+      marginLeft: 2,
+    },
   });
 
 export default styleSheet;
