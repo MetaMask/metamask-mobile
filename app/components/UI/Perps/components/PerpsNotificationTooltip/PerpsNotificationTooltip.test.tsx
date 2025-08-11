@@ -290,5 +290,90 @@ describe('PerpsNotificationTooltip', () => {
 
       expect(mockShowTooltip).toHaveBeenCalled();
     });
+
+    it('should clear timeout on unmount to prevent memory leaks', () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+      const { unmount } = renderWithProvider(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // Verify timeout was created but not yet executed
+      expect(mockShowTooltip).not.toHaveBeenCalled();
+
+      // Unmount before timeout completes
+      unmount();
+
+      // Verify clearTimeout was called
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      // Advance timers to ensure showTooltip is not called after unmount
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+
+      expect(mockShowTooltip).not.toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it('should clear previous timeout when effect re-runs', () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+      const { rerender } = renderWithProvider(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // Verify first timeout was created
+      expect(mockShowTooltip).not.toHaveBeenCalled();
+
+      // Change a dependency to trigger effect re-run
+      const newOnComplete = jest.fn();
+      rerender(
+        <PerpsNotificationTooltip orderSuccess onComplete={newOnComplete} />,
+      );
+
+      // Verify clearTimeout was called (previous timeout cancelled)
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      // Complete the new timeout
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+
+      // Verify showTooltip was called only once (from the new timeout)
+      expect(mockShowTooltip).toHaveBeenCalledTimes(1);
+
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it('should not create multiple timeouts on component re-renders without dependency changes', () => {
+      const setTimeoutSpy = jest.spyOn(global, 'setTimeout');
+
+      const { rerender } = renderWithProvider(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // Verify first timeout was created
+      expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+
+      // Force re-render with same props (no dependency changes)
+      rerender(
+        <PerpsNotificationTooltip orderSuccess onComplete={mockOnComplete} />,
+      );
+
+      // Should still only have one setTimeout call (useEffect didn't re-run)
+      expect(setTimeoutSpy).toHaveBeenCalledTimes(1);
+
+      // Complete the timeout
+      act(() => {
+        jest.advanceTimersByTime(3000);
+      });
+
+      // Verify showTooltip was called only once
+      expect(mockShowTooltip).toHaveBeenCalledTimes(1);
+
+      setTimeoutSpy.mockRestore();
+    });
   });
 });

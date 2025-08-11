@@ -52,6 +52,8 @@ const PerpsNotificationTooltip = ({
    * Also mark first order as completed to never show again
    */
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout | undefined;
+
     if (orderSuccess && shouldShowTooltip) {
       DevLogger.log(
         'PerpsNotificationTooltip: First order success, showing tooltip',
@@ -61,7 +63,7 @@ const PerpsNotificationTooltip = ({
           timestamp: new Date().toISOString(),
         },
       );
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
         showTooltip();
       }, 3000);
     } else if (orderSuccess && onComplete) {
@@ -72,6 +74,13 @@ const PerpsNotificationTooltip = ({
       }
       onComplete();
     }
+
+    // Cleanup function to prevent memory leaks and calls on unmounted components
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [
     orderSuccess,
     shouldShowTooltip,
