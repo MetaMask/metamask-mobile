@@ -62,7 +62,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock components to avoid complex dependencies
-jest.mock('../../../Ramp/Aggregator/components/Keypad', () => {
+jest.mock('../../../../Base/Keypad', () => {
   const View = jest.requireActual('react-native').View;
   return {
     __esModule: true,
