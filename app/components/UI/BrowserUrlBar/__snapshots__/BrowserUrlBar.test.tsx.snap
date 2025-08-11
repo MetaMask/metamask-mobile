@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BrowserUrlBar should render correctly 1`] = `
+exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
 <View
   style={
     {
@@ -150,7 +150,7 @@ exports[`BrowserUrlBar should render correctly 1`] = `
 </View>
 `;
 
-exports[`BrowserUrlBar should render correctly when url bar is not focused 1`] = `
+exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
 <View
   style={
     {
