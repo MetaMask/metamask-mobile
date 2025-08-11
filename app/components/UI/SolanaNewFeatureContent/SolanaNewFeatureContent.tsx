@@ -5,6 +5,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
 import { strings } from '../../../../locales/i18n';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -85,19 +86,11 @@ const SolanaNewFeatureContent = () => {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.wrapper}>
-          <Text
-            style={styles.title}
-            variant={TextVariant.HeadingLG}
-            color={importedColors.gettingStartedTextColor}
-          >
+          <Text style={styles.title} variant={TextVariant.HeadingLG}>
             {strings('solana_new_feature_content.title')}
           </Text>
           <View style={styles.ctas}>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={importedColors.gettingStartedTextColor}
-              style={styles.titleDescription}
-            >
+            <Text variant={TextVariant.BodyMD} style={styles.titleDescription}>
               {strings('solana_new_feature_content.title_description')}
             </Text>
 
@@ -121,16 +114,22 @@ const SolanaNewFeatureContent = () => {
             </View>
 
             <View style={styles.createWrapper}>
-              <Button
-                variant={ButtonVariants.Primary}
+              <ButtonBase
                 onPress={() => importAccountWithSRP()}
                 testID={
                   SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
                 }
-                label={strings('solana_new_feature_content.import_your_wallet')}
-                width={ButtonWidthTypes.Full}
                 size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
                 style={styles.importWalletButton}
+                label={
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    style={styles.importWalletButtonText}
+                  >
+                    {strings('solana_new_feature_content.import_your_wallet')}
+                  </Text>
+                }
               />
               <Button
                 variant={ButtonVariants.Secondary}
@@ -142,7 +141,7 @@ const SolanaNewFeatureContent = () => {
                 label={
                   <Text
                     variant={TextVariant.BodyMDMedium}
-                    color={importedColors.gettingStartedTextColor}
+                    style={styles.notNowButtonText}
                   >
                     {strings('solana_new_feature_content.not_now')}
                   </Text>
