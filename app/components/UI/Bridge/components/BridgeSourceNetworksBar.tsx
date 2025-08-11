@@ -22,6 +22,11 @@ import { useNavigation } from '@react-navigation/native';
 import AvatarNetwork from '../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork/AvatarNetwork';
 import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 
+const NETWORK_GAP = 2;
+const NETWORK_OVERFLOW_OVERLAY_SIZE = 16;
+const NETWORK_OVERFLOW_OVERLAY_MARGIN_LEFT =
+  -NETWORK_OVERFLOW_OVERLAY_SIZE - NETWORK_GAP;
+
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
@@ -34,10 +39,12 @@ const createStyles = (params: { theme: Theme }) => {
     },
     networkOverflowOverlay: {
       backgroundColor: theme.colors.overlay.alternative,
-      width: 16,
-      height: 16,
+      width: NETWORK_OVERFLOW_OVERLAY_SIZE,
+      height: NETWORK_OVERFLOW_OVERLAY_SIZE,
       borderRadius: 4,
-      marginLeft: -16,
+      marginLeft: NETWORK_OVERFLOW_OVERLAY_MARGIN_LEFT,
+      lineHeight: NETWORK_OVERFLOW_OVERLAY_SIZE,
+      paddingHorizontal: 0.5,
     },
   });
 };
@@ -108,15 +115,17 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
           <Box
             flexDirection={FlexDirection.Row}
             alignItems={AlignItems.center}
-            gap={10}
+            gap={NETWORK_GAP}
           >
             {renderSourceNetworks()}
             {selectedSourceChainIds.length > MAX_NETWORK_ICONS && (
-              <Box style={styles.networkOverflowOverlay}>
-                <Text variant={TextVariant.BodyXS} color={TextColor.Inverse}>
-                  +{selectedSourceChainIds.length - MAX_NETWORK_ICONS}
-                </Text>
-              </Box>
+              <Text
+                variant={TextVariant.BodyXS}
+                color={TextColor.Inverse}
+                style={styles.networkOverflowOverlay}
+              >
+                +{selectedSourceChainIds.length - MAX_NETWORK_ICONS}
+              </Text>
             )}
           </Box>
           <Text>{networkText}</Text>
