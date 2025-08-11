@@ -43,11 +43,8 @@ jest.mock('../../../hooks/useDepositRouting', () => ({
 jest.mock('./WebviewModal', () => () => 'WebviewModal');
 
 jest.mock('../../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../../util/trace'),
   endTrace: jest.fn(),
-  TraceName: {
-    DepositContinueFlow: 'Deposit Continue Flow',
-    DepositInputOtp: 'Deposit Input OTP',
-  },
 }));
 
 describe('KycWebviewModal', () => {

@@ -113,12 +113,8 @@ jest.mock('../../../index', () => ({
 }));
 
 jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
   endTrace: jest.fn(),
-  TraceName: {
-    LoadDepositExperience: 'Load Deposit Experience',
-    DepositContinueFlow: 'Deposit Continue Flow',
-    DepositInputOtp: 'Deposit Input OTP',
-  },
 }));
 
 function render(Component: React.ComponentType) {

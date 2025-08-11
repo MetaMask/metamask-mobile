@@ -67,11 +67,8 @@ jest.mock('../../sdk', () => ({
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
   endTrace: jest.fn(),
-  TraceName: {
-    DepositContinueFlow: 'Deposit Continue Flow',
-    DepositInputOtp: 'Deposit Input OTP',
-  },
 }));
 
 function render(Component: React.ComponentType) {

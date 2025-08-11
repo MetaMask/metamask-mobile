@@ -74,10 +74,9 @@ jest.mock('../../../../Navbar', () => ({
 }));
 
 jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
   trace: jest.fn(),
-  TraceName: {
-    DepositInputOtp: 'Deposit Input OTP',
-  },
+  endTrace: jest.fn(),
 }));
 
 function render(Component: React.ComponentType) {
