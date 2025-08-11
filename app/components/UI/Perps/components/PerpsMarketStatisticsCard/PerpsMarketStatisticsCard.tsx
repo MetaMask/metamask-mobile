@@ -29,17 +29,6 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
       <View style={styles.statisticsRow}>
         <View
           style={styles.statisticsItem}
-          testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_HIGH_24H}
-        >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('perps.market.24hr_high')}
-          </Text>
-          <Text style={styles.statisticsValue} color={TextColor.Default}>
-            {marketStats.high24h}
-          </Text>
-        </View>
-        <View
-          style={styles.statisticsItem}
           testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_LOW_24H}
         >
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
@@ -47,6 +36,17 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
           </Text>
           <Text style={styles.statisticsValue} color={TextColor.Default}>
             {marketStats.low24h}
+          </Text>
+        </View>
+        <View
+          style={styles.statisticsItem}
+          testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_HIGH_24H}
+        >
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {strings('perps.market.24hr_high')}
+          </Text>
+          <Text style={styles.statisticsValue} color={TextColor.Default}>
+            {marketStats.high24h}
           </Text>
         </View>
       </View>
