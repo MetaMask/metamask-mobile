@@ -414,13 +414,13 @@ export async function withFixtures(
     endTestfn,
   } = options;
 
+  // Prepare android devices for testing to avoid having this in all tests
+  await TestHelpers.reverseServerPort();
+
   const { mockServer, mockServerPort } = await createMockAPIServer(
     mockServerInstance,
     testSpecificMock,
   );
-
-  // Prepare android devices for testing to avoid having this in all tests
-  await TestHelpers.reverseServerPort();
 
   // Handle local nodes
   let localNodes;

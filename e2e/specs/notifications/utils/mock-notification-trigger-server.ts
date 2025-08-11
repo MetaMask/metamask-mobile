@@ -72,33 +72,7 @@ export class MockttpNotificationTriggerServer {
             request.url,
           )}`,
         );
-        // Extract and pretty print the JSON from the request body
-        request.body
-          .getText()
-          .then((text) => {
-            try {
-              if (text) {
-                const jsonData = JSON.parse(text);
-                console.log('Request body:', JSON.stringify(jsonData, null, 2));
-              } else {
-                console.log('Request body: empty');
-              }
-            } catch (e) {
-              console.log('Request body (raw):', text);
-            }
-          })
-          .catch((err) => {
-            console.log('Could not parse request body:', err.message);
-          });
-        const response = this.getConfig(request);
-        // Log the response that will be sent back
-        response.then((res) => {
-          console.log(
-            'Response for getConfig:',
-            JSON.stringify(res.json, null, 2),
-          );
-        });
-        return response;
+        return this.getConfig(request);
       });
 
     await server
@@ -114,33 +88,7 @@ export class MockttpNotificationTriggerServer {
             request.url,
           )}`,
         );
-        // Extract and pretty print the JSON from the request body
-        request.body
-          .getText()
-          .then((text) => {
-            try {
-              if (text) {
-                const jsonData = JSON.parse(text);
-                console.log('Request body:', JSON.stringify(jsonData, null, 2));
-              } else {
-                console.log('Request body: empty');
-              }
-            } catch (e) {
-              console.log('Request body (raw):', text);
-            }
-          })
-          .catch((err) => {
-            console.log('Could not parse request body:', err.message);
-          });
-        const response = this.updateConfig(request);
-        // Log the response that will be sent back
-        response.then((res) => {
-          console.log(
-            'Response for updateConfig:',
-            JSON.stringify(res, null, 2),
-          );
-        });
-        return response;
+        return this.updateConfig(request);
       });
   };
 

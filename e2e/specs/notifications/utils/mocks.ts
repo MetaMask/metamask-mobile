@@ -131,31 +131,6 @@ async function mockAPICall(server: Mockttp, response: ResponseParam) {
           request.url,
         )}`,
       );
-      // Extract and pretty print the JSON from the request body
-      request.body
-        .getText()
-        .then((text) => {
-          try {
-            if (text) {
-              const jsonData = JSON.parse(text);
-              console.log('Request body:', JSON.stringify(jsonData, null, 2));
-            } else {
-              console.log('Request body: empty');
-            }
-          } catch (e) {
-            console.log('Request body (raw):', text);
-          }
-        })
-        .catch((err) => {
-          console.log('Could not parse request body:', err.message);
-        });
-
-      // Log the mock response being sent
-      console.log(
-        'Response being mocked:',
-        JSON.stringify(response.response, null, 2),
-      );
-
       return {
         statusCode: 200,
         json: response.response,
