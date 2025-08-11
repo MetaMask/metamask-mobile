@@ -11,7 +11,7 @@ export const timeDurationSelectorStyleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'space-between',
       width: '100%',
-      paddingHorizontal: 16,
+      paddingRight: 16,
       paddingVertical: 12,
     },
     durationButtonsContainer: {

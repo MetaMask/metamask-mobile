@@ -20,6 +20,10 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import Device from '../../../util/device';
 import ReduxService from '../../../core/redux/ReduxService';
 import { ReduxStore } from '../../../core/redux/types';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -125,7 +129,31 @@ const initialState = {
     allowLoginWithRememberMe: true,
   },
 };
+
 const store = mockStore(initialState);
+
+const initialStateWithoutSeedlessOnboardingLoginFlow = {
+  user: {
+    passwordSet: true,
+    seedphraseBackedUp: false,
+  },
+  engine: {
+    backgroundState: {
+      ...backgroundState,
+      AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      SeedlessOnboardingController: {
+        vault: null,
+      },
+    },
+  },
+  security: {
+    allowLoginWithRememberMe: true,
+  },
+};
+
+const storeWithoutSeedlessOnboardingLoginFlow = mockStore(
+  initialStateWithoutSeedlessOnboardingLoginFlow,
+);
 interface ResetPasswordProps {
   route: {
     params: {
@@ -159,6 +187,15 @@ const renderWithProviders = (ui: React.ReactElement) =>
     </Provider>,
   );
 
+const renderWithProvidersWithoutSeedlessOnboardingLoginFlow = (
+  ui: React.ReactElement,
+) =>
+  render(
+    <Provider store={storeWithoutSeedlessOnboardingLoginFlow}>
+      <ThemeContext.Provider value={mockTheme}>{ui}</ThemeContext.Provider>
+    </Provider>,
+  );
+
 const defaultProps: ResetPasswordProps = {
   route: { params: { [PREVIOUS_SCREEN]: 'ChoosePassword' } },
   navigation: mockNavigation,
@@ -173,11 +210,17 @@ describe('ResetPassword', () => {
     mockNavigation.push.mockClear();
   });
 
-  const renderConfirmPasswordView = async () => {
+  const renderConfirmPasswordView = async (
+    isSeedlessOnboardingLoginFlow = true,
+  ) => {
     // Test the mock directly to ensure it's working
     mockExportSeedPhrase.mockResolvedValue('test result');
 
-    const component = renderWithProviders(<ResetPassword {...defaultProps} />);
+    const component = isSeedlessOnboardingLoginFlow
+      ? renderWithProviders(<ResetPassword {...defaultProps} />)
+      : renderWithProvidersWithoutSeedlessOnboardingLoginFlow(
+          <ResetPassword {...defaultProps} />,
+        );
 
     const currentPasswordInput = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
@@ -312,8 +355,17 @@ describe('ResetPassword', () => {
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
           params: expect.objectContaining({
             title: strings('reset_password.warning_password_change_title'),
-            description: strings(
-              'reset_password.warning_password_change_description',
+            description: (
+              <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
+                {strings('reset_password.warning_password_change_description')}{' '}
+                <Text
+                  color={TextColor.Primary}
+                  onPress={expect.any(Function)}
+                  variant={TextVariant.BodyMD}
+                >
+                  {`${strings('reset_password.learn_more')}`}
+                </Text>
+              </Text>
             ),
             type: 'error',
             icon: 'Danger',
@@ -341,7 +393,7 @@ describe('ResetPassword', () => {
     });
   });
 
-  it('open webview on learnMore click', async () => {
+  it('open webview on learnMore click for seedless onboarding login flow', async () => {
     const component = await renderConfirmPasswordView();
 
     // The "Learn More" link should be visible immediately in the reset password view
@@ -352,10 +404,37 @@ describe('ResetPassword', () => {
     expect(learnMoreLink).toBeOnTheScreen();
 
     // Click the "Learn More" link
-    fireEvent.press(learnMoreLink);
+    await act(async () => {
+      fireEvent.press(learnMoreLink);
+    });
 
     // Verify that the learnMore function was called with correct parameters
-    expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
+        title: 'support.metamask.io',
+      },
+    });
+  });
+
+  it('open webview on learnMore click', async () => {
+    const component = await renderConfirmPasswordView(false);
+
+    // The "Learn More" link should be visible immediately in the reset password view
+    const learnMoreLink = component.getByTestId(
+      ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
+    );
+
+    expect(learnMoreLink).toBeOnTheScreen();
+
+    // Click the "Learn More" link
+    await act(async () => {
+      fireEvent.press(learnMoreLink);
+    });
+
+    // Verify that the learnMore function was called with correct parameters
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: 'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/',
