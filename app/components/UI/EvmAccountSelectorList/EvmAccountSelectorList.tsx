@@ -39,7 +39,7 @@ import { Account, Assets } from '../../hooks/useAccounts';
 import Engine from '../../../core/Engine';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import Routes from '../../../constants/navigation/Routes';
-import { selectAccountSections } from '../../../multichain-accounts/selectors/accountTreeController';
+import { selectAccountSections } from '../../../selectors/multichainAccounts/accountTreeController';
 
 import {
   AccountSection,
@@ -59,7 +59,7 @@ import {
   selectInternalAccountsById,
 } from '../../../selectors/accountsController';
 import { AccountWalletObject } from '@metamask/account-tree-controller';
-import { FlashList, ListRenderItem } from '@shopify/flash-list';
+import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 
 /**
  * @deprecated This component is deprecated in favor of the CaipAccountSelectorList component.
@@ -89,7 +89,7 @@ const EvmAccountSelectorList = ({
   /**
    * Ref for the FlashList component.
    */
-  const accountListRef = useRef<FlashList<FlattenedAccountListItem>>(null);
+  const accountListRef = useRef<FlashListRef<FlattenedAccountListItem>>(null);
   const accountsLengthRef = useRef<number>(0);
   const { styles } = useStyles(styleSheet, {});
 
@@ -560,10 +560,6 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
-  // Needed for the FlashList estimated item size prop: https://shopify.github.io/flash-list/docs/1.x/estimated-item-size
-  // This is a require prop that makes the list rendering more performant
-  const listItemHeight = 80; // Exact height of the Cell component
-
   return (
     <View style={styles.listContainer}>
       <FlashList
@@ -572,13 +568,11 @@ const EvmAccountSelectorList = ({
         data={flattenedData}
         keyExtractor={getKeyExtractor}
         renderItem={renderItem}
-        estimatedItemSize={listItemHeight}
         getItemType={getItemType}
         renderScrollComponent={
           ScrollView as React.ComponentType<ScrollViewProps>
         }
         testID={ACCOUNT_SELECTOR_LIST_TESTID}
-        disableAutoLayout
         {...props}
       />
     </View>

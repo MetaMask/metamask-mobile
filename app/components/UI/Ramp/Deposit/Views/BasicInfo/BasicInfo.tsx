@@ -20,7 +20,10 @@ import { useForm } from '../../hooks/useForm';
 import DepositPhoneField from '../../components/DepositPhoneField';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import DepositDateField from '../../components/DepositDateField';
-import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
+import {
+  AddressFormData,
+  createEnterAddressNavDetails,
+} from '../EnterAddress/EnterAddress';
 import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
@@ -42,6 +45,7 @@ import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface BasicInfoParams {
   quote: BuyQuote;
+  previousFormData?: BasicInfoFormData & AddressFormData;
 }
 
 export const createBasicInfoNavDetails =
@@ -59,7 +63,7 @@ const BasicInfo = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
-  const { quote } = useParams<BasicInfoParams>();
+  const { quote, previousFormData } = useParams<BasicInfoParams>();
   const { selectedRegion } = useDepositSDK();
 
   const firstNameInputRef = useRef<TextInput>(null);
@@ -68,12 +72,18 @@ const BasicInfo = (): JSX.Element => {
   const dateInputRef = useRef<TextInput>(null);
   const ssnInputRef = useRef<TextInput>(null);
 
+  const utcDateToPrefill = new Date(previousFormData?.dob || '');
+  const timestamp = utcDateToPrefill.getTime();
+  const localTimestampToUseInternally = isNaN(timestamp)
+    ? ''
+    : (timestamp + utcDateToPrefill.getTimezoneOffset() * 60 * 1000).toString();
+
   const initialFormData: BasicInfoFormData = {
-    firstName: '',
-    lastName: '',
-    mobileNumber: '',
-    dob: '',
-    ssn: '',
+    firstName: previousFormData?.firstName || '',
+    lastName: previousFormData?.lastName || '',
+    mobileNumber: previousFormData?.mobileNumber || '',
+    dob: localTimestampToUseInternally,
+    ssn: previousFormData?.ssn || '',
   };
 
   const validateForm = (
@@ -150,6 +160,7 @@ const BasicInfo = (): JSX.Element => {
 
       navigation.navigate(
         ...createEnterAddressNavDetails({
+          previousFormData,
           formData: {
             ...formData,
             dob: formData.dob.trim()
@@ -161,6 +172,7 @@ const BasicInfo = (): JSX.Element => {
       );
     }
   }, [
+    previousFormData,
     navigation,
     validateFormData,
     formData,

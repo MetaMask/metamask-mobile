@@ -191,6 +191,7 @@ const Routes = {
   SWAPS_AMOUNT_VIEW: 'SwapsAmountView',
   BRIDGE: {
     ROOT: 'Bridge',
+    BRIDGE_VIEW: 'BridgeView',
     MODALS: {
       ROOT: 'BridgeModals',
       SOURCE_TOKEN_SELECTOR: 'BridgeSourceTokenSelector',
@@ -202,6 +203,7 @@ const Routes = {
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
       QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
+      PRICE_IMPACT_WARNING_MODAL: 'PriceImpactWarningModal',
     },
     BRIDGE_TRANSACTION_DETAILS: 'BridgeTransactionDetails',
   },
@@ -210,11 +212,10 @@ const Routes = {
     TRADING_VIEW: 'PerpsTradingView',
     ORDER: 'PerpsOrder',
     DEPOSIT: 'PerpsDeposit',
-    DEPOSIT_PREVIEW: 'PerpsDepositPreview',
-    DEPOSIT_PROCESSING: 'PerpsDepositProcessing',
-    DEPOSIT_SUCCESS: 'PerpsDepositSuccess',
+    WITHDRAW: 'PerpsWithdraw',
     POSITIONS: 'PerpsPositions',
     MARKETS: 'PerpsMarketListView',
+    MARKET_DETAILS: 'PerpsMarketDetails',
     POSITION_DETAILS: 'PerpsPositionDetails',
     MODALS: {
       ROOT: 'PerpsModals',
@@ -222,6 +223,9 @@ const Routes = {
     },
     ORDER_HISTORY: 'PerpsOrderHistory',
     ORDER_DETAILS: 'PerpsOrderDetails',
+    POSITION_TRANSACTION: 'PerpsPositionTransaction',
+    ORDER_TRANSACTION: 'PerpsOrderTransaction',
+    FUNDING_TRANSACTION: 'PerpsFundingTransaction',
   },
   LOCK_SCREEN: 'LockScreen',
   CONFIRMATION_REQUEST_MODAL: 'ConfirmationRequestModal',
@@ -290,8 +294,10 @@ const Routes = {
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
   SEND: {
+    RECIPIENT: 'Recipient',
+    ASSET: 'Asset',
+    AMOUNT: 'Amount',
     DEFAULT: 'Send',
-    ROOT: 'Root',
   },
 };
 

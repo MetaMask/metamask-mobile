@@ -36,7 +36,6 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -144,9 +143,20 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
+import { selectIsConnectionRemoved } from '../../../reducers/user';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
+import { setIsConnectionRemoved } from '../../../actions/user';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
+    base: {
+      paddingHorizontal: 16,
+    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -170,7 +180,7 @@ const createStyles = ({ colors }: Theme) =>
       paddingHorizontal: 16,
     },
     carouselContainer: {
-      marginTop: 12,
+      marginBottom: 12,
     },
     tabStyle: {
       paddingBottom: 8,
@@ -288,6 +298,7 @@ const Wallet = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
+  const { navigateToSendPage } = useSendNavigation();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
@@ -324,7 +335,7 @@ const Wallet = ({
   const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
-    token: {
+    sourceToken: {
       address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: chainId as Hex,
       decimals: 18,
@@ -382,18 +393,18 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigate('SendFlowView', {});
+      navigateToSendPage();
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigate('SendFlowView', {});
+      navigateToSendPage();
     }
   }, [
     nativeCurrency,
-    navigate,
+    navigateToSendPage,
     dispatch,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     sendNonEvmAsset,
@@ -448,12 +459,6 @@ const Wallet = ({
   const accountName = useAccountName();
   useAccountsWithNetworkActivitySync();
 
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
-
   useEffect(() => {
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -491,6 +496,30 @@ const Wallet = ({
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
     });
   }, [addTraitsToUser, hdKeyrings.length]);
+
+  const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
+
+  useEffect(() => {
+    if (isConnectionRemoved && isSocialLogin) {
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: {
+          title: strings('connection_removed_modal.title'),
+          description: strings('connection_removed_modal.content'),
+          primaryButtonLabel: strings('connection_removed_modal.tryAgain'),
+          type: 'error',
+          icon: IconName.Danger,
+          iconColor: IconColor.Warning,
+          isInteractable: false,
+          closeOnPrimaryButtonPress: true,
+          onPrimaryButtonPress: () => {
+            dispatch(setIsConnectionRemoved(false));
+          },
+        },
+      });
+    }
+  }, [navigation, isConnectionRemoved, dispatch, isSocialLogin]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
@@ -547,9 +576,10 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const name = useSelector(selectNetworkName);
+  const selectedNetworkName = useSelector(selectNetworkName);
 
-  const networkName = networkConfigurations?.[chainId]?.name ?? name;
+  const networkName =
+    networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
@@ -655,13 +685,14 @@ const Wallet = ({
       requestAnimationFrame(async () => {
         const { AccountTrackerController } = Engine.context;
 
-        Object.values(evmNetworkConfigurations).forEach(
-          ({ defaultRpcEndpointIndex, rpcEndpoints }) => {
-            AccountTrackerController.refresh([
+        const networkClientIDs = Object.values(evmNetworkConfigurations)
+          .map(
+            ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
               rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-            ]);
-          },
-        );
+          )
+          .filter((c) => Boolean(c));
+
+        AccountTrackerController.refresh(networkClientIDs);
       });
     },
     /* eslint-disable-next-line */
@@ -677,7 +708,6 @@ const Wallet = ({
         walletRef,
         selectedInternalAccount,
         accountName,
-        accountAvatarType,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -692,12 +722,11 @@ const Wallet = ({
   }, [
     selectedInternalAccount,
     accountName,
-    accountAvatarType,
-    navigation,
-    colors,
     networkName,
     networkImageSource,
     onTitlePress,
+    navigation,
+    colors,
     isNotificationEnabled,
     isBackupAndSyncEnabled,
     unreadNotificationCount,

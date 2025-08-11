@@ -615,7 +615,6 @@ const ImportFromSecretRecoveryPhrase = ({
         seedphraseBackedUp();
         track(MetaMetricsEvents.WALLET_IMPORTED, {
           biometrics_enabled: Boolean(biometryType),
-          password_strength: passwordStrengthWord,
         });
         track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
           wallet_setup_type: 'import',
@@ -764,6 +763,10 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   };
 
+  const handleEnterKeyPress = (index) => {
+    handleSeedPhraseChangeAtIndex(`${seedPhrase[index]} `, index);
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <KeyboardAwareScrollView
@@ -849,6 +852,9 @@ const ImportFromSecretRecoveryPhrase = ({
                               ? handleSeedPhraseChange(text)
                               : handleSeedPhraseChangeAtIndex(text, index)
                           }
+                          onSubmitEditing={() => {
+                            handleEnterKeyPress(index);
+                          }}
                           placeholder={
                             isFirstInput
                               ? strings('import_from_seed.srp_placeholder')

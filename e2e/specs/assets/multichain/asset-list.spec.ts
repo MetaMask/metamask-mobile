@@ -92,7 +92,6 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
       },
       async () => {
         await loginToApp();
-        const BNB_NETWORK_NAME = 'BNB Smart Chain';
         await WalletView.tapTokenNetworkFilter();
         await WalletView.tapTokenNetworkFilterAll();
         await WalletView.scrollToToken('BNB');
@@ -100,15 +99,12 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
         await Assertions.expectElementToBeVisible(bnb);
         await WalletView.tapOnToken('BNB');
         await TokenOverview.tapSwapButton();
-        await Assertions.expectElementToBeVisible(
-          NetworkEducationModal.container,
-        );
-        await Assertions.expectElementToHaveText(
-          NetworkEducationModal.networkName,
-          BNB_NETWORK_NAME,
-        );
-        await NetworkEducationModal.tapGotItButton();
         await QuoteView.tapOnCancelButton();
+        await TokenOverview.tapBackButton();
+        await WalletView.tapTokenNetworkFilter();
+        await WalletView.tapTokenNetworkFilterCurrent();
+        const bnbCurrentNetwork = WalletView.tokenInWallet('BNB');
+        await Assertions.expectElementToBeVisible(bnbCurrentNetwork);
       },
     );
   });

@@ -9,7 +9,7 @@ import enContent from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import Assertions from '../../utils/Assertions';
+import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
@@ -63,10 +63,12 @@ describe(Regression('Transaction'), () => {
         await AmountView.tapNextButton();
 
         await TransactionConfirmationView.tapConfirmButton();
-        await Assertions.checkIfVisible(ToastModal.notificationTitle);
-        await Assertions.checkIfNotVisible(ToastModal.notificationTitle);
+        await Assertions.expectElementToBeVisible(ToastModal.notificationTitle);
+        await Assertions.expectElementToNotBeVisible(
+          ToastModal.notificationTitle,
+        );
         await TabBarComponent.tapActivity();
-        await Assertions.checkIfTextIsDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
+        await Assertions.expectTextDisplayed(`${AMOUNT} ${TOKEN_NAME}`);
       },
     );
   });

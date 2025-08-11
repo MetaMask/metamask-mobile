@@ -26,7 +26,7 @@ export interface SuccessErrorSheetParams {
   onButtonPress?: () => void;
   title: string | React.ReactNode;
   description: string | React.ReactNode;
-  customButton: React.ReactNode;
+  customButton?: React.ReactNode;
   type: 'success' | 'error';
   icon?: IconName;
   secondaryButtonLabel?: string;

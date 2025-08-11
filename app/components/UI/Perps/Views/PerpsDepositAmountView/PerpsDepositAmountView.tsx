@@ -12,16 +12,19 @@ import {
 } from '@react-navigation/native';
 import React, {
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { ScrollView, View } from 'react-native';
+import { SafeAreaView, ScrollView, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 
 import { toHex } from '@metamask/controller-utils';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
+import { handlePerpsError } from '../../utils/perpsErrorHandler';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -36,6 +39,10 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../../component-library/components/Toast';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -62,7 +69,6 @@ import {
   renderFromTokenMinimalUnit,
   renderFromWei,
 } from '../../../../../util/number';
-import ScreenView from '../../../../Base/ScreenView';
 import { Box } from '../../../../UI/Box/Box';
 import {
   MAX_INPUT_LENGTH,
@@ -72,7 +78,7 @@ import {
 } from '../../../../UI/Bridge/components/TokenInputArea';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { BridgeViewMode } from '../../../Bridge/types';
-import Keypad from '../../../Ramp/Aggregator/components/Keypad';
+import Keypad from '../../../../Base/Keypad';
 import { isSwapsNativeAsset } from '../../../Swaps/utils';
 import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
 import { type PerpsToken } from '../../components/PerpsTokenSelector';
@@ -106,6 +112,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const dispatch = useDispatch();
+  const { toastRef } = useContext(ToastContext);
 
   // State
   const [sourceAmount, setSourceAmount] = useState<string | undefined>('');
@@ -189,7 +196,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           address: parsedAsset.assetReference,
           decimals: USDC_DECIMALS,
           name: USDC_NAME,
-          chainId: toHex(ARBITRUM_MAINNET_CHAIN_ID) as Hex,
+          chainId: toHex(parseInt(ARBITRUM_MAINNET_CHAIN_ID, 10)) as Hex,
         };
 
         const enhancedToken = enhanceTokenWithIcon({
@@ -422,13 +429,32 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       const depositResult = await deposit(depositParams);
 
       if (depositResult.success && depositResult.txHash) {
-        navigation.navigate(Routes.PERPS.DEPOSIT_PROCESSING, {
-          amount: sourceAmount,
-          fromToken: sourceToken.symbol,
-          transactionHash: depositResult.txHash,
+        // Show success toast
+        toastRef?.current?.showToast({
+          variant: ToastVariants.Icon,
+          iconName: IconName.Received,
+          iconColor: IconColor.Success,
+          hasNoTimeout: false,
+          labelOptions: [
+            {
+              label: `${sourceAmount} ${sourceToken.symbol} ${strings(
+                'perps.deposit.deposit_completed',
+              )}`,
+              isBold: true,
+            },
+          ],
         });
+
+        // Navigate to trading view
+        navigation.navigate(Routes.PERPS.TRADING_VIEW);
       } else {
-        setError(depositResult.error || strings('perps.errors.depositFailed'));
+        // Use centralized error handler for all errors
+        const errorMessage = handlePerpsError({
+          error: depositResult.error,
+          context: { token: sourceToken.symbol },
+          fallbackMessage: strings('perps.errors.depositFailed'),
+        });
+        setError(errorMessage);
       }
     } catch (err) {
       setError(
@@ -445,6 +471,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     selectedAddress,
     getDepositRoutes,
     deposit,
+    toastRef,
     navigation,
   ]);
 
@@ -485,9 +512,10 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     return sourceAmount || '0';
   }, [formattedQuoteData.receivingAmount, sourceAmount]);
 
+  const { top } = useSafeAreaInsets();
+
   return (
-    // @ts-expect-error The type is incorrect, this will work
-    <ScreenView contentContainerStyle={styles.screen}>
+    <SafeAreaView style={[styles.screen, { marginTop: top }]}>
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonIcon
@@ -565,6 +593,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
                   `1 ${sourceToken?.symbol || USDC_SYMBOL} = 1 ${USDC_SYMBOL}`
                 }
                 metamaskFee={METAMASK_DEPOSIT_FEE}
+                direction="deposit"
               />
             </Box>
           )}
@@ -642,7 +671,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           </View>
         )}
       </View>
-    </ScreenView>
+    </SafeAreaView>
   );
 };
 

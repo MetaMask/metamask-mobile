@@ -4,6 +4,7 @@ import { Hex } from '@metamask/utils';
 import { selectCurrencyRates } from '../../../../../selectors/currencyRateController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { useMemo } from 'react';
+import { useDeepMemo } from '../useDeepMemo';
 
 export interface TokenFiatRateRequest {
   address: Hex;
@@ -18,8 +19,13 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
   const result = useMemo(
     () =>
       requests.map(({ address, chainId }) => {
-        const tokenMarketData =
-          tokenMarketDataByAddressByChainId[chainId]?.[address];
+        const chainTokens = Object.values(
+          tokenMarketDataByAddressByChainId[chainId] ?? {},
+        );
+
+        const token = chainTokens.find(
+          (t) => t.tokenAddress.toLowerCase() === address.toLowerCase(),
+        );
 
         const networkConfiguration = networkConfigurations[chainId];
 
@@ -30,7 +36,7 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
           return undefined;
         }
 
-        return (tokenMarketData?.price ?? 1) * conversionRate;
+        return (token?.price ?? 1) * conversionRate;
       }),
     [
       requests,
@@ -40,8 +46,5 @@ export function useTokenFiatRates(requests: TokenFiatRateRequest[]) {
     ],
   );
 
-  // Temporarily using deep equality as selector data is unstable and result is likely very small.
-  // eslint-disable-next-line react-compiler/react-compiler
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => result, [JSON.stringify(result)]);
+  return useDeepMemo(() => result, [result]);
 }
