@@ -22,7 +22,7 @@ import {
 import { ListItemMultiSelectWithMenuButtonProps } from './ListItemMultiSelectWithMenuButton.types';
 
 const ListItemSelectWithButtonMeta = {
-  title: 'Component Library / List',
+  title: 'Component Library / List / Multi Select With Menu Button & Checkbox',
   component: ListItemSelectWithButtonComponent,
   argTypes: {
     isSelected: {

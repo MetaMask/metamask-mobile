@@ -22,7 +22,7 @@ import {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 
-const ListItemMultiSelectButton: React.FC<
+const ListItemMultiSelectWithMenuButton: React.FC<
   ListItemMultiSelectWithMenuButtonProps
 > = ({
   style,
@@ -48,7 +48,7 @@ const ListItemMultiSelectButton: React.FC<
         style={styles.base}
         disabled={isDisabled}
         onPress={props.onPress}
-        onLongPress={props.onPress}
+        onLongPress={props.onLongPress}
         {...props}
       >
         <ListItem gap={gap} style={styles.containerColumn}>
@@ -71,4 +71,4 @@ const ListItemMultiSelectButton: React.FC<
   );
 };
 
-export default ListItemMultiSelectButton;
+export default ListItemMultiSelectWithMenuButton;

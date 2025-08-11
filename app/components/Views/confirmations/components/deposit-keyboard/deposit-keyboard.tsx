@@ -63,8 +63,6 @@ export function DepositKeyboard({
       <KeypadComponent
         value={valueString}
         onChange={handleChange}
-        style={styles.container}
-        digitButtonStyle={styles.digitButton}
         currency="native"
       />
     </View>
