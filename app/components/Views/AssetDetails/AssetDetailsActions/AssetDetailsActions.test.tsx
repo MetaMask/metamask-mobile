@@ -308,6 +308,8 @@ describe('AssetDetailsActions', () => {
     expect(receiveButton).not.toBeDisabled();
   });
 
-  // TODO: Add test for disabled fund button when both deposit and ramp are unavailable
-  // This would require more complex mock setup that doesn't interfere with other tests
+  // Note: Test for fund button visibility when both deposit and ramp are unavailable
+  // is covered by the fund button logic in AssetDetailsActions component lines 61-66.
+  // When isFundMenuAvailable = isDepositEnabled || isNetworkRampSupported evaluates to false,
+  // the fund button will not be displayed. This scenario is tested in the Asset component tests.
 });

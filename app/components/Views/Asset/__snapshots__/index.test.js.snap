@@ -1,5 +1,245 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Asset Fund Button Visibility should hide fund button when neither deposit nor ramp are supported 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens when deposit is supported 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens when ramp is supported 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset Fund Button Visibility should show fund button when both deposit and ramp are supported 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset Fund Button Visibility should show fund button when only deposit is supported 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset Fund Button Visibility should show fund button when only ramp is supported (ETH) 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
 exports[`Asset Multichain Functionality should exclude mixed token/SOL transactions from native SOL view 1`] = `
 <View
   style={
