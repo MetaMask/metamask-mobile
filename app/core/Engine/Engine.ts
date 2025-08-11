@@ -423,7 +423,6 @@ export class Engine {
       async (data) => {
         onRpcEndpointUnavailable({
           ...data,
-          infuraProjectId,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
               .addProperties(properties)
@@ -439,7 +438,6 @@ export class Engine {
       async (data) => {
         onRpcEndpointDegraded({
           ...data,
-          infuraProjectId,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
               .addProperties(properties)
