@@ -5,10 +5,6 @@ import portfinder from 'portfinder';
 import _ from 'lodash';
 import { device } from 'detox';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
-import {
-  isPortInUse,
-  killProcessOnPort,
-} from '../framework/fixtures/FixtureUtils';
 import { createLogger } from '../framework/logger';
 
 const logger = createLogger({
@@ -87,20 +83,6 @@ const isUrlAllowed = (url) => {
 export const startMockServer = async (events, port) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
-  // Check if port is already in use
-  if (await isPortInUse(port)) {
-    logger.warn(`Port ${port} is already in use. Attempting to free it up...`);
-    // Try to kill the process using the port
-    const freed = await killProcessOnPort(port);
-    if (!freed) {
-      logger.error(`Failed to free up port ${port}. Will try to start anyway.`);
-    } else {
-      logger.debug(`Successfully freed up port ${port}`);
-    }
-
-    // Give it a moment to fully release
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
 
   try {
     await mockServer.start(port);

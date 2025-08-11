@@ -1,11 +1,7 @@
 /* eslint-disable import/no-nodejs-modules */
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createAnvilClients } from './anvil-clients';
-import {
-  AnvilPort,
-  isPortInUse,
-  killProcessOnPort,
-} from '../framework/fixtures/FixtureUtils';
+import { AnvilPort } from '../framework/fixtures/FixtureUtils';
 import { AnvilNodeOptions } from '../framework/types';
 import { createLogger } from '../framework/logger';
 
@@ -109,27 +105,6 @@ class AnvilManager {
     const { port } = options;
     this.serverPort = port;
 
-    // Check if port is already in use
-    if (await isPortInUse(port)) {
-      logger.warn(
-        `Port ${port} is already in use. Attempting to free it up...`,
-      );
-
-      // Try to kill the process using the port
-      const freed = await killProcessOnPort(port);
-
-      if (!freed) {
-        logger.error(
-          `Failed to free up port ${port}. Cannot start Anvil server.`,
-        );
-        throw new Error(
-          `Failed to free up port ${port}. Cannot start Anvil server.`,
-        );
-      }
-
-      logger.debug(`Successfully freed up port ${port}`);
-    }
-
     try {
       logger.debug('Starting Anvil server...');
 
@@ -224,18 +199,7 @@ class AnvilManager {
    */
   async quit(): Promise<void> {
     if (!this.server) {
-      // Instead of throwing an error, check if the port is in use
-      const port = this.serverPort || AnvilPort();
-      if (await isPortInUse(port)) {
-        logger.warn(
-          `Anvil server not running in this instance, but port ${port} is in use.`,
-        );
-        // We can't do much here as we don't have the server reference
-        return;
-      }
-      logger.debug(
-        'Anvil server not running in this instance and port is free.',
-      );
+      logger.debug('Anvil server not running in this instance.');
       return;
     }
 
@@ -243,14 +207,7 @@ class AnvilManager {
       const port = this.serverPort || AnvilPort();
       logger.debug(`Stopping Anvil server on port ${port}...`);
       await this.server.stop();
-
-      // Verify the port is actually released
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Give it time to release
-      if (await isPortInUse(port)) {
-        logger.warn(`Port ${port} still in use after server.stop()`);
-      } else {
-        logger.debug(`Anvil server stopped and port ${port} released`);
-      }
+      logger.debug(`Anvil server stopped on port ${port}`);
     } catch (e) {
       logger.error(`Error stopping server: ${e}`);
       throw e;
