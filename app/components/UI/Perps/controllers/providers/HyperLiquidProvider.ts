@@ -1056,7 +1056,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
-      DevLogger.log('Getting currently open orders via HyperLiquid SDK:', params);
+      DevLogger.log(
+        'Getting currently open orders via HyperLiquid SDK:',
+        params,
+      );
       await this.ensureReady();
 
       const infoClient = this.clientService.getInfoClient();
@@ -1071,29 +1074,59 @@ export class HyperLiquidProvider implements IPerpsProvider {
       DevLogger.log('Currently open orders received:', rawOrders);
 
       // Transform HyperLiquid open orders to abstract Order type
-      // Note: frontendOpenOrders may have different structure than historicalOrders
       const orders: Order[] = (rawOrders || []).map((rawOrder) => {
-        // frontendOpenOrders structure - adapt as needed based on actual API response
         const orderId = rawOrder.oid?.toString() || '';
         const symbol = rawOrder.coin;
-        const side = rawOrder.side === 'A' ? 'sell' : 'buy';
-        const orderType = rawOrder.orderType?.toLowerCase().includes('limit') ? 'limit' : 'market';
+        const side = rawOrder.side === 'B' ? 'buy' : 'sell';
+        const detailedOrderType = rawOrder.orderType || '';
+        const orderType = detailedOrderType.toLowerCase().includes('limit')
+          ? 'limit'
+          : 'market';
         const size = rawOrder.sz;
+        const originalSize = rawOrder.origSz || size;
         const price = rawOrder.limitPx || rawOrder.triggerPx || '0';
-        
+        const isTrigger = rawOrder.isTrigger || false;
+        const reduceOnly = rawOrder.reduceOnly || false;
+
+        // Calculate filled and remaining size
+        const currentSize = parseFloat(size);
+        const origSize = parseFloat(originalSize);
+        const filledSize = origSize - currentSize;
+
+        // Check for TP/SL in child orders
+        let takeProfitPrice: string | undefined;
+        let stopLossPrice: string | undefined;
+
+        if (rawOrder.children && rawOrder.children.length > 0) {
+          rawOrder.children.forEach((child: typeof rawOrder) => {
+            if (child.isTrigger && child.orderType) {
+              if (child.orderType.includes('Take Profit')) {
+                takeProfitPrice = child.triggerPx || child.limitPx;
+              } else if (child.orderType.includes('Stop')) {
+                stopLossPrice = child.triggerPx || child.limitPx;
+              }
+            }
+          });
+        }
+
         return {
           orderId,
           symbol,
           side,
           orderType,
           size,
-          originalSize: size, // For open orders, size = originalSize
+          originalSize,
           price,
-          filledSize: '0', // Open orders haven't been filled yet
+          filledSize: filledSize.toString(),
           remainingSize: size,
-          status: 'open' as const, // All frontendOpenOrders are open
+          status: 'open' as const,
           timestamp: rawOrder.timestamp || Date.now(),
           lastUpdated: rawOrder.timestamp || Date.now(),
+          takeProfitPrice,
+          stopLossPrice,
+          detailedOrderType,
+          isTrigger,
+          reduceOnly,
         };
       });
 
