@@ -33,12 +33,6 @@ class TokenOverview {
     return Matchers.getElementByID(TokenOverviewSelectorsText.STAKED_BALANCE);
   }
 
-  get actionSheetSendButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON,
-    );
-  }
-
   get swapButton(): DetoxElement {
     return Matchers.getElementByID(TokenOverviewSelectorsIDs.SWAP_BUTTON);
   }
@@ -93,10 +87,6 @@ class TokenOverview {
 
   async tapSendButton(): Promise<void> {
     await Gestures.waitAndTap(this.sendButton);
-  }
-
-  async tapActionSheetSendButton(): Promise<void> {
-    await Gestures.waitAndTap(this.actionSheetSendButton);
   }
 
   async tapBridgeButton(): Promise<void> {
