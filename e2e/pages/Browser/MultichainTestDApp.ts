@@ -1,7 +1,7 @@
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-console */
 import TestHelpers from '../../helpers';
-import { getLocalTestDappPort } from '../../fixtures/utils';
+import { getLocalTestDappPort } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
 import {
