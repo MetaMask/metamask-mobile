@@ -89,7 +89,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
         </View>
       </View>
 
-      {/* Row 3: Funding Rate and Countdown */}
+      {/* Row 3: Funding Rate */}
       <View style={styles.statisticsRow}>
         <View
           style={styles.statisticsItem}
@@ -119,19 +119,6 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             }
           >
             {marketStats.fundingRate}
-          </Text>
-        </View>
-        <View
-          style={styles.statisticsItem}
-          testID={
-            PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_COUNTDOWN
-          }
-        >
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('perps.market.countdown')}
-          </Text>
-          <Text style={styles.statisticsValue} color={TextColor.Default}>
-            {marketStats.fundingCountdown}
           </Text>
         </View>
       </View>
