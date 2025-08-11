@@ -5,7 +5,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
-import { SafeAreaView, ScrollView, View } from 'react-native';
+import { SafeAreaView, ScrollView, View, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -67,6 +67,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
   ] = useState(false);
+  const [activeTabId, setActiveTabId] = useState('position');
+  const [refreshing, setRefreshing] = useState(false);
 
   const perpsProvider = useSelector(selectPerpsProvider);
 
@@ -75,7 +77,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { isConnected } = usePerpsConnection();
 
   // Get currently open orders for this market
-  const { orders: ordersData } = usePerpsOpenOrders({
+  const { orders: ordersData, refresh: refreshOrders } = usePerpsOpenOrders({
     skipInitialFetch: !isConnected,
     enablePolling: true,
     pollingInterval: 5000, // Poll every 5 seconds for real-time updates
@@ -128,6 +130,39 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setIsCandlePeriodBottomSheetVisible(true);
   }, []);
 
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+
+    try {
+      switch (activeTabId) {
+        case 'position':
+          // Refresh position data
+          await refreshPosition();
+          break;
+
+        case 'orders':
+          // Refresh orders data
+          await refreshOrders();
+          break;
+
+        case 'statistics':
+          // Refresh market statistics (24h high/low from candle data)
+          await marketStats.refresh();
+          // Also refresh position as it affects some stats
+          await refreshPosition();
+          break;
+
+        default:
+          // Fallback: refresh position
+          await refreshPosition();
+      }
+    } catch (error) {
+      console.error(`Failed to refresh ${activeTabId} data:`, error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [activeTabId, refreshPosition, refreshOrders, marketStats]);
+
   const handleBackPress = () => {
     navigation.goBack();
   };
@@ -156,7 +191,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     [isLoadingPosition, hasZeroBalance, hasExistingPosition],
   );
 
-  const { styles } = useStyles(createStyles, { hasLongShortButtons });
+  const { styles, theme } = useStyles(createStyles, { hasLongShortButtons });
 
   if (!market) {
     return (
@@ -189,6 +224,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={theme.colors.icon.default}
+            colors={[theme.colors.icon.default]} // Android
+          />
+        }
       >
         {/* Chart */}
         <View style={[styles.section, styles.chartSection]}>
@@ -210,6 +253,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             isLoadingPosition={isLoadingPosition}
             unfilledOrders={openOrders}
             onPositionUpdate={refreshPosition}
+            onActiveTabChange={setActiveTabId}
           />
         </View>
 

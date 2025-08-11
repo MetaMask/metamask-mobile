@@ -28,6 +28,7 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
   isLoadingPosition,
   unfilledOrders = [],
   onPositionUpdate,
+  onActiveTabChange,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -63,6 +64,15 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
   ];
 
   const [activeTabId, setActiveTabId] = useState(tabs[0].id);
+
+  // Notify parent when tab changes
+  const handleTabChange = useCallback(
+    (tabId: string) => {
+      setActiveTabId(tabId);
+      onActiveTabChange?.(tabId);
+    },
+    [onActiveTabChange],
+  );
 
   const handleTooltipPress = useCallback(
     (contentKey: PerpsTooltipContentKey) => {
@@ -145,7 +155,7 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
           <TouchableOpacity
             key={tab.id}
             style={[styles.tab]}
-            onPress={() => setActiveTabId(tab.id)}
+            onPress={() => handleTabChange(tab.id)}
             activeOpacity={0.7}
           >
             <Text

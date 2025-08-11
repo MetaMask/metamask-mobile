@@ -11,4 +11,5 @@ export interface MarketDetailsTabsProps {
   isLoadingPosition: boolean;
   unfilledOrders: Order[];
   onPositionUpdate?: () => Promise<void>;
+  onActiveTabChange?: (tabId: string) => void;
 }
