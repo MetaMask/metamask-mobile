@@ -27,12 +27,14 @@ const styleSheet = (params: {
     endAccessorySize,
     align = HeaderBaseAlign.Center,
   } = vars;
-  let accessoryWidth;
-  if (startAccessorySize && endAccessorySize) {
-    accessoryWidth = Math.max(startAccessorySize.width, endAccessorySize.width);
-  }
 
   const isLeftAligned = align === HeaderBaseAlign.Left;
+
+  // Only calculate accessoryWidth for center alignment to ensure visual centering
+  let accessoryWidth;
+  if (!isLeftAligned && startAccessorySize && endAccessorySize) {
+    accessoryWidth = Math.max(startAccessorySize.width, endAccessorySize.width);
+  }
 
   return StyleSheet.create({
     base: Object.assign(
