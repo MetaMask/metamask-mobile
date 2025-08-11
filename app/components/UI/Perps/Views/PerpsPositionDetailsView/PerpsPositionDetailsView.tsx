@@ -111,11 +111,6 @@ const PerpsPositionDetailsView: React.FC = () => {
     }
   }, [route.params?.action]);
 
-  const handleEditTPSL = () => {
-    DevLogger.log('PerpsPositionDetailsView: handleEditTPSL called');
-    setIsTPSLVisible(true);
-  };
-
   if (!position) {
     return (
       <SafeAreaView style={[styles.container, { marginTop: top }]}>
@@ -162,6 +157,7 @@ const PerpsPositionDetailsView: React.FC = () => {
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {strings('perps.position.details.section_title')}
           </Text>
+          {/* POST_REBASE_CHECK: Check out props and ensure compatibility with new changes */}
           <PerpsPositionCard
             position={position}
             onClose={handleCloseClick}

@@ -90,11 +90,6 @@ const PerpsPositionsView: React.FC = () => {
     loadPositions({ isRefresh: true });
   };
 
-  const handleEditTPSL = (position: Position) => {
-    setSelectedPosition(position);
-    setIsTPSLVisible(true);
-  };
-
   const handleClosePositionClick = (position: Position) => {
     setSelectedPosition(position);
     setIsClosePositionVisible(true);
@@ -151,7 +146,6 @@ const PerpsPositionsView: React.FC = () => {
           <PerpsPositionCard
             key={`${position.coin}-${index}`}
             position={position}
-            onEdit={handleEditTPSL}
             onClose={handleClosePositionClick}
           />
         ))}
