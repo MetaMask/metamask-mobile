@@ -727,15 +727,16 @@ describe('Smart Transactions utils', () => {
     });
 
     it('should call SmartTransactionsController.wipeSmartTransactions with address and ignoreNetwork flag', () => {
-      const mockWipeSmartTransactions = Engine.context.SmartTransactionsController.wipeSmartTransactions as jest.Mock;
+      const mockWipeSmartTransactions = Engine.context
+        .SmartTransactionsController.wipeSmartTransactions as jest.Mock;
       const testAddress = '0x123456789abcdef123456789abcdef123456789a';
 
       wipeSmartTransactions(testAddress);
 
       expect(mockWipeSmartTransactions).toHaveBeenCalledTimes(1);
-      expect(mockWipeSmartTransactions).toHaveBeenCalledWith({ 
+      expect(mockWipeSmartTransactions).toHaveBeenCalledWith({
         address: testAddress,
-        ignoreNetwork: true 
+        ignoreNetwork: true,
       });
     });
   });

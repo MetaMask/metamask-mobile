@@ -94,7 +94,9 @@ describe('ResetAccountModal', () => {
       '0x1',
     );
     expect(wipeTransactions).toHaveBeenCalledWith();
-    expect(wipeSmartTransactions).toHaveBeenCalledWith('0x123456789abcdef123456789abcdef123456789a');
+    expect(wipeSmartTransactions).toHaveBeenCalledWith(
+      '0x123456789abcdef123456789abcdef123456789a',
+    );
     expect(mockNavigate).toHaveBeenCalledWith('WalletView');
   });
 

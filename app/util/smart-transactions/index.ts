@@ -175,5 +175,8 @@ export const getIsAllowedRpcUrlForSmartTransactions = (rpcUrl?: string) => {
  */
 export function wipeSmartTransactions(address: string) {
   const { SmartTransactionsController } = Engine.context;
-  SmartTransactionsController.wipeSmartTransactions({ address, ignoreNetwork: true });
+  SmartTransactionsController.wipeSmartTransactions({
+    address,
+    ignoreNetwork: true,
+  });
 }
