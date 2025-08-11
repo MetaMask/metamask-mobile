@@ -1,338 +1,295 @@
-import { captureException } from '@sentry/react-native';
-import { ensureValidState } from './util';
 import migrate from './089';
-import { EXISTING_USER } from '../../constants/storage';
-import StorageWrapper from '../storage-wrapper';
-import { userInitialState } from '../../reducers/user';
+import { merge } from 'lodash';
+import { captureException } from '@sentry/react-native';
+import initialRootState from '../../util/test/initial-root-state';
+import { RootState } from '../../reducers';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
-
-jest.mock('./util', () => ({
-  ensureValidState: jest.fn(),
-}));
-
-jest.mock('../storage-wrapper', () => ({
-  getItem: jest.fn(),
-  removeItem: jest.fn(),
-}));
-
 const mockedCaptureException = jest.mocked(captureException);
-const mockedEnsureValidState = jest.mocked(ensureValidState);
-const mockedStorageWrapper = jest.mocked(StorageWrapper);
 
-describe('Migration 089', () => {
+describe('Migration #89 - Replace BSC Network RPC URL', () => {
+  const BSC_CHAIN_ID = '0x38';
+  const OLD_RPC_URL = 'https://bsc-dataseed1.binance.org';
+  const NEW_RPC_URL = `https://bsc-mainnet.infura.io/v3/${
+    process.env.MM_INFURA_PROJECT_ID === 'null'
+      ? ''
+      : process.env.MM_INFURA_PROJECT_ID
+  }`;
+  const LINEA_CHAIN_ID = '0x1234';
+
   beforeEach(() => {
+    jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
-  it('returns state unchanged if ensureValidState fails', async () => {
-    const state = { some: 'state' };
-
-    mockedEnsureValidState.mockReturnValue(false);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toBe(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-    expect(mockedStorageWrapper.getItem).not.toHaveBeenCalled();
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-  });
-
-  it('moves EXISTING_USER from MMKV to Redux state when value is "true"', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('true');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: true,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('moves EXISTING_USER from MMKV to Redux state when value is "false"', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('false');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: false,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('sets existingUser to false when MMKV value is null', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue(null);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: false,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('captures exception when user state is missing, but continues migration', async () => {
-    const state = {};
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('true');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        ...userInitialState,
-        existingUser: true, // Should use the MMKV value, not default to false
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message:
-          'Migration 89: User state is missing or invalid. Expected object, got: undefined',
+  const invalidStates = [
+    {
+      state: null,
+      errorMessage: "FATAL ERROR: Migration 89: Invalid state error: 'object'",
+      scenario: 'state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: null,
       }),
-    );
-  });
-
-  it('captures exception when user state is not an object, but continues migration', async () => {
-    const state = {
-      user: 'not an object',
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('true');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        ...userInitialState,
-        existingUser: true, // Should use the MMKV value, not default to false
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message:
-          'Migration 89: User state is missing or invalid. Expected object, got: string',
+      errorMessage:
+        "FATAL ERROR: Migration 89: Invalid engine state error: 'object'",
+      scenario: 'engine state is invalid',
+    },
+    {
+      state: merge({}, initialRootState, {
+        engine: {
+          backgroundState: null,
+        },
       }),
+      errorMessage:
+        "FATAL ERROR: Migration 89: Invalid engine backgroundState error: 'object'",
+      scenario: 'backgroundState is invalid',
+    },
+  ];
+
+  for (const { errorMessage, scenario, state } of invalidStates) {
+    it(`should capture exception if ${scenario}`, async () => {
+      const newState = await migrate(state);
+
+      expect(newState).toStrictEqual(state);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        errorMessage,
+      );
+    });
+  }
+
+  it('should replace the first occurrence of the BSC network RPC URL', async () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [BSC_CHAIN_ID]: {
+                rpcEndpoints: [
+                  { url: OLD_RPC_URL },
+                  { url: 'https://another.rpc' },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const expectedState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [BSC_CHAIN_ID]: {
+                rpcEndpoints: [
+                  { url: NEW_RPC_URL },
+                  { url: 'https://another.rpc' },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual(expectedState);
+  });
+
+  it('should do nothing if the BSC network configuration is missing', async () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {},
+          },
+        },
+      },
+    });
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual(oldState);
+  });
+
+  it('should do nothing if the Base network RPC URL is not present', async () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [BSC_CHAIN_ID]: {
+                rpcEndpoints: [
+                  { url: 'https://another.rpc' },
+                  { url: 'https://yet.another.rpc' },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual(oldState);
+  });
+
+  it('should handle cases where rpcEndpoints is not an array', async () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [BSC_CHAIN_ID]: {
+                rpcEndpoints: null,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual(oldState);
+  });
+
+  it('should do nothing if no networks use Infura RPC endpoints', async () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  { url: 'https://non-infura.rpc' },
+                  { url: 'https://another-non-infura.rpc' },
+                ],
+                defaultRpcEndpointIndex: 0,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual(oldState);
+  });
+
+  it('should proceed with migration if at least one network uses an Infura RPC endpoint', async () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              '0x1': {
+                rpcEndpoints: [
+                  { url: 'https://mainnet.infura.io/v3/some-key' },
+                  { url: 'https://non-infura.rpc' },
+                ],
+                defaultRpcEndpointIndex: 0,
+              },
+              [BSC_CHAIN_ID]: {
+                rpcEndpoints: [
+                  { url: OLD_RPC_URL },
+                  { url: 'https://another.rpc' },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const expectedState = merge({}, oldState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [BSC_CHAIN_ID]: {
+                rpcEndpoints: [
+                  { url: NEW_RPC_URL },
+                  { url: 'https://another.rpc' },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const newState = await migrate(oldState);
+    expect(newState).toStrictEqual(expectedState);
+  });
+
+  it('should exclude LINEA_MAINNET from Infura RPC endpoint checks', async () => {
+    const oldState = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            networkConfigurationsByChainId: {
+              [LINEA_CHAIN_ID]: {
+                rpcEndpoints: [
+                  { url: 'https://linea.infura.io/v3/some-key' },
+                  { url: 'https://another-linea.rpc' },
+                ],
+                defaultRpcEndpointIndex: 0,
+              },
+              [BSC_CHAIN_ID]: {
+                rpcEndpoints: [
+                  { url: OLD_RPC_URL },
+                  { url: 'https://another.rpc' },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const newState = await migrate(oldState);
+
+    // The LINEA_MAINNET should not trigger migration; only BSC_CHAIN_ID is updated
+    expect(
+      (newState as RootState).engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId[LINEA_CHAIN_ID],
+    ).toStrictEqual(
+      oldState.engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId[LINEA_CHAIN_ID],
     );
+    expect(
+      (newState as RootState).engine.backgroundState.NetworkController
+        .networkConfigurationsByChainId[BSC_CHAIN_ID].rpcEndpoints[0].url,
+    ).toBe(NEW_RPC_URL);
   });
 
-  it('uses MMKV value of false when user state is corrupted', async () => {
-    const state = {
-      user: 'not an object',
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('false');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        ...userInitialState,
-        existingUser: false, // Should use the MMKV value of false
+  it('should capture exception when NetworkController structure is invalid', async () => {
+    const oldState = merge(
+      {},
+      {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              // Valid object but missing networkConfigurationsByChainId
+              selectedNetworkClientId: 'mainnet',
+              networksMetadata: {},
+              // networkConfigurationsByChainId is intentionally missing
+            },
+          },
+        },
       },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message:
-          'Migration 89: User state is missing or invalid. Expected object, got: string',
-      }),
     );
-  });
 
-  it('handles StorageWrapper.getItem throwing an error', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
+    const newState = await migrate(oldState);
 
-    const error = new Error('Storage error');
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockRejectedValue(error);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: false,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-    expect(mockedCaptureException).toHaveBeenCalledWith(error);
-  });
-
-  it('handles StorageWrapper.removeItem throwing an error', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    const error = new Error('Remove error');
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('true');
-    mockedStorageWrapper.removeItem.mockRejectedValue(error);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: true,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).toHaveBeenCalledWith(error);
-  });
-
-  it('initializes with full userInitialState when user state is missing and error occurs', async () => {
-    const state = {};
-
-    const error = new Error('Storage error');
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockRejectedValue(error);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        ...userInitialState,
-        existingUser: false, // Default to false for safety
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-    expect(mockedCaptureException).toHaveBeenCalledWith(error);
-  });
-
-  it('preserves existing existingUser value in Redux if already set', async () => {
-    const state = {
-      user: {
-        existingUser: true,
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('false');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        existingUser: false, // Should be overwritten by MMKV value
-        someOtherField: 'value',
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('does not remove from MMKV if value was null', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue(null);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: false,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles edge case with empty string value', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: false, // Empty string !== 'true'
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
+    expect(newState).toStrictEqual(oldState);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      'Migration 89: NetworkController or networkConfigurationsByChainId not found in expected state structure. Skipping BSC RPC endpoint migration.',
+    );
   });
 });

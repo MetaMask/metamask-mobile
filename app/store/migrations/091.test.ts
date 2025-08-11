@@ -1,7 +1,7 @@
 import { captureException } from '@sentry/react-native';
 import { hasProperty } from '@metamask/utils';
 import { ensureValidState } from './util';
-import migrate from './090';
+import migrate from './091';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -19,7 +19,7 @@ const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 const mockedHasProperty = jest.mocked(hasProperty);
 
-describe('Migration 090', () => {
+describe('Migration 091', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -126,7 +126,7 @@ describe('Migration 090', () => {
     expect(migratedState).toBe(state);
     expect(mockedCaptureException).toHaveBeenCalledWith(
       new Error(
-        'Migration 090: Failed to remove alert state from persisted data: Error: Unexpected error during property check',
+        'Migration 091: Failed to remove alert state from persisted data: Error: Unexpected error during property check',
       ),
     );
   });
