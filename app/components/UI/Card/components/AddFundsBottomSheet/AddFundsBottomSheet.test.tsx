@@ -234,10 +234,6 @@ describe('AddFundsBottomSheet', () => {
       cardholderAddress: '0xcardholder',
       beforeNavigate: expect.any(Function),
     });
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.CARD_ADD_FUNDS_SWAPS_CLICKED,
-    );
-    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('does not call openSwaps when priority token is null', () => {

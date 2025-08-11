@@ -70,18 +70,11 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
       cardholderAddress: cardholderAddresses?.[0],
       beforeNavigate: (nav) => closeBottomSheetAndNavigate(nav),
     });
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.CARD_ADD_FUNDS_SWAPS_CLICKED,
-      ).build(),
-    );
   }, [
     priorityToken,
     openSwaps,
     chainId,
     cardholderAddresses,
-    trackEvent,
-    createEventBuilder,
     closeBottomSheetAndNavigate,
   ]);
 
@@ -89,6 +82,11 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
     closeBottomSheetAndNavigate(() => {
       navigate(Routes.DEPOSIT.ID);
     });
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
+      ).build(),
+    );
 
     trackEvent(
       createEventBuilder(MetaMetricsEvents.RAMPS_BUTTON_CLICKED)
