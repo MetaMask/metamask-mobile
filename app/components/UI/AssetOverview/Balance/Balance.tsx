@@ -156,7 +156,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
 
   return (
     <View style={styles.wrapper}>
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+      <Text variant={TextVariant.HeadingMD}>
         {strings('asset_overview.your_balance')}
       </Text>
       <AssetElement

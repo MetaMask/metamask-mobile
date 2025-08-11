@@ -1810,6 +1810,39 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
   };
 }
 
+export function getPerpsTransactionsDetailsNavbar(navigation, title) {
+  const innerStyles = StyleSheet.create({
+    perpsTransactionsBackButton: {
+      marginTop: 0,
+    },
+    perpsTransactionsTitle: {
+      fontWeight: '700',
+    },
+  });
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        style={innerStyles.perpsTransactionsTitle}
+        variant={TextVariant.HeadingMD}
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity
+        onPress={leftAction}
+        style={[styles.backButton, innerStyles.perpsTransactionsBackButton]}
+      >
+        <Icon name={IconName.Arrow2Left} />
+      </TouchableOpacity>
+    ),
+  };
+}
+
 /**
  * Function that returns navigation options for deposit flow screens
  *
@@ -1855,37 +1888,35 @@ export function getDepositNavbarOptions(
     ),
     headerLeft: showBack
       ? () => (
-          <TouchableOpacity onPress={leftAction} style={styles.backButton}>
-            <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
-          </TouchableOpacity>
+          <ButtonIcon
+            onPress={leftAction}
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Lg}
+            style={styles.headerLeftButton}
+          />
         )
       : showConfiguration
       ? () => (
-          <TouchableOpacity
-            onPress={() => onConfigurationPress?.()}
-            style={styles.backButton}
+          <ButtonIcon
+            onPress={onConfigurationPress}
+            iconName={IconName.MoreHorizontal}
+            size={ButtonIconSize.Lg}
             testID="deposit-configuration-menu-button"
-          >
-            <Icon
-              name={IconName.MoreHorizontal}
-              size={IconSize.Lg}
-              color={theme.colors.icon.default}
-            />
-          </TouchableOpacity>
+            style={styles.headerLeftButton}
+          />
         )
       : null,
     headerRight: showClose
       ? () => (
-          <TouchableOpacity style={styles.closeButton}>
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSize.Lg}
-              onPress={() => {
-                navigation.dangerouslyGetParent()?.pop();
-                onClose?.();
-              }}
-            />
-          </TouchableOpacity>
+          <ButtonIcon
+            style={styles.headerRightButton}
+            iconName={IconName.Close}
+            size={ButtonIconSize.Lg}
+            onPress={() => {
+              navigation.dangerouslyGetParent()?.pop();
+              onClose?.();
+            }}
+          />
         )
       : null,
   };

@@ -21,6 +21,7 @@ import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import PoweredByTransak from '../../components/PoweredByTransak';
+import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -38,6 +39,7 @@ import BannerAlert from '../../../../../../component-library/components/Banners/
 import { BannerAlertSeverity } from '../../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 
 export interface EnterAddressParams {
+  previousFormData?: BasicInfoFormData & AddressFormData;
   quote: BuyQuote;
 }
 
@@ -56,7 +58,7 @@ export interface AddressFormData {
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const { quote } = useParams<EnterAddressParams>();
+  const { quote, previousFormData } = useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,12 +81,12 @@ const EnterAddress = (): JSX.Element => {
   });
 
   const initialFormData: AddressFormData = {
-    addressLine1: '',
-    addressLine2: '',
-    state: '',
-    city: '',
-    postCode: '',
-    countryCode: selectedRegion?.isoCode || '',
+    addressLine1: previousFormData?.addressLine1 || '',
+    addressLine2: previousFormData?.addressLine2 || '',
+    state: previousFormData?.state || '',
+    city: previousFormData?.city || '',
+    postCode: previousFormData?.postCode || '',
+    countryCode: previousFormData?.countryCode || selectedRegion?.isoCode || '',
   };
 
   const validateForm = (data: AddressFormData): Record<string, string> => {

@@ -195,8 +195,19 @@ const BasicInfo = (): JSX.Element => {
         await submitSsnDetails(formData.ssn);
       }
 
-      // Navigate to EnterAddress without passing form data as params
-      navigation.navigate(...createEnterAddressNavDetails({ quote }));
+      // Navigate to EnterAddress with form data
+      navigation.navigate(
+        ...createEnterAddressNavDetails({
+          previousFormData,
+          formData: {
+            ...formData,
+            dob: formData.dob.trim()
+              ? timestampToTransakFormat(formData.dob)
+              : '',
+          },
+          quote,
+        }),
+      );
     } catch (submissionError) {
       setLoading(false);
       setError(
@@ -212,6 +223,7 @@ const BasicInfo = (): JSX.Element => {
       setLoading(false);
     }
   }, [
+    previousFormData,
     validateFormData,
     formData,
     postKycForm,

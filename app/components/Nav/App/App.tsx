@@ -158,9 +158,9 @@ import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
-import PrivacyOverlay from '../../Views/PrivacyOverlay';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -922,6 +922,8 @@ const App: React.FC = () => {
   const sdkInit = useRef<boolean | undefined>(undefined);
   const isFirstRender = useRef(true);
 
+  const { isEnabled: checkMetricsEnabled } = useMetrics();
+
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
@@ -988,7 +990,7 @@ const App: React.FC = () => {
             OPTIN_META_METRICS_UI_SEEN,
           );
 
-          if (!isOptinMetaMetricsUISeen) {
+          if (!isOptinMetaMetricsUISeen && !checkMetricsEnabled()) {
             const resetParams = {
               routes: [
                 {
@@ -1228,7 +1230,6 @@ const App: React.FC = () => {
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
-      <PrivacyOverlay />
     </>
   );
 };
