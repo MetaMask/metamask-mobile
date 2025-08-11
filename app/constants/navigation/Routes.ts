@@ -218,6 +218,7 @@ const Routes = {
     MARKETS: 'PerpsMarketListView',
     MARKET_DETAILS: 'PerpsMarketDetails',
     POSITION_DETAILS: 'PerpsPositionDetails',
+    TUTORIAL: 'PerpsTutorial',
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
