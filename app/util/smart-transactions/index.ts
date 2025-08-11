@@ -14,6 +14,7 @@ import {
 } from '@metamask/smart-transactions-controller/dist/types';
 import type { BaseControllerMessenger } from '../../core/Engine';
 import { isProduction } from '../environment';
+import Engine from '../../core/Engine';
 
 const TIMEOUT_FOR_SMART_TRANSACTION_CONFIRMATION_DONE_EVENT = 10000;
 
@@ -166,3 +167,13 @@ export const getIsAllowedRpcUrlForSmartTransactions = (rpcUrl?: string) => {
     false
   );
 };
+
+/**
+ * Wipes smart transactions from the SmartTransactionsController state.
+ * This should be called when resetting an account to clear smart transaction history for a specific address.
+ * @param address - The address whose smart transactions should be wiped
+ */
+export function wipeSmartTransactions(address: string) {
+  const { SmartTransactionsController } = Engine.context;
+  SmartTransactionsController.wipeSmartTransactions({ address, ignoreNetwork: true });
+}
