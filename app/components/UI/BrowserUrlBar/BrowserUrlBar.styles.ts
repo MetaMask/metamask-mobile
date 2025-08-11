@@ -43,6 +43,8 @@ const styleSheet = ({
       ...fontStyles.normal,
       fontSize: Device.isAndroid() ? 16 : 14,
       color: colors.text.default,
+      position: isUrlBarFocused ? 'absolute' : 'relative',
+      opacity: isUrlBarFocused ? 0 : 1,
     },
     browserUrlBarWrapper: {
       flexDirection: 'row',

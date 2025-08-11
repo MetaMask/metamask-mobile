@@ -59,50 +59,43 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         }
         testID="browser-modal-url-input"
       />
-      <View
+      <Text
+        accessibilityRole="text"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessible={true}
+        ellipsizeMode="head"
+        focusable={true}
+        numberOfLines={1}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
         style={
           {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
             "opacity": 0,
             "position": "absolute",
           }
         }
       >
-        <Text
-          accessibilityRole="text"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessible={true}
-          ellipsizeMode="head"
-          focusable={true}
-          numberOfLines={1}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          https://example.com
-        </Text>
-      </View>
+        https://example.com
+      </Text>
     </View>
     <TouchableOpacity
       accessible={true}
@@ -270,45 +263,43 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
         }
         testID="browser-modal-url-input"
       />
-      <View
-        style={false}
+      <Text
+        accessibilityRole="text"
+        accessibilityState={
+          {
+            "busy": undefined,
+            "checked": undefined,
+            "disabled": undefined,
+            "expanded": undefined,
+            "selected": undefined,
+          }
+        }
+        accessible={true}
+        ellipsizeMode="head"
+        focusable={true}
+        numberOfLines={1}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          {
+            "color": "#121314",
+            "fontFamily": "CentraNo1-Book",
+            "fontSize": 14,
+            "fontWeight": "400",
+            "letterSpacing": 0,
+            "lineHeight": 24,
+            "opacity": 1,
+            "position": "relative",
+          }
+        }
       >
-        <Text
-          accessibilityRole="text"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": undefined,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessible={true}
-          ellipsizeMode="head"
-          focusable={true}
-          numberOfLines={1}
-          onClick={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
-          style={
-            {
-              "color": "#121314",
-              "fontFamily": "CentraNo1-Book",
-              "fontSize": 14,
-              "fontWeight": "400",
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-        >
-          https://example.com
-        </Text>
-      </View>
+        https://example.com
+      </Text>
     </View>
   </View>
   <View
