@@ -4,7 +4,8 @@ import {
   AccountGroupObject,
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
-import { AccountWalletCategory } from '@metamask/account-api';
+import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
 import MultichainAccountSelectorList from './MultichainAccountSelectorList';
 import renderWithProvider, {
   DeepPartial,
@@ -16,29 +17,45 @@ const createMockAccountGroup = (
   name: string,
 ): AccountGroupObject => ({
   id: id as AccountGroupObject['id'],
-  accounts: [`account-${id}`],
-  metadata: { name },
+  type: AccountGroupType.SingleAccount,
+  accounts: [`account-${id}`] as [string],
+  metadata: {
+    name,
+    pinned: false,
+    hidden: false,
+  },
 });
 
 const createMockWallet = (
   id: string,
   name: string,
   groups: AccountGroupObject[],
-): AccountWalletObject => ({
-  id: id as AccountWalletObject['id'],
-  metadata: {
-    name,
-    type: AccountWalletCategory.Entropy,
-    entropy: {
-      id: 'entropy-id',
-      index: 0,
+): AccountWalletObject => {
+  // Filter to only include SingleAccount groups for Keyring wallet type
+  const singleAccountGroups = groups.filter(
+    (
+      group,
+    ): group is Extract<
+      AccountGroupObject,
+      { type: AccountGroupType.SingleAccount }
+    > => group.type === AccountGroupType.SingleAccount,
+  );
+
+  return {
+    id: id as AccountWalletObject['id'],
+    type: AccountWalletType.Keyring,
+    metadata: {
+      name,
+      keyring: {
+        type: KeyringTypes.simple,
+      },
     },
-  },
-  groups: groups.reduce((acc, group) => {
-    acc[group.id] = group;
-    return acc;
-  }, {} as Record<string, AccountGroupObject>),
-});
+    groups: singleAccountGroups.reduce((acc, group) => {
+      acc[group.id] = group;
+      return acc;
+    }, {} as Record<string, Extract<AccountGroupObject, { type: AccountGroupType.SingleAccount }>>),
+  };
+};
 
 const mockFeatureFlagController = {
   RemoteFeatureFlagController: {

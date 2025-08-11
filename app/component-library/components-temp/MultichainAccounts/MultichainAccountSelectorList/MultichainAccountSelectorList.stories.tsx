@@ -2,31 +2,40 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { AccountGroupType } from '@metamask/account-api';
 import { Box } from '@metamask/design-system-react-native';
 
 import MultichainAccountSelectorList from './MultichainAccountSelectorList';
 
-// Mock account groups for the story
 const mockAccountGroup1: AccountGroupObject = {
   id: 'keyring:test-group1/ethereum' as const,
+  type: AccountGroupType.SingleAccount,
   metadata: {
-    name: 'Account 1',
+    name: 'Test Group 1',
+    pinned: false,
+    hidden: false,
   },
   accounts: ['account-id-1'],
 } as AccountGroupObject;
 
 const mockAccountGroup2: AccountGroupObject = {
   id: 'keyring:test-group2/ethereum' as const,
+  type: AccountGroupType.SingleAccount,
   metadata: {
-    name: 'Account 2',
+    name: 'Test Group 2',
+    pinned: false,
+    hidden: false,
   },
   accounts: ['account-id-2'],
 } as AccountGroupObject;
 
 const mockAccountGroup3: AccountGroupObject = {
   id: 'keyring:test-group3/ethereum' as const,
+  type: AccountGroupType.SingleAccount,
   metadata: {
-    name: 'Hardware Wallet Account',
+    name: 'Test Group 3',
+    pinned: false,
+    hidden: false,
   },
   accounts: ['account-id-3'],
 } as AccountGroupObject;

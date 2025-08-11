@@ -144,6 +144,10 @@ const mockInternalAccounts = {
   },
 };
 
+// Helper function for wallet tests
+const createWalletTestState = (wallets: Record<string, unknown> | undefined) =>
+  createMockState({ accountTree: { wallets: wallets || {} } });
+
 describe('AccountTreeController Selectors', () => {
   describe('selectAccountSections', () => {
     it.each([
@@ -222,9 +226,6 @@ describe('AccountTreeController Selectors', () => {
   });
 
   describe('selectWalletById', () => {
-    const createWalletTestState = (wallets: Record<string, unknown>) =>
-      createMockState({ accountTree: { wallets } });
-
     it.each([
       ['undefined accountTree', undefined, WALLET_ID_1, null],
       ['empty wallets', {}, WALLET_ID_1, null],
