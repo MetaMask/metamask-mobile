@@ -642,10 +642,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.47.3]
 
 ### Fixed
-<<<<<<< HEAD
-
-=======
->>>>>>> stable
 - chore(runway): cherry-pick fix(bridge): fix: cp-7.47.3 prevent crash when viewing Solana asset details ([#16776](https://github.com/MetaMask/metamask-mobile/pull/16776))
 
 ## [7.47.2]
@@ -817,10 +813,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - fix(multi-srp): display alternative text color when in dark mode([#14718](https://github.com/MetaMask/metamask-mobile/pull/14718))
 
 ### Fixed
-<<<<<<< HEAD
-
-=======
->>>>>>> stable
 - fix(bridge): keyboard not appearing when error banner is displayed ([#14862](https://github.com/MetaMask/metamask-mobile/pull/14862))
 - fix(bridge): fix not switching networks when selecting source token ([#14712](https://github.com/MetaMask/metamask-mobile/pull/14712))
 - fix: updates a padding style specifically for Android devices ([#14725](https://github.com/MetaMask/metamask-mobile/pull/14725))
