@@ -523,7 +523,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 color={TextColor.Error}
                 style={styles.helperText}
               >
-                {strings('perps.validation.invalid_take_profit', {
+                {strings('perps.order.validation.invalid_take_profit', {
                   direction: getTakeProfitErrorDirection(actualDirection),
                   positionType: actualDirection,
                 })}
@@ -633,7 +633,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 color={TextColor.Error}
                 style={styles.helperText}
               >
-                {strings('perps.validation.invalid_stop_loss', {
+                {strings('perps.order.validation.invalid_stop_loss', {
                   direction: getStopLossErrorDirection(actualDirection),
                   positionType: actualDirection,
                 })}
