@@ -112,3 +112,5 @@ Install [Android Studio](https://developer.android.com/studio)
 WIP
 
 You are ready to setup metamask-mobile project in your system!
+
+new line
