@@ -17,7 +17,35 @@ import { useGasFeeEstimates } from './useGasFeeEstimates';
 
 const HEX_ZERO = '0x0';
 
-export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
+export const useFeeCalculations = (
+  transactionMeta: TransactionMeta,
+): {
+  estimatedFeeFiat: string | null;
+  estimatedFeeNative: string | null;
+  preciseNativeFeeInHex: string | null;
+  calculateGasEstimate: ({
+    feePerGas,
+    gasPrice,
+    gas,
+    shouldUseEIP1559FeeLogic,
+    priorityFeePerGas,
+  }: {
+    feePerGas: string;
+    gasPrice: string;
+    gas: string;
+    shouldUseEIP1559FeeLogic: boolean;
+    priorityFeePerGas: string;
+  }) => {
+    currentCurrencyFee: string | null;
+    nativeCurrencyFee: string | null;
+    preciseNativeCurrencyFee: string | null;
+    preciseNativeFeeInHex: string | null;
+  };
+  maxFeeFiat: string | null;
+  maxFeeNative: string | null;
+  maxFeeNativePrecise: string | null;
+  maxFeeNativeHex: string | null;
+} => {
   const { chainId, gasLimitNoBuffer, layer1GasFee, networkClientId } =
     transactionMeta;
 
@@ -106,9 +134,14 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
         supportsEIP1559
           ? (decimalToHex(maxFeePerGas) as Hex)
           : (txParamsGasPrice as Hex),
-        gasLimitNoBuffer as Hex,
+        transactionMeta.txParams.gas,
       ),
-    [supportsEIP1559, maxFeePerGas, txParamsGasPrice, gasLimitNoBuffer],
+    [
+      supportsEIP1559,
+      maxFeePerGas,
+      txParamsGasPrice,
+      transactionMeta.txParams.gas,
+    ],
   );
 
   const {
