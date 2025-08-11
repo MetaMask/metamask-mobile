@@ -16,9 +16,6 @@ export const createStyles = ({
     innerContainer: {
       flex: 1,
     },
-    scrollView: {
-      flex: 1,
-    },
     scrollContent: {
       paddingBottom: vars.hasActionButtons ? 75 : 16,
     },
@@ -100,12 +97,12 @@ export const createStyles = ({
     positionWarningText: {
       textAlign: 'center',
     },
-    riskDisclaimer: {
-      paddingHorizontal: 16,
-      paddingTop: 16,
-      textAlign: 'left',
-    },
     addFundsContainer: {
       flexDirection: 'column',
+    },
+    riskDisclaimer: {
+      paddingHorizontal: 16,
+      paddingTop: 8,
+      textAlign: 'left',
     },
   });

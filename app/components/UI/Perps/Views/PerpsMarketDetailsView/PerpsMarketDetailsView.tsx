@@ -39,8 +39,12 @@ import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types
 import { useSelector } from 'react-redux';
 import { selectPerpsProvider } from '../../selectors/perpsController';
 import { capitalize } from '../../../../../util/general';
-import { usePerpsAccount } from '../../hooks';
-import MarketDetailsTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
+import {
+  usePerpsAccount,
+  usePerpsConnection,
+  usePerpsOpenOrders,
+} from '../../hooks';
+import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
 }
@@ -67,6 +71,21 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const perpsProvider = useSelector(selectPerpsProvider);
 
   const account = usePerpsAccount();
+
+  const { isConnected } = usePerpsConnection();
+
+  // Get currently open orders for this market
+  const { orders: ordersData } = usePerpsOpenOrders({
+    skipInitialFetch: !isConnected,
+    enablePolling: true,
+    pollingInterval: 5000, // Poll every 5 seconds for real-time updates
+  });
+
+  // Filter orders for the current market
+  const openOrders = useMemo(() => {
+    if (!ordersData?.length || !market?.symbol) return [];
+    return ordersData.filter((order) => order.symbol === market.symbol);
+  }, [ordersData, market?.symbol]);
 
   const hasZeroBalance = useMemo(
     () => parseFloat(account?.availableBalance || '0') === 0,
@@ -132,10 +151,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Determine if any action buttons will be visible
   const hasActionButtons = useMemo(
-    () =>
-      hasZeroBalance ||
-      (!isLoadingPosition && !hasExistingPosition && !hasZeroBalance),
-    [hasZeroBalance, isLoadingPosition, hasExistingPosition],
+    () => !hasZeroBalance && !isLoadingPosition,
+    [hasZeroBalance, isLoadingPosition],
   );
 
   const { styles } = useStyles(createStyles, { hasActionButtons });
@@ -169,8 +186,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
       />
       <ScrollView
-        style={styles.container}
         contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
         {/* Chart */}
         <View style={[styles.section, styles.chartSection]}>
@@ -186,11 +203,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
         {/* Tabs Section */}
         <View style={styles.section}>
-          <MarketDetailsTabs
+          <PerpsMarketTabs
             marketStats={marketStats}
             position={existingPosition}
             isLoadingPosition={isLoadingPosition}
-            unfilledOrders={[]}
+            unfilledOrders={openOrders}
           />
         </View>
 
@@ -225,7 +242,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         </View>
       )}
       {/* Action Buttons */}
-      {!isLoadingPosition && !hasExistingPosition && !hasZeroBalance && (
+      {hasActionButtons && (
         <View style={styles.actionsContainer}>
           <Button
             variant={ButtonVariants.Primary}
@@ -235,7 +252,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             onPress={handleLongPress}
             style={[styles.actionButton, styles.longButton]}
             testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-            disabled={hasExistingPosition}
           />
           <Button
             variant={ButtonVariants.Primary}
@@ -245,7 +261,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             onPress={handleShortPress}
             style={[styles.actionButton, styles.shortButton]}
             testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-            disabled={hasExistingPosition}
           />
         </View>
       )}
