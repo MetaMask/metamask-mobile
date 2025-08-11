@@ -872,7 +872,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -2693,7 +2693,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -4514,7 +4514,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -6311,7 +6311,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -8108,7 +8108,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -9904,7 +9904,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -11701,7 +11701,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -13498,7 +13498,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
