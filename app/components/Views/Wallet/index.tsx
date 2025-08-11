@@ -151,6 +151,7 @@ import {
 import { setIsConnectionRemoved } from '../../../actions/user';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -304,6 +305,9 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const solanaOnboardingModalEnabled = useSelector(
+    selectSolanaOnboardingModalEnabled,
+  );
 
   /**
    * Object containing the balance of the current selected account
@@ -335,7 +339,7 @@ const Wallet = ({
   const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
-    token: {
+    sourceToken: {
       address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: chainId as Hex,
       decimals: 18,
@@ -487,8 +491,10 @@ const Wallet = ({
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   useEffect(() => {
-    checkAndNavigateToSolanaFeature();
-  }, [checkAndNavigateToSolanaFeature]);
+    if (solanaOnboardingModalEnabled) {
+      checkAndNavigateToSolanaFeature();
+    }
+  }, [checkAndNavigateToSolanaFeature, solanaOnboardingModalEnabled]);
   ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
