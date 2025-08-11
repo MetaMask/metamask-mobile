@@ -903,10 +903,4 @@ describe('Network Selector', () => {
       expect(gnosisCell).toBeTruthy();
     });
   });
-
-  // TODO: Add test coverage for non-EVM networks rendering based on isContextualChainId
-  // The line `!isContextualChainId && renderNonEvmNetworks(false)` should be tested to ensure:
-  // 1. Non-EVM networks render when isContextualChainId is false (source != SEND_FLOW || no contextual chain ID)
-  // 2. Non-EVM networks do NOT render when isContextualChainId is true (source == SEND_FLOW && contextual chain ID exists)
-  // This requires complex mocking of selectors that causes import chain issues
 });

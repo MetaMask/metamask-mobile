@@ -88,6 +88,7 @@ const AddressFrom = ({
   );
 
   const perDappNetworkInfo = useNetworkInfo(origin || '');
+  const { networkName, networkImageSource } = perDappNetworkInfo || {};
 
   const sendFlowNetworkData = useMemo(() => {
     if (!isContextualNetworkEnabled) {
@@ -115,8 +116,8 @@ const AddressFrom = ({
   }, [activeAddress, internalAccounts]);
 
   const displayNetworkName = useMemo(() => {
-    if (origin && perDappNetworkInfo) {
-      return perDappNetworkInfo.networkName;
+    if (origin && networkName) {
+      return networkName;
     }
     if (isContextualNetworkEnabled) {
       return sendFlowNetworkData.name;
@@ -124,15 +125,15 @@ const AddressFrom = ({
     return globalNetworkName;
   }, [
     origin,
-    perDappNetworkInfo,
+    networkName,
     isContextualNetworkEnabled,
     sendFlowNetworkData,
     globalNetworkName,
   ]);
 
   const displayNetworkImage = useMemo(() => {
-    if (origin && perDappNetworkInfo) {
-      return perDappNetworkInfo.networkImageSource;
+    if (origin && networkImageSource) {
+      return networkImageSource;
     }
     if (isContextualNetworkEnabled) {
       return sendFlowNetworkData.imageSource;
@@ -140,7 +141,7 @@ const AddressFrom = ({
     return globalNetworkImage;
   }, [
     origin,
-    perDappNetworkInfo,
+    networkImageSource,
     isContextualNetworkEnabled,
     sendFlowNetworkData,
     globalNetworkImage,
