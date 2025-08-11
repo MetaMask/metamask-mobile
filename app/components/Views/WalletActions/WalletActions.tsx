@@ -314,7 +314,7 @@ const WalletActions = () => {
       } else {
         dispatch(newAssetTransaction(assetToSend));
       }
-      navigateToSendPage(asset);
+      navigateToSendPage();
     });
   }, [
     closeBottomSheetAndNavigate,

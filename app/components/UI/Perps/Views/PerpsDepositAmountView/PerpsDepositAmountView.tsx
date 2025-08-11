@@ -78,7 +78,7 @@ import {
 } from '../../../../UI/Bridge/components/TokenInputArea';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { BridgeViewMode } from '../../../Bridge/types';
-import Keypad from '../../../Ramp/Aggregator/components/Keypad';
+import Keypad from '../../../../Base/Keypad';
 import { isSwapsNativeAsset } from '../../../Swaps/utils';
 import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
 import { type PerpsToken } from '../../components/PerpsTokenSelector';
@@ -644,7 +644,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
             )}
 
             <Keypad
-              style={styles.keypad}
               value={sourceAmount || '0'}
               onChange={handleKeypadChange}
               currency={sourceToken?.symbol || USDC_SYMBOL}

@@ -1,3 +1,4 @@
+/* eslint-disable import/no-nodejs-modules */
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createAnvilClients } from './anvil-clients';
 import { AnvilPort } from '../framework/fixtures/FixtureUtils';
@@ -71,6 +72,7 @@ export const defaultOptions = {
  */
 class AnvilManager {
   private server: AnvilType | undefined;
+  private serverPort: number | undefined;
 
   /**
    * Check if the Anvil server is running
@@ -79,6 +81,8 @@ class AnvilManager {
   isRunning(): boolean {
     return this.server !== undefined;
   }
+
+  // Using shared port utilities from FixtureUtils
 
   /**
    * Start the Anvil server with the specified options
@@ -99,6 +103,7 @@ class AnvilManager {
   async start(opts: AnvilNodeOptions = {}): Promise<void> {
     const options = { ...defaultOptions, ...opts, port: AnvilPort() };
     const { port } = options;
+    this.serverPort = port;
 
     try {
       logger.debug('Starting Anvil server...');
@@ -112,6 +117,8 @@ class AnvilManager {
       logger.debug(`Server started on port ${port}`);
     } catch (error) {
       logger.error('Failed to start server:', error);
+      this.server = undefined;
+      this.serverPort = undefined;
       throw error;
     }
   }
@@ -192,15 +199,21 @@ class AnvilManager {
    */
   async quit(): Promise<void> {
     if (!this.server) {
-      throw new Error('Anvil server not running yet');
+      logger.debug('Anvil server not running in this instance.');
+      return;
     }
+
     try {
-      logger.debug('Stopping Anvil server...');
+      const port = this.serverPort || AnvilPort();
+      logger.debug(`Stopping Anvil server on port ${port}...`);
       await this.server.stop();
-      logger.debug('Anvil server stopped');
+      logger.debug(`Anvil server stopped on port ${port}`);
     } catch (e) {
       logger.error(`Error stopping server: ${e}`);
       throw e;
+    } finally {
+      this.server = undefined;
+      this.serverPort = undefined;
     }
   }
 }

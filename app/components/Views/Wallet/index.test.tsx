@@ -45,7 +45,9 @@ jest.mock('react-native-scrollable-tab-view', () => {
 });
 
 import Wallet from './';
-import { renderScreen } from '../../../util/test/renderWithProvider';
+import renderWithProvider, {
+  renderScreen,
+} from '../../../util/test/renderWithProvider';
 import { screen as RNScreen } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -54,6 +56,11 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { isUnifiedSwapsEnvVarEnabled } from '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled';
+import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -157,6 +164,9 @@ jest.mock('../../../core/Engine/Engine', () => ({
 }));
 
 const mockInitialState = {
+  user: {
+    isConnectionRemoved: false,
+  },
   networkOnboarded: {
     networkOnboardedState: {
       '0x1': true,
@@ -489,7 +499,7 @@ describe('Wallet', () => {
       // Check that AssetDetailsActions was called with all required props
       expect(mockAssetDetailsActions.mock.calls[0][0]).toEqual(
         expect.objectContaining({
-          displayBuyButton: expect.any(Boolean),
+          displayFundButton: expect.any(Boolean),
           displaySwapsButton: expect.any(Boolean),
           displayBridgeButton: expect.any(Boolean),
           swapsIsLive: expect.any(Boolean),
@@ -497,8 +507,7 @@ describe('Wallet', () => {
           goToSwaps: expect.any(Function),
           onReceive: expect.any(Function),
           onSend: expect.any(Function),
-          onBuy: expect.any(Function),
-          buyButtonActionID: 'wallet-buy-button',
+          fundButtonActionID: 'wallet-fund-button',
           swapButtonActionID: 'wallet-swap-button',
           bridgeButtonActionID: 'wallet-bridge-button',
           sendButtonActionID: 'wallet-send-button',
@@ -541,7 +550,10 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
+      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'SendFlowView',
+      );
+      expect(sendFlowNavigationCall).toBeDefined();
     });
 
     it('should handle onSend callback correctly without native currency', async () => {
@@ -575,17 +587,20 @@ describe('Wallet', () => {
       const onSend = mockAssetDetailsActions.mock.calls[0][0].onSend;
       await onSend();
 
-      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
+      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'SendFlowView',
+      );
+      expect(sendFlowNavigationCall).toBeDefined();
     });
 
-    it('should handle onBuy callback correctly', () => {
+    it('should pass correct props to AssetDetailsActions (no onBuy prop needed)', () => {
       //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
-      const onBuy = mockAssetDetailsActions.mock.calls[0][0].onBuy;
-      onBuy();
-
-      expect(mockNavigate).toHaveBeenCalled();
+      // Verify that AssetDetailsActions is called without onBuy prop
+      const passedProps = mockAssetDetailsActions.mock.calls[0][0];
+      expect(passedProps.onBuy).toBeUndefined();
+      expect(passedProps.fundButtonActionID).toBeDefined();
     });
 
     it('should handle goToBridge callback correctly', () => {
@@ -688,7 +703,143 @@ describe('Wallet', () => {
       await onSend();
 
       // Should still navigate even if there's an error
-      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
+      const sendFlowNavigationCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'SendFlowView',
+      );
+      expect(sendFlowNavigationCall).toBeDefined();
+    });
+  });
+
+  describe('Connection Removed', () => {
+    it('connection removed modal is not shown when isConnectionRemoved is true', () => {
+      const mockInitialStateWithConnectionRemoved = {
+        ...mockInitialState,
+        user: {
+          isConnectionRemoved: true,
+        },
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            PreferencesController: {
+              ...mockInitialState.engine.backgroundState.PreferencesController,
+              useNftDetection: true,
+            },
+          },
+        },
+      };
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(mockInitialStateWithConnectionRemoved),
+        );
+
+      // Create a complete navigation object mock
+      const mockNavigationObject = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      } as unknown as NavigationProp<ParamListBase>;
+
+      // Clear previous calls
+      mockNavigate.mockClear();
+
+      renderWithProvider(
+        <Wallet
+          navigation={mockNavigationObject}
+          currentRouteName={Routes.WALLET_VIEW}
+        />,
+        {
+          state: mockInitialStateWithConnectionRemoved,
+        },
+      );
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: expect.any(String),
+            description: expect.any(String),
+            primaryButtonLabel: expect.any(String),
+            type: 'error',
+            icon: IconName.Danger,
+            iconColor: IconColor.Warning,
+            isInteractable: false,
+            closeOnPrimaryButtonPress: true,
+            onPrimaryButtonPress: expect.any(Function),
+          }),
+        },
+      );
+
+      jest.clearAllMocks();
+    });
+
+    it('connection removed modal is shown when isConnectionRemoved is true and isSocialLogin is true', () => {
+      const mockInitialStateWithConnectionRemoved = {
+        ...mockInitialState,
+        user: {
+          isConnectionRemoved: true,
+        },
+        engine: {
+          ...mockInitialState.engine,
+          backgroundState: {
+            ...mockInitialState.engine.backgroundState,
+            PreferencesController: {
+              ...mockInitialState.engine.backgroundState.PreferencesController,
+              useNftDetection: true,
+            },
+            SeedlessOnboardingController: {
+              ...mockInitialState.engine.backgroundState
+                .SeedlessOnboardingController,
+              vault: 'encrypted-vault-data',
+              loginFlow: true,
+            },
+          },
+        },
+      };
+
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback: (state: unknown) => unknown) =>
+          callback(mockInitialStateWithConnectionRemoved),
+        );
+
+      // Create a complete navigation object mock
+      const mockNavigationObject = {
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+      } as unknown as NavigationProp<ParamListBase>;
+
+      // Clear previous calls
+      mockNavigate.mockClear();
+
+      renderWithProvider(
+        <Wallet
+          navigation={mockNavigationObject}
+          currentRouteName={Routes.WALLET_VIEW}
+        />,
+        {
+          state: mockInitialStateWithConnectionRemoved,
+        },
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+        params: expect.objectContaining({
+          title: expect.any(String),
+          description: expect.any(String),
+          primaryButtonLabel: expect.any(String),
+          type: 'error',
+          icon: IconName.Danger,
+          iconColor: IconColor.Warning,
+          isInteractable: false,
+          closeOnPrimaryButtonPress: true,
+          onPrimaryButtonPress: expect.any(Function),
+        }),
+      });
+
+      jest.clearAllMocks();
     });
   });
 });
