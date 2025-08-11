@@ -62,6 +62,10 @@ class WalletView {
     );
   }
 
+  get navbarCardButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.CARD_BUTTON);
+  }
+
   get nftTab(): DetoxElement {
     return Matchers.getElementByText(WalletViewSelectorsText.NFTS_TAB);
   }
@@ -191,6 +195,12 @@ class WalletView {
 
   async tapNetworksButtonOnNavBar(): Promise<void> {
     await TestHelpers.tap(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+  }
+
+  async tapNavbarCardButton(): Promise<void> {
+    await Gestures.waitAndTap(this.navbarCardButton, {
+      elemDescription: 'Card Button on Navbar',
+    });
   }
 
   async tapNftTab(): Promise<void> {

@@ -66,6 +66,7 @@ import { BridgeViewMode } from '../Bridge/types';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import CardButton from '../Card/components/CardButton';
 import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 
 const trackEvent = (event, params = {}) => {
@@ -964,6 +965,7 @@ export function getWalletNavbarOptions(
   isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
+  isCardholder = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerContainer: {
@@ -1036,6 +1038,15 @@ export function getWalletNavbarOptions(
 
   const isFeatureFlagEnabled = isRemoveGlobalNetworkSelectorEnabled();
 
+  const handleCardPress = () => {
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CARD_HOME_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.CARD.ROOT);
+  };
+
   // Action buttons for right side
   const actionButtons = (
     <View style={innerStyles.actionButtonsContainer}>
@@ -1045,6 +1056,12 @@ export function getWalletNavbarOptions(
           hitSlop={innerStyles.touchAreaSlop}
         />
       </View>
+      {isCardholder ? (
+        <CardButton
+          onPress={handleCardPress}
+          touchAreaSlop={innerStyles.touchAreaSlop}
+        />
+      ) : null}
       {isNotificationsFeatureEnabled() && (
         <BadgeWrapper
           position={BadgeWrapperPosition.TopRight}

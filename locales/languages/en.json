@@ -5269,6 +5269,27 @@
     "back_button": "Back",
     "continue_button": "Continue"
   },
+  "card": {
+    "card": "MetaMask Card",
+    "add_funds_bottomsheet": {
+      "deposit": "Deposit",
+      "deposit_description": "Convert cash to {{symbol}} on Linea",
+      "swap": "Swap",
+      "swap_description": "Exchange tokens into {{symbol}} on Linea",
+      "select_method": "Select method"
+    },
+    "card_home": {
+      "error_title": "Can’t fetch data",
+      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
+      "try_again": "Try again",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "add_funds": "Add funds",
+      "manage_card_options": {
+        "manage_card": "Manage card",
+        "advanced_card_management_description": "See transactions, freeze card, and more"
+      }
+    }
+  },
   "onboarding_error_fallback": {
     "title": "An error occurred",
     "description": "Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.",
@@ -5287,20 +5308,6 @@
     "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
     "tryAgain": "Try again",
     "close": "Close"
-  },
-  "card": {
-    "card": "MetaMask Card",
-    "card_home": {
-      "error_title": "Can’t fetch data",
-      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
-      "try_again": "Try again",
-      "limited_spending_warning": "Full balance may not be available. Adjust your spending limit in {{manageCard}}",
-      "add_funds": "Add funds",
-      "manage_card_options": {
-        "manage_card": "Manage card",
-        "advanced_card_management_description": "See transactions, freeze card, and more"
-      }
-    }
   },
   "time": {
     "minutes_format": "{{count}} minute",
