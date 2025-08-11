@@ -1,6 +1,11 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { parseCaipChainId, CaipChainId, Hex } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../core/Engine';
@@ -56,10 +61,14 @@ export const useNetworkEnablement = () => {
     () => (chainId: CaipChainId) => {
       const { namespace: chainNamespace, reference } =
         parseCaipChainId(chainId);
-      const formattedChainIdHex = toHex(reference);
+      const formattedChainId =
+        chainNamespace === KnownCaipNamespace.Eip155
+          ? toHex(reference)
+          : reference;
       return (
-        enabledNetworksByNamespace?.[chainNamespace]?.[formattedChainIdHex] ===
-        true
+        enabledNetworksByNamespace?.[chainNamespace]?.[
+          formattedChainId as Hex
+        ] === true
       );
     },
     [enabledNetworksByNamespace],
@@ -68,14 +77,26 @@ export const useNetworkEnablement = () => {
   const toggleNetwork = useMemo(
     () => (chainId: CaipChainId) => {
       const networkEnabled = isNetworkEnabled(chainId);
+      // This is needed because we should have 1 network at minimum enabled
+      // despite if the user deselects all networks
+      const isSingleNetworkEnabled =
+        Object.keys(enabledNetworksByNamespace[namespace] || {}).filter(
+          (key) => enabledNetworksByNamespace[namespace]?.[key as Hex],
+        ).length === 1;
 
-      if (networkEnabled) {
+      if (networkEnabled && !isSingleNetworkEnabled) {
         disableNetwork(chainId);
-      } else {
+      } else if (!networkEnabled) {
         enableNetwork(chainId);
       }
     },
-    [isNetworkEnabled, enableNetwork, disableNetwork],
+    [
+      isNetworkEnabled,
+      enableNetwork,
+      disableNetwork,
+      enabledNetworksByNamespace,
+      namespace,
+    ],
   );
 
   return {
