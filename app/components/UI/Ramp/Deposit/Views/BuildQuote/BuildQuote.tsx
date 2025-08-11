@@ -298,13 +298,17 @@ const BuildQuote = () => {
         throw new Error(strings('deposit.buildQuote.quoteFetchError'));
       }
     } catch (quoteError) {
-      endTrace({
-        name: TraceName.DepositContinueFlow,
-        data: {
-          error:
-            quoteError instanceof Error ? quoteError.message : 'Unknown error',
-        },
-      });
+      if (!shouldRouteImmediately) {
+        endTrace({
+          name: TraceName.DepositContinueFlow,
+          data: {
+            error:
+              quoteError instanceof Error
+                ? quoteError.message
+                : 'Unknown error',
+          },
+        });
+      }
 
       Logger.error(
         quoteError as Error,
