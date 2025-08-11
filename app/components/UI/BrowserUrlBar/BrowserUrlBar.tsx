@@ -83,8 +83,8 @@ const BrowserUrlBar = forwardRef<BrowserUrlBarRef, BrowserUrlBarProps>(
       hide: () => onCancelInput(),
       blur: () => inputRef?.current?.blur(),
       focus: () => inputRef?.current?.focus(),
-      setNativeProps: (props: object) => {
-        if ('text' in props && typeof props.text === 'string') {
+      setNativeProps: (props: { text?: string }) => {
+        if (props.text) {
           inputValueRef.current = props.text;
         }
         inputRef?.current?.setNativeProps(props);
