@@ -139,8 +139,20 @@ export interface RewardDto {
   id: string;
   seasonRewardId: string;
   claimStatus: RewardClaimStatus;
-  data: PointsBonusRewardData | null;
+  claim?: RewardClaim;
   createdAt: string;
+}
+
+export interface RewardClaim {
+  id: string;
+  rewardId: string;
+  accountId: bigint;
+  createdAt: Date;
+  data: PointsBonusRewardData | null;
+}
+
+export interface ClaimRewardDto {
+  address: string;
 }
 
 export interface PointsBonusRewardData {
@@ -161,6 +173,7 @@ export enum RewardClaimStatus {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsControllerState = {
+  devOnlyLoginAddress: string | null;
   // UI state
   lastUpdated: number | null;
 };

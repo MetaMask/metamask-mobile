@@ -2332,6 +2332,7 @@ export default {
       DeFiPositionsController,
       SeedlessOnboardingController,
       NetworkEnablementController,
+      RewardsController,
     } = instance.datamodel.state;
 
     return {
@@ -2388,6 +2389,7 @@ export default {
       DeFiPositionsController,
       SeedlessOnboardingController,
       NetworkEnablementController,
+      RewardsController,
     };
   },
 

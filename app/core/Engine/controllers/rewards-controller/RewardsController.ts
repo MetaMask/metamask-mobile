@@ -11,6 +11,7 @@ const controllerName = 'RewardsController';
  * State metadata for the RewardsController
  */
 const metadata = {
+  devOnlyLoginAddress: { persist: true, anonymous: false },
   lastUpdated: { persist: true, anonymous: false },
 };
 
@@ -18,6 +19,7 @@ const metadata = {
  * Get the default state for the RewardsController
  */
 export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
+  devOnlyLoginAddress: null,
   lastUpdated: null,
 });
 
@@ -64,5 +66,21 @@ export class RewardsController extends BaseController<
     this.update((state) => {
       state.lastUpdated = Date.now();
     });
+  }
+
+  /**
+   * Set the dev-only login address
+   */
+  setDevOnlyLoginAddress(address: string | null): void {
+    this.update((state) => {
+      state.devOnlyLoginAddress = address;
+    });
+  }
+
+  /**
+   * Get the dev-only login address
+   */
+  getDevOnlyLoginAddress(): string | null {
+    return this.state.devOnlyLoginAddress;
   }
 }

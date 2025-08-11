@@ -67,6 +67,7 @@ export const useRewardsAuth = ({
   const handleLogout = useCallback(async () => {
     logout();
     await AsyncStorage.clear();
+    Engine.context.RewardsController.setDevOnlyLoginAddress(null);
   }, [logout]);
 
   const clearLoginError = useCallback(() => setLoginError(null), []);

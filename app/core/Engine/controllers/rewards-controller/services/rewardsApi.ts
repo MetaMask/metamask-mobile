@@ -14,6 +14,7 @@ import type {
   CursorPaginatedResultsDto,
   SeasonRewardsCatalogDto,
   RewardDto,
+  ClaimRewardDto,
 } from '../types';
 
 /**
@@ -185,10 +186,14 @@ export const rewardsApi = createApi({
     }),
 
     // Claim reward
-    claimReward: builder.mutation<void, string>({
-      query: (rewardId) => ({
+    claimReward: builder.mutation<
+      void,
+      { rewardId: string; body: ClaimRewardDto }
+    >({
+      query: ({ rewardId, body }) => ({
         url: `/rewards/${rewardId}/claim`,
         method: 'POST',
+        body,
       }),
       invalidatesTags: ['RewardsStatus'],
     }),

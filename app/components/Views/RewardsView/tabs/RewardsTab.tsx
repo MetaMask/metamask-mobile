@@ -8,7 +8,6 @@ import {
   Text,
 } from 'react-native';
 import { useTheme } from '../../../../util/theme';
-import { useClaimRewardMutation } from '../../../../core/Engine/controllers/rewards-controller/services/rewardsApi';
 import type { Colors } from '../../../../util/theme/models';
 import { useRewardsCatalog } from '../../../../core/Engine/controllers/rewards-controller/hooks/useRewardsCatalog';
 import {
@@ -28,6 +27,7 @@ import Button, {
 } from '../../../../component-library/components/Buttons/Button';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { useClaimReward } from '../../../../core/Engine/controllers/rewards-controller/hooks/useClaimReward';
 
 // Extend dayjs with relativeTime plugin
 dayjs.extend(relativeTime);
@@ -178,17 +178,7 @@ const RewardsTab: React.FC<RewardsTabProps> = () => {
   const styles = createStyles(colors);
   const { rewardsCatalog, rewards } = useRewardsCatalog();
   const { seasonData, seasonStatusData } = useRewardsSeason();
-  const [claimReward] = useClaimRewardMutation();
-
-  const handleClaimReward = useCallback(
-    (catalogItem: SeasonRewardCatalogDto) => {
-      const reward = rewards?.find((r) => r.seasonRewardId === catalogItem.id);
-      if (reward) {
-        claimReward(reward.id);
-      }
-    },
-    [rewards, claimReward],
-  );
+  const { claimReward } = useClaimReward();
 
   const currentPoints = useMemo(
     () => seasonStatusData?.balance ?? 0,
@@ -246,8 +236,8 @@ const RewardsTab: React.FC<RewardsTabProps> = () => {
 
       return {
         isClaimed: Boolean(claimedReward),
-        activeFrom: claimedReward?.data?.activeFrom,
-        activeUntil: claimedReward?.data?.activeUntil,
+        activeFrom: claimedReward?.claim?.data?.activeFrom,
+        activeUntil: claimedReward?.claim?.data?.activeUntil,
       };
     },
     [rewards],
@@ -306,7 +296,7 @@ const RewardsTab: React.FC<RewardsTabProps> = () => {
               label="Redeem"
               startIconName={IconName.Gift}
               style={styles.claimButton}
-              onPress={() => handleClaimReward(item)}
+              onPress={() => claimReward(item)}
             />
           </View>
         ) : isActive ? (
