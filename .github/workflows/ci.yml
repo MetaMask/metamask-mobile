@@ -100,7 +100,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup
+      - run: yarn setup --node
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
       - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
@@ -133,7 +133,7 @@ jobs:
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-      - run: yarn setup
+      - run: yarn setup --node
       - uses: actions/download-artifact@v4
         with:
           path: tests/coverage/
@@ -167,7 +167,7 @@ jobs:
           node-version-file: '.nvmrc'
           cache: yarn
       - name: Install dependencies
-        run: yarn setup
+        run: yarn setup --no-build-android
 
       - name: Generate iOS bundle
         run: yarn gen-bundle:ios
@@ -216,9 +216,11 @@ jobs:
           path: coverage/
       - name: Upload coverage reports to Codecov
         if: ${{ always() }}
+        continue-on-error: true
         uses: codecov/codecov-action@d9f34f8cd5cb3b3eb79b3e4b5dae3a16df499a70
       - name: SonarCloud Scan
-        if: ${{ env.HAVE_SONAR_TOKEN == 'true' }}
+        if: ${{ env.HAVE_SONAR_TOKEN == 'true' && github.event_name == 'pull_request' }}
+        continue-on-error: true
         # This is SonarSource/sonarcloud-github-action@v2.0.0
         uses: SonarSource/sonarcloud-github-action@4b4d7634dab97dcee0b75763a54a6dc92a9e6bc1
         env:
@@ -253,7 +255,7 @@ jobs:
           ISSUE_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Skip step if event is a PR
+          # Skip step if event is not a PR
           if [[ "${{ github.event_name }}" != "pull_request" ]]; then
             echo "This job only runs for pull requests."
             exit 0
@@ -304,7 +306,7 @@ jobs:
         run: bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/62dc61a45fc95efe8c800af7a557ab0b9165d63b/scripts/download-actionlint.bash) 1.7.1
         shell: bash
       - name: Check workflow files
-        run: ${{ steps.download-actionlint.outputs.executable }} -color
+        run: ${{ steps.download-actionlint.outputs.executable }} -color -config-file .github/actionlint.yaml
         shell: bash
   all-jobs-pass:
     name: All jobs pass

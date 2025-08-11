@@ -138,8 +138,8 @@ describe(
           await AccountListBottomSheet.tapEditAccountActionsAtIndex(1);
           await AccountActionsBottomSheet.renameActiveAccount(NEW_ACCOUNT_NAME);
 
-          // Add another new EVM account
-          await WalletView.tapIdenticon();
+          // Bottom sheet remains open after renaming account
+          // await WalletView.tapIdenticon();
           await AccountListBottomSheet.tapAddAccountButton();
           await AddAccountBottomSheet.tapCreateEthereumAccount();
 

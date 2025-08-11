@@ -5,9 +5,13 @@ project_type: react-native
 
 #Pipelines are listed below
 pipelines:
+  # Generates prod builds for all targets
   create_prod_builds_pipeline:
     stages:
       - create_prod_builds: {}
+  create_android_env_builds_pipeline:
+    stages:
+      - create_android_env_builds: {}
   #Creates MetaMask-QA apps and stores apk/ipa in Bitrise
   create_qa_builds_pipeline:
     stages:
@@ -246,6 +250,19 @@ stages:
       - build_android_qa_prod: {}
       - build_ios_flask_prod: {}
       - build_android_flask_prod: {}
+  create_android_env_builds:
+    workflows:
+      - build_android_main_prod: {}
+      - build_android_main_rc: {}
+      - build_android_main_beta: {}
+      - build_android_main_exp: {}
+      - build_android_main_test: {}
+      - build_android_main_e2e: {}
+      - build_android_main_local: {}
+      - build_android_flask_prod: {}
+      - build_android_flask_test: {}
+      - build_android_flask_e2e: {}
+      - build_android_flask_local: {}
   create_build_qa_android:
     workflows:
       - build_android_qa: {}
@@ -329,11 +346,11 @@ stages:
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_performance_ios: {}
+      # - run_tag_smoke_performance_ios: {}
       - run_tag_smoke_performance_android: {}
   run_smoke_e2e_performance_ios_android_stage:
     workflows:
-      - run_tag_smoke_performance_ios: {}
+      # - run_tag_smoke_performance_ios: {}
       - run_tag_smoke_performance_android: {}
   # TODO: This stage does the same thing as build_smoke_e2e_ios_android_stage
   build_regression_e2e_ios_android_stage:
@@ -2337,8 +2354,8 @@ workflows:
     envs:
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
-      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_FLASK_UAT_URL
+      - KEYSTORE_PATH: 'android/keystores/flask-uat.keystore'
       - APP_NAME: 'flask'
       - OUTPUT_PATH: 'flaskRelease'
       - YARN_COMMAND: 'build:android:flask:test'
@@ -2353,8 +2370,8 @@ workflows:
       - YARN_COMMAND: 'build:android:flask:e2e'
       - NAME: $FLASK_VERSION_NAME
       - NUMBER: $FLASK_VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_FLASK_KEYSTORE_URL_URL
-      - KEYSTORE_PATH: 'android/keystores/flaskRelease.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_FLASK_UAT_URL
+      - KEYSTORE_PATH: 'android/keystores/flask-uat.keystore'
       - APP_NAME: 'flask'
       - OUTPUT_PATH: 'flaskRelease'
       - SHARE_WITH_DETOX: 'true'
@@ -2414,8 +2431,8 @@ workflows:
       - YARN_COMMAND: 'build:android:main:test'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
@@ -2429,8 +2446,8 @@ workflows:
       - YARN_COMMAND: 'build:android:main:e2e'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
       - SHARE_WITH_DETOX: 'true'
@@ -2445,8 +2462,8 @@ workflows:
       - YARN_COMMAND: 'build:android:main:exp'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/internalRelease.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:

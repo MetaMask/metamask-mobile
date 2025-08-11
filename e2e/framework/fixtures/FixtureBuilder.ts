@@ -2,7 +2,7 @@ import {
   getGanachePort,
   getSecondTestDappLocalUrl,
   getTestDappLocalUrl,
-  TEST_DAPP_LOCAL_URL,
+  getTestDappLocalUrlByDappCounter,
 } from './FixtureUtils';
 import { merge } from 'lodash';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -23,8 +23,13 @@ import {
 import { BackupAndSyncSettings, RampsRegion } from '../types';
 import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants';
 
-export const DEFAULT_FIXTURE_ACCOUNT =
+export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
+
+export const DEFAULT_FIXTURE_ACCOUNT =
+  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM.toLowerCase() as Lowercase<
+    typeof DEFAULT_FIXTURE_ACCOUNT_CHECKSUM
+  >;
 
 export const DEFAULT_FIXTURE_ACCOUNT_2 =
   '0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da';
@@ -131,12 +136,12 @@ class FixtureBuilder {
             AccountTrackerController: {
               accountsByChainId: {
                 64: {
-                  [DEFAULT_FIXTURE_ACCOUNT]: {
+                  [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
                     balance: '0x0',
                   },
                 },
                 1: {
-                  [DEFAULT_FIXTURE_ACCOUNT]: {
+                  [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
                     balance: '0x0',
                   },
                 },
@@ -800,7 +805,7 @@ class FixtureBuilder {
    */
   createPermissionControllerConfig(
     additionalPermissions: Record<string, unknown> = {},
-    dappUrl = TEST_DAPP_LOCAL_URL,
+    dappUrl = getTestDappLocalUrl(),
   ) {
     const permission = additionalPermissions?.[
       Caip25EndowmentPermissionName
@@ -821,7 +826,7 @@ class FixtureBuilder {
     const permittedEthAccounts =
       incomingEthAccounts.length > 0
         ? incomingEthAccounts
-        : [DEFAULT_FIXTURE_ACCOUNT];
+        : [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM];
 
     // Cast addresses to the required 0x${string} format
     const typedAddresses = permittedEthAccounts.map(
@@ -874,49 +879,12 @@ class FixtureBuilder {
     if (connectSecondDapp) {
       secondDappPermissions = this.createPermissionControllerConfig(
         additionalPermissions,
-        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
+        getSecondTestDappLocalUrl(),
       );
     }
-<<<<<<< HEAD
-    let allPermissions = {};
-    for (let i = 0; i < additionalPermissions.length; i++) {
-      // This needs to be escalated as permissions are given based on the origin and it's impossible to have distinct
-      // permissions for the same origin.
-      if (i === 0) {
-        additionalPermissions[i].origin = TEST_DAPP_LOCAL_URL;
-      } else {
-        additionalPermissions[i].origin = getSecondTestDappLocalUrl();
-      }
-      const testDappPermissions = this.createPermissionControllerConfig(
-        additionalPermissions[i],
-        additionalPermissions[i].origin as string,
-      );
-      allPermissions = merge(allPermissions, testDappPermissions);
-    }
-    this.withPermissionController(allPermissions);
-||||||| 201ad63e35
-    let allPermissions = {};
-    for (let i = 0; i < additionalPermissions.length; i++) {
-      // This needs to be escalated as permissions are given based on the origin and it's impossible to have distinct
-      // permissions for the same origin.
-      if (i === 0) {
-        additionalPermissions[i].origin = DAPP_URL;
-      } else {
-        additionalPermissions[i].origin =
-          device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
-      }
-      const testDappPermissions = this.createPermissionControllerConfig(
-        additionalPermissions[i],
-        additionalPermissions[i].origin as string,
-      );
-      allPermissions = merge(allPermissions, testDappPermissions);
-    }
-    this.withPermissionController(allPermissions);
-=======
     this.withPermissionController(
       merge(testDappPermissions, secondDappPermissions),
     );
->>>>>>> main
 
     // Ensure Solana feature modal is suppressed
     return this.ensureSolanaModalSuppressed();
@@ -972,7 +940,7 @@ class FixtureBuilder {
     );
     const caip25CaveatValueWithDefaultAccount = setEthAccounts(
       caip25CaveatValueWithChains,
-      [DEFAULT_FIXTURE_ACCOUNT],
+      [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM],
     );
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
@@ -1719,7 +1687,7 @@ class FixtureBuilder {
     // We start at 1 to easily identify the tab across all tests
     for (let i = 1; i <= extraTabs; i++) {
       this.fixture.state.browser.tabs.push({
-        url: getTestDappLocalUrl(i),
+        url: getTestDappLocalUrlByDappCounter(i),
         id: DEFAULT_TAB_ID + i,
         isArchived: false,
       });

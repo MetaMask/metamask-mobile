@@ -1,12 +1,15 @@
 // Only keep selectors that are actually used in tests
 export const TestSnapViewSelectorWebIDS = {
+  cancelBackgroundEventButton: 'cancelBackgroundEvent',
   clearManageStateButton: 'clearManageState',
   clearStateButton: 'clearState',
   clearStateUnencryptedButton: 'clearStateUnencrypted',
   clearUnencryptedManageStateButton: 'clearUnencryptedManageState',
+  connectBackgroundEventsButton: 'connectbackground-events',
   connectBip32Button: 'connectbip32',
   connectBip44Button: 'connectbip44',
   connectClientStatusSnapButton: 'connectclient-status',
+  connectDialogSnapButton: 'connectdialogs',
   connectGetEntropyButton: 'connectGetEntropySnap',
   connectGetPreferencesButton: 'connectpreferences',
   connectJsonRpcButton: 'connectjson-rpc',
@@ -15,16 +18,24 @@ export const TestSnapViewSelectorWebIDS = {
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
   connectStateButton: 'connectstate',
+  connectWasmButton: 'connectwasm',
+  getBackgroundEventResultButton: 'getBackgroundEvents',
   getPreferencesButton: 'getPreferences',
   getPublicKeyBip44Button: 'sendBip44Test',
-  signMessageBip44Button: 'signBip44Message',
   getPublicKeyBip32Button: 'bip32GetPublic',
   getCompressedPublicKeyBip32Button: 'bip32GetCompressedPublic',
+  scheduleBackgroundEventWithDateButton: 'scheduleBackgroundEventWithDate',
+  scheduleBackgroundEventWithDurationButton:
+    'scheduleBackgroundEventWithDuration',
   signEntropyMessageButton: 'signEntropyMessage',
   signMessageBip32Secp256k1Button: 'sendBip32-secp256k1',
   signMessageBip32ed25519Button: 'sendBip32-ed25519',
   signMessageBip32ed25519Bip32Button: 'sendBip32-ed25519Bip32',
+  signMessageBip44Button: 'signBip44Message',
+  sendAlertButton: 'sendAlertButton',
   sendClientStatusButton: 'sendClientStatusTest',
+  sendConfirmationButton: 'sendConfirmationButton',
+  sendCustomButton: 'sendCustomButton',
   sendGetStateButton: 'sendGetState',
   sendGetUnencryptedStateButton: 'sendGetUnencryptedState',
   sendManageStateButton: 'sendManageState',
@@ -39,10 +50,14 @@ export const TestSnapViewSelectorWebIDS = {
   getChainIdButton: 'sendEthprovider',
   getAccountsButton: 'sendEthproviderAccounts',
   personalSignButton: 'signPersonalSignMessage',
+  sendWasmMessageButton: 'sendWasmMessage',
   signTypedDataButton: 'signTypedDataButton',
 };
 
 export const TestSnapInputSelectorWebIDS = {
+  backgroundEventDateInput: 'backgroundEventDate',
+  backgroundEventDurationInput: 'backgroundEventDuration',
+  cancelBackgroundEventInput: 'backgroundEventId',
   dataManageStateInput: 'dataManageState',
   dataStateInput: 'dataState',
   dataUnencryptedManageStateInput: 'dataUnencryptedManageState',
@@ -59,6 +74,7 @@ export const TestSnapInputSelectorWebIDS = {
   webSocketUrlInput: 'webSocketUrl',
   personalSignMessageInput: 'personalSignMessage',
   signTypedDataMessageInput: 'signTypedData',
+  wasmInput: 'wasmInput',
 };
 
 export const EntropyDropDownSelectorWebIDS = {
@@ -78,24 +94,29 @@ export const TestSnapResultSelectorWebIDS = {
   clearManageStateResultSpan: 'clearManageStateResult',
   clearUnencryptedManageStateResultSpan: 'clearUnencryptedManageStateResult',
   clientStatusResultSpan: 'clientStatusResult',
+  dialogResultSpan: 'dialogResult',
   encryptedStateResultSpan: 'encryptedStateResult',
   entropySignResultSpan: 'entropySignResult',
-  preferencesResultSpan: 'preferencesResult',
+  getBackgroundEventsResultSpan: 'getBackgroundEventsResult',
   getStateResultSpan: 'getStateResult',
   getStateUnencryptedResultSpan: 'getStateUnencryptedResult',
   networkAccessResultSpan: 'networkAccessResult',
   ethereumProviderResultSpan: 'ethproviderResult',
   personalSignResultSpan: 'personalSignResult',
+  preferencesResultSpan: 'preferencesResult',
   retrieveManageStateResultSpan: 'retrieveManageStateResult',
   retrieveManageStateUnencryptedResultSpan:
     'retrieveManageStateUnencryptedResult',
   rpcResultSpan: 'rpcResult',
+  scheduleBackgroundEventResultSpan: 'scheduleBackgroundEventResult',
   sendManageStateResultSpan: 'sendManageStateResult',
   sendUnencryptedManageStateResultSpan: 'sendUnencryptedManageStateResult',
   signTypedDataResultSpan: 'signTypedDataResult',
   unencryptedStateResultSpan: 'unencryptedStateResult',
+  wasmResultSpan: 'wasmResult',
 };
 
 export const TestSnapBottomSheetSelectorWebIDS = {
   BOTTOMSHEET_FOOTER_BUTTON_ID: 'bottomsheetfooter-button-subsequent',
+  DEFAULT_FOOTER_BUTTON_ID: 'default-snap-footer-button',
 };
