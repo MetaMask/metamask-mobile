@@ -6,7 +6,7 @@ export const createStyles = ({
   vars,
 }: {
   theme: Theme;
-  vars: { hasActionButtons: boolean };
+  vars: { hasLongShortButtons: boolean };
 }) =>
   StyleSheet.create({
     container: {
@@ -17,7 +17,7 @@ export const createStyles = ({
       flex: 1,
     },
     scrollContent: {
-      paddingBottom: vars.hasActionButtons ? 75 : 16,
+      paddingBottom: vars.hasLongShortButtons ? 75 : 16,
     },
     header: {
       flexDirection: 'row',

@@ -150,12 +150,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   };
 
   // Determine if any action buttons will be visible
-  const hasActionButtons = useMemo(
-    () => !hasZeroBalance && !isLoadingPosition,
-    [hasZeroBalance, isLoadingPosition],
+  const hasLongShortButtons = useMemo(
+    () => !isLoadingPosition && !hasZeroBalance && !hasExistingPosition,
+    [isLoadingPosition, hasZeroBalance, hasExistingPosition],
   );
 
-  const { styles } = useStyles(createStyles, { hasActionButtons });
+  const { styles } = useStyles(createStyles, { hasLongShortButtons });
 
   if (!market) {
     return (
@@ -223,8 +223,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           </Text>
         </View>
       </ScrollView>
-
-      {hasZeroBalance && (
+      {hasZeroBalance && !hasExistingPosition && !isLoadingPosition && (
         <View style={[styles.actionsContainer, styles.addFundsContainer]}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('perps.market.add_funds_to_start_trading_perps')}
@@ -241,8 +240,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           />
         </View>
       )}
-      {/* Action Buttons */}
-      {hasActionButtons && (
+      {/* Long and Short Buttons */}
+      {hasLongShortButtons && (
         <View style={styles.actionsContainer}>
           <Button
             variant={ButtonVariants.Primary}

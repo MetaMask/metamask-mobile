@@ -9,7 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import Icon, {
   IconName,
@@ -39,27 +39,35 @@ import ButtonIcon, {
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
 
 const PerpsMarketRowItemSkeleton = () => {
-  const { styles, theme } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet, {});
 
   return (
-    <SkeletonPlaceholder backgroundColor={theme.colors.background.alternative}>
-      <View style={styles.skeletonContainer}>
-        <View style={styles.skeletonLeftSection}>
-          <View style={styles.skeletonAvatar} />
-          <View style={styles.skeletonTokenInfo}>
-            <View style={styles.skeletonTokenHeader}>
-              <View style={styles.skeletonTokenSymbol} />
-              <View style={styles.skeletonLeverage} />
-            </View>
-            <View style={styles.skeletonVolume} />
+    <View style={styles.skeletonContainer}>
+      <View style={styles.skeletonLeftSection}>
+        {/* Avatar skeleton */}
+        <Skeleton width={40} height={40} style={styles.skeletonAvatar} />
+        <View style={styles.skeletonTokenInfo}>
+          <View style={styles.skeletonTokenHeader}>
+            {/* Token symbol skeleton */}
+            <Skeleton
+              width={60}
+              height={16}
+              style={styles.skeletonTokenSymbol}
+            />
+            {/* Leverage skeleton */}
+            <Skeleton width={30} height={14} style={styles.skeletonLeverage} />
           </View>
-        </View>
-        <View style={styles.skeletonRightSection}>
-          <View style={styles.skeletonPrice} />
-          <View style={styles.skeletonChange} />
+          {/* Volume skeleton */}
+          <Skeleton width={80} height={12} style={styles.skeletonVolume} />
         </View>
       </View>
-    </SkeletonPlaceholder>
+      <View style={styles.skeletonRightSection}>
+        {/* Price skeleton */}
+        <Skeleton width={90} height={16} style={styles.skeletonPrice} />
+        {/* Change skeleton */}
+        <Skeleton width={70} height={14} style={styles.skeletonChange} />
+      </View>
+    </View>
   );
 };
 

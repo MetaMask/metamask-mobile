@@ -110,8 +110,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     skeletonAvatar: {
-      width: 40,
-      height: 40,
       borderRadius: 20,
       marginRight: 16,
     },
@@ -124,19 +122,13 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 6,
     },
     skeletonTokenSymbol: {
-      width: 60,
-      height: 16,
       borderRadius: 4,
       marginRight: 8,
     },
     skeletonLeverage: {
-      width: 30,
-      height: 14,
       borderRadius: 4,
     },
     skeletonVolume: {
-      width: 80,
-      height: 12,
       borderRadius: 4,
     },
     skeletonRightSection: {
@@ -144,14 +136,10 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     skeletonPrice: {
-      width: 90,
-      height: 16,
       borderRadius: 4,
       marginBottom: 6,
     },
     skeletonChange: {
-      width: 70,
-      height: 14,
       borderRadius: 4,
     },
     animatedListContainer: {
