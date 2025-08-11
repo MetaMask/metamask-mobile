@@ -640,11 +640,13 @@ const BuildQuote = () => {
           </TouchableOpacity>
 
           <Keypad
-            style={styles.keypad}
             value={amount}
             onChange={handleKeypadChange}
             currency={fiatCurrency.symbol}
             decimals={0}
+            periodButtonProps={{
+              isDisabled: true,
+            }}
           />
         </ScreenLayout.Content>
       </ScreenLayout.Body>
