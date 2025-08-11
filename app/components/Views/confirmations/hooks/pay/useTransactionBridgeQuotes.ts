@@ -3,7 +3,6 @@ import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { BridgeQuoteRequest, getBridgeQuotes } from '../../utils/bridge';
 import { useEffect, useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useDispatch } from 'react-redux';
 import {
   setTransactionBridgeQuotes,
@@ -30,7 +29,6 @@ export function useTransactionBridgeQuotes() {
     payToken ?? {};
 
   const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
-  const requiredTokens = useTransactionRequiredTokens();
 
   const requests: BridgeQuoteRequest[] = useMemo(() => {
     if (!sourceTokenAddress || !sourceChainId || !sourceAmounts) {
@@ -38,7 +36,7 @@ export function useTransactionBridgeQuotes() {
     }
 
     return sourceAmounts.map((sourceAmount, index) => {
-      const { address: targetTokenAddress } = requiredTokens[index] || {};
+      const { address: targetTokenAddress } = sourceAmounts[index] || {};
       const { amountRaw: sourceTokenAmount } = sourceAmount;
 
       return {
@@ -50,14 +48,7 @@ export function useTransactionBridgeQuotes() {
         targetTokenAddress,
       };
     });
-  }, [
-    from,
-    requiredTokens,
-    sourceAmounts,
-    sourceChainId,
-    sourceTokenAddress,
-    targetChainId,
-  ]);
+  }, [from, sourceAmounts, sourceChainId, sourceTokenAddress, targetChainId]);
 
   const { pending: loading, value: quotes } = useAsyncResult(async () => {
     if (!requests.length || requests.some((request) => !request)) {
