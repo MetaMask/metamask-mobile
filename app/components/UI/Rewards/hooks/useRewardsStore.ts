@@ -9,8 +9,11 @@ import {
   selectBalanceRefereePortion,
   selectBalanceUpdatedAt,
   selectSeasonStatusLoading,
+  selectGeoLocation,
 } from '../../../../reducers/rewards/selectors';
 import { RewardsTab } from '../../../../reducers/rewards/types';
+import { useMemo } from 'react';
+import { DEFAULT_BLOCKED_REGIONS } from './useRewardsGeoLocation';
 
 export interface UseRewardsStoreResult {
   activeTab: RewardsTab | null;
@@ -26,6 +29,7 @@ export interface UseRewardsStoreResult {
     refereeCount: number;
   };
   seasonStatusLoading: boolean;
+  isBlocked: boolean;
 }
 
 export const useRewardsStore = (): UseRewardsStoreResult => {
@@ -38,6 +42,16 @@ export const useRewardsStore = (): UseRewardsStoreResult => {
   const balanceRefereePortion = useSelector(selectBalanceRefereePortion);
   const balanceUpdatedAt = useSelector(selectBalanceUpdatedAt);
   const seasonStatusLoading = useSelector(selectSeasonStatusLoading);
+  const geoLocation = useSelector(selectGeoLocation);
+
+  // Check if user is in a blocked region
+  const isBlocked = useMemo(() => {
+    if (!geoLocation) return false;
+    return DEFAULT_BLOCKED_REGIONS.some((blockedRegion) =>
+      geoLocation.startsWith(blockedRegion),
+    );
+  }, [geoLocation]);
+
   return {
     activeTab,
     subscriptionId,
@@ -52,5 +66,6 @@ export const useRewardsStore = (): UseRewardsStoreResult => {
       refereeCount: referralCount,
     },
     seasonStatusLoading,
+    isBlocked,
   };
 };

@@ -6,15 +6,26 @@ import type {
   EstimatePointsDto,
   EstimatedPointsDto,
   GetPerpsDiscountDto,
+  LoginDto,
   SeasonStatusDto,
   SubscriptionReferralDetailsDto,
+  GenerateChallengeDto,
+  ChallengeResponseDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
+import Logger from '../../../../../util/Logger';
+import { successfulFetch } from '@metamask/controller-utils';
 
 const SERVICE_NAME = 'RewardsDataService';
 
 // Default timeout for all API requests (10 seconds)
 const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
+
+// Geolocation URLs for different environments
+const GEOLOCATION_URLS = {
+  DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+  PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
+};
 
 // Auth endpoint action types
 
@@ -32,6 +43,20 @@ export interface RewardsDataServiceGetPerpsDiscountAction {
   type: `${typeof SERVICE_NAME}:getPerpsDiscount`;
   handler: RewardsDataService['getPerpsDiscount'];
 }
+export interface RewardsDataServiceOptinAction {
+  type: `${typeof SERVICE_NAME}:optin`;
+  handler: RewardsDataService['optin'];
+}
+
+export interface RewardsDataServiceLogoutAction {
+  type: `${typeof SERVICE_NAME}:logout`;
+  handler: RewardsDataService['logout'];
+}
+
+export interface RewardsDataServiceGenerateChallengeAction {
+  type: `${typeof SERVICE_NAME}:generateChallenge`;
+  handler: RewardsDataService['generateChallenge'];
+}
 
 export interface RewardsDataServiceSeasonStatusAction {
   type: `${typeof SERVICE_NAME}:getSeasonStatus`;
@@ -43,12 +68,21 @@ export interface RewardsDataServiceReferralDetailsAction {
   handler: RewardsDataService['getReferralDetails'];
 }
 
+export interface RewardsDataServiceFetchGeoLocationAction {
+  type: `${typeof SERVICE_NAME}:fetchGeoLocation`;
+  handler: RewardsDataService['fetchGeoLocation'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceEstimatePointsAction
   | RewardsDataServiceGetPerpsDiscountAction
+  | RewardsDataServiceOptinAction
+  | RewardsDataServiceLogoutAction
+  | RewardsDataServiceGenerateChallengeAction
   | RewardsDataServiceSeasonStatusAction
-  | RewardsDataServiceReferralDetailsAction;
+  | RewardsDataServiceReferralDetailsAction
+  | RewardsDataServiceFetchGeoLocationAction;
 
 type AllowedActions = never;
 
@@ -100,12 +134,28 @@ export class RewardsDataService {
       this.getPerpsDiscount.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:optin`,
+      this.optin.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:logout`,
+      this.logout.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:generateChallenge`,
+      this.generateChallenge.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSeasonStatus`,
       this.getSeasonStatus.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getReferralDetails`,
       this.getReferralDetails.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:fetchGeoLocation`,
+      this.fetchGeoLocation.bind(this),
     );
   }
 
@@ -240,8 +290,63 @@ export class RewardsDataService {
     if (!response.ok) {
       throw new Error(`Get Perps discount failed: ${response.status}`);
     }
+  }
 
+  /*
     return await response.text();
+   * Generate a challenge for authentication.
+   * @param body - The challenge request body containing the address.
+   * @returns The challenge response DTO.
+   */
+  async generateChallenge(
+    body: GenerateChallengeDto,
+  ): Promise<ChallengeResponseDto> {
+    const response = await this.makeRequest('/auth/challenge/generate', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`Generate challenge failed: ${response.status}`);
+    }
+
+    return (await response.json()) as ChallengeResponseDto;
+  }
+
+  /**
+   * Perform optin (login) via challenge and signature.
+   * @param body - The login request body containing challengeId, signature, and optional referralCode.
+   * @returns The login response DTO.
+   */
+  async optin(body: LoginDto): Promise<LoginResponseDto> {
+    const response = await this.makeRequest('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Optin failed: ${response.status}`);
+    }
+
+    return (await response.json()) as LoginResponseDto;
+  }
+
+  /**
+   * Perform logout for the current authenticated session.
+   * @param subscriptionId - The subscription ID to use for the authenticated request.
+   * @returns Promise that resolves when logout is complete.
+   */
+  async logout(subscriptionId?: string): Promise<void> {
+    const response = await this.makeRequest(
+      '/auth/logout',
+      {
+        method: 'POST',
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Logout failed: ${response.status}`);
+    }
   }
 
   /**
@@ -305,5 +410,28 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as SubscriptionReferralDetailsDto;
+  }
+
+  /**
+   * Fetch geolocation information from MetaMask's geolocation service.
+   * Returns location in Country or Country-Region format (e.g., 'US', 'CA-ON', 'FR').
+   * @returns Promise<string> - The geolocation string or 'UNKNOWN' on failure.
+   */
+  async fetchGeoLocation(): Promise<string> {
+    let location = 'UNKNOWN';
+
+    try {
+      const environment = AppConstants.IS_DEV ? 'DEV' : 'PROD';
+      const response = await successfulFetch(GEOLOCATION_URLS[environment]);
+
+      if (!response.ok) {
+        return location;
+      }
+      location = await response?.text();
+      return location;
+    } catch (e) {
+      Logger.log('RewardsDataService: Failed to fetch geoloaction', e);
+      return location;
+    }
   }
 }

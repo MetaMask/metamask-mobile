@@ -63,6 +63,15 @@ const Routes = {
   OPTIONS_SHEET: 'OptionsSheet',
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
+  REWARDS_VIEW: 'RewardsView',
+  REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
+  REWARDS_DASHBOARD: 'RewardsDashboard',
+  REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
+  REWARDS_ONBOARDING_1: 'RewardsOnboarding1',
+  REWARDS_ONBOARDING_2: 'RewardsOnboarding2',
+  REWARDS_ONBOARDING_3: 'RewardsOnboarding3',
+  REWARDS_ONBOARDING_4: 'RewardsOnboarding4',
+  REWARDS_ONBOARDING_5: 'RewardsOnboarding5',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
@@ -80,6 +89,7 @@ const Routes = {
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
     DEEP_LINK_MODAL: 'DeepLinkModal',
     MULTICHAIN_ACCOUNT_DETAIL_ACTIONS: 'MultichainAccountDetailActions',
+    REWARDS_ERROR_MODAL: 'RewardsErrorModal',
   },
   ONBOARDING: {
     ROOT_NAV: 'OnboardingRootNav',
@@ -309,8 +319,6 @@ const Routes = {
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
   },
-  REWARDS_VIEW: 'RewardsView',
-  REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
 };
 
 export default Routes;

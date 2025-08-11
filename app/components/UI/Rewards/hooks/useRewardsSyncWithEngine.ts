@@ -7,7 +7,11 @@ import {
   resetRewardsState,
 } from '../../../../actions/rewards';
 import { useCurrentSeasonStatus } from './useCurrentSeasonStatus';
-import { setSeasonStatusLoading } from '../../../../reducers/rewards';
+import {
+  setGeoLocation,
+  setSeasonStatusLoading,
+} from '../../../../reducers/rewards';
+import { useRewardsGeoLocation } from './useRewardsGeoLocation';
 
 /**
  * Hook that synchronizes the rewards controller engine state with the UI store state
@@ -23,6 +27,8 @@ export const useRewardsSyncWithEngine = () => {
   // Get current season status using existing hook
   const { seasonStatus, isLoading: isSeasonStatusLoading } =
     useCurrentSeasonStatus();
+
+  const { geoLocation } = useRewardsGeoLocation();
 
   // Sync subscription data with UI store
   useEffect(() => {
@@ -48,6 +54,16 @@ export const useRewardsSyncWithEngine = () => {
   useEffect(() => {
     dispatch(setSeasonStatusLoading(isSeasonStatusLoading));
   }, [isSeasonStatusLoading, dispatch]);
+
+  // Sync geo location with UI store
+  useEffect(() => {
+    if (geoLocation) {
+      dispatch(setGeoLocation(geoLocation));
+    } else {
+      // Clear geo location when not available
+      dispatch(setGeoLocation(null));
+    }
+  }, [geoLocation, dispatch]);
 
   return {
     subscription,

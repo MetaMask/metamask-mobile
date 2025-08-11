@@ -20,3 +20,9 @@ export type { UseRewardsStoreResult } from './useRewardsStore';
 
 export { useReferralDetails } from './useReferralDetails';
 export type { UseReferralDetailsResult } from './useReferralDetails';
+
+export { useRewardsGeoLocation } from './useRewardsGeoLocation';
+export type { UseRewardsGeoLocationResult } from './useRewardsGeoLocation';
+
+export { useValidateReferralCode } from './useValidateReferralCode';
+export type { UseValidateReferralCodeResult } from './useValidateReferralCode';

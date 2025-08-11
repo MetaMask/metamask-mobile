@@ -3,6 +3,7 @@ import {
   SeasonStatusDto,
   SubscriptionDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
+import { OnboardingStep } from './types';
 
 export interface RewardsState {
   activeTab: 'overview' | 'activity' | 'levels' | null;
@@ -20,6 +21,12 @@ export interface RewardsState {
   // Referral state
   referralCode: string | null;
   refereeCount: number;
+
+  // Onboarding state
+  onboardingActiveStep: OnboardingStep;
+
+  // Geolocation state
+  geoLocation: string | null;
 }
 
 export const initialState: RewardsState = {
@@ -32,6 +39,8 @@ export const initialState: RewardsState = {
   balanceTotal: 0,
   balanceRefereePortion: 0,
   balanceUpdatedAt: null,
+  onboardingActiveStep: OnboardingStep.STEP_1,
+  geoLocation: null,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -92,6 +101,18 @@ const rewardsSlice = createSlice({
     resetRewardsState: (state) => {
       Object.assign(state, initialState);
     },
+
+    setOnboardingActiveStep: (state, action: PayloadAction<OnboardingStep>) => {
+      state.onboardingActiveStep = action.payload;
+    },
+
+    resetOnboarding: (state) => {
+      state.onboardingActiveStep = OnboardingStep.STEP_1;
+    },
+
+    setGeoLocation: (state, action: PayloadAction<string | null>) => {
+      state.geoLocation = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase('persist/REHYDRATE', (state, action: RehydrateAction) => {
@@ -114,6 +135,9 @@ export const {
   setReferralDetails,
   setSeasonStatusLoading,
   resetRewardsState,
+  setOnboardingActiveStep,
+  resetOnboarding,
+  setGeoLocation,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;

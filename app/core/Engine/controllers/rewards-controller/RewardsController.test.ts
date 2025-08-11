@@ -3,7 +3,12 @@ import {
   getRewardsControllerDefaultState,
 } from './RewardsController';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
-import type { RewardsControllerState, LoginResponseDto } from './types';
+import type {
+  RewardsControllerState,
+  LoginResponseDto,
+  SubscriptionReferralDetailsDto,
+  SeasonStatusDto,
+} from './types';
 import { storeSubscriptionToken } from './utils/multi-subscription-token-vault';
 import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { selectRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
@@ -52,7 +57,43 @@ describe('RewardsController', () => {
     subscription: {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
+      accounts: [
+        {
+          address: '0x123',
+          chainId: 1,
+        },
+      ],
     },
+  };
+
+  const mockReferralDetailsResponse: SubscriptionReferralDetailsDto = {
+    referralCode: 'TEST123',
+    totalReferees: 5,
+  };
+
+  const mockSeasonStatusResponse: SeasonStatusDto = {
+    season: {
+      id: 'season-123',
+      name: 'Test Season',
+      startDate: new Date('2023-06-01T00:00:00Z'),
+      endDate: new Date('2023-08-31T23:59:59Z'),
+      tiers: [
+        {
+          id: 'tier-gold',
+          name: 'Gold Tier',
+        },
+        {
+          id: 'tier-silver',
+          name: 'Silver Tier',
+        },
+      ],
+    },
+    balance: {
+      total: 1000,
+      refereePortion: 500,
+      updatedAt: new Date('2023-12-01T10:00:00Z'),
+    },
+    currentTierId: 'tier-gold',
   };
 
   beforeEach(() => {
@@ -89,6 +130,12 @@ describe('RewardsController', () => {
         }
         if (actionType === 'RewardsDataService:login') {
           return Promise.resolve(mockLoginResponse);
+        }
+        if (actionType === 'RewardsDataService:getReferralDetails') {
+          return Promise.resolve(mockReferralDetailsResponse);
+        }
+        if (actionType === 'RewardsDataService:getSeasonStatus') {
+          return Promise.resolve(mockSeasonStatusResponse);
         }
         throw new Error(`Unexpected action: ${actionType}`);
       },
@@ -232,6 +279,12 @@ describe('RewardsController', () => {
           subscription: {
             id: 'test-id',
             referralCode: 'test-code',
+            accounts: [
+              {
+                address: '0x123',
+                chainId: 1,
+              },
+            ],
           },
         },
       });
@@ -696,6 +749,12 @@ describe('RewardsController', () => {
         subscription: {
           id: 'test-id',
           referralCode: 'test-code',
+          accounts: [
+            {
+              address: '0x123',
+              chainId: 1,
+            },
+          ],
         },
       };
 

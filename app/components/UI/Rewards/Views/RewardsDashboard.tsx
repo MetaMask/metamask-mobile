@@ -19,22 +19,18 @@ import { useTheme } from '../../../../util/theme';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import SegmentedControl from '../../../../component-library/components-temp/SegmentedControl';
 import { ButtonSize } from '../../../../component-library/components/Buttons/Button/Button.types';
-import { useRewardsSyncWithEngine } from '../hooks/useRewardsSyncWithEngine';
 import { setActiveTab } from '../../../../actions/rewards';
 import Routes from '../../../../constants/navigation/Routes';
 import { Alert } from 'react-native';
 import { useRewardsStore } from '../hooks';
 import { RewardsTab } from '../../../../reducers/rewards/types';
 
-const RewardsView: React.FC = () => {
+const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const { activeTab, subscriptionId } = useRewardsStore();
-
-  // Sync rewards controller state with UI store
-  useRewardsSyncWithEngine();
 
   // Set navigation title
   useEffect(() => {
@@ -168,4 +164,4 @@ const RewardsView: React.FC = () => {
   );
 };
 
-export default RewardsView;
+export default RewardsDashboard;

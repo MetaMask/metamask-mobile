@@ -47,6 +47,7 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
+import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -114,8 +115,8 @@ import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { selectSendRedesignFlags } from '../../../selectors/featureFlagController/confirmations';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import RewardsView from '../../UI/Rewards/Views/RewardsView';
-import ReferralRewardsView from '../../UI/Rewards/Views/RewardsReferralView';
+import { useRewardsAuth } from '../../UI/Rewards/hooks/useRewardsAuth';
+import ErrorModal from '../../UI/Rewards/components/ErrorModal';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -248,21 +249,19 @@ const RewardsHome = () => {
   if (!isRewardsEnabled) {
     return null;
   }
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name={Routes.REWARDS_VIEW}
-        component={RewardsView}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={Routes.REFERRAL_REWARDS_VIEW}
-        component={ReferralRewardsView}
-        options={{ headerShown: true }}
-      />
-    </Stack.Navigator>
-  );
+
+  return <RewardsNavigator />;
 };
+
+const RewardsModalFlow = () => (
+  <Stack.Navigator mode={'modal'} screenOptions={clearStackNavigatorOptions}>
+    <Stack.Screen name={Routes.REWARDS_VIEW} component={RewardsHome} />
+    <Stack.Screen
+      name={Routes.MODAL.REWARDS_ERROR_MODAL}
+      component={ErrorModal}
+    />
+  </Stack.Navigator>
+);
 
 /* eslint-disable react/prop-types */
 const BrowserFlow = (props) => (
@@ -494,6 +493,8 @@ const HomeTabs = () => {
   const accountsLength = useSelector(selectAccountsLength);
   const isRewardsEnabled = useSelector(selectRewardsEnabledFlag);
 
+  const { isOptIn } = useRewardsAuth();
+
   const chainId = useSelector((state) => {
     const providerConfig = selectProviderConfig(state);
     return ChainId[providerConfig.type];
@@ -593,6 +594,12 @@ const HomeTabs = () => {
   }, []);
 
   const renderTabBar = ({ state, descriptors, navigation }) => {
+    const currentRoute = state.routes[state.index];
+    // Hide tab bar for rewards onboarding splash screen
+    if (currentRoute.name === Routes.REWARDS_VIEW && !isOptIn) {
+      return null;
+    }
+
     if (isKeyboardHidden) {
       return (
         <TabBar
@@ -633,7 +640,7 @@ const HomeTabs = () => {
         <Tab.Screen
           name={Routes.REWARDS_VIEW}
           options={options.rewards}
-          component={RewardsHome}
+          component={RewardsModalFlow}
           layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
         />
       ) : (

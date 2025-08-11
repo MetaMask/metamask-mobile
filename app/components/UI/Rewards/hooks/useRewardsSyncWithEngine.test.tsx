@@ -38,6 +38,7 @@ const mockDispatch = jest.fn();
 const mockSubscription: SubscriptionDto = {
   id: 'sub-12345678',
   referralCode: 'METAMASK123',
+  accounts: [{ address: '0x12345678901234567890123456789012', chainId: 1 }],
 };
 
 const mockSeasonStatus: SeasonStatusDto = {
@@ -47,9 +48,19 @@ const mockSeasonStatus: SeasonStatusDto = {
     startDate: new Date('2024-01-01'),
     endDate: new Date('2024-06-30'),
     tiers: [
-      { id: 'tier-1', name: 'Bronze' },
-      { id: 'tier-2', name: 'Silver' },
-      { id: 'tier-3', name: 'Gold' },
+      {
+        id: 'tier-1',
+        type: 'Bronze',
+        pointsNeeded: 1000,
+        seasonId: 'season-1',
+      },
+      {
+        id: 'tier-2',
+        type: 'Silver',
+        pointsNeeded: 2000,
+        seasonId: 'season-1',
+      },
+      { id: 'tier-3', type: 'Gold', pointsNeeded: 3000, seasonId: 'season-1' },
     ],
   },
   balance: {
@@ -127,6 +138,9 @@ describe('useRewardsSyncWithEngine', () => {
       const newSubscription: SubscriptionDto = {
         id: 'sub-87654321',
         referralCode: 'METAMASK456',
+        accounts: [
+          { address: '0x12345678901234567890123456789012', chainId: 1 },
+        ],
       };
 
       mockUseCurrentSeasonStatus.mockReturnValue({

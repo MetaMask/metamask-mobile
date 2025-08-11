@@ -1282,5 +1282,45 @@ describe('RewardsDataService', () => {
       // Restore original function
       require('react-native-device-info').getVersion = originalGetVersion;
     });
+
+    it('should bind the estimatePoints method correctly', async () => {
+      // Get the registered handler function for estimatePoints
+      const registeredHandler = mockMessenger.registerActionHandler.mock
+        .calls[1][1] as typeof rewardsDataService.estimatePoints;
+
+      // Mock successful response
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockEstimatedPointsResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const mockEstimateBody: EstimatePointsDto = {
+        activityType: 'SWAP',
+        account: 'eip155:1:0x742d35Cc6634C0532925a3b8D4C9db96C4b4d8b6',
+        activityContext: {
+          swapContext: {
+            srcAsset: {
+              id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+              amount: '1000000',
+            },
+            destAsset: {
+              id: 'eip155:1/slip44:60',
+              amount: '500000000000000000',
+            },
+            feeAsset: {
+              id: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+              amount: '50',
+            },
+          },
+        },
+      };
+
+      // Call the registered handler
+      const result = await registeredHandler(mockEstimateBody);
+
+      expect(result).toEqual(mockEstimatedPointsResponse);
+      expect(mockFetch).toHaveBeenCalled();
+    });
   });
 });

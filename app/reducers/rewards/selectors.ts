@@ -1,5 +1,5 @@
 import { RootState } from '..';
-import { RewardsTab } from './types';
+import { RewardsTab, OnboardingStep } from './types';
 
 export const selectActiveTab = (state: RootState): RewardsTab | null =>
   state.rewards.activeTab;
@@ -27,3 +27,9 @@ export const selectBalanceUpdatedAt = (state: RootState) =>
 
 export const selectSeasonStatusLoading = (state: RootState) =>
   state.rewards.seasonStatusLoading;
+
+export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
+  state.rewards.onboardingActiveStep;
+
+export const selectGeoLocation = (state: RootState) =>
+  state.rewards.geoLocation;

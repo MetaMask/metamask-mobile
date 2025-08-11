@@ -47,6 +47,8 @@ export function getRewardsControllerMessenger(
       'AccountsController:getSelectedMultichainAccount',
       'KeyringController:signPersonalMessage',
       'RewardsDataService:login',
+      'RewardsDataService:getSeasonStatus',
+      'RewardsDataService:getReferralDetails',
     ],
     allowedEvents: [
       'AccountsController:selectedAccountChange',
