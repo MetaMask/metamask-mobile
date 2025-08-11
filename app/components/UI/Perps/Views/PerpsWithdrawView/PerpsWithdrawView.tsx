@@ -42,7 +42,7 @@ import {
   TokenInputAreaType,
   type TokenInputAreaRef,
 } from '../../../../UI/Bridge/components/TokenInputArea';
-import Keypad from '../../../Ramp/Aggregator/components/Keypad';
+import Keypad from '../../../../Base/Keypad';
 import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
 import {
   PerpsEventProperties,
