@@ -38,7 +38,6 @@ class NetworkEducationModal {
 
   async tapNetworkName(): Promise<void> {
     await Gestures.waitAndTap(this.networkName);
-    await Gestures.waitAndTap(this.networkName);
   }
 }
 

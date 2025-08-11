@@ -116,6 +116,52 @@ jest.mock('../../hooks/useEarnToken', () => ({
         },
       },
     },
+    earnTokenPair: {
+      earnToken: {
+        ...MOCK_USDC_MAINNET_ASSET,
+        experience: {
+          type: 'STABLECOIN_LENDING',
+          apr: '4.5',
+          estimatedAnnualRewardsFormatted: '45',
+          estimatedAnnualRewardsFiatNumber: 45,
+          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+          estimatedAnnualRewardsTokenFormatted: '45',
+          market: {
+            protocol: 'AAVE v3',
+            underlying: {
+              address: MOCK_USDC_MAINNET_ASSET.address,
+            },
+            outputToken: {
+              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+            },
+          },
+        },
+      },
+      outputToken: {
+        ...MOCK_USDC_MAINNET_ASSET,
+        address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+        symbol: 'aUSDC',
+        name: 'aUSDC TOKEN',
+        ticker: 'aUSDC',
+        experience: {
+          type: 'STABLECOIN_LENDING',
+          apr: '4.5',
+          estimatedAnnualRewardsFormatted: '45',
+          estimatedAnnualRewardsFiatNumber: 45,
+          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+          estimatedAnnualRewardsTokenFormatted: '45',
+          market: {
+            protocol: 'AAVE v3',
+            underlying: {
+              address: MOCK_USDC_MAINNET_ASSET.address,
+            },
+            outputToken: {
+              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+            },
+          },
+        },
+      },
+    },
     getTokenSnapshot: jest.fn(),
     getEstimatedAnnualRewardsForAmount: () => ({
       estimatedAnnualRewardsFormatted: '$45.00',
@@ -331,23 +377,25 @@ describe('EarnLendingDepositConfirmationView', () => {
       (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
 
       (useEarnToken as jest.Mock).mockReturnValueOnce({
-        outputToken: undefined,
-        earnToken: {
-          ...MOCK_USDT_MAINNET_ASSET,
-          experience: {
-            type: 'STABLECOIN_LENDING',
-            apr: '4.5',
-            estimatedAnnualRewardsFormatted: '45',
-            estimatedAnnualRewardsFiatNumber: 45,
-            estimatedAnnualRewardsTokenMinimalUnit: '45000000',
-            estimatedAnnualRewardsTokenFormatted: '45',
-            market: {
-              protocol: 'AAVE v3',
-              underlying: {
-                address: MOCK_USDT_MAINNET_ASSET.address,
-              },
-              outputToken: {
-                address: MOCK_AUSDT_MAINNET_ASSET.address,
+        earnTokenPair: {
+          outputToken: undefined,
+          earnToken: {
+            ...MOCK_USDT_MAINNET_ASSET,
+            experience: {
+              type: 'STABLECOIN_LENDING',
+              apr: '4.5',
+              estimatedAnnualRewardsFormatted: '45',
+              estimatedAnnualRewardsFiatNumber: 45,
+              estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+              estimatedAnnualRewardsTokenFormatted: '45',
+              market: {
+                protocol: 'AAVE v3',
+                underlying: {
+                  address: MOCK_USDT_MAINNET_ASSET.address,
+                },
+                outputToken: {
+                  address: MOCK_AUSDT_MAINNET_ASSET.address,
+                },
               },
             },
           },
@@ -1254,23 +1302,25 @@ describe('EarnLendingDepositConfirmationView', () => {
   it('handles token import and confirmation via subscription listener when no outputToken is present', async () => {
     // Update the mock to return earnToken but no outputToken
     (useEarnToken as jest.Mock).mockReturnValueOnce({
-      outputToken: undefined,
-      earnToken: {
-        ...MOCK_USDC_MAINNET_ASSET,
-        experience: {
-          type: 'STABLECOIN_LENDING',
-          apr: '4.5',
-          estimatedAnnualRewardsFormatted: '45',
-          estimatedAnnualRewardsFiatNumber: 45,
-          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
-          estimatedAnnualRewardsTokenFormatted: '45',
-          market: {
-            protocol: 'AAVE v3',
-            underlying: {
-              address: MOCK_USDC_MAINNET_ASSET.address,
-            },
-            outputToken: {
-              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+      earnTokenPair: {
+        outputToken: undefined,
+        earnToken: {
+          ...MOCK_USDC_MAINNET_ASSET,
+          experience: {
+            type: 'STABLECOIN_LENDING',
+            apr: '4.5',
+            estimatedAnnualRewardsFormatted: '45',
+            estimatedAnnualRewardsFiatNumber: 45,
+            estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+            estimatedAnnualRewardsTokenFormatted: '45',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
+              },
+              outputToken: {
+                address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+              },
             },
           },
         },
@@ -1363,23 +1413,25 @@ describe('EarnLendingDepositConfirmationView', () => {
   it('should handle error adding counter-token on confirmation', async () => {
     // Update the mock to return earnToken but no outputToken
     (useEarnToken as jest.Mock).mockReturnValueOnce({
-      outputToken: undefined,
-      earnToken: {
-        ...MOCK_USDC_MAINNET_ASSET,
-        experience: {
-          type: 'STABLECOIN_LENDING',
-          apr: '4.5',
-          estimatedAnnualRewardsFormatted: '45',
-          estimatedAnnualRewardsFiatNumber: 45,
-          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
-          estimatedAnnualRewardsTokenFormatted: '45',
-          market: {
-            protocol: 'AAVE v3',
-            underlying: {
-              address: MOCK_USDC_MAINNET_ASSET.address,
-            },
-            outputToken: {
-              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+      earnTokenPair: {
+        outputToken: undefined,
+        earnToken: {
+          ...MOCK_USDC_MAINNET_ASSET,
+          experience: {
+            type: 'STABLECOIN_LENDING',
+            apr: '4.5',
+            estimatedAnnualRewardsFormatted: '45',
+            estimatedAnnualRewardsFiatNumber: 45,
+            estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+            estimatedAnnualRewardsTokenFormatted: '45',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
+              },
+              outputToken: {
+                address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+              },
             },
           },
         },

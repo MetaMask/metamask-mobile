@@ -30,18 +30,21 @@ Analytics/
 ## Key Features
 
 ### Privacy-First Design
+
 - **Anonymous Tracking**: Events can be marked as anonymous using sensitive properties
 - **User Consent**: Respects user opt-in/opt-out preferences
 - **Data Deletion**: Supports GDPR-compliant data deletion requests
 - **Privacy Plugin**: Automatically handles anonymous event routing
 
 ### Event Tracking
+
 - **Structured Events**: Predefined event catalog with consistent naming
 - **Property Management**: Separate regular and sensitive properties
 - **Builder Pattern**: Fluent API for constructing complex events
 - **Type Safety**: Full TypeScript support with comprehensive types
 
 ### User Management
+
 - **Anonymous Mode**: Default state with shared anonymous ID
 - **User Identification**: Support for user traits and identification
 
@@ -65,15 +68,15 @@ function MyComponent() {
   const handleTransactionStart = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_STARTED)
-        .addProperties({ 
+        .addProperties({
           network: 'ethereum',
-          token: 'ETH'
+          token: 'ETH',
         })
-        .addSensitiveProperties({ 
+        .addSensitiveProperties({
           amount: '0.1',
-          recipient: '0x1234...'
+          recipient: '0x1234...',
         })
-        .build()
+        .build(),
     );
   };
 
@@ -81,7 +84,7 @@ function MyComponent() {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
         .addProperties({ source: 'navigation' })
-        .build()
+        .build(),
     );
   };
 
@@ -107,33 +110,30 @@ import { MetaMetricsEvents } from '@/core/Analytics';
 const { trackEvent, createEventBuilder } = useMetrics();
 
 // Simple event
-trackEvent(
-  createEventBuilder(MetaMetricsEvents.APP_OPENED)
-    .build()
-);
+trackEvent(createEventBuilder(MetaMetricsEvents.APP_OPENED).build());
 
 // Event with regular properties
 trackEvent(
   createEventBuilder(MetaMetricsEvents.WALLET_OPENED)
-    .addProperties({ 
+    .addProperties({
       network: 'ethereum',
-      source: 'navigation'
+      source: 'navigation',
     })
-    .build()
+    .build(),
 );
 
 // Event with sensitive properties (anonymous)
 trackEvent(
   createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_STARTED)
-    .addProperties({ 
+    .addProperties({
       network: 'ethereum',
-      token: 'ETH'
+      token: 'ETH',
     })
-    .addSensitiveProperties({ 
+    .addSensitiveProperties({
       amount: '0.1',
-      recipient: '0x1234...'
+      recipient: '0x1234...',
     })
-    .build()
+    .build(),
 );
 
 // Event with data recording control
@@ -141,7 +141,7 @@ trackEvent(
   createEventBuilder(MetaMetricsEvents.ERROR)
     .addProperties({ errorType: 'network' })
     .setSaveDataRecording(false)
-    .build()
+    .build(),
 );
 ```
 
@@ -163,11 +163,12 @@ function TransactionComponent() {
 
   // Create the event builder early
   useEffect(() => {
-    const builder = createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_STARTED)
-      .addProperties({ 
-        network: 'ethereum',
-        token: 'ETH'
-      });
+    const builder = createEventBuilder(
+      MetaMetricsEvents.SEND_TRANSACTION_STARTED,
+    ).addProperties({
+      network: 'ethereum',
+      token: 'ETH',
+    });
     setTransactionBuilder(builder);
   }, []);
 
@@ -193,13 +194,9 @@ function TransactionComponent() {
 
   return (
     <View>
-      <TextInput 
-        value={amount} 
-        onChangeText={setAmount}
-        placeholder="Amount"
-      />
-      <TextInput 
-        value={recipient} 
+      <TextInput value={amount} onChangeText={setAmount} placeholder="Amount" />
+      <TextInput
+        value={recipient}
         onChangeText={setRecipient}
         placeholder="Recipient"
       />
@@ -229,7 +226,7 @@ function UserProfile() {
   const handleUserUpdate = async () => {
     await addTraitsToUser({
       walletType: 'imported',
-      accountCount: 3
+      accountCount: 3,
     });
   };
 
@@ -262,9 +259,11 @@ class LegacyComponent extends React.Component {
   handleTransaction = () => {
     const { metrics } = this.props;
     metrics.trackEvent(
-      MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_STARTED)
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SEND_TRANSACTION_STARTED,
+      )
         .addProperties({ network: 'ethereum' })
-        .build()
+        .build(),
     );
   };
 
@@ -286,11 +285,11 @@ import { MetaMetricsEvents } from '@/core/Analytics';
 
 export function processTransaction(amount: string) {
   const metrics = MetaMetrics.getInstance();
-  
+
   metrics.trackEvent(
     createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_STARTED)
       .addSensitiveProperties({ amount })
-      .build()
+      .build(),
   );
 }
 ```
@@ -319,7 +318,7 @@ trackEvent(
   createEventBuilder(MetaMetricsEvents.SEND_TRANSACTION_STARTED)
     .addProperties({ network: 'ethereum' })
     .addSensitiveProperties({ amount: '0.1' })
-    .build()
+    .build(),
 );
 ```
 
@@ -332,7 +331,12 @@ The analytics system provides comprehensive support for user consent management 
 ```typescript
 import { useMetrics } from '@/components/hooks/useMetrics';
 
-const { createDataDeletionTask, checkDataDeleteStatus, getDeleteRegulationId, getDeleteRegulationCreationDate } = useMetrics();
+const {
+  createDataDeletionTask,
+  checkDataDeleteStatus,
+  getDeleteRegulationId,
+  getDeleteRegulationCreationDate,
+} = useMetrics();
 
 // Request data deletion
 const response = await createDataDeletionTask();

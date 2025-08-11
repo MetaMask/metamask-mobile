@@ -26,6 +26,11 @@ const styleSheet = (params: { theme: Theme }) => {
     footerContent: {
       gap: 8,
     },
+    ssnLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
   });
 };
 

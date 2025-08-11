@@ -43,9 +43,7 @@ describe(SmokeNetworkExpansion('Account Permission Management'), () => {
         //TODO: should re add connecting to an external swap step after detox has been updated
         await Browser.navigateToTestDApp();
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await Assertions.expectElementToBeVisible(
-          ConnectedAccountsModal.title,
-        );
+        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
 
         await Assertions.expectElementToNotBeVisible(
           ToastModal.notificationTitle,

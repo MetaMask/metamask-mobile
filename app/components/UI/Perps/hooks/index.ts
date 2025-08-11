@@ -1,10 +1,11 @@
 // Core hooks (direct controller access)
-export { usePerpsTrading } from './usePerpsTrading';
-export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
-export { usePerpsNetwork } from './usePerpsNetwork';
-export { usePerpsMarkets } from './usePerpsMarkets';
 export { usePerpsDeposit } from './usePerpsDeposit';
 export { usePerpsDepositQuote } from './usePerpsDepositQuote';
+export { usePerpsMarkets } from './usePerpsMarkets';
+export { usePerpsNetwork } from './usePerpsNetwork';
+export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
+export { usePerpsTrading } from './usePerpsTrading';
+export { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
 
 // Connection management hooks
 export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
@@ -23,19 +24,40 @@ export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
 export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
 // Market data and calculation hooks
-export { usePerpsMarketData } from './usePerpsMarketData';
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
+export { usePerpsMarketData } from './usePerpsMarketData';
+export { usePerpsMarketStats } from './usePerpsMarketStats';
+
+// Withdrawal specific hooks
+export { useWithdrawTokens } from './useWithdrawTokens';
+export { useWithdrawValidation } from './useWithdrawValidation';
 
 // UI utility hooks
-export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
-export { usePerpsPositions } from './usePerpsPositions';
 export { useBalanceComparison } from './useBalanceComparison';
 export { useColorPulseAnimation } from './useColorPulseAnimation';
+export { usePerpsPositions } from './usePerpsPositions';
+export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
+export { usePerpsClosePosition } from './usePerpsClosePosition';
+export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
+export { useHasExistingPosition } from './useHasExistingPosition';
+export { useMinimumOrderAmount } from './useMinimumOrderAmount';
+export { usePerpsOrderForm } from './usePerpsOrderForm';
+export { usePerpsOrderValidation } from './usePerpsOrderValidation';
+export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
+export { usePerpsOrderExecution } from './usePerpsOrderExecution';
+
+// Transaction data hooks
+export { usePerpsOrderFills } from './usePerpsOrderFills';
+export { usePerpsOrders } from './usePerpsOrders';
+export { usePerpsFunding } from './usePerpsFunding';
+
+// Block explorer hook
+export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
+
 // - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)
 // - usePerpsError (error handling)
 // - usePerpsLivePositions (live position tracking)
-// - usePerpsOrderFills (order fills)
 // - usePerpsPositionPnL (P&L calculations)
 // - usePerpsReadiness (readiness checks)
 // - usePerpsOrderManagement (order workflows)

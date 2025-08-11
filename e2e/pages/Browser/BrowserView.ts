@@ -7,14 +7,12 @@ import {
 import { AccountOverviewSelectorsIDs } from '../../selectors/Browser/AccountOverview.selectors';
 import { BrowserURLBarSelectorsIDs } from '../../selectors/Browser/BrowserURLBar.selectors';
 import { AddBookmarkViewSelectorsIDs } from '../../selectors/Browser/AddBookmarkView.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
 import {
-  getLocalTestDappUrl,
+  getTestDappLocalUrl,
   getSecondTestDappLocalUrl,
-} from '../../fixtures/utils';
+} from '../../framework/fixtures/FixtureUtils';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
-import { Assertions, Utilities } from '../../framework';
+import { Assertions, Utilities, Gestures, Matchers } from '../../framework';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -285,12 +283,13 @@ class Browser {
    * @returns {Promise<void>}
    */
   async waitForBrowserPageToLoad(): Promise<void> {
+    // eslint-disable-next-line no-restricted-syntax
     await TestHelpers.delay(5000);
   }
 
   async navigateToTestDApp(): Promise<void> {
     await this.tapUrlInputBox();
-    await this.navigateToURL(getLocalTestDappUrl());
+    await this.navigateToURL(getTestDappLocalUrl());
   }
 
   async navigateToSecondTestDApp(): Promise<void> {
@@ -308,7 +307,7 @@ class Browser {
     await this.tapUrlInputBox();
     const encodedParams = encodeURIComponent(JSON.stringify(transactionParams));
     await this.navigateToURL(
-      `${getLocalTestDappUrl()}/request?method=eth_sendTransaction&params=${encodedParams}`,
+      `${getTestDappLocalUrl()}/request?method=eth_sendTransaction&params=${encodedParams}`,
     );
   }
 

@@ -149,6 +149,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const params: SubscribePricesParams = {
         symbols: ['BTC', 'ETH'],
         callback: mockCallback,
+        includeMarketData: true, // Enable market data to test activeAssetCtx subscription
       };
 
       const unsubscribe = service.subscribeToPrices(params);
@@ -216,24 +217,30 @@ describe('HyperLiquidSubscriptionService', () => {
       const mockCallback1 = jest.fn();
       const mockCallback2 = jest.fn();
 
+      // Test that subscribing without market data does not call activeAssetCtx
       const unsubscribe1 = service.subscribeToPrices({
-        symbols: ['BTC'],
+        symbols: ['ETH'],
         callback: mockCallback1,
+        includeMarketData: false,
       });
 
       const unsubscribe2 = service.subscribeToPrices({
-        symbols: ['BTC'],
+        symbols: ['ETH'],
         callback: mockCallback2,
+        includeMarketData: false,
       });
 
-      // First unsubscribe should not cleanup (still has subscribers)
-      unsubscribe1();
-      expect(mockSubscriptionClient.activeAssetCtx).toHaveBeenCalledTimes(2); // Called once for each subscription
+      // Should not call activeAssetCtx when includeMarketData is false
+      expect(mockSubscriptionClient.activeAssetCtx).not.toHaveBeenCalledWith(
+        { coin: 'ETH' },
+        expect.any(Function),
+      );
 
-      // Second unsubscribe should cleanup
+      // Cleanup
+      unsubscribe1();
       unsubscribe2();
 
-      // Verify cleanup
+      // Verify cleanup functions exist
       expect(typeof unsubscribe1).toBe('function');
       expect(typeof unsubscribe2).toBe('function');
     });
@@ -490,6 +497,7 @@ describe('HyperLiquidSubscriptionService', () => {
       const unsubscribe = service.subscribeToPrices({
         symbols: ['BTC'],
         callback: mockCallback,
+        includeMarketData: true, // Enable market data to get percentChange24h
       });
 
       // Wait for cache to populate
@@ -669,6 +677,95 @@ describe('HyperLiquidSubscriptionService', () => {
 
       // Should not call callback without position data
       expect(mockCallback).not.toHaveBeenCalled();
+
+      unsubscribe();
+    });
+  });
+
+  describe('Market Data Subscription Control', () => {
+    it('should not include market data when includeMarketData is false', async () => {
+      const mockCallback = jest.fn();
+
+      // Subscribe without market data
+      const unsubscribe = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeMarketData: false,
+      });
+
+      // Ensure activeAssetCtx is NOT called
+      expect(mockSubscriptionClient.activeAssetCtx).not.toHaveBeenCalled();
+
+      // Wait for allMids data
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      // Check that market data fields are undefined
+      expect(mockCallback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'BTC',
+          price: expect.any(String),
+          timestamp: expect.any(Number),
+          funding: undefined,
+          openInterest: undefined,
+          volume24h: undefined,
+        }),
+      ]);
+
+      unsubscribe();
+    });
+
+    it('should include market data when includeMarketData is true', async () => {
+      const mockCallback = jest.fn();
+      const mockSubscription = {
+        unsubscribe: jest.fn().mockResolvedValue(undefined),
+      };
+
+      // Mock activeAssetCtx with market data
+      mockSubscriptionClient.activeAssetCtx.mockImplementation(
+        (params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              coin: params.coin,
+              ctx: {
+                prevDayPx: 45000,
+                funding: 0.0001,
+                openInterest: 1000000,
+                dayNtlVlm: 5000000,
+                oraclePx: 50100,
+              },
+            });
+          }, 10);
+          return Promise.resolve(mockSubscription);
+        },
+      );
+
+      // Subscribe with market data
+      const unsubscribe = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+        includeMarketData: true,
+      });
+
+      // Ensure activeAssetCtx is called
+      expect(mockSubscriptionClient.activeAssetCtx).toHaveBeenCalledWith(
+        { coin: 'BTC' },
+        expect.any(Function),
+      );
+
+      // Wait for data
+      await new Promise((resolve) => setTimeout(resolve, 30));
+
+      // Check that market data fields are included
+      expect(mockCallback).toHaveBeenCalledWith([
+        expect.objectContaining({
+          coin: 'BTC',
+          price: expect.any(String),
+          timestamp: expect.any(Number),
+          funding: 0.0001,
+          openInterest: 1000000,
+          volume24h: 5000000,
+        }),
+      ]);
 
       unsubscribe();
     });

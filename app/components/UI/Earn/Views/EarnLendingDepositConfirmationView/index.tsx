@@ -99,8 +99,12 @@ const EarnLendingDepositConfirmationView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { earnToken, outputToken, getTokenSnapshot, tokenSnapshot } =
-    useEarnToken(token as TokenI);
+  const { earnTokenPair, getTokenSnapshot, tokenSnapshot } = useEarnToken(
+    token as TokenI,
+  );
+
+  const earnToken = earnTokenPair?.earnToken;
+  const outputToken = earnTokenPair?.outputToken;
 
   const needsTokenAllowanceReset = useMemo(() => {
     if (!earnToken?.chainId || !earnToken?.symbol) return false;

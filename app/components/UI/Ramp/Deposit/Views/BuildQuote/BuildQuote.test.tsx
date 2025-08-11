@@ -24,6 +24,7 @@ const mockInteractionManager = {
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockSetParams = jest.fn();
 const mockGetQuote = jest.fn();
 const mockRouteAfterAuthentication = jest.fn();
 const mockNavigateToVerifyIdentity = jest.fn();
@@ -31,6 +32,7 @@ const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
 const mockUseAccountTokenCompatible = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockUseRoute = jest.fn().mockReturnValue({ params: {} });
 
 const createMockSDKReturn = (overrides = {}) => ({
   isAuthenticated: false,
@@ -56,8 +58,10 @@ jest.mock('@react-navigation/native', () => {
       setOptions: mockSetNavigationOptions.mockImplementation(
         actualReactNavigation.useNavigation().setOptions,
       ),
+      setParams: mockSetParams,
     }),
     useFocusEffect: jest.fn().mockImplementation((callback) => callback()),
+    useRoute: () => mockUseRoute(),
   };
 });
 
@@ -588,6 +592,28 @@ describe('BuildQuote Component', () => {
           error_message: 'BuildQuote - Error handling authentication',
           is_authenticated: true,
         });
+      });
+    });
+    it('calls handleOnPressContinue when shouldRouteImmediately is true', async () => {
+      const mockQuote = { quoteId: 'test-quote' } as BuyQuote;
+
+      mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+      mockGetQuote.mockResolvedValue(mockQuote);
+
+      mockUseRoute.mockReturnValue({
+        params: { shouldRouteImmediately: true },
+      });
+
+      render(BuildQuote);
+
+      await waitFor(() => {
+        expect(mockGetQuote).toHaveBeenCalledWith(
+          'USD',
+          'USDC',
+          'ethereum',
+          'credit_debit_card',
+          '0',
+        );
       });
     });
   });

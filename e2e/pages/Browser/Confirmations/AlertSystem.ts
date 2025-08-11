@@ -1,4 +1,4 @@
-import Matchers from '../../../utils/Matchers';
+import Matchers from '../../../framework/Matchers';
 import {
   AlertModalSelectorsIDs,
   AlertModalSelectorsText,
@@ -7,83 +7,93 @@ import {
   ConfirmationTopSheetSelectorsText,
   AlertTypeIDs,
 } from '../../../selectors/Confirmation/ConfirmationView.selectors';
-import Gestures from '../../../utils/Gestures';
+import Gestures from '../../../framework/Gestures';
 
 class AlertSystem {
-  get securityAlertBanner() {
+  get securityAlertBanner(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED,
     );
   }
 
-  get securityAlertResponseFailedBanner() {
+  get securityAlertResponseFailedBanner(): DetoxElement {
     return Matchers.getElementByText(
       ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE,
     );
   }
 
-  get securityAlertResponseMaliciousBanner() {
+  get securityAlertResponseMaliciousBanner(): DetoxElement {
     return Matchers.getElementByText(
       ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_TITLE,
     );
   }
 
-  get inlineAlert() {
+  get inlineAlert(): DetoxElement {
     return Matchers.getElementByID(AlertTypeIDs.INLINE_ALERT);
   }
 
-  get alertMismatchTitle() {
+  get alertMismatchTitle(): DetoxElement {
     return Matchers.getElementByText(
       AlertModalSelectorsText.ALERT_ORIGIN_MISMATCH_TITLE,
     );
   }
 
-  get acknowledgeAlertModal() {
+  get acknowledgeAlertModal(): DetoxElement {
     return Matchers.getElementByID(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX);
   }
 
-  get gotItAlertModalButton() {
+  get gotItAlertModalButton(): DetoxElement {
     return Matchers.getElementByID(
       AlertModalSelectorsIDs.ALERT_MODAL_GOT_IT_BUTTON,
     );
   }
 
-  get confirmAlertModal() {
+  get confirmAlertModal(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_MODAL,
     );
   }
 
-  get confirmAlertModalButton() {
+  get confirmAlertModalButton(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON,
     );
   }
 
-  get acknowledgeConfirmAlertModal() {
+  get acknowledgeConfirmAlertModal(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CHECKBOX,
     );
   }
 
-  async tapConfirmAlertCheckbox() {
-    await Gestures.waitAndTap(this.acknowledgeConfirmAlertModal);
+  async tapConfirmAlertCheckbox(): Promise<void> {
+    await Gestures.waitAndTap(this.acknowledgeConfirmAlertModal, {
+      elemDescription: 'Confirm alert checkbox',
+    });
   }
 
-  async tapConfirmAlertButton() {
-    await Gestures.waitAndTap(this.confirmAlertModalButton);
+  async tapConfirmAlertButton(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmAlertModalButton, {
+      elemDescription: 'Confirm alert button',
+    });
   }
 
-  async tapInlineAlert() {
-    await Gestures.waitAndTap(this.inlineAlert);
+  async tapInlineAlert(): Promise<void> {
+    await Gestures.waitAndTap(this.inlineAlert, {
+      elemDescription: 'Inline alert',
+    });
   }
 
-  async tapGotItAlertModalButton() {
-    await Gestures.waitAndTap(this.gotItAlertModalButton);
+  async tapGotItAlertModalButton(): Promise<void> {
+    await Gestures.waitAndTap(this.gotItAlertModalButton, {
+      elemDescription: 'Got it alert modal button',
+    });
   }
 
-  async tapAcknowledgeAlertModal() {
-    await Gestures.waitAndTap(this.acknowledgeAlertModal);
+  async tapAcknowledgeAlertModal(): Promise<void> {
+    await Gestures.waitAndTap(this.acknowledgeAlertModal, {
+      elemDescription: 'Acknowledge alert modal',
+    });
   }
 }
 

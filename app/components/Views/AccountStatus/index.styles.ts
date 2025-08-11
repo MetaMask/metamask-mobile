@@ -1,4 +1,4 @@
-import { StyleSheet, Platform } from 'react-native';
+import { StyleSheet, Platform, StatusBar } from 'react-native';
 
 const styles = StyleSheet.create({
   scrollView: {
@@ -7,10 +7,7 @@ const styles = StyleSheet.create({
   root: {
     height: '100%',
     paddingHorizontal: 16,
-    paddingTop: Platform.select({
-      ios: 24,
-      android: 32,
-    }),
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
   },
   content: {
     flex: 1,

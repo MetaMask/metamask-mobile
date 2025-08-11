@@ -8,6 +8,7 @@ import {
   isSmartContractCode,
   ERC721,
   ERC1155,
+  ORIGIN_METAMASK,
 } from '@metamask/controller-utils';
 import {
   isEIP1559Transaction,
@@ -1637,10 +1638,13 @@ export const getIsSwapApproveOrSwapTransaction = (
     return false;
   }
 
+  const isLegacySwap = origin === process.env.MM_FOX_CODE;
+  const isUnifiedSwap = origin === ORIGIN_METAMASK;
+
   // if approval data includes metaswap contract
   // if destination address is metaswap contract
   return (
-    origin === process.env.MM_FOX_CODE &&
+    (isLegacySwap || isUnifiedSwap) &&
     to &&
     (swapsUtils.isValidContractAddress(chainId, to) ||
       (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&

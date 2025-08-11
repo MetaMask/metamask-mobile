@@ -21,7 +21,7 @@ import { TokenSelectorItem } from '../../../../../UI/Bridge/components/TokenSele
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import { useTransactionPayToken } from '../../../hooks/transactions/useTransactionPayToken';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
 

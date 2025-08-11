@@ -82,8 +82,11 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
 
-  const { outputToken, earnToken, getTokenSnapshot, tokenSnapshot } =
+  const { earnTokenPair, getTokenSnapshot, tokenSnapshot } =
     useEarnToken(token);
+
+  const earnToken = earnTokenPair?.earnToken;
+  const outputToken = earnTokenPair?.outputToken;
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const useBlockieIcon = useSelector(
