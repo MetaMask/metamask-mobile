@@ -79,6 +79,7 @@ const PerpsWithdrawView: React.FC = () => {
   // Refs
   const inputRef = useRef<TokenInputAreaRef>(null);
   const screenLoadStartRef = useRef<number>(performance.now());
+  const hasTrackedWithdrawView = useRef(false);
 
   // Hooks
   const { toastRef } = useContext(ToastContext);
@@ -90,23 +91,27 @@ const PerpsWithdrawView: React.FC = () => {
   // TODO: Get network names dynamically once we implement multiple protocol
   const sourceNetworkName = useMemo(() => 'Hyperliquid', []);
 
-  // Track screen load
+  // Track screen load - only once
   useEffect(() => {
-    measurePerformance(
-      PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED,
-      screenLoadStartRef.current,
-    );
+    if (!hasTrackedWithdrawView.current) {
+      measurePerformance(
+        PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED,
+        screenLoadStartRef.current,
+      );
 
-    // Track withdrawal input viewed
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED)
-        .addProperties({
-          [PerpsEventProperties.TIMESTAMP]: Date.now(),
-          [PerpsEventProperties.SOURCE]:
-            PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
-        })
-        .build(),
-    );
+      // Track withdrawal input viewed
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED)
+          .addProperties({
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.SOURCE]:
+              PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+          })
+          .build(),
+      );
+
+      hasTrackedWithdrawView.current = true;
+    }
   }, [trackEvent, createEventBuilder]);
   const destNetworkName = useMemo(
     () => (isTestnet ? 'Arbitrum Sepolia' : 'Arbitrum'),

@@ -30,8 +30,13 @@ import {
   usePerpsConnection,
   usePerpsPositions,
   usePerpsTrading,
+  usePerpsAccount,
 } from '../../hooks';
 import { strings } from '../../../../../../locales/i18n';
+import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import performance from 'react-native-performance';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { measurePerformance } from '../../utils/perpsDebug';
 
 interface PerpsTabViewProps {}
 
@@ -40,8 +45,12 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const navigation = useNavigation();
   const { getAccountState } = usePerpsTrading();
   const { isConnected, isInitialized } = usePerpsConnection();
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const cachedAccountState = usePerpsAccount();
 
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
+  const hasTrackedHomescreen = useRef(false);
+  const screenLoadStartRef = useRef<number>(performance.now());
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -57,6 +66,47 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       getAccountState();
     }
   }, [getAccountState, isConnected, isInitialized]);
+
+  // Track homescreen tab viewed - only once when positions and account are loaded
+  useEffect(() => {
+    if (
+      !hasTrackedHomescreen.current &&
+      !isLoading &&
+      positions &&
+      cachedAccountState?.totalBalance !== undefined
+    ) {
+      // Track position data loaded performance
+      measurePerformance(
+        PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB,
+        screenLoadStartRef.current,
+      );
+
+      // Track homescreen tab viewed event with exact property names from requirements
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED)
+          .addProperties({
+            Timestamp: Date.now(),
+            'Open Position': positions.map((p) => ({
+              Asset: p.coin,
+              Leverage: p.leverage.value,
+              Direction: parseFloat(p.size) > 0 ? 'Long' : 'Short',
+            })),
+            'Perp Account $ Balance': parseFloat(
+              cachedAccountState.totalBalance,
+            ),
+          })
+          .build(),
+      );
+
+      hasTrackedHomescreen.current = true;
+    }
+  }, [
+    isLoading,
+    positions,
+    cachedAccountState?.totalBalance,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const handleRefresh = useCallback(() => {
     loadPositions();

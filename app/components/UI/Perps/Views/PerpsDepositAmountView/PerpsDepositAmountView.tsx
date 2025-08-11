@@ -132,6 +132,8 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const inputRef = useRef<TokenInputAreaRef>(null);
   const prevTokenRef = useRef<PerpsToken | undefined>();
   const screenLoadStartRef = useRef<number>(performance.now());
+  const hasTrackedFundingInput = useRef(false);
+  const hasTrackedFundingReview = useRef(false);
 
   // Selectors
   const selectedAddress = useSelector(
@@ -585,9 +587,9 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     }
   }, [sourceToken, destToken]);
 
-  // Track funding input viewed
+  // Track funding input viewed - only once
   useEffect(() => {
-    if (hasAmount && sourceToken) {
+    if (hasAmount && sourceToken && !hasTrackedFundingInput.current) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_FUNDING_INPUT_VIEWED)
           .addProperties({
@@ -597,12 +599,18 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           })
           .build(),
       );
+      hasTrackedFundingInput.current = true;
     }
   }, [hasAmount, sourceToken, sourceAmount, trackEvent, createEventBuilder]);
 
-  // Track funding review viewed
+  // Track funding review viewed - only once
   useEffect(() => {
-    if (hasAmount && !isQuoteLoading && formattedQuoteData.receivingAmount) {
+    if (
+      hasAmount &&
+      !isQuoteLoading &&
+      formattedQuoteData.receivingAmount &&
+      !hasTrackedFundingReview.current
+    ) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_FUNDING_REVIEW_VIEWED)
           .addProperties({
@@ -619,6 +627,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
           })
           .build(),
       );
+      hasTrackedFundingReview.current = true;
     }
   }, [
     hasAmount,

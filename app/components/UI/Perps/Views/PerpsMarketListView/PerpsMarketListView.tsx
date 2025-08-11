@@ -190,16 +190,32 @@ const PerpsMarketListView = ({
 
   // Track screen load performance
   const screenLoadStartRef = useRef<number>(performance.now());
+  const hasTrackedMarketsView = useRef(false);
+  const hasTrackedSkeletonDisplay = useRef(false);
 
+  // Track skeleton display immediately
   useEffect(() => {
-    // Track markets screen viewed event
-    if (activeTab === 'markets' && markets.length > 0) {
-      // Measure screen load time
+    if (
+      activeTab === 'markets' &&
+      isLoadingMarkets &&
+      !hasTrackedSkeletonDisplay.current
+    ) {
+      // Measure time to skeleton display (should be instant)
       measurePerformance(
         PerpsMeasurementName.MARKETS_SCREEN_LOADED,
         screenLoadStartRef.current,
       );
+      hasTrackedSkeletonDisplay.current = true;
+    }
+  }, [activeTab, isLoadingMarkets]);
 
+  useEffect(() => {
+    // Track markets screen viewed event - only once when data is loaded
+    if (
+      activeTab === 'markets' &&
+      markets.length > 0 &&
+      !hasTrackedMarketsView.current
+    ) {
       // Track event
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_MARKETS_VIEWED)
@@ -210,6 +226,8 @@ const PerpsMarketListView = ({
           })
           .build(),
       );
+
+      hasTrackedMarketsView.current = true;
     }
   }, [markets, activeTab, trackEvent, createEventBuilder]);
 
@@ -217,48 +235,31 @@ const PerpsMarketListView = ({
   useEffect(() => {
     if (activeTab === 'positions') {
       loadPositions();
-      // Track position data loaded in perp tab
-      if (positions && positions.length >= 0) {
-        const positionLoadStart = performance.now();
-        measurePerformance(
-          PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB,
-          positionLoadStart,
-        );
-
-        // Track homescreen tab viewed event
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED)
-            .addProperties({
-              [PerpsEventProperties.TIMESTAMP]: Date.now(),
-              [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
-                [PerpsEventProperties.ASSET]: p.coin,
-                [PerpsEventProperties.LEVERAGE]: p.leverage.value,
-                [PerpsEventProperties.DIRECTION]:
-                  parseFloat(p.size) > 0
-                    ? PerpsEventValues.DIRECTION.LONG
-                    : PerpsEventValues.DIRECTION.SHORT,
-              })),
-              [PerpsEventProperties.PERP_ACCOUNT_BALANCE]: 0, // TODO: Get actual balance
-            })
-            .build(),
-        );
-      }
     }
     if (activeTab === 'markets') {
       refreshMarkets();
     }
-  }, [
-    activeTab,
-    loadPositions,
-    refreshMarkets,
-    positions,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [activeTab, loadPositions, refreshMarkets]);
+
+  // Track position data loaded - separate effect without positions dependency
+  useEffect(() => {
+    if (
+      activeTab === 'positions' &&
+      positions &&
+      positions.length >= 0 &&
+      !isLoadingPositions
+    ) {
+      const positionLoadStart = performance.now();
+      measurePerformance(
+        PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB,
+        positionLoadStart,
+      );
+    }
+  }, [activeTab, positions, isLoadingPositions]);
 
   const renderMarketList = () => {
-    // Skeleton List
-    if (filteredMarkets.length === 0 && isLoadingMarkets) {
+    // Skeleton List - show immediately while loading
+    if (isLoadingMarkets) {
       return (
         <View>
           <PerpsMarketListHeader />

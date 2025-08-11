@@ -233,33 +233,40 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const [tempLeverage, setTempLeverage] = useState(initialLeverage);
   const { trackEvent, createEventBuilder } = useMetrics();
   const screenLoadStartRef = useRef<number>(0);
+  const hasTrackedLeverageView = useRef(false);
 
   useEffect(() => {
     if (isVisible) {
       screenLoadStartRef.current = performance.now();
       bottomSheetRef.current?.onOpenBottomSheet();
 
-      // Measure and track leverage bottom sheet loaded
-      setTimeout(() => {
-        measurePerformance(
-          PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
-          screenLoadStartRef.current,
-        );
+      // Measure and track leverage bottom sheet loaded - only once
+      if (!hasTrackedLeverageView.current) {
+        setTimeout(() => {
+          measurePerformance(
+            PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
+            screenLoadStartRef.current,
+          );
 
-        // Track leverage screen viewed event
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED)
-            .addProperties({
-              [PerpsEventProperties.TIMESTAMP]: Date.now(),
-              [PerpsEventProperties.ASSET]: asset,
-              [PerpsEventProperties.DIRECTION]:
-                direction === 'long'
-                  ? PerpsEventValues.DIRECTION.LONG
-                  : PerpsEventValues.DIRECTION.SHORT,
-            })
-            .build(),
-        );
-      }, 300); // After animation completes
+          // Track leverage screen viewed event
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED)
+              .addProperties({
+                [PerpsEventProperties.TIMESTAMP]: Date.now(),
+                [PerpsEventProperties.ASSET]: asset,
+                [PerpsEventProperties.DIRECTION]:
+                  direction === 'long'
+                    ? PerpsEventValues.DIRECTION.LONG
+                    : PerpsEventValues.DIRECTION.SHORT,
+              })
+              .build(),
+          );
+          hasTrackedLeverageView.current = true;
+        }, 300); // After animation completes
+      }
+    } else {
+      // Reset the flag when the bottom sheet is closed
+      hasTrackedLeverageView.current = false;
     }
   }, [isVisible, direction, asset, trackEvent, createEventBuilder]);
 

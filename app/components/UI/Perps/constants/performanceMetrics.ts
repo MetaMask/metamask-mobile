@@ -18,6 +18,7 @@ export enum PerpsMeasurementName {
 
   // Screen Load Metrics - Trading (milliseconds)
   MARKETS_SCREEN_LOADED = 'markets_screen_loaded',
+  MARKETS_DATA_LOADED = 'markets_data_loaded',
   ASSET_SCREEN_LOADED = 'asset_screen_loaded',
   TRADE_SCREEN_LOADED = 'trade_screen_loaded',
   TP_SL_BOTTOM_SHEET_LOADED = 'tp_sl_bottom_sheet_loaded',
@@ -84,6 +85,7 @@ export const PerpsPerformanceTargets: Record<string, number> = {
   [PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED]: 1000,
   [PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED]: 15000,
   [PerpsMeasurementName.MARKETS_SCREEN_LOADED]: 200,
+  [PerpsMeasurementName.MARKETS_DATA_LOADED]: 1000,
   [PerpsMeasurementName.ASSET_SCREEN_LOADED]: 200,
   [PerpsMeasurementName.TRADE_SCREEN_LOADED]: 200,
   [PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED]: 50,

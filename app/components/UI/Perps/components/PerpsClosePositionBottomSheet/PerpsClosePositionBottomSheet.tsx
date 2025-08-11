@@ -59,6 +59,7 @@ const PerpsClosePositionBottomSheet: React.FC<
   const styles = createStyles(theme);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const screenLoadStartRef = useRef<number>(0);
+  const hasTrackedCloseView = useRef(false);
   const { trackEvent, createEventBuilder } = useMetrics();
 
   // State for order type tabs
@@ -142,30 +143,36 @@ const PerpsClosePositionBottomSheet: React.FC<
       screenLoadStartRef.current = performance.now();
       bottomSheetRef.current?.onOpenBottomSheet();
 
-      // Measure close screen loaded
-      setTimeout(() => {
-        measurePerformance(
-          PerpsMeasurementName.CLOSE_SCREEN_LOADED,
-          screenLoadStartRef.current,
-        );
+      // Measure close screen loaded - only once
+      if (!hasTrackedCloseView.current) {
+        setTimeout(() => {
+          measurePerformance(
+            PerpsMeasurementName.CLOSE_SCREEN_LOADED,
+            screenLoadStartRef.current,
+          );
 
-        // Track position close screen viewed
-        trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
-          )
-            .addProperties({
-              [PerpsEventProperties.TIMESTAMP]: Date.now(),
-              [PerpsEventProperties.ASSET]: position.coin,
-              [PerpsEventProperties.DIRECTION]: isLong
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-              [PerpsEventProperties.POSITION_SIZE]: absSize,
-              [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
-            })
-            .build(),
-        );
-      }, 300); // After animation
+          // Track position close screen viewed
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
+            )
+              .addProperties({
+                [PerpsEventProperties.TIMESTAMP]: Date.now(),
+                [PerpsEventProperties.ASSET]: position.coin,
+                [PerpsEventProperties.DIRECTION]: isLong
+                  ? PerpsEventValues.DIRECTION.LONG
+                  : PerpsEventValues.DIRECTION.SHORT,
+                [PerpsEventProperties.POSITION_SIZE]: absSize,
+                [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
+              })
+              .build(),
+          );
+          hasTrackedCloseView.current = true;
+        }, 300); // After animation
+      }
+    } else {
+      // Reset the flag when the bottom sheet is closed
+      hasTrackedCloseView.current = false;
     }
   }, [
     isVisible,

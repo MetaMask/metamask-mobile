@@ -296,6 +296,9 @@ const PerpsOrderViewContent: React.FC = () => {
 
   // Track screen load - only on mount/unmount
   const screenLoadStartRef = useRef<number>(performance.now());
+  const hasTrackedTradingView = useRef(false);
+  const hasTrackedOrderTypeView = useRef(false);
+
   useEffect(() => {
     trace({
       name: TraceName.PerpsOrderView,
@@ -330,22 +333,26 @@ const PerpsOrderViewContent: React.FC = () => {
     [],
   );
 
-  // Track dashboard view event separately with proper dependencies
+  // Track dashboard view event separately with proper dependencies - only once
   useEffect(() => {
-    const eventProps = {
-      [PerpsEventProperties.TIMESTAMP]: Date.now(),
-      [PerpsEventProperties.ASSET]: orderForm.asset,
-      [PerpsEventProperties.DIRECTION]:
-        orderForm.direction === 'long'
-          ? PerpsEventValues.DIRECTION.LONG
-          : PerpsEventValues.DIRECTION.SHORT,
-    };
+    if (!hasTrackedTradingView.current) {
+      const eventProps = {
+        [PerpsEventProperties.TIMESTAMP]: Date.now(),
+        [PerpsEventProperties.ASSET]: orderForm.asset,
+        [PerpsEventProperties.DIRECTION]:
+          orderForm.direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+      };
 
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_TRADING_SCREEN_VIEWED)
-        .addProperties(eventProps)
-        .build(),
-    );
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.PERPS_TRADING_SCREEN_VIEWED)
+          .addProperties(eventProps)
+          .build(),
+      );
+
+      hasTrackedTradingView.current = true;
+    }
   }, [orderForm.asset, orderForm.direction, createEventBuilder, trackEvent]);
 
   // Note: Navigation params for order type modal are no longer needed
@@ -400,9 +407,13 @@ const PerpsOrderViewContent: React.FC = () => {
     }
   }, [currentPrice, cachedAccountState]);
 
-  // Track order input viewed
+  // Track order input viewed - only once
   useEffect(() => {
-    if (orderForm.amount && parseFloat(orderForm.amount) > 0) {
+    if (
+      orderForm.amount &&
+      parseFloat(orderForm.amount) > 0 &&
+      !hasTrackedOrderTypeView.current
+    ) {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_ORDER_TYPE_VIEWED)
           .addProperties({
@@ -418,6 +429,7 @@ const PerpsOrderViewContent: React.FC = () => {
           })
           .build(),
       );
+      hasTrackedOrderTypeView.current = true;
     }
   }, [
     orderForm.direction,
