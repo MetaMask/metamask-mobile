@@ -9,11 +9,9 @@ import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
 
-describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
-  beforeEach(() => {
-    jest.setTimeout(150000);
-  });
+jest.setTimeout(150_000);
 
+describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
   it('can use the Ethereum provider', async () => {
     await withFixtures(
       {

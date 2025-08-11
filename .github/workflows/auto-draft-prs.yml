@@ -26,14 +26,3 @@ jobs:
               pull_number: context.payload.pull_request.number,
               draft: true
             });
-
-            // Check if the PR title includes "docs:" or if it's from a fork
-            if (context.payload.pull_request.title.includes('docs:') || context.payload.pull_request.head.repo.fork) {
-              // Add label "No E2E Smoke Needed"
-              await github.rest.issues.addLabels({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.payload.pull_request.number,
-                labels: ['No E2E Smoke Needed']
-              });
-            }

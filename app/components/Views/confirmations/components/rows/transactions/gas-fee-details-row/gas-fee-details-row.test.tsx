@@ -113,4 +113,27 @@ describe('GasFeesDetailsRow', () => {
     });
     expect(getByText('Speed')).toBeDefined();
   });
+
+  it('hide gas speed row if disabled', async () => {
+    const { queryByText } = renderWithProvider(
+      <GasFeesDetailsRow hideSpeed />,
+      {
+        state: stakingDepositConfirmationState,
+      },
+    );
+
+    expect(queryByText('Speed')).toBeNull();
+  });
+
+  it('shows fiat only if specified', async () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <GasFeesDetailsRow fiatOnly />,
+      {
+        state: stakingDepositConfirmationState,
+      },
+    );
+
+    expect(getByText('$0.34')).toBeDefined();
+    expect(queryByText('0.0001 ETH')).toBeNull();
+  });
 });

@@ -313,7 +313,7 @@ const WalletActions = () => {
       } else {
         dispatch(newAssetTransaction(assetToSend));
       }
-      navigateToSendPage(asset);
+      navigateToSendPage();
     });
   }, [
     closeBottomSheetAndNavigate,
@@ -365,20 +365,6 @@ const WalletActions = () => {
     });
   }, [closeBottomSheetAndNavigate, navigate]);
 
-  const onPerpsSandbox = useCallback(() => {
-    closeBottomSheetAndNavigate(() => {
-      navigate(Routes.PERPS.ROOT);
-    });
-  }, [closeBottomSheetAndNavigate, navigate]);
-
-  const sendIconStyle = useMemo(
-    () => ({
-      transform: [{ rotate: '-45deg' }],
-      ...styles.icon,
-    }),
-    [styles.icon],
-  );
-
   const isEarnWalletActionEnabled = useMemo(() => {
     if (
       !isStablecoinLendingEnabled ||
@@ -396,7 +382,7 @@ const WalletActions = () => {
         {isDepositEnabled && (
           <WalletAction
             actionType={WalletActionType.Deposit}
-            iconName={IconName.Cash}
+            iconName={IconName.Money}
             onPress={onDeposit}
             actionID={WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON}
             iconStyle={styles.icon}
@@ -427,7 +413,7 @@ const WalletActions = () => {
         {AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId) && (
           <WalletAction
             actionType={WalletActionType.Swap}
-            iconName={IconName.SwapHorizontal}
+            iconName={IconName.SwapVertical}
             onPress={goToSwaps}
             actionID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
             iconStyle={styles.icon}
@@ -459,23 +445,12 @@ const WalletActions = () => {
             disabled={!canSignTransactions}
           />
         )}
-        {isPerpsEnabled && (
-          <WalletAction
-            actionType={WalletActionType.PerpsSandbox}
-            iconName={IconName.Arrow2Right}
-            onPress={onPerpsSandbox}
-            iconStyle={sendIconStyle}
-            actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_SANDBOX_BUTTON}
-            iconSize={AvatarSize.Md}
-            disabled={!canSignTransactions}
-          />
-        )}
         <WalletAction
           actionType={WalletActionType.Send}
-          iconName={IconName.Arrow2Right}
+          iconName={IconName.Send}
           onPress={onSend}
-          iconStyle={sendIconStyle}
           actionID={WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON}
+          iconStyle={styles.icon}
           iconSize={AvatarSize.Md}
           disabled={!canSignTransactions}
         />
