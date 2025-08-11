@@ -1114,7 +1114,6 @@
         "position_count_plural": "{{count}} positions"
       },
       "details": {
-        "title": "Position Details",
         "error_message": "Position data not found. Please go back and try again.",
         "section_title": "Position"
       },
