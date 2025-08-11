@@ -23,32 +23,37 @@ export default function migrate(state: unknown): unknown {
     // We only update the network name if it exists in the state
     // and matches the expected chain ID and name.
     if (
-      hasProperty(state, 'NetworkController') &&
-      isObject(state.NetworkController) &&
-      isObject(state.NetworkController.networkConfigurationsByChainId) &&
+      hasProperty(state, 'engine') &&
+      hasProperty(state.engine, 'backgroundState') &&
+      hasProperty(state.engine.backgroundState, 'NetworkController') &&
+      hasProperty(state.engine.backgroundState, 'NetworkController') &&
+      isObject(state.engine.backgroundState.NetworkController) &&
+      isObject(
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId,
+      ) &&
       hasProperty(
-        state.NetworkController.networkConfigurationsByChainId,
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId,
         seiChainId,
       ) &&
       isObject(
-        state.NetworkController.networkConfigurationsByChainId[seiChainId],
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[seiChainId],
       ) &&
       hasProperty(
-        state.NetworkController.networkConfigurationsByChainId[
-          seiChainId
-        ] as NetworkConfiguration,
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration,
         'name',
       ) &&
       (
-        state.NetworkController.networkConfigurationsByChainId[
-          seiChainId
-        ] as NetworkConfiguration
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
       ).name === fromName
     ) {
       (
-        state.NetworkController.networkConfigurationsByChainId[
-          seiChainId
-        ] as NetworkConfiguration
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
       ).name = toName;
     }
     return state;

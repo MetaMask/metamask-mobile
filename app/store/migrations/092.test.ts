@@ -124,8 +124,10 @@ describe('Migration 92: Update Sei Network name', () => {
     
     mockedEnsureValidState.mockReturnValue(true);
 
+    const expectedState = cloneDeep(oldState);
+
     const migratedState = await migrate(oldState);
-    expect(migratedState).toStrictEqual(oldState);
+    expect(migratedState).toStrictEqual(expectedState);
   });
 
   it('updates the SEI network name from `Sei Network` to `Sei Mainnet`', async () => {
