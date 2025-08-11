@@ -28,6 +28,7 @@ import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
 import { VALIDATION_REGEX } from '../../constants/constants';
+import { endTrace, TraceName } from '../../../../../../util/trace';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -166,6 +167,20 @@ const BasicInfo = (): JSX.Element => {
         theme,
       ),
     );
+
+    endTrace({
+      name: TraceName.DepositContinueFlow,
+      data: {
+        destination: Routes.DEPOSIT.BASIC_INFO,
+      },
+    });
+
+    endTrace({
+      name: TraceName.DepositInputOtp,
+      data: {
+        destination: Routes.DEPOSIT.BASIC_INFO,
+      },
+    });
   }, [navigation, theme]);
 
   useEffect(() => {

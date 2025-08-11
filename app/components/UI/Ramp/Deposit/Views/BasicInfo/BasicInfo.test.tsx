@@ -7,6 +7,7 @@ import { backgroundState } from '../../../../../../util/test/initial-root-state'
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
+import { endTrace } from '../../../../../../util/trace';
 
 const mockTrackEvent = jest.fn();
 const mockPostKycForm = jest.fn();
@@ -76,6 +77,11 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
     }
     return [{}, jest.fn()];
   },
+}));
+
+jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
+  endTrace: jest.fn(),
 }));
 
 function render(Component: React.ComponentType) {
@@ -204,5 +210,26 @@ describe('BasicInfo Component', () => {
     render(BasicInfo);
 
     expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('should call endTrace twice when component mounts', () => {
+    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+    mockEndTrace.mockClear();
+
+    render(BasicInfo);
+
+    expect(mockEndTrace).toHaveBeenCalledTimes(2);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Continue Flow',
+      data: {
+        destination: 'BasicInfo',
+      },
+    });
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Input OTP',
+      data: {
+        destination: 'BasicInfo',
+      },
+    });
   });
 });
