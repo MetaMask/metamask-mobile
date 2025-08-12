@@ -4920,6 +4920,14 @@
     "@metamask/utils" "^11.2.0"
     immer "^9.0.6"
 
+"@metamask/base-controller@^8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.1.0.tgz#dd8746f8ec95fb564251c284f84e9264427816f1"
+  integrity sha512-pwWHTBntzPE6yBMH9qiXMaslQW2kS7Izw1g+4D8QhGIxNWBt1nz1uavTGcSBUFgO3eMDKe2QPU04xgThqCPv+g==
+  dependencies:
+    "@metamask/utils" "^11.4.2"
+    immer "^9.0.6"
+
 "@metamask/bitcoin-wallet-snap@^0.18.0":
   version "0.18.0"
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.18.0.tgz#51b73f9132886c599b7e09fd5671a1dc7584836c"
@@ -5057,14 +5065,14 @@
   resolved "https://registry.npmjs.org/@metamask/design-tokens/-/design-tokens-8.1.1.tgz#f2a1f7dd03a9be8672ec06d83767d03d354501d8"
   integrity sha512-B3NwHI+KDJIGRXmBMBOI2Eoc0miYVcq6IU2mOOmZlBkyCeVSMxavrydmDLTsXKJ68uFrbvLUBC+zN9wnux6L6g==
 
-"@metamask/earn-controller@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.npmjs.org/@metamask/earn-controller/-/earn-controller-3.0.0.tgz#400684ceb8a4017921b9efa3dce1c7df31610131"
-  integrity sha512-HhBshlXNevaSBC/dOuhehowYQGTSs3gg6juHzBhpRCqnz/vbxV4+cQWixcrPZ49I8CC/ZJ6NeLjl5JDrAzlO0g==
+"@metamask/earn-controller@^5.0.0":
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/@metamask/earn-controller/-/earn-controller-5.0.0.tgz#1faf94adf869da2a386bfe5f9ae01760052089cf"
+  integrity sha512-37yZ5KTL2PHMIujji9cnOHCyvbtJZYpNWFaUPcw+zTabNUOditwifpbZq2Uxx0SNiUQZ6aXrnKnqQFTONetJ2Q==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.1.0"
     "@metamask/controller-utils" "^11.11.0"
     "@metamask/stake-sdk" "^3.2.1"
     reselect "^5.1.1"
