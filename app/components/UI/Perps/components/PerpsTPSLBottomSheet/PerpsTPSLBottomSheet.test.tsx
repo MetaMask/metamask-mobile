@@ -261,8 +261,8 @@ describe('PerpsTPSLBottomSheet', () => {
 
       // Assert
       expect(screen.getByText('perps.tpsl.title')).toBeOnTheScreen();
-      expect(screen.getByText('perps.order.take_profit')).toBeOnTheScreen();
-      expect(screen.getByText('perps.order.stop_loss')).toBeOnTheScreen();
+      expect(screen.getByText('perps.tpsl.take_profit_long')).toBeOnTheScreen();
+      expect(screen.getByText('perps.tpsl.stop_loss_long')).toBeOnTheScreen();
     });
 
     it('returns null when not visible', () => {
@@ -271,8 +271,8 @@ describe('PerpsTPSLBottomSheet', () => {
 
       // Assert
       expect(screen.queryByText('perps.tpsl.title')).toBeNull();
-      expect(screen.queryByText('perps.order.take_profit')).toBeNull();
-      expect(screen.queryByText('perps.order.stop_loss')).toBeNull();
+      expect(screen.queryByText('perps.tpsl.take_profit_long')).toBeNull();
+      expect(screen.queryByText('perps.tpsl.stop_loss_long')).toBeNull();
     });
 
     it('displays current price for new orders', () => {
@@ -280,7 +280,8 @@ describe('PerpsTPSLBottomSheet', () => {
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
       // Assert
-      expect(screen.getByText('ETH - $3000.00')).toBeOnTheScreen();
+      expect(screen.getByText('perps.tpsl.current_price')).toBeOnTheScreen();
+      expect(screen.getByText('$3000.00')).toBeOnTheScreen();
     });
 
     it('displays entry price when editing existing position', () => {
@@ -294,9 +295,8 @@ describe('PerpsTPSLBottomSheet', () => {
       );
 
       // Assert
-      expect(
-        screen.getByText('ETH - $2800.00 (Entry: $2800.00)'),
-      ).toBeOnTheScreen();
+      expect(screen.getByText('perps.tpsl.current_price')).toBeOnTheScreen();
+      expect(screen.getByText('$2800.00')).toBeOnTheScreen();
     });
 
     it('renders percentage buttons with correct values', () => {
@@ -304,16 +304,16 @@ describe('PerpsTPSLBottomSheet', () => {
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
       // Assert - Take Profit buttons
+      expect(screen.getByText('+1%')).toBeOnTheScreen();
       expect(screen.getByText('+5%')).toBeOnTheScreen();
-      expect(screen.getByText('+10%')).toBeOnTheScreen();
-      expect(screen.getByText('+15%')).toBeOnTheScreen();
       expect(screen.getByText('+20%')).toBeOnTheScreen();
+      expect(screen.getByText('+30%')).toBeOnTheScreen();
 
       // Assert - Stop Loss buttons
+      expect(screen.getByText('-1%')).toBeOnTheScreen();
       expect(screen.getByText('-5%')).toBeOnTheScreen();
-      expect(screen.getByText('-10%')).toBeOnTheScreen();
-      expect(screen.getByText('-15%')).toBeOnTheScreen();
       expect(screen.getByText('-20%')).toBeOnTheScreen();
+      expect(screen.getByText('-30%')).toBeOnTheScreen();
     });
   });
 
@@ -362,7 +362,9 @@ describe('PerpsTPSLBottomSheet', () => {
       tpslValidation.calculatePercentageForPrice.mockReturnValue('5.00');
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      const takeProfitPriceInput = screen.getAllByPlaceholderText('0')[0]; // First input is TP price
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0]; // First input is TP price
 
       // Act
       fireEvent.changeText(takeProfitPriceInput, '3150');
@@ -379,7 +381,9 @@ describe('PerpsTPSLBottomSheet', () => {
     it('sanitizes take profit price input to numbers and decimal only', () => {
       // Arrange
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
-      const takeProfitPriceInput = screen.getAllByPlaceholderText('0')[0];
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
 
       // Act
       fireEvent.changeText(takeProfitPriceInput, 'abc123.45def');
@@ -391,7 +395,9 @@ describe('PerpsTPSLBottomSheet', () => {
     it('prevents multiple decimal points in take profit price input', () => {
       // Arrange
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
-      const takeProfitPriceInput = screen.getAllByPlaceholderText('0')[0];
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
 
       // Act
       fireEvent.changeText(takeProfitPriceInput, '123.45.67');
@@ -406,7 +412,9 @@ describe('PerpsTPSLBottomSheet', () => {
       tpslValidation.calculatePriceForPercentage.mockReturnValue('3150.00');
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      const takeProfitPercentInput = screen.getAllByPlaceholderText('0')[1]; // Second input is TP percentage
+      const takeProfitPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.profit_percent_placeholder',
+      )[0]; // TP percentage input
 
       // Act
       fireEvent.changeText(takeProfitPercentInput, '5');
@@ -426,7 +434,9 @@ describe('PerpsTPSLBottomSheet', () => {
       tpslValidation.calculatePercentageForPrice.mockReturnValue('10.00');
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      const stopLossPriceInput = screen.getAllByPlaceholderText('0')[2]; // Third input is SL price
+      const stopLossPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[1]; // Second trigger price input is SL price
 
       // Act
       fireEvent.changeText(stopLossPriceInput, '2700');
@@ -446,7 +456,9 @@ describe('PerpsTPSLBottomSheet', () => {
       tpslValidation.calculatePriceForPercentage.mockReturnValue('2700.00');
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      const stopLossPercentInput = screen.getAllByPlaceholderText('0')[3]; // Fourth input is SL percentage
+      const stopLossPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.loss_percent_placeholder',
+      )[0]; // SL percentage input
 
       // Act
       fireEvent.changeText(stopLossPercentInput, '10');
@@ -510,14 +522,16 @@ describe('PerpsTPSLBottomSheet', () => {
 
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      const takeProfitPriceInput = screen.getAllByPlaceholderText('0')[0];
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
 
       // Act
       fireEvent.changeText(takeProfitPriceInput, '2500');
 
       // Assert - Should show error message
       expect(
-        screen.getByText('perps.validation.invalid_take_profit'),
+        screen.getByText('perps.order.validation.invalid_take_profit'),
       ).toBeOnTheScreen();
     });
 
@@ -529,14 +543,16 @@ describe('PerpsTPSLBottomSheet', () => {
 
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      const stopLossPriceInput = screen.getAllByPlaceholderText('0')[2];
+      const stopLossPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[1];
 
       // Act
       fireEvent.changeText(stopLossPriceInput, '3500');
 
       // Assert - Should show error message
       expect(
-        screen.getByText('perps.validation.invalid_stop_loss'),
+        screen.getByText('perps.order.validation.invalid_stop_loss'),
       ).toBeOnTheScreen();
     });
   });
@@ -549,7 +565,9 @@ describe('PerpsTPSLBottomSheet', () => {
 
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      const takeProfitPriceInput = screen.getAllByPlaceholderText('0')[0];
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
 
       // Act
       fireEvent.changeText(takeProfitPriceInput, '3150');
@@ -567,7 +585,9 @@ describe('PerpsTPSLBottomSheet', () => {
 
       render(<PerpsTPSLBottomSheet {...defaultProps} />);
 
-      const takeProfitPriceInput = screen.getAllByPlaceholderText('0')[0];
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
 
       // Clear any calls made during render
       mockFormatPrice.mockClear();
@@ -590,13 +610,17 @@ describe('PerpsTPSLBottomSheet', () => {
       );
 
       // Set some values first
-      const takeProfitPriceInput = screen.getAllByPlaceholderText('0')[0];
-      const stopLossPriceInput = screen.getAllByPlaceholderText('0')[2];
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+      const stopLossPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[1];
 
       fireEvent.changeText(takeProfitPriceInput, '$3,150.00');
       fireEvent.changeText(stopLossPriceInput, '$2,850.00');
 
-      const confirmButton = screen.getByText('perps.tpsl.set_button');
+      const confirmButton = screen.getByText('perps.tpsl.set');
 
       // Act
       fireEvent.press(confirmButton);
@@ -612,7 +636,7 @@ describe('PerpsTPSLBottomSheet', () => {
         <PerpsTPSLBottomSheet {...defaultProps} onConfirm={mockOnConfirm} />,
       );
 
-      const confirmButton = screen.getByText('perps.tpsl.set_button');
+      const confirmButton = screen.getByText('perps.tpsl.set');
 
       // Act
       fireEvent.press(confirmButton);
@@ -626,7 +650,7 @@ describe('PerpsTPSLBottomSheet', () => {
       const mockOnClose = jest.fn();
       render(<PerpsTPSLBottomSheet {...defaultProps} onClose={mockOnClose} />);
 
-      const confirmButton = screen.getByText('perps.tpsl.set_button');
+      const confirmButton = screen.getByText('perps.tpsl.set');
 
       // Act
       fireEvent.press(confirmButton);
@@ -646,7 +670,9 @@ describe('PerpsTPSLBottomSheet', () => {
 
       render(<PerpsTPSLBottomSheet {...shortProps} />);
 
-      const takeProfitPriceInput = screen.getAllByPlaceholderText('0')[0];
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
 
       // Act
       fireEvent.changeText(takeProfitPriceInput, '2850');
@@ -671,7 +697,7 @@ describe('PerpsTPSLBottomSheet', () => {
 
         render(<PerpsTPSLBottomSheet {...props} />);
 
-        // For short positions, the button shows -5%, for long it shows +5%
+        // For short positions, the percentage buttons show negative values
         const buttonText = direction === 'short' ? '-5%' : '+5%';
         const fivePercentButton = screen.getByText(buttonText);
 
@@ -726,7 +752,9 @@ describe('PerpsTPSLBottomSheet', () => {
 
       render(<PerpsTPSLBottomSheet {...propsWithPosition} />);
 
-      const takeProfitPriceInput = screen.getAllByPlaceholderText('0')[0];
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
 
       // Act
       fireEvent.changeText(takeProfitPriceInput, '2950');
@@ -750,7 +778,9 @@ describe('PerpsTPSLBottomSheet', () => {
 
       render(<PerpsTPSLBottomSheet {...propsWithPosition} />);
 
-      const takeProfitPriceInput = screen.getAllByPlaceholderText('0')[0];
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
 
       // Act
       fireEvent.changeText(takeProfitPriceInput, '2950');
