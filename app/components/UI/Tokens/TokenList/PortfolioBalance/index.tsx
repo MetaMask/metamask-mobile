@@ -44,8 +44,18 @@ export const PortfolioBalance = React.memo(() => {
   const derivedWallet = useSelector((state: RootState) =>
     selectWalletByAccount(state)(selectedAccount?.id as string),
   );
-  // TODO(ASSETS-1125): Temporary approach; replace with selected account group id selector
-  const derivedGroupId = derivedWallet ? `${derivedWallet.id}/default` : undefined;
+  // TODO(ASSETS-1125): Temporary workaround for testing only.
+  // We currently derive the account group id as `${walletId}/default` by first
+  // selecting the currently selected internal account, then selecting the wallet
+  // that contains that account, and finally appending `/default` to form a group id.
+  // This is NOT the intended long-term approach. Once the Account Tree exposes a
+  // reliable "selected account group id" (or a selector for the current selected
+  // account group), replace this derivation with that selector and remove this logic.
+  // Using the proper selector ensures we always read the exact group the user has
+  // selected and avoids assumptions about group naming (e.g., `/default`).
+  const derivedGroupId = derivedWallet
+    ? `${derivedWallet.id}/default`
+    : undefined;
   const selectBalanceForDerivedGroup = React.useMemo(
     () =>
       derivedGroupId
