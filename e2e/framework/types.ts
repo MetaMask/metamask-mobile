@@ -164,8 +164,10 @@ export interface TestSpecificMock {
 
 export interface MockApiEndpoint {
   urlEndpoint: string;
+  requestBody?: unknown;
   response: unknown;
   responseCode: number;
+  ignoreFields?: string[];
 }
 
 /**

@@ -25,6 +25,7 @@ const BLOCKLISTED_HOSTS = [
   'bsc-mainnet.infura.io',
   'optimism-mainnet.infura.io',
   'polygon-mainnet.infura.io',
+  'mainnet.era.zksync.io',
 ];
 
 /**

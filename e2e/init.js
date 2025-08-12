@@ -16,7 +16,7 @@ beforeAll(async () => {
 global.liveServerRequest = [];
 afterEach(() => {
   if (global.liveServerRequest.length > 0) {
-    const err = global.liveServerRequest;
+    const err = JSON.stringify(global.liveServerRequest);
     global.liveServerRequest = []; // reset for next test
     // throw err;
     logger.warn(err); // change this to throw once the allow list is updated

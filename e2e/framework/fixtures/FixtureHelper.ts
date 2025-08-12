@@ -41,6 +41,7 @@ import ContractAddressRegistry from '../../../app/util/test/contract-address-reg
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { type Mockttp } from 'mockttp';
+import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -420,6 +421,9 @@ export const createMockAPIServer = async (
   if (!mockServer) {
     throw new Error('Test setup failure, no mock server setup');
   }
+
+  // Additional Global Mocks
+  await mockNotificationServices(mockServer);
 
   return {
     mockServer,
