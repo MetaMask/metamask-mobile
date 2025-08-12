@@ -141,7 +141,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('1329'),
-    nickname: 'Sei Network',
+    nickname: 'Sei Mainnet',
     rpcUrl: `https://sei-mainnet.infura.io/v3/${infuraProjectId}`,
     failoverRpcUrls: [],
     ticker: 'SEI',
