@@ -78,6 +78,7 @@ import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal
 import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
+import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
@@ -158,7 +159,6 @@ import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
-import PrivacyOverlay from '../../Views/PrivacyOverlay';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
@@ -350,6 +350,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.WALLET_ACTIONS}
       component={WalletActions}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.FUND_ACTION_MENU}
+      component={FundActionMenu}
     />
     <Stack.Screen
       name={Routes.MODAL.DELETE_WALLET}
@@ -1231,7 +1235,6 @@ const App: React.FC = () => {
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
-      <PrivacyOverlay />
     </>
   );
 };
