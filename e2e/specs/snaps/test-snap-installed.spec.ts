@@ -9,7 +9,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 jest.setTimeout(150_000);
 
 describe(FlaskBuildTests('Error Snap Tests'), () => {
-  it('connects to the Error Snap', async () => {
+  it('connects to the snap and displays the installed snaps', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
