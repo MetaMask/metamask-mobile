@@ -12,6 +12,7 @@ import {
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
+import { usePerpsErrorTracking } from './usePerpsErrorTracking';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -25,6 +26,7 @@ export const usePerpsClosePosition = (
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackError } = usePerpsErrorTracking();
 
   const handleClosePosition = useCallback(
     async (
@@ -64,6 +66,39 @@ export const usePerpsClosePosition = (
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
         if (result.success) {
+          // Check if position was partially closed
+          const closeSize = parseFloat(size || position.size);
+          const positionSize = Math.abs(parseFloat(position.size));
+          const filledSize = result.filledSize
+            ? parseFloat(result.filledSize)
+            : closeSize;
+          const isPartiallyFilled = filledSize > 0 && filledSize < closeSize;
+
+          if (isPartiallyFilled) {
+            // Track partially filled close event
+            trackEvent(
+              createEventBuilder(
+                MetaMetricsEvents.PERPS_POSITION_CLOSE_PARTIALLY_FILLED,
+              )
+                .addProperties({
+                  [PerpsEventProperties.TIMESTAMP]: Date.now(),
+                  [PerpsEventProperties.ASSET]: position.coin,
+                  [PerpsEventProperties.DIRECTION]:
+                    parseFloat(position.size) > 0
+                      ? PerpsEventValues.DIRECTION.LONG
+                      : PerpsEventValues.DIRECTION.SHORT,
+                  [PerpsEventProperties.OPEN_POSITION_SIZE]: positionSize,
+                  [PerpsEventProperties.ORDER_SIZE]: closeSize,
+                  [PerpsEventProperties.ORDER_TYPE]: orderType,
+                  'Amount filled': filledSize,
+                  'Remaining amount': closeSize - filledSize,
+                  [PerpsEventProperties.COMPLETION_DURATION]:
+                    performance.now() - closeStartTime,
+                })
+                .build(),
+            );
+          }
+
           // Measure close order confirmation toast
           const confirmationDuration = performance.now() - closeStartTime;
           setMeasurement(
@@ -113,7 +148,15 @@ export const usePerpsClosePosition = (
         );
         setError(closeError);
 
-        // Track position close failed
+        // Track general error
+        trackError(err, {
+          operation: 'close_position',
+          asset: position.coin,
+          direction: parseFloat(position.size) > 0 ? 'long' : 'short',
+          amount: size?.toString(),
+        });
+
+        // Track position close failed (specific event required by specs)
         trackEvent(
           createEventBuilder(MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED)
             .addProperties({
@@ -132,7 +175,7 @@ export const usePerpsClosePosition = (
         setIsClosing(false);
       }
     },
-    [closePosition, options, trackEvent, createEventBuilder],
+    [closePosition, options, trackEvent, createEventBuilder, trackError],
   );
 
   return {

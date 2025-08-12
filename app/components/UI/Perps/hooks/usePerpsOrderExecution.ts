@@ -6,6 +6,9 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import performance from 'react-native-performance';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { setMeasurement } from '@sentry/react-native';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { PerpsEventProperties } from '../constants/eventNames';
+import { usePerpsErrorTracking } from './usePerpsErrorTracking';
 
 interface UsePerpsOrderExecutionParams {
   onSuccess?: (position?: Position) => void;
@@ -28,6 +31,8 @@ export function usePerpsOrderExecution(
 ): UsePerpsOrderExecutionReturn {
   const { onSuccess, onError } = params;
   const { placeOrder: controllerPlaceOrder, getPositions } = usePerpsTrading();
+  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackError } = usePerpsErrorTracking();
 
   const [isPlacing, setIsPlacing] = useState(false);
   const [lastResult, setLastResult] = useState<OrderResult>();
@@ -63,6 +68,35 @@ export function usePerpsOrderExecution(
             'usePerpsOrderExecution: Order placed successfully',
             result,
           );
+
+          // Check if order was partially filled
+          const orderSize = parseFloat(orderParams.size.toString());
+          const filledSize = result.filledSize
+            ? parseFloat(result.filledSize)
+            : orderSize;
+          const isPartiallyFilled = filledSize > 0 && filledSize < orderSize;
+
+          if (isPartiallyFilled) {
+            // Track partially filled event
+            trackEvent(
+              createEventBuilder(
+                MetaMetricsEvents.PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED,
+              )
+                .addProperties({
+                  [PerpsEventProperties.TIMESTAMP]: Date.now(),
+                  [PerpsEventProperties.ASSET]: orderParams.coin,
+                  [PerpsEventProperties.DIRECTION]: orderParams.isBuy
+                    ? 'Long'
+                    : 'Short',
+                  [PerpsEventProperties.LEVERAGE]: orderParams.leverage || 1,
+                  [PerpsEventProperties.ORDER_SIZE]: orderSize,
+                  [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
+                  'Amount filled': filledSize,
+                  'Remaining amount': orderSize - filledSize,
+                })
+                .build(),
+            );
+          }
 
           // Track order confirmation timing
           const orderConfirmationStart = performance.now();
@@ -112,6 +146,16 @@ export function usePerpsOrderExecution(
             result.error || strings('perps.order.error.unknown');
           setError(errorMessage);
           DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
+
+          // Track order failure
+          trackError(errorMessage, {
+            operation: 'place_order_failed',
+            asset: orderParams.coin,
+            direction: orderParams.isBuy ? 'long' : 'short',
+            orderType: orderParams.orderType,
+            amount: orderParams.size,
+          });
+
           onError?.(errorMessage);
         }
       } catch (err) {
@@ -121,12 +165,30 @@ export function usePerpsOrderExecution(
             : strings('perps.order.error.unknown');
         setError(errorMessage);
         DevLogger.log('usePerpsOrderExecution: Error placing order', err);
+
+        // Track exception
+        trackError(err, {
+          operation: 'place_order_exception',
+          asset: orderParams.coin,
+          direction: orderParams.isBuy ? 'long' : 'short',
+          orderType: orderParams.orderType,
+          amount: orderParams.size,
+        });
+
         onError?.(errorMessage);
       } finally {
         setIsPlacing(false);
       }
     },
-    [controllerPlaceOrder, getPositions, onSuccess, onError],
+    [
+      controllerPlaceOrder,
+      getPositions,
+      onSuccess,
+      onError,
+      trackEvent,
+      createEventBuilder,
+      trackError,
+    ],
   );
 
   return {

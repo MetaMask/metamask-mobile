@@ -1196,6 +1196,8 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
           setIsOrderTypeVisible(false);
         }}
         currentOrderType={orderForm.type}
+        asset={orderForm.asset}
+        direction={orderForm.direction}
       />
       {selectedTooltip && (
         <PerpsBottomSheetTooltip
