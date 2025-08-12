@@ -180,6 +180,7 @@ export const useTokenAmount = ({
       break;
     }
     case TransactionType.contractInteraction:
+    case 'perpsDeposit' as TransactionType:
     case TransactionType.tokenMethodTransfer: {
       // ERC20
       const contractExchangeRate =

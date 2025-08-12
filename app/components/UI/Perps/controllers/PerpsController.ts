@@ -84,6 +84,9 @@ const ON_RAMP_GEO_BLOCKING_URLS = {
 // Unknown is the default/fallback in case the location API call fails
 const DEFAULT_GEO_BLOCKED_REGIONS = ['US', 'CA-ON', 'UNKNOWN'];
 
+// Temporary to avoids estimation failures due to insufficient balance.
+const DEPOSIT_GAS_LIMIT = toHex(100000);
+
 /**
  * State shape for PerpsController
  */
@@ -627,6 +630,7 @@ export class PerpsController extends BaseController<
       to: tokenAddress,
       value: '0x0',
       data: transferData,
+      gas: DEPOSIT_GAS_LIMIT,
     };
 
     const networkClientId =
