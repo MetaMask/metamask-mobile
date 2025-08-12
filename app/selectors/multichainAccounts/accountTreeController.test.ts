@@ -4,8 +4,7 @@ import {
   selectWalletByAccount,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
-import { AccountTreeControllerState } from '@metamask/account-tree-controller';
-import { DeepPartial } from 'redux';
+import { AccountWalletType } from '@metamask/account-api';
 
 const WALLET_ID_1 = 'keyring:wallet1' as const;
 const WALLET_ID_2 = 'keyring:wallet2' as const;
@@ -24,10 +23,20 @@ const ACCOUNT_ID_NONEXISTENT = 'nonexistent-account';
  * Helper function to create a base mock state with RemoteFeatureFlagController
  */
 const createMockState = (
-  accountTreeController:
-    | DeepPartial<AccountTreeControllerState>
-    | undefined = {},
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  accountTreeController: any = {},
   multichainAccountsEnabled: boolean = true,
+  internalAccounts: Record<
+    string,
+    {
+      id: string;
+      address: string;
+      methods: string[];
+      options: object;
+      type: string;
+      metadata: { name: string };
+    }
+  > = {},
 ): RootState =>
   ({
     engine: {
@@ -41,6 +50,14 @@ const createMockState = (
               minimumVersion: '1.0.0',
             },
           },
+        },
+        AccountsController: {
+          internalAccounts: {
+            accounts: internalAccounts,
+          },
+        },
+        KeyringController: {
+          keyrings: [],
         },
       },
     },
@@ -67,47 +84,93 @@ describe('AccountTreeController Selectors', () => {
     });
 
     it('returns wallet sections with accounts when wallets exist', () => {
-      const mockState = createMockState({
-        accountTree: {
-          wallets: {
-            [WALLET_ID_1]: {
-              metadata: {
-                name: 'Wallet 1',
-              },
-              groups: {
-                'keyring:1/ethereum': {
-                  accounts: ['account1'],
+      const mockInternalAccounts = {
+        account1: {
+          id: 'account1',
+          address: '0x123',
+          methods: [],
+          options: {},
+          type: 'eip155:eoa',
+          metadata: { name: 'Account 1' },
+        },
+        account2: {
+          id: 'account2',
+          address: '0x456',
+          methods: [],
+          options: {},
+          type: 'eip155:eoa',
+          metadata: { name: 'Account 2' },
+        },
+      };
+
+      const mockState = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [WALLET_ID_1]: {
+                id: WALLET_ID_1,
+                groups: {
+                  'keyring:1/ethereum': {
+                    accounts: ['account1'] as [string],
+                    type: AccountWalletType.Keyring,
+                    metadata: {
+                      name: 'Account 1',
+                    },
+                  },
+                  'keyring:2/ethereum': {
+                    accounts: ['account2'] as [string],
+                    type: AccountWalletType.Keyring,
+                    metadata: {
+                      name: 'Account 2',
+                    },
+                  },
                 },
-                'keyring:2/ethereum': {
-                  accounts: ['account2'],
+                metadata: {
+                  name: 'Wallet 1',
                 },
               },
-            },
-            [WALLET_ID_2]: {
-              metadata: {
-                name: 'Wallet 2',
-              },
-              groups: {
-                'keyring:3/ethereum': {
-                  accounts: [],
+              [WALLET_ID_2]: {
+                id: WALLET_ID_2,
+                groups: {
+                  'keyring:3/ethereum': {
+                    accounts: [] as [],
+                    type: AccountWalletType.Keyring,
+                    metadata: {
+                      name: 'Account 1',
+                    },
+                  },
+                },
+                metadata: {
+                  name: 'Wallet 2',
                 },
               },
             },
           },
         },
-      });
+        true,
+        mockInternalAccounts,
+      );
 
       const result = selectAccountSections(mockState);
       expect(result).toEqual([
         {
           title: 'Wallet 1',
           wallet: {
+            id: WALLET_ID_1,
             groups: {
               'keyring:1/ethereum': {
                 accounts: ['account1'],
+                type: AccountWalletType.Keyring,
+                metadata: {
+                  name: 'Account 1',
+                },
               },
               'keyring:2/ethereum': {
                 accounts: ['account2'],
+                type: AccountWalletType.Keyring,
+                metadata: {
+                  name: 'Account 2',
+                },
               },
             },
             metadata: {
@@ -119,9 +182,14 @@ describe('AccountTreeController Selectors', () => {
         {
           title: 'Wallet 2',
           wallet: {
+            id: WALLET_ID_2,
             groups: {
               'keyring:3/ethereum': {
                 accounts: [],
+                type: AccountWalletType.Keyring,
+                metadata: {
+                  name: 'Account 1',
+                },
               },
             },
             metadata: {
@@ -181,7 +249,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Wallet 1' },
         groups: {
           'keyring:1/ethereum': {
-            accounts: ['account1'],
+            accounts: ['account1'] as [string],
           },
         },
       };
@@ -240,7 +308,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'First Wallet' },
         groups: {
           'keyring:1/ethereum': {
-            accounts: ['eth1'],
+            accounts: ['eth1'] as [string],
           },
         },
       };
@@ -250,7 +318,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Second Wallet' },
         groups: {
           'snap:solana/mainnet': {
-            accounts: ['sol1'],
+            accounts: ['sol1'] as [string],
           },
         },
       };
@@ -281,10 +349,10 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Test Wallet with Groups' },
         groups: {
           'keyring:1/ethereum': {
-            accounts: ['eth1', 'eth2'],
+            accounts: ['eth1', 'eth2'] as [string, ...string[]],
           },
           'snap:solana/mainnet': {
-            accounts: ['sol1'],
+            accounts: ['sol1'] as [string],
           },
         },
       };
@@ -375,7 +443,7 @@ describe('AccountTreeController Selectors', () => {
                 metadata: { name: 'Wallet 1' },
                 groups: {
                   'keyring:1/ethereum': {
-                    accounts: [ACCOUNT_ID_1],
+                    accounts: [ACCOUNT_ID_1] as [string],
                   },
                 },
               },
@@ -430,7 +498,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Wallet 1' },
         groups: {
           'keyring:1/ethereum': {
-            accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
+            accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2] as [string, ...string[]],
           },
         },
       };
@@ -454,10 +522,10 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Wallet 1' },
         groups: {
           'keyring:1/ethereum': {
-            accounts: [ACCOUNT_ID_1],
+            accounts: [ACCOUNT_ID_1] as [string],
           },
           'snap:solana/mainnet': {
-            accounts: [ACCOUNT_ID_2],
+            accounts: [ACCOUNT_ID_2] as [string],
           },
         },
       };
@@ -487,7 +555,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'First Wallet' },
         groups: {
           'keyring:1/ethereum': {
-            accounts: [ACCOUNT_ID_1],
+            accounts: [ACCOUNT_ID_1] as [string],
           },
         },
       };
@@ -497,7 +565,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Second Wallet' },
         groups: {
           'snap:solana/mainnet': {
-            accounts: [ACCOUNT_ID_2],
+            accounts: [ACCOUNT_ID_2] as [string],
           },
         },
       };
@@ -548,7 +616,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Wallet 1' },
         groups: {
           'keyring:1/ethereum': {
-            accounts: [],
+            accounts: [] as [],
           },
         },
       };
@@ -558,7 +626,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Wallet 2' },
         groups: {
           'keyring:2/ethereum': {
-            accounts: [ACCOUNT_ID_1],
+            accounts: [ACCOUNT_ID_1] as [string],
           },
         },
       };
@@ -583,7 +651,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Wallet A' },
         groups: {
           'keyring:1/ethereum': {
-            accounts: [ACCOUNT_ID_1],
+            accounts: [ACCOUNT_ID_1] as [string],
           },
         },
       };
@@ -593,7 +661,7 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Wallet B' },
         groups: {
           'keyring:2/ethereum': {
-            accounts: [ACCOUNT_ID_2, ACCOUNT_ID_3],
+            accounts: [ACCOUNT_ID_2, ACCOUNT_ID_3] as [string, ...string[]],
           },
         },
       };
@@ -623,13 +691,13 @@ describe('AccountTreeController Selectors', () => {
         metadata: { name: 'Complex Wallet' },
         groups: {
           'keyring:1/ethereum': {
-            accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
+            accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2] as [string, ...string[]],
           },
           'snap:solana/mainnet': {
-            accounts: [ACCOUNT_ID_3],
+            accounts: [ACCOUNT_ID_3] as [string],
           },
           'keyring:2/ethereum': {
-            accounts: [],
+            accounts: [] as [],
           },
         },
       };

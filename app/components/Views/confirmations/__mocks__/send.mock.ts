@@ -24,7 +24,7 @@ export const SOLANA_ASSET = {
   isNative: true,
   logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
   name: 'Ethereum',
-  symbol: 'ETH',
+  symbol: 'SOL',
 };
 
 export const evmSendStateMock = {
@@ -81,6 +81,14 @@ export const evmSendStateMock = {
         currencyRates: {
           ETH: {
             conversionRate: 1,
+          },
+        },
+      },
+      MultichainAssetsRatesController: {
+        conversionRates: {
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
+            rate: '175',
+            conversionTime: 0,
           },
         },
       },

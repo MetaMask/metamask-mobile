@@ -106,12 +106,15 @@ function getAlertNames(alerts: Alert[]): string[] {
 }
 
 const ALERTS_NAME_METRICS: AlertNameMetrics = {
+  [AlertKeys.BatchedUnusedApprovals]: 'batched_unused_approvals',
   [AlertKeys.Blockaid]: 'blockaid',
   [AlertKeys.DomainMismatch]: 'domain_mismatch',
   [AlertKeys.InsufficientBalance]: 'insufficient_balance',
-  [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
+  [AlertKeys.InsufficientPayTokenBalance]: 'insufficient_pay_token_balance',
+  [AlertKeys.NoPayTokenQuotes]: 'no_pay_token_quotes',
   [AlertKeys.PendingTransaction]: 'pending_transaction',
-  [AlertKeys.BatchedUnusedApprovals]: 'batched_unused_approvals',
+  [AlertKeys.PerpsDepositMinimum]: 'perps_deposit_minimum',
+  [AlertKeys.SignedOrSubmitted]: 'signed_or_submitted',
 };
 
 function getAlertName(alertKey: string): string {

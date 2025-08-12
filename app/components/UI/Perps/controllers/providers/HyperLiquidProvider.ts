@@ -47,7 +47,11 @@ import type {
   EditOrderParams,
   FeeCalculationParams,
   FeeCalculationResult,
+  Funding,
   GetAccountStateParams,
+  GetFundingParams,
+  GetOrderFillsParams,
+  GetOrdersParams,
   GetPositionsParams,
   GetSupportedPathsParams,
   InitializeResult,
@@ -56,10 +60,11 @@ import type {
   LiveDataConfig,
   MaintenanceMarginParams,
   MarketInfo,
+  Order,
+  OrderFill,
   OrderParams,
   OrderResult,
   PerpsMarketData,
-  OrderParams as PerpsOrderParams,
   Position,
   ReadyToTradeResult,
   SubscribeOrderFillsParams,
@@ -175,7 +180,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   /**
    * Place an order using direct wallet signing (same as working debug test)
    */
-  async placeOrder(params: PerpsOrderParams): Promise<OrderResult> {
+  async placeOrder(params: OrderParams): Promise<OrderResult> {
     try {
       DevLogger.log('Placing order via HyperLiquid SDK:', params);
 
@@ -903,6 +908,185 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
     } catch (error) {
       DevLogger.log('Error getting positions:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get historical user fills (trade executions)
+   */
+  async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
+    try {
+      DevLogger.log('Getting user fills via HyperLiquid SDK:', params);
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawFills = await infoClient.userFills({
+        user: userAddress,
+        aggregateByTime: params?.aggregateByTime || false,
+      });
+
+      DevLogger.log('User fills received:', rawFills);
+
+      // Transform HyperLiquid fills to abstract OrderFill type
+      const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
+        // Perps only, no Spots
+        if (!['Buy', 'Sell'].includes(fill.dir)) {
+          acc.push({
+            orderId: fill.oid?.toString() || '',
+            symbol: fill.coin,
+            side: fill.side === 'A' ? 'sell' : 'buy',
+            startPosition: fill.startPosition,
+            size: fill.sz,
+            price: fill.px,
+            fee: fill.fee,
+            feeToken: fill.feeToken,
+            timestamp: fill.time,
+            pnl: fill.closedPnl,
+            direction: fill.dir,
+            success: true,
+          });
+        }
+
+        return acc;
+      }, []);
+
+      return fills;
+    } catch (error) {
+      DevLogger.log('Error getting user fills:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get historical orders (order lifecycle)
+   */
+  async getOrders(params?: GetOrdersParams): Promise<Order[]> {
+    try {
+      DevLogger.log('Getting user orders via HyperLiquid SDK:', params);
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawOrders = await infoClient.historicalOrders({
+        user: userAddress,
+      });
+
+      DevLogger.log('User orders received:', rawOrders);
+
+      // Transform HyperLiquid orders to abstract Order type
+      const orders: Order[] = (rawOrders || []).map((rawOrder) => {
+        const { order, status, statusTimestamp } = rawOrder;
+        // Normalize side: HyperLiquid uses 'A' (Ask/Sell) and 'B' (Bid/Buy)
+        const normalizedSide = order.side === 'B' ? 'buy' : 'sell';
+
+        // Normalize status
+        let normalizedStatus: Order['status'];
+        switch (status) {
+          case 'open':
+            normalizedStatus = 'open';
+            break;
+          case 'filled':
+            normalizedStatus = 'filled';
+            break;
+          case 'canceled':
+          case 'marginCanceled':
+          case 'vaultWithdrawalCanceled':
+          case 'openInterestCapCanceled':
+          case 'selfTradeCanceled':
+          case 'reduceOnlyCanceled':
+          case 'siblingFilledCanceled':
+          case 'delistedCanceled':
+          case 'liquidatedCanceled':
+          case 'scheduledCancel':
+          case 'reduceOnlyRejected':
+            normalizedStatus = 'canceled';
+            break;
+          case 'rejected':
+            // case 'minTradeNtlRejected':
+            normalizedStatus = 'rejected';
+            break;
+          case 'triggered':
+            normalizedStatus = 'triggered';
+            break;
+          default:
+            normalizedStatus = 'queued';
+        }
+
+        // Calculate filled and remaining size
+        const originalSize = parseFloat(order.origSz || order.sz);
+        const currentSize = parseFloat(order.sz);
+        const filledSize = originalSize - currentSize;
+
+        return {
+          orderId: order.oid?.toString() || '',
+          symbol: order.coin,
+          side: normalizedSide,
+          orderType: order.orderType?.toLowerCase().includes('limit')
+            ? 'limit'
+            : 'market',
+          size: order.sz,
+          originalSize: order.origSz || order.sz,
+          price: order.limitPx || '0',
+          filledSize: filledSize.toString(),
+          remainingSize: currentSize.toString(),
+          status: normalizedStatus,
+          timestamp: statusTimestamp,
+          lastUpdated: statusTimestamp,
+        };
+      });
+
+      return orders;
+    } catch (error) {
+      DevLogger.log('Error getting user orders:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get user funding history
+   */
+  async getFunding(params?: GetFundingParams): Promise<Funding[]> {
+    try {
+      DevLogger.log('Getting user funding via HyperLiquid SDK:', params);
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawFunding = await infoClient.userFunding({
+        user: userAddress,
+        startTime: params?.startTime || 0,
+        endTime: params?.endTime,
+      });
+
+      DevLogger.log('User funding received:', rawFunding);
+
+      // Transform HyperLiquid funding to abstract Funding type
+      const funding: Funding[] = (rawFunding || []).map((rawFundingItem) => {
+        const { delta, hash, time } = rawFundingItem;
+
+        return {
+          symbol: delta.coin,
+          amountUsd: delta.usdc,
+          rate: delta.fundingRate,
+          timestamp: time,
+          transactionHash: hash,
+        };
+      });
+
+      return funding;
+    } catch (error) {
+      DevLogger.log('Error getting user funding:', error);
       return [];
     }
   }
@@ -1732,5 +1916,24 @@ export class HyperLiquidProvider implements IPerpsProvider {
     } catch (error) {
       return createErrorResult(error, { success: false });
     }
+  }
+
+  /**
+   * Get block explorer URL for an address or just the base URL
+   * @param address - Optional address to append to the base URL
+   * @returns Block explorer URL
+   */
+  getBlockExplorerUrl(address?: string): string {
+    const network = this.clientService.isTestnetMode() ? 'testnet' : 'mainnet';
+    const baseUrl =
+      network === 'testnet'
+        ? 'https://app.hyperliquid-testnet.xyz'
+        : 'https://app.hyperliquid.xyz';
+
+    if (address) {
+      return `${baseUrl}/explorer/address/${address}`;
+    }
+
+    return `${baseUrl}/explorer`;
   }
 }

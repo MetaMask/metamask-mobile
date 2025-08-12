@@ -45,3 +45,21 @@ export { usePerpsOrderForm } from './usePerpsOrderForm';
 export { usePerpsOrderValidation } from './usePerpsOrderValidation';
 export { usePerpsClosePositionValidation } from './usePerpsClosePositionValidation';
 export { usePerpsOrderExecution } from './usePerpsOrderExecution';
+export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
+
+// Transaction data hooks
+export { usePerpsOrderFills } from './usePerpsOrderFills';
+export { usePerpsOrders } from './usePerpsOrders';
+export { usePerpsFunding } from './usePerpsFunding';
+
+// Block explorer hook
+export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
+
+// - usePerpsDeposit (deposit flows)
+// - usePerpsPendingOrders (order management)
+// - usePerpsError (error handling)
+// - usePerpsLivePositions (live position tracking)
+// - usePerpsPositionPnL (P&L calculations)
+// - usePerpsReadiness (readiness checks)
+// - usePerpsOrderManagement (order workflows)
+// - useStableArray (utility hook for stable array references)

@@ -332,31 +332,33 @@ const QuoteDetailsCard = () => {
         {/* Expandable content */}
         {isExpanded && (
           <Box gap={12}>
-            <KeyValueRow
-              field={{
-                label: {
-                  text: strings('bridge.price_impact'),
-                  variant: TextVariant.BodyMDMedium,
-                },
-                ...(shouldShowPriceImpactWarning && {
-                  tooltip: {
-                    title: strings('bridge.price_impact_warning_title'),
-                    content: strings('bridge.price_impact_normal_warning'),
-                    onPress: handlePriceImpactWarningPress,
-                    size: TooltipSizes.Sm,
+            {priceImpact && (
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('bridge.price_impact'),
+                    variant: TextVariant.BodyMDMedium,
                   },
-                }),
-              }}
-              value={{
-                label: {
-                  text: priceImpact,
-                  variant: TextVariant.BodyMD,
-                  color: shouldShowPriceImpactWarning
-                    ? TextColor.Error
-                    : undefined,
-                },
-              }}
-            />
+                  ...(shouldShowPriceImpactWarning && {
+                    tooltip: {
+                      title: strings('bridge.price_impact_warning_title'),
+                      content: strings('bridge.price_impact_normal_warning'),
+                      onPress: handlePriceImpactWarningPress,
+                      size: TooltipSizes.Sm,
+                    },
+                  }),
+                }}
+                value={{
+                  label: {
+                    text: priceImpact,
+                    variant: TextVariant.BodyMD,
+                    color: shouldShowPriceImpactWarning
+                      ? TextColor.Error
+                      : undefined,
+                  },
+                }}
+              />
+            )}
 
             <KeyValueRow
               field={{
