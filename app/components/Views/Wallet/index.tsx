@@ -128,7 +128,7 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
-import { createBuyNavigationDetails } from '../../UI/Ramp/Aggregator/routes/utils';
+
 import { newAssetTransaction } from '../../../actions/transaction';
 import { getEther } from '../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -143,6 +143,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
+import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import {
   IconColor,
@@ -151,6 +152,7 @@ import {
 import { setIsConnectionRemoved } from '../../../actions/user';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -304,6 +306,9 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const solanaOnboardingModalEnabled = useSelector(
+    selectSolanaOnboardingModalEnabled,
+  );
 
   /**
    * Object containing the balance of the current selected account
@@ -335,7 +340,7 @@ const Wallet = ({
   const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
-    token: {
+    sourceToken: {
       address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: chainId as Hex,
       decimals: 18,
@@ -355,7 +360,7 @@ const Wallet = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
-  const displayBuyButton = isNetworkRampSupported;
+  const displayFundButton = isNetworkRampSupported;
   const displaySwapsButton =
     AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
   const displayBridgeButton =
@@ -410,23 +415,6 @@ const Wallet = ({
     sendNonEvmAsset,
     ///: END:ONLY_INCLUDE_IF
   ]);
-
-  const onBuy = useCallback(() => {
-    navigate(
-      ...createBuyNavigationDetails({
-        chainId: getDecimalChainId(chainId),
-      }),
-    );
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Buy',
-          location: 'WalletOverview',
-          chain_id_destination: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -487,8 +475,10 @@ const Wallet = ({
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   useEffect(() => {
-    checkAndNavigateToSolanaFeature();
-  }, [checkAndNavigateToSolanaFeature]);
+    if (solanaOnboardingModalEnabled) {
+      checkAndNavigateToSolanaFeature();
+    }
+  }, [checkAndNavigateToSolanaFeature, solanaOnboardingModalEnabled]);
   ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
@@ -701,6 +691,8 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
+  const isCardholder = useSelector(selectIsCardholder);
+
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
@@ -717,6 +709,7 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
+        isCardholder,
       ),
     );
   }, [
@@ -731,6 +724,7 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
+    isCardholder,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
@@ -946,7 +940,7 @@ const Wallet = ({
         <>
           <PortfolioBalance />
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
+            displayFundButton={displayFundButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
             swapsIsLive={swapsIsLive}
@@ -954,8 +948,7 @@ const Wallet = ({
             goToSwaps={goToSwaps}
             onReceive={onReceive}
             onSend={onSend}
-            onBuy={onBuy}
-            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            fundButtonActionID={WalletViewSelectorsIDs.WALLET_FUND_BUTTON}
             swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
             bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
             sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
@@ -983,13 +976,12 @@ const Wallet = ({
       navigation,
       goToBridge,
       goToSwaps,
-      displayBuyButton,
+      displayFundButton,
       displaySwapsButton,
       displayBridgeButton,
       swapsIsLive,
       onReceive,
       onSend,
-      onBuy,
     ],
   );
   const renderLoader = useCallback(

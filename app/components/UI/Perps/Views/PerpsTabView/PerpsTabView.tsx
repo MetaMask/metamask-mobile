@@ -1,43 +1,46 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { View, ScrollView, RefreshControl } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconName,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { RefreshControl, ScrollView, View } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
-  ButtonVariants,
   ButtonSize,
+  ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import styleSheet from './PerpsTabView.styles';
-import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
+import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
   usePerpsConnection,
+  usePerpsFirstTimeUser,
   usePerpsPositions,
   usePerpsTrading,
 } from '../../hooks';
-import { strings } from '../../../../../../locales/i18n';
+import styleSheet from './PerpsTabView.styles';
 
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { getAccountState } = usePerpsTrading();
   const { isConnected, isInitialized } = usePerpsConnection();
 
@@ -45,9 +48,16 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const { positions, isLoading, isRefreshing, loadPositions } =
-    usePerpsPositions();
+  const {
+    positions,
+    isLoading: isPositionsLoading,
+    isRefreshing,
+    loadPositions,
+  } = usePerpsPositions();
+  const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
+  const isLoading = isPositionsLoading;
+  const firstTimeUserIconSize = 48 as unknown as IconSize;
   // Automatically load account state on mount and when network changes
   useEffect(() => {
     // Only load account state if we're connected and initialized
@@ -84,6 +94,13 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     });
   }, [navigation]);
 
+  const handleStartTrading = useCallback(() => {
+    // Navigate to tutorial carousel for first-time users
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.TUTORIAL,
+    });
+  }, [navigation]);
+
   const renderPositionsSection = () => {
     if (isLoading) {
       return (
@@ -95,7 +112,43 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       );
     }
 
+    if (isFirstTimeUser) {
+      return (
+        <View style={styles.firstTimeContainer}>
+          <Icon
+            name={IconName.Details}
+            color={IconColor.Muted}
+            size={firstTimeUserIconSize}
+            style={styles.firstTimeIcon}
+          />
+          <Text
+            variant={TextVariant.HeadingMD}
+            color={TextColor.Default}
+            style={styles.firstTimeTitle}
+          >
+            {strings('perps.position.list.first_time_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Muted}
+            style={styles.firstTimeDescription}
+          >
+            {strings('perps.position.list.first_time_description')}
+          </Text>
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            label={strings('perps.position.list.start_trading')}
+            onPress={handleStartTrading}
+            style={styles.startTradingButton}
+            width={ButtonWidthTypes.Full}
+          />
+        </View>
+      );
+    }
+
     if (positions.length === 0) {
+      // Regular empty state for returning users
       return (
         <View style={styles.emptyContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
@@ -147,15 +200,26 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   return (
     <View style={styles.wrapper}>
-      <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
-      <ScrollView
-        style={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-        }
-      >
-        <View style={styles.section}>{renderPositionsSection()}</View>
-      </ScrollView>
+      {isFirstTimeUser ? (
+        <View style={[styles.content, styles.firstTimeContent]}>
+          <View style={styles.section}>{renderPositionsSection()}</View>
+        </View>
+      ) : (
+        <>
+          <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
+          <ScrollView
+            style={styles.content}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+              />
+            }
+          >
+            <View style={styles.section}>{renderPositionsSection()}</View>
+          </ScrollView>
+        </>
+      )}
 
       {isBottomSheetVisible && (
         <BottomSheet ref={bottomSheetRef} onClose={handleCloseBottomSheet}>
