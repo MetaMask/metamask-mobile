@@ -142,11 +142,12 @@ expo-env.d.ts
 # CICD
 github-tools/
 
-# API Monitor logs
-api-monitor-logs/
 
 # Claude AI development files
 CLAUDE.md
 /CLAUDE.md
 temp/
 /temp/
+
+# Generated mocks
+**/captured-mocks/**
