@@ -112,45 +112,45 @@ const SolanaNewFeatureContent = () => {
                 resizeMode="contain"
               />
             </View>
-
-            <View style={styles.createWrapper}>
-              <ButtonBase
-                onPress={() => importAccountWithSRP()}
-                testID={
-                  SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
-                }
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                style={styles.importWalletButton}
-                label={
-                  <Text
-                    variant={TextVariant.BodyMDMedium}
-                    style={styles.importWalletButtonText}
-                  >
-                    {strings('solana_new_feature_content.import_your_wallet')}
-                  </Text>
-                }
-              />
-              <Button
-                variant={ButtonVariants.Secondary}
-                onPress={() => handleClose()}
-                testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-                style={styles.notNowButton}
-                label={
-                  <Text
-                    variant={TextVariant.BodyMDMedium}
-                    style={styles.notNowButtonText}
-                  >
-                    {strings('solana_new_feature_content.not_now')}
-                  </Text>
-                }
-              />
-            </View>
           </View>
         </View>
       </ScrollView>
+
+      <View style={styles.createWrapper}>
+        <ButtonBase
+          onPress={() => importAccountWithSRP()}
+          testID={
+            SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
+          }
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          style={styles.importWalletButton}
+          label={
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.importWalletButtonText}
+            >
+              {strings('solana_new_feature_content.import_your_wallet')}
+            </Text>
+          }
+        />
+        <Button
+          variant={ButtonVariants.Secondary}
+          onPress={() => handleClose()}
+          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
+          width={ButtonWidthTypes.Full}
+          size={ButtonSize.Lg}
+          style={styles.notNowButton}
+          label={
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.notNowButtonText}
+            >
+              {strings('solana_new_feature_content.not_now')}
+            </Text>
+          }
+        />
+      </View>
     </View>
   );
 };
