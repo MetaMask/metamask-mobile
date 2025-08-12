@@ -119,39 +119,39 @@ const SolanaNewFeatureContent = () => {
                 resizeMode="contain"
               />
             </View>
-
-            <View style={styles.createWrapper}>
-              <Button
-                variant={ButtonVariants.Primary}
-                onPress={() => importAccountWithSRP()}
-                testID={
-                  SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
-                }
-                label={strings('solana_new_feature_content.import_your_wallet')}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-                style={styles.importWalletButton}
-              />
-              <Button
-                variant={ButtonVariants.Secondary}
-                onPress={() => handleClose()}
-                testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-                style={styles.notNowButton}
-                label={
-                  <Text
-                    variant={TextVariant.BodyMDMedium}
-                    color={importedColors.gettingStartedTextColor}
-                  >
-                    {strings('solana_new_feature_content.not_now')}
-                  </Text>
-                }
-              />
-            </View>
           </View>
         </View>
       </ScrollView>
+
+      <View style={styles.createWrapper}>
+        <Button
+          variant={ButtonVariants.Primary}
+          onPress={() => importAccountWithSRP()}
+          testID={
+            SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
+          }
+          label={strings('solana_new_feature_content.import_your_wallet')}
+          width={ButtonWidthTypes.Full}
+          size={ButtonSize.Lg}
+          style={styles.importWalletButton}
+        />
+        <Button
+          variant={ButtonVariants.Secondary}
+          onPress={() => handleClose()}
+          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
+          width={ButtonWidthTypes.Full}
+          size={ButtonSize.Lg}
+          style={styles.notNowButton}
+          label={
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={importedColors.gettingStartedTextColor}
+            >
+              {strings('solana_new_feature_content.not_now')}
+            </Text>
+          }
+        />
+      </View>
     </View>
   );
 };
