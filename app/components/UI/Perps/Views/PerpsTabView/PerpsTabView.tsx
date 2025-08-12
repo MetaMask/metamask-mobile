@@ -11,9 +11,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
   IconColor,
   IconName,
@@ -183,13 +180,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               position={position}
               expanded={false}
               showIcon
-              rightAccessory={
-                <ButtonIcon
-                  iconName={IconName.Close}
-                  iconColor={IconColor.Alternative}
-                  size={ButtonIconSizes.Md}
-                />
-              }
             />
           ))}
         </View>
