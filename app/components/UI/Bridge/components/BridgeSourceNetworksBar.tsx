@@ -20,7 +20,7 @@ import {
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
-import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
+import AvatarGroup from './AvatarGroup';
 
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -88,6 +88,7 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
             <AvatarGroup
               avatarPropsList={networkAvatars}
               size={AvatarSize.Xs}
+              maxStackedAvatars={4}
             />
           </Box>
           <Text>{networkText}</Text>
