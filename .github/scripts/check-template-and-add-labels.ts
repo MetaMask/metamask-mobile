@@ -104,7 +104,10 @@ async function main(): Promise<void> {
         labelable,
         invalidIssueTemplateLabel,
       );
+      // Add needs triage label ONLY if issue is created (not updated)
+      if (context.payload.action === 'opened') {
       await addNeedsTriageLabelToIssue(octokit, labelable);
+      }
       // Add area-Sentry label to the bug report issue
       await addAreaSentryLabelToIssue(octokit, labelable);
       process.exit(0); // Stop the process and exit with a success status code
@@ -128,7 +131,10 @@ async function main(): Promise<void> {
       // Add regression label to the bug report issue
       await addRegressionLabelToIssue(octokit, labelable);
 
+      // Add needs triage label ONLY if issue is created (not updated)
+      if (context.payload.action === 'opened') {
       await addNeedsTriageLabelToIssue(octokit, labelable);
+      }
 
     } else {
       const errorMessage =
