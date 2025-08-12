@@ -6,13 +6,13 @@ import { merge } from 'lodash';
 import renderWithProvider, {
   ProviderValues,
 } from '../../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../../constants/navigation/Routes';
 import {
   SOLANA_ASSET,
   TOKEN_ADDRESS_MOCK_1,
   evmSendStateMock,
 } from '../../../__mocks__/send.mock';
 import { SendContextProvider } from '../../../context/send-context';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { Amount } from './amount';
 

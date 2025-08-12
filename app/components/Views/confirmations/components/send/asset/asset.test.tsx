@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 
-import { Asset } from './asset';
-import { AssetType } from '../../../types/token';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { AssetType } from '../../../types/token';
 import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
+import { Asset } from './asset';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
