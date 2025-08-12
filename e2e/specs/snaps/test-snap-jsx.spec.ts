@@ -25,7 +25,7 @@ describe(FlaskBuildTests('JSX Snap Tests'), () => {
     );
   });
 
-  it('displays a JSX modifiable interface', async () => {
+  it('displays a modifiable JSX interface', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
