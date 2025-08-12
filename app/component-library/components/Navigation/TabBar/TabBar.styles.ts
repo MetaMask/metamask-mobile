@@ -1,5 +1,5 @@
 // Third party dependencies.
-import { StyleProp, StyleSheet, ViewStyle } from 'react-native';
+import { StyleProp, StyleSheet as RNStyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
@@ -7,7 +7,6 @@ import Device from '../../../../util/device';
 
 // Internal dependencies.
 import { TabBarStyleSheetVars } from './TabBar.types';
-import { TAB_BAR_HEIGHT } from './TabBar.constants';
 /**
  * Style sheet function for TabBar component.
  *
@@ -22,31 +21,26 @@ const styleSheet = (params: { vars: TabBarStyleSheetVars; theme: Theme }) => {
     theme: { colors },
   } = params;
 
-  const borderStyle: StyleProp<ViewStyle> = Device.isAndroid()
-    ? {
-        borderWidth: 0.5,
-        borderColor: colors.border.muted,
-      }
+  const shadowStyle: StyleProp<ViewStyle> = Device.isAndroid()
+    ? {}
     : {
         shadowColor: colors.overlay.default,
         shadowOpacity: 1,
         shadowOffset: { height: 4, width: 0 },
         shadowRadius: 8,
-        flexBasis: 1,
       };
 
-  return StyleSheet.create({
+  return RNStyleSheet.create({
     base: {
       flexDirection: 'row',
       alignItems: 'center',
-      height: TAB_BAR_HEIGHT,
       paddingHorizontal: 16,
-      marginBottom: bottomInset,
+      paddingTop: 12,
+      paddingBottom: bottomInset,
       backgroundColor: colors.background.default,
-    },
-    border: {
-      ...borderStyle,
-      backgroundColor: colors.background.default,
+      borderTopWidth: 1,
+      borderTopColor: colors.border.muted,
+      ...shadowStyle,
     },
   });
 };

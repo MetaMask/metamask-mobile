@@ -9,22 +9,20 @@ import { useSelector } from 'react-redux';
 import TabBarItem from '../TabBarItem';
 import { useStyles } from '../../../hooks';
 import Routes from '../../../../constants/navigation/Routes';
-import { useTheme } from '../../../../util/theme';
+
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../util/networks';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
 import { TabBarProps } from './TabBar.types';
 import styleSheet from './TabBar.styles';
 import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
-import { colors as importedColors } from '../../../../styles/common';
-import { AvatarSize } from '../../Avatars/Avatar';
 import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
 import { selectChainId } from '../../../../selectors/networkController';
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
-  const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, { bottomInset });
@@ -47,6 +45,21 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
     [navigation, wizardStep],
   );
 
+  const getTabLabel = useCallback((tabBarIconKey: string) => {
+    switch (tabBarIconKey) {
+      case 'Wallet':
+        return strings('bottom_nav.home');
+      case 'Browser':
+        return strings('bottom_nav.browser');
+      case 'Activity':
+        return strings('bottom_nav.activity');
+      case 'Setting':
+        return strings('bottom_nav.settings');
+      default:
+        return '';
+    }
+  }, []);
+
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
       const { options } = descriptors[route.key];
@@ -58,6 +71,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const key = `tab-bar-item-${tabBarIconKey}`; // this key is also used to identify elements for e2e testing
       const isSelected = state.index === index;
       const icon = ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
+      const labelText = getTabLabel(tabBarIconKey);
       const onPress = () => {
         callback?.();
         switch (rootScreenName) {
@@ -99,32 +113,17 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
 
       const isWalletAction = rootScreenName === Routes.MODAL.WALLET_ACTIONS;
 
-      const handleIconColor = () => {
-        if (isWalletAction) return colors.primary.inverse;
-
-        if (isSelected) return colors.primary.default;
-
-        return colors.icon.muted;
-      };
-
-      const iconProps = {
-        size: isWalletAction ? AvatarSize.Md : AvatarSize.Lg,
-        backgroundColor: isWalletAction
-          ? colors.primary.default
-          : importedColors.transparent,
-        color: handleIconColor(),
-      };
-
       return (
         <TabBarItem
           key={key}
           label={label}
-          icon={icon}
+          iconName={icon}
           onPress={onPress}
-          iconSize={iconProps.size}
-          iconBackgroundColor={iconProps.backgroundColor}
-          iconColor={iconProps.color}
+          isActive={isSelected}
+          isTradeButton={isWalletAction}
+          labelText={!isWalletAction ? labelText : undefined}
           testID={key}
+          flexStyle={isWalletAction ? 'none' : 'flex'}
         />
       );
     },
@@ -132,10 +131,10 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       state,
       descriptors,
       navigation,
-      colors,
       chainId,
       trackEvent,
       createEventBuilder,
+      getTabLabel,
     ],
   );
 
@@ -145,13 +144,10 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   );
 
   return (
-    <>
-      <View style={styles.border} />
-      <View style={styles.base} ref={tabBarRef}>
-        {renderTabBarItems()}
-        {renderOnboardingWizard()}
-      </View>
-    </>
+    <View style={styles.base} ref={tabBarRef}>
+      {renderTabBarItems()}
+      {renderOnboardingWizard()}
+    </View>
   );
 };
 

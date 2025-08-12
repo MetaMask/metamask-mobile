@@ -1,9 +1,8 @@
 // Third party dependencies.
 import { TouchableOpacityProps } from 'react-native';
-import { AvatarSize } from '../../Avatars/Avatar';
 
 // External dependencies.
-import { IconProps } from '../../Icons/Icon';
+import { IconName } from '../../Icons/Icon';
 
 /**
  * TabBarItem component props.
@@ -14,25 +13,29 @@ export interface TabBarItemProps extends TouchableOpacityProps {
    */
   label: string;
   /**
-   * Icon of the tab item.
+   * Icon name from design system.
    */
-  icon: IconProps['name'];
+  iconName: IconName;
   /**
    * Function to call when pressed.
    */
   onPress: () => void;
   /**
-   * Size to apply to icon.
+   * Whether the tab item is active.
    */
-  iconSize: AvatarSize;
+  isActive?: boolean;
   /**
-   * Color to apply to icon.
+   * Whether this is a trade button (renders with special styling).
    */
-  iconColor: string;
+  isTradeButton?: boolean;
   /**
-   * Color to apply to icon background color.
+   * Optional label text to display below the icon (non-trade buttons only).
    */
-  iconBackgroundColor: string;
+  labelText?: string;
+  /**
+   * Flex style for layout control.
+   */
+  flexStyle?: 'flex' | 'none';
 }
 
 /**

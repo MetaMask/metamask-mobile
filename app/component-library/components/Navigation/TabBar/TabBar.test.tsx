@@ -26,6 +26,19 @@ const mockInitialState = {
   },
 };
 
+// Mock localization strings
+jest.mock('../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    const mockStrings: { [key: string]: string } = {
+      'bottom_nav.home': 'Home',
+      'bottom_nav.browser': 'Browser',
+      'bottom_nav.activity': 'Activity',
+      'bottom_nav.settings': 'Settings',
+    };
+    return mockStrings[key] || key;
+  }),
+}));
+
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, left: 0, right: 0, bottom: 0 }),
 }));
@@ -58,8 +71,8 @@ describe('TabBar', () => {
     },
     '2': {
       options: {
-        tabBarIconKey: TabBarIconKey.Activity,
-        rootScreenName: Routes.TRANSACTIONS_VIEW,
+        tabBarIconKey: TabBarIconKey.Browser,
+        rootScreenName: Routes.BROWSER_VIEW,
       },
     },
     '3': {
@@ -70,8 +83,8 @@ describe('TabBar', () => {
     },
     '4': {
       options: {
-        tabBarIconKey: TabBarIconKey.Browser,
-        rootScreenName: Routes.BROWSER_VIEW,
+        tabBarIconKey: TabBarIconKey.Activity,
+        rootScreenName: Routes.TRANSACTIONS_VIEW,
       },
     },
     '5': {
@@ -122,7 +135,7 @@ describe('TabBar', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Browser}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER.VIEW,
+      screen: Routes.BROWSER_VIEW,
     });
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Actions}`));

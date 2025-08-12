@@ -471,6 +471,12 @@
     "wallet": "Wallet",
     "transfer": "Transfer"
   },
+  "bottom_nav": {
+    "home": "Home",
+    "browser": "Browser",
+    "activity": "Activity",
+    "settings": "Settings"
+  },
   "drawer": {
     "send_button": "Send",
     "receive_button": "Add funds",
