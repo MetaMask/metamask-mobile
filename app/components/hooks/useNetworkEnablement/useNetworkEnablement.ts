@@ -61,14 +61,14 @@ export const useNetworkEnablement = () => {
     () => (chainId: CaipChainId) => {
       const { namespace: chainNamespace, reference } =
         parseCaipChainId(chainId);
+      // For EVM networks (eip155), use hex format. For non-EVM, use full CAIP chain ID
       const formattedChainId =
         chainNamespace === KnownCaipNamespace.Eip155
           ? toHex(reference)
-          : reference;
+          : chainId;
       return (
-        enabledNetworksByNamespace?.[chainNamespace]?.[
-          formattedChainId as Hex
-        ] === true
+        enabledNetworksByNamespace?.[chainNamespace]?.[formattedChainId] ===
+        true
       );
     },
     [enabledNetworksByNamespace],
@@ -77,26 +77,14 @@ export const useNetworkEnablement = () => {
   const toggleNetwork = useMemo(
     () => (chainId: CaipChainId) => {
       const networkEnabled = isNetworkEnabled(chainId);
-      // This is needed because we should have 1 network at minimum enabled
-      // despite if the user deselects all networks
-      const isSingleNetworkEnabled =
-        Object.keys(enabledNetworksByNamespace[namespace] || {}).filter(
-          (key) => enabledNetworksByNamespace[namespace]?.[key as Hex],
-        ).length === 1;
 
-      if (networkEnabled && !isSingleNetworkEnabled) {
+      if (networkEnabled) {
         disableNetwork(chainId);
-      } else if (!networkEnabled) {
+      } else {
         enableNetwork(chainId);
       }
     },
-    [
-      isNetworkEnabled,
-      enableNetwork,
-      disableNetwork,
-      enabledNetworksByNamespace,
-      namespace,
-    ],
+    [isNetworkEnabled, enableNetwork, disableNetwork],
   );
 
   return {

@@ -897,6 +897,119 @@ describe('Multichain Selectors', () => {
 
         expect(result.every((token) => token.chainId === '0x1')).toBe(true);
       });
+
+      it('should fall back to default behavior when enabledNetworksByNamespace is undefined', () => {
+        const testState = {
+          ...mockState,
+          engine: {
+            ...mockState.engine,
+            backgroundState: {
+              ...mockState.engine.backgroundState,
+              NetworkEnablementController: undefined,
+            },
+          },
+        } as unknown as RootState;
+
+        const result = selectEvmTokens(testState);
+
+        // Should return all tokens as fallback behavior (same as when feature flag is disabled)
+        expect(result.length).toBeGreaterThan(0);
+        expect(result.some((token) => token.chainId === '0x1')).toBe(true);
+        expect(result.some((token) => token.chainId === '0x89')).toBe(true);
+      });
+
+      it('should fall back to default behavior when NetworkEnablementController is missing', () => {
+        const testState = {
+          ...mockState,
+          engine: {
+            ...mockState.engine,
+            backgroundState: {
+              ...mockState.engine.backgroundState,
+              NetworkEnablementController: {},
+            },
+          },
+        } as unknown as RootState;
+
+        const result = selectEvmTokens(testState);
+
+        // Should return all tokens as fallback behavior
+        expect(result.length).toBeGreaterThan(0);
+        expect(result.some((token) => token.chainId === '0x1')).toBe(true);
+        expect(result.some((token) => token.chainId === '0x89')).toBe(true);
+      });
+
+      it('should fall back to default behavior when enabledNetworkMap is undefined', () => {
+        const testState = {
+          ...mockState,
+          engine: {
+            ...mockState.engine,
+            backgroundState: {
+              ...mockState.engine.backgroundState,
+              NetworkEnablementController: {
+                enabledNetworkMap: undefined,
+              },
+            },
+          },
+        } as unknown as RootState;
+
+        const result = selectEvmTokens(testState);
+
+        // Should return all tokens as fallback behavior
+        expect(result.length).toBeGreaterThan(0);
+        expect(result.some((token) => token.chainId === '0x1')).toBe(true);
+        expect(result.some((token) => token.chainId === '0x89')).toBe(true);
+      });
+
+      it('should fall back to default behavior when EIP-155 entry is missing from enabledNetworkMap', () => {
+        const testState = {
+          ...mockState,
+          engine: {
+            ...mockState.engine,
+            backgroundState: {
+              ...mockState.engine.backgroundState,
+              NetworkEnablementController: {
+                enabledNetworkMap: {
+                  // Missing eip155 key
+                  bitcoin: {
+                    'bip122:000000000019d6689c085ae165831e93': true,
+                  },
+                },
+              },
+            },
+          },
+        } as unknown as RootState;
+
+        const result = selectEvmTokens(testState);
+
+        // Should return all tokens as fallback behavior
+        expect(result.length).toBeGreaterThan(0);
+        expect(result.some((token) => token.chainId === '0x1')).toBe(true);
+        expect(result.some((token) => token.chainId === '0x89')).toBe(true);
+      });
+
+      it('should fall back to default behavior when EIP-155 entry is null', () => {
+        const testState = {
+          ...mockState,
+          engine: {
+            ...mockState.engine,
+            backgroundState: {
+              ...mockState.engine.backgroundState,
+              NetworkEnablementController: {
+                enabledNetworkMap: {
+                  eip155: null,
+                },
+              },
+            },
+          },
+        } as unknown as RootState;
+
+        const result = selectEvmTokens(testState);
+
+        // Should return all tokens as fallback behavior
+        expect(result.length).toBeGreaterThan(0);
+        expect(result.some((token) => token.chainId === '0x1')).toBe(true);
+        expect(result.some((token) => token.chainId === '0x89')).toBe(true);
+      });
     });
 
     describe('when feature flag is disabled', () => {

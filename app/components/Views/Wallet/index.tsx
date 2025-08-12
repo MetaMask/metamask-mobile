@@ -129,7 +129,7 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
-import { createBuyNavigationDetails } from '../../UI/Ramp/Aggregator/routes/utils';
+
 import { newAssetTransaction } from '../../../actions/transaction';
 import { getEther } from '../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
@@ -150,6 +150,7 @@ import {
   useNetworksByNamespace,
   NetworkType,
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import {
   IconColor,
@@ -366,7 +367,7 @@ const Wallet = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
-  const displayBuyButton = isNetworkRampSupported;
+  const displayFundButton = isNetworkRampSupported;
   const displaySwapsButton =
     AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
   const displayBridgeButton =
@@ -421,23 +422,6 @@ const Wallet = ({
     sendNonEvmAsset,
     ///: END:ONLY_INCLUDE_IF
   ]);
-
-  const onBuy = useCallback(() => {
-    navigate(
-      ...createBuyNavigationDetails({
-        chainId: getDecimalChainId(chainId),
-      }),
-    );
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Buy',
-          location: 'WalletOverview',
-          chain_id_destination: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -728,6 +712,8 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
+  const isCardholder = useSelector(selectIsCardholder);
+
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
@@ -744,6 +730,7 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
+        isCardholder,
       ),
     );
   }, [
@@ -758,6 +745,7 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
+    isCardholder,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
@@ -973,7 +961,7 @@ const Wallet = ({
         <>
           <PortfolioBalance />
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
+            displayFundButton={displayFundButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
             swapsIsLive={swapsIsLive}
@@ -981,8 +969,7 @@ const Wallet = ({
             goToSwaps={goToSwaps}
             onReceive={onReceive}
             onSend={onSend}
-            onBuy={onBuy}
-            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            fundButtonActionID={WalletViewSelectorsIDs.WALLET_FUND_BUTTON}
             swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
             bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
             sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
@@ -1010,13 +997,12 @@ const Wallet = ({
       navigation,
       goToBridge,
       goToSwaps,
-      displayBuyButton,
+      displayFundButton,
       displaySwapsButton,
       displayBridgeButton,
       swapsIsLive,
       onReceive,
       onSend,
-      onBuy,
     ],
   );
   const renderLoader = useCallback(

@@ -10,10 +10,8 @@ import {
 } from '@metamask/network-controller';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
-import {
-  NETWORKS_CHAIN_ID,
-  POPULAR_NETWORK_CHAIN_IDS,
-} from '../constants/network';
+import { NETWORKS_CHAIN_ID } from '../constants/network';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../constants/popular-networks';
 import { selectTokenNetworkFilter } from './preferencesController';
 import { enableAllNetworksFilter } from '../components/UI/Tokens/util/enableAllNetworksFilter';
 import { PopularList } from '../util/networks/customNetworks';

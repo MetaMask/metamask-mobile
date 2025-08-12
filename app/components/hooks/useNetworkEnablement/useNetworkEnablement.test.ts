@@ -32,6 +32,7 @@ jest.mock('@metamask/utils', () => ({
   CaipChainId: jest.fn(),
   KnownCaipNamespace: {
     Eip155: 'eip155',
+    Solana: 'solana',
   },
 }));
 
@@ -75,6 +76,10 @@ describe('useNetworkEnablement', () => {
           eip155: {
             '0x1': true,
             '0x89': false,
+          },
+          solana: {
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+            'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ': false,
           },
         };
       }
@@ -168,7 +173,7 @@ describe('useNetworkEnablement', () => {
       ).toHaveBeenCalledWith(chainId);
     });
 
-    it('computes isNetworkEnabled from store state', () => {
+    it('computes isNetworkEnabled from store state for EVM networks', () => {
       const { result } = renderHook(() => useNetworkEnablement());
       expect(result.current.isNetworkEnabled('eip155:1' as CaipChainId)).toBe(
         true,
@@ -177,29 +182,26 @@ describe('useNetworkEnablement', () => {
         false,
       );
     });
+
+    it('computes isNetworkEnabled from store state for non-EVM networks', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+      expect(
+        result.current.isNetworkEnabled(
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId,
+        ),
+      ).toBe(true);
+      expect(
+        result.current.isNetworkEnabled(
+          'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ' as CaipChainId,
+        ),
+      ).toBe(false);
+    });
   });
 
   describe('toggleNetwork logic', () => {
     it('disables network when store shows it as enabled', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectEnabledNetworksByNamespace) {
-          return {
-            eip155: {
-              '0x1': true,
-              '0x89': true,
-            },
-          };
-        }
-        if (selector === selectChainId) {
-          return '0x1';
-        }
-        if (selector === selectIsEvmNetworkSelected) {
-          return true;
-        }
-        return undefined;
-      });
-
       const chainId = 'eip155:1' as CaipChainId;
+
       const { result } = renderHook(() => useNetworkEnablement());
       result.current.toggleNetwork(chainId);
 
@@ -213,6 +215,34 @@ describe('useNetworkEnablement', () => {
 
     it('enables network when store shows it as disabled', () => {
       const chainId = 'eip155:89' as CaipChainId;
+
+      const { result } = renderHook(() => useNetworkEnablement());
+      result.current.toggleNetwork(chainId);
+
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).toHaveBeenCalledWith(chainId);
+      expect(
+        mockNetworkEnablementController.disableNetwork,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('disables non-EVM network when store shows it as enabled', () => {
+      const chainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
+
+      const { result } = renderHook(() => useNetworkEnablement());
+      result.current.toggleNetwork(chainId);
+
+      expect(
+        mockNetworkEnablementController.disableNetwork,
+      ).toHaveBeenCalledWith(chainId);
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('enables non-EVM network when store shows it as disabled', () => {
+      const chainId = 'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ' as CaipChainId;
 
       const { result } = renderHook(() => useNetworkEnablement());
       result.current.toggleNetwork(chainId);
@@ -257,8 +287,11 @@ describe('useNetworkEnablement', () => {
       const { result } = renderHook(() => useNetworkEnablement());
 
       expect(result.current.namespace).toBe('solana');
-      // Since the default mock data doesn't include solana, it should return empty object
-      expect(result.current.enabledNetworksForCurrentNamespace).toEqual({});
+      // Should return solana networks from mock data
+      expect(result.current.enabledNetworksForCurrentNamespace).toEqual({
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+        'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ': false,
+      });
     });
 
     it('handles undefined enabledNetworksByNamespace', () => {
@@ -311,6 +344,10 @@ describe('useNetworkEnablement', () => {
             '0x1': true,
             '0x89': false,
           },
+          solana: {
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+            'solana:4sGjMW1sUnHzSxGspuhpqLDx6wiyjNtZ': false,
+          },
         },
         enabledNetworksForCurrentNamespace: {
           '0x1': true,
@@ -322,147 +359,6 @@ describe('useNetworkEnablement', () => {
         toggleNetwork: expect.any(Function),
         isNetworkEnabled: expect.any(Function),
       });
-    });
-  });
-
-  describe('single network protection logic', () => {
-    it('prevents disabling the last enabled network', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectEnabledNetworksByNamespace) {
-          return {
-            eip155: {
-              '0x1': true,
-            },
-          };
-        }
-        if (selector === selectChainId) {
-          return '0x1';
-        }
-        if (selector === selectIsEvmNetworkSelected) {
-          return true;
-        }
-        return undefined;
-      });
-
-      const chainId = 'eip155:1' as CaipChainId;
-      const { result } = renderHook(() => useNetworkEnablement());
-
-      result.current.toggleNetwork(chainId);
-
-      expect(
-        mockNetworkEnablementController.disableNetwork,
-      ).not.toHaveBeenCalled();
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('allows disabling when multiple networks are enabled', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectEnabledNetworksByNamespace) {
-          return {
-            eip155: {
-              '0x1': true,
-              '0x89': true, // Multiple networks enabled
-              '0xa': true,
-            },
-          };
-        }
-        if (selector === selectChainId) {
-          return '0x1';
-        }
-        if (selector === selectIsEvmNetworkSelected) {
-          return true;
-        }
-        return undefined;
-      });
-
-      const chainId = 'eip155:1' as CaipChainId;
-      const { result } = renderHook(() => useNetworkEnablement());
-      result.current.toggleNetwork(chainId);
-
-      expect(
-        mockNetworkEnablementController.disableNetwork,
-      ).toHaveBeenCalledWith(chainId);
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('allows enabling when no networks are enabled', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectEnabledNetworksByNamespace) {
-          return {
-            eip155: {
-              '0x1': false,
-              '0x89': false,
-            },
-          };
-        }
-        if (selector === selectChainId) {
-          return '0x1';
-        }
-        if (selector === selectIsEvmNetworkSelected) {
-          return true;
-        }
-        return undefined;
-      });
-
-      const chainId = 'eip155:1' as CaipChainId;
-      const { result } = renderHook(() => useNetworkEnablement());
-
-      result.current.toggleNetwork(chainId);
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).toHaveBeenCalledWith(chainId);
-
-      expect(
-        mockNetworkEnablementController.disableNetwork,
-      ).not.toHaveBeenCalled();
-    });
-
-    it('handles single network protection for non-EVM networks', () => {
-      mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectEnabledNetworksByNamespace) {
-          return {
-            solana: {
-              '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
-            },
-          };
-        }
-        if (selector === selectChainId) {
-          return 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
-        }
-        if (selector === selectIsEvmNetworkSelected) {
-          return false;
-        }
-        return undefined;
-      });
-
-      (parseCaipChainId as jest.Mock).mockReturnValue({
-        namespace: 'solana',
-        reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      });
-
-      (toEvmCaipChainId as jest.Mock).mockReturnValue(
-        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-      );
-
-      const chainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
-      const { result } = renderHook(() => useNetworkEnablement());
-
-      result.current.toggleNetwork(chainId);
-
-      expect(
-        mockNetworkEnablementController.disableNetwork,
-      ).not.toHaveBeenCalled();
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).not.toHaveBeenCalled();
     });
   });
 });

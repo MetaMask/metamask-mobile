@@ -56,6 +56,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { isUnifiedSwapsEnvVarEnabled } from '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled';
+import { initialState as cardInitialState } from '../../../core/redux/slices/card';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   IconColor,
@@ -188,6 +189,7 @@ const mockInitialState = {
   wizard: {
     step: 0,
   },
+  card: cardInitialState,
   settings: {
     primaryCurrency: 'usd',
     basicFunctionalityEnabled: true,
@@ -515,7 +517,7 @@ describe('Wallet', () => {
       // Check that AssetDetailsActions was called with all required props
       expect(mockAssetDetailsActions.mock.calls[0][0]).toEqual(
         expect.objectContaining({
-          displayBuyButton: expect.any(Boolean),
+          displayFundButton: expect.any(Boolean),
           displaySwapsButton: expect.any(Boolean),
           displayBridgeButton: expect.any(Boolean),
           swapsIsLive: expect.any(Boolean),
@@ -523,8 +525,7 @@ describe('Wallet', () => {
           goToSwaps: expect.any(Function),
           onReceive: expect.any(Function),
           onSend: expect.any(Function),
-          onBuy: expect.any(Function),
-          buyButtonActionID: 'wallet-buy-button',
+          fundButtonActionID: 'wallet-fund-button',
           swapButtonActionID: 'wallet-swap-button',
           bridgeButtonActionID: 'wallet-bridge-button',
           sendButtonActionID: 'wallet-send-button',
@@ -610,14 +611,14 @@ describe('Wallet', () => {
       expect(sendFlowNavigationCall).toBeDefined();
     });
 
-    it('should handle onBuy callback correctly', () => {
+    it('should pass correct props to AssetDetailsActions (no onBuy prop needed)', () => {
       //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
-      const onBuy = mockAssetDetailsActions.mock.calls[0][0].onBuy;
-      onBuy();
-
-      expect(mockNavigate).toHaveBeenCalled();
+      // Verify that AssetDetailsActions is called without onBuy prop
+      const passedProps = mockAssetDetailsActions.mock.calls[0][0];
+      expect(passedProps.onBuy).toBeUndefined();
+      expect(passedProps.fundButtonActionID).toBeDefined();
     });
 
     it('should handle goToBridge callback correctly', () => {

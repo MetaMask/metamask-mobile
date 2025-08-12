@@ -83,7 +83,7 @@ export const useNetworksByNamespace = ({
           string,
           EvmAndMultichainNetworkConfigurationsWithCaipChainId,
         ][]
-      ).map(([key, network]) => {
+      ).map(([, network]) => {
         const rpcUrl =
           'rpcEndpoints' in network
             ? network.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.url
@@ -94,7 +94,7 @@ export const useNetworksByNamespace = ({
         );
 
         return {
-          id: key,
+          id: network.caipChainId,
           name: network.name,
           caipChainId: network.caipChainId,
           isSelected,

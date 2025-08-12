@@ -19,7 +19,7 @@ import {
 } from '@metamask/utils';
 import Logger from '../../../util/Logger';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
-import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/network';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
 import {
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,

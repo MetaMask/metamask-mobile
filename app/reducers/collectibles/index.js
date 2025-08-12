@@ -42,7 +42,12 @@ export const multichainCollectibleContractsByEnabledNetworksSelector =
       }
 
       const enabledNetworksForEip155 =
-        enabledNetworks[KnownCaipNamespace.Eip155];
+        enabledNetworks?.[KnownCaipNamespace.Eip155] || {};
+
+      if (Object.keys(enabledNetworksForEip155).length === 0) {
+        return {};
+      }
+
       const enabledChainIds = Object.keys(enabledNetworksForEip155).filter(
         (chainId) => enabledNetworksForEip155[chainId],
       );
@@ -84,7 +89,12 @@ export const multichainCollectiblesByEnabledNetworksSelector =
       }
 
       const enabledNetworksForEip155 =
-        enabledNetworks[KnownCaipNamespace.Eip155];
+        enabledNetworks?.[KnownCaipNamespace.Eip155] || {};
+
+      if (Object.keys(enabledNetworksForEip155).length === 0) {
+        return {};
+      }
+
       const enabledChainIds = Object.keys(enabledNetworksForEip155).filter(
         (chainId) => enabledNetworksForEip155[chainId],
       );

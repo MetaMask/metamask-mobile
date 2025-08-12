@@ -121,9 +121,3 @@ export const TEST_NETWORK_IDS = [
   NETWORKS_CHAIN_ID.MEGAETH_TESTNET,
   NETWORKS_CHAIN_ID.MONAD_TESTNET,
 ];
-
-export const POPULAR_NETWORK_CHAIN_IDS = new Set([
-  ...PopularList.map((popular) => popular.chainId),
-  CHAIN_IDS.MAINNET,
-  CHAIN_IDS.LINEA_MAINNET,
-]);

@@ -37,7 +37,7 @@ import {
   useNetworksByNamespace,
 } from '../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkSelection } from '../../../hooks/useNetworkSelection/useNetworkSelection';
-import { POPULAR_NETWORK_CHAIN_IDS } from '../../../../constants/network';
+import { POPULAR_NETWORK_CHAIN_IDS } from '../../../../constants/popular-networks';
 
 interface RpcSelectionModalProps {
   showMultiRpcSelectModal: {

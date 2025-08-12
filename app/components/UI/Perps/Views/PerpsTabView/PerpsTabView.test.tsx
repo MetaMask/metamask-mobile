@@ -1,10 +1,11 @@
-import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import React from 'react';
 import Routes from '../../../../../constants/navigation/Routes';
+import { strings } from '../../../../../../locales/i18n';
+import type { Position } from '../../controllers/types';
 import PerpsTabView from './PerpsTabView';
 import PerpsTabViewWithProvider, { PerpsTabViewRaw } from './index';
-import type { Position } from '../../controllers/types';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -16,6 +17,7 @@ jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsPositions: jest.fn(),
   usePerpsTrading: jest.fn(),
+  usePerpsFirstTimeUser: jest.fn(),
 }));
 
 // Mock components
@@ -104,23 +106,6 @@ jest.mock(
   }),
 );
 
-// Mock i18n
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const strings: Record<string, string> = {
-      'perps.position.list.loading': 'Loading positions...',
-      'perps.position.list.empty_title': 'No open positions',
-      'perps.position.list.empty_description':
-        'Start trading to see your positions here',
-      'perps.position.title': 'Your Positions',
-      'perps.manage_balance': 'Manage Balance',
-      'perps.add_funds': 'Add Funds',
-      'perps.withdraw': 'Withdraw',
-    };
-    return strings[key] || key;
-  }),
-}));
-
 describe('PerpsTabView', () => {
   const mockNavigation = {
     navigate: jest.fn(),
@@ -131,6 +116,8 @@ describe('PerpsTabView', () => {
   const mockUsePerpsPositions =
     jest.requireMock('../../hooks').usePerpsPositions;
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
+  const mockUsePerpsFirstTimeUser =
+    jest.requireMock('../../hooks').usePerpsFirstTimeUser;
 
   const mockPosition: Position = {
     coin: 'ETH',
@@ -173,14 +160,48 @@ describe('PerpsTabView', () => {
     mockUsePerpsTrading.mockReturnValue({
       getAccountState: jest.fn(),
     });
+
+    mockUsePerpsFirstTimeUser.mockReturnValue({
+      isFirstTimeUser: false,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
   });
 
   describe('Component Rendering', () => {
+    it('should render first-time user view when isFirstTimeUser is true', () => {
+      mockUsePerpsFirstTimeUser.mockReturnValue({
+        isFirstTimeUser: true,
+        markTutorialCompleted: jest.fn(),
+      });
+
+      render(<PerpsTabView />);
+
+      // Should not show tab control bar
+      expect(
+        screen.queryByTestId('manage-balance-button'),
+      ).not.toBeOnTheScreen();
+
+      // Should show first-time user content
+      expect(
+        screen.getByText(strings('perps.position.list.first_time_title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.first_time_description')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.start_trading')),
+      ).toBeOnTheScreen();
+    });
+
     it('should render PerpsTabView with all main components', () => {
       render(<PerpsTabView />);
 
       expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
-      expect(screen.getByText('No open positions')).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.empty_title')),
+      ).toBeOnTheScreen();
     });
 
     it('should render loading state when positions are loading', () => {
@@ -193,7 +214,9 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByText('Loading positions...')).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.loading')),
+      ).toBeOnTheScreen();
     });
 
     it('should render empty state when no positions exist', () => {
@@ -206,9 +229,11 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByText('No open positions')).toBeOnTheScreen();
       expect(
-        screen.getByText('Start trading to see your positions here'),
+        screen.getByText(strings('perps.position.list.empty_title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.empty_description')),
       ).toBeOnTheScreen();
     });
 
@@ -222,7 +247,9 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByText('Your Positions')).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.title')),
+      ).toBeOnTheScreen();
       expect(screen.getByTestId('position-card-ETH')).toBeOnTheScreen();
       expect(screen.getByText('ETH')).toBeOnTheScreen();
       expect(screen.getByText('2.5')).toBeOnTheScreen();
@@ -328,6 +355,26 @@ describe('PerpsTabView', () => {
   });
 
   describe('User Interactions', () => {
+    it('should navigate to tutorial when Start Trading button is pressed in first-time view', () => {
+      mockUsePerpsFirstTimeUser.mockReturnValue({
+        isFirstTimeUser: true,
+        markTutorialCompleted: jest.fn(),
+      });
+
+      render(<PerpsTabView />);
+
+      const startTradingButton = screen.getByText(
+        strings('perps.position.list.start_trading'),
+      );
+      act(() => {
+        fireEvent.press(startTradingButton);
+      });
+
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.PERPS.TUTORIAL,
+      });
+    });
+
     it('should have pull-to-refresh functionality configured', async () => {
       const mockLoadPositions = jest.fn();
       mockUsePerpsPositions.mockReturnValue({
@@ -384,7 +431,7 @@ describe('PerpsTabView', () => {
       });
 
       // Press add funds button
-      const addFundsButton = screen.getByText('Add Funds');
+      const addFundsButton = screen.getByText(strings('perps.add_funds'));
       act(() => {
         fireEvent.press(addFundsButton);
       });
@@ -406,7 +453,7 @@ describe('PerpsTabView', () => {
       });
 
       // Press withdraw button
-      const withdrawButton = screen.getByText('Withdraw');
+      const withdrawButton = screen.getByText(strings('perps.withdraw'));
       act(() => {
         fireEvent.press(withdrawButton);
       });
@@ -429,7 +476,9 @@ describe('PerpsTabView', () => {
 
       // Verify component renders with refreshing state
       expect(screen.getByTestId('manage-balance-button')).toBeOnTheScreen();
-      expect(screen.getByText('No open positions')).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.empty_title')),
+      ).toBeOnTheScreen();
     });
 
     it('should not show bottom sheet initially', () => {
@@ -488,8 +537,12 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByText('No open positions')).toBeOnTheScreen();
-      expect(screen.queryByText('Your Positions')).not.toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.list.empty_title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByText(strings('perps.position.title')),
+      ).not.toBeOnTheScreen();
     });
 
     it('should handle connection state changes gracefully', () => {
@@ -555,7 +608,9 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByText('Your Positions')).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.title')),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -579,7 +634,9 @@ describe('PerpsTabView', () => {
       const endTime = performance.now();
 
       expect(endTime - startTime).toBeLessThan(100); // Should render in less than 100ms
-      expect(screen.getByText('Your Positions')).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.position.title')),
+      ).toBeOnTheScreen();
     });
 
     it('should handle rapid state changes without memory leaks', () => {
@@ -606,16 +663,23 @@ describe('PerpsTabView', () => {
 describe('PerpsTabViewWithProvider', () => {
   beforeEach(() => {
     // Mock the PerpsConnectionProvider for wrapper tests
-    jest.doMock('../../providers/PerpsConnectionProvider', () => ({
-      PerpsConnectionProvider: ({
-        children,
-      }: {
-        children: React.ReactNode;
-      }) => {
-        const { View } = jest.requireActual('react-native');
-        return <View testID="perps-connection-provider">{children}</View>;
-      },
-    }));
+    jest.doMock('../../providers/PerpsConnectionProvider', () => {
+      const ReactModule = jest.requireActual('react');
+      return {
+        PerpsConnectionProvider: ({
+          children,
+        }: {
+          children: React.ReactNode;
+        }) => {
+          const { View } = jest.requireActual('react-native');
+          // Simulate the async initialization without causing act warnings
+          ReactModule.useEffect(() => {
+            // No-op - provider is mocked
+          }, []);
+          return <View testID="perps-connection-provider">{children}</View>;
+        },
+      };
+    });
   });
 
   describe('Component Rendering', () => {

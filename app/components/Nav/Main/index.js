@@ -105,6 +105,7 @@ import {
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
 import { handleShowNetworkActiveToast } from './utils';
+import { CardVerification } from '../../UI/Card/sdk';
 
 const Stack = createStackNavigator();
 
@@ -505,6 +506,7 @@ const Main = (props) => {
         <Notification navigation={props.navigation} />
         <RampOrders />
         <SwapsLiveness />
+        <CardVerification />
         <BackupAlert
           onDismiss={toggleRemindLater}
           navigation={props.navigation}
