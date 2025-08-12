@@ -9,6 +9,7 @@ import {
 import PerpsMarketListView from './PerpsMarketListView';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import type { PerpsMarketData } from '../../controllers/types';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -550,6 +551,21 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Navigation', () => {
+    it('navigates to tutorial when tutorial button is pressed', () => {
+      render(<PerpsMarketListView />);
+
+      // Find the tutorial button
+      const tutorialButton = screen.getByTestId('tutorial-button');
+      act(() => {
+        fireEvent.press(tutorialButton);
+      });
+
+      // Should navigate to tutorial screen
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.TUTORIAL,
+      );
+    });
+
     it('navigates back when close button is pressed', () => {
       render(<PerpsMarketListView />);
 

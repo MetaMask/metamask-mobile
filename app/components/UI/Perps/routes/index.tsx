@@ -12,6 +12,7 @@ import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
+import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -105,6 +106,15 @@ const PerpsScreenStack = () => (
         component={PerpsOrderView}
         options={{
           title: strings('perps.order.title'),
+          headerShown: false,
+        }}
+      />
+
+      <Stack.Screen
+        name={Routes.PERPS.TUTORIAL}
+        component={PerpsTutorialCarousel}
+        options={{
+          title: 'Tutorial',
           headerShown: false,
         }}
       />
