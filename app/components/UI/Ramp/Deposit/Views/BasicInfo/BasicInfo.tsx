@@ -183,12 +183,17 @@ const BasicInfo = (): JSX.Element => {
     });
   }, [navigation, theme]);
 
+  // clear ssn field on mount
   useEffect(() => {
     handleFormDataChange('ssn')('');
-  }, [handleFormDataChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
+
+    // Clear any previous errors when retrying
+    setError(null);
 
     trackEvent('RAMPS_BASIC_INFO_ENTERED', {
       region: selectedRegion?.isoCode || '',
@@ -198,7 +203,6 @@ const BasicInfo = (): JSX.Element => {
 
     try {
       setLoading(true);
-      setError(null);
 
       const basicInfoData = {
         ...formData,

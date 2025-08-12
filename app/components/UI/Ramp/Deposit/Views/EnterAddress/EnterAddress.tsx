@@ -189,6 +189,9 @@ const EnterAddress = (): JSX.Element => {
   const handleOnPressContinue = useCallback(async () => {
     if (!validateFormData()) return;
 
+    // Clear any previous errors when retrying
+    setError(null);
+
     trackEvent('RAMPS_ADDRESS_ENTERED', {
       region: selectedRegion?.isoCode || '',
       ramp_type: 'DEPOSIT',
