@@ -3,13 +3,14 @@ import {
   BaseController,
   type RestrictedMessenger,
 } from '@metamask/base-controller';
-import { successfulFetch } from '@metamask/controller-utils';
+import { successfulFetch, toHex } from '@metamask/controller-utils';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import type {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionSubmittedEvent,
   TransactionParams,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { parseCaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
@@ -598,6 +599,48 @@ export class PerpsController extends BaseController<
     }
 
     return result;
+  }
+
+  async depositWithConfirmation() {
+    const { AccountsController, NetworkController, TransactionController } =
+      Engine.context;
+
+    const provider = this.getActiveProvider();
+    const depositRoutes = provider.getDepositRoutes({ isTestnet: false });
+    const route = depositRoutes[0];
+    const bridgeContractAddress = route.contractAddress;
+
+    const transferData = generateTransferData('transfer', {
+      toAddress: bridgeContractAddress,
+      amount: '0x0',
+    });
+
+    const selectedAccount = AccountsController.getSelectedAccount();
+    const accountAddress = selectedAccount.address as Hex;
+
+    const parsedAsset = parseCaipAssetId(route.assetId);
+    const assetChainId = toHex(parsedAsset.chainId.split(':')[1]);
+    const tokenAddress = parsedAsset.assetReference as Hex;
+
+    const transaction: TransactionParams = {
+      from: accountAddress,
+      to: tokenAddress,
+      value: '0x0',
+      data: transferData,
+    };
+
+    const networkClientId =
+      NetworkController.findNetworkClientIdByChainId(assetChainId);
+
+    const { result } = await TransactionController.addTransaction(transaction, {
+      networkClientId,
+      origin: 'metamask',
+      type: 'perpsDeposit' as TransactionType,
+    });
+
+    return {
+      result,
+    };
   }
 
   /**
