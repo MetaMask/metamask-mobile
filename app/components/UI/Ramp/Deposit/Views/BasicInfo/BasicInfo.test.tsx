@@ -145,10 +145,6 @@ describe('BasicInfo Component', () => {
       '234567890',
     );
     fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
-    fireEvent.changeText(
-      screen.getByPlaceholderText('XXX-XX-XXXX'),
-      '123456789',
-    );
     fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
     expect(screen.toJSON()).toMatchSnapshot();
 
@@ -172,7 +168,7 @@ describe('BasicInfo Component', () => {
     );
   });
 
-  it('tracks analytics event when continue button is pressed with valid form data', () => {
+  it('tracks analytics event when continue button is pressed with valid form data', async () => {
     const dob = new Date('1990-01-01').getTime().toString();
     render(BasicInfo);
 
@@ -184,7 +180,10 @@ describe('BasicInfo Component', () => {
     );
     fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
     fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
-    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    });
 
     expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BASIC_INFO_ENTERED', {
       region: 'US',
@@ -218,7 +217,7 @@ describe('BasicInfo Component', () => {
 
     render(BasicInfo);
 
-    expect(mockEndTrace).toHaveBeenCalledTimes(2);
+    expect(mockEndTrace).toHaveBeenCalledTimes(4);
     expect(mockEndTrace).toHaveBeenCalledWith({
       name: 'Deposit Continue Flow',
       data: {
@@ -231,5 +230,55 @@ describe('BasicInfo Component', () => {
         destination: 'BasicInfo',
       },
     });
+  });
+
+  it('calls postKycForm and submitSsnDetails when continue is pressed with valid form data', async () => {
+    const dob = new Date('1990-01-01').getTime().toString();
+    render(BasicInfo);
+
+    fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+    fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+    fireEvent.changeText(
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '234567890',
+    );
+    fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
+    fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    });
+
+    expect(mockPostKycForm).toHaveBeenCalledWith({
+      firstName: 'John',
+      lastName: 'Smith',
+      mobileNumber: '+1234567890',
+      dob: '01-01-2024',
+      ssn: '123456789',
+    });
+    expect(mockSubmitSsnDetails).toHaveBeenCalledWith('123456789');
+  });
+
+  it('handles form submission errors and displays error message', async () => {
+    const errorMessage = 'API Error occurred';
+    mockPostKycForm.mockRejectedValueOnce(new Error(errorMessage));
+
+    const dob = new Date('1990-01-01').getTime().toString();
+    render(BasicInfo);
+
+    fireEvent.changeText(screen.getByTestId('first-name-input'), 'John');
+    fireEvent.changeText(screen.getByTestId('last-name-input'), 'Smith');
+    fireEvent.changeText(
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '234567890',
+    );
+    fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
+
+    await act(async () => {
+      fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(screen.toJSON()).toMatchSnapshot();
   });
 });
