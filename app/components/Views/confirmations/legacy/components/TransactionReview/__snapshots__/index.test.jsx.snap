@@ -348,9 +348,9 @@ exports[`TransactionReview should match snapshot 1`] = `
                                         style={
                                           {
                                             "alignItems": "center",
-                                            "backgroundColor": "#f3f5f9",
+                                            "backgroundColor": "#ffffff",
                                             "borderColor": "#ffffff",
-                                            "borderRadius": 16,
+                                            "borderRadius": 8,
                                             "borderWidth": 2,
                                             "height": 32,
                                             "justifyContent": "center",
@@ -371,20 +371,18 @@ exports[`TransactionReview should match snapshot 1`] = `
                                           }
                                         }
                                       >
-                                        <Text
-                                          accessibilityRole="text"
+                                        <Image
+                                          onError={[Function]}
+                                          resizeMode="contain"
+                                          source={1}
                                           style={
                                             {
-                                              "color": "#121314",
-                                              "fontFamily": "Geist Regular",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "height": 32,
+                                              "width": 32,
                                             }
                                           }
-                                        >
-                                          ?
-                                        </Text>
+                                          testID="network-avatar-image"
+                                        />
                                       </View>
                                     </View>
                                   </View>
@@ -402,7 +400,7 @@ exports[`TransactionReview should match snapshot 1`] = `
                                       }
                                     }
                                   >
-                                    null
+                                    Ethereum Main Network
                                   </Text>
                                   <View
                                     style={
