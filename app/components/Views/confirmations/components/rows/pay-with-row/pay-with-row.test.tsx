@@ -8,6 +8,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { Text as MockText } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { useTransactionRequiredFiat } from '../../../hooks/pay/useTransactionRequiredFiat';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -16,6 +17,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionBridgeQuotes');
+jest.mock('../../../hooks/pay/useTransactionRequiredFiat');
 
 jest.mock('../../token-pill/', () => ({
   TokenPill: (props: TokenPillProps) => (
@@ -25,6 +27,7 @@ jest.mock('../../token-pill/', () => ({
 
 const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const CHAIN_ID_MOCK = '0x123';
+const TOTAL_FIAT_MOCK = 123.456;
 
 const STATE_MOCK = {
   engine: {
@@ -38,6 +41,10 @@ function render() {
 
 describe('PayWithRow', () => {
   const navigateMock = jest.fn();
+
+  const useTransactionRequiredFiatMock = jest.mocked(
+    useTransactionRequiredFiat,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -56,6 +63,10 @@ describe('PayWithRow', () => {
     jest.mocked(useNavigation).mockReturnValue({
       navigate: navigateMock,
     } as never);
+
+    useTransactionRequiredFiatMock.mockReturnValue({
+      totalFiat: TOTAL_FIAT_MOCK,
+    } as ReturnType<typeof useTransactionRequiredFiat>);
   });
 
   it('renders selected pay token', async () => {
@@ -72,6 +83,19 @@ describe('PayWithRow', () => {
 
     expect(navigateMock).toHaveBeenCalledWith(
       Routes.CONFIRMATION_PAY_WITH_MODAL,
+      expect.any(Object),
     );
+  });
+
+  it('filters token picker using total fiat', async () => {
+    const { getByText } = render();
+
+    await act(() => {
+      fireEvent.press(getByText(`${ADDRESS_MOCK} ${CHAIN_ID_MOCK}`));
+    });
+
+    expect(navigateMock).toHaveBeenCalledWith(expect.any(String), {
+      minimumFiatBalance: TOTAL_FIAT_MOCK,
+    });
   });
 });
