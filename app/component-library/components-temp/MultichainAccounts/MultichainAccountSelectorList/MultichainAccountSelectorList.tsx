@@ -243,7 +243,7 @@ const MultichainAccountSelectorList = ({
             showsVerticalScrollIndicator={false}
             getItemType={getItemType}
             keyExtractor={keyExtractor}
-            extraData={searchText} // Force re-render when search changes
+            extraData={debouncedSearchText} // Force re-render when search changes
             {...props}
           />
         )}
