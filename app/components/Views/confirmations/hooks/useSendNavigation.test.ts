@@ -2,6 +2,7 @@ import { renderHook } from '@testing-library/react-native';
 
 import { AssetType } from '../types/token';
 import { useSendNavigation } from './useSendNavigation';
+import { InitSendLocation } from '../constants/send';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -19,7 +20,9 @@ describe('useSendNavigation', () => {
 
   it('function returned navigates to send page', () => {
     const { result } = renderHook(() => useSendNavigation());
-    result.current.navigateToSendPage({ name: 'ETHEREUM' } as AssetType);
+    result.current.navigateToSendPage(InitSendLocation.AssetOverview, {
+      name: 'ETHEREUM',
+    } as AssetType);
     expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
   });
 });

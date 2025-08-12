@@ -1,3 +1,4 @@
+import Clipboard from '@react-native-clipboard/clipboard';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -20,6 +21,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { formatToFixedDecimals } from '../../../utils/send';
+import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
 import { useBalance } from '../../../hooks/send/useBalance';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
@@ -45,6 +47,12 @@ export const Amount = () => {
   const { styles, theme } = useStyles(styleSheet, {
     inputError: insufficientBalance ?? false,
   });
+  const {
+    setAmountInputMethodManual,
+    setAmountInputMethodPasted,
+    setAmountInputTypeFiat,
+    setAmountInputTypeToken,
+  } = useAmountSelectionMetrics();
   useRouteParams();
   useSendNavbar({ currentRoute: Routes.SEND.AMOUNT });
 
@@ -59,18 +67,43 @@ export const Amount = () => {
   );
 
   const updateToNewAmount = useCallback(
-    (amt: string) => {
+    async (amt: string) => {
       updateAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
+      const clipboardText = await Clipboard.getString();
+      if (clipboardText === amt) {
+        setAmountInputMethodPasted();
+      } else {
+        setAmountInputMethodManual();
+      }
     },
-    [fiatMode, getNativeValue, updateAmount, updateValue],
+    [
+      fiatMode,
+      getNativeValue,
+      setAmountInputMethodManual,
+      setAmountInputMethodPasted,
+      updateAmount,
+      updateValue,
+    ],
   );
 
   const toggleFiatMode = useCallback(() => {
+    if (!fiatMode) {
+      setAmountInputTypeToken();
+    } else {
+      setAmountInputTypeFiat();
+    }
     setFiatMode(!fiatMode);
     updateAmount('');
     updateValue('');
-  }, [fiatMode, setFiatMode, updateAmount, updateValue]);
+  }, [
+    fiatMode,
+    setAmountInputTypeFiat,
+    setAmountInputTypeToken,
+    setFiatMode,
+    updateAmount,
+    updateValue,
+  ]);
 
   const assetSymbol = asset?.ticker ?? asset?.symbol;
 

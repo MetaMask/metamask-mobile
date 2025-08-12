@@ -17,6 +17,7 @@ jest.mock('@react-navigation/native', () => ({
         chainId: '0x1',
       },
     },
+    name: 'send_route',
   }),
 }));
 

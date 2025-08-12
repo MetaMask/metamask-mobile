@@ -63,6 +63,7 @@ import { selectMultichainTokenListForAccountId } from '../../../selectors/multic
 import { RootState } from '../../../reducers';
 import { earnSelectors } from '../../../selectors/earnController/earn';
 import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const WalletActions = () => {
@@ -313,7 +314,7 @@ const WalletActions = () => {
       } else {
         dispatch(newAssetTransaction(assetToSend));
       }
-      navigateToSendPage();
+      navigateToSendPage(InitSendLocation.WalletActions);
     });
   }, [
     closeBottomSheetAndNavigate,

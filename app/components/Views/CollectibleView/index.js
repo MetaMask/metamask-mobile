@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { InitSendLocation } from '../confirmations/constants/send';
 import { handleSendPageNavigation } from '../confirmations/utils/send';
 
 const createStyles = (colors) =>
@@ -84,7 +85,11 @@ class CollectibleView extends PureComponent {
       route: { params },
     } = this.props;
     this.props.newAssetTransaction(params);
-    handleSendPageNavigation(this.props.navigation.navigate, params);
+    handleSendPageNavigation(
+      this.props.navigation.navigate,
+      InitSendLocation.CollectibleView,
+      params,
+    );
   };
 
   render() {

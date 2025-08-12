@@ -75,6 +75,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 
 interface AssetOverviewProps {
@@ -231,7 +232,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    navigateToSendPage(asset);
+    navigateToSendPage(InitSendLocation.AssetOverview, asset);
   };
 
   const onBuy = () => {

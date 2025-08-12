@@ -8,6 +8,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../hooks/useStyles';
+import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
 import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
 import { usePercentageAmount } from '../../../../hooks/send/usePercentageAmount';
@@ -44,6 +45,8 @@ export const AmountKeyboard = ({
     continueDisabled: Boolean(invalidAmount || insufficientBalance),
   });
   const [showAdditionalKeyboard, setShowAdditionalKeyboard] = useState(true);
+  const { captureAmountSelected, setAmountInputMethodPressedMax } =
+    useAmountSelectionMetrics();
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
@@ -52,8 +55,18 @@ export const AmountKeyboard = ({
         fiatMode ? getFiatValue(percentageAmount).toString() : percentageAmount,
       );
       updateValue(percentageAmount);
+      if (percentage === 100) {
+        setAmountInputMethodPressedMax();
+      }
     },
-    [fiatMode, getFiatValue, getPercentageAmount, updateAmount, updateValue],
+    [
+      fiatMode,
+      getFiatValue,
+      getPercentageAmount,
+      setAmountInputMethodPressedMax,
+      updateAmount,
+      updateValue,
+    ],
   );
 
   const updateToNewAmount = useCallback(
@@ -65,8 +78,9 @@ export const AmountKeyboard = ({
   );
 
   const goToNextPage = useCallback(() => {
+    captureAmountSelected();
     gotToSendScreen(Routes.SEND.RECIPIENT);
-  }, [gotToSendScreen]);
+  }, [captureAmountSelected, gotToSendScreen]);
 
   const onDonePress = useCallback(() => {
     setShowAdditionalKeyboard(false);

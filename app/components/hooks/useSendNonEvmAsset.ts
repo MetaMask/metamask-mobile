@@ -50,6 +50,7 @@ export function useSendNonEvmAsset({
     if (isSendRedesignEnabled()) {
       handleSendPageNavigation(
         navigation.navigate,
+        'anonymous',
         asset.address ? (asset as TokenI) : undefined,
       );
       return true;

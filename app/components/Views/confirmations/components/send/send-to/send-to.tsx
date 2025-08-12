@@ -1,4 +1,5 @@
-import React from 'react';
+import Clipboard from '@react-native-clipboard/clipboard';
+import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
 import Button, {
@@ -11,6 +12,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../hooks/useStyles';
+import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useSendActions } from '../../../hooks/send/useSendActions';
 import { useSendContext } from '../../../context/send-context';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
@@ -22,14 +24,37 @@ export const SendTo = () => {
   const { to, updateTo } = useSendContext();
   const { toAddressError, toAddressWarning } = useToAddressValidation();
   const { handleSubmitPress } = useSendActions();
+  const {
+    captureRecipientSelected,
+    setRecipientInputMethodManual,
+    setRecipientInputMethodPasted,
+  } = useRecipientSelectionMetrics();
   useSendNavbar({ currentRoute: Routes.SEND.RECIPIENT });
+
+  const onTextChange = useCallback(
+    async (sendTo: string) => {
+      updateTo(sendTo);
+      const clipboardText = await Clipboard.getString();
+      if (clipboardText === sendTo) {
+        setRecipientInputMethodPasted();
+      } else {
+        setRecipientInputMethodManual();
+      }
+    },
+    [setRecipientInputMethodManual, setRecipientInputMethodPasted, updateTo],
+  );
+
+  const onSubmit = useCallback(() => {
+    handleSubmitPress();
+    captureRecipientSelected();
+  }, [handleSubmitPress, captureRecipientSelected]);
 
   return (
     <View>
       <Text>To:</Text>
       <Input
         style={styles.input}
-        onChangeText={updateTo}
+        onChangeText={onTextChange}
         value={to}
         testID="send_to_address"
       />
@@ -40,7 +65,7 @@ export const SendTo = () => {
       <Button
         label="Continue"
         disabled={!to || Boolean(toAddressError)}
-        onPress={handleSubmitPress}
+        onPress={onSubmit}
         variant={ButtonVariants.Primary}
         size={ButtonSize.Lg}
       />
