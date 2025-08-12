@@ -1,6 +1,6 @@
 import { AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
-import { Hex, isValidChecksumAddress } from '@metamask/utils';
+import { Hex, isValidChecksumAddress, CaipChainId } from '@metamask/utils';
 import {
   BtcAccountType,
   EthAccountType,
@@ -32,6 +32,7 @@ import {
   createMockInternalAccount,
   createMockUuidFromAddress,
   internalAccount2,
+  internalSolanaAccount1,
 } from '../util/test/accountsControllerTestUtils';
 import { RootState } from '../reducers';
 import { AGREED } from '../constants/storage';
@@ -739,63 +740,57 @@ describe('selectInternalEvmAccounts', () => {
 });
 
 describe('selectInternalAccountsByScope', () => {
-  it('returns all accounts that have any EVM scope when eip155:* is requested', () => {
-    const accountWithEthScope: InternalAccount = {
-      ...internalAccount1,
-      scopes: ['eip155:1'],
-    };
-    const accountWithPolygonScope: InternalAccount = {
-      ...internalAccount2,
-      scopes: ['eip155:137'],
-    };
-    const nonEvmAccount: InternalAccount = {
-      ...internalAccount2,
-      id: `${internalAccount2.id}-sol`,
-      scopes: ['solana:mainnet'],
-    };
-
+  it('returns all EVM accounts when wildcard eip155:0 is requested', () => {
+    const scaSepolia: InternalAccount = createMockInternalAccount(
+      '0xSCA4337',
+      'SCA Sepolia',
+      KeyringTypes.hd,
+      EthAccountType.Erc4337,
+    );
     const state = {
       engine: {
         backgroundState: {
           AccountsController: {
             internalAccounts: {
               accounts: {
-                [accountWithEthScope.id]: accountWithEthScope,
-                [accountWithPolygonScope.id]: accountWithPolygonScope,
-                [nonEvmAccount.id]: nonEvmAccount,
+                // EOA with eip155:0 by default
+                [internalAccount1.id]: internalAccount1,
+                // SCA mapped to an EVM testnet scope by test utils
+                [scaSepolia.id]: scaSepolia,
+                // Non-EVM should be excluded
+                [internalSolanaAccount1.id]: internalSolanaAccount1,
               },
-              selectedAccount: accountWithEthScope.id,
+              selectedAccount: internalAccount1.id,
             },
           },
         },
       },
     } as unknown as RootState;
 
-    const result = selectInternalAccountsByScope(state, 'eip155:1');
+    const result = selectInternalAccountsByScope(state, 'eip155:0');
     expect(result).toEqual(
-      expect.arrayContaining([accountWithEthScope, accountWithPolygonScope]),
+      expect.arrayContaining([internalAccount1, scaSepolia]),
     );
+    expect(
+      result.find((a) => a.id === internalSolanaAccount1.id),
+    ).toBeUndefined();
     expect(result).toHaveLength(2);
   });
 
-  it('returns EVM accounts for both EOA and SCA (erc4337) when EVM scope is requested', () => {
+  it('includes SCA with eip155:0 when requesting specific EVM scope (eip155:1)', () => {
     const eoaAccount: InternalAccount = {
       ...internalAccount1,
       id: `${internalAccount1.id}-eoa`,
-      // EOA already mapped to an EVM scope in test utils (EthScope.Eoa)
     };
-    const scaAccount: InternalAccount = createMockInternalAccount(
-      '0xSCA4337',
-      'SCA Account',
-      KeyringTypes.hd,
-      EthAccountType.Erc4337,
-    );
-    const solAccount: InternalAccount = {
-      ...internalAccount2,
-      id: `${internalAccount2.id}-sol`,
-      scopes: [SolScope.Mainnet],
+    const scaMainnet: InternalAccount = {
+      ...createMockInternalAccount(
+        '0xSCA4337',
+        'SCA Mainnet',
+        KeyringTypes.hd,
+        EthAccountType.Erc4337,
+      ),
+      scopes: ['eip155:0' as CaipChainId],
     };
-
     const state = {
       engine: {
         backgroundState: {
@@ -803,8 +798,7 @@ describe('selectInternalAccountsByScope', () => {
             internalAccounts: {
               accounts: {
                 [eoaAccount.id]: eoaAccount,
-                [scaAccount.id]: scaAccount,
-                [solAccount.id]: solAccount,
+                [scaMainnet.id]: scaMainnet,
               },
               selectedAccount: eoaAccount.id,
             },
@@ -813,9 +807,40 @@ describe('selectInternalAccountsByScope', () => {
       },
     } as unknown as RootState;
 
-    const result = selectInternalAccountsByScope(state, 'eip155:*');
-    expect(result).toEqual(expect.arrayContaining([eoaAccount, scaAccount]));
+    const result = selectInternalAccountsByScope(state, 'eip155:1');
+    expect(result).toEqual(expect.arrayContaining([eoaAccount, scaMainnet]));
     expect(result).toHaveLength(2);
+  });
+
+  it('excludes SCA with different specific chain when requesting eip155:1 (no wildcard)', () => {
+    const eoaAccount: InternalAccount = {
+      ...internalAccount1,
+      id: `${internalAccount1.id}-eoa`,
+    };
+    const scaSepolia: InternalAccount = createMockInternalAccount(
+      '0xSCA4337',
+      'SCA Sepolia',
+      KeyringTypes.hd,
+      EthAccountType.Erc4337,
+    );
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [eoaAccount.id]: eoaAccount,
+                [scaSepolia.id]: scaSepolia,
+              },
+              selectedAccount: eoaAccount.id,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectInternalAccountsByScope(state, 'eip155:1');
+    expect(result).toEqual([eoaAccount]);
   });
 
   it('returns only accounts with the exact non-EVM scope', () => {
