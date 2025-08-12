@@ -74,6 +74,7 @@ const Routes = {
     DETECTED_TOKENS: 'DetectedTokens',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
     WALLET_ACTIONS: 'WalletActions',
+    FUND_ACTION_MENU: 'FundActionMenu',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
@@ -217,6 +218,7 @@ const Routes = {
     MARKETS: 'PerpsMarketListView',
     MARKET_DETAILS: 'PerpsMarketDetails',
     POSITION_DETAILS: 'PerpsPositionDetails',
+    TUTORIAL: 'PerpsTutorial',
     MODALS: {
       ROOT: 'PerpsModals',
       QUOTE_EXPIRED_MODAL: 'PerpsQuoteExpiredModal',
@@ -293,6 +295,10 @@ const Routes = {
   },
 
   EDIT_ACCOUNT_NAME: 'EditAccountName',
+  CARD: {
+    ROOT: 'CardScreens',
+    HOME: 'CardHome',
+  },
   SEND: {
     RECIPIENT: 'Recipient',
     ASSET: 'Asset',
