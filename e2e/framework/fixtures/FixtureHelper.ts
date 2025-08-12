@@ -7,11 +7,9 @@ import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import createStaticServer from '../../create-static-server';
 import {
-  AnvilPort,
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
-  killServiceByPid,
 } from './FixtureUtils';
 import Utilities from '../../utils/Utilities';
 import TestHelpers from '../../helpers';
@@ -177,12 +175,7 @@ async function handleLocalNodes(
         case LocalNodeType.anvil:
           localNode = new AnvilManager();
           localNodeSpecificOptions = nodeOptions as AnvilNodeOptions;
-          if (await localNode.isRunning()) {
-            logger.debug('Anvil server is already running');
-            // Force killing the anvil server as it is not reliable anymore
-            await localNode.quit();
-            await killServiceByPid(AnvilPort());
-          }
+
           await localNode.start(localNodeSpecificOptions);
           localNodes.push(localNode);
           break;
@@ -421,13 +414,13 @@ export async function withFixtures(
     endTestfn,
   } = options;
 
+  // Prepare android devices for testing to avoid having this in all tests
+  await TestHelpers.reverseServerPort();
+
   const { mockServer, mockServerPort } = await createMockAPIServer(
     mockServerInstance,
     testSpecificMock,
   );
-
-  // Prepare android devices for testing to avoid having this in all tests
-  await TestHelpers.reverseServerPort();
 
   // Handle local nodes
   let localNodes;
