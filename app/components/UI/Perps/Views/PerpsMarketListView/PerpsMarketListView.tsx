@@ -38,7 +38,10 @@ const PerpsMarketRowItemSkeleton = () => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.skeletonContainer}>
+    <View
+      style={styles.skeletonContainer}
+      testID={PerpsMarketListViewSelectorsIDs.SKELETON_ROW}
+    >
       <View style={styles.skeletonLeftSection}>
         {/* Avatar skeleton */}
         <Skeleton width={40} height={40} style={styles.skeletonAvatar} />

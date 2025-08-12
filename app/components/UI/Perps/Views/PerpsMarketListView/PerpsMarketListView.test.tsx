@@ -257,8 +257,10 @@ describe('PerpsMarketListView', () => {
     it('renders the component with header and search button', () => {
       render(<PerpsMarketListView />);
 
-      expect(screen.getByText('Perpetual markets')).toBeOnTheScreen();
-      expect(screen.getByTestId('search-toggle-button')).toBeOnTheScreen();
+      expect(screen.getByText('Perps')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-market-list-search-toggle-button'),
+      ).toBeOnTheScreen();
       expect(screen.getByText('Token Volume')).toBeOnTheScreen();
       expect(screen.getByText('Last Price / 24h Change')).toBeOnTheScreen();
     });
@@ -275,7 +277,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // Should have search toggle button and market rows
-      expect(screen.getByTestId('search-toggle-button')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-market-list-search-toggle-button'),
+      ).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
@@ -290,7 +294,9 @@ describe('PerpsMarketListView', () => {
       expect(screen.queryByPlaceholderText('Search')).not.toBeOnTheScreen();
 
       // Click search toggle button
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -303,7 +309,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -322,7 +330,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -341,7 +351,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -354,7 +366,9 @@ describe('PerpsMarketListView', () => {
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
 
       // Should show clear button when there's search text
-      expect(screen.getByTestId('search-clear-button')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-market-list-search-clear-button'),
+      ).toBeOnTheScreen();
 
       // Should only show the filtered market (BTC), not others
       expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
@@ -365,7 +379,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -382,7 +398,9 @@ describe('PerpsMarketListView', () => {
       expect(searchInput.props.value).toBe('BTC');
 
       // Find and press clear button using testID
-      const clearButton = screen.getByTestId('search-clear-button');
+      const clearButton = screen.getByTestId(
+        'perps-market-list-search-clear-button',
+      );
       act(() => {
         fireEvent.press(clearButton);
       });
@@ -400,7 +418,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -446,7 +466,9 @@ describe('PerpsMarketListView', () => {
 
       render(<PerpsMarketListView />);
 
-      expect(screen.getAllByTestId('skeleton-placeholder')).toHaveLength(8);
+      expect(
+        screen.getAllByTestId('perps-market-list-skeleton-row'),
+      ).toHaveLength(8);
     });
 
     it('shows header even during loading', () => {
@@ -542,7 +564,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // Find the tutorial button
-      const tutorialButton = screen.getByTestId('tutorial-button');
+      const tutorialButton = screen.getByTestId(
+        'perps-market-list-tutorial-button',
+      );
       act(() => {
         fireEvent.press(tutorialButton);
       });
@@ -625,7 +649,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -644,7 +670,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
