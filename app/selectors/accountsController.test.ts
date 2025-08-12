@@ -8,6 +8,8 @@ import {
   EthMethod,
   SolMethod,
   SolAccountType,
+  SolScope,
+  BtcScope,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import StorageWrapper from '../store/storage-wrapper';
@@ -21,6 +23,7 @@ import {
   selectPreviouslySelectedEvmAccount,
   selectSelectedInternalAccountId,
   selectInternalEvmAccounts,
+  selectInternalAccountsByScope,
 } from './accountsController';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE,
@@ -732,5 +735,105 @@ describe('selectInternalEvmAccounts', () => {
     } as RootState);
 
     expect(result).toHaveLength(4);
+  });
+});
+
+describe('selectInternalAccountsByScope', () => {
+  it('returns all accounts that have any EVM scope when eip155:* is requested', () => {
+    const accountWithEthScope: InternalAccount = {
+      ...internalAccount1,
+      scopes: ['eip155:1'],
+    };
+    const accountWithPolygonScope: InternalAccount = {
+      ...internalAccount2,
+      scopes: ['eip155:137'],
+    };
+    const nonEvmAccount: InternalAccount = {
+      ...internalAccount2,
+      id: `${internalAccount2.id}-sol`,
+      scopes: ['solana:mainnet'],
+    };
+
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [accountWithEthScope.id]: accountWithEthScope,
+                [accountWithPolygonScope.id]: accountWithPolygonScope,
+                [nonEvmAccount.id]: nonEvmAccount,
+              },
+              selectedAccount: accountWithEthScope.id,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectInternalAccountsByScope(state, 'eip155:1');
+    expect(result).toEqual(
+      expect.arrayContaining([accountWithEthScope, accountWithPolygonScope]),
+    );
+    expect(result).toHaveLength(2);
+  });
+
+  it('returns only accounts with the exact non-EVM scope', () => {
+    const solanaAccount: InternalAccount = {
+      ...internalAccount1,
+      id: `${internalAccount1.id}-sol`,
+      scopes: [SolScope.Mainnet],
+    };
+    const anotherSolanaAccount: InternalAccount = {
+      ...internalAccount2,
+      id: `${internalAccount2.id}-sol2`,
+      scopes: [SolScope.Mainnet],
+    };
+    const btcAccount: InternalAccount = {
+      ...internalAccount2,
+      id: `${internalAccount2.id}-btc`,
+      scopes: [BtcScope.Mainnet],
+    };
+
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [solanaAccount.id]: solanaAccount,
+                [anotherSolanaAccount.id]: anotherSolanaAccount,
+                [btcAccount.id]: btcAccount,
+              },
+              selectedAccount: solanaAccount.id,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectInternalAccountsByScope(state, SolScope.Mainnet);
+    expect(result).toEqual(
+      expect.arrayContaining([solanaAccount, anotherSolanaAccount]),
+    );
+    expect(result).toHaveLength(2);
+  });
+
+  it('returns an empty array when no accounts match the requested scope', () => {
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {},
+              selectedAccount: undefined,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectInternalAccountsByScope(state, BtcScope.Mainnet);
+    expect(result).toEqual([]);
   });
 });

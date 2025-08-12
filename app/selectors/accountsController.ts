@@ -18,7 +18,7 @@ import {
   getFormattedAddressFromInternalAccount,
   isSolanaAccount,
 } from '../core/Multichain/utils';
-import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId, parseCaipChainId } from '@metamask/utils';
 import { areAddressesEqual, toFormattedAddress } from '../util/address';
 
 export type InternalAccountWithCaipAccountId = InternalAccount & {
@@ -249,3 +249,41 @@ export const selectSolanaAccount = createSelector(
 );
 
 ///: END:ONLY_INCLUDE_IF
+
+/**
+ * A memoized selector that returns all internal accounts that are valid for a given scope.
+ *
+ * For EVM scopes (eip155:*), this returns all accounts that have any EVM scope
+ * (i.e., any scope that starts with 'eip155:'). For non-EVM scopes, this returns
+ * all accounts that include the exact scope.
+ */
+export const selectInternalAccountsByScope = createDeepEqualSelector(
+  [
+    selectInternalAccountsById,
+    (_state: RootState, scope: CaipChainId) => scope,
+  ],
+  (
+    accountsMap: Record<AccountId, InternalAccount>,
+    scope: CaipChainId,
+  ): InternalAccount[] => {
+    const accounts = accountsMap ? Object.values(accountsMap) : [];
+    if (!Array.isArray(accounts) || accounts.length === 0) {
+      return [];
+    }
+
+    const isEvmScope = scope.startsWith('eip155:');
+    if (isEvmScope) {
+      return accounts.filter(
+        (account) =>
+          Array.isArray(account.scopes) &&
+          account.scopes.some((accountScope) =>
+            accountScope.startsWith('eip155:'),
+          ),
+      );
+    }
+    return accounts.filter(
+      (account) =>
+        Array.isArray(account.scopes) && account.scopes.includes(scope),
+    );
+  },
+);
