@@ -50,7 +50,6 @@ describe('useTransactionTotalFiat', () => {
     useTransactionRequiredFiatMock.mockReturnValue({
       values: [],
       totalFiat: 0,
-      totalWithBalanceFiat: 0,
     });
 
     useTransactionRequiredTokensMock.mockReturnValue([]);
@@ -70,8 +69,7 @@ describe('useTransactionTotalFiat', () => {
   it('includes quotes cost', () => {
     useTransactionRequiredFiatMock.mockReturnValue({
       values: [],
-      totalFiat: 0,
-      totalWithBalanceFiat: 456.123,
+      totalFiat: 456.123,
     });
 
     const { result } = runHook();
