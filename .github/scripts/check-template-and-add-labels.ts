@@ -87,8 +87,9 @@ async function main(): Promise<void> {
     labelable.body,
   );
 
-  // If labelable's author is a bot we skip the template checks as bots don't use templates
-  if (knownBots.includes(labelable.author)) {
+  // If labelable's author is a bot we skip the rest of the script, including the template checks as bots don't use templates.
+  // Exception: For issues created the 'sentry-io' bot, we don't skip the rest of the script because there's a specific handling for those issues.
+  if (knownBots.includes(labelable.author) && labelable.author !== 'sentry-io') {
     console.log(`${labelable.type === LabelableType.PullRequest ? 'PR' : 'Issue'} was created by a bot (${labelable.author}). Skip template checks.`);
     process.exit(0); // Stop the process and exit with a success status code
   }
@@ -106,7 +107,7 @@ async function main(): Promise<void> {
       );
       // Add needs triage label ONLY if issue is created (not updated)
       if (context.payload.action === 'opened') {
-      await addNeedsTriageLabelToIssue(octokit, labelable);
+        await addNeedsTriageLabelToIssue(octokit, labelable);
       }
       // Add area-Sentry label to the bug report issue
       await addAreaSentryLabelToIssue(octokit, labelable);
@@ -133,7 +134,7 @@ async function main(): Promise<void> {
 
       // Add needs triage label ONLY if issue is created (not updated)
       if (context.payload.action === 'opened') {
-      await addNeedsTriageLabelToIssue(octokit, labelable);
+        await addNeedsTriageLabelToIssue(octokit, labelable);
       }
 
     } else {
