@@ -21,7 +21,7 @@ exports[`HeaderBase renders snapshot correctly with center alignment 1`] = `
     }
   >
     <View
-      onLayout={[Function]}
+      onLayout={[MockFunction]}
     />
   </View>
   <View
@@ -58,7 +58,7 @@ exports[`HeaderBase renders snapshot correctly with center alignment 1`] = `
     }
   >
     <View
-      onLayout={[Function]}
+      onLayout={[MockFunction]}
     />
   </View>
 </View>
@@ -85,7 +85,7 @@ exports[`HeaderBase renders snapshot correctly with left alignment 1`] = `
     }
   >
     <View
-      onLayout={[Function]}
+      onLayout={[MockFunction]}
     />
   </View>
   <View
@@ -122,7 +122,7 @@ exports[`HeaderBase renders snapshot correctly with left alignment 1`] = `
     }
   >
     <View
-      onLayout={[Function]}
+      onLayout={[MockFunction]}
     />
   </View>
 </View>
@@ -149,7 +149,7 @@ exports[`HeaderBase should render snapshot correctly 1`] = `
     }
   >
     <View
-      onLayout={[Function]}
+      onLayout={[MockFunction]}
     />
   </View>
   <View
@@ -186,7 +186,7 @@ exports[`HeaderBase should render snapshot correctly 1`] = `
     }
   >
     <View
-      onLayout={[Function]}
+      onLayout={[MockFunction]}
     />
   </View>
 </View>
