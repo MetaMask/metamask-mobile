@@ -880,6 +880,41 @@ describe('ChoosePassword', () => {
     mockNewWalletAndKeychain.mockRestore();
   });
 
+  it('should navigate to support article when learn more link is pressed when oauth2Login is true', async () => {
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        },
+      },
+      navigation: mockNavigation,
+    };
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    const learnMoreLink = component.getByTestId(
+      ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
+    );
+
+    expect(learnMoreLink).toBeOnTheScreen();
+    expect(learnMoreLink.props.onPress).toBeDefined();
+
+    await act(async () => {
+      fireEvent.press(learnMoreLink);
+    });
+
+    expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
+        title: 'support.metamask.io',
+      },
+    });
+  });
+
   describe('ErrorBoundary Tests', () => {
     it('should trigger ErrorBoundary for OAuth password creation failures when analytics disabled', async () => {
       const loggerErrorSpy = jest.spyOn(Logger, 'error');

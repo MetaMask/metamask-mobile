@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
