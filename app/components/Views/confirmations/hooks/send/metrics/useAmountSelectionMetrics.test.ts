@@ -14,7 +14,6 @@ describe('useAmountSelectionMetrics', () => {
     );
     expect(result.current.captureAmountSelected).toBeDefined();
     expect(result.current.setAmountInputMethodManual).toBeDefined();
-    expect(result.current.setAmountInputMethodPasted).toBeDefined();
     expect(result.current.setAmountInputMethodPressedMax).toBeDefined();
     expect(result.current.setAmountInputTypeFiat).toBeDefined();
     expect(result.current.setAmountInputTypeToken).toBeDefined();

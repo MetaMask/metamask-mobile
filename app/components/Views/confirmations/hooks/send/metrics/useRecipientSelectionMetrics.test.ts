@@ -14,6 +14,5 @@ describe('useRecipientSelectionMetrics', () => {
     );
     expect(result.current.captureRecipientSelected).toBeDefined();
     expect(result.current.setRecipientInputMethodManual).toBeDefined();
-    expect(result.current.setRecipientInputMethodPasted).toBeDefined();
   });
 });
