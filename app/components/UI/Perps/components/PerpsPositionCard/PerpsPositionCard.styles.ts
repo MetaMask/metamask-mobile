@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       backgroundColor: colors.background.section,
       borderRadius: 12,
-      padding: 16,
+      // padding: 16,
       marginVertical: 6,
     },
     // Container styles for different states
@@ -21,22 +21,19 @@ const styleSheet = (params: { theme: Theme }) => {
       marginVertical: 6,
     },
     collapsedContainer: {
-      backgroundColor: colors.background.section,
       borderRadius: 8,
-      padding: 12,
-      marginVertical: 4,
+      paddingVertical: 12,
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 8,
     },
     // Icon section styles
     perpIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       marginRight: 12,
       alignItems: 'center',
       justifyContent: 'center',
@@ -44,9 +41,9 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.alternative,
     },
     tokenIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
     },
     headerLeft: {
       flex: 1,

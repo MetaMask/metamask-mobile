@@ -169,18 +169,21 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   style={styles.tokenIcon}
                 />
               ) : (
-                <Icon name={IconName.Coin} size={IconSize.Md} />
+                <Icon name={IconName.Coin} size={IconSize.Lg} />
               )}
             </View>
           )}
 
           <View style={styles.headerLeft}>
             <View style={styles.headerRow}>
-              <Text variant={TextVariant.BodySMBold} color={TextColor.Default}>
-                {position.leverage.value}x{' '}
+              <Text
+                variant={TextVariant.BodySMMedium}
+                color={TextColor.Default}
+              >
+                {position.coin} {position.leverage.value}x{' '}
                 <Text
                   variant={TextVariant.BodySMMedium}
-                  color={isLong ? TextColor.Success : TextColor.Error}
+                  color={TextColor.Default}
                 >
                   {direction}
                 </Text>
@@ -195,13 +198,13 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
           <View style={styles.headerRight}>
             <View style={styles.headerRow}>
-              <Text variant={TextVariant.BodySMBold} color={TextColor.Default}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {formatPrice(position.positionValue)}
               </Text>
             </View>
             <View style={styles.headerRow}>
               <Text
-                variant={TextVariant.BodySMBold}
+                variant={TextVariant.BodySM}
                 color={isPositive24h ? TextColor.Success : TextColor.Error}
               >
                 {formatPnl(pnlNum)} ({formatPercentage(pnlPercentage)})

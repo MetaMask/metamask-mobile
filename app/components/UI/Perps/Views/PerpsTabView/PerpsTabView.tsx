@@ -165,11 +165,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     return (
       <>
         <View style={styles.sectionHeader}>
-          <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Alternative}
-            style={styles.sectionTitle}
-          >
+          <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
             {strings('perps.position.title')}
           </Text>
         </View>
