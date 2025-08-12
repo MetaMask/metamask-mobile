@@ -8,7 +8,6 @@ import {
   TextStyle,
 } from 'react-native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountGroupId } from '@metamask/account-api';
 import { strings } from '../../../../../../../locales/i18n';
 import styleSheet from './styles';
 import Text, {
@@ -39,6 +38,7 @@ import { AccountDetailsIds } from '../../../../../../../e2e/selectors/Multichain
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
 import { selectWalletByAccount } from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectGroupIdByAccountId } from '../../../../../../selectors/multichainAccounts/accountGroup';
 import { selectMultichainAccountsState2Enabled } from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 
 interface BaseAccountDetailsProps {
@@ -98,10 +98,33 @@ export const BaseAccountDetails = ({
     : AvatarAccountType.JazzIcon;
 
   const selectWallet = useSelector(selectWalletByAccount);
+  const selectGroupId = useSelector(selectGroupIdByAccountId);
   const isMultichainAccountsState2Enabled = useSelector(
     selectMultichainAccountsState2Enabled,
   );
   const wallet = selectWallet?.(account.id);
+
+  /**
+   * Truncates the account/wallet name to a shorter version, keeping the first and last few characters.
+   * @param name The full account name.
+   * @param keepChars The number of characters to keep at the start and end of the name.
+   * @returns The truncated name.
+   */
+  const truncateName = useCallback(
+    (name: string, keepChars: number = 5): string => {
+      const minLength = keepChars * 2 + 1;
+
+      if (name.length <= minLength) {
+        return name;
+      }
+
+      const start = name.slice(0, keepChars);
+      const end = name.slice(-keepChars);
+
+      return `${start}…${end}`;
+    },
+    [],
+  );
 
   const handleEditAccountName = useCallback(() => {
     navigation.navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
@@ -119,15 +142,21 @@ export const BaseAccountDetails = ({
     });
   }, [navigation, account]);
 
-  const onNavigateToShareAddressList = useCallback(
-    (groupId: AccountGroupId) => {
-      navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST, {
-        groupId,
-        title: `${account.metadata.name} / Addresses`,
-      });
-    },
-    [account.metadata.name, navigation],
-  );
+  const onNavigateToShareAddressList = useCallback(() => {
+    const groupId = selectGroupId(account.id);
+    navigation.navigate(Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST, {
+      groupId,
+      title: `${truncateName(account.metadata.name)} / ${strings(
+        'multichain_accounts.address_list.addresses',
+      )}`,
+    });
+  }, [
+    account.id,
+    account.metadata.name,
+    navigation,
+    selectGroupId,
+    truncateName,
+  ]);
 
   const handleWalletClick = useCallback(() => {
     if (!wallet) {
@@ -215,7 +244,7 @@ export const BaseAccountDetails = ({
 
         <DetailRow
           label={strings('multichain_accounts.account_details.account_name')}
-          value={account.metadata.name}
+          value={truncateName(account.metadata.name)}
           iconName={IconName.Edit}
           onPress={handleEditAccountName}
           testID={AccountDetailsIds.ACCOUNT_NAME_LINK}
