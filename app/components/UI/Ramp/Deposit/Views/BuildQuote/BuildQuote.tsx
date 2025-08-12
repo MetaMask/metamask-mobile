@@ -3,8 +3,6 @@ import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
-import { Hex, isHexString } from '@metamask/utils';
 
 import styleSheet from './BuildQuote.styles';
 
@@ -68,19 +66,7 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import Logger from '../../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
-import {
-  selectChainId,
-  selectNetworkConfigurations,
-} from '../../../../../../selectors/networkController';
-import {
-  USDC_TOKEN,
-  DepositCryptoCurrency,
-  DepositPaymentMethod,
-  USD_CURRENCY,
-  DepositFiatCurrency,
-  EUR_CURRENCY,
-  DEBIT_CREDIT_PAYMENT_METHOD,
-} from '../../constants';
+import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
@@ -100,23 +86,24 @@ const BuildQuote = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
-
-  const chainId = useSelector(selectChainId);
   const supportedTokens = useSupportedTokens();
   const paymentMethods = usePaymentMethods();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
-    DEBIT_CREDIT_PAYMENT_METHOD,
-  );
-  const [cryptoCurrency, setCryptoCurrency] =
-    useState<DepositCryptoCurrency>(USDC_TOKEN);
-  const [fiatCurrency, setFiatCurrency] =
-    useState<DepositFiatCurrency>(USD_CURRENCY);
+  // Get state from context instead of local state
+  const {
+    isAuthenticated,
+    selectedRegion,
+    paymentMethod,
+    setPaymentMethod,
+    cryptoCurrency,
+    setCryptoCurrency,
+    fiatCurrency,
+  } = useDepositSDK();
+
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
 
   const isAccountTokenCompatible = useAccountTokenCompatible(cryptoCurrency);
@@ -179,16 +166,6 @@ const BuildQuote = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedRegion?.currency) {
-      if (selectedRegion.currency === 'USD') {
-        setFiatCurrency(USD_CURRENCY);
-      } else if (selectedRegion.currency === 'EUR') {
-        setFiatCurrency(EUR_CURRENCY);
-      }
-    }
-  }, [selectedRegion?.currency]);
-
-  useEffect(() => {
     if (selectedRegion?.isoCode && paymentMethods.length > 0) {
       const isPaymentMethodSupported = paymentMethods.some(
         (method) => method.id === paymentMethod.id,
@@ -198,37 +175,29 @@ const BuildQuote = () => {
         setPaymentMethod(paymentMethods[0]);
       }
     }
-  }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
+  }, [
+    selectedRegion?.isoCode,
+    paymentMethods,
+    paymentMethod,
+    setPaymentMethod,
+  ]);
 
   useEffect(() => {
-    if (supportedTokens.length > 0) {
-      let caipChainId;
-      if (isHexString(chainId)) {
-        caipChainId = toEvmCaipChainId(chainId as Hex);
-      } else {
-        caipChainId = chainId;
-      }
+    if (cryptoCurrency.assetId && cryptoCurrency.chainId) {
+      const isTokenSupported = supportedTokens.some(
+        (token) => token.assetId === cryptoCurrency.assetId,
+      );
 
-      if (cryptoCurrency.chainId !== caipChainId) {
-        const token = supportedTokens.find(
-          (supportedToken) => supportedToken.chainId === caipChainId,
-        );
-        if (token) {
-          setCryptoCurrency(token);
-          return;
-        }
-      }
-
-      if (
-        !supportedTokens.some(
-          (token) => token.assetId === cryptoCurrency.assetId,
-        )
-      ) {
+      if (!isTokenSupported) {
         setCryptoCurrency(supportedTokens[0]);
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chainId, supportedTokens]);
+  }, [
+    cryptoCurrency.assetId,
+    cryptoCurrency.chainId,
+    supportedTokens,
+    setCryptoCurrency,
+  ]);
 
   const handleRegionPress = useCallback(() => {
     navigation.navigate(...createRegionSelectorModalNavigationDetails());
@@ -412,46 +381,12 @@ const BuildQuote = () => {
   ]);
 
   const handleKeypadChange = useCallback(
-    ({
-      value,
-      valueAsNumber,
-    }: {
-      value: string;
-      valueAsNumber: number;
-      pressedKey: string;
-    }) => {
+    (data: { value: string; valueAsNumber: number; pressedKey: string }) => {
       setError(null);
-      setAmount(value || '0');
-      setAmountAsNumber(valueAsNumber || 0);
+      setAmount(data.value || '0');
+      setAmountAsNumber(data.valueAsNumber || 0);
     },
     [],
-  );
-
-  const handleSelectAssetId = useCallback(
-    (assetId: string) => {
-      const selectedToken = supportedTokens.find(
-        (token) => token.assetId === assetId,
-      );
-      if (selectedToken) {
-        trackEvent('RAMPS_TOKEN_SELECTED', {
-          ramp_type: 'DEPOSIT',
-          region: selectedRegion?.isoCode || '',
-          chain_id: selectedToken.chainId,
-          currency_destination: selectedToken.assetId,
-          currency_source: fiatCurrency.id,
-          is_authenticated: isAuthenticated,
-        });
-        setCryptoCurrency(selectedToken);
-      }
-      setError(null);
-    },
-    [
-      supportedTokens,
-      trackEvent,
-      selectedRegion?.isoCode,
-      fiatCurrency.id,
-      isAuthenticated,
-    ],
   );
 
   const handleCryptoPress = useCallback(
@@ -459,39 +394,18 @@ const BuildQuote = () => {
       navigation.navigate(
         ...createTokenSelectorModalNavigationDetails({
           selectedAssetId: cryptoCurrency.assetId,
-          handleSelectAssetId,
         }),
       ),
-    [cryptoCurrency, navigation, handleSelectAssetId],
-  );
-
-  const handleSelectPaymentMethodId = useCallback(
-    (selectedPaymentMethodId: string) => {
-      const selectedPaymentMethod = paymentMethods.find(
-        (_paymentMethod) => _paymentMethod.id === selectedPaymentMethodId,
-      );
-      if (selectedPaymentMethod) {
-        trackEvent('RAMPS_PAYMENT_METHOD_SELECTED', {
-          ramp_type: 'DEPOSIT',
-          region: selectedRegion?.isoCode || '',
-          payment_method_id: selectedPaymentMethod.id,
-          is_authenticated: isAuthenticated,
-        });
-        setPaymentMethod(selectedPaymentMethod);
-      }
-      setError(null);
-    },
-    [paymentMethods, trackEvent, selectedRegion?.isoCode, isAuthenticated],
+    [cryptoCurrency.assetId, navigation],
   );
 
   const handlePaymentMethodPress = useCallback(() => {
     navigation.navigate(
       ...createPaymentMethodSelectorModalNavigationDetails({
         selectedPaymentMethodId: paymentMethod.id,
-        handleSelectPaymentMethodId,
       }),
     );
-  }, [handleSelectPaymentMethodId, navigation, paymentMethod.id]);
+  }, [paymentMethod.id, navigation]);
 
   const networkName = allNetworkConfigurations[cryptoCurrency.chainId]?.name;
   const networkImageSource = getNetworkImageSource({

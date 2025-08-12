@@ -12,27 +12,19 @@ import ListItemSelect from '../../../../../../../component-library/components/Li
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../../component-library/components/List/ListItemColumn';
-
-import usePaymentMethods from '../../../hooks/usePaymentMethods';
-import styleSheet from './PaymentMethodSelectorModal.styles';
-import { useStyles } from '../../../../../../hooks/useStyles';
-
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
-import Routes from '../../../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../../../locales/i18n';
-import { DepositPaymentMethod } from '../../../constants';
 import Icon, {
   IconColor,
 } from '../../../../../../../component-library/components/Icons/Icon';
+import { useStyles } from '../../../../../../hooks/useStyles';
+import usePaymentMethods from '../../../hooks/usePaymentMethods';
+import { useDepositSDK } from '../../../sdk';
+import useAnalytics from '../../../../hooks/useAnalytics';
 import { useTheme } from '../../../../../../../util/theme';
-
-interface PaymentMethodSelectorModalNavigationDetails {
-  selectedPaymentMethodId?: string;
-  handleSelectPaymentMethodId?: (paymentMethodId: string) => void;
-}
+import { strings } from '../../../../../../../../locales/i18n';
+import styleSheet from './PaymentMethodSelectorModal.styles';
+import { DepositPaymentMethod } from '../../../constants';
+import Routes from '../../../../../../../constants/navigation/Routes';
+import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 
 export const createPaymentMethodSelectorModalNavigationDetails =
   createNavigationDetails(
@@ -43,9 +35,6 @@ export const createPaymentMethodSelectorModalNavigationDetails =
 function PaymentMethodSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
-
-  const { selectedPaymentMethodId, handleSelectPaymentMethodId } =
-    useParams<PaymentMethodSelectorModalNavigationDetails>();
   const { height: screenHeight } = useWindowDimensions();
   const { themeAppearance } = useTheme();
   const { styles } = useStyles(styleSheet, {
@@ -53,21 +42,43 @@ function PaymentMethodSelectorModal() {
   });
 
   const paymentMethods = usePaymentMethods();
+  const trackEvent = useAnalytics();
+  const {
+    setPaymentMethod,
+    selectedRegion,
+    isAuthenticated,
+    paymentMethod: selectedPaymentMethod,
+  } = useDepositSDK();
 
   const handleSelectPaymentMethodIdCallback = useCallback(
     (paymentMethodId: string) => {
-      if (handleSelectPaymentMethodId) {
-        handleSelectPaymentMethodId(paymentMethodId);
+      const foundPaymentMethod = paymentMethods.find(
+        (_paymentMethod) => _paymentMethod.id === paymentMethodId,
+      );
+      if (foundPaymentMethod) {
+        trackEvent('RAMPS_PAYMENT_METHOD_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+          payment_method_id: foundPaymentMethod.id,
+          is_authenticated: isAuthenticated,
+        });
+        setPaymentMethod(foundPaymentMethod);
       }
       sheetRef.current?.onCloseBottomSheet();
     },
-    [handleSelectPaymentMethodId],
+    [
+      paymentMethods,
+      trackEvent,
+      selectedRegion?.isoCode,
+      isAuthenticated,
+      setPaymentMethod,
+    ],
   );
 
   const renderPaymentMethod = useCallback(
     ({ item: paymentMethod }: { item: DepositPaymentMethod }) => (
       <ListItemSelect
-        isSelected={selectedPaymentMethodId === paymentMethod.id}
+        isSelected={selectedPaymentMethod.id === paymentMethod.id}
         onPress={() => handleSelectPaymentMethodIdCallback(paymentMethod.id)}
         accessibilityRole="button"
         accessible
@@ -96,7 +107,7 @@ function PaymentMethodSelectorModal() {
     ),
     [
       handleSelectPaymentMethodIdCallback,
-      selectedPaymentMethodId,
+      selectedPaymentMethod.id,
       styles.iconContainer,
       themeAppearance,
     ],
@@ -115,7 +126,7 @@ function PaymentMethodSelectorModal() {
         ref={listRef}
         data={paymentMethods}
         renderItem={renderPaymentMethod}
-        extraData={selectedPaymentMethodId}
+        extraData={selectedPaymentMethod.id}
         keyExtractor={(item) => item.id}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="always"

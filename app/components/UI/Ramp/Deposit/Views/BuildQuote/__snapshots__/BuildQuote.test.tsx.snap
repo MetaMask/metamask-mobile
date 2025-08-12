@@ -447,7 +447,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={18}
+              handlerTag={16}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2274,7 +2274,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={20}
+              handlerTag={18}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4101,7 +4101,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={22}
+              handlerTag={20}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -5928,7 +5928,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={11}
+              handlerTag={9}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7731,7 +7731,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={10}
+              handlerTag={8}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
