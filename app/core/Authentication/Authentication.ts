@@ -622,7 +622,7 @@ class AuthenticationService {
   lockApp = async ({
     reset = true,
     locked = false,
-    navigate = true,
+    navigateToLogin = true,
   } = {}): Promise<void> => {
     const { KeyringController } = Engine.context;
     if (reset) await this.resetPassword();
@@ -639,7 +639,7 @@ class AuthenticationService {
 
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
-    if (navigate) {
+    if (navigateToLogin) {
       NavigationService.navigation?.reset({
         routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
       });
@@ -992,7 +992,7 @@ class AuthenticationService {
         throw new Error('No account data found');
       }
     } catch (error) {
-      this.lockApp({ reset: false, navigate: false });
+      this.lockApp({ reset: false, navigateToLogin: false });
       Logger.error(error as Error);
       throw error;
     }
