@@ -20,8 +20,11 @@ export default function parseRampIntent(
     rampIntent.assetId = rampIntent.chainId;
   }
 
-  // Extract chainId from assetId if not already set
-  if (rampIntent.assetId && !rampIntent.chainId) {
+  // Extract chainId from assetId if not already set, or if chainId contains assetId
+  if (
+    rampIntent.assetId &&
+    (!rampIntent.chainId || rampIntent.chainId?.includes('/'))
+  ) {
     const parsed = parseCAIP19AssetId(rampIntent.assetId);
     if (parsed) {
       if (parsed.namespace === 'eip155') {
@@ -43,7 +46,7 @@ export default function parseRampIntent(
     if (legacyFormat) {
       rampIntent.chainId = legacyFormat.chainId;
       rampIntent.address = legacyFormat.address;
-      rampIntent.currency = undefined;
+      rampIntent.currency = 'usd';
     }
   }
 

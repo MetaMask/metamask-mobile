@@ -35,6 +35,7 @@ describe('parseRampIntent', () => {
         chainId: '1',
         address: '0x1234567890123456789012345678901234567890',
         amount: '10',
+        currency: 'usd',
       });
     });
 
@@ -90,7 +91,7 @@ describe('parseRampIntent', () => {
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
-        chainId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        chainId: 'eip155:1',
         assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
         amount: '10',
         currency: 'usd',
@@ -120,7 +121,7 @@ describe('parseRampIntent', () => {
       };
       const result = parseRampIntent(pathParams);
       expect(result).toEqual({
-        chainId: `${SOLANA_NETWORK}/${SOLANA_ASSET_ID}`,
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         assetId: `${SOLANA_NETWORK}/${SOLANA_ASSET_ID}`,
         amount: '10',
         currency: 'usd',
