@@ -93,14 +93,14 @@ export function craftTeamLabel(teamName: string): Label {
     case 'extension-platform':
       return {
         name: `team-${teamName}`,
-        color: '#BFD4F2', // light blue
+        color: 'BFD4F2', // light blue
         description: `Extension Platform team`,
       };
 
     case 'mobile-platform':
       return {
         name: `team-${teamName}`,
-        color: '#76E9D0', // light green
+        color: '76E9D0', // light green
         description: `Mobile Platform team`,
       };
 
