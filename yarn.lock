@@ -4855,10 +4855,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^73.0.2":
-  version "73.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-73.0.2.tgz#a42ecee48f2c136a6d1b08694488294e756b2063"
-  integrity sha512-pPtbxv3MAckMFDfIcc9eKZwL2tdS8k2yK3bddCP5x217f3e34Jc6bLdN5bcgd2F951WJRbg4bO6L9FDALzS80g==
+"@metamask/assets-controllers@^73.1.0":
+  version "73.1.0"
+  resolved "https://registry.npmjs.org/@metamask/assets-controllers/-/assets-controllers-73.1.0.tgz#2cb1a34edea623c78faff6d97f88025d7ae224ff"
+  integrity sha512-Luf61cCmpiMeku+XOjx2DV+xo1gqXffI07Iz9a0hTm/8nfpOAPnlceATtmOVQ/XNniWSRPacxMEd1nG3BmYZhA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4871,7 +4871,7 @@
     "@metamask/contract-metadata" "^2.4.0"
     "@metamask/controller-utils" "^11.11.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/keyring-api" "^19.0.0"
+    "@metamask/keyring-api" "^20.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/rpc-errors" "^7.0.2"
@@ -4886,6 +4886,7 @@
     immer "^9.0.6"
     lodash "^4.17.21"
     multiformats "^13.1.0"
+    reselect "^5.1.1"
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 

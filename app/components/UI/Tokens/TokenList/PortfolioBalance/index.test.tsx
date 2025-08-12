@@ -9,6 +9,13 @@ import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 
 const { PreferencesController } = Engine.context;
 
+// Mock fiat formatter to ensure deterministic output
+jest.mock(
+  '../../../SimulationDetails/FiatDisplay/useFiatFormatter',
+  () => () => (amount: { toFixed: (n: number) => string }) =>
+    `$${amount.toFixed(2)}`,
+);
+
 // Mock the useMultichainBalances hook
 const mockSelectedAccountMultichainBalance = {
   displayBalance: '$123.45',
@@ -21,6 +28,22 @@ jest.mock('../../../../hooks/useMultichainBalances', () => ({
   useSelectedAccountMultichainBalances: () => ({
     selectedAccountMultichainBalance: mockSelectedAccountMultichainBalance,
   }),
+}));
+
+// Mock assets-controllers balance selector
+const mockAggregatedBalance = {
+  walletId: 'entropy:wallet-1',
+  groupId: 'entropy:wallet-1/0',
+  totalBalanceInUserCurrency: 456.78,
+  userCurrency: 'USD',
+};
+
+jest.mock('@metamask/assets-controllers', () => ({
+  balanceSelectors: {
+    selectBalanceForSelectedAccountGroup: jest.fn(
+      () => () => mockAggregatedBalance,
+    ),
+  },
 }));
 
 jest.mock('../../../../../core/Engine', () => ({
@@ -152,6 +175,50 @@ describe('PortfolioBalance', () => {
     expect(
       getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT),
     ).toBeDefined();
+  });
+
+  it('uses aggregated selector when multichain state 2 flag is enabled', () => {
+    const state = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              enableMultichainAccounts: {
+                enabled: true,
+                featureVersion: '2',
+                minimumVersion: '0.0.0',
+              },
+            },
+          },
+        },
+      },
+    } as const;
+
+    const { getByTestId } = renderPortfolioBalance(state);
+    const text = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    expect(text.props.children).toBe('$456.78');
+  });
+
+  it('falls back to legacy balance when multichain state 2 flag is disabled', () => {
+    const state = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {
+              // no multichain flag → treated as disabled
+            },
+          },
+        },
+      },
+    } as const;
+
+    const { getByTestId } = renderPortfolioBalance(state);
+    const text = getByTestId(WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT);
+    expect(text.props.children).toBe('$123.45');
   });
 
   it('renders sensitive text when privacy mode is off', () => {
