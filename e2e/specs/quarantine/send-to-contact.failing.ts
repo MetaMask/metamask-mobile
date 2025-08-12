@@ -4,7 +4,7 @@ import SendView from '../../pages/Send/SendView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
 import enContent from '../../../locales/languages/en.json';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import {
@@ -58,8 +58,7 @@ describe(SmokeConfirmations('Send ETH'), () => {
   });
 
   it('should send ETH to a contact from inside the wallet', async () => {
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSendButton();
+    await WalletView.tapWalletSendButton();
     await SendView.scrollToSavedAccount();
 
     await SendView.tapAccountName('Test Name 1');

@@ -1,130 +1,103 @@
+import { hasProperty, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
-import { hasProperty, isObject } from '@metamask/utils';
-
-// Example MM SDK channel ID: 217e651d-6d18-49ef-b929-8773496c11df
-// Example WC channel ID: 901035548d5fae607be1f7ebff2aff0617b9d16fd0ad7b93e2e94647de06a07b
-// This seems naive, but probably covers majority of scenarios
-const isHostname = (value: string) =>
-  !value.startsWith('npm:') && (value === 'localhost' || value.includes('.'));
+import { NetworkConfiguration } from '@metamask/network-controller';
+import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
 
 /**
- * Migration to update hostname keyed PermissionController
- * and SelectedNetworkController entries to origin.
+ * Migration 093: Update Sei Network Name
  *
- * Note that this makes a best guess by assuming the dapp is served
- * via https on the default port. The worst case scenario is that this
- * is an incorrect assumption, forcing the user to re-establish permissions.
- * @param state - The current MetaMask mobile state.
- * @returns Migrated Redux state.
+ * This migration updates:
+ * - the SEI network name from `Sei Network` to `Sei Mainnet`.
+ * - the SEI RPC name from `Sei Network` to `Sei Mainnet`.
  */
-export default function migrate(state: unknown) {
-  const version = 93;
+export default function migrate(state: unknown): unknown {
+  const migrationVersion = 93;
+  const fromName = 'Sei Network';
+  const toName = 'Sei Mainnet';
+  const seiChainId = NETWORK_CHAIN_ID.SEI_MAINNET;
 
-  // Ensure the state is valid for migration
-  if (!ensureValidState(state, version)) {
+  if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
-  const { backgroundState } = state.engine;
-
-  if (
-    !hasProperty(backgroundState, 'PermissionController') ||
-    !isObject(backgroundState.PermissionController)
-  ) {
-    captureException(
-      new Error(
-        `Migration ${version}: typeof state.PermissionController is ${typeof backgroundState.PermissionController}`,
-      ),
-    );
-    return state;
-  }
-
-  const {
-    PermissionController: { subjects },
-  } = backgroundState;
-
-  if (!isObject(subjects)) {
-    captureException(
-      new Error(
-        `Migration ${version}: typeof state.PermissionController.subjects is ${typeof subjects}`,
-      ),
-    );
-    return state;
-  }
-
-  if (
-    !hasProperty(backgroundState, 'SelectedNetworkController') ||
-    !isObject(backgroundState.SelectedNetworkController)
-  ) {
-    captureException(
-      new Error(
-        `Migration ${version}: typeof state.SelectedNetworkController is ${typeof backgroundState.SelectedNetworkController}`,
-      ),
-    );
-    return state;
-  }
-
-  const {
-    SelectedNetworkController: { domains },
-  } = backgroundState;
-
-  if (!isObject(domains)) {
-    captureException(
-      new Error(
-        `Migration ${version}: typeof state.SelectedNetworkController.domains is ${typeof domains}`,
-      ),
-    );
-    return state;
-  }
-
-  const newSubjects: Record<string, unknown> = {};
-  for (const [origin, subject] of Object.entries(subjects)) {
-    if (!isHostname(origin) || !isObject(subject)) {
-      newSubjects[origin] = subject;
-      continue;
-    }
-
-    const { permissions } = subject;
-    if (!isObject(permissions)) {
-      newSubjects[origin] = subject;
-      continue;
-    }
-    const newOrigin = `https://${origin}`;
-
-    const newPermissions: Record<string, unknown> = {};
-
-    for (const [name, permission] of Object.entries(permissions)) {
-      if (!isObject(permission)) {
-        newPermissions[name] = permission;
-        continue;
+  try {
+    // We only update the network name if it exists in the state
+    // and matches the expected chain ID and name.
+    if (
+      hasProperty(state, 'engine') &&
+      hasProperty(state.engine, 'backgroundState') &&
+      hasProperty(state.engine.backgroundState, 'NetworkController') &&
+      isObject(state.engine.backgroundState.NetworkController) &&
+      isObject(
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId,
+      ) &&
+      hasProperty(
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId,
+        seiChainId,
+      ) &&
+      isObject(
+        state.engine.backgroundState.NetworkController
+          .networkConfigurationsByChainId[seiChainId],
+      )
+    ) {
+      // Update the network name if it matches the expected name
+      if (
+        hasProperty(
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration,
+          'name',
+        ) &&
+        (
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
+        ).name === fromName
+      ) {
+        (
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
+        ).name = toName;
       }
 
-      newPermissions[name] = {
-        ...permission,
-        invoker: newOrigin,
-      };
+      // Update the RPC Name if it matches the expected name
+      if (
+        hasProperty(
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration,
+          'rpcEndpoints',
+        ) &&
+        Array.isArray(
+          (
+            state.engine.backgroundState.NetworkController
+              .networkConfigurationsByChainId[
+              seiChainId
+            ] as NetworkConfiguration
+          ).rpcEndpoints,
+        )
+      ) {
+        const rpcEndpoints = (
+          state.engine.backgroundState.NetworkController
+            .networkConfigurationsByChainId[seiChainId] as NetworkConfiguration
+        ).rpcEndpoints;
+        rpcEndpoints.forEach((endpoint) => {
+          if (endpoint.name === fromName) {
+            endpoint.name = toName;
+          }
+        });
+      }
     }
-
-    newSubjects[newOrigin] = {
-      ...subject,
-      origin: newOrigin,
-      permissions: newPermissions,
-    };
+    return state;
+  } catch (error) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Failed to update Sei network name: ${String(
+          error,
+        )}`,
+      ),
+    );
+    // Return the original state if migration fails to avoid breaking the app
+    return state;
   }
-  backgroundState.PermissionController.subjects = newSubjects;
-
-  const newDomains: Record<string, unknown> = {};
-  for (const [origin, networkClientId] of Object.entries(domains)) {
-    if (!isHostname(origin)) {
-      newDomains[origin] = networkClientId;
-      continue;
-    }
-
-    const newOrigin = `https://${origin}`;
-    newDomains[newOrigin] = networkClientId;
-  }
-  backgroundState.SelectedNetworkController.domains = newDomains;
-
-  return state;
 }

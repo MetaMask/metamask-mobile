@@ -43,4 +43,20 @@ describe('PayTokenBalance', () => {
     const { getByText } = render(<PayTokenBalance />);
     expect(getByText(`Available: ${BALANCE_FIAT_MOCK}`)).toBeTruthy();
   });
+
+  it('renders nothing if no pay token selected', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { queryByText } = render(<PayTokenBalance />);
+    expect(queryByText(`Available: ${BALANCE_FIAT_MOCK}`)).toBeNull();
+  });
+
+  it('renders nothing if token not found', () => {
+    useTokensWithBalanceMock.mockReturnValue([]);
+
+    const { queryByText } = render(<PayTokenBalance />);
+    expect(queryByText(`Available: ${BALANCE_FIAT_MOCK}`)).toBeNull();
+  });
 });

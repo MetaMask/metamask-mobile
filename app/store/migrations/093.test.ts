@@ -1,6 +1,8 @@
-import migrate from './093';
-import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
+import { cloneDeep } from 'lodash';
+
+import { ensureValidState } from './util';
+import migrate from './093';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
@@ -13,370 +15,107 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-const migrationVersion = 93;
-
-describe(`Migration ${migrationVersion}: update hostname keyed PermissionController and SelectedNetworkController entries to origin`, () => {
+describe('Migration 93: Update Sei Network name', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
 
   it('returns state unchanged if ensureValidState fails', () => {
     const state = { some: 'state' };
-
     mockedEnsureValidState.mockReturnValue(false);
 
     const migratedState = migrate(state);
 
-    expect(migratedState).toBe(state);
+    expect(migratedState).toStrictEqual({ some: 'state' });
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('captures exception if PermissionController is missing', () => {
-    const state = {
-      engine: {
-        backgroundState: {},
+  it.each([
+    {
+      state: {
+        engine: {},
       },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.PermissionController is undefined`,
-    );
-  });
-
-  it('captures exception if PermissionController is not object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: 'foobar',
+      test: 'empty engine state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {},
         },
       },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.PermissionController is string`,
-    );
-  });
-
-  it('captures exception if subjects is not object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: 'foobar',
+      test: 'empty backgroundState',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: 'invalid',
           },
         },
       },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.PermissionController.subjects is string`,
-    );
-  });
-
-  it('captures exception if SelectedNetworkController is missing', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.SelectedNetworkController is undefined`,
-    );
-  });
-
-  it('captures exception if SelectedNetworkController is not object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          SelectedNetworkController: 'foobar',
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.SelectedNetworkController is string`,
-    );
-  });
-
-  it('captures exception if domains is not object', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          SelectedNetworkController: {
-            domains: 'foobar',
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-    expect(mockedCaptureException.mock.calls[0][0].message).toContain(
-      `Migration ${migrationVersion}: typeof state.SelectedNetworkController.domains is string`,
-    );
-  });
-
-  it('skips malformed subjects', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-              'test.com': 'foobar',
-              'test.xyz': {
-                permissions: 'foobar',
-              },
+      test: 'invalid NetworkController state',
+    },
+    {
+      state: {
+        engine: {
+          backgroundState: {
+            NetworkController: {
+              networkConfigurationsByChainId: 'invalid',
             },
           },
-          SelectedNetworkController: {
-            domains: {},
-          },
         },
       },
-    };
-
+      test: 'invalid networkConfigurationsByChainId state',
+    },
+  ])('does not modify state if the state is invalid - $test', ({ state }) => {
+    const orgState = cloneDeep(state);
     mockedEnsureValidState.mockReturnValue(true);
 
     const migratedState = migrate(state);
 
-    expect(migratedState).toEqual(state);
+    // State should be unchanged
+    expect(migratedState).toStrictEqual(orgState);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('migrates PermissionController subjects that are valid hostname or "localhost" to https origin', () => {
-    const state = {
+  it('does not update the SEI network name if it is not `Sei Network`', async () => {
+    const oldState = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {
-              localhost: {
-                origin: 'localhost',
-                permissions: {
-                  test: {
-                    id: 1,
-                    invoker: 'localhost',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
                   },
-                },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://etherscan.io'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
               },
-              'test.com': {
-                origin: 'test.com',
-                permissions: {
-                  test: {
-                    id: 2,
-                    invoker: 'test.com',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
+              '0x531': {
+                chainId: '0x531',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
                   },
-                },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://seitrace.com'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Custom Sei Network',
+                nativeCurrency: 'SEI',
               },
-            },
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-              'https://localhost': {
-                origin: 'https://localhost',
-                permissions: {
-                  test: {
-                    id: 1,
-                    invoker: 'https://localhost',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
-              },
-              'https://test.com': {
-                origin: 'https://test.com',
-                permissions: {
-                  test: {
-                    id: 2,
-                    invoker: 'https://test.com',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
-              },
-            },
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-        },
-      },
-    });
-  });
-
-  it('does not migrate PermissionController subjects that are invalid hostnames, snaps, WalletConnect IDs, or MetaMask SDK IDs', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {
-              nothostname: {
-                origin: 'nothostname',
-                permissions: {
-                  test: {
-                    id: 1,
-                    invoker: 'nothostname',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
-              },
-              'npm:@metamask/snap': {
-                origin: 'npm:@metamask/snap',
-                permissions: {
-                  test: {
-                    id: 2,
-                    invoker: 'npm:@metamask/snap',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
-              },
-              '217e651d-6d18-49ef-b929-8773496c11df': {
-                origin: '217e651d-6d18-49ef-b929-8773496c11df',
-                permissions: {
-                  test: {
-                    id: 3,
-                    invoker: '217e651d-6d18-49ef-b929-8773496c11df',
-                    caveats: [
-                      {
-                        type: 'test-caveat',
-                        value: 'hello',
-                      },
-                    ],
-                  },
-                },
-              },
-              '901035548d5fae607be1f7ebff2aff0617b9d16fd0ad7b93e2e94647de06a07b':
-                {
-                  origin:
-                    '901035548d5fae607be1f7ebff2aff0617b9d16fd0ad7b93e2e94647de06a07b',
-                  permissions: {
-                    test: {
-                      id: 4,
-                      invoker:
-                        '901035548d5fae607be1f7ebff2aff0617b9d16fd0ad7b93e2e94647de06a07b',
-                      caveats: [
-                        {
-                          type: 'test-caveat',
-                          value: 'hello',
-                        },
-                      ],
-                    },
-                  },
-                },
-            },
-          },
-          SelectedNetworkController: {
-            domains: {},
-          },
-        },
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = migrate(state);
-
-    expect(migratedState).toEqual(state);
-  });
-
-  it('migrates SelectedNetworkController entries that are valid hostname or "localhost" to https origin', () => {
-    const state = {
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          SelectedNetworkController: {
-            domains: {
-              localhost: 'networkClientId1',
-              'test.com': 'networkClientId2',
             },
           },
         },
@@ -385,39 +124,51 @@ describe(`Migration ${migrationVersion}: update hostname keyed PermissionControl
 
     mockedEnsureValidState.mockReturnValue(true);
 
-    const migratedState = migrate(state);
+    const expectedState = cloneDeep(oldState);
 
-    expect(migratedState).toEqual({
-      engine: {
-        backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          SelectedNetworkController: {
-            domains: {
-              'https://localhost': 'networkClientId1',
-              'https://test.com': 'networkClientId2',
-            },
-          },
-        },
-      },
-    });
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedState);
   });
 
-  it('does not migrate SelectedNetworkController entries that are invalid hostnames, snaps, WalletConnect IDs, or MetaMask SDK IDs', () => {
-    const state = {
+  it('does not update the PRC network name if it is not `Sei Network`', async () => {
+    const oldState = {
       engine: {
         backgroundState: {
-          PermissionController: {
-            subjects: {},
-          },
-          SelectedNetworkController: {
-            domains: {
-              nothostname: 'networkClientId1',
-              'npm:@metamask/snap': 'networkClientId2',
-              '217e651d-6d18-49ef-b929-8773496c11df': 'networkClientId3',
-              '901035548d5fae607be1f7ebff2aff0617b9d16fd0ad7b93e2e94647de06a07b':
-                'networkClientId4',
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://etherscan.io'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+              },
+              '0x531': {
+                chainId: '0x531',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                    name: 'My Custom Sei Network',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://seitrace.com'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Sei Network',
+                nativeCurrency: 'SEI',
+              },
             },
           },
         },
@@ -426,8 +177,112 @@ describe(`Migration ${migrationVersion}: update hostname keyed PermissionControl
 
     mockedEnsureValidState.mockReturnValue(true);
 
-    const migratedState = migrate(state);
+    const expectedState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...oldState.engine.backgroundState.NetworkController,
+            networkConfigurationsByChainId: {
+              ...oldState.engine.backgroundState.NetworkController
+                .networkConfigurationsByChainId,
+              '0x531': {
+                ...oldState.engine.backgroundState.NetworkController
+                  .networkConfigurationsByChainId['0x531'],
+                name: 'Sei Mainnet',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                    name: 'My Custom Sei Network',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
 
-    expect(migratedState).toEqual(state);
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedState);
+  });
+
+  it('updates the SEI network name and RRC name from `Sei Network` to `Sei Mainnet`', async () => {
+    const oldState = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            selectedNetworkClientId: 'mainnet',
+            networksMetadata: {},
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'mainnet',
+                    url: 'https://mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://etherscan.io'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Ethereum Mainnet',
+                nativeCurrency: 'ETH',
+              },
+              '0x531': {
+                chainId: '0x531',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                    name: 'Sei Network',
+                  },
+                ],
+                defaultRpcEndpointIndex: 0,
+                blockExplorerUrls: ['https://seitrace.com'],
+                defaultBlockExplorerUrlIndex: 0,
+                name: 'Sei Network',
+                nativeCurrency: 'SEI',
+              },
+            },
+          },
+        },
+      },
+    };
+
+    mockedEnsureValidState.mockReturnValue(true);
+
+    const expectedData = {
+      engine: {
+        backgroundState: {
+          NetworkController: {
+            ...oldState.engine.backgroundState.NetworkController,
+            networkConfigurationsByChainId: {
+              ...oldState.engine.backgroundState.NetworkController
+                .networkConfigurationsByChainId,
+              '0x531': {
+                ...oldState.engine.backgroundState.NetworkController
+                  .networkConfigurationsByChainId['0x531'],
+                name: 'Sei Mainnet',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'sei-network',
+                    url: 'https://sei-mainnet.infura.io/v3/{infuraProjectId}',
+                    type: 'infura',
+                    name: 'Sei Mainnet',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+
+    const migratedState = await migrate(oldState);
+    expect(migratedState).toStrictEqual(expectedData);
   });
 });

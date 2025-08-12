@@ -75,7 +75,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             false,
           ]
         }
-        testID="token-buy-button"
+        testID="token-fund-button"
       >
         <View
           style={
@@ -89,7 +89,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
             color="#686e7d"
             fill="currentColor"
             height={20}
-            name="Add"
+            name="Money"
             style={
               {
                 "height": 20,
@@ -112,7 +112,7 @@ exports[`AssetDetailsActions should render correctly 1`] = `
               }
             }
           >
-            Buy
+            Fund
           </Text>
         </View>
       </View>

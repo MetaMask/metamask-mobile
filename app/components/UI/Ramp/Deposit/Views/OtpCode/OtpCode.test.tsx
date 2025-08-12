@@ -5,6 +5,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import { trace } from '../../../../../../util/trace';
 
 const EMAIL = 'test@email.com';
 
@@ -70,6 +71,12 @@ jest.mock('../../../../Navbar', () => ({
   getDepositNavbarOptions: jest.fn().mockReturnValue({
     title: 'Enter six-digit code',
   }),
+}));
+
+jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
+  trace: jest.fn(),
+  endTrace: jest.fn(),
 }));
 
 function render(Component: React.ComponentType) {
@@ -211,6 +218,31 @@ describe('OtpCode Screen', () => {
       expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_OTP_FAILED', {
         ramp_type: 'DEPOSIT',
         region: 'US',
+      });
+    });
+  });
+
+  it('should call trace when valid OTP code is submitted', async () => {
+    const mockTrace = trace as jest.MockedFunction<typeof trace>;
+    mockTrace.mockClear();
+
+    const mockResponse = {
+      id: 'mock-id-123',
+      ttl: 1000,
+      userId: 'mock-user-id',
+    } as NativeTransakAccessToken;
+
+    mockVerifyUserOtp.mockResolvedValue(mockResponse);
+    mockSetAuthToken.mockResolvedValue(undefined);
+    const { getByTestId } = render(OtpCode);
+    act(() => {
+      const codeInput = getByTestId('otp-code-input');
+      fireEvent.changeText(codeInput, '123456');
+    });
+
+    await waitFor(() => {
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: 'Deposit Input OTP',
       });
     });
   });
