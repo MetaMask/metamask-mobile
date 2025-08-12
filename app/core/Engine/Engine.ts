@@ -2170,12 +2170,10 @@ export class Engine {
       const {
         engine: { backgroundState },
       } = store.getState();
-      // TODO: Check `allNfts[currentChainId]` property instead
-      // @ts-expect-error This property does not exist
-      const nfts = backgroundState.NftController.nfts;
 
       const { tokenBalances } = backgroundState.TokenBalancesController;
       const { selectedAddress } = backgroundState.PreferencesController;
+      const { allNfts } = backgroundState.NftController;
 
       // Use provided address, fallback to selected address, or check all
       const targetAddress = address || selectedAddress;
@@ -2220,15 +2218,38 @@ export class Engine {
           )
         : this.getTotalEvmFiatAccountBalance() || 0;
 
-      const totalFiatBalance = fiatBalance?.ethFiat
-        ? fiatBalance.ethFiat + fiatBalance.tokenFiat
-        : 0;
+      // Fix: Properly sum ethFiat and tokenFiat even when ethFiat is zero
+      const totalFiatBalance =
+        (fiatBalance?.ethFiat || 0) + (fiatBalance?.tokenFiat || 0);
+
+      // Check NFTs for specific address or all addresses
+      let hasNfts = false;
+      if (targetAddress) {
+        // Check NFTs for specific address
+        const addressLower = targetAddress.toLowerCase();
+        const nftsForAddress = allNfts?.[addressLower];
+        if (nftsForAddress) {
+          // Check if any chain has NFTs for this address
+          hasNfts = Object.values(nftsForAddress).some(
+            (nftsInChain) =>
+              Array.isArray(nftsInChain) && nftsInChain.length > 0,
+          );
+        }
+      } else {
+        // Check all addresses for NFTs
+        hasNfts = Object.values(allNfts || {}).some((nftsByChain) =>
+          Object.values(nftsByChain).some(
+            (nftsInChain) =>
+              Array.isArray(nftsInChain) && nftsInChain.length > 0,
+          ),
+        );
+      }
 
       // Account has funds if:
       // 1. Has fiat balance (ETH or token value) > 0,
       // 2. Has any ERC-20 token balances > 0,
       // 3. Has any NFTs
-      const hasFunds = totalFiatBalance > 0 || tokenFound || nfts?.length > 0;
+      const hasFunds = totalFiatBalance > 0 || tokenFound || hasNfts;
 
       return hasFunds;
     } catch (e) {

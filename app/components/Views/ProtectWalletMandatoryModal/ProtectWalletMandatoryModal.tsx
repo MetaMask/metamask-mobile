@@ -80,25 +80,41 @@ const ProtectWalletMandatoryModal = () => {
     : null;
 
   const selectedAccountHdKeyringIndex = useMemo(() => {
-    if (!selectedAccountKeyringId) return 0;
+    if (!selectedAccountKeyringId) return null; // Changed: return null for non-existent keyrings
 
-    // Find HD keyrings and get the index of the keyring with the matching ID
-    const hdKeyrings = keyrings.filter(
-      (kr) => kr.type === ExtendedKeyringTypes.hd,
-    );
-    const index = hdKeyrings.findIndex(
+    // Find the keyring with the matching ID in the original keyrings array
+    const keyringIndex = keyrings.findIndex(
       (keyring) => keyring.metadata?.id === selectedAccountKeyringId,
     );
 
-    // Return 0 (primary) if not found, otherwise return the found index
-    return index !== -1 ? index : 0;
+    // If keyring not found, return null
+    if (keyringIndex === -1) return null;
+
+    const keyring = keyrings[keyringIndex];
+
+    // Only return an index for HD keyrings
+    if (keyring.type !== ExtendedKeyringTypes.hd) return null;
+
+    // Find the position among HD keyrings specifically
+    // The primary HD keyring is the first HD keyring in the original order
+    const hdKeyrings = keyrings.filter(
+      (kr) => kr.type === ExtendedKeyringTypes.hd,
+    );
+    const hdIndex = hdKeyrings.findIndex(
+      (hdKeyring) => hdKeyring.metadata?.id === selectedAccountKeyringId,
+    );
+
+    return hdIndex !== -1 ? hdIndex : null;
   }, [selectedAccountKeyringId, keyrings]);
 
   // Helper function to check if account belongs to primary SRP (index 0)
   const isPrimaryKeyringAccount = useCallback((): boolean => {
     if (!selectedAccount || selectedAccountKeyringId === null) return false;
 
-    // Primary keyring has index 0
+    // Only HD accounts can be primary accounts
+    if (selectedAccountHdKeyringIndex === null) return false;
+
+    // Primary keyring has index 0 among HD keyrings
     return selectedAccountHdKeyringIndex === 0;
   }, [
     selectedAccount,
