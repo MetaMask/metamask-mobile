@@ -372,14 +372,14 @@ exports[`ActivityView should render correctly 1`] = `
                               "alignItems": "center",
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
-                              "borderColor": "#b7bbc8",
+                              "borderColor": undefined,
                               "borderRadius": 20,
                               "borderStyle": "solid",
-                              "borderWidth": 1,
+                              "borderWidth": 0,
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
-                              "marginLeft": 5,
+                              "marginLeft": 0,
                               "marginRight": 5,
                               "maxWidth": "60%",
                               "overflow": "hidden",
@@ -401,7 +401,7 @@ exports[`ActivityView should render correctly 1`] = `
                               }
                             }
                           >
-                            Ethereum Main Network
+                            Enabled networks
                           </Text>
                           <SvgMock
                             color="#121314"
