@@ -10,6 +10,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
 } from 'react-native';
 import { colors as importedColors, fontStyles } from '../../../styles/common';
 import IonicIcon from 'react-native-vector-icons/Ionicons';
@@ -967,6 +968,8 @@ export function getWalletNavbarOptions(
   readNotificationCount,
   isCardholder = false,
 ) {
+  const { width: WINDOW_WIDTH } = Dimensions.get('window');
+  const START_ACCESSORY_MAX_WIDTH = Math.floor(WINDOW_WIDTH * 0.5);
   const innerStyles = StyleSheet.create({
     headerContainer: {
       height: 72,
@@ -987,6 +990,11 @@ export function getWalletNavbarOptions(
     },
     startAccessoryContainer: {
       alignItems: 'flex-start',
+      flexShrink: 1,
+    },
+    accountPickerLeftStyle: {
+      width: START_ACCESSORY_MAX_WIDTH,
+      overflow: 'hidden',
     },
     endAccessoryContainer: {
       alignItems: 'flex-end',
@@ -1103,6 +1111,25 @@ export function getWalletNavbarOptions(
     />
   );
 
+  // Account picker variant for the left component (start accessory) with width constraint
+  const accountPickerLeft = (
+    <PickerAccount
+      ref={accountActionsRef}
+      accountName={accountName}
+      onPress={() => {
+        trace({
+          name: TraceName.AccountList,
+          tags: getTraceTags(store.getState()),
+          op: TraceOperation.AccountList,
+        });
+        navigation.navigate(...createAccountSelectorNavDetails({}));
+      }}
+      testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+      hitSlop={innerStyles.touchAreaSlop}
+      style={innerStyles.accountPickerLeftStyle}
+    />
+  );
+
   // Network picker component
   const networkPicker = (
     <PickerNetwork
@@ -1123,7 +1150,7 @@ export function getWalletNavbarOptions(
         style={innerStyles.headerContainer}
         startAccessory={
           <View style={innerStyles.startAccessoryContainer}>
-            {!isFeatureFlagEnabled ? networkPicker : accountPicker}
+            {!isFeatureFlagEnabled ? networkPicker : accountPickerLeft}
           </View>
         }
         endAccessory={
