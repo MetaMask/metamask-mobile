@@ -225,28 +225,14 @@ describe('MultichainAccountSelectorList', () => {
     const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
     const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
 
-    const mockState: DeepPartial<RootState> = {
-      engine: {
-        backgroundState: {
-          AccountTreeController: {
-            accountTree: {
-              wallets: {
-                [`keyring:${wallet1.id}`]: wallet1,
-                [`keyring:${wallet2.id}`]: wallet2,
-              } as Record<string, AccountWalletObject>,
-            },
-          },
-          ...mockFeatureFlagController,
-        },
-      },
-    };
-
-    const { getByText } = renderWithProvider(
-      <MultichainAccountSelectorList
-        onSelectAccount={mockOnSelectAccount}
-        selectedAccountGroup={account1}
-      />,
-      { state: mockState },
+    const internalAccounts = createMockInternalAccountsFromGroups([
+      account1,
+      account2,
+    ]);
+    const { getByText } = renderComponentWithMockState(
+      [wallet1, wallet2],
+      internalAccounts,
+      account1,
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -261,28 +247,14 @@ describe('MultichainAccountSelectorList', () => {
       snapAccount,
     ]);
 
-    const mockState: DeepPartial<RootState> = {
-      engine: {
-        backgroundState: {
-          AccountTreeController: {
-            accountTree: {
-              wallets: {
-                [`keyring:${srpWallet.id}`]: srpWallet,
-                [`snap:${snapWallet.id}`]: snapWallet,
-              } as Record<string, AccountWalletObject>,
-            },
-          },
-          ...mockFeatureFlagController,
-        },
-      },
-    };
-
-    const { getByText } = renderWithProvider(
-      <MultichainAccountSelectorList
-        onSelectAccount={mockOnSelectAccount}
-        selectedAccountGroup={srpAccount}
-      />,
-      { state: mockState },
+    const internalAccounts = createMockInternalAccountsFromGroups([
+      srpAccount,
+      snapAccount,
+    ]);
+    const { getByText } = renderComponentWithMockState(
+      [srpWallet, snapWallet],
+      internalAccounts,
+      srpAccount,
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -300,28 +272,14 @@ describe('MultichainAccountSelectorList', () => {
       ledgerAccount,
     ]);
 
-    const mockState: DeepPartial<RootState> = {
-      engine: {
-        backgroundState: {
-          AccountTreeController: {
-            accountTree: {
-              wallets: {
-                [`keyring:${srpWallet.id}`]: srpWallet,
-                [`keyring:${ledgerWallet.id}`]: ledgerWallet,
-              } as Record<string, AccountWalletObject>,
-            },
-          },
-          ...mockFeatureFlagController,
-        },
-      },
-    };
-
-    const { getByText } = renderWithProvider(
-      <MultichainAccountSelectorList
-        onSelectAccount={mockOnSelectAccount}
-        selectedAccountGroup={srpAccount}
-      />,
-      { state: mockState },
+    const internalAccounts = createMockInternalAccountsFromGroups([
+      srpAccount,
+      ledgerAccount,
+    ]);
+    const { getByText } = renderComponentWithMockState(
+      [srpWallet, ledgerWallet],
+      internalAccounts,
+      srpAccount,
     );
 
     expect(getByText('Wallet 1')).toBeTruthy();
@@ -336,27 +294,14 @@ describe('MultichainAccountSelectorList', () => {
       account2,
     ]);
 
-    const mockState: DeepPartial<RootState> = {
-      engine: {
-        backgroundState: {
-          AccountTreeController: {
-            accountTree: {
-              wallets: {
-                [`keyring:${wallet1.id}`]: wallet1,
-              } as Record<string, AccountWalletObject>,
-            },
-          },
-          ...mockFeatureFlagController,
-        },
-      },
-    };
-
-    const { getAllByTestId } = renderWithProvider(
-      <MultichainAccountSelectorList
-        onSelectAccount={mockOnSelectAccount}
-        selectedAccountGroup={account2}
-      />,
-      { state: mockState },
+    const internalAccounts = createMockInternalAccountsFromGroups([
+      account1,
+      account2,
+    ]);
+    const { getAllByTestId } = renderComponentWithMockState(
+      [wallet1],
+      internalAccounts,
+      account2,
     );
 
     const accountCells = getAllByTestId('multichain-account-cell-container');
@@ -594,27 +539,14 @@ describe('MultichainAccountSelectorList', () => {
         account2,
       ]);
 
-      const mockState: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [`keyring:${wallet1.id}`]: wallet1,
-                } as Record<string, AccountWalletObject>,
-              },
-            },
-            ...mockFeatureFlagController,
-          },
-        },
-      };
-
-      const { getByTestId, getByText } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroup={account1}
-        />,
-        { state: mockState },
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const { getByTestId, getByText } = renderComponentWithMockState(
+        [wallet1],
+        internalAccounts,
+        account1,
       );
 
       // Search for non-existent term
@@ -645,27 +577,14 @@ describe('MultichainAccountSelectorList', () => {
         account2,
       ]);
 
-      const mockState: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [`keyring:${wallet1.id}`]: wallet1,
-                } as Record<string, AccountWalletObject>,
-              },
-            },
-            ...mockFeatureFlagController,
-          },
-        },
-      };
-
-      const { getByTestId, queryByText } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroup={account1}
-        />,
-        { state: mockState },
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const { getByTestId, queryByText } = renderComponentWithMockState(
+        [wallet1],
+        internalAccounts,
+        account1,
       );
 
       // Search with different cases
@@ -702,27 +621,14 @@ describe('MultichainAccountSelectorList', () => {
         account2,
       ]);
 
-      const mockState: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [`keyring:${wallet1.id}`]: wallet1,
-                } as Record<string, AccountWalletObject>,
-              },
-            },
-            ...mockFeatureFlagController,
-          },
-        },
-      };
-
-      const { getByTestId, queryByText } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroup={account1}
-        />,
-        { state: mockState },
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const { getByTestId, queryByText } = renderComponentWithMockState(
+        [wallet1],
+        internalAccounts,
+        account1,
       );
 
       const searchInput = getByTestId(
@@ -762,27 +668,14 @@ describe('MultichainAccountSelectorList', () => {
         account2,
       ]);
 
-      const mockState: DeepPartial<RootState> = {
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {
-                  [`keyring:${wallet1.id}`]: wallet1,
-                } as Record<string, AccountWalletObject>,
-              },
-            },
-            ...mockFeatureFlagController,
-          },
-        },
-      };
-
-      const { getByTestId, queryByText } = renderWithProvider(
-        <MultichainAccountSelectorList
-          onSelectAccount={mockOnSelectAccount}
-          selectedAccountGroup={account1}
-        />,
-        { state: mockState },
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const { getByTestId, queryByText } = renderComponentWithMockState(
+        [wallet1],
+        internalAccounts,
+        account1,
       );
 
       const searchInput = getByTestId(
