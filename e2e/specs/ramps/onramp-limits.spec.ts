@@ -4,8 +4,8 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokeTrade } from '../../tags';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../framework/Assertions';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 
@@ -21,8 +21,8 @@ describe(SmokeTrade('On-Ramp Limits'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapBuyButton();
+        await WalletView.tapWalletFundButton();
+        await FundActionMenu.tapBuyButton();
         await BuyGetStartedView.tapGetStartedButton();
         await BuildQuoteView.enterAmount('1');
         await Assertions.expectElementToBeVisible(

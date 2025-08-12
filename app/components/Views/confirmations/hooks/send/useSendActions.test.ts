@@ -1,4 +1,5 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
 import { useSendActions } from './useSendActions';
 
@@ -33,12 +34,21 @@ describe('useSendActions', () => {
     expect(result.current.handleCancelPress).toBeDefined();
   });
 
-  it('call navigation.goBack when cancelSend is invoked', () => {
+  it('calls navigation.goBack when handleBackPress is invoked', () => {
+    const { result } = renderHookWithProvider(
+      () => useSendActions(),
+      mockState,
+    );
+    result.current.handleBackPress();
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('calls navigation.navigate with WALLET_VIEW when handleCancelPress is invoked', () => {
     const { result } = renderHookWithProvider(
       () => useSendActions(),
       mockState,
     );
     result.current.handleCancelPress();
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
   });
 });

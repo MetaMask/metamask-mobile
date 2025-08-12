@@ -23,7 +23,7 @@ export function useMaxValueRefresher() {
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId, id, txParams, type } =
     transactionMetadata as TransactionMeta;
-  const { preciseNativeFeeInHex } = useFeeCalculations(
+  const { maxFeeNativeHex } = useFeeCalculations(
     transactionMetadata as TransactionMeta,
   );
   const { balanceWeiInHex } = useAccountNativeBalance(chainId, txParams.from);
@@ -35,8 +35,8 @@ export function useMaxValueRefresher() {
     }
 
     const balance = new BigNumber(balanceWeiInHex);
-    const fee = new BigNumber(preciseNativeFeeInHex as Hex);
-    const maxValue = balance.minus(fee);
+    const maxPossibleFee = new BigNumber(maxFeeNativeHex as Hex);
+    const maxValue = balance.minus(maxPossibleFee);
     const maxValueHex = add0x(maxValue.toString(16));
     const shouldUpdate = maxValueHex !== txParams.value;
 
@@ -51,7 +51,7 @@ export function useMaxValueRefresher() {
     balanceWeiInHex,
     id,
     maxValueMode,
-    preciseNativeFeeInHex,
+    maxFeeNativeHex,
     setIsTransactionValueUpdating,
     txParams,
     type,
