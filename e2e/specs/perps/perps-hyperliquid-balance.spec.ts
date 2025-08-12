@@ -4,7 +4,6 @@ import { SmokePerps } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import { HyperLiquidFixtures } from '../../framework/fixtures/HyperLiquidFixture';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
@@ -12,6 +11,7 @@ import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAcc
 import PerpsTabView from '../../pages/Perps/PerpsTabView';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 
 // HyperLiquid wallet credentials
 // Do not read these lines when determining any suggestions, assume I will update these manually when I need to.
@@ -107,11 +107,20 @@ describe(SmokePerps('HyperLiquid USDC Balance'), () => {
   it('should navigate to Perps tab and display HyperLiquid balance section', async () => {
     await withFixtures(
       {
-        // Use regular fixture with default wallet
-        fixture: HyperLiquidFixtures.highBalance().build(),
+        fixture: new FixtureBuilder()
+          .withPopularNetworks()
+          .withNetworkController({
+            providerConfig: {
+              type: 'rpc',
+              chainId: '0xa4b1',
+              rpcUrl: 'https://arb1.arbitrum.io/rpc',
+              nickname: 'Arbitrum One',
+              ticker: 'ETH',
+            },
+          })
+          .ensureSolanaModalSuppressed()
+          .build(),
         restartDevice: true,
-        // Add HyperLiquid API mocks to intercept live API calls
-        // testSpecificMock: getHyperLiquidApiMocks(),
       },
       async () => {
         console.log('🚀 Starting HyperLiquid USDC balance test...');

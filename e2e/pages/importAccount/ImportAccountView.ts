@@ -19,9 +19,19 @@ class ImportAccountView {
     );
   }
 
+  get backButton(): DetoxElement {
+    return Matchers.getElementByID(ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON);
+  }
+
   async tapImportButton(): Promise<void> {
     await Gestures.waitAndTap(this.importButton, {
       elemDescription: 'Import Button',
+    });
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back Button',
     });
   }
 

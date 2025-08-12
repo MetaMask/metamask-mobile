@@ -639,6 +639,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
                   label={strings('perps.deposit.done_button')}
                   onPress={handleDonePress}
                   style={styles.percentageButton}
+                  testID="done-button"
                 />
               </View>
             )}

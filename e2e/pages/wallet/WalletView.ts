@@ -537,6 +537,16 @@ class WalletView {
       elemDescription: 'Wallet Receive Button',
     });
   }
+
+  get perpsTab(): DetoxElement {
+    return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
+  }
+
+  async tapOnPerpsTab(): Promise<void> {
+    await Gestures.waitAndTap(this.perpsTab, {
+      elemDescription: 'Perps Tab Button',
+    });
+  }
 }
 
 export default new WalletView();

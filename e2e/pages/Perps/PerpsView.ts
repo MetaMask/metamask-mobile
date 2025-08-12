@@ -1,7 +1,4 @@
-import {
-  PerpsPositionCardSelectorsIDs,
-  PerpsClosePositionBottomSheetSelectorsIDs,
-} from '../../selectors/Perps/Perps.selectors';
+import { PerpsPositionCardSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 

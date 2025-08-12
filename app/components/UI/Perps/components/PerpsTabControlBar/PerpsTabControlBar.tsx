@@ -117,7 +117,11 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   };
 
   return (
-    <TouchableOpacity style={styles.wrapper} onPress={handlePress}>
+    <TouchableOpacity
+      style={styles.wrapper}
+      onPress={handlePress}
+      testID="perps-balance-button"
+    >
       <View style={styles.balanceContainer}>
         <Text
           variant={TextVariant.BodySM}
