@@ -224,6 +224,7 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
                     order={order}
                     expanded
                     showIcon
+                    disabled
                     onCancel={async (orderToCancel) => {
                       try {
                         DevLogger.log(

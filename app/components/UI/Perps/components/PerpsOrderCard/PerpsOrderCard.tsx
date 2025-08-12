@@ -91,12 +91,6 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
     };
   }, [order]);
 
-  const handleCardPress = async () => {
-    DevLogger.log('PerpsOrderCard: Card pressed', { orderId: order.orderId });
-    // Future: Navigate to order details when screen is available
-    // For now, just log the interaction
-  };
-
   const handleCancelPress = () => {
     DevLogger.log('PerpsOrderCard: Cancel button pressed', {
       orderId: order.orderId,
@@ -112,7 +106,6 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
   return (
     <TouchableOpacity
       style={expanded ? styles.expandedContainer : styles.collapsedContainer}
-      onPress={handleCardPress}
       testID={PerpsOrderCardSelectorsIDs.CARD}
       disabled={disabled}
     >
