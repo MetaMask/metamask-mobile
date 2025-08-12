@@ -6,7 +6,7 @@ exports[`ActionListItem Rendering should render correctly with basic props 1`] =
     {
       "busy": undefined,
       "checked": undefined,
-      "disabled": undefined,
+      "disabled": false,
       "expanded": undefined,
       "selected": undefined,
     }

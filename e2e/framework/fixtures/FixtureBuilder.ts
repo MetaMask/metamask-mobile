@@ -1,4 +1,7 @@
-import { getGanachePort, getTestDappLocalUrl } from './FixtureUtils';
+import {
+  getGanachePort,
+  getTestDappLocalUrlByDappCounter,
+} from './FixtureUtils';
 import { merge } from 'lodash';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
@@ -1096,7 +1099,7 @@ class FixtureBuilder {
       CHAIN_IDS.AVALANCHE, // Avalanche C-Chain
       CHAIN_IDS.BASE, // Base
       CHAIN_IDS.ZKSYNC_ERA, // zkSync Era
-      CHAIN_IDS.SEI, // Sei Network
+      CHAIN_IDS.SEI, // Sei Mainnet
     ];
 
     // Use userState accounts if provided, otherwise fall back to MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER
@@ -1684,7 +1687,7 @@ class FixtureBuilder {
     // We start at 1 to easily identify the tab across all tests
     for (let i = 1; i <= extraTabs; i++) {
       this.fixture.state.browser.tabs.push({
-        url: getTestDappLocalUrl(i),
+        url: getTestDappLocalUrlByDappCounter(i),
         id: DEFAULT_TAB_ID + i,
         isArchived: false,
       });
