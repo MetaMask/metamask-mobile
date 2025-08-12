@@ -1861,7 +1861,7 @@ export class NetworkSettings extends PureComponent {
                 onPress={this.addRpcUrl}
                 testID={NetworksViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON}
                 style={styles.button}
-                label={strings('app_settings.network_save') + ' (3)'}
+                label={strings('app_settings.network_save')}
                 isDisabled={isActionDisabled}
                 width={ButtonWidthTypes.Full}
               />
@@ -1977,7 +1977,7 @@ export class NetworkSettings extends PureComponent {
               </View>
             ) : null}
             <Text style={styles.label}>
-              {strings('app_settings.network_rpc_url_label') + ' (2)'}
+              {strings('app_settings.network_rpc_url_label')}
             </Text>
             {isNetworkUiRedesignEnabled() ? (
               <View style={styles.dropDownInput}>
@@ -2198,7 +2198,7 @@ export class NetworkSettings extends PureComponent {
             >
               <SafeAreaView style={styles.rpcMenu}>
                 <Text style={styles.label}>
-                  {strings('app_settings.network_rpc_url_label') + ' (1)'}
+                  {strings('app_settings.network_rpc_url_label')}
                 </Text>
                 <TextInput
                   ref={this.inputRpcURL}
