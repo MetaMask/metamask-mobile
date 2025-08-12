@@ -51,6 +51,7 @@ import {
   getEther,
   calculateEIP1559GasFeeHexes,
 } from '../../../../../../util/transactions';
+import { TransactionType } from '@metamask/transaction-controller';
 import { GAS_ESTIMATE_TYPES } from '@metamask/gas-fee-controller';
 import { BNToHex } from '@metamask/controller-utils';
 import ErrorMessage from '../ErrorMessage';
@@ -109,7 +110,6 @@ import { selectContractExchangeRatesByChainId } from '../../../../../../selector
 import { isNativeToken } from '../../../utils/generic';
 import { selectConfirmationRedesignFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import { MMM_ORIGIN } from '../../../constants/confirmations';
-import { isHardwareAccount } from '../../../../../../util/address';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -730,9 +730,14 @@ class Amount extends PureComponent {
             : BNToHex(transaction.value),
       };
 
+      const transactionType = isNativeToken(selectedAsset)
+        ? TransactionType.simpleSend
+        : TransactionType.tokenMethodTransfer;
+
       await addTransaction(transactionParams, {
         origin: MMM_ORIGIN,
         networkClientId: globalNetworkClientId,
+        type: transactionType,
       });
       this.setState({ isRedesignedTransferTransactionLoading: false });
       navigation.navigate('SendFlowView', {
