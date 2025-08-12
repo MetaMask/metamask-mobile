@@ -206,7 +206,7 @@
     "@metamask/app-metadata-controller": "^1.0.0",
     "@metamask/approval-controller": "^7.1.3",
     "@metamask/assets-controllers": "^73.0.2",
-    "@metamask/base-controller": "^8.0.0",
+    "@metamask/base-controller": "^8.1.0",
     "@metamask/bitcoin-wallet-snap": "^0.18.0",
     "@metamask/bridge-controller": "^37.1.0",
     "@metamask/bridge-status-controller": "^36.1.0",
