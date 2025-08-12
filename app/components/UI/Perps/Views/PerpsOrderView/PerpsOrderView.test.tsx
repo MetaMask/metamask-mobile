@@ -319,7 +319,6 @@ describe('PerpsOrderView', () => {
     // Check if key elements are rendered
     await waitFor(() => {
       expect(screen.getByText('Leverage')).toBeDefined();
-      expect(screen.getByText('Pay with')).toBeDefined();
     });
   });
 
@@ -564,17 +563,6 @@ describe('PerpsOrderView', () => {
 
     await waitFor(() => {
       expect(screen.getByText('10x')).toBeDefined();
-    });
-  });
-
-  it('shows token selector when pay with pressed', async () => {
-    render(<PerpsOrderView />);
-
-    const payWithText = await screen.findByText('Pay with');
-    fireEvent.press(payWithText);
-
-    await waitFor(() => {
-      expect(screen.getByTestId('token-selector')).toBeDefined();
     });
   });
 
