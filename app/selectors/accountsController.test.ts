@@ -778,6 +778,46 @@ describe('selectInternalAccountsByScope', () => {
     expect(result).toHaveLength(2);
   });
 
+  it('returns EVM accounts for both EOA and SCA (erc4337) when EVM scope is requested', () => {
+    const eoaAccount: InternalAccount = {
+      ...internalAccount1,
+      id: `${internalAccount1.id}-eoa`,
+      // EOA already mapped to an EVM scope in test utils (EthScope.Eoa)
+    };
+    const scaAccount: InternalAccount = createMockInternalAccount(
+      '0xSCA4337',
+      'SCA Account',
+      KeyringTypes.hd,
+      EthAccountType.Erc4337,
+    );
+    const solAccount: InternalAccount = {
+      ...internalAccount2,
+      id: `${internalAccount2.id}-sol`,
+      scopes: [SolScope.Mainnet],
+    };
+
+    const state = {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [eoaAccount.id]: eoaAccount,
+                [scaAccount.id]: scaAccount,
+                [solAccount.id]: solAccount,
+              },
+              selectedAccount: eoaAccount.id,
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectInternalAccountsByScope(state, 'eip155:*');
+    expect(result).toEqual(expect.arrayContaining([eoaAccount, scaAccount]));
+    expect(result).toHaveLength(2);
+  });
+
   it('returns only accounts with the exact non-EVM scope', () => {
     const solanaAccount: InternalAccount = {
       ...internalAccount1,
