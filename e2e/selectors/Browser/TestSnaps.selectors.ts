@@ -8,6 +8,7 @@ export const TestSnapViewSelectorWebIDS = {
   connectBackgroundEventsButton: 'connectbackground-events',
   connectBip32Button: 'connectbip32',
   connectBip44Button: 'connectbip44',
+  connectCronjobSnapButton: 'connectcronjobs',
   connectClientStatusSnapButton: 'connectclient-status',
   connectDialogSnapButton: 'connectdialogs',
   connectGetEntropyButton: 'connectGetEntropySnap',
