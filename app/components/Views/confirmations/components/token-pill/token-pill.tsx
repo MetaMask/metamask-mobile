@@ -14,13 +14,22 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 
 export interface TokenPillProps {
   address: Hex;
   chainId: Hex;
+  showArrow?: boolean;
 }
 
-export const TokenPill: React.FC<TokenPillProps> = ({ address, chainId }) => {
+export const TokenPill: React.FC<TokenPillProps> = ({
+  address,
+  chainId,
+  showArrow,
+}) => {
   const { styles } = useStyles(styleSheet, {});
   const tokens = useTokensWithBalance({ chainIds: [chainId] });
 
@@ -62,6 +71,7 @@ export const TokenPill: React.FC<TokenPillProps> = ({ address, chainId }) => {
         />
       </BadgeWrapper>
       <Text testID="token-pill-symbol">{token?.symbol}</Text>
+      {showArrow && <Icon name={IconName.ArrowDown} size={IconSize.Xs} />}
     </Box>
   );
 };

@@ -31,7 +31,11 @@ export function PayWithRow() {
         {!payToken ? (
           <AnimatedSpinner size={SpinnerSize.SM} />
         ) : (
-          <TokenPill address={payToken.address} chainId={payToken.chainId} />
+          <TokenPill
+            address={payToken.address}
+            chainId={payToken.chainId}
+            showArrow
+          />
         )}
       </TouchableOpacity>
     </InfoRow>
