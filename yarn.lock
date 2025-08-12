@@ -5732,23 +5732,10 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 6ea92ded31 (fix: clean up)
 "@metamask/network-enablement-controller@0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-0.1.0.tgz#b2ed26ae562069387393c12adc21d8717a201a28"
   integrity sha512-z/Jr9MiANc8sZ9tzNQZIdb+DpjbSceekgUUDf/Y2XJ74CElhR8DuvdwxzlzFrADmljST67YwTb5c7r8bR0fQgQ==
-<<<<<<< HEAD
-=======
-"@metamask/network-enablement-controller@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-0.1.1.tgz#ce2f2cb278ce6b958fdab663093e25e8d3d541f9"
-  integrity sha512-ZYLIhKEfZtWFe4ZhwskpjPXP7AiZuuoPPsbjcUdaBn5zgYsil2yKOOhUpc6GHBbxvJDxgsmc1YbCawK9SRKvoA==
->>>>>>> 0f2b708b71 (fix: clean up)
-=======
->>>>>>> 6ea92ded31 (fix: clean up)
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.11.0"
