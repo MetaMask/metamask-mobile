@@ -5,9 +5,11 @@ import BasicInfo from './BasicInfo';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
+import { createSsnInfoModalNavigationDetails } from '../Modals/SsnInfoModal';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
 import { endTrace } from '../../../../../../util/trace';
+import Logger from '../../../../../../util/Logger';
 
 const mockTrackEvent = jest.fn();
 const mockPostKycForm = jest.fn();
@@ -201,6 +203,16 @@ describe('BasicInfo Component', () => {
     );
   });
 
+  it('navigates to SSN info modal when SSN info button is pressed', () => {
+    render(BasicInfo);
+
+    fireEvent.press(screen.getByTestId('ssn-info-button'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createSsnInfoModalNavigationDetails(),
+    );
+  });
+
   it('calls setOptions with correct title when the component mounts', () => {
     render(BasicInfo);
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
@@ -303,8 +315,12 @@ describe('BasicInfo Component', () => {
 
   it('handles form submission errors and displays error message', async () => {
     const errorMessage = 'API Error occurred';
-    mockPostKycForm.mockRejectedValueOnce(new Error(errorMessage));
+    const mockError = new Error(errorMessage);
+    mockPostKycForm.mockImplementationOnce(() => {
+      throw mockError;
+    });
 
+    const mockLoggerError = jest.spyOn(Logger, 'error');
     const dob = new Date('1990-01-01').getTime().toString();
     render(BasicInfo);
 
@@ -315,12 +331,17 @@ describe('BasicInfo Component', () => {
       '234567890',
     );
     fireEvent.changeText(screen.getByTestId('date-of-birth-input'), dob);
+    fireEvent.changeText(screen.getByTestId('ssn-input'), '123456789');
 
     await act(async () => {
       fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
     });
 
     expect(mockNavigate).not.toHaveBeenCalled();
-    expect(screen.toJSON()).toMatchSnapshot();
+    expect(screen.getByText(errorMessage)).toBeOnTheScreen();
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      mockError,
+      'Unexpected error during basic info form submission',
+    );
   });
 });
