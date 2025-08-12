@@ -1072,7 +1072,6 @@ const PerpsOrderViewContent: React.FC = () => {
           </View>
 
           <Keypad
-            style={styles.keypad}
             value={orderForm.amount}
             onChange={handleKeypadChange}
             currency="USD"

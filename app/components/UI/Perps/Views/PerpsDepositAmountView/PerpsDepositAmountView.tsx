@@ -772,7 +772,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
             )}
 
             <Keypad
-              style={styles.keypad}
               value={sourceAmount || '0'}
               onChange={handleKeypadChange}
               currency={sourceToken?.symbol || USDC_SYMBOL}

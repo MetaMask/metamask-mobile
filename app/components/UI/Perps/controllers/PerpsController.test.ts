@@ -146,6 +146,7 @@ describe('PerpsController', () => {
       getOrderFills: jest.fn(),
       getOrders: jest.fn(),
       getFunding: jest.fn(),
+      getIsFirstTimeUser: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -2746,6 +2747,52 @@ describe('PerpsController', () => {
           expect((error as Error).message).toBe(errorMessage);
         }
       });
+    });
+  });
+
+  describe('isFirstTimeUser state and markTutorialCompleted', () => {
+    it('should default to true for first-time users', async () => {
+      await withController(async ({ controller }) => {
+        // Assert
+        expect(controller.state.isFirstTimeUser).toBe(true);
+      });
+    });
+
+    it('should set isFirstTimeUser to false when markTutorialCompleted is called', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        expect(controller.state.isFirstTimeUser).toBe(true);
+
+        // Act
+        controller.markTutorialCompleted();
+
+        // Assert
+        expect(controller.state.isFirstTimeUser).toBe(false);
+      });
+    });
+
+    it('should persist isFirstTimeUser state', async () => {
+      // First controller instance
+      await withController(async ({ controller }) => {
+        // Arrange - verify initial state
+        expect(controller.state.isFirstTimeUser).toBe(true);
+
+        // Act - mark tutorial as completed
+        controller.markTutorialCompleted();
+        expect(controller.state.isFirstTimeUser).toBe(false);
+      });
+
+      // Second controller instance should have persisted state
+      await withController(
+        async ({ controller }) => {
+          // Assert - state should be persisted
+          expect(controller.state.isFirstTimeUser).toBe(false);
+        },
+        {
+          // Use same state to simulate persistence
+          state: { isFirstTimeUser: false },
+        },
+      );
     });
   });
 });

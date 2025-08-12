@@ -505,7 +505,6 @@ const PerpsWithdrawView: React.FC = () => {
             )}
 
             <Keypad
-              style={styles.keypad}
               value={withdrawAmount}
               onChange={handleKeypadChange}
               currency={USDC_SYMBOL}
