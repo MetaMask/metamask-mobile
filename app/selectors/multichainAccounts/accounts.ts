@@ -188,3 +188,57 @@ export const selectInternalAccountByAccountGroupAndScope =
           scope,
         ),
   );
+
+/**
+ * Selector to get all internal accounts across all wallets that are valid for a given scope.
+ *
+ * For EVM scopes (eip155:*), this returns all accounts that have any EVM scope
+ * (i.e., any scope that starts with 'eip155:'). For non-EVM scopes, this returns
+ * all accounts that include the exact scope.
+ *
+ * The search space is the set of account IDs referenced by any account group in any wallet
+ * within the `AccountTreeController`. Accounts not referenced by any group are ignored.
+ *
+ * @param state - The Redux root state
+ * @returns A function that takes a scope and returns an array of matching internal accounts
+ */
+export const selectAllInternalAccountsByScope = createDeepEqualSelector(
+  [selectAccountTreeControllerState, selectInternalAccountsById],
+  (
+      accountTreeState: AccountTreeControllerState,
+      internalAccountsMap: Record<AccountId, InternalAccount>,
+    ) =>
+    (scope: CaipChainId): InternalAccount[] => {
+      const wallets = accountTreeState?.accountTree?.wallets;
+      if (!wallets) {
+        return [];
+      }
+
+      const isEvmScope = scope.startsWith('eip155:');
+
+      // Collect unique account IDs referenced by any group in any wallet
+      const uniqueAccountIds = new Set<AccountId>();
+      Object.values(wallets).forEach((wallet: AccountWalletObject) => {
+        const groups = wallet.groups ?? ({} as AccountWalletObject['groups']);
+        Object.values(groups).forEach((group) => {
+          (group.accounts ?? []).forEach((accountId: AccountId) => {
+            uniqueAccountIds.add(accountId);
+          });
+        });
+      });
+
+      const allAccounts = Array.from(uniqueAccountIds)
+        .map((id) => internalAccountsMap[id])
+        .filter((account): account is InternalAccount => Boolean(account));
+
+      if (isEvmScope) {
+        return allAccounts.filter((account) =>
+          account.scopes.some((accountScope) =>
+            accountScope.startsWith('eip155:'),
+          ),
+        );
+      }
+
+      return allAccounts.filter((account) => account.scopes.includes(scope));
+    },
+);
