@@ -63,6 +63,8 @@ interface NetworkBadgeProps {
 }
 
 const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const networkConfig = networkConfigurations[chainId];
   const displayName = networkConfig?.name || '';
@@ -72,6 +74,7 @@ const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
       flexDirection={FlexDirection.Row}
       alignItems={AlignItems.center}
       gap={2}
+      style={styles.networkBadgeContainer}
     >
       <Badge
         variant={BadgeVariant.Network}
@@ -79,7 +82,13 @@ const NetworkBadge = ({ chainId }: NetworkBadgeProps) => {
         isScaled={false}
         size={AvatarSize.Sm}
       />
-      <Text variant={TextVariant.BodyMDMedium}>{displayName}</Text>
+      <Text
+        variant={TextVariant.BodyMDMedium}
+        numberOfLines={1}
+        style={styles.networkBadgeText}
+      >
+        {displayName}
+      </Text>
     </Box>
   );
 };
