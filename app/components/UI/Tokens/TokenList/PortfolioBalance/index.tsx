@@ -44,31 +44,7 @@ export const PortfolioBalance = () => {
   const derivedWallet = useSelector((state: RootState) =>
     selectWalletByAccount(state)(selectedAccount?.id as string),
   );
-  // TODO(ASSETS-1125): Temporary workaround for testing only.
-  // We currently derive the account group id as `${walletId}/default` by first
-  // selecting the currently selected internal account, then selecting the wallet
-  // that contains that account, and finally appending `/default` to form a group id.
-  // This is NOT the intended long-term approach. Once the Account Tree exposes a
-  // reliable "selected account group id" (or a selector for the current selected
-  // account group), replace this derivation with that selector and remove this logic.
-  // Using the proper selector ensures we always read the exact group the user has
-  // selected and avoids assumptions about group naming (e.g., `/default`).
-  // Legacy placeholder, no longer used after membership-based resolution
-  // const derivedGroupId = derivedWallet ? `${derivedWallet.id}/default` : undefined;
-  // Selector for derivedGroupId kept for reference; resolvedGroupId is used instead
-  // const selectBalanceForDerivedGroup = React.useMemo(
-  //   () =>
-  //     derivedGroupId
-  //       ? balanceSelectors.selectBalanceByAccountGroup(derivedGroupId)
-  //       : null,
-  //   [derivedGroupId],
-  // );
-  // Kept for potential future comparison; currently unused after resolvedGroupId path
-  // const derivedGroupBalance = useSelector((state: RootState) =>
-  //   selectBalanceForDerivedGroup ? selectBalanceForDerivedGroup(state) : null,
-  // );
 
-  // Read full wallets/groups to detect when aggregated data is hydrated
   const { selectBalanceForAllWallets } = balanceSelectors;
   const assetsControllersBalance = useSelector(selectBalanceForAllWallets());
 
@@ -90,7 +66,6 @@ export const PortfolioBalance = () => {
       {},
   );
 
-  // Resolve final group id to use for aggregated balance
   const resolvedGroupId =
     groupIdFromMembership && availableGroupIds.includes(groupIdFromMembership)
       ? groupIdFromMembership
@@ -115,7 +90,6 @@ export const PortfolioBalance = () => {
     selectBalanceForResolvedGroup ? selectBalanceForResolvedGroup(state) : null,
   );
 
-  // No dev logs in production build
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const renderAggregatedPercentage = () => {
@@ -164,9 +138,6 @@ export const PortfolioBalance = () => {
     }
     return selectedAccountMultichainBalance?.displayBalance;
   })();
-
-  // No dev logs in production build
-
   return (
     <View style={styles.portfolioBalance}>
       <View>
