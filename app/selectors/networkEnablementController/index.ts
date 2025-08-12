@@ -9,7 +9,7 @@ export const selectNetworkEnablementControllerState = (state: RootState) =>
 export const selectEnabledNetworksByNamespace = createDeepEqualSelector(
   selectNetworkEnablementControllerState,
   (networkEnablementControllerState: NetworkEnablementControllerState) =>
-    networkEnablementControllerState?.enabledNetworkMap,
+    networkEnablementControllerState?.enabledNetworkMap ?? {},
 );
 
 export const selectEVMEnabledNetworks = createDeepEqualSelector(

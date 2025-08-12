@@ -5732,7 +5732,7 @@
     uri-js "^4.4.1"
     uuid "^8.3.2"
 
-"@metamask/network-enablement-controller@^0.1.0":
+"@metamask/network-enablement-controller@0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-0.1.0.tgz#b2ed26ae562069387393c12adc21d8717a201a28"
   integrity sha512-z/Jr9MiANc8sZ9tzNQZIdb+DpjbSceekgUUDf/Y2XJ74CElhR8DuvdwxzlzFrADmljST67YwTb5c7r8bR0fQgQ==
@@ -6282,10 +6282,10 @@
   resolved "https://registry.yarnpkg.com/@metamask/swappable-obj-proxy/-/swappable-obj-proxy-2.3.0.tgz#276819d24f1b411c768441efb6098c1743d6f67a"
   integrity sha512-+VFE6wVWve86SLiUI3jyhJjizUezpOnwvRyem7EP79Mml+oSm48gQ4W8QqeQqTugbrlCsxtFI4QNEPotQsll6Q==
 
-"@metamask/swaps-controller@^13.2.0":
-  version "13.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-13.2.0.tgz#085b62d131a7c643374eb29b097f156abce0e772"
-  integrity sha512-4DgU1ZiR16ynbkyOpSHAhSUMt4MThtOStDS/Q9+2QVwqajruTV0P/EEFxc8r9kf17NXw9C5xt/fXa7CZLHrZKA==
+"@metamask/swaps-controller@^13.3.0":
+  version "13.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/swaps-controller/-/swaps-controller-13.3.0.tgz#b1a9451c8602434c0c2853f076d83d82627ed902"
+  integrity sha512-2zB+i8YJpEgA5yL5zeRXQ893s1X2pAoottQtJ45UToVTzs5UeOpOpJQQnaIAsFZhMp9UmFn1LopvhlVXj32uHw==
   dependencies:
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"

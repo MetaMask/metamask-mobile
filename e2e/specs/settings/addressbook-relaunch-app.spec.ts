@@ -3,7 +3,7 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import TestHelpers from '../../helpers';
@@ -50,8 +50,7 @@ describe(
           await Assertions.expectElementToBeVisible(ContactsView.container);
           await ContactsView.isContactAliasVisible('Curtis');
           await TabBarComponent.tapWallet();
-          await TabBarComponent.tapActions();
-          await WalletActionsBottomSheet.tapSendButton();
+          await WalletView.tapWalletSendButton();
           await Assertions.expectTextDisplayed('Curtis');
         },
       );
