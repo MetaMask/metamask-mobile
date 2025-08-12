@@ -38,23 +38,26 @@ const KeypadRow: React.FC<KeypadRowProps> = (props) => (
   />
 );
 
-interface KeypadButtonProps extends Omit<ButtonProps, 'children' | 'onPress'> {
+interface KeypadButtonProps
+  extends Omit<ButtonProps, 'children' | 'onPress' | 'variant'> {
   children?: React.ReactNode;
   onPress?: () => void;
   boxWrapperProps?: BoxProps;
+  variant?: ButtonVariant;
 }
 
 const KeypadButton: React.FC<KeypadButtonProps> = ({
   children,
   onPress,
   boxWrapperProps,
+  variant = ButtonVariant.Secondary,
   ...props
 }) => (
   // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
   <Box twClassName="flex-1" {...boxWrapperProps}>
     <Button
       onPress={onPress}
-      variant={ButtonVariant.Secondary}
+      variant={variant}
       size={ButtonSize.Lg}
       isFullWidth
       textProps={{
