@@ -116,6 +116,19 @@ const findInternalAccountByScope = (
 };
 
 /**
+ * Selector to get the currently selected account group from the AccountTreeController state.
+ * This selector retrieves the selected account group ID from the account tree state.
+ *
+ * @param state - The Redux root state
+ * @returns The currently selected account group ID or null if none is found
+ */
+export const selectSelectedAccountGroup = createDeepEqualSelector(
+  [selectAccountTreeControllerState],
+  (accountTreeState: AccountTreeControllerState) =>
+    accountTreeState?.accountTree?.selectedAccountGroup || null,
+);
+
+/**
  * Selector to get an internal account by scope from the currently selected account group.
  *
  * This selector finds an account that matches the given scope within the currently

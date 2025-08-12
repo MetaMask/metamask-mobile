@@ -10,6 +10,7 @@ import {
   createMockSnapInternalAccount,
 } from '../../util/test/accountsControllerTestUtils';
 import {
+  selectSelectedAccountGroup,
   getWalletIdFromAccountGroup,
   selectSelectedInternalAccountByScope,
   selectInternalAccountByAccountGroupAndScope,
@@ -921,6 +922,44 @@ describe('accounts selectors', () => {
         const secondBtcResult = selector(BITCOIN_SCOPE, secondEntropyGroup);
         expect(secondBtcResult).toEqual(secondBtcAccount);
       });
+    });
+  });
+
+  describe('selectSelectedAccountGroup', () => {
+    it('returns undefined when AccountTreeController is undefined', () => {
+      const mockState = createMockState(undefined);
+      const result = selectSelectedAccountGroup(mockState);
+      expect(result).toBe(null);
+    });
+
+    it('returns undefined when selectedAccountGroup is undefined', () => {
+      const mockState = createMockState({
+        accountTree: {
+          selectedAccountGroup: undefined,
+          wallets: {},
+        },
+      });
+
+      const result = selectSelectedAccountGroup(mockState);
+      expect(result).toBe(null);
+    });
+
+    it('returns selected account group ID', () => {
+      const mockState = createMockState({
+        accountTree: {
+          selectedAccountGroup: ACCOUNT_GROUP_ID_1,
+          wallets: {
+            [WALLET_ID_1]: {
+              id: WALLET_ID_1,
+              metadata: { name: 'Wallet 1' },
+              groups: {},
+            },
+          },
+        },
+      });
+
+      const result = selectSelectedAccountGroup(mockState);
+      expect(result).toBe(ACCOUNT_GROUP_ID_1);
     });
   });
 });
