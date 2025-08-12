@@ -71,7 +71,13 @@ export const TokenPill: React.FC<TokenPillProps> = ({
         />
       </BadgeWrapper>
       <Text testID="token-pill-symbol">{token?.symbol}</Text>
-      {showArrow && <Icon name={IconName.ArrowDown} size={IconSize.Xs} />}
+      {showArrow && (
+        <Icon
+          testID="token-pill-arrow"
+          name={IconName.ArrowDown}
+          size={IconSize.Xs}
+        />
+      )}
     </Box>
   );
 };
