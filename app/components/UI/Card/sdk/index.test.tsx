@@ -1,12 +1,7 @@
 import React from 'react';
 import { renderHook, render, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import {
-  CardSDKProvider,
-  useCardSDK,
-  ICardSDK,
-  CardVerification,
-} from './index';
+import { CardSDKProvider, useCardSDK, ICardSDK } from './index';
 import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
@@ -14,7 +9,6 @@ import {
   selectCardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
 import { selectChainId } from '../../../../selectors/networkController';
-import { useCardholderCheck } from '../hooks/useCardholderCheck';
 
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
@@ -41,16 +35,11 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../hooks/useCardholderCheck', () => ({
-  useCardholderCheck: jest.fn(),
-}));
-
 describe('CardSDK Context', () => {
   const MockedCardholderSDK = jest.mocked(CardSDK);
   const mockUseSelector = jest.mocked(useSelector);
   const mockSelectChainId = jest.mocked(selectChainId);
   const mockSelectCardFeatureFlag = jest.mocked(selectCardFeatureFlag);
-  const mockUseCardholderCheck = jest.mocked(useCardholderCheck);
 
   const mockSupportedTokens: SupportedToken[] = [
     {
@@ -76,7 +65,6 @@ describe('CardSDK Context', () => {
     mockSelectChainId.mockClear();
     mockSelectCardFeatureFlag.mockClear();
     mockUseSelector.mockClear();
-    mockUseCardholderCheck.mockClear();
   });
 
   const setupMockUseSelector = (
@@ -291,40 +279,6 @@ describe('CardSDK Context', () => {
         cardFeatureFlag: {},
         rawChainId: '0xe708',
       });
-    });
-  });
-
-  describe('CardVerification', () => {
-    beforeEach(() => {
-      mockUseCardholderCheck.mockClear();
-    });
-
-    it('should render without crashing', () => {
-      const result = render(<CardVerification />);
-      expect(result).toBeTruthy();
-    });
-
-    it('should call useCardholderCheck hook', () => {
-      render(<CardVerification />);
-      expect(mockUseCardholderCheck).toHaveBeenCalledTimes(1);
-    });
-
-    it('should return null (render nothing)', () => {
-      const { toJSON } = render(<CardVerification />);
-      expect(toJSON()).toBeNull();
-    });
-
-    it('should call useCardholderCheck on every render', () => {
-      const { rerender } = render(<CardVerification />);
-      expect(mockUseCardholderCheck).toHaveBeenCalledTimes(1);
-
-      rerender(<CardVerification />);
-      expect(mockUseCardholderCheck).toHaveBeenCalledTimes(2);
-    });
-
-    it('should be a functional component', () => {
-      expect(typeof CardVerification).toBe('function');
-      expect(CardVerification.prototype).toEqual({});
     });
   });
 });

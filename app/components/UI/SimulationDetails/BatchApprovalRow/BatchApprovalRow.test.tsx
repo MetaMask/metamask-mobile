@@ -30,7 +30,6 @@ const approvalData = [
     isAllApproval: false,
     isUnlimitedApproval: false,
     nestedTransactionIndex: 0,
-    usdAmount: null,
   },
 ];
 

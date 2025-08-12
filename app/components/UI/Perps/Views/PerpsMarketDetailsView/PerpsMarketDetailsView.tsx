@@ -5,7 +5,7 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
-import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -13,11 +13,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -27,23 +22,14 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
-import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import type {
   PerpsMarketData,
   PerpsNavigationParamList,
 } from '../../controllers/types';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
-import {
-  getDefaultCandlePeriodForDuration,
-  TimeDuration,
-  CandlePeriod,
-} from '../../constants/chartConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
-import PerpsBottomSheetTooltip, {
-  PerpsTooltipContentKey,
-} from '../../components/PerpsBottomSheetTooltip';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
 }
@@ -56,43 +42,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { market } = route.params || {};
   const { top } = useSafeAreaInsets();
 
-  const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
-    TimeDuration.ONE_DAY,
-  );
-  const [selectedCandlePeriod, setSelectedCandlePeriod] =
-    useState<CandlePeriod>(() =>
-      getDefaultCandlePeriodForDuration(TimeDuration.ONE_DAY),
-    );
-  const [
-    isCandlePeriodBottomSheetVisible,
-    setIsCandlePeriodBottomSheetVisible,
-  ] = useState(false);
+  const [selectedInterval, setSelectedInterval] = useState('1h');
 
-  const [selectedTooltip, setSelectedTooltip] =
-    useState<PerpsTooltipContentKey | null>(null);
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
   // Get candlestick data
   const { candleData, isLoadingHistory } = usePerpsPositionData({
     coin: market?.symbol || '',
-    selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
-    selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
+    selectedInterval,
   });
 
-  const handleDurationChange = useCallback((newDuration: TimeDuration) => {
-    setSelectedDuration(newDuration);
-    // Auto-update candle period to the appropriate default for the new duration
-    const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
-    setSelectedCandlePeriod(defaultPeriod);
-  }, []);
-
-  const handleCandlePeriodChange = useCallback((newPeriod: CandlePeriod) => {
-    setSelectedCandlePeriod(newPeriod);
-  }, []);
-
-  const handleGearPress = useCallback(() => {
-    setIsCandlePeriodBottomSheetVisible(true);
+  const handleIntervalChange = useCallback((newInterval: string) => {
+    setSelectedInterval(newInterval);
   }, []);
 
   const handleBackPress = () => {
@@ -112,17 +74,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       asset: market.symbol,
     });
   };
-
-  const handleTooltipPress = useCallback(
-    (contentKey: PerpsTooltipContentKey) => {
-      setSelectedTooltip(contentKey);
-    },
-    [],
-  );
-
-  const handleTooltipClose = useCallback(() => {
-    setSelectedTooltip(null);
-  }, []);
 
   if (!market) {
     return (
@@ -159,9 +110,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             candleData={candleData}
             isLoading={isLoadingHistory}
             height={350}
-            selectedDuration={selectedDuration}
-            onDurationChange={handleDurationChange}
-            onGearPress={handleGearPress}
+            selectedInterval={selectedInterval}
+            onIntervalChange={handleIntervalChange}
           />
         </View>
 
@@ -185,6 +135,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
+                  style={styles.statisticsLabel}
                 >
                   {strings('perps.market.24hr_high')}
                 </Text>
@@ -199,6 +150,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
+                  style={styles.statisticsLabel}
                 >
                   {strings('perps.market.24hr_low')}
                 </Text>
@@ -219,6 +171,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
+                  style={styles.statisticsLabel}
                 >
                   {strings('perps.market.24h_volume')}
                 </Text>
@@ -232,26 +185,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   PerpsMarketDetailsViewSelectorsIDs.STATISTICS_OPEN_INTEREST
                 }
               >
-                <View style={styles.statisticsLabelContainer}>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('perps.market.open_interest')}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => handleTooltipPress('open_interest')}
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Sm}
-                      color={IconColor.Muted}
-                      testID={
-                        PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON
-                      }
-                    />
-                  </TouchableOpacity>
-                </View>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  style={styles.statisticsLabel}
+                >
+                  {strings('perps.market.open_interest')}
+                </Text>
                 <Text style={styles.statisticsValue} color={TextColor.Default}>
                   {marketStats.openInterest}
                 </Text>
@@ -266,26 +206,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                   PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_RATE
                 }
               >
-                <View style={styles.statisticsLabelContainer}>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('perps.market.funding_rate')}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => handleTooltipPress('funding_rate')}
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Sm}
-                      color={IconColor.Muted}
-                      testID={
-                        PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON
-                      }
-                    />
-                  </TouchableOpacity>
-                </View>
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Alternative}
+                  style={styles.statisticsLabel}
+                >
+                  {strings('perps.market.funding_rate')}
+                </Text>
                 <Text
                   style={styles.statisticsValue}
                   color={
@@ -306,6 +233,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
                 <Text
                   variant={TextVariant.BodySM}
                   color={TextColor.Alternative}
+                  style={styles.statisticsLabel}
                 >
                   {strings('perps.market.countdown')}
                 </Text>
@@ -339,27 +267,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
         />
       </View>
-
-      {/* Candle Period Bottom Sheet */}
-      {isCandlePeriodBottomSheetVisible && (
-        <PerpsCandlePeriodBottomSheet
-          isVisible
-          onClose={() => setIsCandlePeriodBottomSheetVisible(false)}
-          selectedPeriod={selectedCandlePeriod}
-          selectedDuration={selectedDuration}
-          onPeriodChange={handleCandlePeriodChange}
-          testID={PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET}
-        />
-      )}
-      {selectedTooltip && (
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={handleTooltipClose}
-          contentKey={selectedTooltip}
-          testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
-          key={selectedTooltip}
-        />
-      )}
     </SafeAreaView>
   );
 };

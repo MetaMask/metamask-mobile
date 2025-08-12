@@ -11,7 +11,6 @@ import { selectChainId } from '../../../../selectors/networkController';
 
 import { CardSDK } from './CardSDK';
 import { selectCardFeatureFlag } from '../../../../selectors/featureFlagController/card';
-import { useCardholderCheck } from '../hooks/useCardholderCheck';
 
 export interface ICardSDK {
   sdk: CardSDK | null;
@@ -62,12 +61,6 @@ export const useCardSDK = () => {
     throw new Error('useCardSDK must be used within a CardSDKProvider');
   }
   return contextValue;
-};
-
-export const CardVerification: React.FC = () => {
-  useCardholderCheck();
-
-  return null;
 };
 
 export default CardSDKContext;

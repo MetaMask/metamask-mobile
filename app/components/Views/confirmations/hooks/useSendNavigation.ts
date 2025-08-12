@@ -9,7 +9,7 @@ export const useSendNavigation = () => {
   const { navigate } = useNavigation();
 
   const navigateToSendPage = useCallback(
-    (asset?: AssetType | Nft) => {
+    (asset: AssetType | Nft) => {
       handleSendPageNavigation(navigate, asset);
     },
     [navigate],

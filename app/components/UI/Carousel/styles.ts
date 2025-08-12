@@ -43,6 +43,8 @@ export const styleSheet = (params: {
       backgroundColor: theme.colors.background.muted,
       borderRadius: 8,
       height: CAROUSEL_HEIGHT,
+      borderWidth: 1,
+      borderColor: theme.colors.border.muted,
       width: BANNER_WIDTH,
       marginHorizontal: PEEK_WIDTH,
       position: 'relative',

@@ -1,12 +1,6 @@
 /* eslint-disable @typescript-eslint/no-shadow */
 import Crypto from 'react-native-quick-crypto';
-///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-import {
-  AppState,
-  AppStateStatus,
-  NativeEventSubscription,
-} from 'react-native';
-///: END:ONLY_INCLUDE_IF
+
 import {
   AccountTrackerController,
   AssetsContractController,
@@ -236,7 +230,6 @@ import {
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
-import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { perpsControllerInit } from './controllers/perps-controller';
@@ -282,12 +275,6 @@ export class Engine {
   lastIncomingTxBlockInfo: any;
 
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-  /**
-   * The app state event listener.
-   * This is used to handle app state changes in snaps lifecycle hooks.
-   */
-  appStateListener: NativeEventSubscription;
-
   subjectMetadataController: SubjectMetadataController;
   ///: END:ONLY_INCLUDE_IF
 
@@ -799,8 +786,6 @@ export class Engine {
           ' and origin: ',
           origin,
         );
-
-        return null;
       },
       createInterface: this.controllerMessenger.call.bind(
         this.controllerMessenger,
@@ -1292,7 +1277,6 @@ export class Engine {
         MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
-        NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
       },
       persistedState: initialState as EngineState,
@@ -1357,9 +1341,6 @@ export class Engine {
       initialState: initialState.RatesController,
     });
 
-    const networkEnablementController =
-      controllersByName.NetworkEnablementController;
-
     // Set up currency rate sync
     setupCurrencyRateSync(
       multichainRatesControllerMessenger,
@@ -1372,9 +1353,6 @@ export class Engine {
     cronjobController.init();
     // Notification Setup
     notificationServicesController.init();
-
-    // Notify Snaps that the app is active when the Engine is initialized.
-    this.controllerMessenger.call('SnapController:setClientActive', true);
     ///: END:ONLY_INCLUDE_IF
 
     const nftController = new NftController({
@@ -1678,7 +1656,6 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
-      NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
     };
 
@@ -1772,21 +1749,6 @@ export class Engine {
             new Error('Snap was terminated.'),
           );
         }
-      },
-    );
-
-    this.appStateListener = AppState.addEventListener(
-      'change',
-      (state: AppStateStatus) => {
-        if (state !== 'active' && state !== 'background') {
-          return;
-        }
-        // Notifies Snaps that the app may be in the background.
-        // This is best effort as we cannot guarantee the messages are received in time.
-        return this.controllerMessenger.call(
-          'SnapController:setClientActive',
-          state === 'active',
-        );
       },
     );
     ///: END:ONLY_INCLUDE_IF
@@ -2246,10 +2208,6 @@ export class Engine {
 
   removeAllListeners() {
     this.controllerMessenger.clearSubscriptions();
-
-    ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-    this.appStateListener?.remove();
-    ///: END:ONLY_INCLUDE_IF
   }
 
   async destroyEngineInstance() {
@@ -2262,7 +2220,6 @@ export class Engine {
     });
     this.removeAllListeners();
     await this.resetState();
-
     Engine.instance = null;
   }
 
@@ -2423,7 +2380,6 @@ export default {
       PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
-      NetworkEnablementController,
     } = instance.datamodel.state;
 
     return {
@@ -2479,7 +2435,6 @@ export default {
       PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
-      NetworkEnablementController,
     };
   },
 

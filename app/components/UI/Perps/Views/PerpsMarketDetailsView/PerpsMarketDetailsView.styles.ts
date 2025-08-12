@@ -79,10 +79,7 @@ export const createStyles = ({
       padding: 16,
       borderRadius: 8,
     },
-    statisticsLabelContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
+    statisticsLabel: {
       marginBottom: 4,
     },
     statisticsValue: {
@@ -117,12 +114,5 @@ export const createStyles = ({
       justifyContent: 'center',
       alignItems: 'center',
       padding: 24,
-    },
-    positionWarning: {
-      marginBottom: 12,
-      paddingHorizontal: 16,
-    },
-    positionWarningText: {
-      textAlign: 'center',
     },
   });

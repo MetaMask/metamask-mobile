@@ -343,7 +343,3 @@ export const timestampToTransakFormat = (timestamp: string) => {
 
   return `${day}-${month}-${year}`;
 };
-
-export function excludeFromArray<T>(array: T[], exclude: T): T[] {
-  return array.filter((item: T) => item !== exclude);
-}

@@ -1,13 +1,13 @@
+import { RouteProp, useRoute } from '@react-navigation/native';
 import { useEffect } from 'react';
 
-import { useParams } from '../../../../../util/navigation/navUtils';
 import { AssetType } from '../../types/token';
 import { useSendContext } from '../../context/send-context';
 
-export const useRouteParams = () => {
-  const { asset: paramsAsset } = useParams<{
-    asset: AssetType;
-  }>();
+const useRouteParams = () => {
+  const route =
+    useRoute<RouteProp<Record<string, { asset: AssetType }>, string>>();
+  const paramsAsset = route?.params?.asset;
   const { updateAsset } = useSendContext();
 
   useEffect(() => {
@@ -16,3 +16,5 @@ export const useRouteParams = () => {
     }
   }, [paramsAsset, updateAsset]);
 };
+
+export default useRouteParams;

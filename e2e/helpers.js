@@ -384,10 +384,6 @@ export default class TestHelpers {
     }
   }
 
-  static async terminateApp() {
-    return device.terminateApp();
-  }
-
   static async launchApp(launchOptions) {
     const config = await resolveConfig();
     const platform = device.getPlatform();

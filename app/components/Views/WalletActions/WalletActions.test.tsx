@@ -525,7 +525,7 @@ describe('WalletActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       params: {
         sourcePage: 'MainView',
-        sourceToken: {
+        token: {
           address: ethers.constants.AddressZero,
           chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           decimals: 9,
@@ -533,7 +533,6 @@ describe('WalletActions', () => {
           name: 'Solana',
           symbol: 'SOL',
         },
-        bridgeViewMode: 'Swap',
       },
       screen: 'BridgeView',
     });

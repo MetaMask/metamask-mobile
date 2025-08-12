@@ -66,7 +66,6 @@ const createStyles = ({ colors }) =>
       backgroundColor: colors.background.default,
       paddingTop:
         Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
-      paddingBottom: 16,
     },
     checkbox: {
       display: 'flex',
@@ -89,7 +88,6 @@ const createStyles = ({ colors }) =>
       flex: 1,
       flexDirection: 'column',
       rowGap: 16,
-      paddingBottom: 80, // Space for fixed action buttons at bottom
     },
     privacyPolicy: {
       ...fontStyles.normal,
@@ -466,17 +464,19 @@ class OptinMetrics extends PureComponent {
 
     if (isPastPrivacyPolicyDate) {
       return (
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {strings('privacy_policy.fine_print_1') + ' '}
-          <Text
-            color={TextColor.Primary}
-            variant={TextVariant.BodySM}
-            onPress={this.openPrivacyPolicy}
-          >
-            {strings('privacy_policy.privacy_policy_button')}
+        <View>
+          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            {strings('privacy_policy.fine_print_1') + ' '}
+            <Text
+              color={TextColor.Primary}
+              variant={TextVariant.BodySM}
+              onPress={this.openPrivacyPolicy}
+            >
+              {strings('privacy_policy.privacy_policy_button')}
+            </Text>
+            {' ' + strings('privacy_policy.fine_print_2')}
           </Text>
-          {' ' + strings('privacy_policy.fine_print_2')}
-        </Text>
+        </View>
       );
     }
 

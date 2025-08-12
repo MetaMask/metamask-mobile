@@ -1,8 +1,10 @@
 import { StyleSheet } from 'react-native';
 
-export const styleSheet = () =>
+const styleSheet = () =>
   StyleSheet.create({
     container: {
       padding: 0,
     },
   });
+
+export default styleSheet;

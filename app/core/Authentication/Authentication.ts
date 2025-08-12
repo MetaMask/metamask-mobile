@@ -13,7 +13,6 @@ import {
   logOut,
   passwordSet,
   setExistingUser,
-  setIsConnectionRemoved,
 } from '../../actions/user';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
 import AuthenticationError from './AuthenticationError';
@@ -619,7 +618,11 @@ class AuthenticationService {
   /**
    * Logout and lock keyring contoller. Will require user to enter password. Wipes biometric/pin-code/remember me
    */
-  lockApp = async ({ reset = true, locked = false } = {}): Promise<void> => {
+  lockApp = async ({
+    reset = true,
+    locked = false,
+    navigateToLogin = true,
+  } = {}): Promise<void> => {
     const { KeyringController } = Engine.context;
     if (reset) await this.resetPassword();
     if (KeyringController.isUnlocked()) {
@@ -635,9 +638,11 @@ class AuthenticationService {
 
     this.authData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
     this.dispatchLogout();
-    NavigationService.navigation?.reset({
-      routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
-    });
+    if (navigateToLogin) {
+      NavigationService.navigation?.reset({
+        routes: [{ name: Routes.ONBOARDING.LOGIN, params: { locked } }],
+      });
+    }
   };
 
   getType = async (): Promise<AuthData> =>
@@ -986,7 +991,7 @@ class AuthenticationService {
         throw new Error('No account data found');
       }
     } catch (error) {
-      this.lockApp({ reset: false });
+      this.lockApp({ reset: false, navigateToLogin: false });
       Logger.error(error as Error);
       throw error;
     }
@@ -1040,7 +1045,6 @@ class AuthenticationService {
         await SeedlessOnboardingController.refreshAuthTokens();
         await this.rehydrateSeedPhrase(globalPassword);
         // skip the rest of the flow ( change password and sync keyring encryption key)
-        ReduxService.store.dispatch(setIsConnectionRemoved(true));
         return;
       } else if (
         errorMessage ===

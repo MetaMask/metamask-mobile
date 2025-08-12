@@ -6,7 +6,6 @@ import Text, {
 import { strings } from '../../../../../../locales/i18n';
 import ActionModal from '../../../../UI/ActionModal';
 import { wipeTransactions } from '../../../../../util/transaction-controller';
-import { wipeSmartTransactions } from '../../../../../util/smart-transactions';
 import { wipeBridgeStatus } from '../../../../UI/Bridge/utils';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -32,7 +31,6 @@ export const ResetAccountModal = ({
   const resetAccount = () => {
     if (selectedAddress) {
       wipeBridgeStatus(selectedAddress, chainId);
-      wipeSmartTransactions(selectedAddress);
     }
     wipeTransactions();
     navigation.navigate('WalletView');
