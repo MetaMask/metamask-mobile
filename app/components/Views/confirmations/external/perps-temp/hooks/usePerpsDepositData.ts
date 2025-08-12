@@ -9,12 +9,15 @@ import {
   selectTransactionBridgeQuotesById,
 } from '../../../../../../core/redux/slices/confirmationMetrics';
 import { BigNumber } from 'bignumber.js';
+import { usePerpsDepositInit } from './usePerpsDepositInit';
 
 export function usePerpsDepositData({
   isKeyboardVisible,
 }: {
   isKeyboardVisible: boolean;
 }) {
+  usePerpsDepositInit();
+
   const { id: transactionId } = useTransactionMetadataOrThrow();
   const { amountUnformatted } = useTokenAmount();
   const amountValue = new BigNumber(amountUnformatted ?? '0');

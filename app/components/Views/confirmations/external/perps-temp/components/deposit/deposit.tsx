@@ -21,7 +21,10 @@ const AMOUNT_PREFIX = '$';
 
 export function PerpsDeposit() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const { isFullView } = usePerpsDepositData({ isKeyboardVisible });
+
+  const { isFullView } = usePerpsDepositData({
+    isKeyboardVisible,
+  });
 
   const handleKeyboardShow = () => {
     setIsKeyboardVisible(true);

@@ -8,6 +8,9 @@ import { strings } from '../../../../../../../locales/i18n';
 import { TouchableOpacity } from 'react-native';
 import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
 import { useTransactionRequiredFiat } from '../../../hooks/pay/useTransactionRequiredFiat';
+import AnimatedSpinner, {
+  SpinnerSize,
+} from '../../../../../UI/AnimatedSpinner';
 
 export function PayWithRow() {
   const navigation = useNavigation();
@@ -22,14 +25,14 @@ export function PayWithRow() {
     });
   }, [navigation, totalFiat]);
 
-  if (!payToken) {
-    return null;
-  }
-
   return (
     <InfoRow label={strings('confirm.label.pay_with')}>
       <TouchableOpacity onPress={handleClick}>
-        <TokenPill address={payToken.address} chainId={payToken.chainId} />
+        {!payToken ? (
+          <AnimatedSpinner size={SpinnerSize.SM} />
+        ) : (
+          <TokenPill address={payToken.address} chainId={payToken.chainId} />
+        )}
       </TouchableOpacity>
     </InfoRow>
   );
