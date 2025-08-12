@@ -4540,7 +4540,7 @@ exports[`Network Selector renders correctly when network UI redesign is enabled 
                                           ]
                                         }
                                       >
-                                        Sei Network
+                                        Sei Mainnet
                                       </Text>
                                     </View>
                                     <View

@@ -1,48 +1,124 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
+import { strings } from '../../../../../../../locales/i18n';
+import ButtonIcon from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import Input from '../../../../../../component-library/components/Form/TextField/foundation/Input';
+import {
+  IconColor,
+  IconName,
+} from '../../../../../../component-library/components/Icons/Icon';
+import TagBase, {
+  TagShape,
+} from '../../../../../../component-library/base-components/TagBase';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../../constants/navigation/Routes';
-import Text from '../../../../../../component-library/components/Texts/Text';
-import { selectSelectedInternalAccount } from '../../../../../../selectors/accountsController';
+import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import { useStyles } from '../../../../../hooks/useStyles';
+import { formatToFixedDecimals } from '../../../utils/send';
+import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
+import { useBalance } from '../../../hooks/send/useBalance';
+import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendContext } from '../../../context/send-context';
-import { useSendAmountConfirmDisabled } from '../../../hooks/send/useSendAmountConfirmDisabled';
-import { useSendScreenNavigation } from '../../../hooks/send/useSendScreenNavigation';
-import { AmountEdit } from './amount-edit';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
+import { AmountKeyboard } from './amount-keyboard';
 import { styleSheet } from './amount.styles';
 
 export const Amount = () => {
-  const { gotToSendScreen } = useSendScreenNavigation();
-  const from = useSelector(selectSelectedInternalAccount);
-  const { styles } = useStyles(styleSheet, {});
-  const { asset } = useSendContext();
-  const { isDisabled } = useSendAmountConfirmDisabled();
+  const primaryCurrency = useSelector(selectPrimaryCurrency);
+  const { asset, updateValue } = useSendContext();
+  const { balance } = useBalance();
+  const { insufficientBalance } = useAmountValidation();
+  const [amount, updateAmount] = useState('');
+  const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
+  const {
+    fiatCurrencySymbol,
+    getFiatDisplayValue,
+    getNativeDisplayValue,
+    getNativeValue,
+  } = useCurrencyConversions();
+  const { styles, theme } = useStyles(styleSheet, {
+    inputError: insufficientBalance ?? false,
+  });
   useRouteParams();
+  useSendNavbar({ currentRoute: Routes.SEND.AMOUNT });
 
-  const goToNextPage = useCallback(() => {
-    gotToSendScreen(Routes.SEND.RECIPIENT);
-  }, [gotToSendScreen]);
+  useEffect(() => {
+    setFiatMode(primaryCurrency === 'Fiat');
+  }, [primaryCurrency, setFiatMode]);
+
+  const alternateDisplayValue = useMemo(
+    () =>
+      fiatMode ? getNativeDisplayValue(amount) : getFiatDisplayValue(amount),
+    [amount, fiatMode, getFiatDisplayValue, getNativeDisplayValue],
+  );
+
+  const updateToNewAmount = useCallback(
+    (amt: string) => {
+      updateAmount(amt);
+      updateValue(fiatMode ? getNativeValue(amt) : amt);
+    },
+    [fiatMode, getNativeValue, updateAmount, updateValue],
+  );
+
+  const toggleFiatMode = useCallback(() => {
+    setFiatMode(!fiatMode);
+    updateAmount('');
+    updateValue('');
+  }, [fiatMode, setFiatMode, updateAmount, updateValue]);
+
+  const assetSymbol = asset?.ticker ?? asset?.symbol;
 
   return (
     <View style={styles.container}>
-      <Text>Asset: {asset?.address ?? 'NA'}</Text>
-      <View>
-        <Text>From:</Text>
-        <Text>{from?.address}</Text>
+      <View style={styles.topSection}>
+        <View style={styles.inputSection}>
+          <View style={styles.inputWrapper}>
+            <Input
+              cursorColor={theme.colors.primary.default}
+              onChangeText={updateToNewAmount}
+              style={styles.input}
+              testID="send_amount"
+              textAlign="right"
+              textVariant={TextVariant.DisplayLG}
+              value={amount}
+            />
+          </View>
+          <Text
+            color={
+              insufficientBalance ? TextColor.Error : TextColor.Alternative
+            }
+            style={styles.tokenSymbol}
+            variant={TextVariant.DisplayLG}
+          >
+            {fiatMode ? fiatCurrencySymbol : assetSymbol}
+          </Text>
+        </View>
+        <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
+          <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
+          <ButtonIcon
+            iconColor={IconColor.Alternative}
+            iconName={IconName.SwapVertical}
+            onPress={toggleFiatMode}
+            testID="fiat_toggle"
+          />
+        </TagBase>
+        <View style={styles.balanceSection}>
+          <Text color={TextColor.Alternative}>{`${formatToFixedDecimals(
+            balance,
+            asset?.decimals,
+          )} ${assetSymbol} ${strings('send.available')}`}</Text>
+        </View>
       </View>
-      <AmountEdit />
-      <Button
-        label="Continue"
-        disabled={isDisabled}
-        onPress={goToNextPage}
-        variant={ButtonVariants.Primary}
-        size={ButtonSize.Lg}
+      <AmountKeyboard
+        amount={amount}
+        fiatMode={fiatMode}
+        updateAmount={updateAmount}
       />
     </View>
   );

@@ -8,12 +8,18 @@ import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { useTokenAsset } from '../../hooks/useTokenAsset';
 import { TokenI } from '../../../../UI/Tokens/types';
 import { act, fireEvent } from '@testing-library/react-native';
+import {
+  AlertsContextParams,
+  useAlerts,
+} from '../../context/alert-system-context';
+import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 
 jest.mock('../../hooks/useTokenAmount');
 jest.mock('../../hooks/useTokenAsset');
+jest.mock('../../context/alert-system-context');
+jest.mock('../../hooks/pay/useTransactionPayToken');
 
 const VALUE_MOCK = '1.23';
-const VALUE_2_MOCK = '2.34';
 
 const state = merge(
   simpleSendTransactionControllerMock,
@@ -27,13 +33,15 @@ function render(props: EditAmountProps = {}) {
 describe('EditAmount', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
   const useTokenAssetMock = jest.mocked(useTokenAsset);
+  const useAlertsMock = jest.mocked(useAlerts);
+  const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const updateTokenAmountMock = jest.fn();
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     useTokenAmountMock.mockReturnValue({
-      amountPrecise: VALUE_MOCK,
+      amountUnformatted: VALUE_MOCK,
       updateTokenAmount: updateTokenAmountMock,
     } as unknown as ReturnType<typeof useTokenAmount>);
 
@@ -43,6 +51,14 @@ describe('EditAmount', () => {
       } as TokenI,
       displayName: 'Test Token',
     });
+
+    useAlertsMock.mockReturnValue({
+      fieldAlerts: [],
+    } as unknown as AlertsContextParams);
+
+    useTransactionPayTokenMock.mockReturnValue({
+      balanceFiat: '0',
+    } as ReturnType<typeof useTransactionPayToken>);
   });
 
   it('renders amount from current transaction data', () => {
@@ -59,24 +75,90 @@ describe('EditAmount', () => {
   });
 
   it('calls updateTokenAmount when input changes', async () => {
-    const { getByTestId } = render();
-    const input = getByTestId('edit-amount-input');
+    const { getByTestId, getByText } = render();
 
     await act(async () => {
-      fireEvent(input, 'changeText', VALUE_2_MOCK);
+      fireEvent.press(getByTestId('edit-amount-input'));
     });
 
-    expect(updateTokenAmountMock).toHaveBeenCalledWith(VALUE_2_MOCK);
+    await act(async () => {
+      fireEvent.press(getByText('5'));
+    });
+
+    expect(updateTokenAmountMock).toHaveBeenCalledWith(VALUE_MOCK + '5');
   });
 
   it('updates amount when input changes', async () => {
-    const { getByTestId } = render();
+    const { getByTestId, getByText } = render();
+
+    await act(async () => {
+      fireEvent.press(getByTestId('edit-amount-input'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('5'));
+    });
+
+    expect(getByTestId('edit-amount-input')).toHaveProp(
+      'value',
+      VALUE_MOCK + '5',
+    );
+  });
+
+  it('displays keyboard automatically when autoKeyboard is true', () => {
+    const { getByTestId } = render({ autoKeyboard: true });
+
+    expect(getByTestId('deposit-keyboard')).toBeDefined();
+  });
+
+  it('hides keyboard if done button pressed', async () => {
+    const { queryByTestId, getByText } = render({ autoKeyboard: true });
+
+    await act(async () => {
+      fireEvent.press(getByText('Done'));
+    });
+
+    expect(queryByTestId('deposit-keyboard')).toBeNull();
+  });
+
+  it('updates token amount if percentage button pressed', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      balanceFiat: '1200.50',
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { getByTestId, getByText } = render();
+
     const input = getByTestId('edit-amount-input');
 
     await act(async () => {
-      fireEvent(input, 'changeText', VALUE_2_MOCK);
+      fireEvent.press(input);
     });
 
-    expect(getByTestId('edit-amount-input')).toHaveProp('value', VALUE_2_MOCK);
+    await act(async () => {
+      fireEvent.press(getByText('50%'));
+    });
+
+    expect(updateTokenAmountMock).toHaveBeenCalledWith('600.25');
+    expect(input).toHaveProp('value', '600.25');
+  });
+
+  it('does nothing if percentage button pressed with no pay token selected', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      balanceFiat: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { getByTestId, getByText } = render();
+
+    const input = getByTestId('edit-amount-input');
+
+    await act(async () => {
+      fireEvent.press(input);
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('50%'));
+    });
+
+    expect(updateTokenAmountMock).not.toHaveBeenCalled();
   });
 });

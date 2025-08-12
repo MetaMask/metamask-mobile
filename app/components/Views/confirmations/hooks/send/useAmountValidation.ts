@@ -9,10 +9,10 @@ export const useAmountValidation = () => {
   const { validateEvmAmount } = useEvmAmountValidation();
   const { validateNonEvmAmount } = useNonEvmAmountValidation();
 
-  const amountError = useMemo(
+  const { invalidAmount, insufficientBalance } = useMemo(
     () => (isEvmSendType ? validateEvmAmount() : validateNonEvmAmount()),
     [isEvmSendType, validateEvmAmount, validateNonEvmAmount],
   );
 
-  return { amountError };
+  return { invalidAmount, insufficientBalance };
 };

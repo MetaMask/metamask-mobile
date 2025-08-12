@@ -156,7 +156,6 @@ const createStyles = (colors: Colors) =>
     },
     infoIcon: {
       marginLeft: 8,
-      padding: 4,
     },
     payWithRight: {
       flexDirection: 'row',
@@ -490,9 +489,6 @@ const createStyles = (colors: Colors) =>
     },
     percentageButton: {
       flex: 1,
-    },
-    keypad: {
-      backgroundColor: colors.background.default,
     },
     tooltipContent: {
       paddingBottom: 16,
