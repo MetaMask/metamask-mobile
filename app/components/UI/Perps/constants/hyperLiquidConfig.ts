@@ -102,6 +102,24 @@ export const FEE_RATES: FeeRatesConfig = {
   maker: 0.00015, // 0.015% - Limit orders that add liquidity
 };
 
+// Builder fee configuration
+export const BUILDER_FEE_CONFIG = {
+  // Test wallet address for builder fees, currently staking test wallet
+  testnetBuilder: '0x316BDE155acd07609872a56Bc32CcfB0B13201fA' as `0x${string}`,
+  // Production builder wallet
+  mainnetBuilder: '0xe95a5e31904e005066614247d309e00d8ad753aa' as `0x${string}`,
+  // Fee in basis points (10 bp = 0.1% - this is the maximum allowed)
+  feeBps: 10, // 10 basis points (0.1%)
+};
+
+// Referral code configuration
+export const REFERRAL_CONFIG = {
+  // Production referral code METAMASK
+  mainnetCode: 'METAMASK',
+  // Development/testnet referral code
+  testnetCode: 'MSO',
+};
+
 // MetaMask fee for deposits (temporary placeholder)
 export const METAMASK_DEPOSIT_FEE = '$0.00';
 

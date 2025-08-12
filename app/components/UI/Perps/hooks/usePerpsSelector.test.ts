@@ -18,10 +18,15 @@ describe('usePerpsSelector', () => {
   it('should call useSelector with correct state path and selector function', () => {
     // Arrange
     const mockState: PerpsControllerState = {
-      isFirstTimeUser: true,
+      isFirstTimeUser: {
+        testnet: true,
+        mainnet: true,
+      },
     } as PerpsControllerState;
 
-    const mockSelector = jest.fn((state) => state?.isFirstTimeUser ?? false);
+    const mockSelector = jest.fn(
+      (state) => state?.isFirstTimeUser.mainnet ?? false,
+    );
     mockUseSelector.mockImplementation((selectorFn) =>
       selectorFn({
         engine: { backgroundState: { PerpsController: mockState } },
@@ -72,7 +77,10 @@ describe('usePerpsSelector', () => {
   it('should work with different selector functions', () => {
     // Arrange
     const mockState: PerpsControllerState = {
-      isFirstTimeUser: false,
+      isFirstTimeUser: {
+        testnet: true,
+        mainnet: true,
+      },
       isEligible: true,
       connectionStatus: 'connected',
       positions: [{ coin: 'ETH' }],
@@ -86,7 +94,7 @@ describe('usePerpsSelector', () => {
 
     // Test different selectors
     const isFirstTimeUserSelector = (state: PerpsControllerState | undefined) =>
-      state?.isFirstTimeUser ?? true;
+      state?.isFirstTimeUser.mainnet ?? false;
     const isEligibleSelector = (state: PerpsControllerState | undefined) =>
       state?.isEligible ?? false;
     const connectionStatusSelector = (
@@ -99,7 +107,7 @@ describe('usePerpsSelector', () => {
     const { result: isFirstTimeUserResult } = renderHook(() =>
       usePerpsSelector(isFirstTimeUserSelector),
     );
-    expect(isFirstTimeUserResult.current).toBe(false);
+    expect(isFirstTimeUserResult.current).toBe(true);
 
     const { result: isEligibleResult } = renderHook(() =>
       usePerpsSelector(isEligibleSelector),
@@ -184,7 +192,10 @@ describe('usePerpsSelector', () => {
   it('should maintain referential stability when selector returns same value', () => {
     // Arrange
     const mockState: PerpsControllerState = {
-      isFirstTimeUser: true,
+      isFirstTimeUser: {
+        testnet: true,
+        mainnet: true,
+      },
     } as PerpsControllerState;
 
     const memoizedSelector = (state: PerpsControllerState | undefined) =>
@@ -209,6 +220,5 @@ describe('usePerpsSelector', () => {
 
     // Assert
     expect(firstResult).toBe(secondResult);
-    expect(firstResult).toBe(true);
   });
 });

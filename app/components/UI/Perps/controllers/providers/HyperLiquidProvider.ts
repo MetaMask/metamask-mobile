@@ -4,10 +4,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
+  BUILDER_FEE_CONFIG,
   FEE_RATES,
   getBridgeInfo,
   getChainId,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
+  REFERRAL_CONFIG,
   TRADING_DEFAULTS,
 } from '../../constants/hyperLiquidConfig';
 import {
@@ -178,6 +180,106 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Convert basis points to percentage string
+   * @param bps - Fee in basis points (1 bp = 0.01%)
+   */
+  private bpsToPercentString(bps: number): `${string}%` {
+    const percent = bps * 0.01;
+    return `${percent.toFixed(4).replace(/\.?0+$/, '')}%` as `${string}%`;
+  }
+
+  /**
+   * Convert basis points to tenths of basis points (for HyperLiquid API)
+   * @param bps - Fee in basis points (1 bp = 0.01%)
+   * @returns Tenths of basis points (10 tenths = 1 bp)
+   */
+  private bpsToTenthsBps(bps: number): number {
+    return bps * 10;
+  }
+
+  /**
+   * Check current builder fee approval for the user
+   * @param builder - Builder address to check approval for
+   * @returns Current max fee rate or null if not approved
+   */
+  private async checkBuilderFeeApproval(
+    builder: `0x${string}`,
+  ): Promise<number | null> {
+    const infoClient = this.clientService.getInfoClient();
+    const userAddress = await this.walletService.getUserAddressWithDefault();
+
+    return infoClient.maxBuilderFee({
+      user: userAddress,
+      builder,
+    });
+  }
+
+  /**
+   * Ensure builder fee approval before placing orders
+   */
+  private async ensureBuilderFeeApproval(): Promise<void> {
+    const { isApproved, requiredRate, builderAddress, builderFeeBps } =
+      await this.checkBuilderFeeStatus();
+
+    if (!isApproved) {
+      DevLogger.log('Builder fee approval required', {
+        builder: builderAddress,
+        currentApproval: isApproved,
+        requiredDecimal: requiredRate,
+        feeBps: builderFeeBps,
+      });
+
+      const exchangeClient = this.clientService.getExchangeClient();
+      const maxFeeRate = this.bpsToPercentString(builderFeeBps);
+
+      await exchangeClient.approveBuilderFee({
+        builder: builderAddress,
+        maxFeeRate,
+      });
+
+      // Verify approval was successful
+      const afterApproval = await this.checkBuilderFeeApproval(builderAddress);
+
+      // this throw will block the order from being placed
+      // this should ideally never happen
+      if (afterApproval === null || afterApproval < requiredRate) {
+        throw new Error('Builder fee approval failed or insufficient');
+      }
+
+      DevLogger.log('Builder fee approval successful', {
+        builder: builderAddress,
+        approvedRate: afterApproval,
+        maxFeeRate,
+      });
+    }
+  }
+
+  /**
+   * Check if builder fee is approved for the current user
+   * @returns Object with approval status and current rate
+   */
+  private async checkBuilderFeeStatus(): Promise<{
+    isApproved: boolean;
+    currentRate: number | null;
+    requiredRate: number;
+    builderAddress: `0x${string}`;
+    builderFeeBps: number;
+  }> {
+    const builder = this.getBuilderAddress(this.clientService.isTestnetMode());
+    const currentApproval = await this.checkBuilderFeeApproval(builder);
+    const requiredDecimal = BUILDER_FEE_CONFIG.feeBps * 0.0001;
+
+    return {
+      isApproved:
+        currentApproval !== null && currentApproval >= requiredDecimal,
+      currentRate: currentApproval,
+      requiredRate: requiredDecimal,
+      builderAddress: builder,
+      builderFeeBps: BUILDER_FEE_CONFIG.feeBps,
+    };
+  }
+
+  /**
    * Place an order using direct wallet signing (same as working debug test)
    */
   async placeOrder(params: OrderParams): Promise<OrderResult> {
@@ -191,6 +293,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       await this.ensureReady();
+
+      // Ensure builder fee approval and referral code are set before placing any order
+      await Promise.all([
+        this.ensureBuilderFeeApproval(),
+        this.ensureReferralSet(),
+      ]);
 
       // Get asset info - use provided current price to avoid extra API call
       const infoClient = this.clientService.getInfoClient();
@@ -362,6 +470,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const result = await exchangeClient.order({
         orders,
         grouping,
+        builder: {
+          b: this.getBuilderAddress(this.clientService.isTestnetMode()),
+          f: this.bpsToTenthsBps(BUILDER_FEE_CONFIG.feeBps),
+        },
       });
 
       if (result.status !== 'ok') {
@@ -586,6 +698,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       await this.ensureReady();
 
+      await Promise.all([
+        this.ensureBuilderFeeApproval(),
+        this.ensureReferralSet(),
+      ]);
+
       // Get current price for the asset
       const infoClient = this.clientService.getInfoClient();
       const exchangeClient = this.clientService.getExchangeClient();
@@ -718,6 +835,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const result = await exchangeClient.order({
         orders,
         grouping: 'positionTpsl',
+        builder: {
+          b: this.getBuilderAddress(this.clientService.isTestnetMode()),
+          f: this.bpsToTenthsBps(BUILDER_FEE_CONFIG.feeBps),
+        },
       });
 
       if (result.status !== 'ok') {
@@ -1935,5 +2056,176 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     return `${baseUrl}/explorer`;
+  }
+
+  private getBuilderAddress(isTestnet: boolean) {
+    return isTestnet
+      ? BUILDER_FEE_CONFIG.testnetBuilder
+      : BUILDER_FEE_CONFIG.mainnetBuilder;
+  }
+
+  private getReferralCode(isTestnet: boolean): string {
+    return isTestnet
+      ? REFERRAL_CONFIG.testnetCode
+      : REFERRAL_CONFIG.mainnetCode;
+  }
+
+  /**
+   * Ensure user has a MetaMask referral code set
+   * If user doesn't have a referral set, set MetaMask as referrer
+   * This is called before every order to maximize referral capture
+   *
+   * Note: This is network-specific - testnet and mainnet have separate referral states
+   */
+  private async ensureReferralSet(): Promise<void> {
+    const errorMessage = 'Error ensuring referral code is set';
+    try {
+      const isTestnet = this.clientService.isTestnetMode();
+      const network = isTestnet ? 'testnet' : 'mainnet';
+      const expectedReferralCode = this.getReferralCode(isTestnet);
+      const referrerAddress = this.getBuilderAddress(isTestnet);
+      const userAddress = await this.walletService.getUserAddressWithDefault();
+
+      if (userAddress.toLowerCase() === referrerAddress.toLowerCase()) {
+        // if the user is the builder, we don't need to set a referral code
+        console.error('User is the referrer - skipping', {
+          network,
+          referrerAddress,
+          userAddress,
+        });
+        DevLogger.log('User is the referrer - skipping', {
+          network,
+          referrerAddress,
+          userAddress,
+        });
+        return;
+      }
+
+      const isReady = await this.isReferralCodeReady();
+      if (!isReady) {
+        // if the referrer code is not ready, we can't set the referral code on the user
+        // so we just return and the error will be logged
+        // we may want to block this completely, but for now we just log the error
+        // as the referrer may need to address an issue first and we may not want to completely
+        // block orders for this
+        DevLogger.log('Referral code not ready - skipping', {
+          network,
+          referrerAddress,
+          userAddress,
+        });
+        return;
+      }
+      // Check if user already has a referral set on this network
+      const hasReferral = await this.checkReferralSet();
+
+      if (!hasReferral) {
+        DevLogger.log('No referral set - setting MetaMask as referrer', {
+          network,
+          referralCode: expectedReferralCode,
+        });
+        await this.setReferralCode();
+      }
+    } catch (error) {
+      DevLogger.log(errorMessage, error);
+      console.error(errorMessage, error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Check if the referral code is ready to be used
+   * @returns Promise resolving to true if referral code is ready
+   */
+  private async isReferralCodeReady(): Promise<boolean> {
+    const errorMessage = 'Error checking if referral code is ready';
+    try {
+      const infoClient = this.clientService.getInfoClient();
+      const isTestnet = this.clientService.isTestnetMode();
+      const code = this.getReferralCode(isTestnet);
+      const referrerAddr = this.getBuilderAddress(isTestnet);
+
+      const referral = await infoClient.referral({ user: referrerAddr });
+
+      const stage = referral.referrerState?.stage;
+
+      if (stage === 'ready') {
+        const onFile = referral.referrerState?.data.code;
+        if (onFile.toUpperCase() !== code.toUpperCase()) {
+          throw new Error(
+            `Ready for referrals but there is a config code mismatch ${onFile} vs ${code}`,
+          );
+        }
+        return true;
+      }
+      console.error('Referral code not ready', {
+        stage,
+        code,
+        referrerAddr,
+        referral,
+      });
+      return false;
+    } catch (error) {
+      DevLogger.log(errorMessage, error);
+      console.error(errorMessage, error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if user has a referral code set with HyperLiquid
+   * @returns Promise resolving to true if referral is set, false otherwise
+   */
+  private async checkReferralSet(): Promise<boolean> {
+    try {
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault();
+
+      // Call HyperLiquid API to check if user has a referral set
+      const referralData = await infoClient.referral({
+        user: userAddress,
+      });
+
+      DevLogger.log('Referral check result:', {
+        userAddress,
+        referralData,
+      });
+
+      return !!referralData?.referredBy || !!referralData.referredBy?.code;
+    } catch (error) {
+      DevLogger.log('Error checking referral status:', error);
+      // do not throw here, return false as we can try to set it again
+      return false;
+    }
+  }
+
+  /**
+   * Set MetaMask as the user's referrer on HyperLiquid
+   */
+  private async setReferralCode(): Promise<boolean> {
+    const errorMessage = 'Error setting referral code';
+    try {
+      const exchangeClient = this.clientService.getExchangeClient();
+      const referralCode = this.getReferralCode(
+        this.clientService.isTestnetMode(),
+      );
+
+      DevLogger.log('Setting referral code:', {
+        code: referralCode,
+        network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      });
+
+      // set the referral code
+      const result = await exchangeClient.setReferrer({
+        code: referralCode,
+      });
+
+      DevLogger.log('Referral code set result:', result);
+
+      return result?.status === 'ok';
+    } catch (error) {
+      DevLogger.log(errorMessage, error);
+      console.error(errorMessage, error);
+      throw new Error(errorMessage);
+    }
   }
 }
