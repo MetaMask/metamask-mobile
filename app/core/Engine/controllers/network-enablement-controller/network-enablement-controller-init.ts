@@ -13,6 +13,7 @@ import type { ControllerInitFunction } from '../../types';
  */
 export const networkEnablementControllerInit: ControllerInitFunction<
   NetworkEnablementController,
+  // @ts-expect-error - TODO: fix this mismatch type between the controller messenger and the base restricted controller messenger
   NetworkEnablementControllerMessenger
 > = (request) => {
   const { controllerMessenger, persistedState } = request;

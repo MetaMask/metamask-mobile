@@ -10,6 +10,7 @@ import type { BaseControllerMessenger } from '../../types';
 export const getNetworkEnablementControllerMessenger = (
   baseControllerMessenger: BaseControllerMessenger,
 ): NetworkEnablementControllerMessenger =>
+  // @ts-expect-error - TODO: fix this mismatch type between the controller messenger and the base restricted controller messenger
   baseControllerMessenger.getRestricted({
     name: 'NetworkEnablementController',
     allowedActions: [

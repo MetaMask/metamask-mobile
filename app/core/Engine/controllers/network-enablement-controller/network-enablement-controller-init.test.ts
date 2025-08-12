@@ -17,12 +17,14 @@ describe('networkEnablementControllerInit', () => {
   const networkEnablementControllerClassMock = jest.mocked(
     NetworkEnablementController,
   );
+  // @ts-expect-error - TODO: fix this mismatch type between the controller messenger and the base restricted controller messenger
   let initRequestMock: ControllerInitRequest<NetworkEnablementControllerMessenger>;
 
   beforeEach(() => {
     jest.resetAllMocks();
 
     const baseControllerMessenger = new ExtendedControllerMessenger();
+    // @ts-expect-error - TODO: fix this mismatch type between the controller messenger and the base restricted controller messenger
     initRequestMock = buildControllerInitRequestMock(baseControllerMessenger);
   });
 

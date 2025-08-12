@@ -61,6 +61,7 @@ const mockNetworkEnablementController = {
   enableNetwork: jest.fn(),
   disableNetwork: jest.fn(),
   isNetworkEnabled: jest.fn(),
+  hasOneEnabledNetwork: jest.fn(),
 };
 
 describe('useNetworkEnablement', () => {
