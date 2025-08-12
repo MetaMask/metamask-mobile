@@ -185,7 +185,10 @@ class TestSnaps {
   }
 
   async dismissAlert() {
-    const button = Matchers.getElementByText('Ok');
+    // Matches the native WebView alert on each platform
+    const button = Matchers.getElementByText(
+      device.getPlatform() === 'ios' ? 'Ok' : 'OK',
+    );
     await Gestures.tap(button);
   }
 
