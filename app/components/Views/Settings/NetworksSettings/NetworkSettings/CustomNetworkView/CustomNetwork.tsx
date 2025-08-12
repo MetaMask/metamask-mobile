@@ -10,7 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTheme } from '../../../../../../util/theme';
 import { PopularList } from '../../../../../../util/networks/customNetworks';
-import createStyles from '../styles';
+import createStyles, { createCustomNetworkStyles } from '../styles';
 import { CustomNetworkProps, Network } from './CustomNetwork.types';
 import {
   selectChainId,
@@ -81,7 +81,8 @@ const CustomNetwork = ({
 
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const styles = createStyles({ colors });
+  const networkSettingsStyles = createStyles();
+  const customNetworkStyles = createCustomNetworkStyles({ colors });
   const filteredPopularList = showAddedNetworks
     ? supportedNetworkList
     : supportedNetworkList.filter((n) => !n.isAdded);
@@ -95,7 +96,10 @@ const CustomNetwork = ({
   return (
     <>
       {listHeader && filteredPopularList.length > 0 && (
-        <Text style={styles.listHeader} variant={TextVariant.BodyMDBold}>
+        <Text
+          style={customNetworkStyles.listHeader}
+          variant={TextVariant.BodyMDBold}
+        >
           {listHeader}
         </Text>
       )}
@@ -115,12 +119,12 @@ const CustomNetwork = ({
       {filteredPopularList.map((networkConfiguration, index) => (
         <TouchableOpacity
           key={index}
-          style={styles.popularNetwork}
+          style={networkSettingsStyles.popularNetwork}
           onPress={() => showNetworkModal(networkConfiguration)}
         >
-          <View style={styles.popularWrapper}>
+          <View style={networkSettingsStyles.popularWrapper}>
             {compactMode && (
-              <View style={styles.iconContainer}>
+              <View style={customNetworkStyles.iconContainer}>
                 <Icon
                   name={IconName.Add}
                   size={IconSize.Lg}
@@ -128,7 +132,7 @@ const CustomNetwork = ({
                 />
               </View>
             )}
-            <View style={styles.popularNetworkImage}>
+            <View style={networkSettingsStyles.popularNetworkImage}>
               <AvatarNetwork
                 name={networkConfiguration.nickname}
                 size={AvatarSize.Sm}
@@ -146,7 +150,7 @@ const CustomNetwork = ({
               {networkConfiguration.nickname}
             </CustomText>
           </View>
-          <View style={styles.popularWrapper}>
+          <View style={networkSettingsStyles.popularWrapper}>
             {!hideWarningIcons &&
             toggleWarningModal &&
             networkConfiguration.warning ? (
@@ -154,7 +158,7 @@ const CustomNetwork = ({
                 name="warning"
                 size={14}
                 color={colors.icon.alternative}
-                style={styles.icon}
+                style={networkSettingsStyles.icon}
                 onPress={toggleWarningModal}
               />
             ) : null}

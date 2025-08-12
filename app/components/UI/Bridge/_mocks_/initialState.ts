@@ -480,14 +480,6 @@ export const initialState = {
           },
         },
       },
-      NetworkEnablementController: {
-        enabledNetworkMap: {
-          eip155: {
-            [formatChainIdToCaip(ethChainId)]: true,
-            [formatChainIdToCaip(optimismChainId)]: true,
-          },
-        },
-      },
     },
   },
   bridge: {
