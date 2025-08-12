@@ -2421,7 +2421,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_RC_KEYSTORE_URL
+      - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/rc.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
@@ -2436,7 +2436,7 @@ workflows:
       - YARN_COMMAND: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_RC_KEYSTORE_URL
+      - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
       - KEYSTORE_PATH: 'android/keystores/rc.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
