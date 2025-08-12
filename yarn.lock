@@ -4920,14 +4920,6 @@
     "@metamask/utils" "^11.2.0"
     immer "^9.0.6"
 
-"@metamask/base-controller@^8.1.0":
-  version "8.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.1.0.tgz#dd8746f8ec95fb564251c284f84e9264427816f1"
-  integrity sha512-pwWHTBntzPE6yBMH9qiXMaslQW2kS7Izw1g+4D8QhGIxNWBt1nz1uavTGcSBUFgO3eMDKe2QPU04xgThqCPv+g==
-  dependencies:
-    "@metamask/utils" "^11.4.2"
-    immer "^9.0.6"
-
 "@metamask/bitcoin-wallet-snap@^0.18.0":
   version "0.18.0"
   resolved "https://registry.yarnpkg.com/@metamask/bitcoin-wallet-snap/-/bitcoin-wallet-snap-0.18.0.tgz#51b73f9132886c599b7e09fd5671a1dc7584836c"
@@ -5741,18 +5733,24 @@
     uuid "^8.3.2"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6ea92ded31 (fix: clean up)
 "@metamask/network-enablement-controller@0.1.0":
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-0.1.0.tgz#b2ed26ae562069387393c12adc21d8717a201a28"
   integrity sha512-z/Jr9MiANc8sZ9tzNQZIdb+DpjbSceekgUUDf/Y2XJ74CElhR8DuvdwxzlzFrADmljST67YwTb5c7r8bR0fQgQ==
+<<<<<<< HEAD
 =======
 "@metamask/network-enablement-controller@^0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@metamask/network-enablement-controller/-/network-enablement-controller-0.1.1.tgz#ce2f2cb278ce6b958fdab663093e25e8d3d541f9"
   integrity sha512-ZYLIhKEfZtWFe4ZhwskpjPXP7AiZuuoPPsbjcUdaBn5zgYsil2yKOOhUpc6GHBbxvJDxgsmc1YbCawK9SRKvoA==
 >>>>>>> 0f2b708b71 (fix: clean up)
+=======
+>>>>>>> 6ea92ded31 (fix: clean up)
   dependencies:
-    "@metamask/base-controller" "^8.1.0"
+    "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.11.0"
     "@metamask/utils" "^11.4.2"
     reselect "^5.1.1"

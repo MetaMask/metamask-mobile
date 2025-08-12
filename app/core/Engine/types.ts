@@ -758,7 +758,6 @@ export type ControllerInitFunction<
 export type ControllerInitFunctionByControllerName = {
   [Name in ControllersToInitialize]: ControllerInitFunction<
     ControllerByName[Name],
-    // @ts-expect-error - TODO: fix this mismatch type between the controller messenger and the base restricted controller messenger
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getMessenger']>,
     ReturnType<(typeof CONTROLLER_MESSENGERS)[Name]['getInitMessenger']>
   >;
