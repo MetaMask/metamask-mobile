@@ -91,7 +91,6 @@ const BuildQuote = () => {
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Get state from context instead of local state
   const {
     isAuthenticated,
     selectedRegion,

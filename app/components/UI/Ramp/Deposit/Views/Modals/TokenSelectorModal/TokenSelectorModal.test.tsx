@@ -7,7 +7,6 @@ import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../../util/test/initial-root-state';
 
-// Mock the useDepositSDK hook
 const mockSetCryptoCurrency = jest.fn();
 const mockUseDepositSDK = jest.fn();
 jest.mock('../../../sdk', () => ({
