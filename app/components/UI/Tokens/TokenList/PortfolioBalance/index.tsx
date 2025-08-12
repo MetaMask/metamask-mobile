@@ -79,13 +79,7 @@ export const PortfolioBalance = () => {
       ? groupIdFromMembership
       : availableGroupIds[0];
 
-  const hasAggregatedGroup = Boolean(
-    derivedWallet?.id &&
-      resolvedGroupId &&
-      assetsControllersBalance?.wallets?.[derivedWallet.id]?.groups?.[
-        resolvedGroupId
-      ],
-  );
+  // Aggregated group readiness is implied by presence of `resolvedGroupBalance`
 
   const selectBalanceForResolvedGroup = useMemo(
     () =>
@@ -132,18 +126,19 @@ export const PortfolioBalance = () => {
   );
 
   const selectedDisplay = (() => {
-    if (
-      isMultichainState2Enabled &&
-      hasAggregatedGroup &&
-      resolvedGroupBalance
-    ) {
-      const value = resolvedGroupBalance.totalBalanceInUserCurrency;
-      const currency = resolvedGroupBalance.userCurrency;
-      return formatWithThreshold(value, 0.01, I18n.locale, {
-        style: 'currency',
-        currency: currency.toUpperCase(),
-      });
+    if (isMultichainState2Enabled) {
+      if (resolvedGroupBalance) {
+        const value = resolvedGroupBalance.totalBalanceInUserCurrency;
+        const currency = resolvedGroupBalance.userCurrency;
+        return formatWithThreshold(value, 0.01, I18n.locale, {
+          style: 'currency',
+          currency: currency.toUpperCase(),
+        });
+      }
+      // When feature flag is ON but aggregated data not ready, show loader
+      return undefined;
     }
+    // Feature flag OFF uses legacy display
     return selectedAccountMultichainBalance?.displayBalance;
   })();
   return (
