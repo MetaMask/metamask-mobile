@@ -88,51 +88,7 @@ describe('useTransactionRequiredTokens', () => {
           amountHuman: '0.000000000000000015',
           amountRaw: '15',
           decimals: 18,
-        }),
-      ]),
-    );
-  });
-
-  it('returns value token', () => {
-    const tokens = runHook({
-      transaction: {
-        txParams: {
-          maxFeePerGas: '0x0',
-          value: '0x123',
-        } as TransactionParams,
-      },
-    }).result.current;
-
-    expect(tokens).toStrictEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          address: NATIVE_TOKEN_ADDRESS,
-          amountHuman: '0.000000000000000291',
-          amountRaw: '291',
-          decimals: 18,
-        }),
-      ]),
-    );
-  });
-
-  it('returns combined gas and value tokens', () => {
-    const tokens = runHook({
-      transaction: {
-        txParams: {
-          maxFeePerGas: '0x2',
-          gas: '0x3',
-          value: '0x4',
-        } as TransactionParams,
-      },
-    }).result.current;
-
-    expect(tokens).toStrictEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          address: NATIVE_TOKEN_ADDRESS,
-          amountHuman: '0.00000000000000001',
-          amountRaw: '10',
-          decimals: 18,
+          skipIfBalance: true,
         }),
       ]),
     );
@@ -158,12 +114,13 @@ describe('useTransactionRequiredTokens', () => {
           amountHuman: '0.0291',
           amountRaw: '291',
           decimals: 4,
+          skipIfBalance: false,
         }),
       ]),
     );
   });
 
-  it('subtracts balance from tokens', () => {
+  it('returns token balances', () => {
     useTokensWithBalanceMock.mockReturnValue([
       {
         address: NATIVE_TOKEN_ADDRESS,
@@ -202,8 +159,7 @@ describe('useTransactionRequiredTokens', () => {
           balanceHuman: '3',
           balanceRaw: '30000',
           decimals: 4,
-          missingHuman: '7',
-          missingRaw: '70000',
+          skipIfBalance: false,
         },
       ]),
     );

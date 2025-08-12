@@ -313,6 +313,7 @@ export default class Gestures {
       checkEnabled = true,
       checkVisibility = true,
       sensitive = false,
+      delay = BASE_DEFAULTS.actionDelay,
       elemDescription,
     } = options;
 
@@ -325,9 +326,7 @@ export default class Gestures {
           checkEnabled,
         })) as Detox.IndexableNativeElement;
 
-        await new Promise((resolve) =>
-          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
 
         if (clearFirst) {
           await el.replaceText('');
@@ -446,10 +445,14 @@ export default class Gestures {
       direction = 'down',
       scrollAmount = 350,
       elemDescription,
+      delay = 0,
     } = options;
 
     return Utilities.executeWithRetry(
       async () => {
+        // Add delay before scrolling
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
         const target = (await targetElement) as Detox.IndexableNativeElement;
         const scrollable = await scrollableContainer;
 

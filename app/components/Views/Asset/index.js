@@ -53,6 +53,12 @@ import {
   isNetworkRampSupported,
 } from '../../UI/Ramp/Aggregator/utils';
 import { getRampNetworks } from '../../../reducers/fiatOrders';
+import {
+  selectDepositActiveFlag,
+  selectDepositMinimumVersionFlag,
+} from '../../../selectors/featureFlagController/deposit';
+import { getVersion } from 'react-native-device-info';
+import compareVersions from 'compare-versions';
 import Device from '../../../util/device';
 import {
   selectConversionRate,
@@ -188,6 +194,10 @@ class Asset extends PureComponent {
      * Boolean that indicates if native token is supported to buy
      */
     isNetworkBuyNativeTokenSupported: PropTypes.bool,
+    /**
+     * Boolean that indicates if deposit functionality is enabled
+     */
+    isDepositEnabled: PropTypes.bool,
     /**
      * Function to set the swaps liveness
      */
@@ -587,9 +597,12 @@ class Asset extends PureComponent {
         ? isBridgeAllowed(asset.chainId)
         : isBridgeAllowed(chainId));
 
-    const displayBuyButton = asset.isETH
+    // Fund button should be visible if either deposit OR ramp is available
+    const isDepositAvailable = this.props.isDepositEnabled;
+    const isRampAvailable = asset.isETH
       ? this.props.isNetworkBuyNativeTokenSupported
       : this.props.isNetworkRampSupported;
+    const displayFundButton = isDepositAvailable || isRampAvailable;
 
     const isNonEvmAsset = asset.chainId && isNonEvmChainId(asset.chainId);
 
@@ -604,7 +617,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayBuyButton={displayBuyButton}
+                  displayFundButton={displayFundButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -630,7 +643,7 @@ class Asset extends PureComponent {
               <>
                 <AssetOverview
                   asset={asset}
-                  displayBuyButton={displayBuyButton}
+                  displayFundButton={displayFundButton}
                   displaySwapsButton={displaySwapsButton}
                   displayBridgeButton={displayBridgeButton}
                   swapsIsLive={isSwapsFeatureLive}
@@ -669,15 +682,12 @@ let cacheKey = null;
 const mapStateToProps = (state, { route }) => {
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectTransactions(state);
+  const asset = route.params;
 
   let allTransactions = evmTransactions;
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (
-    selectedInternalAccount &&
-    !isEvmAccountType(selectedInternalAccount.type) &&
-    route.params?.chainId &&
-    isNonEvmChainId(route.params.chainId)
-  ) {
+  if (asset?.chainId && isNonEvmChainId(asset.chainId)) {
     const nonEvmTransactions = selectNonEvmTransactions(state);
     const txs = nonEvmTransactions?.transactions || [];
 
@@ -793,6 +803,17 @@ const mapStateToProps = (state, { route }) => {
       selectChainId(state),
       getRampNetworks(state),
     ),
+    isDepositEnabled: (() => {
+      const depositMinimumVersionFlag = selectDepositMinimumVersionFlag(state);
+      const depositActiveFlag = selectDepositActiveFlag(state);
+
+      if (!depositMinimumVersionFlag) return false;
+      const currentVersion = getVersion();
+      return (
+        depositActiveFlag &&
+        compareVersions.compare(currentVersion, depositMinimumVersionFlag, '>=')
+      );
+    })(),
     networkClientId: selectNetworkClientId(state),
     isUnifiedSwapsEnabled: selectIsUnifiedSwapsEnabled(state),
   };

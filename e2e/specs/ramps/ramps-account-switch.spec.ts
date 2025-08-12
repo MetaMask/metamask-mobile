@@ -1,6 +1,7 @@
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
@@ -56,8 +57,8 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
 
   it('should navigate to buy page and switch accounts', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapBuyButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
@@ -73,8 +74,8 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
 
   it('should navigate to sell page and switch accounts', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapSellButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
@@ -90,16 +91,16 @@ describe(SmokeTrade('Ramps with Account Switching'), () => {
 
   it('should maintain account selection across ramp flows', async () => {
     await setupRampsAccountSwitchTest(async () => {
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapBuyButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await BuildQuoteView.tapAccountPicker();
       await AccountListBottomSheet.tapToSelectActiveAccountAtIndex(2);
       await Assertions.expectTextDisplayed('Account 3');
       await BuildQuoteView.tapCancelButton();
       await TabBarComponent.tapWallet();
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapSellButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapSellButton();
       await BuyGetStartedView.tapGetStartedButton();
       await Assertions.expectTextDisplayed('Account 3', {
         description:

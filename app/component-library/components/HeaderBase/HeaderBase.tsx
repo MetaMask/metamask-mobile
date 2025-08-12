@@ -14,6 +14,7 @@ import styleSheet from './HeaderBase.styles';
 import { HeaderBaseProps } from './HeaderBase.types';
 import {
   DEFAULT_HEADERBASE_TITLE_TEXTVARIANT,
+  DEFAULT_HEADERBASE_ALIGN,
   HEADERBASE_TEST_ID,
   HEADERBASE_TITLE_TEST_ID,
 } from './HeaderBase.constants';
@@ -24,6 +25,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
   startAccessory,
   endAccessory,
   includesTopInset = false,
+  align = DEFAULT_HEADERBASE_ALIGN,
 }) => {
   const { size: startAccessorySize, onLayout: startAccessoryOnLayout } =
     useComponentSize();
@@ -35,6 +37,7 @@ const HeaderBase: React.FC<HeaderBaseProps> = ({
     style,
     startAccessorySize,
     endAccessorySize,
+    align,
   });
 
   return (
