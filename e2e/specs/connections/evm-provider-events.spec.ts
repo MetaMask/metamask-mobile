@@ -19,6 +19,7 @@ import {
 import { DappVariants } from '../../framework/Constants';
 import ToastModal from '../../pages/wallet/ToastModal';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import NetworkListModal from '../../pages/Network/NetworkListModal';
 
 describe(SmokeWalletPlatform('EVM Provider Events'), () => {
   beforeAll(async () => {
@@ -187,7 +188,80 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
     );
   });
 
-  it('should notify the connected account and chain after permitting a previously unpermitted dapp', async () => {
+  it('should notify the newly selected chain ID when changing the selected network for a permitted dapp', async () => {
+    await withFixtures(
+      {
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
+        fixture: new FixtureBuilder()
+          .withPermissionControllerConnectedToTestDapp({
+            [Caip25EndowmentPermissionName]: {
+              caveats: [
+                {
+                  type: Caip25CaveatType,
+                  value: {
+                    optionalScopes: {
+                      'eip155:1': {
+                        accounts: [
+                          `eip155:1:${DEFAULT_FIXTURE_ACCOUNT_CHECKSUM}`,
+                        ],
+                      },
+                      'eip155:1337': {
+                        accounts: [
+                          `eip155:1337:${DEFAULT_FIXTURE_ACCOUNT_CHECKSUM}`,
+                        ],
+                      },
+                    },
+                    requiredScopes: {},
+                    sessionProperties: {},
+                    isMultichainOrigin: false,
+                  },
+                },
+              ],
+            },
+          })
+          .build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await TabBarComponent.tapBrowser();
+        await Browser.navigateToTestDApp();
+
+        const connectedChainIdBefore = await TestDApp.getConnectedChainId();
+        if (
+          connectedChainIdBefore !== '0x1'
+        ) {
+          throw new Error(
+            'selected chainId did not match expected starting state',
+          );
+        }
+
+        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
+        await Assertions.expectElementToBeVisible(ConnectedAccountsModal.title);
+        await Assertions.expectElementToNotBeVisible(
+          ToastModal.notificationTitle,
+        );
+
+        await ConnectedAccountsModal.tapManagePermissionsButton();
+        await ConnectedAccountsModal.tapNetworksPicker();
+        await Assertions.expectElementToBeVisible(NetworkListModal.networkScroll);
+        await NetworkListModal.changeNetworkTo('Localhost');
+
+        const connectedChainIdAfter = await TestDApp.getConnectedChainId();
+        if (connectedChainIdAfter !== '0x539') {
+          throw new Error(
+            'selected chainId did not match expected end state',
+          );
+        }
+      },
+    );
+  });
+
+  it('should notify the connected account after permitting a previously unpermitted dapp', async () => {
     await withFixtures(
       {
         dapps: [
