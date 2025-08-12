@@ -245,12 +245,7 @@ const PerpsMarketListView = ({
 
   // Track position data loaded - separate effect without positions dependency
   useEffect(() => {
-    if (
-      activeTab === 'positions' &&
-      positions &&
-      positions.length >= 0 &&
-      !isLoadingPositions
-    ) {
+    if (activeTab === 'positions' && positions && !isLoadingPositions) {
       const duration = performance.now() - screenLoadStartRef.current;
       setMeasurement(
         PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB,

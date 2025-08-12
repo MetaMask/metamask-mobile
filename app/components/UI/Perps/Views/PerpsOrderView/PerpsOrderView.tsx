@@ -54,7 +54,6 @@ import {
   getNetworkImageSource,
 } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
-// import useTooltipModal from '../../../../hooks/useTooltipModal';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
   endTrace,
@@ -153,7 +152,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
   const toastContext = useContext(ToastContext);
 
   const toastRef = toastContext?.toastRef;
-  // const { openTooltipModal } = useTooltipModal(); // Unused for now
   const { trackEvent, createEventBuilder } = useMetrics();
   const { track } = usePerpsEventTracking();
 

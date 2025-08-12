@@ -280,12 +280,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     }
 
     if (item.order) {
-      const statusStyle =
-        item.order.statusType === 'filled'
-          ? styles.statusFilled
-          : item.order.statusType === 'canceled'
-          ? styles.statusCanceled
-          : styles.statusPending;
+      let statusStyle;
+      if (item.order.statusType === 'filled') {
+        statusStyle = styles.statusFilled;
+      } else if (item.order.statusType === 'canceled') {
+        statusStyle = styles.statusCanceled;
+      } else {
+        statusStyle = styles.statusPending;
+      }
 
       return (
         <Text variant={TextVariant.BodySM} style={statusStyle}>

@@ -491,9 +491,9 @@ const PerpsClosePositionBottomSheet: React.FC<
 
           {validationResult.errors.length > 0 && (
             <View style={styles.warningContainer}>
-              {validationResult.errors.map((error, index) => (
+              {validationResult.errors.map((error) => (
                 <Text
-                  key={`error-${index}`}
+                  key={error}
                   variant={TextVariant.BodySM}
                   color={TextColor.Error}
                   style={styles.warningText}
@@ -505,9 +505,9 @@ const PerpsClosePositionBottomSheet: React.FC<
           )}
           {validationResult.warnings.length > 0 && (
             <View style={styles.warningContainer}>
-              {validationResult.warnings.map((warning, index) => (
+              {validationResult.warnings.map((warning) => (
                 <Text
-                  key={`warning-${index}`}
+                  key={warning}
                   variant={TextVariant.BodySM}
                   color={TextColor.Warning}
                   style={styles.warningText}

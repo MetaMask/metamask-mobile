@@ -1680,7 +1680,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       try {
         await this.walletService.getCurrentAccountId();
         accountConnected = true;
-      } catch {
+      } catch (error) {
+        DevLogger.log('Account not connected:', error);
         accountConnected = false;
       }
 
