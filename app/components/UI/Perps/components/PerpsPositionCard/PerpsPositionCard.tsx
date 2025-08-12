@@ -272,7 +272,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               </View>
             </View>
 
-            <View style={styles.bodyRow}>
+            <View style={[styles.bodyRow, styles.bodyRowLast]}>
               <View style={styles.bodyItem}>
                 <Text
                   variant={TextVariant.BodyXS}

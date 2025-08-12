@@ -76,6 +76,10 @@ const styleSheet = (params: { theme: Theme }) => {
     bodyRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+    bodyRowLast: {
+      marginBottom: 0,
     },
     bodyItem: {
       flex: 1,
