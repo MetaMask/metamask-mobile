@@ -79,8 +79,6 @@ export const PortfolioBalance = () => {
       ? groupIdFromMembership
       : availableGroupIds[0];
 
-  // Aggregated group readiness is implied by presence of `resolvedGroupBalance`
-
   const selectBalanceForResolvedGroup = useMemo(
     () =>
       resolvedGroupId
