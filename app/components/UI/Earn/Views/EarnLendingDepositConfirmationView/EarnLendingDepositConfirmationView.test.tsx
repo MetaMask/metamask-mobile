@@ -1523,6 +1523,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingDeposit,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {

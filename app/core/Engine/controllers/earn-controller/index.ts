@@ -1,5 +1,5 @@
 import { TransactionController } from '@metamask/transaction-controller';
-import { NetworkController } from '@metamask/network-controller';
+import { getDefaultNetworkControllerState } from '@metamask/network-controller';
 import type { ControllerInitFunction } from '../../types';
 import {
   EarnController,
@@ -29,9 +29,9 @@ export const earnControllerInit: ControllerInitFunction<
     // from an intiialized TransactionController
     addTransactionFn: TransactionController.prototype.addTransaction,
     // TODO: same as above, when this is used, we need to pass in the selectedNetworkClientId
-    // from an intiialized NetworkController
+    // from an intiialized NetworkController. For now, use the default from getDefaultNetworkControllerState
     selectedNetworkClientId:
-      NetworkController.prototype.state.selectedNetworkClientId,
+      getDefaultNetworkControllerState().selectedNetworkClientId,
   });
 
   return { controller };

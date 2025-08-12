@@ -522,6 +522,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
