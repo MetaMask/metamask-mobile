@@ -1676,6 +1676,7 @@
       "button": "Create Solana account"
     },
     "no_accounts_found": "No accounts found",
+    "no_accounts_found_for_search": "No accounts found matching your search",
     "search_your_accounts": "Search your accounts"
   },
   "toast": {

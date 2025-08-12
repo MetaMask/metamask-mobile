@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState, useEffect } from 'react';
 import { View } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
@@ -9,6 +9,7 @@ import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
 import TextFieldSearch from '../../../components/Form/TextFieldSearch';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState1Enabled } from '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import AccountListHeader from './AccountListHeader';
 import AccountListCell from './AccountListCell';
 import AccountListFooter from './AccountListFooter';
@@ -38,9 +39,39 @@ const MultichainAccountSelectorList = ({
     selectMultichainAccountsState1Enabled,
   );
   const accountSections = useSelector(selectAccountGroupsByWallet);
+  const internalAccountsById = useSelector(selectInternalAccountsById);
 
-  // TODO: Search state - no search logic implemented yet
   const [searchText, setSearchText] = useState('');
+  const [debouncedSearchText, setDebouncedSearchText] = useState('');
+
+  // Debounce search text with 200ms delay
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 200);
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  const matchesSearch = useCallback(
+    (accountGroup: AccountGroupObject, searchQuery: string): boolean => {
+      if (!searchQuery.trim()) return true;
+
+      const query = searchQuery.toLowerCase().trim();
+
+      if (accountGroup.metadata.name.toLowerCase().includes(query)) {
+        return true;
+      }
+
+      return accountGroup.accounts.some((accountId) => {
+        const internalAccount = internalAccountsById[accountId];
+        if (!internalAccount) return false;
+
+        return internalAccount.address.toLowerCase().includes(query);
+      });
+    },
+    [internalAccountsById],
+  );
 
   const walletSections = useMemo((): WalletSection[] => {
     if (
@@ -58,14 +89,29 @@ const MultichainAccountSelectorList = ({
     }));
   }, [isMultichainAccountsEnabled, accountSections]);
 
+  const filteredWalletSections = useMemo((): WalletSection[] => {
+    if (!debouncedSearchText.trim()) {
+      return walletSections;
+    }
+
+    return walletSections
+      .map((section) => ({
+        ...section,
+        data: section.data.filter((accountGroup) =>
+          matchesSearch(accountGroup, debouncedSearchText),
+        ),
+      }))
+      .filter((section) => section.data.length > 0);
+  }, [walletSections, debouncedSearchText, matchesSearch]);
+
   const flattenedData = useMemo((): FlattenedMultichainAccountListItem[] => {
-    if (walletSections.length === 0) {
+    if (filteredWalletSections.length === 0) {
       return [];
     }
 
     const items: FlattenedMultichainAccountListItem[] = [];
 
-    walletSections.forEach((section) => {
+    filteredWalletSections.forEach((section) => {
       items.push({
         type: 'header',
         data: { title: section.title, walletName: section.walletName },
@@ -86,7 +132,7 @@ const MultichainAccountSelectorList = ({
     });
 
     return items;
-  }, [walletSections]);
+  }, [filteredWalletSections]);
 
   // Handle account selection with debouncing to prevent rapid successive calls
   const handleSelectAccount = useCallback(
@@ -125,7 +171,7 @@ const MultichainAccountSelectorList = ({
             return null;
         }
       },
-      [selectedAccountGroup, handleSelectAccount],
+      [selectedAccountGroup?.id, handleSelectAccount],
     );
 
   const keyExtractor = useCallback(
@@ -144,24 +190,23 @@ const MultichainAccountSelectorList = ({
     [],
   );
 
-  if (flattenedData.length === 0) {
-    return (
-      <View style={styles.container} testID={testID}>
-        <View
-          style={styles.emptyState}
-          testID={MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID}
-        >
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Muted}
-            style={styles.emptyStateText}
-          >
-            {strings('accounts.no_accounts_found')}
-          </Text>
-        </View>
-      </View>
-    );
-  }
+  const getItemType = useCallback(
+    (item: FlattenedMultichainAccountListItem) => item.type,
+    [],
+  );
+
+  const emptyStateText = useMemo(
+    () =>
+      debouncedSearchText.trim()
+        ? strings('accounts.no_accounts_found_for_search')
+        : strings('accounts.no_accounts_found'),
+    [debouncedSearchText],
+  );
+
+  const flashListKey = useMemo(
+    () => `flashlist-${debouncedSearchText}-${flattenedData.length}`,
+    [debouncedSearchText, flattenedData.length],
+  );
 
   return (
     <>
@@ -176,18 +221,35 @@ const MultichainAccountSelectorList = ({
         />
       </View>
       <View style={styles.listContainer} testID={testID}>
-        <FlashList
-          ref={listRef}
-          data={flattenedData}
-          renderItem={renderItem}
-          showsVerticalScrollIndicator={false}
-          getItemType={(item) => item.type}
-          keyExtractor={keyExtractor}
-          {...props}
-        />
+        {flattenedData.length === 0 ? (
+          <View
+            style={styles.emptyState}
+            testID={MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID}
+          >
+            <Text
+              variant={TextVariant.BodyMD}
+              color={TextColor.Muted}
+              style={styles.emptyStateText}
+            >
+              {emptyStateText}
+            </Text>
+          </View>
+        ) : (
+          <FlashList
+            key={flashListKey}
+            ref={listRef}
+            data={flattenedData}
+            renderItem={renderItem}
+            showsVerticalScrollIndicator={false}
+            getItemType={getItemType}
+            keyExtractor={keyExtractor}
+            extraData={searchText} // Force re-render when search changes
+            {...props}
+          />
+        )}
       </View>
     </>
   );
 };
 
-export default MultichainAccountSelectorList;
+export default React.memo(MultichainAccountSelectorList);
