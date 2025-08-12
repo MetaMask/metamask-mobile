@@ -73,7 +73,7 @@ export const PortfolioBalance = () => {
   const assetsControllersBalance = useSelector(selectBalanceForAllWallets());
 
   // Try to resolve the correct group id by membership of the selected account
-  const groupIdFromMembership = React.useMemo(() => {
+  const groupIdFromMembership = (() => {
     if (!derivedWallet?.groups || !selectedAccount?.id) return undefined;
     const entry = Object.entries(derivedWallet.groups).find(([, group]) =>
       Array.isArray(group?.accounts)
@@ -81,29 +81,20 @@ export const PortfolioBalance = () => {
         : false,
     );
     return entry?.[0];
-  }, [derivedWallet?.groups, selectedAccount?.id]);
+  })();
 
   // Gather available group ids from assets-controllers for the wallet
-  const availableGroupIds = React.useMemo(
-    () =>
-      Object.keys(
-        (derivedWallet?.id &&
-          assetsControllersBalance?.wallets?.[derivedWallet.id]?.groups) ||
-          {},
-      ),
-    [assetsControllersBalance?.wallets, derivedWallet?.id],
+  const availableGroupIds = Object.keys(
+    (derivedWallet?.id &&
+      assetsControllersBalance?.wallets?.[derivedWallet.id]?.groups) ||
+      {},
   );
 
   // Resolve final group id to use for aggregated balance
-  const resolvedGroupId = React.useMemo(() => {
-    if (
-      groupIdFromMembership &&
-      availableGroupIds.includes(groupIdFromMembership)
-    ) {
-      return groupIdFromMembership;
-    }
-    return availableGroupIds[0];
-  }, [availableGroupIds, groupIdFromMembership]);
+  const resolvedGroupId =
+    groupIdFromMembership && availableGroupIds.includes(groupIdFromMembership)
+      ? groupIdFromMembership
+      : availableGroupIds[0];
 
   const hasAggregatedGroup = Boolean(
     derivedWallet?.id &&
@@ -158,7 +149,7 @@ export const PortfolioBalance = () => {
     [PreferencesController],
   );
 
-  const selectedDisplay = React.useMemo(() => {
+  const selectedDisplay = (() => {
     if (
       isMultichainState2Enabled &&
       hasAggregatedGroup &&
@@ -172,12 +163,7 @@ export const PortfolioBalance = () => {
       });
     }
     return selectedAccountMultichainBalance?.displayBalance;
-  }, [
-    isMultichainState2Enabled,
-    hasAggregatedGroup,
-    resolvedGroupBalance,
-    selectedAccountMultichainBalance?.displayBalance,
-  ]);
+  })();
 
   // No dev logs in production build
 
