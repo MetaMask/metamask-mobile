@@ -7,10 +7,11 @@ import {
 } from '../../../context/send-context/send-metrics-context';
 import { useSendContext } from '../../../context/send-context';
 import { useSendType } from '../useSendType';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 export const useRecipientSelectionMetrics = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { chainId } = useSendContext();
+  const { chainId, to } = useSendContext();
   const { isEvmSendType } = useSendType();
   const { recipientInputMethod, setRecipientInputMethod } =
     useSendMetricsContext();
@@ -19,33 +20,32 @@ export const useRecipientSelectionMetrics = () => {
     setRecipientInputMethod(RecipientInputMethod.Manual);
   }, [setRecipientInputMethod]);
 
-  const setRecipientInputMethodPasted = useCallback(() => {
-    setRecipientInputMethod(RecipientInputMethod.Pasted);
-  }, [setRecipientInputMethod]);
-
-  const captureRecipientSelected = useCallback(
-    () =>
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.SEND_RECIPIENT_SELECTED)
-          .addProperties({
-            input_method: recipientInputMethod,
-            chain_id: isEvmSendType ? chainId : undefined,
-            chain_id_caip: isEvmSendType ? undefined : chainId,
-          })
-          .build(),
-      ),
-    [
-      chainId,
-      createEventBuilder,
-      isEvmSendType,
-      recipientInputMethod,
-      trackEvent,
-    ],
-  );
+  const captureRecipientSelected = useCallback(async () => {
+    let inputMethod = recipientInputMethod;
+    const clipboardText = await Clipboard.getString();
+    if (clipboardText === to) {
+      inputMethod = RecipientInputMethod.Pasted;
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SEND_RECIPIENT_SELECTED)
+        .addProperties({
+          input_method: inputMethod,
+          chain_id: isEvmSendType ? chainId : undefined,
+          chain_id_caip: isEvmSendType ? undefined : chainId,
+        })
+        .build(),
+    );
+  }, [
+    chainId,
+    createEventBuilder,
+    isEvmSendType,
+    recipientInputMethod,
+    to,
+    trackEvent,
+  ]);
 
   return {
     captureRecipientSelected,
     setRecipientInputMethodManual,
-    setRecipientInputMethodPasted,
   };
 };

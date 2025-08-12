@@ -1,4 +1,3 @@
-import Clipboard from '@react-native-clipboard/clipboard';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -49,7 +48,6 @@ export const Amount = () => {
   });
   const {
     setAmountInputMethodManual,
-    setAmountInputMethodPasted,
     setAmountInputTypeFiat,
     setAmountInputTypeToken,
   } = useAmountSelectionMetrics();
@@ -70,18 +68,12 @@ export const Amount = () => {
     async (amt: string) => {
       updateAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
-      const clipboardText = await Clipboard.getString();
-      if (clipboardText === amt) {
-        setAmountInputMethodPasted();
-      } else {
-        setAmountInputMethodManual();
-      }
+      setAmountInputMethodManual();
     },
     [
       fiatMode,
       getNativeValue,
       setAmountInputMethodManual,
-      setAmountInputMethodPasted,
       updateAmount,
       updateValue,
     ],

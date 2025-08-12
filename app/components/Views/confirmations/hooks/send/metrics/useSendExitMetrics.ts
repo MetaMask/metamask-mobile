@@ -14,7 +14,7 @@ export const useSendExitMetrics = () => {
   const captureSendExit = useCallback(
     () =>
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.SEND_ASSET_SELECTED)
+        createEventBuilder(MetaMetricsEvents.SEND_EXIT)
           .addProperties({
             location: `${route.name.toLowerCase()}_selection`,
             chain_id: isEvmSendType ? chainId : undefined,

@@ -46,8 +46,8 @@ export const useAssetSelectionMetrics = () => {
             assetType,
             asset_list_position: position,
             asset_list_size: assetListSize,
-            chain_id: isEvmSendType ? sendAsset.chainId : undefined,
-            chain_id_caip: isEvmSendType ? undefined : sendAsset.chainId,
+            chain_id: isEvmSendType ? sendAsset?.chainId : undefined,
+            chain_id_caip: isEvmSendType ? undefined : sendAsset?.chainId,
             filter_method: assetFilterMethod,
           })
           .build(),

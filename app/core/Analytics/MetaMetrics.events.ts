@@ -1369,6 +1369,7 @@ enum DESCRIPTION {
   SEND_ASSET_SELECTED = 'Send asset selected',
   SEND_AMOUNT_SELECTED = 'Send amount selected',
   SEND_RECIPIENT_SELECTED = 'Send recipient selected',
+  SEND_EXIT = 'Send flow exitted',
   // Send flow
   SEND_FLOW_ADDS_RECIPIENT = `Adds recipient address 'Send to'`,
   SEND_FLOW_ADDS_AMOUNT = `Adds Amount`,
@@ -1603,7 +1604,7 @@ const legacyMetaMetricsEvents = {
     ACTIONS.SEND,
     DESCRIPTION.SEND_RECIPIENT_SELECTED,
   ),
-  // Send flow
+  SEND_EXIT: generateOpt(EVENT_NAME.SEND, ACTIONS.SEND, DESCRIPTION.SEND_EXIT), // Send flow
   SEND_FLOW_ADDS_RECIPIENT: generateOpt(
     EVENT_NAME.SEND_FLOW,
     ACTIONS.SEND_FLOW,

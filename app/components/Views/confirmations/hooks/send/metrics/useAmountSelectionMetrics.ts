@@ -1,3 +1,4 @@
+import Clipboard from '@react-native-clipboard/clipboard';
 import { useCallback } from 'react';
 
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
@@ -11,7 +12,7 @@ import { useSendType } from '../useSendType';
 
 export const useAmountSelectionMetrics = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { chainId } = useSendContext();
+  const { chainId, value } = useSendContext();
   const { isEvmSendType } = useSendType();
   const {
     amountInputMethod,
@@ -19,10 +20,6 @@ export const useAmountSelectionMetrics = () => {
     setAmountInputMethod,
     setAmountInputType,
   } = useSendMetricsContext();
-
-  const setAmountInputMethodPasted = useCallback(() => {
-    setAmountInputMethod(AmountInputMethod.Pasted);
-  }, [setAmountInputMethod]);
 
   const setAmountInputMethodManual = useCallback(() => {
     setAmountInputMethod(AmountInputMethod.Manual);
@@ -40,11 +37,16 @@ export const useAmountSelectionMetrics = () => {
     setAmountInputType(AmountInputType.Token);
   }, [setAmountInputType]);
 
-  const captureAmountSelected = useCallback(() => {
+  const captureAmountSelected = useCallback(async () => {
+    let inputMethod = amountInputMethod;
+    const clipboardText = await Clipboard.getString();
+    if (clipboardText === value) {
+      inputMethod = AmountInputMethod.Pasted;
+    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SEND_AMOUNT_SELECTED)
         .addProperties({
-          input_method: amountInputMethod,
+          input_method: inputMethod,
           input_type: amountInputType,
           chain_id: isEvmSendType ? chainId : undefined,
           chain_id_caip: isEvmSendType ? undefined : chainId,
@@ -58,12 +60,12 @@ export const useAmountSelectionMetrics = () => {
     createEventBuilder,
     isEvmSendType,
     trackEvent,
+    value,
   ]);
 
   return {
     captureAmountSelected,
     setAmountInputMethodManual,
-    setAmountInputMethodPasted,
     setAmountInputMethodPressedMax,
     setAmountInputTypeFiat,
     setAmountInputTypeToken,
