@@ -28,7 +28,6 @@ export default function migrate(state: unknown): unknown {
       hasProperty(state, 'engine') &&
       hasProperty(state.engine, 'backgroundState') &&
       hasProperty(state.engine.backgroundState, 'NetworkController') &&
-      hasProperty(state.engine.backgroundState, 'NetworkController') &&
       isObject(state.engine.backgroundState.NetworkController) &&
       isObject(
         state.engine.backgroundState.NetworkController
