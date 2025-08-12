@@ -64,7 +64,11 @@ echo -e "\n🚀 Running matching tests for split $SPLIT_NUMBER..."
 # Join array elements with spaces to pass to test command
 TEST_FILES="${split_files[*]}"
 
-if [[ -n "${GITHUB_CI:-}" ]]; then
+if [[ "$BITRISE_TRIGGERED_WORKFLOW_ID" == *"ios"* ]]; then
+    echo "Detected iOS workflow"
+    IGNORE_BOXLOGS_DEVELOPMENT="true" \
+    yarn test:e2e:ios:$METAMASK_BUILD_TYPE:prod $TEST_FILES
+elif [[ -n "${GITHUB_CI:-}" ]]; then
     echo "Detected GitHub Actions workflow - using GitHub CI configuration"
     IGNORE_BOXLOGS_DEVELOPMENT="true" \
     yarn test:e2e:android:run:github:qa-release $TEST_FILES
