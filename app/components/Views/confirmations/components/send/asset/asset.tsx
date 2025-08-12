@@ -31,7 +31,7 @@ export const Asset = () => {
   }, [filteredTokens, setAssetListSize]);
 
   useEffect(() => {
-    if (searchQuery.trim()) {
+    if (searchQuery.length) {
       setSearchAssetFilterMethod();
     } else {
       setNoneAssetFilterMethod();
