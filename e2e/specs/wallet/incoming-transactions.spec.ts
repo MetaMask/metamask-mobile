@@ -1,6 +1,5 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import { SmokeWalletPlatform } from '../../tags';
-import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
 import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -67,7 +66,7 @@ function mockAccountsApi(
   transactions: Record<string, unknown>[] = [],
 ): MockApiEndpoint {
   return {
-    urlEndpoint: `https://accounts.api.cx.metamask.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions?networks=0x1,0x89,0x38,0xe708,0x2105,0xa,0xa4b1,0x82750&sortDirection=ASC`,
+    urlEndpoint: `https://accounts.api.cx.metamask.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions?networks=0x1,0x89,0x38,0xe708,0x2105,0xa,0xa4b1,0x82750,0x531&sortDirection=DESC`,
     response: {
       data:
         transactions.length > 0
@@ -85,7 +84,6 @@ function mockAccountsApi(
 describe(SmokeWalletPlatform('Incoming Transactions'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
-    await TestHelpers.reverseServerPort();
   });
 
   it('displays standard incoming transaction', async () => {
@@ -101,7 +99,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
         await ActivitiesView.swipeDown();
-        await Assertions.checkIfTextIsDisplayed('Received ETH');
+        await Assertions.expectTextDisplayed('Received ETH');
       },
     );
   });
@@ -148,7 +146,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
         await loginToApp();
         await TabBarComponent.tapActivity();
         await ActivitiesView.swipeDown();
-        await Assertions.checkIfTextIsDisplayed('Sent ETH');
+        await Assertions.expectTextDisplayed('Sent ETH');
       },
     );
   });
