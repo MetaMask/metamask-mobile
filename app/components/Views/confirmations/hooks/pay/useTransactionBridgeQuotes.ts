@@ -3,7 +3,6 @@ import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { BridgeQuoteRequest, getBridgeQuotes } from '../../utils/bridge';
 import { useEffect, useMemo } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useDispatch } from 'react-redux';
 import {
   setTransactionBridgeQuotes,
@@ -24,40 +23,35 @@ export function useTransactionBridgeQuotes() {
     txParams: { from },
   } = transactionMeta;
 
-  const {
-    payToken: { address: sourceTokenAddress, chainId: sourceChainId },
-  } = useTransactionPayToken();
+  const { payToken } = useTransactionPayToken() ?? {};
+
+  const { address: sourceTokenAddress, chainId: sourceChainId } =
+    payToken ?? {};
 
   const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
-  const requiredTokens = useTransactionRequiredTokens();
 
-  const requests: (BridgeQuoteRequest | undefined)[] = useMemo(
-    () =>
-      sourceAmounts?.map((sourceAmount, index) => {
-        const { address: targetTokenAddress } = requiredTokens[index] || {};
-        const { amountRaw: sourceTokenAmount } = sourceAmount;
+  const requests: BridgeQuoteRequest[] = useMemo(() => {
+    if (!sourceTokenAddress || !sourceChainId || !sourceAmounts) {
+      return [];
+    }
 
-        return {
-          from: from as Hex,
-          sourceChainId,
-          sourceTokenAddress,
-          sourceTokenAmount,
-          targetChainId,
-          targetTokenAddress,
-        };
-      }) ?? [],
-    [
-      from,
-      requiredTokens,
-      sourceAmounts,
-      sourceChainId,
-      sourceTokenAddress,
-      targetChainId,
-    ],
-  );
+    return sourceAmounts.map((sourceAmount, index) => {
+      const { address: targetTokenAddress } = sourceAmounts[index] || {};
+      const { amountRaw: sourceTokenAmount } = sourceAmount;
+
+      return {
+        from: from as Hex,
+        sourceChainId,
+        sourceTokenAddress,
+        sourceTokenAmount,
+        targetChainId,
+        targetTokenAddress,
+      };
+    });
+  }, [from, sourceAmounts, sourceChainId, sourceTokenAddress, targetChainId]);
 
   const { pending: loading, value: quotes } = useAsyncResult(async () => {
-    if (requests.some((request) => !request)) {
+    if (!requests.length || requests.some((request) => !request)) {
       return [];
     }
 

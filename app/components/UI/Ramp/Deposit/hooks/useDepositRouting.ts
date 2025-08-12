@@ -4,6 +4,7 @@ import { BuyQuote, OrderIdTransformer } from '@consensys/native-ramps-sdk';
 import type { AxiosError } from 'axios';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
+import { endTrace, TraceName } from '../../../../../util/trace';
 
 import { useDepositSdkMethod } from './useDepositSdkMethod';
 import {
@@ -35,6 +36,7 @@ import { createAdditionalVerificationNavDetails } from '../Views/AdditionalVerif
 import Logger from '../../../../../../app/util/Logger';
 import { AddressFormData } from '../Views/EnterAddress/EnterAddress';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export interface UseDepositRoutingParams {
   cryptoCurrencyChainId: string;
@@ -289,6 +291,21 @@ export const useDepositRouting = ({
 
   const navigateToWebviewModalCallback = useCallback(
     ({ paymentUrl }: { paymentUrl: string }) => {
+      endTrace({
+        name: TraceName.DepositContinueFlow,
+        data: {
+          destination: Routes.DEPOSIT.MODALS.WEBVIEW,
+          isPaymentWebview: true,
+        },
+      });
+
+      endTrace({
+        name: TraceName.DepositInputOtp,
+        data: {
+          destination: Routes.DEPOSIT.MODALS.WEBVIEW,
+        },
+      });
+
       popToBuildQuote();
       navigation.navigate(
         ...createWebviewModalNavigationDetails({
