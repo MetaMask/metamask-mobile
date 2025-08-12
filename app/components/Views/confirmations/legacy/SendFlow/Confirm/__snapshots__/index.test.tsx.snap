@@ -525,7 +525,7 @@ exports[`Confirm should render correctly 1`] = `
                                       style={
                                         {
                                           "backgroundColor": "#ffffff",
-                                          "borderRadius": 8,
+                                          "borderRadius": 16,
                                           "height": 32,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -545,9 +545,7 @@ exports[`Confirm should render correctly 1`] = `
                                               "height": 32,
                                               "width": 32,
                                             },
-                                            {
-                                              "borderRadius": 8,
-                                            },
+                                            undefined,
                                           ]
                                         }
                                       >
@@ -1007,7 +1005,7 @@ exports[`Confirm should render correctly 1`] = `
                                           style={
                                             [
                                               {
-                                                "color": "#457a39",
+                                                "color": "#1c7e33",
                                                 "fontSize": 15,
                                               },
                                               undefined,
@@ -1307,7 +1305,7 @@ exports[`Confirm should render correctly 1`] = `
                                               "fontSize": 13,
                                             },
                                             {
-                                              "color": "#b7bbc8",
+                                              "color": "#9ca1af",
                                             },
                                             {
                                               "fontFamily": "Material Design Icons",

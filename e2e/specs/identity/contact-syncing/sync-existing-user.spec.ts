@@ -12,7 +12,7 @@ import { getContactsSyncMockResponse } from './mock-data';
 import { importWalletWithRecoveryPhrase } from '../../../viewHelper';
 import TestHelpers from '../../../helpers';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../utils/Assertions';
 import { mockIdentityServices } from '../utils/mocks';
 import { SmokeIdentity } from '../../../tags';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
@@ -94,7 +94,7 @@ describe(
       await TabBarComponent.tapSettings();
       await TestHelpers.delay(1000);
       await SettingsView.tapContacts();
-      await Assertions.expectElementToBeVisible(ContactsView.container);
+      await Assertions.checkIfVisible(ContactsView.container);
 
       // Wait for contacts to be synced from remote storage
       await waitUntilSyncedElementsNumberEquals(

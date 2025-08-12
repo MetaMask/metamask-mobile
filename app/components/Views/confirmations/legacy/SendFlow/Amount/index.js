@@ -15,6 +15,7 @@ import { connect } from 'react-redux';
 import {
   setSelectedAsset,
   prepareTransaction,
+  setTransactionObject,
   resetTransaction,
   setMaxValueMode,
 } from '../../../../../../actions/transaction';
@@ -711,36 +712,36 @@ class Amount extends PureComponent {
         .build(),
     );
 
-    const shouldUseRedesignedTransferConfirmation =
-      isRedesignedTransferConfirmationEnabledForTransfer;
+    const shouldUseRedesignedTransferConfirmation = 
+      isRedesignedTransferConfirmationEnabledForTransfer && !isHardwareAccount(transaction.from);
 
     setSelectedAsset(selectedAsset);
     if (onConfirm) {
       onConfirm();
     } else if (shouldUseRedesignedTransferConfirmation) {
-      this.setState({ isRedesignedTransferTransactionLoading: true });
+        this.setState({ isRedesignedTransferTransactionLoading: true });
 
-      const transactionParams = {
-        data: transaction.data,
-        from: transaction.from,
-        to: transaction.to,
-        value:
-          typeof transaction.value === 'string'
-            ? transaction.value
-            : BNToHex(transaction.value),
-      };
+        const transactionParams = {
+          data: transaction.data,
+          from: transaction.from,
+          to: transaction.to,
+          value:
+            typeof transaction.value === 'string'
+              ? transaction.value
+              : BNToHex(transaction.value),
+        };
 
-      await addTransaction(transactionParams, {
-        origin: MMM_ORIGIN,
-        networkClientId: globalNetworkClientId,
-      });
-      this.setState({ isRedesignedTransferTransactionLoading: false });
-      navigation.navigate('SendFlowView', {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
-    } else {
-      navigation.navigate(Routes.SEND_FLOW.CONFIRM);
-    }
+        await addTransaction(transactionParams, {
+          origin: MMM_ORIGIN,
+          networkClientId: globalNetworkClientId,
+        });
+        this.setState({ isRedesignedTransferTransactionLoading: false });
+        navigation.navigate('SendFlowView', {
+          screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        });
+      } else {
+        navigation.navigate(Routes.SEND_FLOW.CONFIRM);
+      }
   };
 
   getCollectibleTranferTransactionProperties() {
@@ -903,9 +904,7 @@ class Amount extends PureComponent {
       const balanceBN = hexToBN(accounts[selectedAddress].balance);
       const realMaxValue = balanceBN.sub(estimatedTotalGas);
       const maxValue =
-        balanceBN.isZero() || realMaxValue.isNeg()
-          ? hexToBN('0x0')
-          : realMaxValue;
+        balanceBN.isZero() || realMaxValue.isNeg() ? hexToBN('0x0') : realMaxValue;
       if (internalPrimaryCurrencyIsCrypto) {
         input = fromWei(maxValue);
       } else {

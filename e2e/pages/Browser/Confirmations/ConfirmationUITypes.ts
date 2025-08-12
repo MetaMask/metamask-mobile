@@ -1,12 +1,12 @@
 import { ConfirmationUIType } from '../../../selectors/Confirmation/ConfirmationView.selectors';
-import Matchers from '../../../framework/Matchers';
+import Matchers from '../../../utils/Matchers';
 
 class ConfirmationUITypes {
-  get ModalConfirmationContainer(): DetoxElement {
+  get ModalConfirmationContainer() {
     return Matchers.getElementByID(ConfirmationUIType.MODAL);
   }
 
-  get FlatConfirmationContainer(): DetoxElement {
+  get FlatConfirmationContainer() {
     return Matchers.getElementByID(ConfirmationUIType.FLAT);
   }
 }

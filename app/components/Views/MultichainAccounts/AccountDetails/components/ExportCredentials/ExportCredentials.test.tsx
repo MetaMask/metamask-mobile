@@ -37,13 +37,7 @@ jest.mock('../../../../../../util/address', () => ({
   isPrivateKeyAccount: () => mockIsPrivateKeyAccount(),
 }));
 
-const mockKeyringId = 'keyring-1';
-const mockAccount = {
-  ...createMockInternalAccount('0x123', 'Test Account'),
-  options: {
-    entropySource: mockKeyringId,
-  },
-};
+const mockAccount = createMockInternalAccount('0x123', 'Test Account');
 const mockPrivateKeyAccount = createMockInternalAccount(
   '0x123',
   'Test Account',
@@ -56,6 +50,7 @@ const mockLedgerAccount = createMockInternalAccount(
   KeyringTypes.ledger,
   EthAccountType.Eoa,
 );
+const mockKeyringId = 'keyring-1';
 
 describe('ExportCredentials', () => {
   beforeEach(() => {
@@ -169,10 +164,12 @@ describe('ExportCredentials', () => {
     );
     fireEvent.press(mnemonicButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-      keyringId: mockKeyringId,
-    });
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL,
+      {
+        account: mockAccount,
+      },
+    );
   });
 
   it('navigates to reveal private credential when export private key is pressed', () => {
@@ -194,11 +191,9 @@ describe('ExportCredentials', () => {
     fireEvent.press(privateKeyButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
       {
-        screen:
-          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
-        params: { account: mockAccount },
+        account: mockAccount,
       },
     );
   });

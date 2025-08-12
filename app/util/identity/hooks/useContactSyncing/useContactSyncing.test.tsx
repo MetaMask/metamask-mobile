@@ -91,10 +91,7 @@ describe('useShouldDispatchContactSyncing()', () => {
 
   it.each(testCases.failureStateCases)(
     'returns false if not all conditions are met [%s = false]',
-    (testCase: {
-      state: ArrangeMocksMetamaskStateOverrides;
-      failingField: string;
-    }) => {
+    (testCase: { state: ArrangeMocksMetamaskStateOverrides; failingField: string }) => {
       const { state } = arrangeMockState(testCase.state);
       const hook = renderHookWithProvider(
         () => useShouldDispatchContactSyncing(),

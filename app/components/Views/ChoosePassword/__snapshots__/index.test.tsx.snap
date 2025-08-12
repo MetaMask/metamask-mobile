@@ -179,12 +179,12 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
                   placeholder="Enter a strong password"
-                  placeholderTextColor="#b7bbc8"
+                  placeholderTextColor="#9ca1af"
                   returnKeyType="next"
                   secureTextEntry={true}
                   style={
                     {
-                      "backgroundColor": "inherit",
+                      "backgroundColor": "#ffffff",
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
@@ -197,7 +197,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                       "paddingVertical": 0,
                     }
                   }
-                  submitBehavior="submit"
                   testID="create-password-first-input-field"
                   value=""
                 />
@@ -287,12 +286,12 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   onFocus={[Function]}
                   onSubmitEditing={[Function]}
                   placeholder="Re-enter your password"
-                  placeholderTextColor="#b7bbc8"
+                  placeholderTextColor="#9ca1af"
                   returnKeyType="done"
                   secureTextEntry={true}
                   style={
                     {
-                      "backgroundColor": "inherit",
+                      "backgroundColor": "#ffffff",
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
@@ -523,13 +522,12 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "stretch",
-                  "backgroundColor": "#121314",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 12,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
                   "opacity": 0.5,
-                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }

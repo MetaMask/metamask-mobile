@@ -1,8 +1,12 @@
 /* eslint-disable import/prefer-default-export */
+// Third party dependencies
+import { lightTheme } from '@metamask/design-tokens';
 
 // External dependencies
-import { SAMPLE_BUTTONBASE_PROPS } from '../../foundation/ButtonBase/ButtonBase.constants';
-import { TextVariant, TextColor } from '../../../../Texts/Text';
+import {
+  DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT,
+  SAMPLE_BUTTONBASE_PROPS,
+} from '../../foundation/ButtonBase/ButtonBase.constants';
 
 // Internal dependencies.
 import { ButtonPrimaryProps } from './ButtonPrimary.types';
@@ -11,8 +15,10 @@ import { ButtonPrimaryProps } from './ButtonPrimary.types';
 export const BUTTONPRIMARY_TESTID = 'buttonprimary';
 
 // Defaults
-export const DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT = TextVariant.BodyMDMedium;
-export const DEFAULT_BUTTONPRIMARY_LABEL_COLOR = TextColor.Inverse;
+export const DEFAULT_BUTTONPRIMARY_LABEL_TEXTVARIANT =
+  DEFAULT_BUTTONBASE_LABEL_TEXTVARIANT;
+export const DEFAULT_BUTTONPRIMARY_LABEL_COLOR =
+  lightTheme.colors.primary.inverse;
 
 // Samples
 export const SAMPLE_BUTTONPRIMARY_PROPS: ButtonPrimaryProps = {

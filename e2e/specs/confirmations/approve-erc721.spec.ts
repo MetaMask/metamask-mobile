@@ -1,21 +1,32 @@
+'use strict';
+
 import { SmokeConfirmations } from '../../tags';
+import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
+
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { DappVariants } from '../../framework/Constants';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../utils/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import { buildPermissions } from '../../fixtures/utils';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
+  beforeAll(async () => {
+    jest.setTimeout(150000);
+    await TestHelpers.reverseServerPort();
+  });
+
   it('approve an ERC721 token from a dapp', async () => {
-    const testSpecificMock = {
+    const testSpecificMock  = {
       GET: [
         mockEvents.GET.suggestedGasFeesApiGanache,
         mockEvents.GET.remoteFeatureFlagsOldConfirmations,
@@ -24,23 +35,20 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
 
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
-        smartContracts: [NFT_CONTRACT],
+        ganacheOptions: defaultGanacheOptions,
+        smartContract: NFT_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
-        const nftsAddress = await contractRegistry?.getContractAddress(
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
+        const nftsAddress = await contractRegistry.getContractAddress(
           NFT_CONTRACT,
         );
         await loginToApp();
@@ -51,11 +59,12 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
         });
         // Approve NFT
         await TestDApp.tapApproveERC721TokenButton();
+        await TestHelpers.delay(3000);
         await TestDApp.tapApproveButton();
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
         // Assert NFT is approved
-        await Assertions.expectTextDisplayed(
+        await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
         );
       },

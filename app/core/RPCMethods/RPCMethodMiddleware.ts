@@ -24,11 +24,7 @@ import {
   PermissionDoesNotExistError,
   RequestedPermissions,
 } from '@metamask/permission-controller';
-import {
-  blockTagParamIndex,
-  getAllNetworks,
-  isPerDappSelectedNetworkEnabled,
-} from '../../util/networks';
+import { blockTagParamIndex, getAllNetworks, isPerDappSelectedNetworkEnabled } from '../../util/networks';
 import { polyfillGasPrice } from './utils';
 import ImportedEngine from '../Engine';
 import { strings } from '../../../locales/i18n';
@@ -37,13 +33,12 @@ import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
 import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
-import { getPermittedAccounts } from '../Permissions';
+import {
+  getPermittedAccounts,
+} from '../Permissions';
 import AppConstants from '../AppConstants';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import {
-  selectEvmChainId,
-  selectProviderConfig,
-} from '../../selectors/networkController';
+import { selectEvmChainId, selectProviderConfig } from '../../selectors/networkController';
 import { setEventStageError, setEventStage } from '../../actions/rpcEvents';
 import { isWhitelistedRPC, RPCStageTypes } from '../../reducers/rpcEvents';
 import { regex } from '../../../app/util/regex';
@@ -100,7 +95,7 @@ export interface RPCMethodsMiddleParameters {
   channelId?: string; // Used for remote connections
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getProviderState: (origin?: string, networkClientId?: string) => any;
+  getProviderState: (origin?: string, networkClientId?: string,) => any;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
@@ -197,9 +192,13 @@ export const checkActiveAccountAndChainId = async ({
     let activeChainId;
 
     if (origin && isPerDappSelectedNetworkEnabled()) {
-      const perOriginChainId = selectPerOriginChainId(store.getState(), origin);
+      const perOriginChainId = selectPerOriginChainId(
+        store.getState(),
+        origin,
+      );
 
       activeChainId = perOriginChainId;
+
     } else if (isInitialNetwork) {
       activeChainId = ChainId[networkType as keyof typeof ChainId];
     } else if (networkType === RPC) {
@@ -535,7 +534,8 @@ export const getRpcMethodMiddleware = ({
                 resolve(undefined);
               },
               {
-                getAccounts: (...args) => getPermittedAccounts(origin, ...args),
+                getAccounts: (...args) =>
+                  getPermittedAccounts(origin, ...args),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
                   requestedPermissions,
                 ) =>
@@ -543,8 +543,8 @@ export const getRpcMethodMiddleware = ({
                     origin,
                     requestedPermissions,
                   ),
-                requestPermissionsForOrigin: (requestedPermissions) =>
-                  Engine.context.PermissionController.requestPermissions(
+                  requestPermissionsForOrigin: (requestedPermissions) =>
+                    Engine.context.PermissionController.requestPermissions(
                     { origin: channelId ?? hostname },
                     requestedPermissions,
                     {
@@ -596,10 +596,7 @@ export const getRpcMethodMiddleware = ({
         res.result = true;
       },
       net_version: async () => {
-        const networkProviderState = await getProviderState(
-          origin,
-          req.networkClientId,
-        );
+        const networkProviderState = await getProviderState(origin, req.networkClientId);
         res.result = networkProviderState.networkVersion;
       },
       eth_requestAccounts: async () =>
@@ -618,7 +615,7 @@ export const getRpcMethodMiddleware = ({
                 resolve(undefined);
               },
               {
-                getAccounts: (opts?: { ignoreLock?: boolean }) =>
+                getAccounts: (opts?: { ignoreLock?: boolean; }) =>
                   getPermittedAccounts(origin, opts),
                 getCaip25PermissionFromLegacyPermissionsForOrigin: (
                   requestedPermissions: RequestedPermissions,
@@ -627,9 +624,7 @@ export const getRpcMethodMiddleware = ({
                     origin,
                     requestedPermissions,
                   ),
-                requestPermissionsForOrigin: (
-                  requestedPermissions: RequestedPermissions,
-                ) =>
+                requestPermissionsForOrigin: (requestedPermissions: RequestedPermissions) =>
                   Engine.context.PermissionController.requestPermissions(
                     { origin: channelId ?? hostname },
                     requestedPermissions,
@@ -639,24 +634,24 @@ export const getRpcMethodMiddleware = ({
                       },
                     },
                   ),
-                getUnlockPromise: () => {
-                  if (Engine.context.KeyringController.isUnlocked()) {
-                    return Promise.resolve();
-                  }
-                  return new Promise((resolveUnlock) => {
-                    Engine.controllerMessenger.subscribeOnceIf(
-                      'KeyringController:unlock',
-                      resolveUnlock,
-                      () => true,
-                    );
-                  });
-                },
+                  getUnlockPromise: () => {
+                    if (Engine.context.KeyringController.isUnlocked()) {
+                      return Promise.resolve();
+                    }
+                    return new Promise((resolveUnlock) => {
+                      Engine.controllerMessenger.subscribeOnceIf(
+                        'KeyringController:unlock',
+                        resolveUnlock,
+                        () => true,
+                      );
+                    });
+                  },
               },
             )
             ?.then(resolve)
             .catch(reject);
         }),
-      eth_accounts: getEthAccounts,
+        eth_accounts: getEthAccounts,
       eth_coinbase: getEthAccounts,
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {

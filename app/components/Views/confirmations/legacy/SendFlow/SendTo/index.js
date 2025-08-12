@@ -2,6 +2,7 @@ import React, { Fragment, PureComponent } from 'react';
 import { View, ScrollView, Alert, Platform, BackHandler } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import AddressList from '../AddressList';
@@ -20,7 +21,6 @@ import {
   isValidHexAddress,
   validateAddressOrENS,
   areAddressesEqual,
-  toChecksumAddress,
 } from '../../../../../../util/address';
 import { getEther, getTicker } from '../../../../../../util/transactions';
 import {

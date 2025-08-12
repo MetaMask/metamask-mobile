@@ -57,11 +57,7 @@ const SolanaNewFeatureContent = () => {
         .build(),
     );
 
-    await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true', {
-      // Not emitting event as solana import flow has not finished
-      // Prevents any confusion in areas that are listening for app open modals to close
-      emitEvent: false,
-    });
+    await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
     navigate(Routes.MULTI_SRP.IMPORT);
   };
 
@@ -113,11 +109,7 @@ const SolanaNewFeatureContent = () => {
             </Text>
 
             <View style={styles.largeFoxWrapper}>
-              <Image
-                source={FoxVipers}
-                style={styles.foxImage}
-                resizeMode="contain"
-              />
+              <Image source={FoxVipers} style={styles.foxImage} resizeMode="contain" />
             </View>
 
             <View style={styles.createWrapper}>

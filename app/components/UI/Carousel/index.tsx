@@ -1,7 +1,15 @@
 import React, { useState, useCallback, FC, useMemo, useEffect } from 'react';
-import { View, Pressable, Linking, Image, FlatList } from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Pressable,
+  Linking,
+  Image,
+  FlatList,
+} from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { styleSheet } from './styles';
 import { CarouselProps, CarouselSlide, NavigationAction } from './types';
 import { dismissBanner } from '../../../reducers/banners';
@@ -9,6 +17,7 @@ import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useTheme } from '../../../util/theme';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import { PREDEFINED_SLIDES, BANNER_IMAGES } from './constants';
 import { useStyles } from '../../../component-library/hooks';
@@ -18,7 +27,7 @@ import {
   selectSelectedInternalAccount,
   selectLastSelectedSolanaAccount,
 } from '../../../selectors/accountsController';
-import { isEvmAccountType, SolAccountType } from '@metamask/keyring-api';
+import { SolAccountType } from '@metamask/keyring-api';
 import Engine from '../../../core/Engine';
 ///: END:ONLY_INCLUDE_IF
 import { selectAddressHasTokenBalances } from '../../../selectors/tokenBalancesController';
@@ -27,10 +36,6 @@ import {
   isActive,
 } from './fetchCarouselSlidesFromContentful';
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../component-library/components/Buttons/ButtonIcon/';
-import { IconName } from '../../../component-library/components/Icons/Icon';
 
 const MAX_CAROUSEL_SLIDES = 15;
 
@@ -48,6 +53,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
   );
   const { trackEvent, createEventBuilder } = useMetrics();
   const hasBalance = useSelector(selectAddressHasTokenBalances);
+  const { colors } = useTheme();
   const dispatch = useDispatch();
   const { navigate } = useNavigation();
   const { styles } = useStyles(styleSheet, { style });
@@ -110,13 +116,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
       if (
         slide.id === 'solana' &&
         selectedAccount?.type === SolAccountType.DataAccount
-      ) {
-        return false;
-      }
-      if (
-        slide.id === 'smartAccount' &&
-        selectedAccount?.type &&
-        !isEvmAccountType(selectedAccount.type)
       ) {
         return false;
       }
@@ -245,18 +244,24 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
             </View>
           </View>
           {!slide.undismissable && (
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSizes.Md}
-              onPress={() => handleClose(slide.id)}
+            <TouchableOpacity
               testID={`carousel-slide-${slide.id}-close-button`}
               style={styles.closeButton}
-            />
+              onPress={() => handleClose(slide.id)}
+            >
+              <Icon name="close" size={18} color={colors.icon.default} />
+            </TouchableOpacity>
           )}
         </View>
       </Pressable>
     ),
-    [styles, handleSlideClick, handleClose, pressedSlideId],
+    [
+      styles,
+      handleSlideClick,
+      handleClose,
+      colors.icon.default,
+      pressedSlideId,
+    ],
   );
 
   // Track banner display events when visible slides change

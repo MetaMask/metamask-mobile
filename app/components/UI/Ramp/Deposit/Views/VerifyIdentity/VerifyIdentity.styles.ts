@@ -7,37 +7,21 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    title: {
-      marginTop: 16,
-      fontWeight: 'bold',
-    },
     image: {
-      width: screenWidth * 0.65,
-      height: screenWidth * 0.49,
+      width: screenWidth,
+      height: screenWidth * 0.75,
       alignSelf: 'center',
-      marginVertical: 16,
     },
     description: {
-      marginTop: 24,
-    },
-    descriptionCompact: {
-      marginTop: 12,
+      marginTop: 16,
     },
     privacyPolicyLink: {
       marginTop: 8,
+      fontSize: 14,
       color: theme.colors.primary.default,
     },
     footerContent: {
       gap: 8,
-    },
-    agreementText: {
-      marginTop: 24,
-    },
-    linkText: {
-      textDecorationLine: 'underline',
-    },
-    scrollContainer: {
-      flexGrow: 1,
     },
   });
 };

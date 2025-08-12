@@ -65,14 +65,10 @@ describe('IPFSGatewaySettings', () => {
 
     const toggleSwitch = getByTestId(IPFS_GATEWAY_SECTION);
     fireEvent(toggleSwitch, 'onValueChange', true);
-    expect(
-      Engine.context.PreferencesController.setIsIpfsGatewayEnabled,
-    ).toHaveBeenCalledWith(true);
+    expect(Engine.context.PreferencesController.setIsIpfsGatewayEnabled).toHaveBeenCalledWith(true);
 
     fireEvent(toggleSwitch, 'onValueChange', false);
-    expect(
-      Engine.context.PreferencesController.setIsIpfsGatewayEnabled,
-    ).toHaveBeenCalledWith(false);
+    expect(Engine.context.PreferencesController.setIsIpfsGatewayEnabled).toHaveBeenCalledWith(false);
   });
 
   it('renders IPFS gateway selector when enabled', async () => {
@@ -91,10 +87,8 @@ describe('IPFSGatewaySettings', () => {
       },
     });
 
-    await waitFor(
-      () => expect(getByTestId(IPFS_GATEWAY_SELECTED)).toBeTruthy(),
-      { timeout: 3000 },
-    );
+    await waitFor(() => expect(getByTestId(IPFS_GATEWAY_SELECTED)).toBeTruthy(), { timeout: 3000 });
+
   });
 
   it('does not render IPFS gateway selector when disabled', () => {
@@ -120,15 +114,12 @@ describe('IPFSGatewaySettings', () => {
       },
     });
 
-    await waitFor(
-      () => {
-        expect(timeoutFetch).toHaveBeenCalledWith(
+    await waitFor(() => {
+      expect(timeoutFetch).toHaveBeenCalledWith(
           expect.stringContaining('https://'),
           expect.any(Object),
-          1200,
-        );
-      },
-      { timeout: 3000 },
-    );
+          1200
+      );
+    }, { timeout: 3000 });
   });
 });

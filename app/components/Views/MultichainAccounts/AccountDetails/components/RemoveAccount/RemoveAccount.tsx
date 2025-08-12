@@ -9,7 +9,7 @@ import styleSheet from './RemoveAccount.styles';
 import Button, {
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
+import { MultichainDeleteAccountSelectors } from '../../../../../../../e2e/selectors/MultichainAccounts/DeleteAccount.selectors';
 
 interface RemoveAccountProps {
   account: InternalAccount;
@@ -20,15 +20,14 @@ export const RemoveAccount = ({ account }: RemoveAccountProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const handleRemoveAccountClick = useCallback(() => {
-    navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT,
-      params: { account },
+    navigate(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT, {
+      account,
     });
   }, [account, navigate]);
 
   return (
     <Button
-      testID={AccountDetailsIds.REMOVE_ACCOUNT_BUTTON}
+      testID={MultichainDeleteAccountSelectors.DELETE_ACCOUNT_REMOVE_BUTTON}
       style={styles.button}
       isDanger
       variant={ButtonVariants.Secondary}

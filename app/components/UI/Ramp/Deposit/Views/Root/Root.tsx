@@ -9,6 +9,7 @@ import {
   FIAT_ORDER_STATES,
   FIAT_ORDER_PROVIDERS,
 } from '../../../../../../constants/on-ramp';
+import { createOrderProcessingNavDetails } from '../OrderProcessing/OrderProcessing';
 import { createBankDetailsNavDetails } from '../BankDetails/BankDetails';
 
 const Root = () => {
@@ -36,9 +37,25 @@ const Root = () => {
         order.state === FIAT_ORDER_STATES.CREATED,
     );
 
+    const pendingOrder = orders.find(
+      (order) =>
+        order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT &&
+        order.state === FIAT_ORDER_STATES.PENDING,
+    );
+
     if (createdOrder) {
       const [routeName, params] = createBankDetailsNavDetails({
         orderId: createdOrder.id,
+      });
+      navigation.reset({
+        index: 0,
+        routes: [
+          { name: routeName, params: { ...params, animationEnabled: false } },
+        ],
+      });
+    } else if (pendingOrder) {
+      const [routeName, params] = createOrderProcessingNavDetails({
+        orderId: pendingOrder.id,
       });
       navigation.reset({
         index: 0,

@@ -3,24 +3,15 @@ import { useIsInternalConfirmation } from './useIsInternalConfirmation';
 import { useTransactionBatchesMetadata } from './useTransactionBatchesMetadata';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
 import { MMM_ORIGIN } from '../../constants/confirmations';
-import {
-  TransactionBatchMeta,
-  TransactionMeta,
-} from '@metamask/transaction-controller';
+import { TransactionBatchMeta, TransactionMeta } from '@metamask/transaction-controller';
 
 // Mock the dependencies
 jest.mock('./useTransactionBatchesMetadata');
 jest.mock('./useTransactionMetadataRequest');
 
 describe('useIsInternalConfirmation', () => {
-  const mockUseTransactionBatchesMetadata =
-    useTransactionBatchesMetadata as jest.MockedFunction<
-      typeof useTransactionBatchesMetadata
-    >;
-  const mockUseTransactionMetadataRequest =
-    useTransactionMetadataRequest as jest.MockedFunction<
-      typeof useTransactionMetadataRequest
-    >;
+  const mockUseTransactionBatchesMetadata = useTransactionBatchesMetadata as jest.MockedFunction<typeof useTransactionBatchesMetadata>;
+  const mockUseTransactionMetadataRequest = useTransactionMetadataRequest as jest.MockedFunction<typeof useTransactionMetadataRequest>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -107,9 +98,7 @@ describe('useIsInternalConfirmation', () => {
 
   it('should handle metadata objects without origin property', () => {
     mockUseTransactionMetadataRequest.mockReturnValue({} as TransactionMeta);
-    mockUseTransactionBatchesMetadata.mockReturnValue(
-      {} as TransactionBatchMeta,
-    );
+    mockUseTransactionBatchesMetadata.mockReturnValue({} as TransactionBatchMeta);
 
     const { result } = renderHook(() => useIsInternalConfirmation());
 

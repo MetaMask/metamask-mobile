@@ -48,9 +48,7 @@ export const HeroToken = ({ amountWei }: { amountWei?: string }) => {
 
   const { maxValueMode } = useSelector(selectTransactionState);
 
-  const { amountPrecise, amount, fiat, isNative } = useTokenAmount({
-    amountWei,
-  });
+  const { amountPrecise, amount, fiat, isNative } = useTokenAmount({ amountWei });
   const isRoundedAmount = amountPrecise !== amount;
 
   return (

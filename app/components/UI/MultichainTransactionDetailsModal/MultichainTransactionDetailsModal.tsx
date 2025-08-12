@@ -4,7 +4,7 @@ import { View, TouchableOpacity, TextStyle } from 'react-native';
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/Feather';
 import { Transaction } from '@metamask/keyring-api';
-import { MultichainTransactionDisplayData } from '../../hooks/useMultichainTransactionDisplay';
+import { useMultichainTransactionDisplay } from '../../hooks/useMultichainTransactionDisplay';
 import { toDateFormat } from '../../../util/date';
 import { formatAddress } from '../../../util/address';
 import { capitalize } from 'lodash';
@@ -21,8 +21,8 @@ import styles from './MultichainTransactionDetailsModal.styles';
 interface TransactionDetailsProps {
   isVisible: boolean;
   onClose: () => void;
-  displayData: MultichainTransactionDisplayData;
   transaction: Transaction;
+  userAddress: string;
   navigation: NavigationProp<ParamListBase>;
 }
 
@@ -39,15 +39,25 @@ const TransactionDetailRow = {
 const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
   isVisible,
   onClose,
-  displayData,
   transaction,
+  userAddress,
   navigation,
 }) => {
   const { colors, typography } = useTheme();
   const style = styles(colors, typography);
 
-  const { title, from, to, baseFee, priorityFee } = displayData;
-  const { id, timestamp, chain, status } = transaction;
+  const {
+    id,
+    type,
+    timestamp,
+    chain,
+    status,
+    from,
+    to,
+    baseFee,
+    priorityFee,
+    asset,
+  } = useMultichainTransactionDisplay({ transaction, userAddress });
 
   const viewOnBlockExplorer = (label: string) => {
     let url = '';
@@ -91,7 +101,9 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
             style={style.linkContainer}
             onPress={() => viewOnBlockExplorer(label)}
           >
-            <Text style={style.linkText}>{formatAddress(value, 'short')}</Text>
+            <Text style={style.linkText}>
+              {formatAddress(value, 'short')}
+            </Text>
             <Icon
               name="external-link"
               size={16}
@@ -124,7 +136,7 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
     >
       <View style={style.container}>
         <View style={style.header}>
-          <Text style={style.title}>{title}</Text>
+          <Text style={style.title}>{strings(`transactions.${type}`)}</Text>
           <Text style={style.date}>
             {timestamp && toDateFormat(new Date(timestamp * 1000))}
           </Text>
@@ -144,10 +156,10 @@ const MultichainTransactionDetailsModal: React.FC<TransactionDetailsProps> = ({
             renderDetailRow(TransactionDetailRow.From, from?.address, true)}
           {to?.address &&
             renderDetailRow(TransactionDetailRow.To, to?.address, true)}
-          {to &&
+          {asset &&
             renderDetailRow(
               TransactionDetailRow.Amount,
-              `${to.amount} ${to.unit}`,
+              `${asset?.amount} ${asset?.unit}`,
             )}
           {baseFee &&
             renderDetailRow(

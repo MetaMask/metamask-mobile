@@ -1,42 +1,29 @@
 diff --git a/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js b/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
-index 81a8a70..812c3e6 100644
+index 81a8a70..218c33b 100644
 --- a/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
 +++ b/node_modules/react-native-scrollable-tab-view/DefaultTabBar.js
-@@ -23,6 +23,7 @@ const DefaultTabBar = createReactClass({
-     tabStyle: DeprecatedPropTypes.ViewPropTypes.style,
-     renderTab: PropTypes.func,
-     underlineStyle: DeprecatedPropTypes.ViewPropTypes.style,
-+    tabPadding: PropTypes.number,
-   },
- 
-   getDefaultProps() {
-@@ -60,9 +61,11 @@ const DefaultTabBar = createReactClass({
+@@ -60,9 +60,10 @@ const DefaultTabBar = createReactClass({
    render() {
      const containerWidth = this.props.containerWidth;
      const numberOfTabs = this.props.tabs.length;
 +    const tabPadding = this.props.tabPadding || 0;
-+    const effectiveWidth = containerWidth - tabPadding;
      const tabUnderlineStyle = {
        position: 'absolute',
 -      width: containerWidth / numberOfTabs,
-+      width: effectiveWidth / numberOfTabs,
++      width: containerWidth / numberOfTabs - tabPadding,
        height: 4,
        backgroundColor: 'navy',
        bottom: 0,
-@@ -70,10 +73,10 @@ const DefaultTabBar = createReactClass({
+@@ -70,7 +71,7 @@ const DefaultTabBar = createReactClass({
  
      const translateX = this.props.scrollValue.interpolate({
        inputRange: [0, 1],
 -      outputRange: [0,  containerWidth / numberOfTabs],
-+      outputRange: [tabPadding / 2, (effectiveWidth / numberOfTabs) + (tabPadding / 2)],
++      outputRange: [0,  containerWidth / numberOfTabs - tabPadding],
      });
      return (
--      <View style={[styles.tabs, {backgroundColor: this.props.backgroundColor, }, this.props.style, ]}>
-+      <View style={[styles.tabs, {backgroundColor: this.props.backgroundColor, paddingHorizontal: tabPadding / 2}, this.props.style, ]}>
-         {this.props.tabs.map((name, page) => {
-           const isTabActive = this.props.activeTab === page;
-           const renderTab = this.props.renderTab || this.renderTab;
-@@ -87,7 +90,7 @@ const DefaultTabBar = createReactClass({
+       <View style={[styles.tabs, {backgroundColor: this.props.backgroundColor, }, this.props.style, ]}>
+@@ -87,7 +88,7 @@ const DefaultTabBar = createReactClass({
                  { translateX },
                ]
              },
@@ -46,7 +33,7 @@ index 81a8a70..812c3e6 100644
          />
        </View>
 diff --git a/node_modules/react-native-scrollable-tab-view/index.js b/node_modules/react-native-scrollable-tab-view/index.js
-index dc9d4f4..4965309 100644
+index dc9d4f4..b9d772a 100644
 --- a/node_modules/react-native-scrollable-tab-view/index.js
 +++ b/node_modules/react-native-scrollable-tab-view/index.js
 @@ -13,17 +13,14 @@ const {
@@ -69,16 +56,15 @@ index dc9d4f4..4965309 100644
  
  const ScrollableTabView = createReactClass({
    mixins: [TimerMixin, ],
-@@ -235,7 +232,7 @@ const ScrollableTabView = createReactClass({
+@@ -235,7 +232,6 @@ const ScrollableTabView = createReactClass({
          ref={(scrollView) => { this.scrollView = scrollView; }}
          onScroll={Animated.event(
            [{ nativeEvent: { contentOffset: { x: this.state.scrollXIOS, }, }, }, ],
 -          { useNativeDriver: true, listener: this._onScroll, }
-+          { listener: this._onScroll, }
          )}
          onMomentumScrollBegin={this._onMomentumScrollBeginAndEnd}
          onMomentumScrollEnd={this._onMomentumScrollBeginAndEnd}
-@@ -266,10 +263,7 @@ const ScrollableTabView = createReactClass({
+@@ -266,10 +262,6 @@ const ScrollableTabView = createReactClass({
                offset: this.state.offsetAndroid,
              },
            }, ],
@@ -86,7 +72,6 @@ index dc9d4f4..4965309 100644
 -            useNativeDriver: true,
 -            listener: this._onScroll,
 -          },
-+          { listener: this._onScroll, }
          )}
          ref={(scrollView) => { this.scrollView = scrollView; }}
          {...this.props.contentProps}

@@ -4,11 +4,7 @@ import Engine from '../Engine';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../../core/AppConstants';
 import { Caip25CaveatType } from '@metamask/chain-agnostic-permission';
-import {
-  EthAccountType,
-  SolAccountType,
-  SolScope,
-} from '@metamask/keyring-api';
+import { EthAccountType, SolAccountType, SolScope } from '@metamask/keyring-api';
 jest.mock('../../util/permissions', () => ({
   getCaip25PermissionFromLegacyPermissions: jest.fn(),
 }));
@@ -17,6 +13,7 @@ jest.mock('../Permissions', () => ({
   ...jest.requireActual('../Permissions'),
   getPermittedAccounts: jest.fn(),
 }));
+
 
 jest.mock('@metamask/eth-query', () => () => ({
   sendAsync: jest.fn().mockResolvedValue(1),
@@ -68,15 +65,15 @@ function setupBackgroundBridge(url, isMMSDK = false) {
     {
       address: '123',
       metadata: {
-        lastSelected: 1,
-      },
+        lastSelected: 1
+      }
     },
     {
       address: '456',
       metadata: {
-        lastSelected: 2,
-      },
-    },
+        lastSelected: 2
+      }
+    }
   ]);
 
   // Setup permission controller mocks
@@ -125,7 +122,7 @@ function setupBackgroundBridge(url, isMMSDK = false) {
 
   // Setup the engine property to support sendNotificationEip1193
   bridge.engine = {
-    emit: jest.fn(),
+    emit: jest.fn()
   };
 
   return bridge;
@@ -140,7 +137,7 @@ describe('BackgroundBridge', () => {
     it('requests getProviderNetworkState from origin getter when network state is updated', async () => {
       const mockNetworkState = {
         chainId: '0x2',
-        networkVersion: '2',
+        networkVersion: '2'
       };
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
@@ -162,15 +159,15 @@ describe('BackgroundBridge', () => {
     });
 
     it('notifies of chain changes when network state is updated', async () => {
-      // Create the new network state with a different chain
-      const mockNetworkState = {
+       // Create the new network state with a different chain
+       const mockNetworkState = {
         chainId: '0x2',
-        networkVersion: '2',
+        networkVersion: '2'
       };
-      // Create the new network state with a different chain
-      const oldMockNetworkState = {
+       // Create the new network state with a different chain
+       const oldMockNetworkState = {
         chainId: '0x1',
-        networkVersion: '1',
+        networkVersion: '1'
       };
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
@@ -178,70 +175,64 @@ describe('BackgroundBridge', () => {
       const getProviderSpy = jest.spyOn(bridge, 'getProviderNetworkState');
 
       expect(bridge.lastChainIdSent).toBe(oldMockNetworkState.chainId);
-      expect(bridge.networkVersionSent).toBe(
-        oldMockNetworkState.networkVersion,
-      );
+      expect(bridge.networkVersionSent).toBe(oldMockNetworkState.networkVersion);
 
       // Trigger emulated initial state update
       getProviderSpy.mockResolvedValue(mockNetworkState);
       await bridge.onStateUpdate();
 
+
       expect(sendNotificationSpy).toHaveBeenCalledWith({
         method: AppConstants.NOTIFICATION_NAMES.chainChanged,
-        params: mockNetworkState,
+        params: mockNetworkState
       });
       expect(bridge.lastChainIdSent).toBe(mockNetworkState.chainId);
       expect(bridge.networkVersionSent).toBe(mockNetworkState.networkVersion);
 
+
       getProviderSpy.mockResolvedValue(oldMockNetworkState);
       await bridge.onStateUpdate();
 
+
       expect(bridge.lastChainIdSent).toBe(oldMockNetworkState.chainId);
-      expect(bridge.networkVersionSent).toBe(
-        oldMockNetworkState.networkVersion,
-      );
+      expect(bridge.networkVersionSent).toBe(oldMockNetworkState.networkVersion);
       expect(sendNotificationSpy).toHaveBeenCalledWith({
         method: AppConstants.NOTIFICATION_NAMES.chainChanged,
-        params: oldMockNetworkState,
+        params: oldMockNetworkState
       });
     });
   });
 
   describe('notifySolanaAccountChangedForCurrentAccount', () => {
-    it('emits nothing if there is no CAIP-25 permission', () => {
+    it('emits nothing if there is no CAIP-25 permission' , () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
 
       bridge.notifySolanaAccountChangedForCurrentAccount();
 
       expect(sendNotificationSpy).not.toHaveBeenCalled();
+
     });
 
-    it('emits nothing if there are no permitted solana scopes and `solana_accountChanged_notifications` session property is set', () => {
+    it('emits nothing if there are no permitted solana scopes and `solana_accountChanged_notifications` session property is set' , () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
       PermissionController.getCaveat.mockReturnValue({
         type: Caip25CaveatType,
         value: {
           requiredScopes: {},
           optionalScopes: {
             'eip155:1': {
-              accounts: [],
-            },
+              accounts: []
+            }
           },
           isMultichainOrigin: true,
           sessionProperties: {
-            solana_accountChanged_notifications: true,
-          },
-        },
+            solana_accountChanged_notifications: true
+          }
+        }
       });
 
       bridge.notifySolanaAccountChangedForCurrentAccount();
@@ -249,25 +240,24 @@ describe('BackgroundBridge', () => {
       expect(sendNotificationSpy).not.toHaveBeenCalled();
     });
 
-    it('emits nothing if there are permitted solana accounts, but the `solana_accountChanged_notifications` session property is not set', () => {
+    it('emits nothing if there are permitted solana accounts, but the `solana_accountChanged_notifications` session property is not set' , () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
       PermissionController.getCaveat.mockReturnValue({
         type: Caip25CaveatType,
         value: {
           requiredScopes: {},
           optionalScopes: {
             [SolScope.Mainnet]: {
-              accounts: [`${SolScope.Mainnet}:someaddress`],
-            },
+              accounts: [
+                `${SolScope.Mainnet}:someaddress`
+              ]
+            }
           },
           isMultichainOrigin: true,
-          sessionProperties: {},
-        },
+          sessionProperties: {}
+        }
       });
 
       bridge.notifySolanaAccountChangedForCurrentAccount();
@@ -278,24 +268,22 @@ describe('BackgroundBridge', () => {
     it('emits nothing if there are permitted solana scopes but no accounts and the `solana_accountChanged_notifications` session property is set', () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
       PermissionController.getCaveat.mockReturnValue({
         type: Caip25CaveatType,
         value: {
           requiredScopes: {},
           optionalScopes: {
             [SolScope.Mainnet]: {
-              accounts: [],
-            },
+              accounts: [
+              ]
+            }
           },
           isMultichainOrigin: true,
           sessionProperties: {
-            solana_accountChanged_notifications: true,
-          },
-        },
+            solana_accountChanged_notifications: true
+          }
+        }
       });
 
       bridge.notifySolanaAccountChangedForCurrentAccount();
@@ -306,24 +294,23 @@ describe('BackgroundBridge', () => {
     it('emits a solana accountChanged event when there are permitted solana accounts and the `solana_accountChanged_notifications` session property is set', () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
       PermissionController.getCaveat.mockReturnValue({
         type: Caip25CaveatType,
         value: {
           requiredScopes: {},
           optionalScopes: {
             [SolScope.Mainnet]: {
-              accounts: [`${SolScope.Mainnet}:someaddress`],
-            },
+              accounts: [
+                `${SolScope.Mainnet}:someaddress`
+              ]
+            }
           },
           isMultichainOrigin: true,
           sessionProperties: {
-            solana_accountChanged_notifications: true,
-          },
-        },
+            solana_accountChanged_notifications: true
+          }
+        }
       });
 
       bridge.notifySolanaAccountChangedForCurrentAccount();
@@ -333,7 +320,9 @@ describe('BackgroundBridge', () => {
         params: {
           notification: {
             method: 'metamask_accountsChanged',
-            params: ['someaddress'],
+            params: [
+            'someaddress',
+            ],
           },
           scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
         },
@@ -345,37 +334,35 @@ describe('BackgroundBridge', () => {
     it('emits nothing if the current and previous permissions both did not have `solana_accountChanged_notifications` session property set', () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
 
       const currentValue = {
         requiredScopes: {},
         optionalScopes: {
           [SolScope.Mainnet]: {
-            accounts: [`${SolScope.Mainnet}:456`],
-          },
+            accounts: [
+              `${SolScope.Mainnet}:456`
+            ]
+          }
         },
         isMultichainOrigin: true,
-        sessionProperties: {},
+        sessionProperties: {}
       };
 
       const previousValue = {
         requiredScopes: {},
         optionalScopes: {
           [SolScope.Mainnet]: {
-            accounts: [`${SolScope.Mainnet}:123`],
-          },
+            accounts: [
+              `${SolScope.Mainnet}:123`
+            ]
+          }
         },
         isMultichainOrigin: true,
-        sessionProperties: {},
+        sessionProperties: {}
       };
 
-      bridge.handleSolanaAccountChangedFromScopeChanges(
-        currentValue,
-        previousValue,
-      );
+      bridge.handleSolanaAccountChangedFromScopeChanges(currentValue, previousValue);
 
       expect(sendNotificationSpy).not.toHaveBeenCalledWith();
     });
@@ -383,41 +370,39 @@ describe('BackgroundBridge', () => {
     it('emits nothing if currently and previously selected solana accounts did not change', () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
 
       const currentValue = {
         requiredScopes: {},
         optionalScopes: {
           [SolScope.Mainnet]: {
-            accounts: [`${SolScope.Mainnet}:123`],
-          },
+            accounts: [
+              `${SolScope.Mainnet}:123`
+            ]
+          }
         },
         isMultichainOrigin: true,
         sessionProperties: {
-          solana_accountChanged_notifications: true,
-        },
+          solana_accountChanged_notifications: true
+        }
       };
 
       const previousValue = {
         requiredScopes: {},
         optionalScopes: {
           [SolScope.Mainnet]: {
-            accounts: [`${SolScope.Mainnet}:123`],
-          },
+            accounts: [
+              `${SolScope.Mainnet}:123`
+            ]
+          }
         },
         isMultichainOrigin: true,
         sessionProperties: {
-          solana_accountChanged_notifications: true,
-        },
+          solana_accountChanged_notifications: true
+        }
       };
 
-      bridge.handleSolanaAccountChangedFromScopeChanges(
-        currentValue,
-        previousValue,
-      );
+      bridge.handleSolanaAccountChangedFromScopeChanges(currentValue, previousValue);
 
       expect(sendNotificationSpy).not.toHaveBeenCalledWith();
     });
@@ -425,51 +410,51 @@ describe('BackgroundBridge', () => {
     it('emits the currently selected solana account if the currently selected solana accounts did change', () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
 
       const currentValue = {
         requiredScopes: {},
         optionalScopes: {
           [SolScope.Mainnet]: {
-            accounts: [`${SolScope.Mainnet}:456`],
-          },
+            accounts: [
+              `${SolScope.Mainnet}:456`
+            ]
+          }
         },
         isMultichainOrigin: true,
         sessionProperties: {
-          solana_accountChanged_notifications: true,
-        },
+          solana_accountChanged_notifications: true
+        }
       };
 
       const previousValue = {
         requiredScopes: {},
         optionalScopes: {
           [SolScope.Mainnet]: {
-            accounts: [`${SolScope.Mainnet}:123`],
-          },
+            accounts: [
+              `${SolScope.Mainnet}:123`
+            ]
+          }
         },
         isMultichainOrigin: true,
         sessionProperties: {
-          solana_accountChanged_notifications: true,
-        },
+          solana_accountChanged_notifications: true
+        }
       };
 
-      bridge.handleSolanaAccountChangedFromScopeChanges(
-        currentValue,
-        previousValue,
-      );
+      bridge.handleSolanaAccountChangedFromScopeChanges(currentValue, previousValue);
 
       expect(sendNotificationSpy).toHaveBeenCalledWith({
         method: 'wallet_notify',
-        params: {
-          notification: {
-            method: 'metamask_accountsChanged',
-            params: ['456'],
+          params: {
+            notification: {
+              method: 'metamask_accountsChanged',
+              params: [
+                '456',
+              ],
+            },
+            scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           },
-          scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        },
       });
     });
   });
@@ -478,29 +463,28 @@ describe('BackgroundBridge', () => {
     it('emits nothing if the selected account is not a solana account', () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
       PermissionController.getCaveat.mockReturnValue({
         type: Caip25CaveatType,
         value: {
           requiredScopes: {},
           optionalScopes: {
             [SolScope.Mainnet]: {
-              accounts: [`${SolScope.Mainnet}:someaddress`],
-            },
+              accounts: [
+                `${SolScope.Mainnet}:someaddress`
+              ]
+            }
           },
           isMultichainOrigin: true,
           sessionProperties: {
-            solana_accountChanged_notifications: true,
-          },
-        },
+            solana_accountChanged_notifications: true
+          }
+        }
       });
 
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: EthAccountType.Eoa,
-        address: 'someaddress',
+        address: 'someaddress'
       });
 
       expect(sendNotificationSpy).not.toHaveBeenCalled();
@@ -509,107 +493,101 @@ describe('BackgroundBridge', () => {
     it('emits nothing if the selected account did not change from the last seen solana account', () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
       PermissionController.getCaveat.mockReturnValue({
         type: Caip25CaveatType,
         value: {
           requiredScopes: {},
           optionalScopes: {
             [SolScope.Mainnet]: {
-              accounts: [`${SolScope.Mainnet}:someaddress`],
-            },
+              accounts: [
+                `${SolScope.Mainnet}:someaddress`
+              ]
+            }
           },
           isMultichainOrigin: true,
           sessionProperties: {
-            solana_accountChanged_notifications: true,
-          },
-        },
+            solana_accountChanged_notifications: true
+          }
+        }
       });
       bridge.lastSelectedSolanaAccountAddress = 'someaddress';
 
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: SolAccountType.DataAccount,
-        address: 'someaddress',
+        address: 'someaddress'
       });
 
       expect(sendNotificationSpy).not.toHaveBeenCalled();
     });
 
-    it('emits nothing if there is no CAIP-25 permission', () => {
+    it('emits nothing if there is no CAIP-25 permission' , () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
       PermissionController.getCaveat.mockReturnValue();
 
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: SolAccountType.DataAccount,
-        address: 'someaddress',
+        address: 'someaddress'
       });
 
       expect(sendNotificationSpy).not.toHaveBeenCalled();
     });
 
-    it('emits nothing if the `solana_accountChanged_notifications` session property is not set', () => {
+    it('emits nothing if the `solana_accountChanged_notifications` session property is not set' , () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
       PermissionController.getCaveat.mockReturnValue({
         type: Caip25CaveatType,
         value: {
           requiredScopes: {},
           optionalScopes: {
             [SolScope.Mainnet]: {
-              accounts: [`${SolScope.Mainnet}:someaddress`],
-            },
+              accounts: [
+                `${SolScope.Mainnet}:someaddress`
+              ]
+            }
           },
           isMultichainOrigin: true,
-          sessionProperties: {},
-        },
+          sessionProperties: {}
+        }
       });
 
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: SolAccountType.DataAccount,
-        address: 'someaddress',
+        address: 'someaddress'
       });
 
       expect(sendNotificationSpy).not.toHaveBeenCalled();
     });
 
-    it('emits nothing if the selected account does not match a permitted solana account', () => {
+    it('emits nothing if the selected account does not match a permitted solana account' , () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
       PermissionController.getCaveat.mockReturnValue({
         type: Caip25CaveatType,
         value: {
           requiredScopes: {},
           optionalScopes: {
             [SolScope.Mainnet]: {
-              accounts: [`${SolScope.Mainnet}:someaddress`],
-            },
+              accounts: [
+                `${SolScope.Mainnet}:someaddress`
+              ]
+            }
           },
           isMultichainOrigin: true,
           sessionProperties: {
-            solana_accountChanged_notifications: true,
-          },
-        },
+            solana_accountChanged_notifications: true
+          }
+        }
       });
 
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: SolAccountType.DataAccount,
-        address: 'differentaddress',
+        address: 'differentaddress'
       });
 
       expect(sendNotificationSpy).not.toHaveBeenCalled();
@@ -618,40 +596,41 @@ describe('BackgroundBridge', () => {
     it('emits a solana accountChanged event for the selected account if it does match a permitted solana account', () => {
       const url = 'https:www.mock.io';
       const bridge = setupBackgroundBridge(url);
-      const sendNotificationSpy = jest.spyOn(
-        bridge,
-        'sendNotificationMultichain',
-      );
+      const sendNotificationSpy = jest.spyOn(bridge, 'sendNotificationMultichain');
       PermissionController.getCaveat.mockReturnValue({
         type: Caip25CaveatType,
         value: {
           requiredScopes: {},
           optionalScopes: {
             [SolScope.Mainnet]: {
-              accounts: [`${SolScope.Mainnet}:someaddress`],
-            },
+              accounts: [
+                `${SolScope.Mainnet}:someaddress`
+              ]
+            }
           },
           isMultichainOrigin: true,
           sessionProperties: {
-            solana_accountChanged_notifications: true,
-          },
-        },
+            solana_accountChanged_notifications: true
+          }
+        }
       });
 
       bridge.handleSolanaAccountChangedFromSelectedAccountChanges({
         type: SolAccountType.DataAccount,
-        address: 'someaddress',
+        address: 'someaddress'
       });
 
       expect(sendNotificationSpy).toHaveBeenCalledWith({
         method: 'wallet_notify',
-        params: {
-          notification: {
-            method: 'metamask_accountsChanged',
-            params: ['someaddress'],
+          params: {
+            notification: {
+              method: 'metamask_accountsChanged',
+              params: [
+                'someaddress',
+              ],
+            },
+            scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           },
-          scope: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
-        },
       });
     });
   });

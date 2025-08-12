@@ -1,7 +1,4 @@
-import {
-  calculateExponentialRetryDelay,
-  retryWithExponentialDelay,
-} from './exponential-retry';
+import { calculateExponentialRetryDelay, retryWithExponentialDelay } from './exponential-retry';
 
 describe('Exponential Retry Utils', () => {
   describe('calculateExponentialRetryDelay', () => {
@@ -27,23 +24,13 @@ describe('Exponential Retry Utils', () => {
 
     it('should add jitter when enabled', () => {
       const baseDelay = 1000;
-      const delayAttempt0 = calculateExponentialRetryDelay(
-        0,
-        baseDelay,
-        30000,
-        true,
-      );
+      const delayAttempt0 = calculateExponentialRetryDelay(0, baseDelay, 30000, true);
       // Jitter is +/- 10% of baseDelay for the first attempt (retryCount 0)
       // So, for baseDelay 1000, delay should be between 1000 and 1000 * 1.1 = 1100
       expect(delayAttempt0).toBeGreaterThanOrEqual(baseDelay);
       expect(delayAttempt0).toBeLessThanOrEqual(baseDelay * 1.1);
 
-      const delayAttempt3 = calculateExponentialRetryDelay(
-        3,
-        baseDelay,
-        30000,
-        true,
-      ); // 1000 * 2^3 = 8000
+      const delayAttempt3 = calculateExponentialRetryDelay(3, baseDelay, 30000, true); // 1000 * 2^3 = 8000
       // Jitter is +/- 10% of the current calculated delay (8000)
       // So, delay should be between 8000 and 8000 * 1.1 = 8800
       const expectedBaseForAttempt3 = baseDelay * Math.pow(2, 3); // 8000
@@ -76,8 +63,7 @@ describe('Exponential Retry Utils', () => {
     });
 
     it('should retry and eventually succeed', async () => {
-      const mockFn = jest
-        .fn()
+      const mockFn = jest.fn()
         .mockRejectedValueOnce(new Error('fail 1'))
         .mockRejectedValueOnce(new Error('fail 2'))
         .mockResolvedValue('success');
@@ -92,9 +78,7 @@ describe('Exponential Retry Utils', () => {
       const finalError = new Error('final failure');
       const mockFn = jest.fn().mockRejectedValue(finalError);
 
-      await expect(retryWithExponentialDelay(mockFn, 2, 10)).rejects.toThrow(
-        finalError,
-      );
+      await expect(retryWithExponentialDelay(mockFn, 2, 10)).rejects.toThrow(finalError);
       expect(mockFn).toHaveBeenCalledTimes(3); // Initial + 2 retries
     });
 
@@ -103,9 +87,7 @@ describe('Exponential Retry Utils', () => {
         throw undefined; // Simulate throwing a non-Error
       });
 
-      await expect(retryWithExponentialDelay(mockFn, 0, 100)).rejects.toThrow(
-        'Retry function failed with unknown error',
-      );
+      await expect(retryWithExponentialDelay(mockFn, 0, 100)).rejects.toThrow('Retry function failed with unknown error');
       expect(mockFn).toHaveBeenCalledTimes(1);
     });
 
@@ -114,9 +96,7 @@ describe('Exponential Retry Utils', () => {
         throw 'string error'; // Simulate throwing a string
       });
 
-      await expect(retryWithExponentialDelay(mockFn, 0, 100)).rejects.toThrow(
-        'Retry function failed: string error',
-      );
+      await expect(retryWithExponentialDelay(mockFn, 0, 100)).rejects.toThrow('Retry function failed: string error');
       expect(mockFn).toHaveBeenCalledTimes(1);
     });
 
@@ -125,9 +105,7 @@ describe('Exponential Retry Utils', () => {
       const mockFnObject = jest.fn().mockResolvedValue({ data: 'test' });
 
       expect(await retryWithExponentialDelay(mockFnNumber, 1)).toBe(42);
-      expect(await retryWithExponentialDelay(mockFnObject, 1)).toEqual({
-        data: 'test',
-      });
+      expect(await retryWithExponentialDelay(mockFnObject, 1)).toEqual({ data: 'test' });
     });
   });
 });

@@ -24,9 +24,9 @@ jest.mock('./gas/useFeeCalculations', () => ({
 }));
 
 jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
+    ...jest.requireActual('react-redux'),
+    useSelector: jest.fn(),
+  }));
 
 describe('useMaxValueRefresher', () => {
   const mockUseFeeCalculations = jest.mocked(useFeeCalculations);

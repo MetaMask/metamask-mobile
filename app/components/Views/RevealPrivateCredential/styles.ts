@@ -101,16 +101,14 @@ export const createStyles = (theme: Theme) =>
       ...fontStyles.bold,
     },
     tabContent: {
-      paddingVertical: 20,
-    },
-    tabContainer: {
-      paddingHorizontal: 16,
+      padding: 20,
     },
     qrCodeContainer: {
       padding: 8,
       backgroundColor: theme.colors.background.default,
     },
     qrCodeWrapper: {
+      marginTop: 20,
       alignSelf: 'center',
       justifyContent: 'center',
       padding: 8,

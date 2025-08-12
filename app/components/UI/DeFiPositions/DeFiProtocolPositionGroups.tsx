@@ -43,7 +43,6 @@ const DeFiProtocolPositionGroups: React.FC<
                 )
                 .map((underlyingToken, index) => ({
                   key: `${protocolToken.address}-${underlyingToken.address}-${index}`,
-                  address: underlyingToken.address,
                   name: underlyingToken.name,
                   symbol: underlyingToken.symbol,
                   iconUrl: underlyingToken.iconUrl,
@@ -57,7 +56,6 @@ const DeFiProtocolPositionGroups: React.FC<
                 )
                 .map((underlyingToken, index) => ({
                   key: `${protocolToken.address}-${underlyingToken.address}-${index}`,
-                  address: underlyingToken.address,
                   name: underlyingToken.name,
                   symbol: underlyingToken.symbol,
                   iconUrl: underlyingToken.iconUrl,

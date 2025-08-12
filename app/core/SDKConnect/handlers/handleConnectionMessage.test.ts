@@ -154,8 +154,7 @@ describe('handleConnectionMessage', () => {
   });
 
   describe('Analytics tracking for wallet_action_received', () => {
-    const mockIsAnalyticsTrackedRpcMethod =
-      isAnalyticsTrackedRpcMethod as jest.Mock;
+    const mockIsAnalyticsTrackedRpcMethod = isAnalyticsTrackedRpcMethod as jest.Mock;
 
     beforeEach(() => {
       mockIsAnalyticsTrackedRpcMethod.mockClear();
@@ -187,9 +186,7 @@ describe('handleConnectionMessage', () => {
         anon_id: 'test-anon-id',
       });
       expect(analytics.track).toHaveBeenCalledTimes(1);
-      expect(mockIsAnalyticsTrackedRpcMethod).toHaveBeenCalledWith(
-        'eth_requestAccounts',
-      );
+      expect(mockIsAnalyticsTrackedRpcMethod).toHaveBeenCalledWith('eth_requestAccounts');
     });
 
     it('should not track wallet_action_received if anonId is missing', async () => {
@@ -225,11 +222,7 @@ describe('handleConnectionMessage', () => {
         // Add any other mandatory fields from CommunicationLayerMessage
       };
 
-      await handleConnectionMessage({
-        message: messageWithUndefinedMethod,
-        engine: Engine,
-        connection,
-      });
+      await handleConnectionMessage({ message: messageWithUndefinedMethod, engine: Engine, connection });
 
       expect(analytics.track).not.toHaveBeenCalled();
       // The DevLogger for invalid message should be hit earlier in this case

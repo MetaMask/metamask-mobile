@@ -118,10 +118,10 @@ const SwapStatusToColorMap: Record<TransactionStatus, TextColor> = {
 };
 
 const MultichainTxStatusToColorMap: Record<Transaction['status'], TextColor> = {
-  submitted: TextColor.Warning,
-  confirmed: TextColor.Success,
-  unconfirmed: TextColor.Warning,
-  failed: TextColor.Error,
+  'submitted': TextColor.Warning,
+  'confirmed': TextColor.Success,
+  'unconfirmed': TextColor.Warning,
+  'failed': TextColor.Error,
 };
 
 const getStatusColor = ({
@@ -258,15 +258,6 @@ export const BridgeTransactionDetails = (
         : null;
   }
 
-  let status;
-  if (isBridge) {
-    status = bridgeStatus.status;
-  } else if (isSwap) {
-    status = evmTxMeta?.status;
-  } else if (multiChainTx) {
-    status = multiChainTx.status;
-  }
-
   return (
     <ScreenView>
       <Box style={styles.transactionContainer}>
@@ -307,7 +298,9 @@ export const BridgeTransactionDetails = (
               })}
               style={styles.textTransform}
             >
-              {status}
+              {isBridge ? bridgeStatus.status : null}
+              {isSwap ? evmTxMeta?.status : null}
+              {multiChainTx ? multiChainTx.status : null}
             </Text>
           </Box>
         </Box>

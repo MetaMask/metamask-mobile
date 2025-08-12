@@ -45,11 +45,7 @@ describe('AvatarFavicon', () => {
   });
 
   it('should render SVG', async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({
-      ok: true,
-      headers: new Headers({ 'Content-Type': 'image/svg+xml' }),
-      text: () => '<svg />',
-    });
+    (global.fetch as jest.Mock).mockResolvedValue({ ok: true, headers: new Headers({'Content-Type': 'image/svg+xml'}), text: () => '<svg />' });
 
     const { getByTestId, toJSON } = render(
       <AvatarFavicon
@@ -58,9 +54,7 @@ describe('AvatarFavicon', () => {
       />,
     );
 
-    await waitFor(() =>
-      expect(getByTestId(AVATARFAVICON_IMAGE_SVG_TESTID)).toBeDefined(),
-    );
+    await waitFor(() => expect(getByTestId(AVATARFAVICON_IMAGE_SVG_TESTID)).toBeDefined());
 
     expect(toJSON()).toMatchSnapshot();
   });

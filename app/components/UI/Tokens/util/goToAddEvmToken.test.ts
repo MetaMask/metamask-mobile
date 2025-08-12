@@ -16,6 +16,7 @@ interface TokenListNavigationParamList {
 }
 
 describe('goToAddEvmToken', () => {
+  const mockSetIsAddTokenEnabled = jest.fn();
   const mockNavigation = { push: jest.fn() };
   const mockTrackEvent = jest.fn();
   const mockGetDecimalChainId = jest.fn(() => 1);
@@ -28,6 +29,7 @@ describe('goToAddEvmToken', () => {
   );
 
   const mockProps = {
+    setIsAddTokenEnabled: mockSetIsAddTokenEnabled,
     navigation: mockNavigation as unknown as StackNavigationProp<
       TokenListNavigationParamList,
       'AddAsset'
@@ -44,8 +46,11 @@ describe('goToAddEvmToken', () => {
     jest.clearAllMocks();
   });
 
-  it('should navigate to AddAsset and track event', () => {
+  it('should navigate to AddAsset, track event, and toggle token enable state', () => {
     goToAddEvmToken(mockProps);
+
+    // Check if token adding was disabled first
+    expect(mockSetIsAddTokenEnabled).toHaveBeenCalledWith(false);
 
     // Check if navigation was triggered correctly
     expect(mockNavigation.push).toHaveBeenCalledWith('AddAsset', {
@@ -57,5 +62,8 @@ describe('goToAddEvmToken', () => {
       MetaMetricsEvents.TOKEN_IMPORT_CLICKED,
     );
     expect(mockTrackEvent).toHaveBeenCalledWith('mockEvent');
+
+    // Check if token adding was re-enabled
+    expect(mockSetIsAddTokenEnabled).toHaveBeenCalledWith(true);
   });
 });

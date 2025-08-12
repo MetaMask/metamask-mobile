@@ -89,12 +89,6 @@ import {
   NetworkState,
 } from '@metamask/network-controller';
 import {
-  NetworkEnablementController,
-  NetworkEnablementControllerActions,
-  NetworkEnablementControllerEvents,
-  NetworkEnablementControllerState,
-} from '@metamask/network-enablement-controller';
-import {
   PhishingController,
   PhishingControllerActions,
   PhishingControllerEvents,
@@ -270,12 +264,6 @@ import {
   EarnControllerState,
 } from '@metamask/earn-controller';
 import {
-  PerpsController,
-  PerpsControllerState,
-  PerpsControllerActions,
-  PerpsControllerEvents,
-} from '../../components/UI/Perps/controllers/PerpsController';
-import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
   SeedlessOnboardingControllerEvents,
@@ -299,11 +287,6 @@ import {
   AccountTreeControllerActions,
   AccountTreeControllerEvents,
 } from '@metamask/account-tree-controller';
-import {
-  MultichainAccountService,
-  MultichainAccountServiceActions,
-  MultichainAccountServiceEvents,
-} from '@metamask/multichain-account-service';
 
 /**
  * Controllers that area always instantiated
@@ -350,7 +333,6 @@ type GlobalActions =
   | GasFeeControllerActions
   | KeyringControllerActions
   | NetworkControllerActions
-  | NetworkEnablementControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
@@ -370,7 +352,6 @@ type GlobalActions =
   | MultichainAssetsControllerActions
   | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
-  | MultichainAccountServiceActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
@@ -391,7 +372,6 @@ type GlobalActions =
   | BridgeControllerActions
   | BridgeStatusControllerActions
   | EarnControllerActions
-  | PerpsControllerActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
@@ -408,7 +388,6 @@ type GlobalEvents =
   | GasFeeControllerEvents
   | KeyringControllerEvents
   | NetworkControllerEvents
-  | NetworkEnablementControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
@@ -426,7 +405,6 @@ type GlobalEvents =
   | MultichainAssetsControllerEvents
   | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
-  | MultichainAccountServiceEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -449,7 +427,6 @@ type GlobalEvents =
   | BridgeControllerEvents
   | BridgeStatusControllerEvents
   | EarnControllerEvents
-  | PerpsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
   | DeFiPositionsControllerEvents
@@ -483,7 +460,6 @@ export type Controllers = {
   KeyringController: KeyringController;
   LoggingController: LoggingController;
   NetworkController: NetworkController;
-  NetworkEnablementController: NetworkEnablementController;
   NftController: NftController;
   NftDetectionController: NftDetectionController;
   // TODO: Fix permission types
@@ -516,7 +492,7 @@ export type Controllers = {
   NotificationServicesPushController: NotificationServicesPushController;
   SnapInterfaceController: SnapInterfaceController;
   CronjobController: CronjobController;
-  WebSocketService: WebSocketService;
+  WebSocketService: WebSocketService,
   ///: END:ONLY_INCLUDE_IF
   SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -525,14 +501,12 @@ export type Controllers = {
   RatesController: RatesController;
   MultichainAssetsController: MultichainAssetsController;
   MultichainTransactionsController: MultichainTransactionsController;
-  MultichainAccountService: MultichainAccountService;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
   BridgeController: BridgeController;
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
-  PerpsController: PerpsController;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
 };
 
@@ -556,7 +530,6 @@ export type EngineState = {
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
-  NetworkEnablementController: NetworkEnablementControllerState;
   PreferencesController: PreferencesState;
   RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
   PhishingController: PhishingControllerState;
@@ -600,7 +573,6 @@ export type EngineState = {
   BridgeController: BridgeControllerState;
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
-  PerpsController: PerpsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
 };
 
@@ -648,7 +620,6 @@ export type ControllersToInitialize =
   | 'MultichainAssetsRatesController'
   | 'MultichainBalancesController'
   | 'MultichainTransactionsController'
-  | 'MultichainAccountService'
   ///: END:ONLY_INCLUDE_IF
   | 'AccountTreeController'
   | 'AccountsController'
@@ -659,9 +630,7 @@ export type ControllersToInitialize =
   | 'MultichainNetworkController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
-  | 'TransactionController'
-  | 'NetworkEnablementController'
-  | 'PerpsController';
+  | 'TransactionController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

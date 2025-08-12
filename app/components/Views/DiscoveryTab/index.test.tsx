@@ -2,10 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import DiscoveryTab from './DiscoveryTab';
-import UrlAutocomplete, {
-  AutocompleteSearchResult,
-  UrlAutocompleteCategory,
-} from '../../UI/UrlAutocomplete';
+import UrlAutocomplete, { AutocompleteSearchResult, UrlAutocompleteCategory } from '../../UI/UrlAutocomplete';
 import { screen, waitFor } from '@testing-library/react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
@@ -51,7 +48,7 @@ const mockInitialState = {
         url: 'https://metamask.io',
         image: '',
         isArchived: false,
-      },
+      }
     ],
   },
   bookmarks: [],
@@ -69,6 +66,7 @@ const mockProps = {
 const Stack = createStackNavigator();
 
 describe('DiscoveryTab', () => {
+
   it('should render correctly', async () => {
     renderWithProvider(
       <NavigationContainer independent>
@@ -78,7 +76,7 @@ describe('DiscoveryTab', () => {
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>,
-      { state: mockInitialState },
+      { state: mockInitialState }
     );
     await waitFor(() => {
       expect(screen.getByText('Token Discovery placeholder')).toBeOnTheScreen();
@@ -99,7 +97,7 @@ describe('DiscoveryTab', () => {
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>,
-      { state: mockInitialState },
+      { state: mockInitialState }
     );
     onSelectProp?.({
       category: UrlAutocompleteCategory.Tokens,
@@ -112,13 +110,10 @@ describe('DiscoveryTab', () => {
       percentChange: 100,
       isFromSearch: true,
     });
-    expect(mockNavigation.navigate).toHaveBeenCalledWith(
-      Routes.BROWSER.ASSET_LOADER,
-      {
-        chainId: '0x1',
-        address: '0x123',
-      },
-    );
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.BROWSER.ASSET_LOADER, {
+      chainId: '0x1',
+      address: '0x123',
+    });
   });
 
   it('should navigate to a site when selecting a URL from the autocomplete', () => {
@@ -133,13 +128,11 @@ describe('DiscoveryTab', () => {
       <NavigationContainer independent>
         <Stack.Navigator>
           <Stack.Screen name="Browser">
-            {() => (
-              <DiscoveryTab {...mockProps} updateTabInfo={updateTabInfo} />
-            )}
+            {() => <DiscoveryTab {...mockProps} updateTabInfo={updateTabInfo} />}
           </Stack.Screen>
         </Stack.Navigator>
       </NavigationContainer>,
-      { state: mockInitialState },
+      { state: mockInitialState }
     );
     onSelectProp?.({
       category: UrlAutocompleteCategory.Sites,

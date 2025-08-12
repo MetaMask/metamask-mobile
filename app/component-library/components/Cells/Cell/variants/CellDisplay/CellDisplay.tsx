@@ -17,11 +17,7 @@ const CellDisplay = ({ style, ...props }: CellDisplayProps) => {
   const { styles } = useStyles(styleSheet, { style });
 
   return (
-    <Card
-      style={styles.base}
-      testID={CellComponentSelectorsIDs.DISPLAY}
-      {...props}
-    >
+    <Card style={styles.base} testID={CellComponentSelectorsIDs.DISPLAY} {...props}>
       <CellBase {...props} />
     </Card>
   );

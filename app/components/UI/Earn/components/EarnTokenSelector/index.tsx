@@ -28,7 +28,6 @@ import { TokenI } from '../../../Tokens/types';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../Views/EarnInputView/EarnInputView.types';
 import useEarnTokens from '../../hooks/useEarnTokens';
 import { EarnTokenDetails } from '../../types/lending.types';
-import { trace, TraceName } from '../../../../../util/trace';
 
 interface EarnTokenSelectorProps {
   token: TokenI;
@@ -49,8 +48,6 @@ const EarnTokenSelector = ({
   const apr = parseFloat(token?.experience?.apr ?? '0').toFixed(1);
 
   const handlePress = () => {
-    trace({ name: TraceName.EarnTokenList });
-
     const tokenFilter = {
       includeReceiptTokens: false,
     };

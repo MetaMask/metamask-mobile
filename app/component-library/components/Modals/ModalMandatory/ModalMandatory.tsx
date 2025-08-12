@@ -81,66 +81,6 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     }
   }})();`;
 
-  const themeCSS = useMemo(() => {
-    const sanitizeColor = (color: string): string =>
-      color.replace(/[^#a-fA-F0-9(),.\s%]/g, '');
-
-    const safeColors = {
-      bg: sanitizeColor(colors.background.default),
-      text: sanitizeColor(colors.text.alternative),
-      primary: sanitizeColor(colors.primary.default),
-      primaryAlt: sanitizeColor(colors.primary.alternative),
-      bgAlt: sanitizeColor(colors.background.alternative),
-      border: sanitizeColor(colors.border.default),
-    };
-
-    return `
-      <style>
-        :root {
-          --bg: ${safeColors.bg};
-          --text: ${safeColors.text};
-          --primary: ${safeColors.primary};
-          --primary-alt: ${safeColors.primaryAlt};
-          --bg-alt: ${safeColors.bgAlt};
-          --border: ${safeColors.border};
-        }
-        body {
-          background-color: var(--bg) !important;
-          color: var(--text) !important;
-          font-family: Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          margin: 0;
-          font-size: 14px;
-          font-weight: 400;
-          padding: 0px !important;
-          line-height: 1.5;
-          margin-top: -50px !important;
-        }
-        body > div > div > div > div {
-          max-width: 100% !important;
-        }
-        *, *::before, *::after {
-          background-color: var(--bg) !important;
-          color: var(--text) !important;
-          padding: 0px;
-        }
-        h1, h2, h3, h4, h5, h6, p, div, span, section, article, header, footer, main, ul, ol, li {
-          color: var(--text) !important;
-        }
-        a { color: var(--primary) !important; }
-        a:visited { color: var(--primary-alt) !important; }
-        table, th, td {
-          background-color: var(--bg) !important;
-          color: var(--text) !important;
-          border-color: var(--border) !important;
-        }
-        pre, code {
-          background-color: var(--bg-alt) !important;
-          color: var(--text) !important;
-        }
-      </style>
-    `;
-  }, [colors]);
-
   const scrollToEndWebView = () => {
     if (isWebViewLoaded) {
       webViewRef.current?.injectJavaScript(scrollToEndJS);
@@ -251,32 +191,10 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
     [isCloseToBottom],
   );
 
-  const removeElements = (html: string) => {
-    html = html.replace(/<h1 class="title">.*?<\/h1>/gs, '');
-    html = html.replace(/<p class="sub-title">.*?<\/p>/gs, '');
-    return html;
-  };
-
   const renderWebView = (webviewBody: BodyWebView) => {
     const source = isBodyWebViewUri(webviewBody)
       ? { uri: webviewBody.uri }
       : { html: webviewBody.html };
-
-    if (source.html) {
-      const themedHTML = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            ${themeCSS}
-          </head>
-          <body>
-            ${source.html}
-          </body>
-        </html>
-      `;
-      source.html = removeElements(themedHTML);
-    }
 
     return (
       <WebView
@@ -313,6 +231,23 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
       );
   };
 
+  const buttonBackgroundColor = () => {
+    if (isScrollToEndNeeded) {
+      return {
+        backgroundColor:
+          !isScrollEnded || !isCheckboxSelected
+            ? colors.primary.muted
+            : colors.primary.default,
+      };
+    }
+
+    return {
+      backgroundColor: !isCheckboxSelected
+        ? colors.primary.muted
+        : colors.primary.default,
+    };
+  };
+
   return (
     <BottomSheet ref={bottomSheetRef} shouldNavigateBack isInteractable={false}>
       <View style={styles.modal} testID={containerTestId}>
@@ -330,19 +265,20 @@ const ModalMandatory = ({ route }: MandatoryModalProps) => {
           testID={TermsOfUseModalSelectorsIDs.CHECKBOX}
         >
           <Checkbox onPress={handleSelect} isChecked={isCheckboxSelected} />
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
             {checkboxText}
           </Text>
         </TouchableOpacity>
         <ButtonPrimary
           label={buttonText}
-          isDisabled={
+          disabled={
             isScrollToEndNeeded
               ? !isScrollEnded || !isCheckboxSelected
               : !isCheckboxSelected
           }
           style={{
             ...styles.confirmButton,
+            ...buttonBackgroundColor(),
           }}
           onPress={onPress}
           testID={buttonTestId}

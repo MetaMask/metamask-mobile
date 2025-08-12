@@ -1,23 +1,33 @@
+'use strict';
+
 import { SmokeConfirmations } from '../../tags';
+import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
+
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../fixtures/fixture-helper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../utils/Assertions';
 import { ContractApprovalBottomSheetSelectorsText } from '../../selectors/Browser/ContractApprovalBottomSheet.selectors';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
-import { DappVariants } from '../../framework/Constants';
+import { buildPermissions } from '../../fixtures/utils';
 
 describe(SmokeConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
+  beforeAll(async () => {
+    await TestHelpers.reverseServerPort();
+  });
+
   it('approve all ERC721 tokens', async () => {
-    const testSpecificMock = {
+    const testSpecificMock  = {
       GET: [
         mockEvents.GET.suggestedGasFeesApiGanache,
         mockEvents.GET.remoteFeatureFlagsOldConfirmations,
@@ -26,23 +36,20 @@ describe(SmokeConfirmations('ERC721 token'), () => {
 
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
-        smartContracts: [NFT_CONTRACT],
+        ganacheOptions: defaultGanacheOptions,
+        smartContract: NFT_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
-        const nftsAddress = await contractRegistry?.getContractAddress(
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
+        const nftsAddress = await contractRegistry.getContractAddress(
           NFT_CONTRACT,
         );
         await loginToApp();
@@ -55,7 +62,7 @@ describe(SmokeConfirmations('ERC721 token'), () => {
 
         // Set approval for all NFTs
         await TestDApp.tapNFTSetApprovalForAllButton();
-        await Assertions.expectTextDisplayed(
+        await Assertions.checkIfTextIsDisplayed(
           ContractApprovalBottomSheetSelectorsText.APPROVE,
         );
 
@@ -66,10 +73,10 @@ describe(SmokeConfirmations('ERC721 token'), () => {
         await TabBarComponent.tapActivity();
 
         // Assert that the ERC721 activity is an set approve for all and it is confirmed
-        await Assertions.expectTextDisplayed(
+        await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.SET_APPROVAL_FOR_ALL_METHOD,
         );
-        await Assertions.expectTextDisplayed(
+        await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
         );
       },

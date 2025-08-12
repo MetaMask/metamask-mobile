@@ -1,26 +1,27 @@
 import React, { Component } from 'react';
 import {
+  Text,
   TouchableOpacity,
   View,
   StyleSheet,
   Linking,
   Alert,
+  Platform,
   Modal,
   KeyboardAvoidingView,
   DevSettings,
+  Image,
   TextInput,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { lastEventId as getLatestSentryId } from '@sentry/react-native';
-import {
-  captureSentryFeedback,
-  captureExceptionForced,
-} from '../../../util/sentry/utils';
+import { captureSentryFeedback } from '../../../util/sentry/utils';
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
+import { fontStyles } from '../../../styles/common';
 import { ScrollView } from 'react-native-gesture-handler';
 import { strings } from '../../../../locales/i18n';
-import Icon, {
+import CLIcon, {
   IconColor,
   IconName,
   IconSize,
@@ -30,7 +31,7 @@ import { mockTheme, ThemeContext, useTheme } from '../../../util/theme';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
-import Text, {
+import CLText, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
 import {
@@ -40,49 +41,116 @@ import {
 import AppConstants from '../../../core/AppConstants';
 import { useSelector } from 'react-redux';
 import { isTest } from '../../../util/test/utils';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
+// eslint-disable-next-line import/no-commonjs
+const WarningIcon = require('./warning-icon.png');
 
 const createStyles = (colors) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: 16,
+      paddingHorizontal: 8,
       backgroundColor: colors.background.default,
     },
-    wrapper: {
-      flex: 1,
-      flexDirection: 'column',
-      rowGap: 16,
-    },
     header: {
-      display: 'flex',
-      flexDirection: 'column',
       alignItems: 'center',
       paddingTop: 20,
-      rowGap: 16,
+    },
+    errorImage: {
+      width: 32,
+      height: 32,
+    },
+    title: {
+      color: colors.text.default,
+      fontSize: 24,
+      paddingTop: 10,
+      paddingBottom: 20,
+      lineHeight: 34,
+      ...fontStyles.bold,
+    },
+    subtitle: {
+      fontSize: 14,
+      lineHeight: 20,
+      color: colors.text.alternative,
+      marginTop: 8,
+      textAlign: 'center',
+      ...fontStyles.normal,
     },
     errorMessageContainer: {
       flexShrink: 1,
       backgroundColor: colors.error.muted,
       borderRadius: 8,
-      padding: 16,
-      marginTop: 8,
+      marginTop: 10,
+      padding: 10,
+    },
+    error: {
+      color: colors.error.default,
+      padding: 8,
+      fontSize: 14,
+      lineHeight: 20,
+      ...fontStyles.normal,
+    },
+    button: {
+      marginTop: 16,
+      borderColor: colors.primary.default,
+      borderWidth: 1,
+      borderRadius: 48,
+      height: 48,
+      padding: 12,
+      paddingHorizontal: 34,
+    },
+    blueButton: {
+      marginTop: 16,
+      borderColor: colors.primary.default,
+      backgroundColor: colors.primary.default,
+      borderWidth: 1,
+      borderRadius: 48,
+      height: 48,
+      padding: 12,
+      paddingHorizontal: 34,
+    },
+    buttonText: {
+      color: colors.primary.default,
+      textAlign: 'center',
+      ...fontStyles.normal,
+    },
+    blueButtonText: {
+      color: colors.background.default,
+      textAlign: 'center',
+      ...fontStyles.normal,
+    },
+    submitButton: {
+      width: '45%',
+      backgroundColor: colors.primary.default,
+      marginTop: 24,
+      borderColor: colors.primary.default,
+      borderWidth: 1,
+      borderRadius: 48,
+      height: 48,
+      padding: 12,
+      paddingHorizontal: 34,
+    },
+    cancelButton: {
+      width: '45%',
+      marginTop: 24,
+      borderColor: colors.primary.default,
+      borderWidth: 1,
+      borderRadius: 48,
+      height: 48,
+      padding: 12,
+      paddingHorizontal: 34,
     },
     buttonsContainer: {
       flexGrow: 1,
+      bottom: 10,
       justifyContent: 'flex-end',
-      flexDirection: 'column',
-      rowGap: 16,
     },
     modalButtonsWrapper: {
+      flex: 1,
       flexDirection: 'row',
-      gap: 16,
-      width: '100%',
-      marginBottom: 16,
+      justifyContent: 'space-around',
+      alignItems: 'flex-end',
+      bottom: 24,
+      paddingHorizontal: 10,
     },
     feedbackInput: {
       borderColor: colors.primary.default,
@@ -94,19 +162,34 @@ const createStyles = (colors) =>
       borderWidth: 1,
       marginTop: 20,
     },
-    keyboardViewContainer: {
-      flex: 1,
-      justifyContent: 'flex-end',
-      backgroundColor: colors.background.default,
+    textContainer: {
+      marginTop: 24,
     },
-    modalWrapper: {
-      flex: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'space-between',
-      padding: 16,
+    text: {
+      color: colors.text.default,
+      fontSize: 14,
+      lineHeight: 20,
+      ...fontStyles.normal,
     },
-    modalTopContainer: { flex: 1, marginTop: 24 },
+    link: {
+      color: colors.primary.default,
+    },
+    reportTextContainer: {
+      paddingLeft: 14,
+      marginTop: 16,
+      marginBottom: 24,
+    },
+    reportStep: {
+      marginTop: 14,
+    },
+    banner: {
+      width: '100%',
+      marginTop: 20,
+      paddingHorizontal: 16,
+    },
+    keyboardViewContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.background.default },
+    modalWrapper: { flex: 1, justifyContent: 'space-between' },
+    modalTopContainer: { flex: 1, paddingTop: '20%', paddingHorizontal: 16 },
     closeIconWrapper: {
       position: 'absolute',
       right: 0,
@@ -118,19 +201,27 @@ const createStyles = (colors) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    modalTitleText: { paddingTop: 0 },
+    errorBoxTitle: { fontWeight: '600' },
+    contentContainer: {
+      justifyContent: 'space-between',
+      flex: 1,
+      paddingHorizontal: 16,
+    },
     errorContentWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      marginTop: 20,
     },
-    row: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      columnGapgap: 4,
+    row: { flexDirection: 'row' },
+    copyText: {
+      color: colors.primary.default,
+      fontSize: 14,
+      paddingLeft: 5,
+      fontWeight: '500',
     },
+    infoBanner: { marginBottom: 20 },
     hitSlop: { top: 50, right: 50, bottom: 50, left: 50 },
-    fullWidthButton: { flex: 1 },
   });
 
 export const Fallback = (props) => {
@@ -138,12 +229,9 @@ export const Fallback = (props) => {
   const styles = createStyles(colors);
   const [modalVisible, setModalVisible] = React.useState(false);
   const [feedback, setFeedback] = React.useState('');
-  const isOnboardingError = Boolean(props.onboardingErrorConfig);
-  const isDataCollectionForMarketingEnabled = useSelector(
+  const dataCollectionForMarketing = useSelector(
     (state) => state.security.dataCollectionForMarketing,
   );
-  const dataCollectionForMarketing =
-    isDataCollectionForMarketingEnabled && !isOnboardingError;
 
   const toggleModal = () => {
     setModalVisible((visible) => !visible);
@@ -151,7 +239,6 @@ export const Fallback = (props) => {
   };
   const handleContactSupport = () =>
     Linking.openURL(AppConstants.REVIEW_PROMPT.SUPPORT);
-
   const handleTryAgain = () => DevSettings.reload();
 
   const handleSubmit = () => {
@@ -159,164 +246,86 @@ export const Fallback = (props) => {
     captureSentryFeedback({ sentryId: props.sentryId, comments: feedback });
     Alert.alert(strings('error_screen.bug_report_thanks'));
   };
-
-  const forceSentryReport = async (error) => {
-    try {
-      await captureExceptionForced(error, {
-        view: props.onboardingErrorConfig?.view || 'Unknown',
-        context: 'ErrorBoundary forced report',
-      });
-    } catch (sentryError) {
-      console.error('Failed to force report error to Sentry:', sentryError);
-    }
-  };
-
-  // Use onboarding-specific text if onboardingErrorConfig is provided
-  const title = isOnboardingError
-    ? strings('onboarding_error_fallback.title')
-    : strings('error_screen.title');
-  const description = isOnboardingError
-    ? strings('onboarding_error_fallback.description')
-    : strings('error_screen.subtitle');
-  const primaryButtonText = isOnboardingError
-    ? strings('onboarding_error_fallback.send_report')
-    : strings('error_screen.contact_support');
-  const secondaryButtonText = isOnboardingError
-    ? strings('onboarding_error_fallback.try_again')
-    : strings('error_screen.try_again');
-  const errorMessage = isOnboardingError
-    ? strings('onboarding_error_fallback.error_message_report')
-    : strings('error_screen.error_message');
-
-  const navigateToOnboarding = () => {
-    props.onboardingErrorConfig?.navigation?.reset({
-      routes: [{ name: 'OnboardingRootNav' }],
-    });
-  };
-
-  const onPrimary = isOnboardingError
-    ? async () => {
-        await forceSentryReport(props.onboardingErrorConfig.error);
-        navigateToOnboarding();
-      }
-    : handleContactSupport;
-
-  const onSecondary = isOnboardingError ? navigateToOnboarding : handleTryAgain;
-
   return (
-    <View style={styles.wrapper}>
+    <View style={styles.container}>
       <View style={styles.header}>
-        <Icon
-          name={IconName.Danger}
-          size={IconSize.Xl}
-          color={IconColor.Warning}
-        />
-        <Text variant={TextVariant.HeadingLG} color={colors.text.default}>
-          {title}
-        </Text>
+        <Image source={WarningIcon} style={styles.errorImage} />
+        <Text style={styles.title}>{strings('error_screen.title')}</Text>
       </View>
-
       <BannerAlert
         severity={BannerAlertSeverity.Info}
+        style={styles.infoBanner}
+        description={<CLText>{strings('error_screen.subtitle')}</CLText>}
+      />
+      <BannerAlert
+        severity={BannerAlertSeverity.Warning}
         description={
-          <Text variant={TextVariant.BodyMD} color={colors.text.default}>
-            {description}
+          <Text style={styles.text}>
+            {strings('error_screen.save_seedphrase_1')}{' '}
+            <Text onPress={props.showExportSeedphrase} style={styles.link}>
+              {strings('error_screen.save_seedphrase_2')}
+            </Text>{' '}
+            {strings('error_screen.save_seedphrase_3')}
           </Text>
         }
       />
 
-      {!isOnboardingError && (
-        <BannerAlert
-          severity={BannerAlertSeverity.Warning}
-          description={
-            <Text variant={TextVariant.BodyMD} color={colors.text.default}>
-              {strings('error_screen.save_seedphrase_1')}{' '}
-              <Text
-                onPress={props.showExportSeedphrase}
-                variant={TextVariant.BodyMD}
-                color={colors.primary.default}
-              >
-                {strings('error_screen.save_seedphrase_2')}
-              </Text>{' '}
-              {strings('error_screen.save_seedphrase_3')}
-            </Text>
-          }
-        />
-      )}
-
-      {isTest && !isOnboardingError && (
-        <Text
-          onPress={props.showExportSeedphrase}
-          variant={TextVariant.BodyMD}
-          color={colors.primary.default}
-        >
-          {strings('error_screen.save_seedphrase_2')}
+      {isTest && (
+        <Text style={styles.text}>
+          <Text onPress={props.showExportSeedphrase} style={styles.link}>
+            {strings('error_screen.save_seedphrase_2')}
+          </Text>
         </Text>
       )}
-
-      <View>
-        <View style={styles.errorContentWrapper}>
-          <Text variant={TextVariant.BodyMDMedium} color={colors.text.default}>
-            {errorMessage}
-          </Text>
-          <TouchableOpacity
-            style={styles.row}
-            onPress={props.copyErrorToClipboard}
-          >
-            <Icon
-              name={IconName.Copy}
-              size={IconSize.Sm}
-              color={IconColor.Primary}
-            />
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={colors.primary.default}
-            >
-              {strings('error_screen.copy')}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.errorMessageContainer}>
-          <ScrollView>
-            <Text variant={TextVariant.BodyMD} color={colors.error.default}>
-              {props.errorMessage}
-            </Text>
-          </ScrollView>
-        </View>
+      <View style={styles.errorContentWrapper}>
+        <Text style={styles.errorBoxTitle}>
+          {strings('error_screen.error_message')}
+        </Text>
+        <TouchableOpacity
+          style={styles.row}
+          onPress={props.copyErrorToClipboard}
+        >
+          <CLIcon
+            name={IconName.Copy}
+            size={IconSize.Sm}
+            color={IconColor.Primary}
+          />
+          <Text style={styles.copyText}>{strings('error_screen.copy')}</Text>
+        </TouchableOpacity>
       </View>
-
+      <View style={styles.errorMessageContainer}>
+        <ScrollView>
+          <Text style={styles.error}>{props.errorMessage}</Text>
+        </ScrollView>
+      </View>
       <View style={styles.buttonsContainer}>
         {dataCollectionForMarketing && (
-          <Button
-            onPress={toggleModal}
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('error_screen.describe')}
-          />
+          <TouchableOpacity style={styles.blueButton} onPress={toggleModal}>
+            <Text style={styles.blueButtonText}>
+              {strings('error_screen.describe')}
+            </Text>
+          </TouchableOpacity>
         )}
-
-        <Button
-          onPress={onPrimary}
-          variant={
-            dataCollectionForMarketing
-              ? ButtonVariants.Secondary
-              : ButtonVariants.Primary
-          }
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={primaryButtonText}
-        />
-
-        <Button
-          onPress={onSecondary}
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={secondaryButtonText}
-        />
+        <TouchableOpacity
+          style={dataCollectionForMarketing ? styles.button : styles.blueButton}
+          onPress={handleContactSupport}
+        >
+          <Text
+            style={
+              dataCollectionForMarketing
+                ? styles.buttonText
+                : styles.blueButtonText
+            }
+          >
+            {strings('error_screen.contact_support')}
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleTryAgain}>
+          <Text style={styles.buttonText}>
+            {strings('error_screen.try_again')}
+          </Text>
+        </TouchableOpacity>
       </View>
-
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -329,15 +338,19 @@ export const Fallback = (props) => {
           <View style={styles.modalWrapper}>
             <View style={styles.modalTopContainer}>
               <View style={styles.modalTitleWrapper}>
-                <Text onPress={toggleModal} variant={TextVariant.HeadingMD}>
+                <CLText
+                  onPress={toggleModal}
+                  variant={TextVariant.HeadingMD}
+                  style={styles.modalTitleText}
+                >
                   {strings('error_screen.modal_title')}
-                </Text>
+                </CLText>
                 <TouchableOpacity
                   onPress={toggleModal}
                   style={styles.closeIconWrapper}
                   hitSlop={styles.hitSlop}
                 >
-                  <Icon
+                  <CLIcon
                     name={IconName.Close}
                     size={IconSize.Md}
                     color={IconColor.Default}
@@ -355,25 +368,25 @@ export const Fallback = (props) => {
                 numberOfLines={10}
               />
             </View>
-
             <View style={styles.modalButtonsWrapper}>
-              <Button
+              <TouchableOpacity
+                style={styles.cancelButton}
                 onPress={toggleModal}
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('error_screen.cancel')}
-                style={styles.fullWidthButton}
-              />
-              <Button
+              >
+                <Text style={styles.buttonText}>
+                  {strings('error_screen.cancel')}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                disabled={!feedback}
+                // eslint-disable-next-line react-native/no-inline-styles
+                style={[styles.submitButton, { opacity: feedback ? 1 : 0.5 }]}
                 onPress={handleSubmit}
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('error_screen.submit')}
-                isDisabled={!feedback}
-                style={styles.fullWidthButton}
-              />
+              >
+                <Text style={styles.blueButtonText}>
+                  {strings('error_screen.submit')}
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
         </KeyboardAvoidingView>
@@ -387,11 +400,6 @@ Fallback.propTypes = {
   showExportSeedphrase: PropTypes.func,
   copyErrorToClipboard: PropTypes.func,
   sentryId: PropTypes.string,
-  onboardingErrorConfig: PropTypes.shape({
-    navigation: PropTypes.object,
-    error: PropTypes.object,
-    view: PropTypes.string,
-  }),
 };
 
 class ErrorBoundary extends Component {
@@ -405,7 +413,6 @@ class ErrorBoundary extends Component {
     view: PropTypes.string.isRequired,
     navigation: PropTypes.object,
     metrics: PropTypes.object,
-    useOnboardingErrorHandling: PropTypes.bool,
   };
 
   static getDerivedStateFromError(error) {
@@ -438,11 +445,7 @@ class ErrorBoundary extends Component {
     const sentryId = getLatestSentryId();
     this.setState({ sentryId });
     this.generateErrorReport(error, errorInfo?.componentStack);
-    Logger.error(error, {
-      View: this.props.view,
-      ErrorBoundary: true,
-      ...errorInfo,
-    });
+    Logger.error(error, { View: this.props.view, ...errorInfo });
   }
 
   resetError = () => {
@@ -485,15 +488,6 @@ class ErrorBoundary extends Component {
   };
 
   render() {
-    const { useOnboardingErrorHandling } = this.props;
-    const onboardingErrorConfig = useOnboardingErrorHandling
-      ? {
-          navigation: this.props.navigation,
-          error: this.state.error,
-          view: this.props.view,
-        }
-      : undefined;
-
     return this.state.backupSeedphrase
       ? this.renderWithSafeArea(
           <RevealPrivateCredential
@@ -511,7 +505,6 @@ class ErrorBoundary extends Component {
             copyErrorToClipboard={this.copyErrorToClipboard}
             openTicket={this.openTicket}
             sentryId={this.state.sentryId}
-            onboardingErrorConfig={onboardingErrorConfig}
           />,
         )
       : this.props.children;

@@ -155,6 +155,7 @@ exports[`captureSentryFeedback maskObject masks initial root state fixture 1`] =
         "lostIdentities": "object",
         "securityAlertsEnabled": "boolean",
         "selectedAddress": "string",
+        "showIncomingTransactions": "object",
         "showTestNetworks": "boolean",
         "smartTransactionsOptInStatus": "boolean",
         "useNftDetection": true,

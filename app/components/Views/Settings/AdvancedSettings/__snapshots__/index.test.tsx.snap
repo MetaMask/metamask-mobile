@@ -114,15 +114,14 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
                 "marginTop": 16,
-                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -131,7 +130,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#4459ff",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -823,15 +822,14 @@ exports[`AdvancedSettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
                 "marginTop": 16,
-                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -840,7 +838,7 @@ exports[`AdvancedSettings should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#4459ff",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,

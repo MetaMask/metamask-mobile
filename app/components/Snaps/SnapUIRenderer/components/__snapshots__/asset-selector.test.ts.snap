@@ -82,7 +82,6 @@ exports[`SnapUIAssetSelector should render 1`] = `
                     "justifyContent": "center",
                     "maxHeight": 58,
                     "minHeight": 48,
-                    "overflow": "hidden",
                     "paddingBottom": 8,
                     "paddingHorizontal": 16,
                     "paddingLeft": 16,

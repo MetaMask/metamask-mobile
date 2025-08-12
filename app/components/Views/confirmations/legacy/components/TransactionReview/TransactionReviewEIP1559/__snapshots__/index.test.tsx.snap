@@ -123,7 +123,7 @@ exports[`TransactionReviewEIP1559 should match snapshot 1`] = `
                     "fontSize": 13,
                   },
                   {
-                    "color": "#b7bbc8",
+                    "color": "#9ca1af",
                   },
                   {
                     "fontFamily": "Material Design Icons",

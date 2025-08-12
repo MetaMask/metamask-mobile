@@ -23,7 +23,9 @@ const StakingDetails = () => {
   };
 
   return (
-    <InfoSection testID={ConfirmationRowComponentIDs.STAKING_DETAILS}>
+    <InfoSection
+      testID={ConfirmationRowComponentIDs.STAKING_DETAILS}
+    >
       <InfoRow label={strings('stake.apr')}>{apr}</InfoRow>
       <InfoRow label={strings('stake.estimated_annual_reward')}>
         <View style={styles.valueContainer}>

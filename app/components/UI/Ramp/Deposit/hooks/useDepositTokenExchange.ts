@@ -1,6 +1,5 @@
 import { useFetchTokenRatesMulti } from './useTokenRates';
 import { DepositCryptoCurrency, DepositFiatCurrency } from '../constants';
-import Logger from '../../../../../util/Logger';
 
 interface UseTokenExchangeParams {
   fiatCurrency: DepositFiatCurrency;
@@ -16,7 +15,7 @@ interface UseTokenExchangeResult {
   error: Error | null;
 }
 
-const useDepositTokenExchange = ({
+const useDepsositTokenExchange = ({
   fiatCurrency,
   fiatAmount,
   token,
@@ -31,20 +30,9 @@ const useDepositTokenExchange = ({
 
   const rate = currentToken ? rates[currentToken.assetId] ?? null : null;
 
-  let tokenAmount = '0';
-
-  try {
-    if (rate) {
-      tokenAmount = (parseFloat(fiatAmount || '0') / rate).toFixed(
-        token.decimals,
-      );
-    }
-  } catch (e) {
-    Logger.error(
-      e as Error,
-      `Error calculating token amount with fiat amount ${fiatAmount} and rate ${rate}`,
-    );
-  }
+  const tokenAmount = rate
+    ? (parseFloat(fiatAmount || '0') * rate).toFixed(token.decimals)
+    : '0';
 
   return {
     tokenAmount,
@@ -54,4 +42,4 @@ const useDepositTokenExchange = ({
   };
 };
 
-export default useDepositTokenExchange;
+export default useDepsositTokenExchange;

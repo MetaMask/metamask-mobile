@@ -13,16 +13,10 @@ import { QuoteMetadata } from '@metamask/bridge-controller';
 import { backgroundState } from '../../test/initial-root-state';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
-let mockSubmitTx: jest.Mock<
-  Promise<TransactionMeta>,
-  [QuoteResponse & QuoteMetadata, boolean]
->;
+let mockSubmitTx: jest.Mock<Promise<TransactionMeta>, [QuoteResponse & QuoteMetadata, boolean]>;
 
 jest.mock('../../../core/Engine', () => {
-  mockSubmitTx = jest.fn<
-    Promise<TransactionMeta>,
-    [QuoteResponse & QuoteMetadata, boolean]
-  >();
+  mockSubmitTx = jest.fn<Promise<TransactionMeta>, [QuoteResponse & QuoteMetadata, boolean]>();
   return {
     context: {
       BridgeStatusController: {
@@ -134,7 +128,7 @@ describe('useSubmitBridgeTx', () => {
       status: 'submitted',
       time: Date.now(),
       txParams: {
-        from: '0x1234567890123456789012345678901234567890',
+        from: '0x1234567890123456789012345678901234567890'
       },
     } as TransactionMeta);
 
@@ -144,7 +138,7 @@ describe('useSubmitBridgeTx', () => {
 
     expect(mockSubmitTx).toHaveBeenCalledWith(
       mockQuoteResponse,
-      expect.any(Boolean),
+      expect.any(Boolean)
     );
     expect(txResult).toEqual({
       chainId: '0x1',
@@ -175,7 +169,7 @@ describe('useSubmitBridgeTx', () => {
       status: 'submitted',
       time: Date.now(),
       txParams: {
-        from: '0x1234567890123456789012345678901234567890',
+        from: '0x1234567890123456789012345678901234567890'
       },
     } as TransactionMeta);
 
@@ -185,7 +179,7 @@ describe('useSubmitBridgeTx', () => {
 
     expect(mockSubmitTx).toHaveBeenCalledWith(
       mockQuoteResponse,
-      expect.any(Boolean),
+      expect.any(Boolean)
     );
     expect(txResult).toEqual({
       chainId: '0x1',

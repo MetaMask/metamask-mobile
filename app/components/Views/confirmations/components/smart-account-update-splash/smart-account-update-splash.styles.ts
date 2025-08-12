@@ -15,8 +15,11 @@ const styleSheet = (params: { theme: Theme }) => {
       left: 0,
       height: '100%',
       width: '100%',
-      paddingInline: 8,
-      paddingVertical: 40,
+      padding: 8,
+    },
+    image: {
+      height: '28%',
+      width: '100%',
     },
     buttonSection: {
       flexDirection: 'row',
@@ -25,6 +28,26 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     buttons: {
       width: '48%',
+    },
+    title: {
+      marginLeft: 8,
+    },
+    requestSection: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    icon: {
+      height: 24,
+      width: 24,
+    },
+    listWrapper: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      paddingInline: 2,
+    },
+    textSection: {
+      marginLeft: 8,
+      width: '90%',
     },
   });
 };

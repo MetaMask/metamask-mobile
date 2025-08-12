@@ -46,11 +46,7 @@ interface LoaderProps {
   onError?: () => void;
 }
 
-function Loader({
-  error = false,
-  onClose = () => null,
-  onError = () => null,
-}: LoaderProps) {
+function Loader({ error = false, onClose = () => null, onError = () => null }: LoaderProps) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 

@@ -106,12 +106,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#4459ff",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
             }
@@ -217,12 +216,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#4459ff",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
             }
@@ -328,12 +326,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#4459ff",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
             }
@@ -414,12 +411,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#4459ff",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
             }
@@ -525,12 +521,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#4459ff",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
             }
@@ -611,12 +606,11 @@ exports[`AesCryptoTestForm renders correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#4459ff",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 40,
               "justifyContent": "center",
-              "overflow": "hidden",
               "paddingHorizontal": 16,
               "width": "100%",
             }

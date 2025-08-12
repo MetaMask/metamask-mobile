@@ -19,7 +19,6 @@ const mockImportNewSecretRecoveryPhrase = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockLockAccountSyncing = jest.fn();
 const mockUnlockAccountSyncing = jest.fn();
-const mockCheckIsSeedlessPasswordOutdated = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -41,14 +40,6 @@ jest.mock('../../../actions/multiSrp', () => ({
 jest.mock('../../../actions/identity', () => ({
   lockAccountSyncing: () => mockLockAccountSyncing(),
   unlockAccountSyncing: () => mockUnlockAccountSyncing(),
-}));
-
-jest.mock('../../../core', () => ({
-  ...jest.requireActual('../../../core'),
-  Authentication: {
-    checkIsSeedlessPasswordOutdated: () =>
-      mockCheckIsSeedlessPasswordOutdated(),
-  },
 }));
 
 jest.mock('../../../core/ClipboardManager', () => ({
@@ -110,7 +101,7 @@ const renderSRPImportComponentAndPasteSRP = async (srp: string) => {
 describe('ImportNewSecretRecoveryPhrase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
+    
     mockImportNewSecretRecoveryPhrase.mockResolvedValue({
       address: '9fE6zKgca6K2EEa3yjbcq7zGMusUNqSQeWQNL2YDZ2Yi',
       discoveredAccountsCount: 3,
@@ -120,8 +111,6 @@ describe('ImportNewSecretRecoveryPhrase', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: MetricsEventBuilder.createEventBuilder,
     });
-
-    mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
   });
 
   it('imports valid manually entered 12-word SRP', async () => {

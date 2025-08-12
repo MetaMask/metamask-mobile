@@ -1,15 +1,19 @@
+'use strict';
 import Browser from '../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
 import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../../fixtures/fixture-helper';
 import { SmokeConfirmations } from '../../../tags';
-import Assertions from '../../../framework/Assertions';
+import TestHelpers from '../../../helpers';
+import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
-import { DappVariants } from '../../../framework/Constants';
+import { buildPermissions } from '../../../fixtures/utils';
 
 describe(SmokeConfirmations('Typed Sign'), () => {
   const testSpecificMock = {
@@ -18,23 +22,19 @@ describe(SmokeConfirmations('Typed Sign'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
+    await TestHelpers.reverseServerPort();
   });
 
   it('should sign typed message', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
         testSpecificMock,
       },
       async () => {
@@ -44,28 +44,16 @@ describe(SmokeConfirmations('Typed Sign'), () => {
         await Browser.navigateToTestDApp();
 
         await TestDApp.tapTypedSignButton();
-        await Assertions.expectElementToBeVisible(
-          SigningBottomSheet.typedRequest,
-        );
+        await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
         await SigningBottomSheet.tapCancelButton();
-        await Assertions.expectElementToNotBeVisible(
-          SigningBottomSheet.typedRequest,
-        );
-        await Assertions.expectElementToNotBeVisible(
-          SigningBottomSheet.personalRequest,
-        );
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
 
         await TestDApp.tapTypedSignButton();
-        await Assertions.expectElementToBeVisible(
-          SigningBottomSheet.typedRequest,
-        );
+        await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
         await SigningBottomSheet.tapSignButton();
-        await Assertions.expectElementToNotBeVisible(
-          SigningBottomSheet.typedRequest,
-        );
-        await Assertions.expectElementToNotBeVisible(
-          SigningBottomSheet.personalRequest,
-        );
+        await Assertions.checkIfNotVisible(SigningBottomSheet.typedRequest);
+        await Assertions.checkIfNotVisible(SigningBottomSheet.personalRequest);
       },
     );
   });

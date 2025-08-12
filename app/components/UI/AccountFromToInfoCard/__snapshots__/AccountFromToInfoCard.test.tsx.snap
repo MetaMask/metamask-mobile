@@ -84,7 +84,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                 style={
                   {
                     "backgroundColor": "#ffffff",
-                    "borderRadius": 8,
+                    "borderRadius": 16,
                     "height": 32,
                     "overflow": "hidden",
                     "width": 32,
@@ -104,9 +104,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                         "height": 32,
                         "width": 32,
                       },
-                      {
-                        "borderRadius": 8,
-                      },
+                      undefined,
                     ]
                   }
                 >
@@ -587,7 +585,7 @@ exports[`AccountFromToInfoCard should match snapshot 1`] = `
                   style={
                     [
                       {
-                        "color": "#457a39",
+                        "color": "#1c7e33",
                         "fontSize": 15,
                       },
                       undefined,

@@ -27,9 +27,7 @@ interface NavigationScreen {
   params: NavigationParams;
 }
 
-export type NavigationRoute =
-  | readonly [string]
-  | readonly [string, NavigationScreen];
+type NavigationRoute = readonly [string] | readonly [string, NavigationScreen];
 
 export interface UrlNavigationAction {
   type: 'url';

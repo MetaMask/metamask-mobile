@@ -1,60 +1,33 @@
-import {
-  setDestToken,
-  selectBridgeViewMode,
-  selectDestToken,
-} from '../../../../../core/redux/slices/bridge';
+import { setDestToken, selectDestToken } from '../../../../../core/redux/slices/bridge';
 import { useDispatch, useSelector } from 'react-redux';
 import { DefaultSwapDestTokens } from '../../constants/default-swap-dest-tokens';
 import { selectChainId } from '../../../../../selectors/networkController';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { BridgeRouteParams } from '../../Views/BridgeView';
 import { BridgeViewMode, BridgeToken } from '../../types';
 import { getNativeSourceToken } from '../useInitialSourceToken';
-import { SolScope } from '@metamask/keyring-api';
-import usePrevious from '../../../../hooks/usePrevious';
 
 // Need to pass in the initial source token to avoid a race condition with useInitialSourceToken
 // Can't just use selectSourceToken because of race condition
-export const useInitialDestToken = (
-  initialSourceToken?: BridgeToken,
-  initialDestToken?: BridgeToken,
-) => {
+export const useInitialDestToken = (initialSourceToken?: BridgeToken) => {
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
   const dispatch = useDispatch();
-  const selectedChainId = useSelector(selectChainId);
-  const bridgeViewMode = useSelector(selectBridgeViewMode);
-  const destToken = useSelector(selectDestToken);
+  const chainId = useSelector(selectChainId);
+  const destToken  = useSelector(selectDestToken);
 
-  const isSwap =
-    bridgeViewMode === BridgeViewMode.Swap ||
-    bridgeViewMode === BridgeViewMode.Unified;
+  const isSwap = route.params.bridgeViewMode === BridgeViewMode.Swap;
 
-  const prevInitialDestToken = usePrevious(initialDestToken);
+  if (destToken) return;
 
-  if (initialDestToken && prevInitialDestToken !== initialDestToken) {
-    dispatch(setDestToken(initialDestToken));
-    return;
-  }
-
-  const destTokenTargetChainId = initialSourceToken?.chainId ?? selectedChainId;
-  let defaultDestToken = DefaultSwapDestTokens[destTokenTargetChainId];
+  let defaultDestToken = DefaultSwapDestTokens[chainId];
 
   // If the initial source token is the same as the default dest token, set the default dest token to the native token
-  if (
-    destTokenTargetChainId === SolScope.Mainnet &&
-    initialSourceToken?.address === defaultDestToken?.address
-  ) {
-    // Solana addresses are case sensitive
-    defaultDestToken = getNativeSourceToken(destTokenTargetChainId);
-  } else if (
-    destTokenTargetChainId !== SolScope.Mainnet &&
-    initialSourceToken?.address?.toLowerCase() ===
-      defaultDestToken?.address?.toLowerCase()
-  ) {
-    // EVM addresses are NOT case sensitive
-    defaultDestToken = getNativeSourceToken(destTokenTargetChainId);
+  if (initialSourceToken?.address === defaultDestToken?.address) {
+    defaultDestToken = getNativeSourceToken(chainId);
   }
 
   if (
     isSwap &&
-    !destToken &&
     defaultDestToken &&
     initialSourceToken?.address !== defaultDestToken.address
   ) {

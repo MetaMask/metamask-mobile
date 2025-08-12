@@ -209,7 +209,6 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "overflow": "hidden",
               "paddingHorizontal": 16,
               "paddingRight": 0,
             }
@@ -399,7 +398,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                     style={
                       {
                         "backgroundColor": "#ffffff",
-                        "borderRadius": 8,
+                        "borderRadius": 16,
                         "height": 32,
                         "marginRight": 16,
                         "overflow": "hidden",
@@ -415,14 +414,9 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                         }
                       }
                       style={
-                        [
-                          {
-                            "flex": 1,
-                          },
-                          {
-                            "borderRadius": 8,
-                          },
-                        ]
+                        {
+                          "flex": 1,
+                        }
                       }
                     />
                   </View>
@@ -578,7 +572,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                     style={
                       {
                         "backgroundColor": "#ffffff",
-                        "borderRadius": 8,
+                        "borderRadius": 16,
                         "height": 32,
                         "marginRight": 16,
                         "overflow": "hidden",
@@ -594,14 +588,9 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                         }
                       }
                       style={
-                        [
-                          {
-                            "flex": 1,
-                          },
-                          {
-                            "borderRadius": 8,
-                          },
-                        ]
+                        {
+                          "flex": 1,
+                        }
                       }
                     />
                   </View>
@@ -688,13 +677,12 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#121314",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
-                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }

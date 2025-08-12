@@ -1,30 +1,37 @@
 import { StyleSheet } from 'react-native';
+import { Theme } from '../../../../../../../util/theme/models';
 
-const styleSheet = () =>
-  StyleSheet.create({
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+  const { colors } = theme;
+
+  return StyleSheet.create({
     content: {
       padding: 24,
+      alignItems: 'center',
     },
     iconContainer: {
       marginBottom: 16,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    countryContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 16,
+    warningIcon: {
+      color: colors.warning.default,
     },
-    countryName: {
-      marginLeft: 8,
+    message: {
+      textAlign: 'center',
+      marginBottom: 12,
+      color: colors.text.default,
+    },
+    description: {
+      textAlign: 'center',
+      lineHeight: 20,
     },
     footer: {
       padding: 24,
       paddingTop: 0,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      gap: 8,
     },
   });
+};
 
-export default styleSheet;
+export default styleSheet; 

@@ -42,7 +42,7 @@ export const AccountDetails = (props: AccountDetailsProps) => {
     if (account.metadata.keyring.type === KeyringTypes.simple) {
       return <PrivateKeyAccountDetails account={account} />;
     }
-    if (isHardwareAccount(account.address)) {
+    if (isHardwareAccount(account.type)) {
       return <HardwareAccountDetails account={account} />;
     }
     if (account.metadata.keyring.type === KeyringTypes.snap) {

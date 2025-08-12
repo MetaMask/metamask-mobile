@@ -10,8 +10,6 @@ import OnboardingWizardModal from '../screen-objects/Modals/OnboardingWizardModa
 import AddressBarScreen from '../screen-objects/BrowserObject/AddressBarScreen';
 import CreatePasswordScreen from '../screen-objects/Onboarding/CreatePasswordScreen.js';
 import OnboardingSucessScreen from '../screen-objects/OnboardingSucessScreen.js';
-import OnboardingSheet from '../screen-objects/Onboarding/OnboardingSheet.js';
-const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
 Then(/^"([^"]*)?" carousel item is displayed/, async (text) => {
   switch (text) {
@@ -38,19 +36,8 @@ When(/^I tap "([^"]*)"/, async (text) => {
     case 'Get started':
       await WelcomeScreen.clickGetStartedButton();
       break;
-    case 'Have an existing wallet':
-      await OnboardingScreen.tapHaveAnExistingWallet();
-      break;
-    case 'Google Login':
-      await OnboardingSheet.tapGoogleLoginButton();
-      break;
-    case 'Apple Login':
-      await OnboardingSheet.tapAppleLoginButton();
-      break;
     case 'Import using Secret Recovery Phrase':
-      if (SEEDLESS_ONBOARDING_ENABLED) {
-        await OnboardingSheet.tapImportSeedButton();
-      }
+      await OnboardingScreen.clickImportWalletButton();
       break;
     case 'I agree':
       await MetaMetricsScreen.tapIAgreeButton();

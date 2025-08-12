@@ -10,7 +10,7 @@ import {
   InternalScopesObject,
   InternalScopeString,
   setEthAccounts,
-  setPermittedEthChainIds,
+  setPermittedEthChainIds
 } from '@metamask/chain-agnostic-permission';
 import { RequestedPermissions } from '@metamask/permission-controller';
 import { providerErrors } from '@metamask/rpc-errors';
@@ -103,6 +103,7 @@ export const getCaip25PermissionFromLegacyPermissions = (
     },
   };
 };
+
 
 /**
  * Requests incremental permittedChains permission for the specified origin.
@@ -197,12 +198,7 @@ const rejectApproval = ({
       break;
 
     case ApprovalType.SnapDialogConfirmation:
-      approvalLog('Rejecting snap confirmation', {
-        id,
-        interfaceId,
-        origin,
-        type,
-      });
+      approvalLog('Rejecting snap confirmation', { id, interfaceId, origin, type });
       ApprovalController.accept(id, false);
       deleteInterface?.(interfaceId);
       break;
@@ -262,7 +258,10 @@ export const rejectOriginApprovals = ({
 export const rejectOriginPendingApprovals = (origin: string) => {
   const { controllerMessenger } = Engine;
   const deleteInterface = (id: string) =>
-    controllerMessenger.call('SnapInterfaceController:deleteInterface', id);
+    controllerMessenger.call(
+      'SnapInterfaceController:deleteInterface',
+      id,
+    );
 
   rejectOriginApprovals({
     deleteInterface,

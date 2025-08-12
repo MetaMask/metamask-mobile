@@ -5,13 +5,12 @@ import { useStyles } from '../../../../../../../../component-library/hooks';
 import InfoRow from '../../../../UI/info-row';
 import InfoSection from '../../../../UI/info-row/info-section';
 
-const styleSheet = () =>
-  StyleSheet.create({
-    base: {
-      display: 'flex',
-      justifyContent: 'space-between',
-    },
-  });
+const styleSheet = () => StyleSheet.create({
+  base: {
+    display: 'flex',
+    justifyContent: 'space-between',
+  },
+});
 
 const StaticSimulation: React.FC<{
   title: string;
@@ -30,7 +29,7 @@ const StaticSimulation: React.FC<{
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
 
-  return (
+  return(
     <View style={isCollapsed ? styles.base : {}}>
       <InfoSection>
         <InfoRow label={title} tooltip={titleTooltip}>
@@ -43,8 +42,8 @@ const StaticSimulation: React.FC<{
           />
         ) : (
           simulationElements
-        )}
-      </InfoSection>
+          )}
+        </InfoSection>
     </View>
   );
 };

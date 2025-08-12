@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { getInternalAccountsFromWallet } from '../utils/getInternalAccountsFromWallet';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { EthAccountType } from '@metamask/keyring-api';
-import { AccountWalletObject } from '@metamask/account-tree-controller';
+import { AccountWallet } from '@metamask/account-tree-controller';
 
 // Mock dependencies
 jest.mock('../../../../hooks/useHdKeyringsWithSnapAccounts');
@@ -54,7 +54,7 @@ describe('useWalletInfo', () => {
         accounts: [mockAccount1.id, mockAccount2.id],
       },
     },
-  } as unknown as AccountWalletObject;
+  } as unknown as AccountWallet;
 
   // Mock keyrings
   const mockKeyring1 = {
@@ -108,7 +108,7 @@ describe('useWalletInfo', () => {
       const walletWithKeyring2 = {
         ...mockWallet,
         id: 'keyring:2',
-      } as unknown as AccountWalletObject;
+      } as unknown as AccountWallet;
 
       mockGetInternalAccountsFromWallet.mockReturnValue([mockAccount3]);
       mockUseHdKeyringsWithSnapAccounts.mockReturnValue([
@@ -147,7 +147,7 @@ describe('useWalletInfo', () => {
       const walletWithKeyring3 = {
         ...mockWallet,
         id: 'keyring:3',
-      } as unknown as AccountWalletObject;
+      } as unknown as AccountWallet;
 
       mockGetInternalAccountsFromWallet.mockReturnValue([mockAccount4]);
       mockUseHdKeyringsWithSnapAccounts.mockReturnValue([
@@ -191,7 +191,7 @@ describe('useWalletInfo', () => {
       const walletWithKeyring2 = {
         ...mockWallet,
         id: 'keyring:2',
-      } as unknown as AccountWalletObject;
+      } as unknown as AccountWallet;
 
       mockGetInternalAccountsFromWallet.mockReturnValue([mockAccount3]);
 
@@ -218,7 +218,7 @@ describe('useWalletInfo', () => {
     const walletWithUnknownKeyring = {
       ...mockWallet,
       id: 'keyring:999',
-    } as unknown as AccountWalletObject;
+    } as unknown as AccountWallet;
 
     mockGetInternalAccountsFromWallet.mockReturnValue([mockUnknownAccount]);
     mockUseHdKeyringsWithSnapAccounts.mockReturnValue([

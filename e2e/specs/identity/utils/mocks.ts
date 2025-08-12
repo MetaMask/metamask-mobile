@@ -12,39 +12,22 @@ interface MockResponse {
   response: unknown;
 }
 
-/**
- * Sets up authentication service mocks (nonce, login, access token)
- * @param server - The Mockttp server instance
- */
-export async function mockAuthServices(server: Mockttp) {
+export async function mockIdentityServices(server: Mockttp) {
+  // Auth
   await mockAPICall(server, AuthMocks.getMockAuthNonceResponse());
   await mockAPICall(server, AuthMocks.getMockAuthLoginResponse());
   await mockAPICall(server, AuthMocks.getMockAuthAccessTokenResponse());
-}
 
-/**
- * Creates a new UserStorageMockttpController instance
- * @returns A new controller instance for user storage mocking
- */
-export function createUserStorageController(): UserStorageMockttpController {
-  return new UserStorageMockttpController();
-}
-
-/**
- * Sets up complete identity services (auth + storage) with default storage features
- * This is the original function, kept for backward compatibility
- * @param server - The Mockttp server instance
- * @returns An object containing the user storage controller instance
- */
-export async function mockIdentityServices(server: Mockttp) {
-  // Set up auth services
-  await mockAuthServices(server);
-
-  // Create and set up storage controller with default features
-  const userStorageMockttpControllerInstance = createUserStorageController();
+  // Storage
+  const userStorageMockttpControllerInstance =
+    new UserStorageMockttpController();
 
   await userStorageMockttpControllerInstance.setupPath(
     USER_STORAGE_FEATURE_NAMES.accounts,
+    server,
+  );
+  await userStorageMockttpControllerInstance.setupPath(
+    USER_STORAGE_FEATURE_NAMES.networks,
     server,
   );
   await userStorageMockttpControllerInstance.setupPath(

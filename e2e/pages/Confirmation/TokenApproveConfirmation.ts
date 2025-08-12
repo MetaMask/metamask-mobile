@@ -1,45 +1,39 @@
 import { ApproveComponentIDs } from '../../selectors/Confirmation/ConfirmationView.selectors';
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 
 // This components are used to check the approve confirmation specific components in the confirmation modal
 class TokenApproveConfirmation {
-  get SpendingCapValue(): DetoxElement {
+  get SpendingCapValue() {
     return Matchers.getElementByID(ApproveComponentIDs.SPENDING_CAP_VALUE);
   }
 
-  get EditSpendingCapButton(): DetoxElement {
+  get EditSpendingCapButton() {
     return Matchers.getElementByID(
       ApproveComponentIDs.EDIT_SPENDING_CAP_BUTTON,
     );
   }
 
-  get EditSpendingCapInput(): DetoxElement {
+  get EditSpendingCapInput() {
     return Matchers.getElementByID(ApproveComponentIDs.EDIT_SPENDING_CAP_INPUT);
   }
 
-  get EditSpendingCapSaveButton(): DetoxElement {
+  get EditSpendingCapSaveButton() {
     return Matchers.getElementByID(
       ApproveComponentIDs.EDIT_SPENDING_CAP_SAVE_BUTTON,
     );
   }
 
-  async tapEditSpendingCapButton(): Promise<void> {
+  async tapEditSpendingCapButton() {
     await Gestures.waitAndTap(this.EditSpendingCapButton);
   }
 
-  async tapEditSpendingCapSaveButton(): Promise<void> {
-    await Gestures.waitAndTap(this.EditSpendingCapSaveButton, {
-      elemDescription:
-        'Edit Spending Cap Save Button in Token Approve Confirmation',
-    });
+  async tapEditSpendingCapSaveButton() {
+    await Gestures.waitAndTap(this.EditSpendingCapSaveButton, { delayBeforeTap: 1000 });
   }
 
-  async inputSpendingCap(spendingCap: string): Promise<void> {
-    await Gestures.typeText(this.EditSpendingCapInput, spendingCap, {
-      elemDescription: 'Edit Spending Cap Input in Token Approve Confirmation',
-      hideKeyboard: true,
-    });
+  async inputSpendingCap(spendingCap: string) {
+    await Gestures.typeTextAndHideKeyboard(this.EditSpendingCapInput, spendingCap);
   }
 }
 

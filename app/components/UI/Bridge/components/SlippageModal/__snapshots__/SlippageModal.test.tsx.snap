@@ -34,7 +34,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
       style={
         [
           {
-            "backgroundColor": "#3f434a66",
+            "backgroundColor": "#00000066",
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -85,8 +85,8 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#b7bbc866",
-              "borderTopLeftRadius": 24,
-              "borderTopRightRadius": 24,
+              "borderTopLeftRadius": 8,
+              "borderTopRightRadius": 8,
               "borderWidth": 1,
               "maxHeight": 640,
               "overflow": "hidden",
@@ -294,7 +294,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       "flexDirection": "row",
                       "height": 40,
                       "justifyContent": "center",
-                      "overflow": "hidden",
                       "paddingHorizontal": 16,
                     }
                   }
@@ -342,7 +341,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       "flexDirection": "row",
                       "height": 40,
                       "justifyContent": "center",
-                      "overflow": "hidden",
                       "paddingHorizontal": 16,
                     }
                   }
@@ -390,7 +388,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       "flexDirection": "row",
                       "height": 40,
                       "justifyContent": "center",
-                      "overflow": "hidden",
                       "paddingHorizontal": 16,
                     }
                   }
@@ -438,7 +435,6 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                       "flexDirection": "row",
                       "height": 40,
                       "justifyContent": "center",
-                      "overflow": "hidden",
                       "paddingHorizontal": 16,
                     }
                   }
@@ -484,15 +480,14 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderColor": "transparent",
+                  "backgroundColor": "transparent",
+                  "borderColor": "#4459ff",
                   "borderRadius": 12,
                   "borderWidth": 1,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
@@ -502,7 +497,7 @@ exports[`SlippageModal renders all UI elements with the proper slippage options 
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#4459ff",
                     "fontFamily": "Geist Medium",
                     "fontSize": 16,
                     "letterSpacing": 0,

@@ -334,7 +334,7 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -385,8 +385,8 @@ exports[`BridgeDestNetworkSelector renders with initial state and displays netwo
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 24,
-                                "borderTopRightRadius": 24,
+                                "borderTopLeftRadius": 8,
+                                "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "height": 1334,
                                 "maxHeight": 1334,

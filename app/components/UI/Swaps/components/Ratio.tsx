@@ -61,8 +61,7 @@ function Ratio({
     denominator?.decimals,
   );
 
-  const handleRatioSwitch = (): void =>
-    setRatioAsSource((isSource) => !isSource);
+  const handleRatioSwitch = (): void => setRatioAsSource((isSource) => !isSource);
 
   return (
     <TouchableOpacity onPress={handleRatioSwitch}>

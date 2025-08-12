@@ -135,10 +135,8 @@ const mockNavigation = {
   goBack: jest.fn(),
 };
 
-const mockGetPermittedCaipAccountIdsByHostname =
-  getPermittedCaipAccountIdsByHostname as jest.Mock;
-const mockSortMultichainAccountsByLastSelected =
-  sortMultichainAccountsByLastSelected as jest.Mock;
+const mockGetPermittedCaipAccountIdsByHostname = getPermittedCaipAccountIdsByHostname as jest.Mock;
+const mockSortMultichainAccountsByLastSelected = sortMultichainAccountsByLastSelected as jest.Mock;
 
 describe('Browser', () => {
   it('should render correctly', () => {

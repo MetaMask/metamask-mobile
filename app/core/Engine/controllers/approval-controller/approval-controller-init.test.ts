@@ -54,9 +54,7 @@ describe('ApprovalController Init', () => {
       ApprovalControllerInit(requestMock);
 
       const constructorOptions = approvalControllerClassMock.mock.calls[0][0];
-      expect(constructorOptions.messenger).toBe(
-        requestMock.controllerMessenger,
-      );
+      expect(constructorOptions.messenger).toBe(requestMock.controllerMessenger);
       expect(constructorOptions.showApprovalRequest).toBeDefined();
       expect(constructorOptions.showApprovalRequest()).toBeUndefined();
       expect(constructorOptions.typesExcludedFromRateLimiting).toEqual([

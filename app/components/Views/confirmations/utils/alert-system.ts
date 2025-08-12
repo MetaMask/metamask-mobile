@@ -10,24 +10,24 @@ import { BannerAlertSeverity } from '../../../../component-library/components/Ba
  * @returns An object containing the background and icon colors for the given severity.
  */
 export const getSeverityStyle = (severity: Severity, colors: ThemeColors) => {
-  switch (severity) {
-    case Severity.Warning:
-      return {
-        background: colors.warning.muted,
-        icon: colors.warning.default,
-      };
-    case Severity.Danger:
-      return {
-        background: colors.error.muted,
-        icon: colors.error.default,
-      };
-    default:
-      return {
-        background: colors.background.default,
-        icon: colors.info.default,
-      };
-  }
-};
+    switch (severity) {
+      case Severity.Warning:
+        return {
+          background: colors.warning.muted,
+          icon: colors.warning.default,
+        };
+      case Severity.Danger:
+        return {
+          background: colors.error.muted,
+          icon: colors.error.default,
+        };
+      default:
+        return {
+          background: colors.background.default,
+          icon: colors.info.default,
+        };
+    }
+  };
 
 /**
  * Converts the severity of a banner alert to the corresponding BannerAlertSeverity.

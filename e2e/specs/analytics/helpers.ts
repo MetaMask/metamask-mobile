@@ -1,4 +1,4 @@
-import { MockedEndpoint, Mockttp, MockttpServer } from 'mockttp';
+import { MockttpServer, ServerMockedEndpoint } from 'mockttp';
 import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
 
 export interface EventPayload {
@@ -8,30 +8,30 @@ export interface EventPayload {
 
 /**
  * Retrieves payloads of requests matching specified metametrics events.
- * @param {MockttpServer|Mockttp} mockServer - The mock server instance.
+ * @param {MockttpServer} mockServer - The mock server instance.
  * @param {Array<string>} [events] - Event names to filter payloads. If not provided, all events are returned. i.e. ['event1', 'event2']
  * @returns {Promise<Array<EventPayload>>} Filtered request payloads.
  */
 export const getEventsPayloads = async (
-  mockServer: MockttpServer | Mockttp,
+  mockServer: MockttpServer,
   events: string[] = [],
   timeout = 10000,
 ): Promise<EventPayload[]> => {
-  const waitForPendingEndpoints = async (): Promise<MockedEndpoint[]> => {
+  const waitForPendingEndpoints = async (): Promise<ServerMockedEndpoint[]> => {
     const startTime = Date.now();
 
-    const checkPendingEndpoints = async (): Promise<MockedEndpoint[]> => {
+    const checkPendingEndpoints = async (): Promise<ServerMockedEndpoint[]> => {
       const mockedEndpoints = await mockServer.getMockedEndpoints();
-
+      
       // Filter out infrastructure endpoints that are always pending
       // Only include endpoints that have received requests (analytics endpoints)
       const endpointChecks = await Promise.all(
         mockedEndpoints.map(async (endpoint) => {
           const seenRequests = await endpoint.getSeenRequests();
           return { endpoint, hasRequests: seenRequests.length > 0 };
-        }),
+        })
       );
-
+      
       const analyticsEndpoints = endpointChecks
         .filter(({ hasRequests }) => hasRequests)
         .map(({ endpoint }) => endpoint);
@@ -39,6 +39,7 @@ export const getEventsPayloads = async (
       const pendingEndpoints = await Promise.all(
         analyticsEndpoints.map((endpoint) => endpoint.isPending()),
       );
+
 
       if (pendingEndpoints.some((isPending) => isPending)) {
         if (Date.now() - startTime >= timeout) {
@@ -95,8 +96,7 @@ export const getEventsPayloads = async (
 export const findEvent = (
   payloads: EventPayload[],
   eventName: string,
-): EventPayload | undefined =>
-  payloads.find((payload) => payload.event === eventName);
+): EventPayload | undefined => payloads.find((payload) => payload.event === eventName);
 
 /**
  * Filters event objects in the payloads array matching the given event name.
@@ -109,14 +109,12 @@ export const filterEvents = (
   eventName: string,
 ): EventPayload[] => payloads.filter((payload) => payload.event === eventName);
 
+
 export const onboardingEvents = {
   ANALYTICS_PREFERENCE_SELECTED: 'Analytics Preference Selected',
   WELCOME_MESSAGE_VIEWED: 'Welcome Message Viewed',
   WELCOME_SCREEN_ENGAGEMENT: 'Welcome Screen Engagement',
-  ONBOARDING_TOUR_STARTED: 'Onboarding Tour Started',
   ONBOARDING_STARTED: 'Onboarding Started',
-  ONBOARDING_TOUR_STEP_COMPLETED: 'Onboarding Tour Step Completed',
-  ONBOARDING_TOUR_STEP_REVISITED: 'Onboarding Tour Step Revisited',
   WALLET_IMPORTED: 'Wallet Imported',
   WALLET_SETUP_STARTED: 'Wallet Setup Started',
   WALLET_IMPORT_STARTED: 'Wallet Import Started',

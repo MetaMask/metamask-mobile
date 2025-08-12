@@ -12,10 +12,7 @@ import { useMemo } from 'react';
 import { NetworkConfiguration } from '@metamask/network-controller';
 import useBlockExplorer from '../../../Swaps/utils/useBlockExplorer';
 import { getTransactionUrl } from '../../../../../core/Multichain/utils';
-import {
-  getBlockExplorerName,
-  getNetworkImageSource,
-} from '../../../../../util/networks';
+import { getBlockExplorerName, getNetworkImageSource } from '../../../../../util/networks';
 import { Hex } from '@metamask/utils';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../selectors/multichainNetworkController';
 
@@ -53,10 +50,9 @@ export const useMultichainBlockExplorerTxUrl = ({
   }
 
   // EVM specific hooks - always call these regardless of chainId
-  const evmNetworkConfig =
-    formattedChainId && !isSolana
-      ? evmNetworkConfigurations[formattedChainId as Hex]
-      : undefined;
+  const evmNetworkConfig = formattedChainId && !isSolana
+    ? evmNetworkConfigurations[formattedChainId as Hex]
+    : undefined;
 
   const evmProviderConfig = useMemo(
     () =>
@@ -94,15 +90,13 @@ export const useMultichainBlockExplorerTxUrl = ({
   });
 
   // Determine explorer name and chain name
-  const explorerName =
-    isSolana && explorerTxUrl
-      ? getBlockExplorerName(explorerTxUrl)
-      : evmExplorer.name;
+  const explorerName = isSolana && explorerTxUrl
+    ? getBlockExplorerName(explorerTxUrl)
+    : evmExplorer.name;
 
-  const chainName =
-    isSolana && formattedChainId
-      ? nonEvmNetworkConfigurations[formattedChainId]?.name
-      : evmNetworkConfig?.name;
+  const chainName = isSolana && formattedChainId
+    ? nonEvmNetworkConfigurations[formattedChainId]?.name
+    : evmNetworkConfig?.name;
 
   return {
     explorerTxUrl,

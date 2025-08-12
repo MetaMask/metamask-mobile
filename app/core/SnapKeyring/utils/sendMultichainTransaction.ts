@@ -26,7 +26,7 @@ export async function sendMultichainTransaction(
       params: {
         account,
         scope,
-        ...(assetId !== undefined ? { assetId } : {}),
+        assetId,
       },
     },
   });

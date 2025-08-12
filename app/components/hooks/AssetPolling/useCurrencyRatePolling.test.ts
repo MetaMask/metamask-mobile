@@ -223,17 +223,11 @@ describe('useCurrencyRatePolling', () => {
     );
 
     expect(mockedCurrencyRateController.startPolling).toHaveBeenCalledTimes(2);
-    expect(mockedCurrencyRateController.startPolling).toHaveBeenNthCalledWith(
-      1,
-      {
-        nativeCurrencies: ['ETH'],
-      },
-    );
-    expect(mockedCurrencyRateController.startPolling).toHaveBeenNthCalledWith(
-      2,
-      {
-        nativeCurrencies: ['POL'],
-      },
-    );
+    expect(mockedCurrencyRateController.startPolling).toHaveBeenNthCalledWith(1, {
+      nativeCurrencies: ['ETH'],
+    });
+    expect(mockedCurrencyRateController.startPolling).toHaveBeenNthCalledWith(2, {
+      nativeCurrencies: ['POL'],
+    });
   });
 });

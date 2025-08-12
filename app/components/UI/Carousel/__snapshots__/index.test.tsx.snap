@@ -172,11 +172,12 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
                   "borderRadius": 8,
+                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
-                  "overflow": "hidden",
                   "position": "relative",
                   "width": 718,
                 },
@@ -275,40 +276,41 @@ exports[`Carousel render an expected snapshot 1`] = `
                 </View>
               </View>
               <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
                 onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
                 style={
                   {
                     "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 8,
-                    "height": 28,
+                    "height": 26,
                     "justifyContent": "center",
-                    "marginRight": 4,
-                    "marginTop": 4,
-                    "opacity": 1,
-                    "width": 28,
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
                   }
                 }
                 testID="carousel-slide-solana-close-button"
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={20}
-                  name="Close"
+                <Text
+                  allowFontScaling={false}
+                  selectable={false}
                   style={
-                    {
-                      "height": 20,
-                      "width": 20,
-                    }
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
                   }
-                  width={20}
-                />
+                >
+                  󰅖
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -358,11 +360,12 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
                   "borderRadius": 8,
+                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
-                  "overflow": "hidden",
                   "position": "relative",
                   "width": 718,
                 },
@@ -461,40 +464,41 @@ exports[`Carousel render an expected snapshot 1`] = `
                 </View>
               </View>
               <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
                 onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
                 style={
                   {
                     "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 8,
-                    "height": 28,
+                    "height": 26,
                     "justifyContent": "center",
-                    "marginRight": 4,
-                    "marginTop": 4,
-                    "opacity": 1,
-                    "width": 28,
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
                   }
                 }
                 testID="carousel-slide-smartAccount-close-button"
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={20}
-                  name="Close"
+                <Text
+                  allowFontScaling={false}
+                  selectable={false}
                   style={
-                    {
-                      "height": 20,
-                      "width": 20,
-                    }
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
                   }
-                  width={20}
-                />
+                >
+                  󰅖
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -544,11 +548,12 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
                   "borderRadius": 8,
+                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
-                  "overflow": "hidden",
                   "position": "relative",
                   "width": 718,
                 },
@@ -647,40 +652,41 @@ exports[`Carousel render an expected snapshot 1`] = `
                 </View>
               </View>
               <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
                 onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
                 style={
                   {
                     "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 8,
-                    "height": 28,
+                    "height": 26,
                     "justifyContent": "center",
-                    "marginRight": 4,
-                    "marginTop": 4,
-                    "opacity": 1,
-                    "width": 28,
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
                   }
                 }
                 testID="carousel-slide-card-close-button"
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={20}
-                  name="Close"
+                <Text
+                  allowFontScaling={false}
+                  selectable={false}
                   style={
-                    {
-                      "height": 20,
-                      "width": 20,
-                    }
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
                   }
-                  width={20}
-                />
+                >
+                  󰅖
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -730,11 +736,12 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
                   "borderRadius": 8,
+                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
-                  "overflow": "hidden",
                   "position": "relative",
                   "width": 718,
                 },
@@ -880,11 +887,12 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
                   "borderRadius": 8,
+                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
-                  "overflow": "hidden",
                   "position": "relative",
                   "width": 718,
                 },
@@ -983,40 +991,41 @@ exports[`Carousel render an expected snapshot 1`] = `
                 </View>
               </View>
               <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
                 onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
                 style={
                   {
                     "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 8,
-                    "height": 28,
+                    "height": 26,
                     "justifyContent": "center",
-                    "marginRight": 4,
-                    "marginTop": 4,
-                    "opacity": 1,
-                    "width": 28,
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
                   }
                 }
                 testID="carousel-slide-cashout-close-button"
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={20}
-                  name="Close"
+                <Text
+                  allowFontScaling={false}
+                  selectable={false}
                   style={
-                    {
-                      "height": 20,
-                      "width": 20,
-                    }
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
                   }
-                  width={20}
-                />
+                >
+                  󰅖
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1066,11 +1075,12 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
                   "borderRadius": 8,
+                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
-                  "overflow": "hidden",
                   "position": "relative",
                   "width": 718,
                 },
@@ -1169,40 +1179,41 @@ exports[`Carousel render an expected snapshot 1`] = `
                 </View>
               </View>
               <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
                 onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
                 style={
                   {
                     "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 8,
-                    "height": 28,
+                    "height": 26,
                     "justifyContent": "center",
-                    "marginRight": 4,
-                    "marginTop": 4,
-                    "opacity": 1,
-                    "width": 28,
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
                   }
                 }
                 testID="carousel-slide-aggregated-close-button"
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={20}
-                  name="Close"
+                <Text
+                  allowFontScaling={false}
+                  selectable={false}
                   style={
-                    {
-                      "height": 20,
-                      "width": 20,
-                    }
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
                   }
-                  width={20}
-                />
+                >
+                  󰅖
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1252,11 +1263,12 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
                   "borderRadius": 8,
+                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
-                  "overflow": "hidden",
                   "position": "relative",
                   "width": 718,
                 },
@@ -1355,40 +1367,41 @@ exports[`Carousel render an expected snapshot 1`] = `
                 </View>
               </View>
               <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
                 onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
                 style={
                   {
                     "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 8,
-                    "height": 28,
+                    "height": 26,
                     "justifyContent": "center",
-                    "marginRight": 4,
-                    "marginTop": 4,
-                    "opacity": 1,
-                    "width": 28,
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
                   }
                 }
                 testID="carousel-slide-multisrp-close-button"
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={20}
-                  name="Close"
+                <Text
+                  allowFontScaling={false}
+                  selectable={false}
                   style={
-                    {
-                      "height": 20,
-                      "width": 20,
-                    }
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
                   }
-                  width={20}
-                />
+                >
+                  󰅖
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1438,11 +1451,12 @@ exports[`Carousel render an expected snapshot 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
+                  "borderColor": "#b7bbc866",
                   "borderRadius": 8,
+                  "borderWidth": 1,
                   "height": 59,
                   "marginHorizontal": 5,
-                  "overflow": "hidden",
                   "position": "relative",
                   "width": 718,
                 },
@@ -1541,40 +1555,41 @@ exports[`Carousel render an expected snapshot 1`] = `
                 </View>
               </View>
               <TouchableOpacity
-                accessible={true}
-                activeOpacity={1}
-                disabled={false}
                 onPress={[Function]}
-                onPressIn={[Function]}
-                onPressOut={[Function]}
                 style={
                   {
                     "alignItems": "center",
-                    "alignSelf": "flex-start",
-                    "borderRadius": 8,
-                    "height": 28,
+                    "height": 26,
                     "justifyContent": "center",
-                    "marginRight": 4,
-                    "marginTop": 4,
-                    "opacity": 1,
-                    "width": 28,
+                    "position": "absolute",
+                    "right": 6,
+                    "top": 4,
+                    "width": 26,
                   }
                 }
                 testID="carousel-slide-backupAndSync-close-button"
               >
-                <SvgMock
-                  color="#121314"
-                  fill="currentColor"
-                  height={20}
-                  name="Close"
+                <Text
+                  allowFontScaling={false}
+                  selectable={false}
                   style={
-                    {
-                      "height": 20,
-                      "width": 20,
-                    }
+                    [
+                      {
+                        "color": "#121314",
+                        "fontSize": 18,
+                      },
+                      undefined,
+                      {
+                        "fontFamily": "Material Design Icons",
+                        "fontStyle": "normal",
+                        "fontWeight": "normal",
+                      },
+                      {},
+                    ]
                   }
-                  width={20}
-                />
+                >
+                  󰅖
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1598,7 +1613,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1614,7 +1629,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1628,7 +1643,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1642,7 +1657,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1656,7 +1671,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1670,7 +1685,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1684,7 +1699,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,
@@ -1698,7 +1713,7 @@ exports[`Carousel render an expected snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#b7bbc8",
+            "backgroundColor": "#9ca1af",
             "borderRadius": 3,
             "height": 6,
             "margin": 0,

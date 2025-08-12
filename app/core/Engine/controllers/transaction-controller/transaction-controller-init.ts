@@ -8,8 +8,9 @@ import {
   type PublishBatchHookResult,
 } from '@metamask/transaction-controller';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
-import { Hex } from '@metamask/utils';
+import { hasProperty, Hex } from '@metamask/utils';
 import { ApprovalController } from '@metamask/approval-controller';
+import { NetworkController } from '@metamask/network-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import SmartTransactionsController from '@metamask/smart-transactions-controller';
 
@@ -17,6 +18,7 @@ import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confi
 import { selectSwapsChainFeatureFlags } from '../../../../reducers/swaps';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
 import Logger from '../../../../util/Logger';
+import { getGlobalChainId as getGlobalChainIdSelector } from '../../../../util/networks/global-network';
 import {
   submitSmartTransactionHook,
   submitBatchSmartTransactionHook,
@@ -39,15 +41,19 @@ import {
   handleTransactionFinalizedEventForMetrics,
 } from './event-handlers/metrics';
 import { handleShowNotification } from './event-handlers/notification';
-import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
 
 export const TransactionControllerInit: ControllerInitFunction<
   TransactionController,
   TransactionControllerMessenger,
   TransactionControllerInitMessenger
 > = (request) => {
-  const { controllerMessenger, getState, initMessenger, persistedState } =
-    request;
+  const {
+    controllerMessenger,
+    getState,
+    getGlobalChainId,
+    initMessenger,
+    persistedState,
+  } = request;
 
   const {
     approvalController,
@@ -82,10 +88,7 @@ export const TransactionControllerInit: ControllerInitFunction<
         getNetworkState: () => networkController.state,
         hooks: {
           // @ts-expect-error - TransactionController actually sends a signedTx as a second argument, but its type doesn't reflect that.
-          publish: (
-            transactionMeta: TransactionMeta,
-            signedTransactionInHex: Hex,
-          ) =>
+          publish: (transactionMeta: TransactionMeta, signedTransactionInHex: Hex) =>
             publishHook({
               transactionMeta,
               getState,
@@ -107,7 +110,12 @@ export const TransactionControllerInit: ControllerInitFunction<
             }),
         },
         incomingTransactions: {
-          isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
+          isEnabled: () =>
+            isIncomingTransactionsEnabled(
+              preferencesController,
+              networkController,
+              getGlobalChainId,
+            ),
           updateTransactions: true,
         },
         isSimulationEnabled: () =>
@@ -135,14 +143,14 @@ export const TransactionControllerInit: ControllerInitFunction<
   }
 };
 
-async function publishHook({
+function publishHook({
   transactionMeta,
   getState,
   transactionController,
   smartTransactionsController,
   approvalController,
   initMessenger,
-  signedTransactionInHex,
+  signedTransactionInHex
 }: {
   transactionMeta: TransactionMeta;
   getState: () => RootState;
@@ -153,13 +161,8 @@ async function publishHook({
   signedTransactionInHex: Hex;
 }): Promise<{ transactionHash: string }> {
   const state = getState();
-
   const { shouldUseSmartTransaction, featureFlags } =
     getSmartTransactionCommonParams(state, transactionMeta.chainId);
-
-  await new PayHook({
-    messenger: initMessenger,
-  }).getHook()(transactionMeta, signedTransactionInHex);
 
   // @ts-expect-error - TransactionController expects transactionHash to be defined but submitSmartTransactionHook could return undefined
   return submitSmartTransactionHook({
@@ -176,10 +179,7 @@ async function publishHook({
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId?: Hex) {
-  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(
-    state,
-    chainId,
-  );
+  const shouldUseSmartTransaction = selectShouldUseSmartTransaction(state, chainId);
   const featureFlags = selectSwapsChainFeatureFlags(state, chainId);
 
   return {
@@ -235,14 +235,25 @@ function publishBatchSmartTransactionHook({
     shouldUseSmartTransaction,
     approvalController,
     featureFlags,
-    transactionMeta,
+    transactionMeta
   });
 }
 
 function isIncomingTransactionsEnabled(
   preferencesController: PreferencesController,
+  networkController: NetworkController,
+  getGlobalChainId: () => string,
 ): boolean {
-  return preferencesController.state?.privacyMode !== true;
+  const currentHexChainId = getGlobalChainIdSelector(networkController);
+  const showIncomingTransactions =
+    preferencesController.state?.showIncomingTransactions;
+  const currentChainId = getGlobalChainId();
+  return Boolean(
+    hasProperty(showIncomingTransactions, currentChainId) &&
+      showIncomingTransactions?.[
+        currentHexChainId as unknown as keyof typeof showIncomingTransactions
+      ],
+  );
 }
 
 function getControllers(

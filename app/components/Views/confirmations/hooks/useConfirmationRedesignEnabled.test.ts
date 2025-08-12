@@ -2,6 +2,8 @@ import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { merge, cloneDeep } from 'lodash';
 
+// eslint-disable-next-line import/no-namespace
+import { isHardwareAccount } from '../../../../util/address';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import {
   downgradeAccountConfirmation,
@@ -24,6 +26,12 @@ const disabledFeatureFlags = {
   approve: false,
 };
 
+jest.mock('../../../../util/address', () => ({
+  ...jest.requireActual('../../../../util/address'),
+  isHardwareAccount: jest.fn(),
+  isExternalHardwareAccount: jest.fn(),
+}));
+
 jest.mock('../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
@@ -45,9 +53,11 @@ describe('useConfirmationRedesignEnabled', () => {
   const confirmationRedesignFlagsMock = jest.mocked(
     selectConfirmationRedesignFlags,
   );
+  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    isHardwareAccountMock.mockReturnValue(false);
     confirmationRedesignFlagsMock.mockReturnValue(disabledFeatureFlags);
   });
 
@@ -167,6 +177,24 @@ describe('useConfirmationRedesignEnabled', () => {
             useConfirmationRedesignEnabled,
             {
               state,
+            },
+          );
+
+          expect(result.current.isRedesignedEnabled).toBe(false);
+        });
+
+        it('returns false when from address is external hardware account', async () => {
+          confirmationRedesignFlagsMock.mockReturnValue({
+            ...disabledFeatureFlags,
+            signatures: true,
+            staking_confirmations: true,
+          });
+
+          isHardwareAccountMock.mockReturnValue(true);
+          const { result } = renderHookWithProvider(
+            useConfirmationRedesignEnabled,
+            {
+              state: stakingDepositConfirmationState,
             },
           );
 
@@ -314,6 +342,27 @@ describe('useConfirmationRedesignEnabled', () => {
         expect(result.current.isRedesignedEnabled).toBe(true);
       },
     );
+  });
+
+  it('if confirmation is a transaction, validates `txParams.from` is hardware account', () => {
+    isHardwareAccountMock.mockReturnValue(true);
+    confirmationRedesignFlagsMock.mockReturnValue({
+      ...disabledFeatureFlags,
+      transfer: true,
+    });
+
+    const { result } = renderHookWithProvider(useConfirmationRedesignEnabled, {
+      state: transferConfirmationState,
+    });
+
+    const expectedFromAddress =
+      transferConfirmationState.engine.backgroundState.TransactionController
+        .transactions[0].txParams.from;
+
+    expect(isHardwareAccountMock).toHaveBeenCalledTimes(1);
+    expect(isHardwareAccountMock).toHaveBeenCalledWith(expectedFromAddress);
+
+    expect(result.current.isRedesignedEnabled).toBe(false);
   });
 
   it('returns false if transaction type is not in the list of redesigned transaction types', () => {

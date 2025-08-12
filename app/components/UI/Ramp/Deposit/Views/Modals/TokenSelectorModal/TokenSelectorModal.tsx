@@ -1,11 +1,7 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { View, useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
-import { CaipChainId } from '@metamask/utils';
-
-import NetworksFilterBar from '../../../components/NetworksFilterBar';
-import NetworksFilterSelector from '../../../components/NetworksFilterSelector/NetworksFilterSelector';
 
 import Text, {
   TextVariant,
@@ -31,7 +27,7 @@ import { useStyles } from '../../../../../../hooks/useStyles';
 import useSupportedTokens from '../../../hooks/useSupportedTokens';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
 
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../../selectors/networkController';
+import { selectNetworkConfigurations } from '../../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
@@ -40,8 +36,7 @@ import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { DepositCryptoCurrency } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
-import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
-import { useTheme } from '../../../../../../../util/theme';
+
 interface TokenSelectorModalNavigationDetails {
   selectedAssetId?: string;
   handleSelectAssetId?: (assetId: string) => void;
@@ -60,27 +55,18 @@ function TokenSelectorModal() {
   const { selectedAssetId, handleSelectAssetId } =
     useParams<TokenSelectorModalNavigationDetails>();
   const [searchString, setSearchString] = useState('');
-  const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
-    null,
-  );
-  const [isEditingNetworkFilter, setIsEditingNetworkFilter] = useState(false);
   const { height: screenHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     screenHeight,
   });
 
-  const { colors } = useTheme();
-
   const supportedTokens = useSupportedTokens();
   const searchTokenResults = useSearchTokenResults({
     tokens: supportedTokens,
-    networkFilter,
     searchString,
   });
 
-  const allNetworkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
+  const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
@@ -119,8 +105,6 @@ function TokenSelectorModal() {
       const networkImageSource = getNetworkImageSource({
         chainId: token.chainId,
       });
-      const depositNetworkName =
-        DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
       return (
         <ListItemSelect
           isSelected={selectedAssetId === token.assetId}
@@ -146,20 +130,13 @@ function TokenSelectorModal() {
             </BadgeWrapper>
           </ListItemColumn>
           <ListItemColumn widthType={WidthType.Fill}>
-            <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
-            <Text variant={TextVariant.BodyMD} color={colors.text.alternative}>
-              {depositNetworkName ?? networkName}
-            </Text>
+            <Text variant={TextVariant.BodyLGMedium}>{token.name}</Text>
+            <Text variant={TextVariant.BodySM}>{token.symbol}</Text>
           </ListItemColumn>
         </ListItemSelect>
       );
     },
-    [
-      allNetworkConfigurations,
-      colors.text.alternative,
-      handleSelectAssetIdCallback,
-      selectedAssetId,
-    ],
+    [allNetworkConfigurations, handleSelectAssetIdCallback, selectedAssetId],
   );
 
   const renderEmptyList = useCallback(
@@ -175,63 +152,34 @@ function TokenSelectorModal() {
     [searchString],
   );
 
-  const uniqueNetworks = useMemo(() => {
-    const uniqueNetworksSet = new Set<CaipChainId>();
-    for (const token of supportedTokens) {
-      uniqueNetworksSet.add(token.chainId);
-    }
-    return Array.from(uniqueNetworksSet);
-  }, [supportedTokens]);
-
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack>
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
         <Text variant={TextVariant.HeadingMD}>
-          {isEditingNetworkFilter
-            ? strings('deposit.networks_filter_selector.select_network')
-            : strings('deposit.token_modal.select_token')}
+          {strings('deposit.token_modal.select_a_token')}
         </Text>
       </BottomSheetHeader>
-      {isEditingNetworkFilter ? (
-        <NetworksFilterSelector
-          networks={uniqueNetworks}
-          networkFilter={networkFilter}
-          setNetworkFilter={setNetworkFilter}
-          setIsEditingNetworkFilter={setIsEditingNetworkFilter}
+      <View style={styles.searchContainer}>
+        <TextFieldSearch
+          value={searchString}
+          showClearButton={searchString.length > 0}
+          onPressClearButton={clearSearchText}
+          onFocus={scrollToTop}
+          onChangeText={handleSearchTextChange}
+          placeholder={strings('deposit.token_modal.search_by_name_or_address')}
         />
-      ) : (
-        <>
-          <NetworksFilterBar
-            networks={uniqueNetworks}
-            networkFilter={networkFilter}
-            setNetworkFilter={setNetworkFilter}
-            setIsEditingNetworkFilter={setIsEditingNetworkFilter}
-          />
-          <View style={styles.searchContainer}>
-            <TextFieldSearch
-              value={searchString}
-              showClearButton={searchString.length > 0}
-              onPressClearButton={clearSearchText}
-              onFocus={scrollToTop}
-              onChangeText={handleSearchTextChange}
-              placeholder={strings(
-                'deposit.token_modal.search_by_name_or_address',
-              )}
-            />
-          </View>
-          <FlatList
-            style={styles.list}
-            ref={listRef}
-            data={searchTokenResults}
-            renderItem={renderToken}
-            extraData={selectedAssetId}
-            keyExtractor={(item) => item.assetId}
-            ListEmptyComponent={renderEmptyList}
-            keyboardDismissMode="none"
-            keyboardShouldPersistTaps="always"
-          ></FlatList>
-        </>
-      )}
+      </View>
+      <FlatList
+        style={styles.list}
+        ref={listRef}
+        data={searchTokenResults}
+        renderItem={renderToken}
+        extraData={selectedAssetId}
+        keyExtractor={(item) => item.assetId}
+        ListEmptyComponent={renderEmptyList}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="always"
+      ></FlatList>
     </BottomSheet>
   );
 }

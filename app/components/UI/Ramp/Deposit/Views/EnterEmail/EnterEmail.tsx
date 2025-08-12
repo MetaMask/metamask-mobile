@@ -6,134 +6,115 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './EnterEmail.styles';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
-import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
+import Label from '../../../../../../component-library/components/Form/Label';
 import TextField, {
   TextFieldSize,
 } from '../../../../../../component-library/components/Form/TextField';
+import Row from '../../../Aggregator/components/Row';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { createOtpCodeNavDetails } from '../OtpCode/OtpCode';
 import { validateEmail } from '../../utils';
 import DepositProgressBar from '../../components/DepositProgressBar/DepositProgressBar';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
-import PoweredByTransak from '../../components/PoweredByTransak';
+import PoweredByTransak from '../../components/PoweredByTransak/PoweredByTransak';
 import Logger from '../../../../../../util/Logger';
-import useAnalytics from '../../../hooks/useAnalytics';
 
-export const createEnterEmailNavDetails = createNavigationDetails(
-  Routes.DEPOSIT.ENTER_EMAIL,
-);
+export interface EnterEmailParams {
+  quote: BuyQuote;
+}
+
+export const createEnterEmailNavDetails =
+  createNavigationDetails<EnterEmailParams>(Routes.DEPOSIT.ENTER_EMAIL);
 
 const EnterEmail = () => {
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState(false);
+  const { quote } = useParams<EnterEmailParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
-
-  const trackEvent = useAnalytics();
 
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
-        { title: strings('deposit.enter_email.navbar_title') },
+        { title: strings('deposit.enter_email.title') },
         theme,
       ),
     );
   }, [navigation, theme]);
 
-  const [, submitEmail] = useDepositSdkMethod(
-    { method: 'sendUserOtp', onMount: false, throws: true },
+  const [{ error, isFetching: loading }, submitEmail] = useDepositSdkMethod(
+    { method: 'sendUserOtp', onMount: false },
     email,
   );
 
   const emailInputRef = useRef<TextInput>(null);
 
-  const handleTextChange = useCallback(
-    (text: string) => {
-      setEmail(text);
-      setValidationError(false);
-      setError(null);
-    },
-    [setEmail, setValidationError, setError],
-  );
-
   const handleSubmit = useCallback(async () => {
     try {
-      setIsLoading(true);
-
       if (validateEmail(email)) {
         setValidationError(false);
         await submitEmail();
-        trackEvent('RAMPS_EMAIL_SUBMITTED', {
-          ramp_type: 'DEPOSIT',
-        });
-        navigation.navigate(
-          ...createOtpCodeNavDetails({
-            email,
-          }),
-        );
+
+        if (!error) {
+          navigation.navigate(...createOtpCodeNavDetails({ quote, email }));
+        }
       } else {
         setValidationError(true);
       }
     } catch (e) {
-      setError(
-        e instanceof Error && e.message
-          ? e.message
-          : strings('deposit.enter_email.error'),
-      );
       Logger.error(e as Error, 'Error submitting email');
-    } finally {
-      setIsLoading(false);
     }
-  }, [email, navigation, submitEmail, trackEvent]);
+  }, [email, error, navigation, submitEmail, quote]);
 
   return (
     <ScreenLayout>
       <ScreenLayout.Body>
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={0} />
-          <View style={styles.contentContainer}>
-            <Text variant={TextVariant.HeadingLG} style={styles.title}>
-              {strings('deposit.enter_email.title')}
-            </Text>
-            <Text style={styles.description}>
-              {strings('deposit.enter_email.description')}
-            </Text>
+          <Row style={styles.subtitle}>
+            <Text>{strings('deposit.enter_email.description')}</Text>
+          </Row>
 
+          <View style={styles.field}>
+            <Label variant={TextVariant.BodyMD} style={styles.label}>
+              {strings('deposit.enter_email.input_label')}
+            </Label>
             <TextField
-              autoComplete="email"
-              keyboardType="email-address"
               size={TextFieldSize.Lg}
               placeholder={strings('deposit.enter_email.input_placeholder')}
               placeholderTextColor={theme.colors.text.muted}
               returnKeyType={'done'}
-              onSubmitEditing={handleSubmit}
               autoCapitalize="none"
               ref={emailInputRef}
-              onChangeText={handleTextChange}
+              onChangeText={setEmail}
               value={email}
               keyboardAppearance={theme.themeAppearance}
-              isDisabled={isLoading}
+              isDisabled={loading}
             />
-
             {validationError && (
-              <Text style={styles.error}>
+              <Text style={{ color: theme.colors.error.default }}>
                 {strings('deposit.enter_email.validation_error')}
               </Text>
             )}
 
-            {error && <Text style={styles.error}>{error}</Text>}
+            {error && (
+              <Text style={{ color: theme.colors.error.default }}>{error}</Text>
+            )}
           </View>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
@@ -146,8 +127,8 @@ const EnterEmail = () => {
             label={strings('deposit.enter_email.submit_button')}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
-            loading={isLoading}
-            isDisabled={isLoading}
+            loading={loading}
+            isDisabled={loading}
           />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>

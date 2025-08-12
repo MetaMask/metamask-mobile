@@ -334,7 +334,7 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -385,8 +385,8 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 24,
-                                "borderTopRightRadius": 24,
+                                "borderTopLeftRadius": 8,
+                                "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -588,13 +588,12 @@ exports[`AmbiguousAddressSheet should render correctly 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#121314",
+                                    "backgroundColor": "#4459ff",
                                     "borderRadius": 12,
                                     "flex": 1,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
-                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }

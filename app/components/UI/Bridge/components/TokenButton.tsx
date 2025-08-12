@@ -4,9 +4,7 @@ import {
   ImageSourcePropType,
   TouchableOpacity,
 } from 'react-native';
-import Text, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+import Text from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { Box } from '../../Box/Box';
@@ -44,14 +42,14 @@ const createStyles = (params: StylesParams) => {
     pillContainer: {
       backgroundColor: theme.colors.background.default,
       borderRadius: 100,
-      paddingLeft: 8,
       paddingVertical: 8,
-      paddingRight: 11,
+      paddingHorizontal: 12,
       ...shadows.size.xs,
     },
     tokenSymbol: {
       color: theme.colors.text.default,
       fontSize: 24,
+      lineHeight: 28,
     },
   });
 };
@@ -70,7 +68,7 @@ export const TokenButton: React.FC<TokenProps> = ({
       <Box
         style={styles.pillContainer}
         flexDirection={FlexDirection.Row}
-        alignItems={AlignItems.flexEnd}
+        alignItems={AlignItems.center}
         justifyContent={JustifyContent.flexEnd}
         gap={4}
       >
@@ -87,9 +85,7 @@ export const TokenButton: React.FC<TokenProps> = ({
           <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
         </BadgeWrapper>
 
-        <Text style={styles.tokenSymbol} variant={TextVariant.BodyMDMedium}>
-          {symbol}
-        </Text>
+        <Text style={styles.tokenSymbol}>{symbol}</Text>
       </Box>
     </TouchableOpacity>
   );

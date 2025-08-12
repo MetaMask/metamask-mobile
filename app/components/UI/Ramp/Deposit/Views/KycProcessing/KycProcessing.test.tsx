@@ -1,21 +1,15 @@
 import React from 'react';
-import { screen, fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import KycProcessing from './KycProcessing';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { KycStatus } from '../../constants';
-import { renderScreen } from '../../../../../../util/test/renderWithProvider';
-import initialRootState from '../../../../../../util/test/initial-root-state';
+import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { KycStatus } from '../../hooks/useUserDetailsPolling';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
 const mockStopPolling = jest.fn();
 const mockStartPolling = jest.fn();
-const mockRouteAfterAuthentication = jest.fn();
-
-const mockTrackEvent = jest.fn();
-
-jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 const mockKycForms = { forms: [] };
 const mockQuote = {
@@ -60,31 +54,25 @@ jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: (...args: unknown[]) => mockUseDepositSdkMethod(...args),
 }));
 
-jest.mock('../../hooks/useUserDetailsPolling', () => {
-  const mockHook = () => mockUseUserDetailsPolling;
-  mockHook.KycStatus = {
+jest.mock('../../hooks/useUserDetailsPolling', () => ({
+  __esModule: true,
+  default: () => mockUseUserDetailsPolling,
+  KycStatus: {
     NOT_SUBMITTED: 'NOT_SUBMITTED',
     SUBMITTED: 'SUBMITTED',
     APPROVED: 'APPROVED',
     REJECTED: 'REJECTED',
-  };
-  return mockHook;
-});
+  },
+}));
 
-jest.mock('../../hooks/useDepositRouting', () => ({
-  useDepositRouting: jest.fn(() => ({
-    routeAfterAuthentication: mockRouteAfterAuthentication,
-  })),
+jest.mock('../../../../../UI/Navbar', () => ({
+  getDepositNavbarOptions: jest.fn().mockReturnValue({
+    title: 'KYC Processing',
+  }),
 }));
 
 function render(Component: React.ComponentType) {
-  return renderScreen(
-    Component,
-    { name: Routes.DEPOSIT.KYC_PROCESSING },
-    {
-      state: initialRootState,
-    },
-  );
+  return renderDepositTestComponent(Component, Routes.DEPOSIT.KYC_PROCESSING);
 }
 
 describe('KycProcessing Component', () => {
@@ -96,8 +84,6 @@ describe('KycProcessing Component', () => {
     mockUseUserDetailsPolling.userDetails = null;
     mockUseUserDetailsPolling.loading = false;
     mockUseUserDetailsPolling.error = null;
-    mockRouteAfterAuthentication.mockClear();
-    mockTrackEvent.mockClear();
   });
 
   it('render matches snapshot', () => {
@@ -107,7 +93,11 @@ describe('KycProcessing Component', () => {
 
   it('calls setOptions when the component mounts', () => {
     render(KycProcessing);
-    expect(mockSetNavigationOptions).toHaveBeenCalled();
+    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'KYC Processing',
+      }),
+    );
   });
 
   it('renders loading state snapshot', () => {
@@ -146,75 +136,15 @@ describe('KycProcessing Component', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  describe('handleContinue button behavior', () => {
-    beforeEach(() => {
-      mockUseUserDetailsPolling.userDetails = {
-        kyc: { l1: { status: KycStatus.APPROVED } },
-      };
+  it('navigates to browser tab on button press and stops polling', async () => {
+    render(KycProcessing);
+    const button = screen.getByRole('button');
+    fireEvent.press(button);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER_TAB_HOME);
     });
 
-    it('calls routeAfterAuthentication when continue button is pressed', async () => {
-      mockRouteAfterAuthentication.mockResolvedValueOnce(undefined);
-      render(KycProcessing);
-
-      const continueButton = screen.getByText('Complete your order');
-      fireEvent.press(continueButton);
-
-      await waitFor(() => {
-        expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
-      });
-    });
-  });
-
-  describe('Analytics tracking', () => {
-    it('tracks RAMPS_KYC_APPLICATION_APPROVED event when KYC status is approved', () => {
-      mockUseUserDetailsPolling.userDetails = {
-        kyc: { l1: { status: KycStatus.APPROVED, type: 'STANDARD' } },
-      };
-
-      render(KycProcessing);
-
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_KYC_APPLICATION_APPROVED',
-        {
-          ramp_type: 'DEPOSIT',
-          kyc_type: 'STANDARD',
-        },
-      );
-    });
-
-    it('tracks RAMPS_KYC_APPLICATION_FAILED event when KYC status is rejected', () => {
-      mockUseUserDetailsPolling.userDetails = {
-        kyc: { l1: { status: KycStatus.REJECTED, type: 'SIMPLE' } },
-      };
-
-      render(KycProcessing);
-
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_KYC_APPLICATION_FAILED',
-        {
-          ramp_type: 'DEPOSIT',
-          kyc_type: 'SIMPLE',
-        },
-      );
-    });
-
-    it('does not track analytics event when KYC status is pending', () => {
-      mockUseUserDetailsPolling.userDetails = {
-        kyc: { l1: { status: KycStatus.SUBMITTED, type: 'STANDARD' } },
-      };
-
-      render(KycProcessing);
-
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-    });
-
-    it('does not track analytics event when user details are not available', () => {
-      mockUseUserDetailsPolling.userDetails = null;
-
-      render(KycProcessing);
-
-      expect(mockTrackEvent).not.toHaveBeenCalled();
-    });
+    expect(mockStopPolling).toHaveBeenCalled();
   });
 });

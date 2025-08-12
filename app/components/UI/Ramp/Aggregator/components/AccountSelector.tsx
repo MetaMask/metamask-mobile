@@ -18,7 +18,6 @@ import { selectSelectedInternalAccountFormattedAddress } from '../../../../../se
 import { formatAddress } from '../../../../../util/address';
 import { createAccountSelectorNavDetails } from '../../../../Views/AccountSelector';
 import { type RootState } from '../../../../../reducers';
-import { BuildQuoteSelectors } from '../../../../../../e2e/selectors/Ramps/BuildQuote.selectors';
 
 const styles = StyleSheet.create({
   selector: {
@@ -68,11 +67,7 @@ const AccountSelector = () => {
     : shortenedAddress;
 
   return (
-    <SelectorButton
-      onPress={openAccountSelector}
-      style={styles.selector}
-      testID={BuildQuoteSelectors.ACCOUNT_PICKER}
-    >
+    <SelectorButton onPress={openAccountSelector} style={styles.selector}>
       {selectedAddress && selectedFormattedAddress ? (
         <>
           <Avatar

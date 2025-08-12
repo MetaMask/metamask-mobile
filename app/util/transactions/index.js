@@ -1,4 +1,4 @@
-import { addHexPrefix } from 'ethereumjs-util';
+import { addHexPrefix, toChecksumAddress } from 'ethereumjs-util';
 import BN from 'bnjs4';
 import { rawEncode, rawDecode } from 'ethereumjs-abi';
 import BigNumber from 'bignumber.js';
@@ -8,7 +8,6 @@ import {
   isSmartContractCode,
   ERC721,
   ERC1155,
-  ORIGIN_METAMASK,
 } from '@metamask/controller-utils';
 import {
   isEIP1559Transaction,
@@ -18,7 +17,7 @@ import {
 import { swapsUtils } from '@metamask/swaps-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
-import { safeToChecksumAddress, toChecksumAddress } from '../address';
+import { safeToChecksumAddress } from '../address';
 import {
   balanceToFiatNumber,
   BNToHex,
@@ -1638,13 +1637,10 @@ export const getIsSwapApproveOrSwapTransaction = (
     return false;
   }
 
-  const isLegacySwap = origin === process.env.MM_FOX_CODE;
-  const isUnifiedSwap = origin === ORIGIN_METAMASK;
-
   // if approval data includes metaswap contract
   // if destination address is metaswap contract
   return (
-    (isLegacySwap || isUnifiedSwap) &&
+    origin === process.env.MM_FOX_CODE &&
     to &&
     (swapsUtils.isValidContractAddress(chainId, to) ||
       (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&

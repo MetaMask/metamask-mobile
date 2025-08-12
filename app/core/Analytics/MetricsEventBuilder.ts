@@ -30,7 +30,8 @@ class TrackingEvent implements ITrackingEvent {
   get hasProperties(): boolean {
     return !!(
       (this.properties && Object.keys(this.properties).length) ||
-      (this.sensitiveProperties && Object.keys(this.sensitiveProperties).length)
+      (this.sensitiveProperties &&
+        Object.keys(this.sensitiveProperties).length)
     );
   }
 }

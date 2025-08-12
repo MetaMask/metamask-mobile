@@ -34,9 +34,6 @@ const createStyles = ({ colors }: Theme) =>
     disclaimerText: {
       textAlign: 'center',
     },
-    strikethroughText: {
-      textDecorationLine: 'line-through',
-    },
   });
 
 export default createStyles;

@@ -35,7 +35,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderRadius": 8,
+          "borderRadius": 16,
           "height": 32,
           "marginRight": 16,
           "overflow": "hidden",
@@ -56,9 +56,7 @@ exports[`Cell should render CellDisplay given the type Display 1`] = `
               "height": 32,
               "width": 32,
             },
-            {
-              "borderRadius": 8,
-            },
+            undefined,
           ]
         }
       >
@@ -342,7 +340,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderRadius": 8,
+              "borderRadius": 16,
               "height": 32,
               "marginRight": 16,
               "overflow": "hidden",
@@ -363,9 +361,7 @@ exports[`Cell should render CellMultiSelect given the type MultiSelect 1`] = `
                   "height": 32,
                   "width": 32,
                 },
-                {
-                  "borderRadius": 8,
-                },
+                undefined,
               ]
             }
           >
@@ -613,7 +609,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderRadius": 8,
+              "borderRadius": 16,
               "height": 32,
               "marginRight": 16,
               "overflow": "hidden",
@@ -634,9 +630,7 @@ exports[`Cell should render CellSelect given the type Select 1`] = `
                   "height": 32,
                   "width": 32,
                 },
-                {
-                  "borderRadius": 8,
-                },
+                undefined,
               ]
             }
           >

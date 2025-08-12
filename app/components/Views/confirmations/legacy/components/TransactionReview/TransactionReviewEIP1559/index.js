@@ -3,10 +3,7 @@ import { TouchableOpacity, View, StyleSheet, Linking } from 'react-native';
 import Summary from '../../../../../../Base/Summary';
 import Text from '../../../../../../Base/Text';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import {
-  isMainnetByChainId,
-  isTestNet,
-} from '../../../../../../../util/networks';
+import { isMainnetByChainId, isTestNet } from '../../../../../../../util/networks';
 import PropTypes from 'prop-types';
 import InfoModal from '../../../../../../UI/Swaps/components/InfoModal';
 import FadeAnimationView from '../../../../../../UI/FadeAnimationView';

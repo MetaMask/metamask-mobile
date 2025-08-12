@@ -1,7 +1,4 @@
-import {
-  RemoteFeatureFlagControllerMessenger,
-  RemoteFeatureFlagControllerState,
-} from '@metamask/remote-feature-flag-controller';
+import { RemoteFeatureFlagControllerMessenger, RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 
 export interface RemoteFeatureFlagInitParamTypes {
   state?: RemoteFeatureFlagControllerState;
@@ -10,3 +7,4 @@ export interface RemoteFeatureFlagInitParamTypes {
   getMetaMetricsId: () => string;
   fetchInterval?: number;
 }
+

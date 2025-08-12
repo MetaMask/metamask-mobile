@@ -1,99 +1,78 @@
-import Matchers from '../../../framework/Matchers';
-import {
-  AlertModalSelectorsIDs,
-  AlertModalSelectorsText,
-  ConfirmAlertModalSelectorsIDs,
-  ConfirmationTopSheetSelectorsIDs,
-  ConfirmationTopSheetSelectorsText,
-  AlertTypeIDs,
-} from '../../../selectors/Confirmation/ConfirmationView.selectors';
-import Gestures from '../../../framework/Gestures';
+import Matchers from '../../../utils/Matchers';
+import { AlertModalSelectorsIDs, AlertModalSelectorsText, ConfirmAlertModalSelectorsIDs, ConfirmationTopSheetSelectorsIDs, ConfirmationTopSheetSelectorsText, AlertTypeIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
+import Gestures from '../../../utils/Gestures';
 
 class AlertSystem {
-  get securityAlertBanner(): DetoxElement {
+  get securityAlertBanner() {
     return Matchers.getElementByID(
       ConfirmationTopSheetSelectorsIDs.SECURITY_ALERT_BANNER_REDESIGNED,
     );
   }
 
-  get securityAlertResponseFailedBanner(): DetoxElement {
-    return Matchers.getElementByText(
-      ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE,
-    );
+  get securityAlertResponseFailedBanner() {
+    return Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_FAILED_TITLE);
   }
 
-  get securityAlertResponseMaliciousBanner(): DetoxElement {
-    return Matchers.getElementByText(
-      ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_TITLE,
-    );
+  get securityAlertResponseMaliciousBanner() {
+    return Matchers.getElementByText(ConfirmationTopSheetSelectorsText.BANNER_MALICIOUS_TITLE);
   }
 
-  get inlineAlert(): DetoxElement {
+  get inlineAlert() {
     return Matchers.getElementByID(AlertTypeIDs.INLINE_ALERT);
   }
 
-  get alertMismatchTitle(): DetoxElement {
-    return Matchers.getElementByText(
-      AlertModalSelectorsText.ALERT_ORIGIN_MISMATCH_TITLE,
+  get alertMismatchTitle() {
+    return Matchers.getElementByText(AlertModalSelectorsText.ALERT_ORIGIN_MISMATCH_TITLE);
+  }
+
+  get acknowledgeAlertModal() {
+    return Matchers.getElementByID(
+      AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX,
     );
   }
 
-  get acknowledgeAlertModal(): DetoxElement {
-    return Matchers.getElementByID(AlertModalSelectorsIDs.ALERT_MODAL_CHECKBOX);
-  }
-
-  get gotItAlertModalButton(): DetoxElement {
+  get gotItAlertModalButton() {
     return Matchers.getElementByID(
       AlertModalSelectorsIDs.ALERT_MODAL_GOT_IT_BUTTON,
     );
   }
 
-  get confirmAlertModal(): DetoxElement {
+  get confirmAlertModal() {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_MODAL,
     );
   }
 
-  get confirmAlertModalButton(): DetoxElement {
+  get confirmAlertModalButton() {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_BUTTON,
     );
   }
 
-  get acknowledgeConfirmAlertModal(): DetoxElement {
+  get acknowledgeConfirmAlertModal() {
     return Matchers.getElementByID(
       ConfirmAlertModalSelectorsIDs.CONFIRM_ALERT_CHECKBOX,
     );
   }
 
-  async tapConfirmAlertCheckbox(): Promise<void> {
-    await Gestures.waitAndTap(this.acknowledgeConfirmAlertModal, {
-      elemDescription: 'Confirm alert checkbox',
-    });
+  async tapConfirmAlertCheckbox() {
+    await Gestures.waitAndTap(this.acknowledgeConfirmAlertModal);
   }
 
-  async tapConfirmAlertButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmAlertModalButton, {
-      elemDescription: 'Confirm alert button',
-    });
+  async tapConfirmAlertButton() {
+    await Gestures.waitAndTap(this.confirmAlertModalButton);
   }
 
-  async tapInlineAlert(): Promise<void> {
-    await Gestures.waitAndTap(this.inlineAlert, {
-      elemDescription: 'Inline alert',
-    });
+  async tapInlineAlert() {
+    await Gestures.waitAndTap(this.inlineAlert);
   }
 
-  async tapGotItAlertModalButton(): Promise<void> {
-    await Gestures.waitAndTap(this.gotItAlertModalButton, {
-      elemDescription: 'Got it alert modal button',
-    });
+  async tapGotItAlertModalButton() {
+    await Gestures.waitAndTap(this.gotItAlertModalButton);
   }
 
-  async tapAcknowledgeAlertModal(): Promise<void> {
-    await Gestures.waitAndTap(this.acknowledgeAlertModal, {
-      elemDescription: 'Acknowledge alert modal',
-    });
+  async tapAcknowledgeAlertModal() {
+    await Gestures.waitAndTap(this.acknowledgeAlertModal);
   }
 }
 

@@ -4,19 +4,7 @@ import { ButtonBaseProps } from '../../foundation/ButtonBase';
 /**
  * ButtonSecondary component props.
  */
-export interface ButtonSecondaryProps
-  extends Omit<ButtonBaseProps, 'labelColor'> {
-  /**
-   * Optional prop to make the button use danger colors.
-   * @default false
-   */
-  isDanger?: boolean;
-  /**
-   * Optional prop to make the button use inverse colors.
-   * @default false
-   */
-  isInverse?: boolean;
-}
+export type ButtonSecondaryProps = Omit<ButtonBaseProps, 'labelColor'>;
 
 /**
  * Style sheet input parameters.
@@ -26,6 +14,5 @@ export type ButtonSecondaryStyleSheetVars = Pick<
   'style'
 > & {
   isDanger: boolean;
-  isInverse: boolean;
   pressed: boolean;
 };

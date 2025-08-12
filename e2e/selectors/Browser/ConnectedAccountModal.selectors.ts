@@ -31,9 +31,6 @@ export const PermissionsSummarySelectorsIDs = {
 } as const;
 
 // Type definitions for the selectors
-export type ConnectedAccountModalSelectorsTextType =
-  typeof ConnectedAccountModalSelectorsText;
-export type ConnectedAccountsSelectorsIDsType =
-  typeof ConnectedAccountsSelectorsIDs;
-export type PermissionsSummarySelectorsIDsType =
-  typeof PermissionsSummarySelectorsIDs;
+export type ConnectedAccountModalSelectorsTextType = typeof ConnectedAccountModalSelectorsText;
+export type ConnectedAccountsSelectorsIDsType = typeof ConnectedAccountsSelectorsIDs;
+export type PermissionsSummarySelectorsIDsType = typeof PermissionsSummarySelectorsIDs; 

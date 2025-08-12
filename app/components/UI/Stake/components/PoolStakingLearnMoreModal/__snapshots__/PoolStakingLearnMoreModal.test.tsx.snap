@@ -34,7 +34,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#3f434a66",
+            "backgroundColor": "#00000066",
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -85,8 +85,8 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#b7bbc866",
-              "borderTopLeftRadius": 24,
-              "borderTopRightRadius": 24,
+              "borderTopLeftRadius": 8,
+              "borderTopRightRadius": 8,
               "borderWidth": 1,
               "maxHeight": 640,
               "overflow": "hidden",
@@ -223,7 +223,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#f3f5f9",
                     "borderRadius": 32,
                     "height": 36,
                     "justifyContent": "center",
@@ -348,7 +348,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#457a39",
+                    "color": "#1c7e33",
                     "fontFamily": "Geist Bold",
                     "fontSize": 24,
                     "letterSpacing": 0,
@@ -464,7 +464,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                         }
                         stroke={
                           {
-                            "payload": 4282743353,
+                            "payload": 4280057395,
                             "type": 0,
                           }
                         }
@@ -476,7 +476,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                           gradient={
                             [
                               0,
-                              860191289,
+                              857505331,
                               1,
                               872415231,
                             ]
@@ -630,15 +630,14 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
-                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -648,7 +647,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#4459ff",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -670,7 +669,7 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#121314",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",
@@ -678,7 +677,6 @@ exports[`PoolStakingLearnMoreModal render matches snapshot 1`] = `
                 "justifyContent": "center",
                 "marginLeft": 16,
                 "marginTop": 0,
-                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }

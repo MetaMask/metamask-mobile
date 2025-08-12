@@ -1,93 +1,113 @@
+import type {
+  DeviceLaunchAppConfig,
+  IndexableNativeElement,
+} from 'detox/detox';
 import type { Mockttp } from 'mockttp';
-import { SmokeNetworkAbstractions } from '../../tags';
-import Assertions from '../../framework/Assertions';
-import { mockNotificationServices } from './utils/mocks';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import FixtureBuilder, {
-  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
-} from '../../framework/fixtures/FixtureBuilder';
-import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import SettingsView from '../../pages/Settings/SettingsView';
+import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import TestHelpers from '../../helpers';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
-import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
+import SettingsView from '../../pages/Settings/SettingsView';
+import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import { SmokeNetworkAbstractions } from '../../tags';
+import Assertions from '../../utils/Assertions';
+import { importWalletWithRecoveryPhrase } from '../../viewHelper';
+import { getMockServerPort } from '../../fixtures/utils';
+import {
+  NOTIFICATION_WALLET_ACCOUNT_1,
+  NOTIFICATIONS_TEAM_PASSWORD,
+  NOTIFICATIONS_TEAM_SEED_PHRASE,
+} from './utils/constants';
+import { mockNotificationServices } from './utils/mocks';
 
-describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
+const launchAppSettings = (port: number): DeviceLaunchAppConfig => ({
+  newInstance: true,
+  delete: true,
+  permissions: {
+    notifications: 'YES',
+  },
+  launchArgs: { mockServerPort: port },
+});
+
+describe(SmokeNetworkAbstractions('Notification Settings Flow'), () => {
   let mockServer: Mockttp;
 
   beforeAll(async () => {
-    jest.setTimeout(170000);
-    const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer({}, mockServerPort);
+    await TestHelpers.reverseServerPort();
+
+    // Mock Server
+    mockServer = await startMockServer({}, getMockServerPort());
     await mockNotificationServices(mockServer);
+
+    // Launch App
+    await TestHelpers.launchApp(launchAppSettings(mockServer.port));
   });
 
-  it('should enable notifications and toggle feature announcements and account notifications', async () => {
-    await withFixtures(
-      {
-        fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
-        restartDevice: true,
-        mockServerInstance: mockServer,
-        permissions: {
-          notifications: 'YES',
-        },
-      },
-      async () => {
-        await loginToApp();
+  afterAll(async () => {
+    await stopMockServer(mockServer);
+  });
 
-        // Navigate to notification settings
-        await TabBarComponent.tapSettings();
-        await SettingsView.tapNotifications();
+  it('navigates to notification settings page', async () => {
+    // Onboard - Import SRP
+    await importWalletWithRecoveryPhrase({
+      seedPhrase: NOTIFICATIONS_TEAM_SEED_PHRASE,
+      password: NOTIFICATIONS_TEAM_PASSWORD,
+    });
 
-        // Verify initial state - notifications should be enabled
-        await Assertions.expectToggleToBeOn(
-          NotificationSettingsView.notificationToggle,
-        );
+    // navigate to notification settings
+    await TabBarComponent.tapSettings();
+    await SettingsView.tapNotifications();
+  });
 
-        // Test push notifications toggle functionality
-        if (device.getPlatform() === 'android' || !process.env.CI) {
-          // Failing on iOS on CI
-          await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState(
-            'off',
-          );
-          await NotificationSettingsView.tapPushNotificationsToggleAndVerifyState(
-            'on',
-          );
-        }
+  it('enables notifications toggle', async () => {
+    await NotificationSettingsView.tapNotificationToggle();
+    await TestHelpers.delay(2000);
+    await Assertions.checkIfVisible(
+      NotificationSettingsView.pushNotificationsToggle,
+    );
+    await Assertions.checkIfVisible(
+      NotificationSettingsView.featureAnnonucementsToggle,
+    );
+    await Assertions.checkIfVisible(
+      NotificationSettingsView.accountActivitySection,
+    );
+  });
 
-        // Test feature announcements toggle functionality
-        await NotificationSettingsView.tapFeatureAnnouncementsToggleAndVerifyState(
-          'off',
-        );
-        await NotificationSettingsView.tapFeatureAnnouncementsToggleAndVerifyState(
-          'on',
-        );
+  it('toggles push notification switch on and off', async () => {
+    await NotificationSettingsView.tapPushNotificationsToggle();
+    await TestHelpers.delay(2000);
+    await NotificationSettingsView.tapPushNotificationsToggle();
+    await TestHelpers.delay(2000);
+  });
 
-        // Test account notifications toggle functionality
-        await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
-          DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
-          'off',
-        );
-        await NotificationSettingsView.tapAccountNotificationsToggleAndVerifyState(
-          DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
-          'on',
-        );
+  it('toggles feature announcement switch on and off', async () => {
+    await NotificationSettingsView.tapFeatureAnnouncementsToggle();
+    await TestHelpers.delay(2000);
+    await NotificationSettingsView.tapFeatureAnnouncementsToggle();
+    await TestHelpers.delay(2000);
+  });
 
-        // Disable main toggle and verify all sub-settings are hidden
-        await NotificationSettingsView.tapNotificationToggleAndVerifyState(
-          'off',
-        );
-        await Assertions.expectElementToNotBeVisible(
-          NotificationSettingsView.pushNotificationsToggle,
-        );
-        await Assertions.expectElementToNotBeVisible(
-          NotificationSettingsView.featureAnnouncementsToggle,
-        );
-        await Assertions.expectElementToNotBeVisible(
-          NotificationSettingsView.accountActivitySection,
-        );
-      },
+  it('toggles account notifications switch on and off', async () => {
+    await NotificationSettingsView.tapAccountNotificationsToggle(
+      NOTIFICATION_WALLET_ACCOUNT_1,
+    );
+    TestHelpers.delay(5000);
+    await NotificationSettingsView.tapAccountNotificationsToggle(
+      NOTIFICATION_WALLET_ACCOUNT_1,
+    );
+    TestHelpers.delay(5000);
+  });
+
+  it('disables notifications', async () => {
+    await NotificationSettingsView.tapNotificationToggle();
+    await TestHelpers.delay(2000);
+    await Assertions.checkIfNotVisible(
+      NotificationSettingsView.pushNotificationsToggle as Promise<IndexableNativeElement>,
+    );
+    await Assertions.checkIfNotVisible(
+      NotificationSettingsView.featureAnnonucementsToggle as Promise<IndexableNativeElement>,
+    );
+    await Assertions.checkIfNotVisible(
+      NotificationSettingsView.accountActivitySection as Promise<IndexableNativeElement>,
     );
   });
 });

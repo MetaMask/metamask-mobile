@@ -1,5 +1,5 @@
 import type { AddressBookControllerState } from '@metamask/address-book-controller';
-import { toChecksumAddress } from './address';
+import { toChecksumAddress } from 'ethereumjs-util';
 
 /**
  * Check whether the recipient of the given transaction is included in

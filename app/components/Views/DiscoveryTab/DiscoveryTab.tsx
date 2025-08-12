@@ -1,7 +1,15 @@
-import React, { useState, useRef, useCallback } from 'react';
-import { View, KeyboardAvoidingView, Platform } from 'react-native';
+import React, {
+  useState,
+  useRef, useCallback
+} from 'react';
+import {
+  View, KeyboardAvoidingView,
+  Platform
+} from 'react-native';
 import { useSelector } from 'react-redux';
-import { processUrlForBrowser } from '../../../util/browser';
+import {
+  processUrlForBrowser
+} from '../../../util/browser';
 import Device from '../../../util/device';
 import ErrorBoundary from '../ErrorBoundary';
 import Routes from '../../../constants/navigation/Routes';
@@ -13,7 +21,7 @@ import { type DiscoveryTabProps } from './types';
 import { StackNavigationProp } from '@react-navigation/stack';
 import BrowserUrlBar, {
   BrowserUrlBarRef,
-  ConnectionType,
+  ConnectionType
 } from '../../UI/BrowserUrlBar';
 import UrlAutocomplete, {
   AutocompleteSearchResult,
@@ -47,7 +55,7 @@ export const DiscoveryTab: React.FC<DiscoveryTabProps> = ({
   );
 
   /**
-   * Hide the autocomplete results
+  * Hide the autocomplete results
    */
   const hideAutocomplete = useCallback(
     () => autocompleteRef.current?.hide(),

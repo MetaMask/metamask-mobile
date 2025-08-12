@@ -7,10 +7,6 @@ import React, {
   useState,
 } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import {
-  type EdgeInsets,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
 import Engine from '../../../core/Engine';
 import AnimatedQRScannerModal from '../../UI/QRHardware/AnimatedQRScanner';
 import AccountSelector from '../../UI/HardwareWallet/AccountSelector';
@@ -23,17 +19,17 @@ import Alert, { AlertType } from '../../Base/Alert';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
+import Device from '../../../util/device';
 import { useTheme } from '../../../util/theme';
 import { SUPPORTED_UR_TYPE } from '../../../constants/qr';
 import { fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
+import { safeToChecksumAddress } from '../../../util/address';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import type { MetaMaskKeyring as QRKeyring } from '@keystonehq/metamask-airgapped-keyring';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import ExtendedKeyringTypes, {
-  HardwareDeviceTypes,
-} from '../../../constants/keyringTypes';
+import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { ThemeColors } from '@metamask/design-tokens';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
 
@@ -43,7 +39,7 @@ interface IConnectQRHardwareProps {
   navigation: any;
 }
 
-const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
+const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -51,7 +47,7 @@ const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
       alignItems: 'center',
     },
     header: {
-      marginTop: insets.top,
+      marginTop: Device.isIphoneX() ? 50 : 20,
       flexDirection: 'row',
       width: '100%',
       paddingHorizontal: 32,
@@ -138,8 +134,7 @@ async function initiateQRHardwareConnection(
 const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const insets = useSafeAreaInsets();
-  const styles = createStyles(colors, insets);
+  const styles = createStyles(colors);
 
   const KeyringController = useMemo(() => {
     // TODO: Replace "any" with type
@@ -328,21 +323,14 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
 
   const onForget = useCallback(async () => {
     resetError();
-    // Permissions need to be updated before the hardware wallet is forgotten.
-    // This is because `removeAccountsFromPermissions` relies on the account
-    // existing in AccountsController in order to resolve a hex address
-    // back into CAIP Account Id. Hex addresses are used in
-    // `removeAccountsFromPermissions` because too many places in the UI still
-    // operate on hex addresses rather than CAIP Account Id.
-    await Engine.context.KeyringController.withKeyring(
-      { type: ExtendedKeyringTypes.qr },
-      async ({ keyring }) => {
-        const keyringAccounts = await keyring.getAccounts();
-        removeAccountsFromPermissions(keyringAccounts);
-      },
+    // removedAccounts and remainingAccounts are not checksummed here.
+    const { removedAccounts, remainingAccounts } =
+      await KeyringController.forgetQRDevice();
+    Engine.setSelectedAddress(remainingAccounts[remainingAccounts.length - 1]);
+    const checksummedRemovedAccounts = removedAccounts.map(
+      safeToChecksumAddress,
     );
-    const { remainingAccounts } = await KeyringController.forgetQRDevice();
-    Engine.setSelectedAddress(remainingAccounts.at(-1));
+    removeAccountsFromPermissions(checksummedRemovedAccounts);
     navigation.pop(2);
   }, [KeyringController, navigation, resetError]);
 

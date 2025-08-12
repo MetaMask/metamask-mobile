@@ -1,5 +1,5 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountWalletObject } from '@metamask/account-tree-controller';
+import { AccountWallet } from '@metamask/account-tree-controller';
 import Engine from '../../../../../core/Engine';
 
 /**
@@ -8,7 +8,7 @@ import Engine from '../../../../../core/Engine';
  * @returns Array of internal accounts
  */
 export const getInternalAccountsFromWallet = (
-  wallet: AccountWalletObject,
+  wallet: AccountWallet,
 ): InternalAccount[] => {
   const { AccountsController } = Engine.context;
   const { accounts } = AccountsController.state.internalAccounts;

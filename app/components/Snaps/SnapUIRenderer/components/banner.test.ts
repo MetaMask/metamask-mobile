@@ -38,7 +38,7 @@ describe('banner component', () => {
           key: 'mock-key',
           children: [
             {
-              key: expect.any(String),
+              key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_1',
               element: 'Text',
               props: {
                 color: undefined,
@@ -89,7 +89,7 @@ describe('banner component', () => {
           key: 'mock-key',
           children: [
             {
-              key: expect.any(String),
+              key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_2',
               element: 'Text',
               props: {
                 color: undefined,
@@ -140,7 +140,7 @@ describe('banner component', () => {
           key: 'mock-key',
           children: [
             {
-              key: expect.any(String),
+              key: '4322bc9dfc78dd5fac77c48bc64efc877ae6265f8cc50c12a63fe3a62674e402_3',
               element: 'Text',
               props: {
                 color: undefined,

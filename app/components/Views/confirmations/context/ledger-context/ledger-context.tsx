@@ -14,7 +14,6 @@ import {
   isHardwareAccount,
 } from '../../../../../util/address';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
-import { useTransactionMetadataRequest } from '../../hooks/transactions/useTransactionMetadataRequest';
 import LedgerSignModal from '../../components/modals/ledger-sign-modal';
 
 export interface LedgerContextType {
@@ -37,10 +36,7 @@ export const LedgerContextProvider: React.FC<{
   children: ReactElement[] | ReactElement;
 }> = ({ children }) => {
   const { approvalRequest } = useApprovalRequest();
-  const transactionMetadata = useTransactionMetadataRequest();
-  const fromAddress =
-    (approvalRequest?.requestData?.from as string) ||
-    (transactionMetadata?.txParams?.from as string);
+  const fromAddress = approvalRequest?.requestData?.from as string;
   const isLedgerAccount =
     isHardwareAccount(fromAddress, [ExtendedKeyringTypes.ledger]) ?? false;
   const [ledgerSigningInProgress, setLedgerSigningInProgress] =

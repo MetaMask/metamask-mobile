@@ -30,7 +30,8 @@ import { selectChainId } from '../../../selectors/networkController';
 const createStyles = (colors: any) =>
   StyleSheet.create({
     searchSection: {
-      marginTop: 16,
+      margin: 16,
+      marginBottom: 0,
       flex: 1,
       flexDirection: 'row',
       justifyContent: 'center',
@@ -41,7 +42,7 @@ const createStyles = (colors: any) =>
       color: colors.text.default,
     },
     searchSectionFocused: {
-      marginTop: 16,
+      margin: 16,
       marginBottom: 0,
       flex: 1,
       flexDirection: 'row',

@@ -1,6 +1,6 @@
 import { SRPListItemSelectorsIDs } from '../../../../selectors/MultiSRP/SRPListItem.selectors';
-import Matchers from '../../../../framework/Matchers.ts';
-import Gestures from '../../../../framework/Gestures.ts';
+import Matchers from '../../../../utils/Matchers';
+import Gestures from '../../../../utils/Gestures';
 
 class SRPListItemComponent {
   get listItem() {
@@ -35,9 +35,7 @@ class SRPListItemComponent {
       new RegExp(`^${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-\\w+$`),
       index,
     );
-    await Gestures.waitAndTap(srpSelector, {
-      elemDescription: `SRP List Item at index ${index}`,
-    });
+    await Gestures.waitAndTap(srpSelector);
   }
 }
 

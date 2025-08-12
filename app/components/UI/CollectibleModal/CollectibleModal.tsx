@@ -29,7 +29,6 @@ import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import { Nft } from '@metamask/assets-controllers';
 import { EXTERNAL_LINK_TYPE } from '../../../constants/browser';
-import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 
 const CollectibleModal = () => {
   const navigation = useNavigation();
@@ -49,7 +48,6 @@ const CollectibleModal = () => {
   const collectibles: Nft[] = useSelector(collectiblesSelector);
   const isIpfsGatewatEnabled = useSelector(selectIsIpfsGatewayEnabled);
   const displayNftMedia = useSelector(selectDisplayNftMedia);
-  const { navigateToSendPage } = useSendNavigation();
 
   const handleUpdateCollectible = useCallback(() => {
     if (isIpfsGatewatEnabled || displayNftMedia) {
@@ -82,8 +80,9 @@ const CollectibleModal = () => {
 
   const onSend = useCallback(async () => {
     dispatch(newAssetTransaction({ contractName, ...collectible }));
-    navigateToSendPage(collectible);
-  }, [contractName, collectible, dispatch, navigateToSendPage]);
+    //@ts-expect-error replace do not exist on ParamListBase
+    navigation.replace('SendFlowView');
+  }, [contractName, collectible, navigation, dispatch]);
 
   const isTradable = useCallback(
     () => collectible.standard === 'ERC721',

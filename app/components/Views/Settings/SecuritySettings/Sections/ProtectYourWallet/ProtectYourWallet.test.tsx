@@ -53,7 +53,7 @@ describe('ProtectYourWallet', () => {
   });
 
   it('renders correctly when SRP is not backed up', () => {
-    const { getByText, queryByText } = renderWithProvider(
+    const { getByText } = renderWithProvider(
       <ProtectYourWallet
         srpBackedup={false}
         hintText=""
@@ -65,7 +65,9 @@ describe('ProtectYourWallet', () => {
     );
 
     expect(getByText(strings('app_settings.protect_title'))).toBeDefined();
-    expect(queryByText(strings('app_settings.protect_desc'))).toBeDefined();
+    expect(
+      getByText(strings('app_settings.protect_desc_no_backup')),
+    ).toBeDefined();
     expect(getByText(strings('app_settings.learn_more'))).toBeDefined();
     expect(getByText(strings('app_settings.back_up_now'))).toBeDefined();
   });
@@ -79,7 +81,7 @@ describe('ProtectYourWallet', () => {
     );
 
     expect(getByText(strings('app_settings.protect_title'))).toBeDefined();
-    expect(queryByText(strings('app_settings.protect_desc'))).toBeDefined();
+    expect(getByText(strings('app_settings.protect_desc'))).toBeDefined();
     expect(
       getByText(strings('app_settings.seedphrase_backed_up')),
     ).toBeDefined();

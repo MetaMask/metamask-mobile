@@ -247,7 +247,11 @@ function QuotesModal({
               style={styles.titleButton}
               hitSlop={{ top: 10, left: 20, right: 10, bottom: 10 }}
             >
-              <IonicIcon name="arrow-back" style={styles.backIcon} size={20} />
+              <IonicIcon
+                name="arrow-back"
+                style={styles.backIcon}
+                size={20}
+              />
               <Title>{strings('swaps.quote_details')}</Title>
             </TouchableOpacity>
           ) : (

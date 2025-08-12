@@ -39,28 +39,16 @@ const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
         const secondsAfterStxSubmission = Math.round(
           (Date.now() - creationTime) / 1000,
         );
-
-        // Calculate current deadline fresh based on elapsed time
-        const isPastEstimated =
-          secondsAfterStxSubmission > stxEstimatedDeadlineSec;
-        const currentDeadline = isPastEstimated
-          ? stxMaxDeadlineSec
-          : stxEstimatedDeadlineSec;
-
-        // Check if past MAX deadline using fresh calculation
-        if (secondsAfterStxSubmission > stxMaxDeadlineSec) {
-          setTimeLeftForPendingStxInSec(0);
-          clearInterval(intervalId);
-          return;
-        }
-
-        // Update state if transitioning past estimated deadline
-        if (isPastEstimated && !isStxPastEstimatedDeadline) {
+        if (secondsAfterStxSubmission > stxDeadlineSec) {
+          if (isStxPastEstimatedDeadline) {
+            setTimeLeftForPendingStxInSec(0);
+            clearInterval(intervalId);
+            return;
+          }
           setIsStxPastEstimatedDeadline(true);
         }
-
         setTimeLeftForPendingStxInSec(
-          currentDeadline - secondsAfterStxSubmission,
+          stxDeadlineSec - secondsAfterStxSubmission,
         );
       };
       intervalId = setInterval(calculateRemainingTime, 1000);
@@ -68,8 +56,7 @@ const useRemainingTime = ({ creationTime, isStxPending }: Props) => {
     }
 
     return () => clearInterval(intervalId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isStxPending, creationTime]);
+  }, [isStxPending, isStxPastEstimatedDeadline, creationTime, stxDeadlineSec]);
 
   return {
     timeLeftForPendingStxInSec,

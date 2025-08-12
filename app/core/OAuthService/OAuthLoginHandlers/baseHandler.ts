@@ -34,7 +34,7 @@ export async function getAuthTokens(
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ ...params, access_type: 'offline' }),
+    body: JSON.stringify(params),
   });
 
   if (res.status === 200 || res.status === 201) {

@@ -1,46 +1,35 @@
 import React, { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import {
-  selectBridgeViewMode,
-  selectDestToken,
-  selectSelectedDestChainId,
-  selectSourceToken,
-  setDestToken,
-} from '../../../../../core/redux/slices/bridge';
+import { selectDestToken, selectSelectedDestChainId, selectSourceToken, setDestToken } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { BridgeDestNetworksBar } from '../BridgeDestNetworksBar';
-import {
-  BridgeTokenSelectorBase,
-  SkeletonItem,
-} from '../BridgeTokenSelectorBase';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { BridgeTokenSelectorBase, SkeletonItem } from '../BridgeTokenSelectorBase';
+import { IconColor, IconName } from '../../../../../component-library/components/Icons/Icon';
+import ButtonIcon, { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { StyleSheet } from 'react-native';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { PopularList } from '../../../../../util/networks/customNetworks';
 
-const createStyles = () =>
-  StyleSheet.create({
-    infoButton: {
-      marginRight: 12,
-    },
-  });
+export interface BridgeDestTokenSelectorRouteParams {
+  bridgeViewMode: BridgeViewMode;
+}
+
+const createStyles = () => StyleSheet.create({
+  infoButton: {
+    marginRight: 12,
+  },
+});
 export const BridgeDestTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation();
-  const bridgeViewMode = useSelector(selectBridgeViewMode);
+  const route = useRoute<RouteProp<{ params: BridgeDestTokenSelectorRouteParams }, 'params'>>();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const selectedDestToken = useSelector(selectDestToken);
@@ -56,7 +45,7 @@ export const BridgeDestTokenSelector: React.FC = () => {
       dispatch(setDestToken(token));
       navigation.goBack();
     },
-    [dispatch, navigation],
+    [dispatch, navigation]
   );
 
   const renderToken = useCallback(
@@ -68,58 +57,41 @@ export const BridgeDestTokenSelector: React.FC = () => {
       }
 
       // Open the asset details screen as a bottom sheet
-      const handleInfoButtonPress = () =>
-        navigation.navigate('Asset', { ...item });
+      const handleInfoButtonPress = () => navigation.navigate('Asset', { ...item });
 
       // If the user hasn't added the network, it won't be in the networkConfigurations object
       // So we use the PopularList to get the network name
-      const networkName =
-        networkConfigurations?.[item.chainId as Hex]?.name ??
-        PopularList.find((network) => network.chainId === item.chainId)
-          ?.nickname ??
-        'Unknown Network';
+      const networkName = networkConfigurations?.[item.chainId as Hex]?.name
+        ?? PopularList.find((network) => network.chainId === item.chainId)?.nickname
+        ?? 'Unknown Network';
 
       return (
-        <TokenSelectorItem
-          token={item}
-          onPress={handleTokenPress}
-          networkName={networkName}
-          networkImageSource={getNetworkImageSource({
-            chainId: item.chainId as Hex,
-          })}
-          isSelected={
-            selectedDestToken?.address === item.address &&
-            selectedDestToken?.chainId === item.chainId
-          }
-        >
-          <ButtonIcon
-            iconName={IconName.Info}
-            size={ButtonIconSizes.Md}
-            onPress={handleInfoButtonPress}
-            iconColor={IconColor.Alternative}
-            style={styles.infoButton}
-            testID="token-info-button"
-          />
-        </TokenSelectorItem>
-      );
-    },
-    [
-      handleTokenPress,
-      networkConfigurations,
-      selectedDestToken,
-      navigation,
-      styles.infoButton,
-    ],
+      <TokenSelectorItem
+        token={item}
+        onPress={handleTokenPress}
+        networkName={networkName}
+        networkImageSource={getNetworkImageSource({ chainId: item.chainId as Hex })}
+        isSelected={
+          selectedDestToken?.address === item.address &&
+          selectedDestToken?.chainId === item.chainId
+        }
+      >
+        <ButtonIcon
+          iconName={IconName.Info}
+          size={ButtonIconSizes.Md}
+          onPress={handleInfoButtonPress}
+          iconColor={IconColor.Alternative}
+          style={styles.infoButton}
+          testID="token-info-button"
+        />
+      </TokenSelectorItem>
+    );},
+    [handleTokenPress, networkConfigurations, selectedDestToken, navigation, styles.infoButton]
   );
 
   return (
     <BridgeTokenSelectorBase
-      networksBar={
-        bridgeViewMode === BridgeViewMode.Bridge ||
-        bridgeViewMode === BridgeViewMode.Unified ? (
-          <BridgeDestNetworksBar />
-        ) : undefined
-      }
+      networksBar={route.params.bridgeViewMode === BridgeViewMode.Bridge ? <BridgeDestNetworksBar /> : undefined}
       renderTokenItem={renderToken}
       tokensList={tokensList}
       pending={pending}

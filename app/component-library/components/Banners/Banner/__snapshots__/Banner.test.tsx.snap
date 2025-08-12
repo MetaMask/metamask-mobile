@@ -159,14 +159,13 @@ exports[`Banner should render correctly with a close button 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d0f",
-          "borderColor": "transparent",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
           "borderRadius": 0,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": "auto",
           "justifyContent": "center",
-          "overflow": "hidden",
           "paddingHorizontal": 0,
         }
       }
@@ -175,7 +174,7 @@ exports[`Banner should render correctly with a close button 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#4459ff",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -391,14 +390,13 @@ exports[`Banner should render correctly with an action button 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#3c4d9d0f",
-          "borderColor": "transparent",
+          "backgroundColor": "transparent",
+          "borderColor": "#4459ff",
           "borderRadius": 0,
           "borderWidth": 1,
           "flexDirection": "row",
           "height": "auto",
           "justifyContent": "center",
-          "overflow": "hidden",
           "paddingHorizontal": 0,
         }
       }
@@ -407,7 +405,7 @@ exports[`Banner should render correctly with an action button 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#4459ff",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,

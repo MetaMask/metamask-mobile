@@ -1,18 +1,21 @@
 import { SmokeConfirmationsRedesigned } from '../../../tags';
+import TestHelpers from '../../../helpers';
 import { loginToApp } from '../../../viewHelper';
 import Browser from '../../../pages/Browser/BrowserView';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-import Assertions from '../../../framework/Assertions';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
+import Assertions from '../../../utils/Assertions';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../../fixtures/fixture-helper';
+import { buildPermissions } from '../../../fixtures/utils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import { DappVariants } from '../../../framework/Constants';
 
 describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
   const testSpecificMock = {
@@ -25,16 +28,13 @@ describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
+    await TestHelpers.reverseServerPort();
   });
 
   it('deploys a contract', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
           .withPermissionControllerConnectedToTestDapp(
@@ -42,6 +42,7 @@ describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
           )
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
         testSpecificMock,
       },
       async () => {
@@ -52,25 +53,21 @@ describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
         await TestDApp.tapDeployContractButton();
 
         // Check all expected elements are visible
-        await Assertions.expectElementToBeVisible(
+        await Assertions.checkIfVisible(
           ConfirmationUITypes.ModalConfirmationContainer,
         );
-        await Assertions.expectElementToBeVisible(RowComponents.AccountNetwork);
-        await Assertions.expectElementToBeVisible(
-          RowComponents.SimulationDetails,
-        );
-        await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
-        await Assertions.expectElementToBeVisible(
-          RowComponents.AdvancedDetails,
-        );
+        await Assertions.checkIfVisible(RowComponents.AccountNetwork);
+        await Assertions.checkIfVisible(RowComponents.SimulationDetails);
+        await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
+        await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Contract Deployment');
-        await Assertions.expectTextDisplayed('Confirmed');
+        await Assertions.checkIfTextIsDisplayed('Contract Deployment');
+        await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );
   });

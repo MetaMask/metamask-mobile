@@ -51,7 +51,7 @@ describe('useOriginSource', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelector.mockImplementation((selector: (state: RootState) => unknown) =>
-      selector(mockState),
+      selector(mockState)
     );
   });
 
@@ -87,11 +87,9 @@ describe('useOriginSource', () => {
       },
     } as RootState;
 
-    jest
-      .requireMock('react-redux')
-      .useSelector.mockImplementation(
-        (selector: (state: RootState) => unknown) => selector(wcState),
-      );
+    jest.requireMock('react-redux').useSelector.mockImplementation(
+      (selector: (state: RootState) => unknown) => selector(wcState),
+    );
 
     const { result } = renderHook(() =>
       useOriginSource({ origin: 'some-non-uuid-origin' }),
@@ -101,7 +99,7 @@ describe('useOriginSource', () => {
 
   it('should return IN_APP_BROWSER source as default', () => {
     mockSelector.mockImplementation((selector: (state: RootState) => unknown) =>
-      selector(mockState),
+      selector(mockState)
     );
 
     const { result } = renderHook(() =>

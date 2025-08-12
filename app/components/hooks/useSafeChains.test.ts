@@ -1,11 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import StorageWrapper from '../../store/storage-wrapper';
-import {
-  useSafeChains,
-  rpcIdentifierUtility,
-  SafeChain,
-} from './useSafeChains';
+import { useSafeChains, rpcIdentifierUtility, SafeChain } from './useSafeChains';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -83,9 +79,7 @@ describe('useSafeChains', () => {
     await waitForNextUpdate();
 
     expect(result.current.error).toBeInstanceOf(Error);
-    expect((result.current.error as Error).message).toBe(
-      'Invalid chains data format',
-    );
+    expect((result.current.error as Error).message).toBe('Invalid chains data format');
   });
 
   it('should not fetch chains when validation is disabled', () => {
@@ -127,10 +121,7 @@ describe('rpcIdentifierUtility', () => {
   it('should handle invalid RPC URL', () => {
     const result = rpcIdentifierUtility('invalid-url', mockSafeChains);
 
-    expect(result.safeChain).toEqual({
-      chainId: '',
-      nativeCurrency: { symbol: '' },
-    });
+    expect(result.safeChain).toEqual({ chainId: '', nativeCurrency: { symbol: '' } });
     expect(result.safeRPCUrl).toBe('Invalid rpcUrl');
   });
 
@@ -140,10 +131,7 @@ describe('rpcIdentifierUtility', () => {
       mockSafeChains,
     );
 
-    expect(result.safeChain).toEqual({
-      chainId: '',
-      nativeCurrency: { symbol: '' },
-    });
+    expect(result.safeChain).toEqual({ chainId: '', nativeCurrency: { symbol: '' } });
     expect(result.safeRPCUrl).toBe('Unknown rpcUrl');
   });
 
@@ -160,10 +148,7 @@ describe('rpcIdentifierUtility', () => {
       chainsWithInvalidRpc,
     );
 
-    expect(result.safeChain).toEqual({
-      chainId: '',
-      nativeCurrency: { symbol: '' },
-    });
+    expect(result.safeChain).toEqual({ chainId: '', nativeCurrency: { symbol: '' } });
     expect(result.safeRPCUrl).toBe('Unknown rpcUrl');
   });
-});
+}); 

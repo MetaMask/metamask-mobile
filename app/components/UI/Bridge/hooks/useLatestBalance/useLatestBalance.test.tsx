@@ -1,9 +1,4 @@
-import {
-  initialState,
-  solanaNativeTokenAddress,
-  solanaToken2Address,
-  solanaAccountId,
-} from '../../_mocks_/initialState';
+import { initialState , solanaNativeTokenAddress, solanaToken2Address, solanaAccountId } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useLatestBalance } from '.';
 import { getProviderByChainId } from '../../../../../util/notifications/methods/common';
@@ -31,9 +26,7 @@ jest.mock('ethers', () => {
 
 describe('useLatestBalance', () => {
   const mockProvider = {
-    getBalance: jest
-      .fn()
-      .mockResolvedValue(BigNumber.from('1000000000000000000')),
+    getBalance: jest.fn().mockResolvedValue(BigNumber.from('1000000000000000000')),
     getNetwork: jest.fn().mockResolvedValue({ chainId: 1 }),
   };
 
@@ -45,18 +38,18 @@ describe('useLatestBalance', () => {
   it('should fetch native token balance when token address is zero address', async () => {
     const { result } = renderHookWithProvider(
       () =>
-        useLatestBalance({
-          address: constants.AddressZero,
-          decimals: 18,
-          chainId: '0x1' as Hex,
-        }),
+        useLatestBalance(
+          {
+            address: constants.AddressZero,
+            decimals: 18,
+            chainId: '0x1' as Hex,
+          },
+        ),
       { state: initialState },
     );
 
     await waitFor(() => {
-      expect(mockProvider.getBalance).toHaveBeenCalledWith(
-        '0x1234567890123456789012345678901234567890',
-      );
+      expect(mockProvider.getBalance).toHaveBeenCalledWith('0x1234567890123456789012345678901234567890');
       expect(result.current).toEqual({
         displayBalance: '1.0',
         atomicBalance: BigNumber.from('1000000000000000000'),
@@ -67,11 +60,13 @@ describe('useLatestBalance', () => {
   it('should fetch ERC20 token balance', async () => {
     const { result } = renderHookWithProvider(
       () =>
-        useLatestBalance({
-          address: '0x1234567890123456789012345678901234567890',
-          decimals: 6,
-          chainId: '0x1' as Hex,
-        }),
+        useLatestBalance(
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: 6,
+            chainId: '0x1' as Hex,
+          },
+        ),
       { state: initialState },
     );
 
@@ -85,16 +80,10 @@ describe('useLatestBalance', () => {
 
   it('should fetch Solana native token balance', async () => {
     const state = cloneDeep(initialState);
-    state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
-      solanaAccountId;
+    state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount = solanaAccountId;
 
     const { result } = renderHookWithProvider(
-      () =>
-        useLatestBalance({
-          chainId: SolScope.Mainnet,
-          address: solanaNativeTokenAddress,
-          decimals: 9,
-        }),
+      () => useLatestBalance({ chainId: SolScope.Mainnet, address: solanaNativeTokenAddress, decimals: 9 }),
       { state },
     );
 
@@ -108,16 +97,10 @@ describe('useLatestBalance', () => {
 
   it('should fetch Solana SPL token balance', async () => {
     const state = cloneDeep(initialState);
-    state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount =
-      solanaAccountId;
+    state.engine.backgroundState.AccountsController.internalAccounts.selectedAccount = solanaAccountId;
 
     const { result } = renderHookWithProvider(
-      () =>
-        useLatestBalance({
-          chainId: SolScope.Mainnet,
-          address: solanaToken2Address,
-          decimals: 6,
-        }),
+      () => useLatestBalance({ chainId: SolScope.Mainnet, address: solanaToken2Address, decimals: 6 }),
       { state },
     );
 
@@ -132,10 +115,12 @@ describe('useLatestBalance', () => {
   it('should not fetch balance when token address is missing', async () => {
     const { result } = renderHookWithProvider(
       () =>
-        useLatestBalance({
-          decimals: 18,
-          chainId: '0x1' as Hex,
-        }),
+        useLatestBalance(
+          {
+            decimals: 18,
+            chainId: '0x1' as Hex,
+          },
+        ),
       { state: initialState },
     );
 
@@ -146,12 +131,14 @@ describe('useLatestBalance', () => {
   it('should return cached balance when latest balance is not yet fetched', async () => {
     const { result } = renderHookWithProvider(
       () =>
-        useLatestBalance({
-          address: '0x1234567890123456789012345678901234567890',
-          decimals: 6,
-          chainId: '0x1' as Hex,
-          balance: '5.5',
-        }),
+        useLatestBalance(
+          {
+            address: '0x1234567890123456789012345678901234567890',
+            decimals: 6,
+            chainId: '0x1' as Hex,
+            balance: '5.5',
+          },
+        ),
       { state: initialState },
     );
 

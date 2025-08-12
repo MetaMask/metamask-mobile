@@ -1,39 +1,38 @@
 import { ethers } from 'ethers';
-import { loginToApp } from '../../viewHelper';
+import { loginToApp } from '../../viewHelper.js';
 import QuoteView from '../../pages/swaps/QuoteView.ts';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletView from '../../pages/wallet/WalletView';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import TabBarComponent from '../../pages/wallet/TabBarComponent.js';
+import WalletView from '../../pages/wallet/WalletView.js';
+import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet.js';
+import FixtureBuilder from '../../fixtures/fixture-builder.js';
 import Tenderly from '../../tenderly.js';
 import {
   loadFixture,
   startFixtureServer,
   stopFixtureServer,
-} from '../../framework/fixtures/FixtureHelper';
+} from '../../fixtures/fixture-helper.js';
 import { CustomNetworks } from '../../resources/networks.e2e.js';
 import TestHelpers from '../../helpers.js';
-import FixtureServer from '../../framework/fixtures/FixtureServer';
-import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
-import { SmokeTrade } from '../../tags';
-import Assertions from '../../framework/Assertions';
+import FixtureServer from '../../fixtures/fixture-server.js';
+import { getFixturesServerPort } from '../../fixtures/utils.js';
+import { SmokeTrade } from '../../tags.js';
+import Assertions from '../../utils/Assertions.js';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
 import { getEventsPayloads } from '../analytics/helpers.ts';
 import {
   startMockServer,
   stopMockServer,
 } from '../../api-mocking/mock-server.js';
-import SoftAssert from '../../utils/SoftAssert';
-import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment';
-import SwapView from '../../pages/swaps/SwapView';
-import QuotesModal from '../../pages/swaps/QuoteModal';
+import SoftAssert from '../../utils/SoftAssert.ts';
+import { prepareSwapsTestEnvironment } from '../swaps/helpers/prepareSwapsTestEnvironment.ts';
+import SwapView from '../../pages/swaps/SwapView.ts';
+import QuotesModal from '../../pages/swaps/QuoteModal.ts';
 import type { MockttpServer } from 'mockttp';
 
 const fixtureServer = new FixtureServer();
 
 let mockServer: MockttpServer;
 
-// This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(SmokeTrade('Swaps - Metametrics'), () => {
   const wallet = ethers.Wallet.createRandom();
 
@@ -63,7 +62,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
       },
     });
     await loginToApp();
-    await prepareSwapsTestEnvironment();
+    await prepareSwapsTestEnvironment(wallet);
   });
 
   afterAll(async () => {
@@ -80,7 +79,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSwapButton();
 
-    await Assertions.expectElementToBeVisible(QuoteView.getQuotes);
+    await Assertions.checkIfVisible(QuoteView.getQuotes);
 
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
@@ -94,7 +93,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await TestHelpers.delay(1000);
     await QuoteView.tapOnCancelButton();
     await device.enableSynchronization();
-    await Assertions.expectElementToBeVisible(WalletView.container);
+    await Assertions.checkIfVisible(WalletView.container);
   });
 
   it('should start a swap and open all available quotes to test the event', async () => {
@@ -102,7 +101,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await TabBarComponent.tapActions();
     await WalletActionsBottomSheet.tapSwapButton();
 
-    await Assertions.expectElementToBeVisible(QuoteView.getQuotes);
+    await Assertions.checkIfVisible(QuoteView.getQuotes);
     await QuoteView.tapOnSelectDestToken();
     await QuoteView.tapSearchToken();
     await QuoteView.typeSearchToken('DAI');
@@ -110,13 +109,13 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     await QuoteView.selectToken('DAI');
     await QuoteView.enterSwapAmount('0.01');
     await QuoteView.tapOnGetQuotes();
-    await Assertions.expectElementToBeVisible(SwapView.quoteSummary);
+    await Assertions.checkIfVisible(SwapView.quoteSummary);
     await SwapView.tapIUnderstandPriceWarning();
     await device.disableSynchronization();
     await SwapView.tapViewDetailsAllQuotes();
-    await Assertions.expectElementToBeVisible(QuotesModal.header);
+    await Assertions.checkIfVisible(QuotesModal.header);
     await QuotesModal.close();
-    await Assertions.expectElementToNotBeVisible(QuotesModal.header);
+    await Assertions.checkIfNotVisible(QuotesModal.header);
     await device.enableSynchronization();
   });
 
@@ -143,8 +142,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     ) as SegmentEvent;
 
     await softAssert.checkAndCollect(
-      async () =>
-        Assertions.checkIfObjectContains(
+      async () => Assertions.checkIfObjectContains(
           allAvailableQuotesOpenedEvent.properties,
           {
             action: 'Quote',
@@ -214,8 +212,7 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     ) as SegmentEvent;
 
     await softAssert.checkAndCollect(
-      async () =>
-        Assertions.checkIfObjectContains(
+      async () => Assertions.checkIfObjectContains(
           quotesRequestCancelledEvent.properties,
           {
             action: 'Quote',
@@ -242,6 +239,8 @@ describe(SmokeTrade('Swaps - Metametrics'), () => {
     softAssert.throwIfErrors();
   });
 });
+
+
 
 // TODO: move this to a shared file when migrating other tests to TypeScript
 interface SegmentEvent {

@@ -12,7 +12,7 @@ import {
   selectSelectedInternalAccount,
 } from '../accountsController';
 import { createDeepEqualSelector } from '../util';
-import { Balance } from '@metamask/keyring-api';
+import { Balance, BtcScope, SolScope } from '@metamask/keyring-api';
 import { selectConversionRate } from '../currencyRateController';
 import { isMainNet } from '../../util/networks';
 import { selectAccountBalanceByChainId } from '../accountTrackerController';
@@ -34,12 +34,37 @@ import {
   MultichainAssetsRatesControllerState,
   MultichainBalancesControllerState,
 } from '@metamask/assets-controllers';
-import {
-  AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS,
-  SupportedCaipChainId,
-} from '@metamask/multichain-network-controller';
+import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
+
+/**
+ * @deprecated TEMPORARY SOURCE OF TRUTH TBD
+ * Native asset of each non evm network.
+ */
+export enum MultichainNativeAssets {
+  Bitcoin = `${BtcScope.Mainnet}/slip44:0`,
+  BitcoinTestnet = `${BtcScope.Testnet}/slip44:0`,
+  Solana = `${SolScope.Mainnet}/slip44:501`,
+  SolanaDevnet = `${SolScope.Devnet}/slip44:501`,
+  SolanaTestnet = `${SolScope.Testnet}/slip44:501`,
+}
+
+/**
+ * @deprecated TEMPORARY SOURCE OF TRUTH TBD
+ * Maps network identifiers to their corresponding native asset types.
+ * Each network is mapped to an array containing its native asset for consistency.
+ */
+export const MULTICHAIN_NETWORK_TO_ASSET_TYPES: Record<
+  string,
+  MultichainNativeAssets[]
+> = {
+  [SolScope.Mainnet]: [MultichainNativeAssets.Solana],
+  [SolScope.Testnet]: [MultichainNativeAssets.SolanaTestnet],
+  [SolScope.Devnet]: [MultichainNativeAssets.SolanaDevnet],
+  [BtcScope.Mainnet]: [MultichainNativeAssets.Bitcoin],
+  [BtcScope.Testnet]: [MultichainNativeAssets.BitcoinTestnet],
+};
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -106,14 +131,15 @@ const getNonEvmCachedBalance = (
   multichainBalances: MultichainBalancesControllerState['balances'],
   nonEvmChainId: SupportedCaipChainId,
 ) => {
-  const asset =
-    AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[nonEvmChainId].nativeCurrency;
+  // We assume that there's at least one asset type in and that is the native
+  // token for that network.
+  const asset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
   const balancesForAccount = multichainBalances?.[internalAccount.id];
   const balanceOfAsset = balancesForAccount?.[asset];
   return balanceOfAsset?.amount ?? undefined;
 };
 
-export const selectNonEvmCachedBalance = createDeepEqualSelector(
+const selectNonEvmCachedBalance = createDeepEqualSelector(
   selectSelectedInternalAccount,
   selectMultichainBalances,
   selectSelectedNonEvmNetworkChainId,
@@ -281,9 +307,13 @@ export const getMultichainNetworkAggregatedBalance = (
   multichainBalances: MultichainBalancesControllerState['balances'],
   multichainAssets: MultichainAssetsControllerState['accountsAssets'],
   multichainAssetsRates: MultichainAssetsRatesControllerState['conversionRates'],
+  nonEvmChainId: SupportedCaipChainId,
 ): MultichainNetworkAggregatedBalance => {
   const assetIds = multichainAssets?.[account.id] || [];
   const balances = multichainBalances?.[account.id] || {};
+
+  // Find the native asset for this chain
+  const nativeAsset = MULTICHAIN_NETWORK_TO_ASSET_TYPES[nonEvmChainId]?.[0];
 
   // Default values for native token
   let totalNativeTokenBalance: Balance | undefined;
@@ -292,10 +322,10 @@ export const getMultichainNetworkAggregatedBalance = (
 
   for (const assetId of assetIds) {
     const { chainId } = parseCaipAssetType(assetId);
-    const nativeAssetId =
-      AVAILABLE_MULTICHAIN_NETWORK_CONFIGURATIONS[
-        chainId as SupportedCaipChainId
-      ]?.nativeCurrency;
+
+    if (chainId !== nonEvmChainId) {
+      continue;
+    }
 
     const balance = balances[assetId] || { amount: '0', unit: '' };
 
@@ -307,9 +337,8 @@ export const getMultichainNetworkAggregatedBalance = (
         : new BigNumber(0);
     fiatBalances[assetId] = balanceInFiat.toString();
 
-    // If the asset is the native asset of the chain, set it as total native token balance
-    // This assumes the account is always on the same chain (excludes testnets)
-    if (assetId === nativeAssetId) {
+    // Only update native token balance if this is the native asset
+    if (assetId === nativeAsset) {
       totalNativeTokenBalance = balance;
     }
 
@@ -338,11 +367,13 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
     selectMultichainBalances,
     selectMultichainAssets,
     selectMultichainAssetsRates,
+    selectSelectedNonEvmNetworkChainId,
     (
       selectedAccount,
       multichainBalances,
       assets,
       assetsRates,
+      nonEvmNetworkChainId,
     ): MultichainNetworkAggregatedBalance => {
       if (!selectedAccount) {
         return {
@@ -357,6 +388,7 @@ export const selectSelectedAccountMultichainNetworkAggregatedBalance =
         multichainBalances,
         assets,
         assetsRates,
+        nonEvmNetworkChainId,
       );
     },
   );
@@ -371,11 +403,13 @@ export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
     selectMultichainBalances,
     selectMultichainAssets,
     selectMultichainAssetsRates,
+    selectSelectedNonEvmNetworkChainId,
     (
       internalAccounts,
       multichainBalances,
       assets,
       assetsRates,
+      nonEvmNetworkChainId,
     ): MultichainNetworkAggregatedBalanceForAllAccounts => {
       return internalAccounts.reduce(
         (acc, account) => ({
@@ -385,6 +419,7 @@ export const selectMultichainNetworkAggregatedBalanceForAllAccounts =
             multichainBalances,
             assets,
             assetsRates,
+            nonEvmNetworkChainId,
           ),
         }),
         {},
@@ -398,7 +433,7 @@ const DEFAULT_TRANSACTION_STATE_ENTRY = {
   lastUpdated: 0,
 };
 
-export const selectNonEvmTransactions = createDeepEqualSelector(
+export const selectSolanaAccountTransactions = createDeepEqualSelector(
   selectMultichainTransactions,
   selectSelectedInternalAccount,
   selectSelectedNonEvmNetworkChainId,

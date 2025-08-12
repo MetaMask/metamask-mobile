@@ -2,10 +2,7 @@ import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import CopyIcon from './copy-icon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
+import { IconColor, IconName } from '../../../../../../../component-library/components/Icons/Icon/Icon.types';
 import ClipboardManager from '../../../../../../../core/ClipboardManager';
 
 jest.mock('../../../../../../../core/ClipboardManager', () => ({
@@ -34,9 +31,7 @@ describe('CopyIcon', () => {
     fireEvent.press(touchable);
 
     expect(ClipboardManager.setString).toHaveBeenCalledTimes(1);
-    expect(ClipboardManager.setString).toHaveBeenCalledWith(
-      mockProps.textToCopy,
-    );
+    expect(ClipboardManager.setString).toHaveBeenCalledWith(mockProps.textToCopy);
   });
 
   it('does not call ClipboardManager if textToCopy is empty', () => {

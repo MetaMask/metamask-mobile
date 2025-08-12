@@ -1,9 +1,5 @@
 import React from 'react';
-import {
-  TouchableOpacity,
-  ViewStyle,
-  GestureResponderEvent,
-} from 'react-native';
+import { TouchableOpacity, ViewStyle, GestureResponderEvent } from 'react-native';
 
 /**
  * @deprecated The `<GenericButton>` component has been deprecated in favor of the new `<Button>` component from the component-library.

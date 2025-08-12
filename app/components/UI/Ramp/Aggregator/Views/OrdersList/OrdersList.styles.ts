@@ -10,6 +10,10 @@ const createStyles = (colors: Colors) =>
       marginVertical: 16,
       marginHorizontal: 24,
     },
+    selectedFilter: {
+      borderWidth: 1,
+      borderColor: colors.primary.default,
+    },
     emptyMessage: {
       textAlign: 'center',
     },

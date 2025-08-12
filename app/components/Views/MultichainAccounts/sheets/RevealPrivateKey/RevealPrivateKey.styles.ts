@@ -3,7 +3,9 @@ import { StyleSheet } from 'react-native';
 const styleSheet = () =>
   StyleSheet.create({
     container: {
-      flex: 1,
+      marginBottom: 36,
+      paddingLeft: 24,
+      paddingRight: 24,
     },
   });
 

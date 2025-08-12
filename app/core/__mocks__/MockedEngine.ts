@@ -72,7 +72,7 @@ export const mockedEngine = {
     MultichainNetworkController: {
       state: {
         multichainNetworkConfigurationsByChainId: {},
-      },
+      }
     },
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn(),

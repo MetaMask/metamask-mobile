@@ -17,7 +17,7 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
     }
   >
     <SvgMock
-      color="#457a39"
+      color="#1c7e33"
       fill="currentColor"
       height={32}
       name="Confirmation"
@@ -90,15 +90,14 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "transparent",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
             "borderRadius": 12,
             "borderWidth": 1,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
-            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -107,7 +106,7 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#4459ff",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -129,13 +128,12 @@ exports[`SuccessErrorSheet render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#4459ff",
             "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
-            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }

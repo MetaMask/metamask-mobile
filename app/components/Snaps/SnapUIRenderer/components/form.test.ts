@@ -1,14 +1,4 @@
-import {
-  Box,
-  Form,
-  Input,
-  Button,
-  Field,
-  Checkbox,
-  Selector,
-  SelectorOption,
-  Card,
-} from '@metamask/snaps-sdk/jsx';
+import { Box, Form, Input, Button, Field, Checkbox, Selector, SelectorOption, Card } from '@metamask/snaps-sdk/jsx';
 import Engine from '../../../../core/Engine/Engine';
 import { fireEvent } from '@testing-library/react-native';
 import { MOCK_INTERFACE_ID, MOCK_SNAP_ID, renderInterface } from '../testUtils';

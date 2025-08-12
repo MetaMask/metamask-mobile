@@ -13,7 +13,7 @@ const styleSheet = (params: {
   } = params;
 
   return StyleSheet.create({
-    container: {
+    container:{
       flexDirection: 'row',
       alignItems: 'center',
       paddingHorizontal: 8,

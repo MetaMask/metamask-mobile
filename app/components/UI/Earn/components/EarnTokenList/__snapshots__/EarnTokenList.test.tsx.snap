@@ -34,7 +34,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
       style={
         [
           {
-            "backgroundColor": "#3f434a66",
+            "backgroundColor": "#00000066",
             "bottom": 0,
             "left": 0,
             "position": "absolute",
@@ -85,8 +85,8 @@ exports[`EarnTokenList render matches snapshot 1`] = `
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#b7bbc866",
-              "borderTopLeftRadius": 24,
-              "borderTopRightRadius": 24,
+              "borderTopLeftRadius": 8,
+              "borderTopRightRadius": 8,
               "borderWidth": 1,
               "maxHeight": 640,
               "overflow": "hidden",
@@ -452,7 +452,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                     accessibilityRole="text"
                     style={
                       {
-                        "color": "#457a39",
+                        "color": "#1c7e33",
                         "fontFamily": "Geist Bold",
                         "fontSize": 32,
                         "letterSpacing": 0,
@@ -691,7 +691,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#457a39",
+                            "color": "#1c7e33",
                             "fontFamily": "Geist Medium",
                             "fontSize": 16,
                             "letterSpacing": 0,
@@ -897,7 +897,7 @@ exports[`EarnTokenList render matches snapshot 1`] = `
                         accessibilityRole="text"
                         style={
                           {
-                            "color": "#457a39",
+                            "color": "#1c7e33",
                             "fontFamily": "Geist Medium",
                             "fontSize": 16,
                             "letterSpacing": 0,

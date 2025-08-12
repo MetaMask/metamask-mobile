@@ -30,8 +30,6 @@ import { StakeSDKProvider } from '../../sdk/stakeSdkProvider';
 import { getTooltipMetricProperties } from '../../utils/metaMetrics/tooltipMetaMetricsUtils';
 import { withMetaMetrics } from '../../utils/metaMetrics/withMetaMetrics';
 import styleSheet from './StakingEarnings.styles';
-import { trace, TraceName } from '../../../../../util/trace';
-import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 
 export interface StakingEarningsProps {
   asset: TokenI;
@@ -60,16 +58,11 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
     asset.chainId as Hex,
   );
 
-  const onDisplayAnnualRateTooltip = () => {
-    trace({
-      name: TraceName.EarnFaq,
-      data: { experience: EARN_EXPERIENCES.POOLED_STAKING },
-    });
+  const onDisplayAnnualRateTooltip = () =>
     navigate('StakeModals', {
       screen: Routes.STAKING.MODALS.LEARN_MORE,
       params: { chainId: asset.chainId },
     });
-  };
 
   if (!isStakingSupportedChain || !hasEarnPooledStakes) return <></>;
 

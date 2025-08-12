@@ -27,6 +27,7 @@ exports[`AddCustomToken render correctly 1`] = `
               "borderColor": "#4459ff",
             },
             {
+              "marginHorizontal": 20,
               "marginTop": 20,
             },
           ]
@@ -136,6 +137,7 @@ exports[`AddCustomToken render correctly 1`] = `
       <View
         style={
           {
+            "paddingHorizontal": 16,
             "paddingTop": 16,
           }
         }
@@ -147,7 +149,7 @@ exports[`AddCustomToken render correctly 1`] = `
             {
               "alignItems": "center",
               "borderColor": "#b7bbc8",
-              "borderRadius": 8,
+              "borderRadius": 2,
               "borderWidth": 1,
               "flexDirection": "row",
               "marginBottom": 16,
@@ -233,7 +235,7 @@ exports[`AddCustomToken render correctly 1`] = `
           onFocus={[Function]}
           onSubmitEditing={[Function]}
           placeholder="0x..."
-          placeholderTextColor="#b7bbc8"
+          placeholderTextColor="#9ca1af"
           returnKeyType="next"
           style={
             {
@@ -265,50 +267,57 @@ exports[`AddCustomToken render correctly 1`] = `
       </View>
     </View>
   </RCTScrollView>
-  <TouchableOpacity
-    accessibilityRole="button"
-    accessible={true}
-    activeOpacity={1}
-    disabled={true}
-    onPress={[Function]}
-    onPressIn={[Function]}
-    onPressOut={[Function]}
+  <View
     style={
       {
-        "alignItems": "center",
-        "alignSelf": "center",
-        "backgroundColor": "#121314",
-        "borderRadius": 12,
-        "color": "#4459ff",
-        "flexDirection": "row",
-        "fontFamily": "CentraNo1-Book",
-        "fontSize": 18,
-        "fontWeight": "400",
-        "height": 48,
-        "justifyContent": "center",
-        "opacity": 0.5,
-        "overflow": "hidden",
-        "paddingHorizontal": 16,
-        "position": "relative",
-        "width": "100%",
+        "paddingVertical": 20,
       }
     }
-    testID="token-import-next-button"
   >
-    <Text
-      accessibilityRole="text"
+    <TouchableOpacity
+      accessibilityRole="button"
+      accessible={true}
+      activeOpacity={1}
+      disabled={true}
+      onPress={[Function]}
+      onPressIn={[Function]}
+      onPressOut={[Function]}
       style={
         {
-          "color": "#ffffff",
-          "fontFamily": "Geist Medium",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
+          "alignItems": "center",
+          "alignSelf": "center",
+          "backgroundColor": "#4459ff",
+          "borderRadius": 12,
+          "color": "#4459ff",
+          "flexDirection": "row",
+          "fontFamily": "CentraNo1-Book",
+          "fontSize": 18,
+          "fontWeight": "400",
+          "height": 48,
+          "justifyContent": "center",
+          "opacity": 0.5,
+          "paddingHorizontal": 16,
+          "position": "relative",
+          "width": "90%",
         }
       }
+      testID="token-import-next-button"
     >
-      Next
-    </Text>
-  </TouchableOpacity>
+      <Text
+        accessibilityRole="text"
+        style={
+          {
+            "color": "#ffffff",
+            "fontFamily": "Geist Medium",
+            "fontSize": 16,
+            "letterSpacing": 0,
+            "lineHeight": 24,
+          }
+        }
+      >
+        Next
+      </Text>
+    </TouchableOpacity>
+  </View>
 </View>
 `;

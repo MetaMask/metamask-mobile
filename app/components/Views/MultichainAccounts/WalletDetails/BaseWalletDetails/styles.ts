@@ -1,5 +1,5 @@
 import { Theme } from '@metamask/design-tokens';
-import { StyleSheet, ViewStyle } from 'react-native';
+import { Platform, StatusBar, StyleSheet, ViewStyle } from 'react-native';
 
 const styleSheet = (params: { theme: Theme }) => {
   const {
@@ -23,11 +23,10 @@ const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     safeArea: {
-      flex: 1,
+      paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
 
     container: {
-      flex: 1,
       padding: 16,
     },
 
@@ -63,12 +62,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     accountsList: {
       marginTop: 16,
-      flexShrink: 1,
-    },
-    listContainer: {
-      flexGrow: 1,
-      flexShrink: 1,
-      flexDirection: 'row',
+      flexDirection: 'column',
     },
     accountBox: {
       backgroundColor: colors.background.alternative,

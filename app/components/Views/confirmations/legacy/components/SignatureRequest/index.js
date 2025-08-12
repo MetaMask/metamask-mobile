@@ -292,7 +292,11 @@ class SignatureRequest extends PureComponent {
 
     return (
       <View style={styles.arrowIconWrapper}>
-        <Ionicons name={'arrow-forward'} size={20} style={styles.arrowIcon} />
+        <Ionicons
+          name={'arrow-forward'}
+          size={20}
+          style={styles.arrowIcon}
+        />
       </View>
     );
   };

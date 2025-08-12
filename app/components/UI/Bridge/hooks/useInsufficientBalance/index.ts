@@ -1,15 +1,16 @@
 import { useSelector } from 'react-redux';
-import { selectMinSolBalance } from '../../../../../selectors/bridgeController';
+import {
+  selectBridgeControllerState,
+  selectMinSolBalance,
+} from '../../../../../selectors/bridgeController';
+import { useLatestBalance } from '../useLatestBalance';
 import { parseUnits } from 'ethers/lib/utils';
 import { BridgeToken } from '../../types';
 import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
-import { selectBridgeQuotes } from '../../../../../core/redux/slices/bridge';
-import { BigNumber } from 'ethers';
 
 interface UseIsInsufficientBalanceParams {
   amount: string | undefined;
   token: BridgeToken | undefined;
-  latestAtomicBalance: BigNumber | undefined;
 }
 
 const normalizeAmount = (value: string, decimals: number): string => {
@@ -30,13 +31,15 @@ const normalizeAmount = (value: string, decimals: number): string => {
 const useIsInsufficientBalance = ({
   amount,
   token,
-  latestAtomicBalance,
 }: UseIsInsufficientBalanceParams): boolean => {
-  const quotes = useSelector(selectBridgeQuotes);
+  const { quoteRequest } = useSelector(selectBridgeControllerState);
   const minSolBalance = useSelector(selectMinSolBalance);
-
-  const bestQuote = quotes?.recommendedQuote;
-  const { gasIncluded } = bestQuote?.quote ?? {};
+  const latestBalance = useLatestBalance({
+    address: token?.address,
+    decimals: token?.decimals,
+    chainId: token?.chainId,
+    balance: token?.balance,
+  });
 
   const isValidAmount =
     amount !== undefined && amount !== '.' && token?.decimals;
@@ -53,15 +56,14 @@ const useIsInsufficientBalance = ({
       return decimalPlaces <= token.decimals;
     })();
 
-  // Only perform calculations if we have valid inputs and gas is not included
+  // Only perform calculations if we have valid inputs
   if (
     !isValidAmount ||
     !hasValidDecimals ||
     !token ||
-    !latestAtomicBalance ||
-    !!gasIncluded
+    !latestBalance?.atomicBalance
   ) {
-    return false;
+    return Boolean(quoteRequest?.insufficientBal);
   }
 
   const inputAmount = parseUnits(
@@ -73,18 +75,18 @@ const useIsInsufficientBalance = ({
     isSolanaChainId(token.chainId) &&
     isNativeAddress(token.address);
 
-  let isInsufficientBalance = false;
+  let isInsufficientBalance = quoteRequest?.insufficientBal || false;
 
   if (isSOL) {
     // For SOL: check if balance - inputAmount >= minSolBalance (rent exemption)
     const minSolBalanceLamports = parseUnits(minSolBalance, token.decimals);
-    const remainingBalance = latestAtomicBalance.sub(inputAmount);
+    const remainingBalance = latestBalance.atomicBalance.sub(inputAmount);
     isInsufficientBalance =
       isInsufficientBalance || remainingBalance.lt(minSolBalanceLamports);
   } else {
     // For non-SOL: just check if inputAmount > balance
     isInsufficientBalance =
-      isInsufficientBalance || inputAmount.gt(latestAtomicBalance);
+      isInsufficientBalance || inputAmount.gt(latestBalance.atomicBalance);
   }
 
   return Boolean(isInsufficientBalance);

@@ -26,21 +26,16 @@ describe('BrowserBottomBar', () => {
 
   it('should render disabled elements correctly', () => {
     renderWithProvider(
-      <BrowserBottomBar canGoBack={false} canGoForward={false} />,
+      <BrowserBottomBar
+        canGoBack={false}
+        canGoForward={false}
+      />,
     );
 
-    expect(
-      screen.getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON).props.disabled,
-    ).toBe(true);
-    expect(
-      screen.getByTestId(BrowserViewSelectorsIDs.FORWARD_BUTTON).props.disabled,
-    ).toBe(true);
-    expect(
-      screen.getByTestId(BrowserViewSelectorsIDs.HOME_BUTTON).props.disabled,
-    ).toBe(true);
-    expect(
-      screen.getByTestId(BrowserViewSelectorsIDs.OPTIONS_BUTTON).props.disabled,
-    ).toBe(true);
+    expect(screen.getByTestId(BrowserViewSelectorsIDs.BACK_BUTTON).props.disabled).toBe(true);
+    expect(screen.getByTestId(BrowserViewSelectorsIDs.FORWARD_BUTTON).props.disabled).toBe(true);
+    expect(screen.getByTestId(BrowserViewSelectorsIDs.HOME_BUTTON).props.disabled).toBe(true);
+    expect(screen.getByTestId(BrowserViewSelectorsIDs.OPTIONS_BUTTON).props.disabled).toBe(true);
   });
 
   it('should call the callbacks when buttons are pressed', () => {

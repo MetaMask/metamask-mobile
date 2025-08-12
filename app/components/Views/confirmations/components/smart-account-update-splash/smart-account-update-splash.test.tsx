@@ -21,7 +21,7 @@ jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
   context: {
     PreferencesController: {
-      setSmartAccountOptIn: jest.fn(),
+      setSmartAccountOptInForAccounts: jest.fn(),
     },
   },
 }));
@@ -53,16 +53,17 @@ describe('SmartContractWithLogo', () => {
   it('renders correctly', () => {
     const { getByText } = renderComponent();
     expect(getByText('Use smart account?')).toBeTruthy();
+    expect(getByText('Request for')).toBeTruthy();
   });
 
   it('close after `Yes` button is clicked', () => {
     const { getByText, queryByText } = renderComponent();
-    expect(getByText('Use smart account?')).toBeTruthy();
+    expect(queryByText('Request for')).toBeTruthy();
     fireEvent.press(getByText('Yes'));
     expect(
-      Engine.context.PreferencesController.setSmartAccountOptIn,
+      Engine.context.PreferencesController.setSmartAccountOptInForAccounts,
     ).toHaveBeenCalled();
-    expect(queryByText('Use smart account?')).toBeNull();
+    expect(queryByText('Request for')).toBeNull();
   });
 
   it('call reject function when `No` button is clicked', () => {
@@ -70,8 +71,8 @@ describe('SmartContractWithLogo', () => {
     jest
       .spyOn(ConfirmationActions, 'useConfirmActions')
       .mockReturnValue({ onConfirm: jest.fn(), onReject: mockOnReject });
-    const { getByText } = renderComponent();
-    expect(getByText('Use smart account?')).toBeTruthy();
+    const { getByText, queryByText } = renderComponent();
+    expect(queryByText('Request for')).toBeTruthy();
     fireEvent.press(getByText('No'));
     expect(mockOnReject).toHaveBeenCalledTimes(1);
   });
@@ -80,12 +81,14 @@ describe('SmartContractWithLogo', () => {
     const { queryByText } = renderComponent(
       getAppStateForConfirmation(upgradeAccountConfirmation, {
         PreferencesController: {
-          smartAccountOptIn: true,
+          smartAccountOptInForAccounts: [
+            upgradeAccountConfirmation.txParams.from,
+          ],
         },
       }),
     );
 
-    expect(queryByText('Use smart account?')).toBeNull();
+    expect(queryByText('Request for')).toBeNull();
   });
 
   it('renders null if preference smartAccountOptIn is true and account is not hardware account', async () => {
@@ -95,7 +98,7 @@ describe('SmartContractWithLogo', () => {
       }),
     );
 
-    expect(queryByText('Use smart account?')).toBeNull();
+    expect(queryByText('Request for')).toBeNull();
   });
 
   it('does not renders null if preference smartAccountOptIn is true and but account is hardware account', async () => {
@@ -107,5 +110,6 @@ describe('SmartContractWithLogo', () => {
     );
 
     expect(getByText('Use smart account?')).toBeTruthy();
+    expect(getByText('Request for')).toBeTruthy();
   });
 });

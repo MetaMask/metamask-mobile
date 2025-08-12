@@ -2,7 +2,9 @@ import TermsOfUseModal from '../../pages/Onboarding/TermsOfUseModal';
 import TestHelpers from '../../helpers';
 import OnboardingCarouselView from '../../pages/Onboarding/OnboardingCarouselView';
 import OnboardingView from '../../pages/Onboarding/OnboardingView';
-import Assertions from '../../framework/Assertions';
+import MetaMetricsOptIn from '../../pages/Onboarding/MetaMetricsOptInView';
+import ImportWalletView from '../../pages/Onboarding/ImportWalletView';
+import Assertions from '../../utils/Assertions';
 import { Regression } from '../../tags';
 
 describe(Regression('Term of Use Modal'), () => {
@@ -12,35 +14,35 @@ describe(Regression('Term of Use Modal'), () => {
   });
 
   it('should displayed Term of Use when first launching app', async () => {
-    await Assertions.expectElementToBeVisible(OnboardingCarouselView.container);
+    await Assertions.checkIfVisible(OnboardingCarouselView.container);
     await OnboardingCarouselView.tapOnGetStartedButton();
 
-    await Assertions.expectElementToBeVisible(TermsOfUseModal.container);
+    await Assertions.checkIfVisible(TermsOfUseModal.container);
   });
 
   it('should prevent attempts to bypass term of use', async () => {
     await TestHelpers.relaunchApp();
-    await Assertions.expectElementToBeVisible(OnboardingCarouselView.container);
+    await Assertions.checkIfVisible(OnboardingCarouselView.container);
     await OnboardingCarouselView.tapOnGetStartedButton();
-
-    await Assertions.expectElementToBeVisible(TermsOfUseModal.container);
+    
+    await Assertions.checkIfVisible(TermsOfUseModal.container);
   });
 
   it('should accept to term of use', async () => {
     await TermsOfUseModal.tapScrollEndButton();
     await TermsOfUseModal.tapAgreeCheckBox();
     await TermsOfUseModal.tapAcceptButton();
-    await Assertions.expectElementToNotBeVisible(TermsOfUseModal.container);
-
-    await Assertions.expectElementToBeVisible(OnboardingView.container);
+    await Assertions.checkIfNotVisible(TermsOfUseModal.container);
+    
+    await Assertions.checkIfVisible(OnboardingView.container);
   });
 
   it('should restart app after accepting terms', async () => {
     await TestHelpers.relaunchApp();
-    await Assertions.expectElementToBeVisible(OnboardingCarouselView.container);
+    await Assertions.checkIfVisible(OnboardingCarouselView.container);
     await OnboardingCarouselView.tapOnGetStartedButton();
-
-    await Assertions.expectElementToNotBeVisible(TermsOfUseModal.container);
-    await Assertions.expectElementToBeVisible(OnboardingView.container);
+    
+    await Assertions.checkIfNotVisible(TermsOfUseModal.container);
+    await Assertions.checkIfVisible(OnboardingView.container);
   });
 });

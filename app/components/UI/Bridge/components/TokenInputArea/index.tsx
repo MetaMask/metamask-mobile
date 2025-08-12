@@ -12,9 +12,10 @@ import {
   selectCurrentCurrency,
   selectCurrencyRates,
 } from '../../../../../selectors/currencyRateController';
+import { renderNumber } from '../../../../../util/number';
 import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { ethers, BigNumber } from 'ethers';
+import { ethers } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import Button, {
@@ -25,7 +26,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { BridgeDestNetworkSelectorRouteParams } from '../BridgeDestNetworkSelector';
 import {
-  selectIsUnifiedSwapsEnabled,
   setDestTokenExchangeRate,
   setSourceTokenExchangeRate,
 } from '../../../../../core/redux/slices/bridge';
@@ -36,12 +36,9 @@ import { getDisplayCurrencyValue } from '../../utils/exchange-rates';
 import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import parseAmount from '../../../Ramp/Aggregator/utils/parseAmount';
-import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
-import { renderShortAddress } from '../../../../../util/address';
-import { FlexDirection } from '../../../Box/box.types';
 
 const MAX_DECIMALS = 5;
-export const MAX_INPUT_LENGTH = 36;
+export const MAX_INPUT_LENGTH = 18;
 
 /**
  * Calculates font size based on input length
@@ -83,15 +80,8 @@ export enum TokenInputAreaType {
   Destination = 'destination',
 }
 
-const formatAddress = (address?: string) => {
-  if (!address) return undefined;
-
-  if (isCaipAssetType(address)) {
-    const { assetReference } = parseCaipAssetType(address);
-    return renderShortAddress(assetReference, 4);
-  }
-  return renderShortAddress(address, 4);
-};
+const formatAddress = (address?: string) =>
+  address ? `${address.slice(0, 6)}...${address.slice(-4)}` : undefined;
 
 export const getDisplayAmount = (
   amount?: string,
@@ -99,10 +89,9 @@ export const getDisplayAmount = (
 ) => {
   if (amount === undefined) return amount;
 
-  const displayAmount =
-    tokenType === TokenInputAreaType.Source
-      ? amount
-      : parseAmount(amount, MAX_DECIMALS);
+  const displayAmount = tokenType === TokenInputAreaType.Source
+    ? amount
+    : parseAmount(amount, MAX_DECIMALS);
 
   return displayAmount;
 };
@@ -124,8 +113,6 @@ interface TokenInputAreaProps {
   onFocus?: () => void;
   onBlur?: () => void;
   onInputPress?: () => void;
-  onMaxPress?: () => void;
-  latestAtomicBalance?: BigNumber;
 }
 
 export const TokenInputArea = forwardRef<
@@ -146,15 +133,10 @@ export const TokenInputArea = forwardRef<
       onFocus,
       onBlur,
       onInputPress,
-      onMaxPress,
-      latestAtomicBalance,
     },
     ref,
   ) => {
     const currentCurrency = useSelector(selectCurrentCurrency);
-
-    const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
-
     // Need to fetch the exchange rate for the token if we don't have it already
     useBridgeExchangeRates({
       token,
@@ -194,11 +176,7 @@ export const TokenInputArea = forwardRef<
       selectNetworkConfigurations,
     );
 
-    const isInsufficientBalance = useIsInsufficientBalance({
-      amount,
-      token,
-      latestAtomicBalance,
-    });
+    const isInsufficientBalance = useIsInsufficientBalance({ amount, token });
 
     let nonEvmMultichainAssetRates = {};
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -218,9 +196,7 @@ export const TokenInputArea = forwardRef<
     // Convert non-atomic balance to atomic form and then format it with renderFromTokenMinimalUnit
     const formattedBalance =
       token?.symbol && tokenBalance
-        ? `${parseFloat(tokenBalance)
-            .toFixed(3)
-            .replace(/\.?0+$/, '')} ${token?.symbol}`
+        ? `${renderNumber(tokenBalance)} ${token?.symbol}`
         : undefined;
     const formattedAddress =
       token?.address && token.address !== ethers.constants.AddressZero
@@ -235,12 +211,6 @@ export const TokenInputArea = forwardRef<
     const displayedAmount = getDisplayAmount(amount, tokenType);
     const fontSize = calculateFontSize(displayedAmount?.length ?? 0);
     const { styles } = useStyles(createStyles, { fontSize });
-
-    // TODO come up with a more robust way to check if the asset is native
-    // Maybe a util in BridgeController
-    const isNativeAsset =
-      token?.address === ethers.constants.AddressZero ||
-      token?.address === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501';
 
     return (
       <Box>
@@ -290,9 +260,7 @@ export const TokenInputArea = forwardRef<
             ) : (
               <Button
                 variant={ButtonVariants.Primary}
-                label={strings(
-                  isUnifiedSwapsEnabled ? 'bridge.swap_to' : 'bridge.bridge_to',
-                )}
+                label={strings('bridge.bridge_to')}
                 onPress={navigateToDestNetworkSelector}
               />
             )}
@@ -308,38 +276,16 @@ export const TokenInputArea = forwardRef<
                   ) : null}
                 </Box>
                 {subtitle ? (
-                  tokenType === TokenInputAreaType.Source &&
-                  tokenBalance &&
-                  onMaxPress &&
-                  !isNativeAsset ? (
-                    <Box flexDirection={FlexDirection.Row} gap={4}>
-                      <Text
-                        color={
-                          isInsufficientBalance
-                            ? TextColor.Error
-                            : TextColor.Alternative
-                        }
-                      >
-                        {subtitle}
-                      </Text>
-                      <Button
-                        variant={ButtonVariants.Link}
-                        label={strings('bridge.max')}
-                        onPress={onMaxPress}
-                      />
-                    </Box>
-                  ) : (
-                    <Text
-                      color={
-                        tokenType === TokenInputAreaType.Source &&
-                        isInsufficientBalance
-                          ? TextColor.Error
-                          : TextColor.Alternative
-                      }
-                    >
-                      {subtitle}
-                    </Text>
-                  )
+                  <Text
+                    color={
+                      tokenType === TokenInputAreaType.Source &&
+                      isInsufficientBalance
+                        ? TextColor.Error
+                        : TextColor.Alternative
+                    }
+                  >
+                    {subtitle}
+                  </Text>
                 ) : null}
               </>
             )}

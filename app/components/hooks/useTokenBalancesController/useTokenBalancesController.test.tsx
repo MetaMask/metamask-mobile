@@ -31,8 +31,8 @@ const mockInitialState = {
           [accountAddress]: {
             [chainId]: {
               '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN4(0x2a),
-            },
-          },
+            }
+          }
         },
       },
     },
@@ -64,7 +64,7 @@ const testBalancesReducer = (state: any, action: any) => {
                   ...state.engine.backgroundState.TokenBalancesController
                     .tokenBalances[accountAddress][chainId],
                   ...action.value[accountAddress][chainId],
-                },
+                }
               },
             },
           },
@@ -134,8 +134,8 @@ describe('useTokenBalancesController()', () => {
           [accountAddress]: {
             [chainId]: {
               '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b96': new BN4(0x539),
-            },
-          },
+            }
+          }
         },
       });
     });
@@ -156,8 +156,8 @@ describe('useTokenBalancesController()', () => {
           [accountAddress]: {
             [chainId]: {
               '0x326836cc6cd09B5aa59B81A7F72F25FcC0136b95': new BN4(0x2a),
-            },
-          },
+            }
+          }
         },
       });
     });

@@ -92,126 +92,6 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
                 />
               </View>
             </View>
-            <View
-              onLayout={[Function]}
-              style={
-                {
-                  "alignSelf": "flex-start",
-                  "position": "relative",
-                }
-              }
-              testID="badge-wrapper-badge"
-            >
-              <View>
-                <View
-                  style={
-                    {
-                      "backgroundColor": "#ffffff",
-                      "borderRadius": 20,
-                      "height": 40,
-                      "overflow": "hidden",
-                      "width": 40,
-                    }
-                  }
-                >
-                  <Image
-                    onError={[Function]}
-                    resizeMode="contain"
-                    source={
-                      {
-                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                      }
-                    }
-                    style={
-                      {
-                        "flex": 1,
-                        "height": undefined,
-                        "width": undefined,
-                      }
-                    }
-                    testID="token-avatar-image"
-                  />
-                </View>
-              </View>
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "aspectRatio": 1,
-                    "bottom": 0,
-                    "height": 0,
-                    "justifyContent": "center",
-                    "position": "absolute",
-                    "right": 0,
-                    "transform": [
-                      {
-                        "translateX": 0,
-                      },
-                      {
-                        "translateY": 0,
-                      },
-                    ],
-                  }
-                }
-              >
-                <View
-                  onLayout={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "aspectRatio": 1,
-                      "height": "50%",
-                      "justifyContent": "center",
-                      "maxHeight": 24,
-                      "minHeight": 8,
-                      "opacity": 0,
-                    }
-                  }
-                  testID="badgenetwork"
-                >
-                  <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#ffffff",
-                        "borderColor": "#ffffff",
-                        "borderRadius": 8,
-                        "borderWidth": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "overflow": "hidden",
-                        "shadowColor": "#0000001a",
-                        "shadowOffset": {
-                          "height": 2,
-                          "width": 0,
-                        },
-                        "shadowOpacity": 1,
-                        "shadowRadius": 4,
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
-                        "width": 32,
-                      }
-                    }
-                  >
-                    <Image
-                      onError={[Function]}
-                      resizeMode="contain"
-                      source={1}
-                      style={
-                        {
-                          "height": 32,
-                          "width": 32,
-                        }
-                      }
-                      testID="network-avatar-image"
-                    />
-                  </View>
-                </View>
-              </View>
-            </View>
           </View>
           <Text
             accessibilityRole="text"
@@ -229,7 +109,22 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
           >
             0.05
              
-            USDC
+            ETH
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Regular",
+                "fontSize": 14,
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "textAlign": "center",
+              }
+            }
+          >
+            Card purchases typically take a few minutes
           </Text>
         </View>
         <View
@@ -273,7 +168,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -353,7 +248,7 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum Main Network
               </Text>
             </View>
           </View>
@@ -506,10 +401,49 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
                 }
               }
             >
-              $100.00
+              $102.50
             </Text>
           </View>
         </View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            View order details in Transak
+          </Text>
+          <SvgMock
+            color="#4459ff"
+            fill="currentColor"
+            height={16}
+            name="Export"
+            style={
+              {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            width={16}
+          />
+        </TouchableOpacity>
       </View>
     </View>
     <View>
@@ -550,13 +484,12 @@ exports[`OrderProcessing Component renders created state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#121314",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
@@ -673,126 +606,6 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                 width={32}
               />
             </View>
-            <View
-              onLayout={[Function]}
-              style={
-                {
-                  "alignSelf": "flex-start",
-                  "position": "relative",
-                }
-              }
-              testID="badge-wrapper-badge"
-            >
-              <View>
-                <View
-                  style={
-                    {
-                      "backgroundColor": "#ffffff",
-                      "borderRadius": 20,
-                      "height": 40,
-                      "overflow": "hidden",
-                      "width": 40,
-                    }
-                  }
-                >
-                  <Image
-                    onError={[Function]}
-                    resizeMode="contain"
-                    source={
-                      {
-                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                      }
-                    }
-                    style={
-                      {
-                        "flex": 1,
-                        "height": undefined,
-                        "width": undefined,
-                      }
-                    }
-                    testID="token-avatar-image"
-                  />
-                </View>
-              </View>
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "aspectRatio": 1,
-                    "bottom": 0,
-                    "height": 0,
-                    "justifyContent": "center",
-                    "position": "absolute",
-                    "right": 0,
-                    "transform": [
-                      {
-                        "translateX": 0,
-                      },
-                      {
-                        "translateY": 0,
-                      },
-                    ],
-                  }
-                }
-              >
-                <View
-                  onLayout={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "aspectRatio": 1,
-                      "height": "50%",
-                      "justifyContent": "center",
-                      "maxHeight": 24,
-                      "minHeight": 8,
-                      "opacity": 0,
-                    }
-                  }
-                  testID="badgenetwork"
-                >
-                  <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#ffffff",
-                        "borderColor": "#ffffff",
-                        "borderRadius": 8,
-                        "borderWidth": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "overflow": "hidden",
-                        "shadowColor": "#0000001a",
-                        "shadowOffset": {
-                          "height": 2,
-                          "width": 0,
-                        },
-                        "shadowOpacity": 1,
-                        "shadowRadius": 4,
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
-                        "width": 32,
-                      }
-                    }
-                  >
-                    <Image
-                      onError={[Function]}
-                      resizeMode="contain"
-                      source={1}
-                      style={
-                        {
-                          "height": 32,
-                          "width": 32,
-                        }
-                      }
-                      testID="network-avatar-image"
-                    />
-                  </View>
-                </View>
-              </View>
-            </View>
           </View>
           <Text
             accessibilityRole="text"
@@ -810,7 +623,22 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
           >
             0.05
              
-            USDC
+            ETH
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Regular",
+                "fontSize": 14,
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "textAlign": "center",
+              }
+            }
+          >
+            We were unable to complete your deposit
           </Text>
         </View>
         <View
@@ -854,7 +682,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -934,7 +762,7 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum Main Network
               </Text>
             </View>
           </View>
@@ -1087,10 +915,49 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                 }
               }
             >
-              $100.00
+              $102.50
             </Text>
           </View>
         </View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            View order details in Transak
+          </Text>
+          <SvgMock
+            color="#4459ff"
+            fill="currentColor"
+            height={16}
+            name="Export"
+            style={
+              {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            width={16}
+          />
+        </TouchableOpacity>
       </View>
     </View>
     <View>
@@ -1112,6 +979,44 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
             }
           }
         >
+          <TouchableOpacity
+            accessibilityRole="button"
+            accessible={true}
+            activeOpacity={1}
+            onPress={[Function]}
+            onPressIn={[Function]}
+            onPressOut={[Function]}
+            style={
+              {
+                "alignItems": "center",
+                "alignSelf": "flex-start",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "justifyContent": "center",
+                "paddingHorizontal": 16,
+              }
+            }
+          >
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#4459ff",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+            >
+              Contact support
+            </Text>
+          </TouchableOpacity>
           <View
             style={
               {
@@ -1131,52 +1036,12 @@ exports[`OrderProcessing Component renders error state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#3c4d9d0f",
-                  "borderColor": "transparent",
-                  "borderRadius": 12,
-                  "borderWidth": 1,
-                  "flex": 1,
-                  "flexDirection": "row",
-                  "height": 48,
-                  "justifyContent": "center",
-                  "overflow": "hidden",
-                  "paddingHorizontal": 16,
-                }
-              }
-            >
-              <Text
-                accessibilityRole="text"
-                style={
-                  {
-                    "color": "#121314",
-                    "fontFamily": "Geist Medium",
-                    "fontSize": 16,
-                    "letterSpacing": 0,
-                    "lineHeight": 24,
-                  }
-                }
-              >
-                Contact support
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              accessibilityRole="button"
-              accessible={true}
-              activeOpacity={1}
-              onPress={[Function]}
-              onPressIn={[Function]}
-              onPressOut={[Function]}
-              style={
-                {
-                  "alignItems": "center",
-                  "alignSelf": "flex-start",
-                  "backgroundColor": "#121314",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
@@ -1226,22 +1091,102 @@ exports[`OrderProcessing Component renders no order found state 1`] = `
   >
     <View
       style={
-        {
-          "alignItems": "center",
-          "backgroundColor": "#ffffff",
-          "bottom": 0,
-          "justifyContent": "center",
-          "left": 0,
-          "position": "absolute",
-          "right": 0,
-          "top": 0,
-        }
+        [
+          {
+            "flex": 1,
+          },
+          undefined,
+        ]
       }
     >
-      <ActivityIndicator
-        color="#4459ff"
-        size="large"
-      />
+      <View
+        style={
+          [
+            {
+              "padding": 15,
+            },
+            {
+              "flex": 1,
+            },
+            undefined,
+          ]
+        }
+      >
+        <View
+          style={
+            {
+              "alignItems": "center",
+              "flex": 1,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            No order found
+          </Text>
+        </View>
+      </View>
+    </View>
+    <View>
+      <View
+        style={
+          [
+            {
+              "padding": 15,
+            },
+            undefined,
+            undefined,
+          ]
+        }
+      >
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessible={true}
+          activeOpacity={1}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "alignSelf": "flex-start",
+              "backgroundColor": "#4459ff",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "paddingHorizontal": 16,
+            }
+          }
+          testID="no-order-back-button"
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            Back to Wallet
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   </View>
 </RCTSafeAreaView>
@@ -1339,126 +1284,6 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
                 />
               </View>
             </View>
-            <View
-              onLayout={[Function]}
-              style={
-                {
-                  "alignSelf": "flex-start",
-                  "position": "relative",
-                }
-              }
-              testID="badge-wrapper-badge"
-            >
-              <View>
-                <View
-                  style={
-                    {
-                      "backgroundColor": "#ffffff",
-                      "borderRadius": 20,
-                      "height": 40,
-                      "overflow": "hidden",
-                      "width": 40,
-                    }
-                  }
-                >
-                  <Image
-                    onError={[Function]}
-                    resizeMode="contain"
-                    source={
-                      {
-                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                      }
-                    }
-                    style={
-                      {
-                        "flex": 1,
-                        "height": undefined,
-                        "width": undefined,
-                      }
-                    }
-                    testID="token-avatar-image"
-                  />
-                </View>
-              </View>
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "aspectRatio": 1,
-                    "bottom": 0,
-                    "height": 0,
-                    "justifyContent": "center",
-                    "position": "absolute",
-                    "right": 0,
-                    "transform": [
-                      {
-                        "translateX": 0,
-                      },
-                      {
-                        "translateY": 0,
-                      },
-                    ],
-                  }
-                }
-              >
-                <View
-                  onLayout={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "aspectRatio": 1,
-                      "height": "50%",
-                      "justifyContent": "center",
-                      "maxHeight": 24,
-                      "minHeight": 8,
-                      "opacity": 0,
-                    }
-                  }
-                  testID="badgenetwork"
-                >
-                  <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#ffffff",
-                        "borderColor": "#ffffff",
-                        "borderRadius": 8,
-                        "borderWidth": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "overflow": "hidden",
-                        "shadowColor": "#0000001a",
-                        "shadowOffset": {
-                          "height": 2,
-                          "width": 0,
-                        },
-                        "shadowOpacity": 1,
-                        "shadowRadius": 4,
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
-                        "width": 32,
-                      }
-                    }
-                  >
-                    <Image
-                      onError={[Function]}
-                      resizeMode="contain"
-                      source={1}
-                      style={
-                        {
-                          "height": 32,
-                          "width": 32,
-                        }
-                      }
-                      testID="network-avatar-image"
-                    />
-                  </View>
-                </View>
-              </View>
-            </View>
           </View>
           <Text
             accessibilityRole="text"
@@ -1476,7 +1301,22 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
           >
             0.05
              
-            USDC
+            ETH
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Regular",
+                "fontSize": 14,
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "textAlign": "center",
+              }
+            }
+          >
+            Card purchases typically take a few minutes
           </Text>
         </View>
         <View
@@ -1520,7 +1360,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -1600,7 +1440,7 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum Main Network
               </Text>
             </View>
           </View>
@@ -1753,10 +1593,49 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
                 }
               }
             >
-              $100.00
+              $102.50
             </Text>
           </View>
         </View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            View order details in Transak
+          </Text>
+          <SvgMock
+            color="#4459ff"
+            fill="currentColor"
+            height={16}
+            name="Export"
+            style={
+              {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            width={16}
+          />
+        </TouchableOpacity>
       </View>
     </View>
     <View>
@@ -1797,13 +1676,12 @@ exports[`OrderProcessing Component renders processing state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#121314",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }
@@ -1897,7 +1775,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#457a391a",
+                  "backgroundColor": "#1c7e331a",
                   "borderRadius": 20,
                   "height": 40,
                   "justifyContent": "center",
@@ -1907,7 +1785,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
               }
             >
               <SvgMock
-                color="#457a39"
+                color="#1c7e33"
                 fill="currentColor"
                 height={32}
                 name="CheckBold"
@@ -1919,126 +1797,6 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
                 }
                 width={32}
               />
-            </View>
-            <View
-              onLayout={[Function]}
-              style={
-                {
-                  "alignSelf": "flex-start",
-                  "position": "relative",
-                }
-              }
-              testID="badge-wrapper-badge"
-            >
-              <View>
-                <View
-                  style={
-                    {
-                      "backgroundColor": "#ffffff",
-                      "borderRadius": 20,
-                      "height": 40,
-                      "overflow": "hidden",
-                      "width": 40,
-                    }
-                  }
-                >
-                  <Image
-                    onError={[Function]}
-                    resizeMode="contain"
-                    source={
-                      {
-                        "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png",
-                      }
-                    }
-                    style={
-                      {
-                        "flex": 1,
-                        "height": undefined,
-                        "width": undefined,
-                      }
-                    }
-                    testID="token-avatar-image"
-                  />
-                </View>
-              </View>
-              <View
-                style={
-                  {
-                    "alignItems": "center",
-                    "aspectRatio": 1,
-                    "bottom": 0,
-                    "height": 0,
-                    "justifyContent": "center",
-                    "position": "absolute",
-                    "right": 0,
-                    "transform": [
-                      {
-                        "translateX": 0,
-                      },
-                      {
-                        "translateY": 0,
-                      },
-                    ],
-                  }
-                }
-              >
-                <View
-                  onLayout={[Function]}
-                  style={
-                    {
-                      "alignItems": "center",
-                      "aspectRatio": 1,
-                      "height": "50%",
-                      "justifyContent": "center",
-                      "maxHeight": 24,
-                      "minHeight": 8,
-                      "opacity": 0,
-                    }
-                  }
-                  testID="badgenetwork"
-                >
-                  <View
-                    style={
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "#ffffff",
-                        "borderColor": "#ffffff",
-                        "borderRadius": 8,
-                        "borderWidth": 2,
-                        "height": 32,
-                        "justifyContent": "center",
-                        "overflow": "hidden",
-                        "shadowColor": "#0000001a",
-                        "shadowOffset": {
-                          "height": 2,
-                          "width": 0,
-                        },
-                        "shadowOpacity": 1,
-                        "shadowRadius": 4,
-                        "transform": [
-                          {
-                            "scale": 1,
-                          },
-                        ],
-                        "width": 32,
-                      }
-                    }
-                  >
-                    <Image
-                      onError={[Function]}
-                      resizeMode="contain"
-                      source={1}
-                      style={
-                        {
-                          "height": 32,
-                          "width": 32,
-                        }
-                      }
-                      testID="network-avatar-image"
-                    />
-                  </View>
-                </View>
-              </View>
             </View>
           </View>
           <Text
@@ -2057,7 +1815,22 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
           >
             0.05
              
-            USDC
+            ETH
+          </Text>
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Regular",
+                "fontSize": 14,
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "textAlign": "center",
+              }
+            }
+          >
+            Your deposit of 100 USD was successful!
           </Text>
         </View>
         <View
@@ -2101,7 +1874,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
               style={
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#f3f5f9",
                   "borderRadius": 36,
                   "flexDirection": "row",
                   "gap": 4,
@@ -2181,7 +1954,7 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
                   }
                 }
               >
-                Ethereum Mainnet
+                Ethereum Main Network
               </Text>
             </View>
           </View>
@@ -2334,10 +2107,49 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
                 }
               }
             >
-              $100.00
+              $102.50
             </Text>
           </View>
         </View>
+        <TouchableOpacity
+          onPress={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "flexDirection": "row",
+              "gap": 8,
+              "justifyContent": "center",
+            }
+          }
+        >
+          <Text
+            accessibilityRole="text"
+            style={
+              {
+                "color": "#4459ff",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
+            }
+          >
+            View order details in Transak
+          </Text>
+          <SvgMock
+            color="#4459ff"
+            fill="currentColor"
+            height={16}
+            name="Export"
+            style={
+              {
+                "height": 16,
+                "width": 16,
+              }
+            }
+            width={16}
+          />
+        </TouchableOpacity>
       </View>
     </View>
     <View>
@@ -2378,13 +2190,12 @@ exports[`OrderProcessing Component renders success state correctly 1`] = `
                 {
                   "alignItems": "center",
                   "alignSelf": "flex-start",
-                  "backgroundColor": "#121314",
+                  "backgroundColor": "#4459ff",
                   "borderRadius": 12,
                   "flex": 1,
                   "flexDirection": "row",
                   "height": 48,
                   "justifyContent": "center",
-                  "overflow": "hidden",
                   "paddingHorizontal": 16,
                 }
               }

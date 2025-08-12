@@ -1,7 +1,4 @@
-import {
-  AccountId,
-  AccountsControllerState,
-} from '@metamask/accounts-controller';
+import { AccountId, AccountsControllerState } from '@metamask/accounts-controller';
 import { captureException } from '@sentry/react-native';
 import { createSelector } from 'reselect';
 import { RootState } from '../reducers';
@@ -17,6 +14,11 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   getFormattedAddressFromInternalAccount,
   isSolanaAccount,
+  isBtcAccount,
+  isBtcMainnetAddress,
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  isBtcTestnetAddress,
+  ///: END:ONLY_INCLUDE_IF
 } from '../core/Multichain/utils';
 import { CaipAccountId, parseCaipChainId } from '@metamask/utils';
 import { areAddressesEqual, toFormattedAddress } from '../util/address';
@@ -38,8 +40,7 @@ const selectAccountsControllerState = (state: RootState) =>
  */
 export const selectInternalAccountsById = createDeepEqualSelector(
   selectAccountsControllerState,
-  (accountControllerState): Record<AccountId, InternalAccount> =>
-    accountControllerState.internalAccounts.accounts,
+  (accountControllerState): Record<AccountId, InternalAccount> => accountControllerState.internalAccounts.accounts,
 );
 
 /**
@@ -231,7 +232,29 @@ export const selectHasCreatedSolanaMainnetAccount = createSelector(
   (accounts) => accounts.some((account) => isSolanaAccount(account)),
 );
 
+/**
+ * A selector that returns whether the user has already created a Bitcoin mainnet account
+ */
+export const selectHasCreatedBtcMainnetAccount = createSelector(
+  selectInternalAccounts,
+  (accounts) =>
+    accounts.some(
+      (account) =>
+        isBtcAccount(account) && isBtcMainnetAddress(account.address),
+    ),
+);
+
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+
+/**
+ * A selector that returns whether the user has already created a Bitcoin testnet account
+ */
+export function hasCreatedBtcTestnetAccount(state: RootState): boolean {
+  const accounts = selectInternalAccounts(state);
+  return accounts.some(
+    (account) => isBtcAccount(account) && isBtcTestnetAddress(account.address),
+  );
+}
 
 /**
  * A selector that returns the solana account address

@@ -1,12 +1,11 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
 import renderWithProvider from '../../../../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../../../../reducers';
 import { mockTransaction } from '../../../../../../../util/test/confirm-data-helpers';
 import { EIP7702NetworkConfiguration } from '../../../../hooks/7702/useEIP7702Networks';
-import Routes from '../../../../../../../constants/navigation/Routes';
 import AccountNetworkRow from './account-network-row';
 
 const MOCK_NETWORK = {
@@ -206,6 +205,27 @@ describe('Account Network Row', () => {
       expect(mockDowngradeAccount).not.toHaveBeenCalled();
     });
 
+    it('navigates correctly after switch action', async () => {
+      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
+      const { getByTestId } = renderWithProvider(
+        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
+        { state: MOCK_STATE },
+      );
+
+      const switchComponent = getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH);
+      fireEvent(switchComponent, 'onValueChange', false);
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith('WalletTabHome', {
+          screen: 'WalletTabStackFlow',
+          params: {
+            screen: 'WalletView',
+          },
+        });
+        expect(mockNavigate).toHaveBeenCalledWith('ConfirmationRequestModal');
+      });
+    });
+
     it('disables switch when there are pending requests', () => {
       mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
       mockUseBatchAuthorizationRequests.mockReturnValueOnce({
@@ -265,23 +285,6 @@ describe('Account Network Row', () => {
       fireEvent.press(getByText('Switch back'));
 
       expect(mockDowngradeAccount).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not close account modal when useMultichainAccountsDesign is true', () => {
-      mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
-      const { getByTestId } = renderWithProvider(
-        <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,
-        { state: MOCK_STATE },
-      );
-
-      fireEvent.press(getByTestId(SmartAccountIds.SMART_ACCOUNT_SWITCH));
-
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
     });
   });
 });

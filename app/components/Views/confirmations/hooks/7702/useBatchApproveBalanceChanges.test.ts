@@ -30,7 +30,6 @@ jest.mock('../../../../../core/Engine', () => ({
 const mockApprovalRow = [
   {
     amount: new BigNumber('-0.00001'),
-    approveMethod: undefined,
     asset: {
       address: '0x6b175474e89094c44da98b954eedeac495271d0f',
       chainId: '0x1',
@@ -44,7 +43,6 @@ const mockApprovalRow = [
     isUnlimitedApproval: false,
     nestedTransactionIndex: -1,
     tokenSymbol: 'DAI',
-    usdAmount: null,
   },
 ];
 
@@ -89,7 +87,6 @@ describe('useBatchApproveBalanceChanges', () => {
           fiatAmount: null,
           balance: new BigNumber(100),
           tokenSymbol: 'DAI',
-          usdAmount: null,
         },
       ],
     });

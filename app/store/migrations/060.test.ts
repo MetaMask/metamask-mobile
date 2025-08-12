@@ -1,9 +1,7 @@
 import migrate, { DEFAULT_NOTIFICATION_SERVICES_CONTROLLER } from './060';
 import { merge } from 'lodash';
 import { captureException } from '@sentry/react-native';
-import initialRootState, {
-  backgroundState,
-} from '../../util/test/initial-root-state';
+import initialRootState, { backgroundState } from '../../util/test/initial-root-state';
 import mockedEngine from '../../core/__mocks__/MockedEngine';
 
 jest.mock('@sentry/react-native', () => ({
@@ -68,12 +66,11 @@ describe('Migration #60 - Insert NotificationServicesController if missing', () 
     };
 
     const expectedState = {
-      ...initialRootState,
+        ...initialRootState,
       engine: {
         backgroundState: {
-          ...backgroundState,
-          NotificationServicesController:
-            DEFAULT_NOTIFICATION_SERVICES_CONTROLLER,
+            ...backgroundState,
+            NotificationServicesController: DEFAULT_NOTIFICATION_SERVICES_CONTROLLER
         },
       },
     };

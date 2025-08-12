@@ -1,19 +1,22 @@
 import { SMART_CONTRACTS } from '../../../../../app/util/test/smart-contracts';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
+import TestHelpers from '../../../../helpers';
 import { loginToApp } from '../../../../viewHelper';
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
 import { mockEvents } from '../../../../api-mocking/mock-config/mock-events.js';
-import Assertions from '../../../../framework/Assertions';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
+import Assertions from '../../../../utils/Assertions';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../../../fixtures/fixture-helper';
+import { buildPermissions } from '../../../../fixtures/utils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
 import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
-import { DappVariants } from '../../../../framework/Constants';
 
 describe(
   SmokeConfirmationsRedesigned('Token Approve - setApprovalForAll method'),
@@ -29,14 +32,14 @@ describe(
       ],
     };
 
+    beforeAll(async () => {
+      await TestHelpers.reverseServerPort();
+    });
+
     it('creates an approve transaction confirmation for given ERC721 and submits it', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.TEST_DAPP,
-            },
-          ],
+          dapp: true,
           fixture: new FixtureBuilder()
             .withGanacheNetwork()
             .withPermissionControllerConnectedToTestDapp(
@@ -44,11 +47,14 @@ describe(
             )
             .build(),
           restartDevice: true,
+          ganacheOptions: defaultGanacheOptions,
           testSpecificMock,
-          smartContracts: [ERC_721_CONTRACT],
+          smartContract: ERC_721_CONTRACT,
         },
-        async ({ contractRegistry }) => {
-          const erc721Address = await contractRegistry?.getContractAddress(
+        // Remove any once withFixtures is typed
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        async ({ contractRegistry }: { contractRegistry: any }) => {
+          const erc721Address = await contractRegistry.getContractAddress(
             ERC_721_CONTRACT,
           );
 
@@ -62,25 +68,19 @@ describe(
           await TestDApp.tapNFTSetApprovalForAllButton();
 
           // Check confirmation modal is visible
-          await Assertions.expectElementToBeVisible(
+          await Assertions.checkIfVisible(
             ConfirmationUITypes.ModalConfirmationContainer,
           );
 
           // Check all expected row components are visible
-          await Assertions.expectElementToBeVisible(
-            RowComponents.AccountNetwork,
-          );
-          await Assertions.expectElementToBeVisible(RowComponents.ApproveRow);
-          await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
-          await Assertions.expectElementToBeVisible(
-            RowComponents.GasFeesDetails,
-          );
-          await Assertions.expectElementToBeVisible(
-            RowComponents.AdvancedDetails,
-          );
+          await Assertions.checkIfVisible(RowComponents.AccountNetwork);
+          await Assertions.checkIfVisible(RowComponents.ApproveRow);
+          await Assertions.checkIfVisible(RowComponents.OriginInfo);
+          await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
+          await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
 
           // Check spending cap is visible and has the correct value
-          await Assertions.expectElementToHaveText(
+          await Assertions.checkIfElementToHaveText(
             TokenApproveConfirmation.SpendingCapValue,
             'All',
           );
@@ -90,8 +90,8 @@ describe(
 
           // Check activity tab
           await TabBarComponent.tapActivity();
-          await Assertions.expectTextDisplayed('Set Approval For All');
-          await Assertions.expectTextDisplayed('Confirmed');
+          await Assertions.checkIfTextIsDisplayed('Set Approval For All');
+          await Assertions.checkIfTextIsDisplayed('Confirmed');
         },
       );
     });
@@ -99,11 +99,7 @@ describe(
     it('creates an approve transaction confirmation for given ERC1155 and submits it', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.TEST_DAPP,
-            },
-          ],
+          dapp: true,
           fixture: new FixtureBuilder()
             .withGanacheNetwork()
             .withPermissionControllerConnectedToTestDapp(
@@ -111,11 +107,14 @@ describe(
             )
             .build(),
           restartDevice: true,
+          ganacheOptions: defaultGanacheOptions,
           testSpecificMock,
-          smartContracts: [ERC_1155_CONTRACT],
+          smartContract: ERC_1155_CONTRACT,
         },
-        async ({ contractRegistry }) => {
-          const erc1155Address = await contractRegistry?.getContractAddress(
+        // Remove any once withFixtures is typed
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        async ({ contractRegistry }: { contractRegistry: any }) => {
+          const erc1155Address = await contractRegistry.getContractAddress(
             ERC_1155_CONTRACT,
           );
 
@@ -129,12 +128,12 @@ describe(
           await TestDApp.tapERC1155SetApprovalForAllButton();
 
           // Check confirmation modal is visible
-          await Assertions.expectElementToBeVisible(
+          await Assertions.checkIfVisible(
             ConfirmationUITypes.ModalConfirmationContainer,
           );
 
           // Check spending cap is visible and has the correct value
-          await Assertions.expectElementToHaveText(
+          await Assertions.checkIfElementToHaveText(
             TokenApproveConfirmation.SpendingCapValue,
             'All',
           );
@@ -144,8 +143,8 @@ describe(
 
           // Check activity tab
           await TabBarComponent.tapActivity();
-          await Assertions.expectTextDisplayed('Set Approval For All');
-          await Assertions.expectTextDisplayed('Confirmed');
+          await Assertions.checkIfTextIsDisplayed('Set Approval For All');
+          await Assertions.checkIfTextIsDisplayed('Confirmed');
         },
       );
     });
@@ -154,11 +153,7 @@ describe(
       it('creates an approve transaction confirmation for ERC 721 and submits it', async () => {
         await withFixtures(
           {
-            dapps: [
-              {
-                dappVariant: DappVariants.TEST_DAPP,
-              },
-            ],
+            dapp: true,
             fixture: new FixtureBuilder()
               .withGanacheNetwork()
               .withPermissionControllerConnectedToTestDapp(
@@ -166,11 +161,14 @@ describe(
               )
               .build(),
             restartDevice: true,
+            ganacheOptions: defaultGanacheOptions,
             testSpecificMock,
-            smartContracts: [ERC_721_CONTRACT],
+            smartContract: ERC_721_CONTRACT,
           },
-          async ({ contractRegistry }) => {
-            const erc721Address = await contractRegistry?.getContractAddress(
+          // Remove any once withFixtures is typed
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          async ({ contractRegistry }: { contractRegistry: any }) => {
+            const erc721Address = await contractRegistry.getContractAddress(
               ERC_721_CONTRACT,
             );
 
@@ -184,13 +182,13 @@ describe(
             await TestDApp.tapERC721RevokeApprovalButton();
 
             // Check confirmation modal is visible
-            await Assertions.expectElementToBeVisible(
+            await Assertions.checkIfVisible(
               ConfirmationUITypes.ModalConfirmationContainer,
             );
 
             // Check spending cap is visible and has the correct value
             // All means, all token permissions revoked
-            await Assertions.expectElementToHaveText(
+            await Assertions.checkIfElementToHaveText(
               TokenApproveConfirmation.SpendingCapValue,
               'All',
             );
@@ -200,8 +198,8 @@ describe(
 
             // Check activity tab
             await TabBarComponent.tapActivity();
-            await Assertions.expectTextDisplayed('Set Approval For All');
-            await Assertions.expectTextDisplayed('Confirmed');
+            await Assertions.checkIfTextIsDisplayed('Set Approval For All');
+            await Assertions.checkIfTextIsDisplayed('Confirmed');
           },
         );
       });

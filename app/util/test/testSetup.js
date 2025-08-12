@@ -5,13 +5,9 @@ import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
-import base64js from 'base64-js';
+import '@shopify/flash-list/jestSetup';
 
 Enzyme.configure({ adapter: new Adapter() });
-
-// Set up global polyfills for base64 functions
-global.base64FromArrayBuffer = base64js.fromByteArray;
-global.base64ToArrayBuffer = base64js.toByteArray;
 
 // Mock the redux-devtools-expo-dev-plugin module
 jest.mock('redux-devtools-expo-dev-plugin', () => {});

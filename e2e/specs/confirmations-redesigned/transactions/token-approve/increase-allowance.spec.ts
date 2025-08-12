@@ -1,19 +1,22 @@
 import { SMART_CONTRACTS } from '../../../../../app/util/test/smart-contracts';
 import { SmokeConfirmationsRedesigned } from '../../../../tags';
+import TestHelpers from '../../../../helpers';
 import { loginToApp } from '../../../../viewHelper';
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../../pages/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../../pages/Browser/Confirmations/FooterActions';
 import { mockEvents } from '../../../../api-mocking/mock-config/mock-events.js';
-import Assertions from '../../../../framework/Assertions';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../../framework/fixtures/FixtureUtils';
+import Assertions from '../../../../utils/Assertions';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../../../fixtures/fixture-helper';
+import { buildPermissions } from '../../../../fixtures/utils';
 import RowComponents from '../../../../pages/Browser/Confirmations/RowComponents';
 import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApproveConfirmation';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
-import { DappVariants } from '../../../../framework/Constants';
 
 describe(
   SmokeConfirmationsRedesigned('Token Approve - increaseAllowance method'),
@@ -28,14 +31,14 @@ describe(
       ],
     };
 
+    beforeAll(async () => {
+      await TestHelpers.reverseServerPort();
+    });
+
     it('creates an approve transaction confirmation for given ERC 20, changes the spending cap and submits it', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.TEST_DAPP,
-            },
-          ],
+          dapp: true,
           fixture: new FixtureBuilder()
             .withGanacheNetwork()
             .withPermissionControllerConnectedToTestDapp(
@@ -43,11 +46,14 @@ describe(
             )
             .build(),
           restartDevice: true,
+          ganacheOptions: defaultGanacheOptions,
           testSpecificMock,
-          smartContracts: [ERC_20_CONTRACT],
+          smartContract: ERC_20_CONTRACT,
         },
-        async ({ contractRegistry }) => {
-          const erc20Address = await contractRegistry?.getContractAddress(
+        // Remove any once withFixtures is typed
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        async ({ contractRegistry }: { contractRegistry: any }) => {
+          const erc20Address = await contractRegistry.getContractAddress(
             ERC_20_CONTRACT,
           );
 
@@ -61,25 +67,19 @@ describe(
           await TestDApp.tapIncreaseAllowanceButton();
 
           // Check confirmation modal is visible
-          await Assertions.expectElementToBeVisible(
+          await Assertions.checkIfVisible(
             ConfirmationUITypes.ModalConfirmationContainer,
           );
 
           // Check all expected row components are visible
-          await Assertions.expectElementToBeVisible(
-            RowComponents.AccountNetwork,
-          );
-          await Assertions.expectElementToBeVisible(RowComponents.ApproveRow);
-          await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
-          await Assertions.expectElementToBeVisible(
-            RowComponents.GasFeesDetails,
-          );
-          await Assertions.expectElementToBeVisible(
-            RowComponents.AdvancedDetails,
-          );
+          await Assertions.checkIfVisible(RowComponents.AccountNetwork);
+          await Assertions.checkIfVisible(RowComponents.ApproveRow);
+          await Assertions.checkIfVisible(RowComponents.OriginInfo);
+          await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
+          await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
 
           // Check spending cap is visible and has the correct value
-          await Assertions.expectElementToHaveText(
+          await Assertions.checkIfElementToHaveText(
             TokenApproveConfirmation.SpendingCapValue,
             '1',
           );
@@ -88,7 +88,7 @@ describe(
           await TokenApproveConfirmation.tapEditSpendingCapButton();
           await TokenApproveConfirmation.inputSpendingCap('5');
           await TokenApproveConfirmation.tapEditSpendingCapSaveButton();
-          await Assertions.expectElementToHaveText(
+          await Assertions.checkIfElementToHaveText(
             TokenApproveConfirmation.SpendingCapValue,
             '5',
           );
@@ -98,8 +98,8 @@ describe(
 
           // Check activity tab
           await TabBarComponent.tapActivity();
-          await Assertions.expectTextDisplayed('Increase Allowance');
-          await Assertions.expectTextDisplayed('Confirmed');
+          await Assertions.checkIfTextIsDisplayed('Increase Allowance');
+          await Assertions.checkIfTextIsDisplayed('Confirmed');
         },
       );
     });

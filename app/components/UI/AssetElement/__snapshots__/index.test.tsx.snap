@@ -7,10 +7,11 @@ exports[`AssetElement should render correctly 1`] = `
   onPress={[Function]}
   style={
     {
-      "alignItems": "center",
+      "alignItems": "flex-start",
       "flex": 1,
       "flexDirection": "row",
-      "height": 64,
+      "paddingHorizontal": 15,
+      "paddingVertical": 14,
     }
   }
   testID="asset-DAI"
@@ -19,6 +20,7 @@ exports[`AssetElement should render correctly 1`] = `
     style={
       {
         "alignItems": "flex-end",
+        "alignSelf": "flex-end",
         "flexShrink": 0,
       }
     }

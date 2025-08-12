@@ -51,7 +51,7 @@ const AccountPermissionsConnected = ({
 
   const switchActiveAccount = useCallback(
     (caipAccountId: CaipAccountId) => {
-      const { address } = parseCaipAccountId(caipAccountId);
+      const {address} = parseCaipAccountId(caipAccountId);
       Engine.setSelectedAddress(address);
       onDismissSheet();
       const activeAccountName = getAccountNameWithENS({

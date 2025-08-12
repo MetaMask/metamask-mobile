@@ -26,21 +26,12 @@ export const handleSendMessage = async ({
     let method = connection.rpcQueueManager.getId(msgId);
     const anonId = connection.originatorInfo?.anonId;
 
-    if (
-      isAnalyticsTrackedRpcMethod(method) &&
-      msgId &&
-      msgId !== 'undefined' &&
-      anonId
-    ) {
+    if (isAnalyticsTrackedRpcMethod(method) && msgId && msgId !== 'undefined' && anonId) {
       if (msg?.data?.error) {
-        DevLogger.log(
-          `[MM SDK Analytics] event=wallet_action_user_rejected anonId=${anonId}`,
-        );
+        DevLogger.log(`[MM SDK Analytics] event=wallet_action_user_rejected anonId=${anonId}`);
         analytics.track('wallet_action_user_rejected', { anon_id: anonId });
       } else {
-        DevLogger.log(
-          `[MM SDK Analytics] event=wallet_action_user_approved anonId=${anonId}`,
-        );
+        DevLogger.log(`[MM SDK Analytics] event=wallet_action_user_approved anonId=${anonId}`);
         analytics.track('wallet_action_user_approved', { anon_id: anonId });
       }
     }

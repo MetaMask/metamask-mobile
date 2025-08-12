@@ -16,12 +16,8 @@ describe('Cell', () => {
       <Cell variant={CellVariant.Display} {...SAMPLE_CELL_PROPS} />,
     );
     expect(wrapper).toMatchSnapshot();
-    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.DISPLAY)).not.toBe(
-      null,
-    );
-    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBe(
-      null,
-    );
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.DISPLAY)).not.toBe(null);
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBe(null);
     expect(wrapper.queryByTestId(CellComponentSelectorsIDs.SELECT)).toBe(null);
   });
   it('should render CellMultiSelect given the type MultiSelect', () => {
@@ -30,9 +26,9 @@ describe('Cell', () => {
     );
     expect(wrapper).toMatchSnapshot();
     expect(wrapper.queryByTestId(CellComponentSelectorsIDs.DISPLAY)).toBe(null);
-    expect(
-      wrapper.queryByTestId(CellComponentSelectorsIDs.MULTISELECT),
-    ).not.toBe(null);
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).not.toBe(
+      null,
+    );
     expect(wrapper.queryByTestId(CellComponentSelectorsIDs.SELECT)).toBe(null);
   });
   it('should render CellSelect given the type Select', () => {
@@ -41,11 +37,7 @@ describe('Cell', () => {
     );
     expect(wrapper).toMatchSnapshot();
     expect(wrapper.queryByTestId(CellComponentSelectorsIDs.DISPLAY)).toBe(null);
-    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBe(
-      null,
-    );
-    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.SELECT)).not.toBe(
-      null,
-    );
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.MULTISELECT)).toBe(null);
+    expect(wrapper.queryByTestId(CellComponentSelectorsIDs.SELECT)).not.toBe(null);
   });
 });

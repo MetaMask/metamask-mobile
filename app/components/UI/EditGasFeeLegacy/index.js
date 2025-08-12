@@ -404,7 +404,9 @@ const EditGasFeeLegacy = ({
                     </Text>
                     <Text noMargin link bold style={styles.advancedOptionsIcon}>
                       <Icon
-                        name={`arrow-${showAdvancedOptions ? 'up' : 'down'}`}
+                        name={`arrow-${
+                          showAdvancedOptions ? 'up' : 'down'
+                        }`}
                       />
                     </Text>
                   </TouchableOpacity>

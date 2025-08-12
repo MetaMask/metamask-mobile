@@ -1,5 +1,6 @@
+'use strict';
 import { SmokeWalletPlatform } from '../../tags';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../utils/Assertions';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
 import EditAccountName from '../../pages/MultichainAccounts/EditAccountName';
 import ShareAddress from '../../pages/MultichainAccounts/ShareAddress';
@@ -12,7 +13,7 @@ import TestHelpers from '../../helpers';
 
 const checkAddress = async (expectedAddress: string) => {
   await AccountDetails.tapShareAddress();
-  await Assertions.expectTextDisplayed(expectedAddress);
+  await Assertions.checkIfTextIsDisplayed(expectedAddress);
   await ShareAddress.tapCopyButton();
 };
 
@@ -20,7 +21,7 @@ const editName = async (newName: string) => {
   await AccountDetails.tapEditAccountName();
   await EditAccountName.updateAccountName(newName);
   await EditAccountName.tapSave();
-  await Assertions.expectTextDisplayed(newName);
+  await Assertions.checkIfTextIsDisplayed(newName);
 };
 
 describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {

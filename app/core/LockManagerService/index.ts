@@ -7,11 +7,7 @@ import SecureKeychain from '../SecureKeychain';
 import BackgroundTimer from 'react-native-background-timer';
 import Engine from '../Engine';
 import Logger from '../../util/Logger';
-import {
-  lockApp,
-  interruptBiometrics,
-  checkForDeeplink,
-} from '../../actions/user';
+import { lockApp, interruptBiometrics } from '../../actions/user';
 import ReduxService from '../redux';
 
 export class LockManagerService {
@@ -51,10 +47,6 @@ export class LockManagerService {
         nextAppState === 'inactive' || // Ignore inactive state.
         (this.#appState === 'inactive' && nextAppState === 'active') // Ignore going from inactive -> active state.
       ) {
-        // Lets other services know that the lock manager app state event is resolved while active
-        if (nextAppState === 'active') {
-          ReduxService.store.dispatch(checkForDeeplink());
-        }
         this.#appState = nextAppState;
         return;
       }

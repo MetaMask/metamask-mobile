@@ -14,14 +14,10 @@ const METRICS_ASSET_TYPES = {
 
 export const useTransferAssetType = () => {
   const transactionMetadata = useTransactionMetadataRequest();
-  const { value: details } = useAsyncResult(
-    async () =>
-      await memoizedGetTokenStandardAndDetails({
-        tokenAddress: transactionMetadata?.txParams?.to,
-        networkClientId: transactionMetadata?.networkClientId,
-      }),
-    [transactionMetadata?.txParams?.to, transactionMetadata?.networkClientId],
-  );
+  const { value: details } = useAsyncResult(async () => await memoizedGetTokenStandardAndDetails({
+      tokenAddress: transactionMetadata?.txParams?.to,
+      networkClientId: transactionMetadata?.networkClientId,
+    }), [transactionMetadata?.txParams?.to, transactionMetadata?.networkClientId]);
 
   const [assetType, setAssetType] = useState(METRICS_ASSET_TYPES.unknown);
 
@@ -39,10 +35,9 @@ export const useTransferAssetType = () => {
       case TransactionType.tokenMethodTransferFrom:
       case TransactionType.tokenMethodSafeTransferFrom: {
         const standardLower = details?.standard?.toLowerCase();
-        const validAssetType =
-          standardLower && standardLower in METRICS_ASSET_TYPES
-            ? (standardLower as keyof typeof METRICS_ASSET_TYPES)
-            : METRICS_ASSET_TYPES.unknown;
+        const validAssetType = (standardLower && standardLower in METRICS_ASSET_TYPES)
+          ? standardLower as keyof typeof METRICS_ASSET_TYPES
+          : METRICS_ASSET_TYPES.unknown;
         setAssetType(validAssetType);
         break;
       }

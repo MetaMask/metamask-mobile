@@ -95,12 +95,6 @@ import { useMetrics } from '../../hooks/useMetrics';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { formatSeedPhraseToSingleLine } from '../../../util/string';
-import {
-  TraceName,
-  endTrace,
-  trace,
-  TraceOperation,
-} from '../../../util/trace';
 import { v4 as uuidv4 } from 'uuid';
 import SrpInput from '../SrpInput';
 
@@ -134,7 +128,6 @@ const ImportFromSecretRecoveryPhrase = ({
   }
 
   const { toastRef } = useContext(ToastContext);
-  const passwordSetupAttemptTraceCtxRef = useRef(null);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -408,16 +401,6 @@ const ImportFromSecretRecoveryPhrase = ({
     termsOfUse();
   }, [termsOfUse]);
 
-  useEffect(
-    () => () => {
-      if (passwordSetupAttemptTraceCtxRef.current) {
-        endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
-        passwordSetupAttemptTraceCtxRef.current = null;
-      }
-    },
-    [],
-  );
-
   const updateBiometryChoice = async (biometryChoice) => {
     await updateAuthTypeStorageFlags(biometryChoice);
     setBiometryChoice(biometryChoice);
@@ -527,15 +510,6 @@ const ImportFromSecretRecoveryPhrase = ({
       return;
     }
     setCurrentStep(currentStep + 1);
-    // Start the trace when moving to the password setup step
-    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-    if (onboardingTraceCtx) {
-      passwordSetupAttemptTraceCtxRef.current = trace({
-        name: TraceName.OnboardingPasswordSetupAttempt,
-        op: TraceOperation.OnboardingUserJourney,
-        parentContext: onboardingTraceCtx,
-      });
-    }
   };
 
   const isContinueButtonDisabled = useMemo(
@@ -635,9 +609,6 @@ const ImportFromSecretRecoveryPhrase = ({
             },
           ],
         });
-        endTrace({ name: TraceName.OnboardingExistingSrpImport });
-        endTrace({ name: TraceName.OnboardingJourneyOverall });
-
         if (isMetricsEnabled()) {
           navigation.dispatch(resetAction);
         } else {
@@ -664,17 +635,6 @@ const ImportFromSecretRecoveryPhrase = ({
           wallet_setup_type: 'import',
           error_type: error.toString(),
         });
-
-        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-        if (onboardingTraceCtx) {
-          trace({
-            name: TraceName.OnboardingPasswordSetupError,
-            op: TraceOperation.OnboardingUserJourney,
-            parentContext: onboardingTraceCtx,
-            tags: { errorMessage: error.toString() },
-          });
-          endTrace({ name: TraceName.OnboardingPasswordSetupError });
-        }
       }
     }
   };
@@ -763,10 +723,6 @@ const ImportFromSecretRecoveryPhrase = ({
     }
   };
 
-  const handleEnterKeyPress = (index) => {
-    handleSeedPhraseChangeAtIndex(`${seedPhrase[index]} `, index);
-  };
-
   return (
     <SafeAreaView style={styles.root}>
       <KeyboardAwareScrollView
@@ -852,9 +808,6 @@ const ImportFromSecretRecoveryPhrase = ({
                               ? handleSeedPhraseChange(text)
                               : handleSeedPhraseChangeAtIndex(text, index)
                           }
-                          onSubmitEditing={() => {
-                            handleEnterKeyPress(index);
-                          }}
                           placeholder={
                             isFirstInput
                               ? strings('import_from_seed.srp_placeholder')

@@ -64,13 +64,6 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
 
   const showSeedphraseBackReminder = useMemo(() => {
     const [primaryKeyring] = hdKeyringsWithSnapAccounts;
-
-    // This would be undefined when the app is locked
-    // The keyring controller state is cleared when the app is locked
-    if (!primaryKeyring) {
-      return false;
-    }
-
     const accountAssociatedWithPrimaryKeyring = primaryKeyring.accounts.find(
       (address) => areAddressesEqual(address, account.address),
     );
@@ -79,19 +72,18 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   }, [seedphraseBackedUp, hdKeyringsWithSnapAccounts, account]);
 
   const onExportMnemonic = useCallback(() => {
-    if (account.options.entropySource) {
-      navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-        keyringId: account.options.entropySource,
-      });
-    }
-  }, [navigate, account.options.entropySource]);
+    navigate(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_SRP_CREDENTIAL, {
+      account,
+    });
+  }, [navigate, account]);
 
   const onExportPrivateKey = useCallback(() => {
-    navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {
-      screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
-      params: { account },
-    });
+    navigate(
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.REVEAL_PRIVATE_CREDENTIAL,
+      {
+        account,
+      },
+    );
   }, [navigate, account]);
 
   return (

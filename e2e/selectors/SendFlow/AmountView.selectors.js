@@ -16,3 +16,4 @@ export const AmountViewSelectorsIDs = {
 export const AmountViewSelectorsText = {
   SCREEN_TITLE: enContent.transaction.amount,
 };
+

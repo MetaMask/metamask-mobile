@@ -57,9 +57,6 @@ import { seedlessOnboardingControllerInit } from '../controllers/seedless-onboar
 import { AccountTreeController } from '@metamask/account-tree-controller';
 import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
 import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
-import { perpsControllerInit } from '../controllers/perps-controller';
-import { multichainAccountServiceInit } from '../controllers/multichain-account-service/multichain-account-service-init';
-import { networkEnablementControllerInit } from '../controllers/network-enablement-controller/network-enablement-controller-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -141,14 +138,6 @@ describe('initModularizedControllers', () => {
     seedlessOnboardingControllerInit,
   );
   const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
-  const mockPerpsControllerInit = jest.mocked(perpsControllerInit);
-  const mockMultichainAccountServiceInit = jest.mocked(
-    multichainAccountServiceInit,
-  );
-  const mockNetworkEnablementControllerInit = jest.mocked(
-    networkEnablementControllerInit,
-  );
-
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
   ) {
@@ -171,8 +160,6 @@ describe('initModularizedControllers', () => {
           MultichainAssetsRatesController:
             mockMultichainAssetsRatesControllerInit,
           MultichainBalancesController: mockMultichainBalancesControllerInit,
-          MultichainAccountService: mockMultichainAccountServiceInit,
-          NetworkEnablementController: mockNetworkEnablementControllerInit,
           NotificationServicesController:
             mockNotificationServicesControllerInit,
           NotificationServicesPushController:
@@ -185,7 +172,6 @@ describe('initModularizedControllers', () => {
           AppMetadataController: mockAppMetadataControllerInit,
           DeFiPositionsController: mockDeFiPositionsControllerInit,
           SeedlessOnboardingController: mockSeedlessOnboardingControllerInit,
-          PerpsController: mockPerpsControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),

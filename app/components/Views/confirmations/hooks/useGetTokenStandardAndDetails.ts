@@ -42,11 +42,7 @@ export const useGetTokenStandardAndDetails = (
 
   if (!details) {
     return {
-      details: {
-        decimalsNumber: undefined,
-        standard: undefined,
-        symbol: undefined,
-      },
+      details: { decimalsNumber: undefined, standard: undefined },
       isPending: isPendingRef.current,
     };
   }

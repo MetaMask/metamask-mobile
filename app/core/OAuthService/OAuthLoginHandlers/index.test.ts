@@ -16,6 +16,7 @@ jest.mock('./constants', () => ({
   AppRedirectUri: 'https://app.example.com',
   IosGID: 'mock-ios-google-client-id',
   IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
+  IosAppleClientId: 'mock-ios-apple-client-id',
   AndroidGoogleWebGID: 'mock-android-google-client-id',
   AppleWebClientId: 'mock-android-apple-client-id',
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
@@ -209,8 +210,9 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(
-            OAuthErrorType.AppleLoginError,
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
+          expect((error as OAuthError).message).toContain(
+            'Unknown error - Error: Network error',
           );
         }
       });
@@ -223,8 +225,9 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(
-            OAuthErrorType.AppleLoginError,
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
+          expect((error as OAuthError).message).toContain(
+            'Unknown error - handleIosAppleLogin: Unknown error',
           );
         }
       });
@@ -292,8 +295,9 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(
-            OAuthErrorType.GoogleLoginError,
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
+          expect((error as OAuthError).message).toContain(
+            'Unknown error - handleIosGoogleLogin: Unknown error',
           );
         }
       });
@@ -377,8 +381,9 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(
-            OAuthErrorType.AppleLoginError,
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
+          expect((error as OAuthError).message).toContain(
+            'Unknown error - handleAndroidAppleLogin: Unknown error',
           );
         }
       });
@@ -393,8 +398,9 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(
-            OAuthErrorType.AppleLoginError,
+          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
+          expect((error as OAuthError).message).toContain(
+            'Unknown error - handleAndroidAppleLogin: Unknown error',
           );
         }
       });

@@ -65,7 +65,7 @@ export const container: UIComponentFactory<BoxElement> = ({
     },
   };
 
-  const scrollView = {
+  const scrollView =  {
     element: 'ScrollView',
     key: 'default-scrollview',
     children: {
@@ -82,7 +82,10 @@ export const container: UIComponentFactory<BoxElement> = ({
 
   return {
     element: 'Box',
-    children: [scrollView, ...(footer ? [footer] : [])],
+    children: [
+      scrollView,
+      ...(footer ? [footer] : []),
+    ],
     props: {
       style: {
         flexGrow: 1,

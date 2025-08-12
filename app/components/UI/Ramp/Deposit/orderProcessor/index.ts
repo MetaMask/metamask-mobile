@@ -1,13 +1,12 @@
 import { DepositOrder, OrderStatusEnum } from '@consensys/native-ramps-sdk';
 import { ProcessorOptions } from '../..';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
-
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../constants/on-ramp';
 import transakNetworkToChainId from '../utils/transakNetworkToChainId';
-import { DepositSDKNoAuth } from '../sdk';
+import { DepositSDKOrders } from '../sdk';
 import Logger from '../../../../../util/Logger';
 
 const depositOrderStateToFiatOrderState = (
@@ -61,7 +60,7 @@ export async function processDepositOrder(
   options?: ProcessorOptions,
 ): Promise<FiatOrder> {
   try {
-    const sdk = options?.sdk || DepositSDKNoAuth;
+    const sdk = options?.sdk || DepositSDKOrders;
 
     const updatedOrder = await sdk.getOrder(order.id, order.account);
     if (!updatedOrder) {

@@ -35,12 +35,9 @@ describe('InfoSectionOriginAndDetails', () => {
   });
 
   it('does not render Spender if it is not a Permit', () => {
-    const { queryByText } = renderWithProvider(
-      <InfoSectionOriginAndDetails />,
-      {
-        state: typedSignV3ConfirmationState,
-      },
-    );
+    const { queryByText } = renderWithProvider(<InfoSectionOriginAndDetails />, {
+      state: typedSignV3ConfirmationState,
+    });
 
     expect(queryByText('Spender')).toBeNull();
   });

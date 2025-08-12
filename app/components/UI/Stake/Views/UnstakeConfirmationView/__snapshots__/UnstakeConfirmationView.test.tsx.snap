@@ -162,7 +162,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
                   }
                 >
                   <SvgMock
-                    color="#b7bbc8"
+                    color="#9ca1af"
                     fill="currentColor"
                     height={16}
                     name="Question"
@@ -652,8 +652,8 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "transparent",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexBasis": 0,
@@ -662,7 +662,6 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
             "flexShrink": 0,
             "height": 48,
             "justifyContent": "center",
-            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -696,7 +695,7 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#4459ff",
             "borderRadius": 12,
             "flexBasis": 0,
             "flexDirection": "row",
@@ -704,7 +703,6 @@ exports[`UnstakeConfirmationView render matches snapshot 1`] = `
             "flexShrink": 0,
             "height": 48,
             "justifyContent": "center",
-            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }

@@ -1,5 +1,6 @@
 import bookmarksReducer from './bookmarks';
 import browserReducer from './browser';
+import confirmationReducer, { ConfirmationState } from './confirmation';
 import engineReducer from '../core/redux/slices/engine';
 import privacyReducer from './privacy';
 import modalsReducer from './modals';
@@ -34,7 +35,6 @@ import bridgeReducer from '../core/redux/slices/bridge';
 import performanceReducer, {
   PerformanceState,
 } from '../core/redux/slices/performance';
-import cardReducer from '../core/redux/slices/card';
 import { isTest } from '../util/test/utils';
 
 /**
@@ -68,6 +68,7 @@ export interface RootState {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   bookmarks: any;
+  confirmation: ConfirmationState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   browser: any;
@@ -124,13 +125,13 @@ export interface RootState {
   notifications: StateFromReducer<typeof notificationsAccountsProvider>;
   bridge: StateFromReducer<typeof bridgeReducer>;
   banners: BannersState;
-  card: StateFromReducer<typeof cardReducer>;
   performance?: PerformanceState;
 }
 
 const baseReducers = {
   legalNotices: legalNoticesReducer,
   collectibles: collectiblesReducer,
+  confirmation: confirmationReducer,
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   engine: engineReducer as any,
@@ -161,7 +162,6 @@ const baseReducers = {
   notifications: notificationsAccountsProvider,
   bridge: bridgeReducer,
   banners: bannersReducer,
-  card: cardReducer,
   confirmationMetrics: confirmationMetricsReducer,
 };
 

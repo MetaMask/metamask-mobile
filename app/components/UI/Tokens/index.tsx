@@ -49,6 +49,7 @@ const Tokens = memo(() => {
   const actionSheet = useRef<typeof ActionSheet>();
   const [tokenToRemove, setTokenToRemove] = useState<TokenI>();
   const [refreshing, setRefreshing] = useState(false);
+  const [isAddTokenEnabled, setIsAddTokenEnabled] = useState(true);
   const selectedAccountId = useSelector(selectSelectedInternalAccountId);
 
   const [showScamWarningModal, setShowScamWarningModal] = useState(false);
@@ -110,6 +111,7 @@ const Tokens = memo(() => {
     // add token currently only support on evm
     if (isEvmSelected) {
       goToAddEvmToken({
+        setIsAddTokenEnabled,
         navigation,
         trackEvent,
         createEventBuilder,
@@ -149,8 +151,10 @@ const Tokens = memo(() => {
         <TokenList
           tokenKeys={sortedTokenKeys}
           refreshing={refreshing}
+          isAddTokenEnabled={isAddTokenEnabled}
           onRefresh={onRefresh}
           showRemoveMenu={showRemoveMenu}
+          goToAddToken={goToAddToken}
           setShowScamWarningModal={handleScamWarningModal}
         />
       )}

@@ -3,10 +3,7 @@ import { StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 import { fontStyles } from '../../../../../../styles/common';
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: { isCompact: boolean | undefined };
-}) => {
+const styleSheet = (params: { theme: Theme, vars: { isCompact: boolean | undefined } }) => {
   const { theme, vars } = params;
   const { isCompact } = vars;
 

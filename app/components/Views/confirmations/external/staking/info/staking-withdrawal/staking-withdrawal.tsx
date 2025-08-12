@@ -14,9 +14,6 @@ import StakingContractInteractionDetails from '../../components/staking-contract
 import { HeroRow } from '../../../../components/rows/transactions/hero-row';
 import UnstakingTimeSection from '../../components/unstaking-time/unstaking-time';
 import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row';
-import useEndTraceOnMount from '../../../../../../hooks/useEndTraceOnMount';
-import { TraceName } from '../../../../../../../util/trace';
-import { useStakingTransactionTracing } from '../../../../../../UI/Stake/hooks/useStakingTransactionTracing';
 
 const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   const amountWei = route?.params?.amountWei;
@@ -25,7 +22,7 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   useClearConfirmationOnBackSwipe();
 
   const { trackPageViewedEvent, setConfirmationMetric } =
-    useConfirmationMetricEvents();
+  useConfirmationMetricEvents();
   const { amount } = useTokenAmount({ amountWei });
 
   useEffect(() => {
@@ -42,8 +39,6 @@ const StakingWithdrawal = ({ route }: UnstakeConfirmationViewProps) => {
   }, [amount, setConfirmationMetric]);
 
   useEffect(trackPageViewedEvent, [trackPageViewedEvent]);
-  useEndTraceOnMount(TraceName.EarnWithdrawConfirmationScreen);
-  useStakingTransactionTracing();
 
   return (
     <View testID={ConfirmationInfoComponentIDs.STAKING_WITHDRAWAL}>

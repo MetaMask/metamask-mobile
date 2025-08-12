@@ -13,6 +13,19 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 24,
       gap: 8,
     },
+    infoBanner: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 8,
+      paddingVertical: 8,
+      paddingHorizontal: 16,
+      gap: 12,
+    },
+    infoBannerText: {
+      flex: 1,
+      flexWrap: 'wrap',
+    },
     detailsContainer: {
       backgroundColor: theme.colors.background.muted,
       borderRadius: 8,

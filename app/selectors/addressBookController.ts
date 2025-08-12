@@ -14,11 +14,12 @@ export const selectAddressBook = createSelector(
 );
 
 export const selectAddressBookByChain = createDeepEqualSelector(
-  [selectAddressBook, (_state: RootState, chainId: Hex) => chainId],
+  [selectAddressBook,
+  (_state: RootState, chainId: Hex) => chainId],
   (addressBook: AddressBookControllerState['addressBook'], chainId: Hex) => {
     if (!addressBook[chainId]) {
       return [];
     }
     return Object.values(addressBook[chainId]);
-  },
+  }
 );

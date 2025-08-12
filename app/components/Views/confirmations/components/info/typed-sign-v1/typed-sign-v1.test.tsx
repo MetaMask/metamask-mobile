@@ -23,7 +23,7 @@ jest.mock('../../../../../../core/Engine', () => ({
               metadata: {
                 name: 'Account 1',
                 keyring: {
-                  type: 'HD Key Tree',
+                  type: 'HD Key Tree'
                 },
               },
             },

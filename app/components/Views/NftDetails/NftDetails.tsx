@@ -50,7 +50,6 @@ import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
 import { Hex } from '@metamask/utils';
-import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
 const NftDetails = () => {
   const navigation = useNavigation();
@@ -61,7 +60,6 @@ const NftDetails = () => {
   const ticker = useSelector(selectEvmTicker);
   const { trackEvent, createEventBuilder } = useMetrics();
   const selectedNativeConversionRate = useSelector(selectConversionRate);
-  const { navigateToSendPage } = useSendNavigation();
   const hasLastSalePrice = Boolean(
     collectible.lastSale?.price?.amount?.usd &&
       collectible.lastSale?.price?.amount?.native,
@@ -187,8 +185,8 @@ const NftDetails = () => {
     dispatch(
       newAssetTransaction({ contractName: collectible.name, ...collectible }),
     );
-    navigateToSendPage(collectible);
-  }, [collectible, chainId, dispatch, navigateToSendPage]);
+    navigation.navigate('SendFlowView');
+  }, [collectible, chainId, dispatch, navigation]);
 
   const isTradable = useCallback(
     () =>

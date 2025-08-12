@@ -1,7 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useDepositSdkMethod } from './useDepositSdkMethod';
 import { NativeTransakUserDetails } from '@consensys/native-ramps-sdk';
-import { KycStatus } from '../constants';
 
 export interface UserDetailsPollingResult {
   userDetails: NativeTransakUserDetails | null;
@@ -9,6 +8,13 @@ export interface UserDetailsPollingResult {
   error: string | null;
   startPolling: () => void;
   stopPolling: () => void;
+}
+
+export enum KycStatus {
+  NOT_SUBMITTED = 'NOT_SUBMITTED',
+  SUBMITTED = 'SUBMITTED',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
 }
 
 /**

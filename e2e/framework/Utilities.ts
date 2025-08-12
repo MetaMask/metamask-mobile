@@ -1,9 +1,6 @@
-import { waitFor } from 'detox';
+/* eslint-disable no-console */
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types';
-import { createLogger } from './logger';
-// eslint-disable-next-line import/no-nodejs-modules
-import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
 
 const TEST_CONFIG_DEFAULTS = {
   timeout: 15000,
@@ -12,8 +9,6 @@ const TEST_CONFIG_DEFAULTS = {
   stabilityCheckInterval: 200,
   stabilityCheckCount: 3,
 };
-
-const logger = createLogger({ name: 'Utilities' });
 
 /**
  * Enhanced Utilities class with retry mechanisms and stability checking
@@ -36,7 +31,9 @@ export default class Utilities {
   /**
    * Check if element is enabled (non-retry version)
    */
-  static async checkElementEnabled(detoxElement: DetoxElement): Promise<void> {
+  static async checkElementEnabled(
+    detoxElement: DetoxElement,
+  ): Promise<void> {
     const el = (await detoxElement) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     if (!('enabled' in attributes) || !attributes.enabled) {
@@ -62,11 +59,14 @@ export default class Utilities {
     timeout = 3500,
     interval = 100,
   ): Promise<void> {
-    return this.executeWithRetry(() => this.checkElementEnabled(detoxElement), {
-      timeout,
-      interval,
-      description: 'Element to be enabled',
-    });
+    return this.executeWithRetry(
+      () => this.checkElementEnabled(detoxElement),
+      {
+        timeout,
+        interval,
+        description: 'Element to be enabled',
+      },
+    );
   }
 
   /**
@@ -82,9 +82,7 @@ export default class Utilities {
 
       // Check if element has proper frame/bounds
       if (!('frame' in attributes) || !attributes.frame) {
-        throw new Error(
-          '🚫 Element does not have valid frame bounds - may be obscured',
-        );
+        throw new Error('🚫 Element does not have valid frame bounds - may be obscured');
       }
 
       // Additional Android-specific checks could be added here
@@ -95,28 +93,16 @@ export default class Utilities {
         const centerY = attributes.frame.y + attributes.frame.height / 2;
 
         if (centerX <= 0 || centerY <= 0) {
-          throw new Error(
-            '🚫 Element center point is not accessible - may be obscured',
-          );
+          throw new Error('🚫 Element center point is not accessible - may be obscured');
         }
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        throw new Error(
-          `🚫 Element appears to be obscured or not tappable: ${errorMessage}`,
-        );
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        throw new Error(`🚫 Element appears to be obscured or not tappable: ${errorMessage}`);
       }
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      if (
-        errorMessage.includes('window focus') ||
-        errorMessage.includes('window-focus') ||
-        errorMessage.includes('has-window-focus=false')
-      ) {
-        logger.warn(
-          '⚠️ Skipping obscuration check - window has no focus (common in CI environments)',
-        );
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('window focus') || errorMessage.includes('window-focus') || errorMessage.includes('has-window-focus=false')) {
+        console.warn('⚠️ Skipping obscuration check - window has no focus (common in CI environments)');
         return;
       }
       throw error;
@@ -246,11 +232,10 @@ export default class Utilities {
       }
     }
 
-    if (checkEnabled && device.getPlatform() === 'android') {
-      // checkEnabled is only relevant for Android
-      // iOS elements often fail on enabled checks even when they are tappable
+    if (checkEnabled) {
       await this.checkElementEnabled(Promise.resolve(el));
     }
+
 
     if (checkStability) {
       const stabilityTimeout = timeout || 2000; // If no timeout is provided, default to 2000ms
@@ -289,61 +274,6 @@ export default class Utilities {
   }
 
   /**
-   * Wait for element to be visible and throw on failure
-   */
-  static async waitForElementToBeVisible(
-    detoxElement: DetoxElement | DetoxMatcher,
-    timeout: number = 2000,
-  ): Promise<void> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
-    const isWebElement = this.isWebElement(el);
-
-    if (isWebElement) {
-      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      await (expect(el) as any).toExist();
-    } else if (device.getPlatform() === 'ios') {
-      await waitFor(el).toExist().withTimeout(timeout);
-    } else {
-      await waitFor(el).toBeVisible().withTimeout(timeout);
-    }
-  }
-
-  /**
-   * Wait for element to be not visible and throw on failure
-   */
-  static async waitForElementToDisappear(
-    detoxElement: DetoxElement | DetoxMatcher,
-    timeout: number = 2000,
-  ): Promise<void> {
-    const el = (await detoxElement) as Detox.IndexableNativeElement;
-    const isWebElement = this.isWebElement(el);
-    if (isWebElement) {
-      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      await (expect(el) as any).not.toExist();
-    } else if (device.getPlatform() === 'ios') {
-      await waitFor(el).not.toExist().withTimeout(timeout);
-    } else {
-      await waitFor(el).not.toBeVisible().withTimeout(timeout);
-    }
-  }
-
-  /**
-   * Check if element is currently visible
-   * Returns true if element is visible, false if not visible or doesn't exist
-   */
-  static async isElementVisible(
-    detoxElement: DetoxElement | DetoxMatcher,
-    timeout: number = 2000,
-  ): Promise<boolean> {
-    try {
-      await this.waitForElementToBeVisible(detoxElement, timeout);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  /**
    * Check if an element is a WebElement
    */
   static isWebElement(el: unknown): boolean {
@@ -355,54 +285,13 @@ export default class Utilities {
     const webEl = el as any;
     return !!(
       webEl?.webViewElement ||
-      typeof webEl?.runScript === 'function' ||
-      (webEl?.constructor?.name &&
-        (webEl.constructor.name.includes('IndexableWebElement') ||
-          webEl.constructor.name.includes('SecuredWebElementFacade') ||
-          webEl.constructor.name.includes('WebElement')))
+      (typeof webEl?.runScript === 'function') ||
+      (webEl?.constructor?.name && (
+        webEl.constructor.name.includes('IndexableWebElement') ||
+        webEl.constructor.name.includes('SecuredWebElementFacade') ||
+        webEl.constructor.name.includes('WebElement')
+      ))
     );
-  }
-
-  /**
-   * Waits for a condition to be met within a given timeout period.
-   *
-   * Note: Copied directly from the extension implementation
-   *
-   * @param {() => Promise<boolean>} condition - The condition to wait for. This function must return a boolean indicating whether the condition is met.
-   * @param {object} options - Options for the wait.
-   * @param {number} options.timeout - The maximum amount of time (in milliseconds) to wait for the condition to be met.
-   * @param {number} options.interval - The interval (in milliseconds) between checks for the condition.
-   * @returns {Promise<void>} A promise that resolves when the condition is met or the timeout is reached.
-   * @throws {Error} Throws an error if the condition is not met within the timeout period.
-   */
-  static async waitUntil(
-    condition: () => Promise<boolean>,
-    { interval, timeout }: { interval: number; timeout: number },
-  ): Promise<void> {
-    const startTime = Date.now();
-    const endTime = startTime + timeout;
-
-    // Loop indefinitely until condition met or timeout
-    // eslint-disable-next-line no-constant-condition
-    while (true) {
-      const result = await condition();
-      if (result === true) {
-        return; // Condition met
-      }
-
-      const currentTime = Date.now();
-      if (currentTime >= endTime) {
-        throw new Error(`Condition not met within ${timeout}ms.`);
-      }
-
-      // Calculate remaining time to ensure we don't overshoot the timeout
-      const remainingTime = endTime - currentTime;
-      const waitTime = Math.min(interval, remainingTime);
-
-      // always yield to the event loop, even for an interval of `0`, to avoid a
-      // macro-task deadlock
-      await asyncSetTimeout(waitTime, null, { ref: false });
-    }
   }
 
   static async executeWithRetry<T>(
@@ -435,7 +324,7 @@ export default class Utilities {
             '.',
           ].join('');
 
-          logger.debug(successMessage);
+          console.log(successMessage);
         }
 
         return result;
@@ -459,8 +348,8 @@ export default class Utilities {
             `. Retrying... (timeout: ${timeout}ms)`,
           ].join('');
 
-          logger.debug(retryMessage);
-          logger.debug(`🔍 Error: ${lastError.message}`);
+          console.log(retryMessage);
+          console.log(`🔍 Error: ${lastError.message}`);
         }
 
         // eslint-disable-next-line no-restricted-syntax

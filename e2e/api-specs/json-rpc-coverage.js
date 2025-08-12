@@ -10,17 +10,18 @@ import Browser from '../pages/Browser/BrowserView';
 // eslint-disable-next-line import/no-commonjs
 const mockServer = require('@open-rpc/mock-server/build/index').default;
 import TabBarComponent from '../pages/wallet/TabBarComponent';
-import FixtureBuilder from '../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../fixtures/fixture-builder';
+import {
+  withFixtures,
+} from '../fixtures/fixture-helper';
 import { loginToApp } from '../viewHelper';
 
 import ExamplesRule from '@open-rpc/test-coverage/build/rules/examples-rule';
 import ConfirmationsRejectRule from './ConfirmationsRejectionRule';
 import { createDriverTransport } from './helpers';
 import { BrowserViewSelectorsIDs } from '../selectors/Browser/BrowserView.selectors';
-import { getGanachePort } from '../framework/fixtures/FixtureUtils';
+import { getGanachePort } from '../fixtures/utils';
 import { mockEvents } from '../api-mocking/mock-config/mock-events';
-import { DappVariants } from '../framework/Constants';
 
 const port = getGanachePort(8545, process.pid);
 const chainId = 1337;
@@ -161,13 +162,9 @@ const main = async () => {
 
   await withFixtures(
     {
-      dapps: [
-        {
-          dappVariant: DappVariants.TEST_DAPP,
-        },
-      ],
+      dapp: true,
       fixture: new FixtureBuilder().withGanacheNetwork().build(),
-      disableLocalNodes: true,
+      disableGanache: true,
       restartDevice: true,
       testSpecificMock,
     },

@@ -1,17 +1,21 @@
-import Assertions from '../../../framework/Assertions';
+'use strict';
+import Assertions from '../../../utils/Assertions.js';
 import Browser from '../../../pages/Browser/BrowserView';
 import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../fixtures/fixture-builder.js';
 import RequestTypes from '../../../pages/Browser/Confirmations/RequestTypes';
-import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent.js';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import { loginToApp } from '../../../viewHelper';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { SmokeConfirmationsRedesigned } from '../../../tags';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import TestHelpers from '../../../helpers.js';
+import { loginToApp } from '../../../viewHelper.js';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../../fixtures/fixture-helper.js';
+import { SmokeConfirmationsRedesigned } from '../../../tags.js';
+import { mockEvents } from '../../../api-mocking/mock-config/mock-events.js';
+import { buildPermissions } from '../../../fixtures/utils.js';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
-import { DappVariants } from '../../../framework/Constants';
 
 const SIGNATURE_LIST = [
   {
@@ -24,7 +28,7 @@ const SIGNATURE_LIST = [
     testDappBtn: TestDApp.tapEthereumSignButton.bind(TestDApp),
     requestType: RequestTypes.PersonalSignRequest,
     additionAssertions: async () => {
-      await Assertions.expectElementToBeVisible(
+      await Assertions.checkIfVisible(
         RowComponents.SiweSigningAccountInfo,
       );
     },
@@ -53,22 +57,14 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
+    await TestHelpers.reverseServerPort();
   });
 
-  for (const {
-    specName,
-    testDappBtn,
-    requestType,
-    additionAssertions,
-  } of SIGNATURE_LIST) {
+  for (const { specName, testDappBtn, requestType, additionAssertions } of SIGNATURE_LIST) {
     it(`should sign ${specName} message`, async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.TEST_DAPP,
-            },
-          ],
+          dapp: true,
           fixture: new FixtureBuilder()
             .withGanacheNetwork()
             .withPermissionControllerConnectedToTestDapp(
@@ -76,6 +72,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
             )
             .build(),
           restartDevice: true,
+          ganacheOptions: defaultGanacheOptions,
           testSpecificMock,
         },
         async () => {
@@ -86,19 +83,17 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
 
           // cancel request
           await testDappBtn();
-          await Assertions.expectElementToBeVisible(requestType);
+          await Assertions.checkIfVisible(requestType);
           await FooterActions.tapCancelButton();
-          await Assertions.expectElementToNotBeVisible(requestType);
+          await Assertions.checkIfNotVisible(requestType);
 
           await testDappBtn();
-          await Assertions.expectElementToBeVisible(requestType);
+          await Assertions.checkIfVisible(requestType);
 
           // check different sections are visible
-          await Assertions.expectElementToBeVisible(
-            RowComponents.AccountNetwork,
-          );
-          await Assertions.expectElementToBeVisible(RowComponents.OriginInfo);
-          await Assertions.expectElementToBeVisible(RowComponents.Message);
+          await Assertions.checkIfVisible(RowComponents.AccountNetwork);
+          await Assertions.checkIfVisible(RowComponents.OriginInfo);
+          await Assertions.checkIfVisible(RowComponents.Message);
 
           // any signature specific additional assertions
           if (additionAssertions) {
@@ -107,7 +102,7 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
 
           // confirm request
           await FooterActions.tapConfirmButton();
-          await Assertions.expectElementToNotBeVisible(requestType);
+          await Assertions.checkIfNotVisible(requestType);
         },
       );
     });

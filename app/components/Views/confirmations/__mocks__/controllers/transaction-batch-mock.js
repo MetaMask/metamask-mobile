@@ -1,10 +1,5 @@
 import { ApprovalType } from '@metamask/controller-utils';
-import {
-  contractInteractionBaseState,
-  mockApprovalRequest,
-  mockTransaction,
-  mockTxId,
-} from '../../../../../util/test/confirm-data-helpers';
+import { contractInteractionBaseState, mockApprovalRequest, mockTransaction, mockTxId } from '../../../../../util/test/confirm-data-helpers';
 
 export const generateStablecoinLendingDepositConfirmationState = {
   ...contractInteractionBaseState,
@@ -15,25 +10,13 @@ export const generateStablecoinLendingDepositConfirmationState = {
       // Set a completely new ApprovalController to reject the approval in
       // stakingConfirmationBaseState
       ApprovalController: {
-        pendingApprovals: {
-          [mockTxId]: {
-            ...mockApprovalRequest,
-            type: ApprovalType.TransactionBatch,
-            origin: 'metamask',
-          },
-        },
+        pendingApprovals: { [mockTxId]: { ...mockApprovalRequest, type: ApprovalType.TransactionBatch, origin: 'metamask' } },
         pendingApprovalCount: 1,
         approvalFlows: [],
       },
       TransactionController: {
         transactions: [],
-        transactionBatches: [
-          {
-            ...mockTransaction,
-            origin: 'metamask',
-            from: mockTransaction.txParams.from,
-          },
-        ],
+        transactionBatches: [{ ...mockTransaction, origin: 'metamask', from: mockTransaction.txParams.from }],
       },
     },
   },

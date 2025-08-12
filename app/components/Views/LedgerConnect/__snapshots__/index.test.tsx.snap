@@ -24,7 +24,7 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "marginTop": 0,
+          "marginTop": 20,
           "width": "100%",
         }
       }
@@ -595,7 +595,11 @@ exports[`LedgerConnect render matches latest snapshot 1`] = `
       <View
         style={
           {
-            "marginBottom": 20,
+            "bottom": 1.25,
+            "display": "flex",
+            "left": 0,
+            "position": "absolute",
+            "width": "100%",
           }
         }
       >

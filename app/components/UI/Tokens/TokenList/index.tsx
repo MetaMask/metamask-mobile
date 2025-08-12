@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect, useRef } from 'react';
-import { View, RefreshControl } from 'react-native';
-import { FlashList, FlashListRef } from '@shopify/flash-list';
+import { View, RefreshControl, Dimensions } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../util/theme';
 import {
@@ -8,7 +8,7 @@ import {
   selectPrivacyMode,
 } from '../../../../selectors/preferencesController';
 import createStyles from '../styles';
-import TextComponent, {
+import Text, {
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { TokenI } from '../types';
@@ -28,8 +28,10 @@ export interface FlashListAssetKey {
 interface TokenListProps {
   tokenKeys: FlashListAssetKey[];
   refreshing: boolean;
+  isAddTokenEnabled: boolean;
   onRefresh: () => void;
   showRemoveMenu: (arg: TokenI) => void;
+  goToAddToken: () => void;
   showPercentageChange?: boolean;
   setShowScamWarningModal: () => void;
 }
@@ -37,8 +39,10 @@ interface TokenListProps {
 const TokenListComponent = ({
   tokenKeys,
   refreshing,
+  isAddTokenEnabled,
   onRefresh,
   showRemoveMenu,
+  goToAddToken,
   showPercentageChange = true,
   setShowScamWarningModal,
 }: TokenListProps) => {
@@ -48,10 +52,17 @@ const TokenListComponent = ({
     selectIsTokenNetworkFilterEqualCurrentNetwork,
   );
 
-  const listRef = useRef<FlashListRef<FlashListAssetKey>>(null);
+  const listRef = useRef<FlashList<FlashListAssetKey>>(null);
 
   const styles = createStyles(colors);
   const navigation = useNavigation();
+
+  const { width: deviceWidth } = Dimensions.get('window');
+
+  const itemHeight = 70; // Adjust this to match TokenListItem height
+  const numberOfItemsOnScreen = 6; // Adjust this to match number of items on screen
+
+  const estimatedListHeight = itemHeight * numberOfItemsOnScreen;
 
   useLayoutEffect(() => {
     listRef.current?.recomputeViewableItems();
@@ -86,6 +97,8 @@ const TokenListComponent = ({
       ref={listRef}
       testID={WalletViewSelectorsIDs.TOKENS_CONTAINER_LIST}
       data={tokenKeys}
+      estimatedItemSize={itemHeight}
+      estimatedListSize={{ height: estimatedListHeight, width: deviceWidth }}
       removeClippedSubviews
       viewabilityConfig={{
         waitForInteraction: true,
@@ -93,12 +106,18 @@ const TokenListComponent = ({
         minimumViewTime: 1000,
       }}
       decelerationRate={0}
+      disableAutoLayout
       renderItem={renderTokenListItem}
       keyExtractor={(item) => {
         const staked = item.isStaked ? 'staked' : 'unstaked';
         return `${item.address}-${item.chainId}-${staked}`;
       }}
-      ListFooterComponent={<TokenListFooter />}
+      ListFooterComponent={
+        <TokenListFooter
+          goToAddToken={goToAddToken}
+          isAddTokenEnabled={isAddTokenEnabled}
+        />
+      }
       refreshControl={
         <RefreshControl
           colors={[colors.primary.default]}
@@ -112,16 +131,16 @@ const TokenListComponent = ({
   ) : (
     <View style={styles.emptyView}>
       <View style={styles.emptyTokensView}>
-        <TextComponent style={styles.emptyTokensViewText}>
+        <Text style={styles.emptyTokensViewText}>
           {strings('wallet.no_tokens')}
-        </TextComponent>
-        <TextComponent
+        </Text>
+        <Text
           style={styles.emptyTokensViewText}
           color={TextColor.Info}
           onPress={handleLink}
         >
           {strings('wallet.show_tokens_without_balance')}
-        </TextComponent>
+        </Text>
       </View>
     </View>
   );

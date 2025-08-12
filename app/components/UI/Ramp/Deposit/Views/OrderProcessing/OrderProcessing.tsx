@@ -11,6 +11,9 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../../component-library/hooks';
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
+import Text, {
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
 import { getOrderById } from '../../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../../reducers';
 import { strings } from '../../../../../../../locales/i18n';
@@ -21,15 +24,6 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
-import useAnalytics from '../../../hooks/useAnalytics';
-import { useDepositSDK } from '../../sdk';
-import {
-  getCryptoCurrencyFromTransakId,
-  hasDepositOrderField,
-} from '../../utils';
-import { DepositOrder } from '@consensys/native-ramps-sdk';
-
 export interface OrderProcessingParams {
   orderId: string;
 }
@@ -43,9 +37,8 @@ const OrderProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { orderId } = useParams<OrderProcessingParams>();
+
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
-  const trackEvent = useAnalytics();
-  const { selectedWalletAddress, selectedRegion } = useDepositSDK();
 
   const handleMainAction = useCallback(() => {
     if (
@@ -83,70 +76,29 @@ const OrderProcessing = () => {
     }
   }, [order?.state, navigation, orderId]);
 
-  useEffect(() => {
-    if (!order) return;
-
-    const isCompleted = order.state === FIAT_ORDER_STATES.COMPLETED;
-    const isFailed = order.state === FIAT_ORDER_STATES.FAILED;
-
-    if (isCompleted || isFailed) {
-      if (hasDepositOrderField(order.data, 'cryptoCurrency')) {
-        const cryptoCurrency = getCryptoCurrencyFromTransakId(
-          (order.data as DepositOrder).cryptoCurrency,
-          (order.data as DepositOrder).network,
-        );
-
-        const baseAnalyticsData = {
-          ramp_type: 'DEPOSIT' as const,
-          amount_source: Number(order.data.fiatAmount),
-          amount_destination: Number(order.cryptoAmount),
-          exchange_rate: Number(order.data.exchangeRate),
-          payment_method_id: order.data.paymentMethod,
-          country: selectedRegion?.isoCode || '',
-          chain_id: cryptoCurrency?.chainId || '',
-          currency_destination: cryptoCurrency?.assetId || '',
-          currency_source: order.data.fiatCurrency,
-        };
-
-        if (isCompleted) {
-          trackEvent('RAMPS_TRANSACTION_COMPLETED', {
-            ...baseAnalyticsData,
-            gas_fee: order.data.networkFees
-              ? Number(order.data.networkFees)
-              : 0,
-            processing_fee: order.data.partnerFees
-              ? Number(order.data.partnerFees)
-              : 0,
-            total_fee: Number(order.data.totalFeesFiat),
-          });
-        } else if (isFailed) {
-          trackEvent('RAMPS_TRANSACTION_FAILED', {
-            ...baseAnalyticsData,
-            gas_fee: order.data.networkFees
-              ? Number(order.data.networkFees)
-              : 0,
-            processing_fee: order.data.partnerFees
-              ? Number(order.data.partnerFees)
-              : 0,
-            total_fee: Number(order.data.totalFeesFiat),
-            error_message: order.data.statusDescription || 'transaction_failed',
-          });
-        }
-      }
-    }
-  }, [
-    order,
-    navigation,
-    orderId,
-    trackEvent,
-    selectedWalletAddress,
-    selectedRegion,
-  ]);
-
   if (!order) {
     return (
       <ScreenLayout>
-        <Loader size="large" color={theme.colors.primary.default} />
+        <ScreenLayout.Body>
+          <ScreenLayout.Content grow>
+            <View style={styles.errorContainer}>
+              <Text variant={TextVariant.BodyMD}>
+                {strings('deposit.order_processing.no_order_found')}
+              </Text>
+            </View>
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+        <ScreenLayout.Footer>
+          <ScreenLayout.Content>
+            <Button
+              variant={ButtonVariants.Primary}
+              size={ButtonSize.Lg}
+              onPress={() => navigation.navigate(Routes.WALLET.HOME)}
+              testID="no-order-back-button"
+              label={strings('deposit.order_processing.back_to_wallet')}
+            />
+          </ScreenLayout.Content>
+        </ScreenLayout.Footer>
       </ScreenLayout>
     );
   }
@@ -161,19 +113,19 @@ const OrderProcessing = () => {
       <ScreenLayout.Footer>
         <ScreenLayout.Content>
           <View style={styles.bottomContainer}>
+            {(order.state === FIAT_ORDER_STATES.CANCELLED ||
+              order.state === FIAT_ORDER_STATES.FAILED) && (
+              <Button
+                style={styles.button}
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                onPress={handleContactSupport}
+                label={strings(
+                  'deposit.order_processing.contact_support_button',
+                )}
+              />
+            )}
             <View style={styles.buttonsContainer}>
-              {(order.state === FIAT_ORDER_STATES.CANCELLED ||
-                order.state === FIAT_ORDER_STATES.FAILED) && (
-                <Button
-                  style={styles.button}
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
-                  onPress={handleContactSupport}
-                  label={strings(
-                    'deposit.order_processing.contact_support_button',
-                  )}
-                />
-              )}
               <Button
                 style={styles.button}
                 variant={ButtonVariants.Primary}

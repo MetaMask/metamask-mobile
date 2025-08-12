@@ -13,7 +13,7 @@ interface ClearEventsAction {
   type: typeof CLEAR_EVENTS;
 }
 
-export interface SetCompletedOnboardingAction {
+interface SetCompletedOnboardingAction {
   type: typeof SET_COMPLETED_ONBOARDING;
   completedOnboarding: boolean;
 }

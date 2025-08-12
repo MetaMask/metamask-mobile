@@ -483,7 +483,6 @@ exports[`ActivityView should render correctly 1`] = `
                               "marginLeft": 5,
                               "marginRight": 5,
                               "maxWidth": "60%",
-                              "overflow": "hidden",
                               "paddingHorizontal": 16,
                             }
                           }

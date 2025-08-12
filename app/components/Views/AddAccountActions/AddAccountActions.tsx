@@ -29,9 +29,18 @@ import Text, {
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId } from '@metamask/utils';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import { SolScope, BtcScope } from '@metamask/keyring-api';
+// eslint-disable-next-line import/no-duplicates
+import { SolScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { selectHDKeyrings } from '../../../selectors/keyringController';
+///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+import {
+  selectHasCreatedBtcMainnetAccount,
+  hasCreatedBtcTestnetAccount,
+} from '../../../selectors/accountsController';
+// eslint-disable-next-line no-duplicate-imports, import/no-duplicates
+import { BtcScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
@@ -109,20 +118,26 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
     fetchAccountsWithActivity,
   ]);
 
-  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  const createNonEvmAccount = async (scope: CaipChainId) => {
-    let clientType: WalletClientType;
-    if (Object.values(BtcScope).includes(scope as BtcScope)) {
-      clientType = WalletClientType.Bitcoin;
-    } else if (Object.values(SolScope).includes(scope as SolScope)) {
-      clientType = WalletClientType.Solana;
-    } else {
-      throw new Error(`Unsupported scope: ${scope}`);
-    }
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  const isBtcMainnetAccountAlreadyCreated = useSelector(
+    selectHasCreatedBtcMainnetAccount,
+  );
+  const isBtcTestnetAccountAlreadyCreated = useSelector(
+    hasCreatedBtcTestnetAccount,
+  );
 
+  const createBitcoinAccount = async (scope: CaipChainId) => {
     navigate(Routes.SHEET.ADD_ACCOUNT, {
       scope,
-      clientType,
+      clientType: WalletClientType.Bitcoin,
+    });
+  };
+  ///: END:ONLY_INCLUDE_IF
+  ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+  const createSolanaAccount = async (scope: CaipChainId) => {
+    navigate(Routes.SHEET.ADD_ACCOUNT, {
+      scope,
+      clientType: WalletClientType.Solana,
     });
   };
   ///: END:ONLY_INCLUDE_IF
@@ -147,9 +162,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             iconName={IconName.Add}
             onPress={createNewAccount}
             disabled={isLoading}
-            testID={
-              AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON
-            }
+            testID={AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON}
           />
           {
             ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -158,7 +171,7 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             actionTitle={strings('account_actions.add_solana_account')}
             iconName={IconName.Add}
             onPress={async () => {
-              await createNonEvmAccount(SolScope.Mainnet);
+              await createSolanaAccount(SolScope.Mainnet);
             }}
             disabled={isLoading}
             testID={AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON}
@@ -170,14 +183,25 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
           }
           <AccountAction
-            actionTitle={strings('account_actions.add_bitcoin_account')}
+            actionTitle={strings('account_actions.add_bitcoin_account_mainnet')}
             iconName={IconName.Add}
             onPress={async () => {
-              await createNonEvmAccount(BtcScope.Mainnet);
+              await createBitcoinAccount(BtcScope.Mainnet);
             }}
-            disabled={isLoading}
+            disabled={isLoading || isBtcMainnetAccountAlreadyCreated}
             testID={
               AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON
+            }
+          />
+          <AccountAction
+            actionTitle={strings('account_actions.add_bitcoin_account_testnet')}
+            iconName={IconName.Add}
+            onPress={async () => {
+              await createBitcoinAccount(BtcScope.Testnet);
+            }}
+            disabled={isLoading || isBtcTestnetAccountAlreadyCreated}
+            testID={
+              AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_TESTNET_ACCOUNT_BUTTON
             }
           />
           {

@@ -23,7 +23,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
     style={
       [
         {
-          "backgroundColor": "#3f434a66",
+          "backgroundColor": "#00000066",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -74,8 +74,8 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
           {
             "backgroundColor": "#ffffff",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 24,
-            "borderTopRightRadius": 24,
+            "borderTopLeftRadius": 8,
+            "borderTopRightRadius": 8,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -227,15 +227,14 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#3c4d9d0f",
-                "borderColor": "transparent",
+                "backgroundColor": "transparent",
+                "borderColor": "#4459ff",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
-                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -245,7 +244,7 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#4459ff",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -273,7 +272,6 @@ exports[`AccountPermissionsConfirmRevokeAll renders correctly 1`] = `
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
-                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }

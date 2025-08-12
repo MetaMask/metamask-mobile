@@ -8,13 +8,12 @@ const styleSheet = (params: {
   theme: Theme;
   vars: RegionSelectorModalStyleSheetVars;
 }) => {
-  const { vars, theme } = params;
-  const { colors } = theme;
+  const { vars } = params;
   const { screenHeight } = vars;
 
   return StyleSheet.create({
     list: {
-      height: screenHeight * 0.4,
+      maxHeight: screenHeight * 0.4,
     },
     searchContainer: {
       paddingHorizontal: 16,
@@ -37,14 +36,7 @@ const styleSheet = (params: {
     },
     listItem: {
       paddingHorizontal: 16,
-      paddingVertical: 12, // Increased from 8 to 12 for better touch targets
-      backgroundColor: colors.background.default,
-    },
-    selectedItem: {
-      backgroundColor: colors.primary.muted,
-    },
-    disabledItem: {
-      opacity: 0.5,
+      paddingVertical: 8,
     },
   });
 };

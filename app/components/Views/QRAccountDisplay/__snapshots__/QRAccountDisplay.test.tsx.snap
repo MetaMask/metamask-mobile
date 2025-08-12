@@ -355,7 +355,7 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                           accessibilityRole="text"
                           style={
                             {
-                              "color": "#b7bbc8",
+                              "color": "#9ca1af",
                               "fontFamily": "Geist Regular",
                               "fontSize": 16,
                               "letterSpacing": 0,
@@ -383,7 +383,6 @@ exports[`QRAccountDisplay render matches snapshot 1`] = `
                             "flexDirection": "row",
                             "height": 48,
                             "justifyContent": "center",
-                            "overflow": "hidden",
                             "paddingHorizontal": 16,
                           }
                         }

@@ -7,25 +7,6 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
-import { useMetrics } from '../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-
-const mockTrackEvent = jest.fn();
-jest.mock('../../../hooks/useMetrics');
-
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
 
 const MOCK_STORE_STATE = {
   engine: {
@@ -56,7 +37,6 @@ jest.mock('@react-navigation/native', () => {
     ...actualNav,
     useNavigation: () => ({
       navigate: mockNavigate,
-      goBack: jest.fn(),
     }),
   };
 });
@@ -79,25 +59,6 @@ describe('TurnOnBackupAndSync', () => {
       state: MOCK_STORE_STATE,
     });
     expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('sends a MetaMetrics event when the modal is dismissed', () => {
-    const { getByTestId } = renderWithProvider(<TurnOnBackupAndSync />, {
-      state: MOCK_STORE_STATE,
-    });
-
-    const cancelButton = getByTestId(turnOnBackupAndSyncTestIds.cancelButton);
-    fireEvent.press(cancelButton);
-
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: 'Profile Activity Updated',
-        properties: expect.objectContaining({
-          feature_name: 'Backup And Sync Carousel Modal',
-          action: 'Modal Dismissed',
-        }),
-      }),
-    );
   });
 
   it('enables backup and sync when clicking on the cta if backup and sync is disabled, and navigates to backup and sync settings either way', async () => {
@@ -157,27 +118,6 @@ describe('TurnOnBackupAndSync', () => {
         enableBackupAndSync: expect.any(Function),
         trackEnableBackupAndSyncEvent: expect.any(Function),
       },
-    });
-  });
-
-  it('sends a MetaMetrics event when enabling backup and sync', async () => {
-    const { getByTestId } = renderWithProvider(<TurnOnBackupAndSync />, {
-      state: MOCK_STORE_STATE,
-    });
-
-    const switchElement = getByTestId(turnOnBackupAndSyncTestIds.enableButton);
-    fireEvent.press(switchElement);
-
-    await waitFor(() => {
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Profile Activity Updated',
-          properties: expect.objectContaining({
-            feature_name: 'Backup And Sync Carousel Modal',
-            action: 'Turned On',
-          }),
-        }),
-      );
     });
   });
 });

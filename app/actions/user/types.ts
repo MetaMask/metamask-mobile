@@ -4,7 +4,6 @@ import { type Action } from 'redux';
 // Action type enum
 export enum UserActionType {
   LOCKED_APP = 'LOCKED_APP',
-  CHECK_FOR_DEEPLINK = 'CHECK_FOR_DEEPLINK',
   AUTH_SUCCESS = 'AUTH_SUCCESS',
   AUTH_ERROR = 'AUTH_ERROR',
   INTERRUPT_BIOMETRICS = 'INTERRUPT_BIOMETRICS',
@@ -25,14 +24,11 @@ export enum UserActionType {
   SET_APP_THEME = 'SET_APP_THEME',
   CHECKED_AUTH = 'CHECKED_AUTH',
   SET_APP_SERVICES_READY = 'SET_APP_SERVICES_READY',
-  SET_EXISTING_USER = 'SET_EXISTING_USER',
-  SET_IS_CONNECTION_REMOVED = 'SET_IS_CONNECTION_REMOVED',
+  SET_META_METRICS_UI_SEEN = 'SET_META_METRICS_UI_SEEN',
 }
 
 // User actions
 export type LockAppAction = Action<UserActionType.LOCKED_APP>;
-
-export type CheckForDeeplinkAction = Action<UserActionType.CHECK_FOR_DEEPLINK>;
 
 export type AuthSuccessAction = Action<UserActionType.AUTH_SUCCESS> & {
   payload: { bioStateMachineId?: string };
@@ -94,21 +90,11 @@ export type CheckedAuthAction = Action<UserActionType.CHECKED_AUTH> & {
 export type SetAppServicesReadyAction =
   Action<UserActionType.SET_APP_SERVICES_READY>;
 
-export type SetExistingUserAction = Action<UserActionType.SET_EXISTING_USER> & {
-  payload: { existingUser: boolean };
-};
-
-export type SetIsConnectionRemovedAction =
-  Action<UserActionType.SET_IS_CONNECTION_REMOVED> & {
-    payload: { isConnectionRemoved: boolean };
-  };
-
 /**
  * User actions union type
  */
 export type UserAction =
   | LockAppAction
-  | CheckForDeeplinkAction
   | AuthSuccessAction
   | AuthErrorAction
   | InterruptBiometricsAction
@@ -128,6 +114,4 @@ export type UserAction =
   | SetGasEducationCarouselSeenAction
   | SetAppThemeAction
   | CheckedAuthAction
-  | SetAppServicesReadyAction
-  | SetExistingUserAction
-  | SetIsConnectionRemovedAction;
+  | SetAppServicesReadyAction;

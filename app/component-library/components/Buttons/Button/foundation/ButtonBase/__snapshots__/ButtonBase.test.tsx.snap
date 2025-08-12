@@ -15,7 +15,6 @@ exports[`ButtonBase should render correctly 1`] = `
       "flexDirection": "row",
       "height": 40,
       "justifyContent": "center",
-      "overflow": "hidden",
       "paddingHorizontal": 16,
     }
   }
@@ -61,7 +60,6 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
       "height": 40,
       "justifyContent": "center",
       "opacity": 0.5,
-      "overflow": "hidden",
       "paddingHorizontal": 16,
     }
   }

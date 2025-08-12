@@ -3,17 +3,16 @@ import {
   SwapViewSelectorsTexts,
 } from '../../selectors/swaps/SwapsView.selectors.js';
 
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import { waitFor } from 'detox';
-import { logger } from '../../framework/logger.js';
 
 class SwapView {
-  get quoteSummary(): DetoxElement {
+  get quoteSummary() {
     return Matchers.getElementByID(SwapsViewSelectorsIDs.QUOTE_SUMMARY);
   }
 
-  get gasFee(): DetoxElement {
+  get gasFee() {
     return Matchers.getElementByID(SwapsViewSelectorsIDs.GAS_FEE);
   }
 
@@ -31,13 +30,13 @@ class SwapView {
     return Matchers.getElementByText(SwapViewSelectorsTexts.I_UNDERSTAND);
   }
 
-  get viewDetailsButton(): DetoxElement {
+  get viewDetailsButton() {
     return Matchers.getElementByID(SwapsViewSelectorsIDs.VIEW_ALL_QUOTES);
   }
 
-  async isPriceWarningDisplayed(): Promise<boolean> {
+  async isPriceWarningDisplayed() {
     try {
-      const label = (await this.iUnderstandLabel) as Detox.NativeElement;
+      const label = await this.iUnderstandLabel as Detox.NativeElement;
       await waitFor(label).toBeVisible().withTimeout(5000);
       return true;
     } catch (e) {
@@ -45,40 +44,29 @@ class SwapView {
     }
   }
 
-  generateSwapCompleteLabel(
-    sourceToken: string,
-    destinationToken: string,
-  ): string {
+  generateSwapCompleteLabel(sourceToken: string, destinationToken: string): string {
     let title = SwapViewSelectorsTexts.SWAP_CONFIRMED;
     title = title.replace('{{sourceToken}}', sourceToken);
     title = title.replace('{{destinationToken}}', destinationToken);
     return title;
   }
 
-  async tapSwapButton(): Promise<void> {
-    await Gestures.waitAndTap(this.swapButton, {
-      elemDescription: 'Swap Button in Swap View',
-    });
+  async tapSwapButton() {
+    await Gestures.waitAndTap(this.swapButton);
   }
 
-  async tapIUnderstandPriceWarning(): Promise<void> {
+  async tapIUnderstandPriceWarning() {
     const isDisplayed = await this.isPriceWarningDisplayed();
     if (isDisplayed) {
-      await Gestures.waitAndTap(this.iUnderstandLabel, {
-        elemDescription: 'I Understand Label in Swap View',
-      });
+      await Gestures.waitAndTap(this.iUnderstandLabel);
     } else {
       // eslint-disable-next-line no-console
-      logger.warn(
-        'SwapView: tapIUnderstandPriceWarning - I Understand label is not displayed, skipping tap.',
-      );
+      console.log('Price warning not displayed');
     }
   }
 
-  async tapViewDetailsAllQuotes(): Promise<void> {
-    await Gestures.waitAndTap(this.viewDetailsButton, {
-      elemDescription: 'View Details Button in Swap View',
-    });
+  async tapViewDetailsAllQuotes() {
+    await Gestures.waitAndTap(this.viewDetailsButton);
   }
 }
 

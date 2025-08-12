@@ -10,9 +10,7 @@ jest.mock('../transactions/useTransactionMetadataRequest', () => ({
 describe('useNft', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    const mockTransaction =
-      MOCK_STATE_NFT.engine.backgroundState.TransactionController
-        .transactions[0];
+    const mockTransaction = MOCK_STATE_NFT.engine.backgroundState.TransactionController.transactions[0];
     (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
       txParams: mockTransaction.txParams,
       chainId: mockTransaction.chainId,

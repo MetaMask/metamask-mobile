@@ -125,7 +125,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 16,
                       "height": 32,
                       "marginRight": 16,
                       "overflow": "hidden",
@@ -146,9 +146,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                           "height": 32,
                           "width": 32,
                         },
-                        {
-                          "borderRadius": 8,
-                        },
+                        undefined,
                       ]
                     }
                   >
@@ -289,7 +287,25 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                   >
                     Account 1
                   </Text>
-                  <View
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "flex-start",
@@ -314,7 +330,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                     >
                       0xC4955...4D272
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -509,7 +525,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 16,
                       "height": 32,
                       "marginRight": 16,
                       "overflow": "hidden",
@@ -530,9 +546,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                           "height": 32,
                           "width": 32,
                         },
-                        {
-                          "borderRadius": 8,
-                        },
+                        undefined,
                       ]
                     }
                   >
@@ -673,7 +687,25 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                   >
                     Account 2
                   </Text>
-                  <View
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "flex-start",
@@ -698,7 +730,7 @@ exports[`CaipAccountSelectorList renders all accounts with balances 1`] = `
                     >
                       0xd0185...a78E7
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -929,7 +961,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 16,
                       "height": 32,
                       "marginRight": 16,
                       "overflow": "hidden",
@@ -950,9 +982,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                           "height": 32,
                           "width": 32,
                         },
-                        {
-                          "borderRadius": 8,
-                        },
+                        undefined,
                       ]
                     }
                   >
@@ -1093,7 +1123,25 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                   >
                     Account 1
                   </Text>
-                  <View
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "flex-start",
@@ -1118,7 +1166,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                     >
                       0xC4955...4D272
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -1276,7 +1324,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 16,
                       "height": 32,
                       "marginRight": 16,
                       "overflow": "hidden",
@@ -1297,9 +1345,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                           "height": 32,
                           "width": 32,
                         },
-                        {
-                          "borderRadius": 8,
-                        },
+                        undefined,
                       ]
                     }
                   >
@@ -1440,7 +1486,25 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                   >
                     Account 2
                   </Text>
-                  <View
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "flex-start",
@@ -1465,7 +1529,7 @@ exports[`CaipAccountSelectorList renders all accounts with right accessory 1`] =
                     >
                       0xd0185...a78E7
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -1657,7 +1721,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 16,
                       "height": 32,
                       "marginRight": 16,
                       "overflow": "hidden",
@@ -1678,9 +1742,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                           "height": 32,
                           "width": 32,
                         },
-                        {
-                          "borderRadius": 8,
-                        },
+                        undefined,
                       ]
                     }
                   >
@@ -1821,7 +1883,25 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                   >
                     Account 1
                   </Text>
-                  <View
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "flex-start",
@@ -1846,7 +1926,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                     >
                       0xC4955...4D272
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -2041,7 +2121,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 16,
                       "height": 32,
                       "marginRight": 16,
                       "overflow": "hidden",
@@ -2062,9 +2142,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                           "height": 32,
                           "width": 32,
                         },
-                        {
-                          "borderRadius": 8,
-                        },
+                        undefined,
                       ]
                     }
                   >
@@ -2205,7 +2283,25 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                   >
                     Account 2
                   </Text>
-                  <View
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "flex-start",
@@ -2230,7 +2326,7 @@ exports[`CaipAccountSelectorList renders correctly 1`] = `
                     >
                       0xd0185...a78E7
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -2460,7 +2556,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 16,
                       "height": 32,
                       "marginRight": 16,
                       "overflow": "hidden",
@@ -2481,9 +2577,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                           "height": 32,
                           "width": 32,
                         },
-                        {
-                          "borderRadius": 8,
-                        },
+                        undefined,
                       ]
                     }
                   >
@@ -2624,7 +2718,25 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                   >
                     Account 1
                   </Text>
-                  <View
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "flex-start",
@@ -2649,7 +2761,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                     >
                       0xC4955...4D272
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={
@@ -2844,7 +2956,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                   style={
                     {
                       "backgroundColor": "#ffffff",
-                      "borderRadius": 8,
+                      "borderRadius": 16,
                       "height": 32,
                       "marginRight": 16,
                       "overflow": "hidden",
@@ -2865,9 +2977,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                           "height": 32,
                           "width": 32,
                         },
-                        {
-                          "borderRadius": 8,
-                        },
+                        undefined,
                       ]
                     }
                   >
@@ -3008,7 +3118,25 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                   >
                     Account 2
                   </Text>
-                  <View
+                  <TouchableOpacity
+                    accessibilityState={
+                      {
+                        "busy": undefined,
+                        "checked": undefined,
+                        "disabled": undefined,
+                        "expanded": undefined,
+                        "selected": undefined,
+                      }
+                    }
+                    accessible={true}
+                    focusable={false}
+                    onClick={[Function]}
+                    onResponderGrant={[Function]}
+                    onResponderMove={[Function]}
+                    onResponderRelease={[Function]}
+                    onResponderTerminate={[Function]}
+                    onResponderTerminationRequest={[Function]}
+                    onStartShouldSetResponder={[Function]}
                     style={
                       {
                         "alignItems": "flex-start",
@@ -3033,7 +3161,7 @@ exports[`CaipAccountSelectorList renders network icons for accounts with transac
                     >
                       0xd0185...a78E7
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
                 <View
                   style={

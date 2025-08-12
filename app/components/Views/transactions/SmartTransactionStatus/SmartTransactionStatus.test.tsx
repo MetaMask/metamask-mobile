@@ -470,24 +470,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.success.origin}
               onConfirm={jest.fn()}
             />,
-            {
-              state: merge({}, initialState, {
-                engine: {
-                  backgroundState: {
-                    SmartTransactionsController: {
-                      smartTransactionsState: {
-                        smartTransactions: {
-                          '0x1': [
-                            PENDING_APPROVALS.Swap.success.requestState
-                              .smartTransaction,
-                          ],
-                        },
-                      },
-                    },
-                  },
-                },
-              }),
-            },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.success.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const primaryButton = getByText(
@@ -507,24 +504,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.success.origin}
               onConfirm={jest.fn()}
             />,
-            {
-              state: merge({}, initialState, {
-                engine: {
-                  backgroundState: {
-                    SmartTransactionsController: {
-                      smartTransactionsState: {
-                        smartTransactions: {
-                          '0x1': [
-                            PENDING_APPROVALS.Swap.success.requestState
-                              .smartTransaction,
-                          ],
-                        },
-                      },
-                    },
-                  },
-                },
-              }),
-            },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.success.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const secondaryButton = getByText(
@@ -635,24 +629,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.cancelled.origin}
               onConfirm={jest.fn()}
             />,
-            {
-              state: merge({}, initialState, {
-                engine: {
-                  backgroundState: {
-                    SmartTransactionsController: {
-                      smartTransactionsState: {
-                        smartTransactions: {
-                          '0x1': [
-                            PENDING_APPROVALS.Swap.cancelled.requestState
-                              .smartTransaction,
-                          ],
-                        },
-                      },
-                    },
-                  },
-                },
-              }),
-            },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.cancelled.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const primaryButton = getByText(
@@ -672,24 +663,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.cancelled.origin}
               onConfirm={jest.fn()}
             />,
-            {
-              state: merge({}, initialState, {
-                engine: {
-                  backgroundState: {
-                    SmartTransactionsController: {
-                      smartTransactionsState: {
-                        smartTransactions: {
-                          '0x1': [
-                            PENDING_APPROVALS.Swap.cancelled.requestState
-                              .smartTransaction,
-                          ],
-                        },
-                      },
-                    },
-                  },
-                },
-              }),
-            },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.cancelled.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const secondaryButton = getByText(
@@ -795,24 +783,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.unknown.origin}
               onConfirm={onConfirm}
             />,
-            {
-              state: merge({}, initialState, {
-                engine: {
-                  backgroundState: {
-                    SmartTransactionsController: {
-                      smartTransactionsState: {
-                        smartTransactions: {
-                          '0x1': [
-                            PENDING_APPROVALS.Swap.unknown.requestState
-                              .smartTransaction,
-                          ],
-                        },
-                      },
-                    },
-                  },
-                },
-              }),
-            },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.unknown.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const primaryButton = getByText(
@@ -831,24 +816,21 @@ describe('SmartTransactionStatus', () => {
               origin={PENDING_APPROVALS.Swap.unknown.origin}
               onConfirm={jest.fn()}
             />,
-            {
-              state: merge({}, initialState, {
-                engine: {
-                  backgroundState: {
-                    SmartTransactionsController: {
-                      smartTransactionsState: {
-                        smartTransactions: {
-                          '0x1': [
-                            PENDING_APPROVALS.Swap.unknown.requestState
-                              .smartTransaction,
-                          ],
-                        },
-                      },
-                    },
-                  },
-                },
-              }),
-            },
+            { state: merge({}, initialState, {
+              engine: {
+                backgroundState: {
+                  SmartTransactionsController: {
+                    smartTransactionsState: {
+                      smartTransactions: {
+                        '0x1': [
+                          PENDING_APPROVALS.Swap.unknown.requestState.smartTransaction
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }) },
           );
 
           const secondaryButton = getByText(

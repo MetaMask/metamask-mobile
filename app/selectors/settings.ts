@@ -1,6 +1,5 @@
 import { RootState } from '../reducers';
 import { createSelector } from 'reselect';
-import { createDeepEqualSelector } from './util';
 
 const selectSettings = (state: RootState) => state.settings;
 
@@ -35,10 +34,4 @@ export const selectDeepLinkModalDisabled = createSelector(
   selectSettings,
   (settingsState: Record<string, unknown>) =>
     Boolean(settingsState.deepLinkModalDisabled),
-);
-
-export const selectUseBlockieIcon = createDeepEqualSelector(
-  selectSettings,
-  (settingsState: Record<string, unknown>) =>
-    Boolean(settingsState.useBlockieIcon),
 );

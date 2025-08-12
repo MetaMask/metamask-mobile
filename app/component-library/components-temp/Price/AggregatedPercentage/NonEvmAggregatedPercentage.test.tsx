@@ -74,7 +74,9 @@ const mockMultichainAssetsRatesPositive = {
 
 const mockMultichainAssetsRatesWithNoPercentChange = {
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501': {
-    marketData: {},
+    marketData: {
+
+    },
     rate: '147.98',
   },
   'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv':
@@ -149,11 +151,9 @@ describe('NonEvmAggregatedPercentage', () => {
       if (selector === selectMultichainAssetsRates)
         return mockMultichainAssetsRatesWithNoPercentChange;
     });
-    const { getByTestId } = render(<NonEvmAggregatedPercentage />);
+    const {  getByTestId } = render(<NonEvmAggregatedPercentage />);
 
-    expect(
-      getByTestId(FORMATTED_PERCENTAGE_TEST_ID).props.children,
-    ).toBeDefined();
+    expect(getByTestId(FORMATTED_PERCENTAGE_TEST_ID).props.children).toBeDefined();
   });
 
   it('renders positive percentage change correctly', () => {

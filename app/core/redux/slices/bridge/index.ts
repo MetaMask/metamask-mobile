@@ -103,8 +103,6 @@ const slice = createSlice({
     },
     setDestToken: (state, action: PayloadAction<BridgeToken>) => {
       state.destToken = action.payload;
-      // Update selectedDestChainId to match the destination token's chain ID
-      state.selectedDestChainId = action.payload.chainId;
     },
     setDestAddress: (state, action: PayloadAction<string | undefined>) => {
       state.destAddress = action.payload;
@@ -400,30 +398,6 @@ export const selectIsEvmSolanaBridge = createSelector(
   (isEvmToSolana, isSolanaToEvm) => isEvmToSolana || isSolanaToEvm,
 );
 
-export const selectIsBridge = createSelector(
-  selectSourceToken,
-  selectDestToken,
-  (sourceToken, destToken) =>
-    sourceToken?.chainId &&
-    destToken?.chainId &&
-    sourceToken.chainId !== destToken.chainId,
-);
-
-export const selectIsSwap = createSelector(
-  selectSourceToken,
-  selectDestToken,
-  (sourceToken, destToken) =>
-    sourceToken?.chainId &&
-    destToken?.chainId &&
-    sourceToken.chainId === destToken.chainId,
-);
-
-export const selectIsEvmSwap = createSelector(
-  selectIsSwap,
-  selectIsSolanaSwap,
-  (isSwap, isSolanaSwap) => isSwap && !isSolanaSwap,
-);
-
 export const selectIsSubmittingTx = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isSubmittingTx,
@@ -435,8 +409,7 @@ export const selectIsUnifiedSwapsEnabled = createSelector(
   (bridgeFeatureFlags, chainId) => {
     if (
       isUnifiedSwapsEnvVarEnabled() &&
-      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]
-        ?.isUnifiedUIEnabled
+      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]?.isUnifiedUIEnabled
     ) {
       return true;
     }

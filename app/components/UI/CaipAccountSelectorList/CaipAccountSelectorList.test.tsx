@@ -753,9 +753,7 @@ describe('CaipAccountSelectorList', () => {
     const { getAllByTestId } = renderComponent(initialState);
 
     // Find buttons with the correct test ID
-    const actionButtons = getAllByTestId(
-      WalletViewSelectorsIDs.ACCOUNT_ACTIONS,
-    );
+    const actionButtons = getAllByTestId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
     expect(actionButtons.length).toBe(2);
 
     // Click the first account's action button

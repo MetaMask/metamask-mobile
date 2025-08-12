@@ -1,7 +1,4 @@
-import {
-  getTransaction1559GasFeeEstimates,
-  getGasFeeEstimatesForTransaction,
-} from './gas';
+import { getTransaction1559GasFeeEstimates, getGasFeeEstimatesForTransaction } from './gas';
 import {
   TransactionParams,
   FeeMarketGasFeeEstimates,
@@ -12,9 +9,7 @@ import { decGWEIToHexWEI } from '../../../../util/conversions';
 import { estimateGasFee } from '../../../../util/transaction-controller';
 
 jest.mock('../../../../util/transaction-controller', () => {
-  const originalModule = jest.requireActual(
-    '../../../../util/transaction-controller',
-  );
+  const originalModule = jest.requireActual('../../../../util/transaction-controller');
   return {
     ...originalModule,
     estimateGasFee: jest.fn(originalModule.estimateGasFee),
@@ -125,7 +120,7 @@ describe('getGasFeeEstimatesForTransaction', () => {
     const result = await getGasFeeEstimatesForTransaction(
       mockTransaction,
       mockGasEstimates,
-      { chainId: '0x1', isEIP1559Network: true },
+      { chainId: '0x1', isEIP1559Network: true }
     );
 
     // Verify the result
@@ -142,7 +137,7 @@ describe('getGasFeeEstimatesForTransaction', () => {
     const result = await getGasFeeEstimatesForTransaction(
       mockTransaction,
       mockGasEstimates,
-      { chainId: '0x1', isEIP1559Network: false },
+      { chainId: '0x1', isEIP1559Network: false }
     );
 
     // Verify decGWEIToHexWEI was called with the gasPrice
@@ -158,7 +153,7 @@ describe('getGasFeeEstimatesForTransaction', () => {
     const result = await getGasFeeEstimatesForTransaction(
       mockTransaction,
       { ...mockGasEstimates, gasPrice: undefined },
-      { chainId: '0x1', isEIP1559Network: false },
+      { chainId: '0x1', isEIP1559Network: false }
     );
 
     // Verify decGWEIToHexWEI was called with the medium value

@@ -50,14 +50,12 @@ exports[`GetStarted render matches snapshot 1`] = `
               }
             >
               <Image
-                resizeMode="contain"
                 source={1}
                 style={
                   {
                     "alignSelf": "center",
-                    "height": 367.5,
-                    "marginVertical": 16,
-                    "width": 487.5,
+                    "height": 562.5,
+                    "width": 750,
                   }
                 }
               />
@@ -81,14 +79,13 @@ exports[`GetStarted render matches snapshot 1`] = `
                   "color": "#121314",
                   "fontFamily": "Geist Bold",
                   "fontSize": 24,
-                  "fontWeight": "bold",
                   "letterSpacing": 0,
                   "lineHeight": 32,
                   "marginBottom": 16,
                 }
               }
             >
-              Starting is easy with USDC
+              Top up your wallet with USDC
             </Text>
             <View
               style={
@@ -99,7 +96,7 @@ exports[`GetStarted render matches snapshot 1`] = `
               }
             >
               <SvgMock
-                color="#457a39"
+                color="#1c7e33"
                 fill="currentColor"
                 height={24}
                 name="Check"
@@ -145,7 +142,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                     }
                   }
                 >
-                  USDC is a digital dollar, backed by U.S. dollars, so you always know what it’s worth.
+                  1:1 ratio backing with US dollars.
                 </Text>
               </View>
             </View>
@@ -158,7 +155,7 @@ exports[`GetStarted render matches snapshot 1`] = `
               }
             >
               <SvgMock
-                color="#457a39"
+                color="#1c7e33"
                 fill="currentColor"
                 height={24}
                 name="Check"
@@ -204,7 +201,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                     }
                   }
                 >
-                  USDC is designed to stay stable, making it easier to plan, save, and spend.
+                  Maintains stable value for reliable transactions.
                 </Text>
               </View>
             </View>
@@ -217,7 +214,7 @@ exports[`GetStarted render matches snapshot 1`] = `
               }
             >
               <SvgMock
-                color="#457a39"
+                color="#1c7e33"
                 fill="currentColor"
                 height={24}
                 name="Check"
@@ -263,7 +260,7 @@ exports[`GetStarted render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Send and receive in minutes, no waiting for bank hours or international delays.
+                  Quick blockchain transfers beat traditional banking.
                 </Text>
               </View>
             </View>
@@ -294,12 +291,11 @@ exports[`GetStarted render matches snapshot 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "stretch",
-              "backgroundColor": "#121314",
+              "backgroundColor": "#4459ff",
               "borderRadius": 12,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
-              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }

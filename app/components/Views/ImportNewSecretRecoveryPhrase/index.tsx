@@ -60,7 +60,6 @@ import {
   lockAccountSyncing,
   unlockAccountSyncing,
 } from '../../../actions/identity';
-import { Authentication } from '../../../core';
 
 const defaultNumberOfWords = 12;
 
@@ -233,17 +232,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     setLoading(true);
     try {
       await lockAccountSyncing();
-
-      // check if seedless pwd is outdated skip cache before importing SRP
-      const isSeedlessPwdOutdated =
-        await Authentication.checkIsSeedlessPasswordOutdated(true);
-      if (isSeedlessPwdOutdated) {
-        // no need to handle error here, password outdated state will trigger modal that force user to log out
-        return;
-      }
-      const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(
-        secretRecoveryPhrase.join(' '),
-      );
+      const { discoveredAccountsCount } = await importNewSecretRecoveryPhrase(secretRecoveryPhrase.join(' '));
       setLoading(false);
       setSecretRecoveryPhrase(Array(numberOfWords).fill(''));
 
@@ -259,16 +248,16 @@ const ImportNewSecretRecoveryPhrase = () => {
         iconName: IconName.Check,
         hasNoTimeout: false,
       });
-
+      
       fetchAccountsWithActivity();
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_COMPLETED,
         )
-          .addProperties({
-            number_of_solana_accounts_discovered: discoveredAccountsCount,
-          })
-          .build(),
+        .addProperties({
+          number_of_solana_accounts_discovered: discoveredAccountsCount,
+        })
+        .build(),
       );
       navigation.navigate('WalletView');
     } catch (e) {

@@ -5,13 +5,10 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
-    textContainer: {
-      marginTop: 24,
-      marginBottom: 16,
-      gap: 8,
-    },
     subtitle: {
-      color: theme.colors.text.muted,
+      fontSize: 14,
+      marginTop: 24,
+      marginBottom: 20,
     },
     nameInputRow: {
       flexDirection: 'row',
@@ -26,29 +23,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     footerContent: {
       gap: 8,
-    },
-    countryPrefix: {
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    countryFlag: {
-      fontSize: 16,
-    },
-    countryName: {
-      fontSize: 14,
-      color: theme.colors.text.muted,
-      marginLeft: 4,
-    },
-    error: {
-      color: theme.colors.error.default,
-      fontSize: 12,
-      marginTop: 4,
-    },
-    label: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: theme.colors.text.default,
-      marginBottom: 6,
     },
   });
 };

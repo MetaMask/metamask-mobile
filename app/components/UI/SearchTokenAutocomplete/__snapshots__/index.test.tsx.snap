@@ -312,19 +312,18 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                       }
                     }
                   >
-                    <View
-                      style={
-                        {
-                          "flex": 1,
-                        }
-                      }
-                    >
+                    <View>
                       <RCTScrollView
                         collapsable={false}
                         handlerTag={1}
                         handlerType="NativeViewGestureHandler"
                         onGestureHandlerEvent={[Function]}
                         onGestureHandlerStateChange={[Function]}
+                        style={
+                          {
+                            "height": "85%",
+                          }
+                        }
                       >
                         <View>
                           <View>
@@ -333,11 +332,12 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                 {
                                   "alignItems": "center",
                                   "borderColor": "#b7bbc8",
-                                  "borderRadius": 8,
+                                  "borderRadius": 2,
                                   "borderWidth": 1,
                                   "flexDirection": "row",
                                   "gap": 10,
                                   "justifyContent": "space-between",
+                                  "marginHorizontal": 16,
                                   "marginTop": 16,
                                 }
                               }
@@ -451,7 +451,8 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                       "flex": 1,
                                       "flexDirection": "row",
                                       "justifyContent": "center",
-                                      "marginTop": 16,
+                                      "margin": 16,
+                                      "marginBottom": 0,
                                     },
                                   ]
                                 }
@@ -496,7 +497,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                                     onChangeText={[Function]}
                                     onFocus={[Function]}
                                     placeholder="Search Tokens"
-                                    placeholderTextColor="#b7bbc8"
+                                    placeholderTextColor="#9ca1af"
                                     style={
                                       [
                                         {
@@ -571,7 +572,7 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                       <View
                         style={
                           {
-                            "paddingTop": 16,
+                            "padding": 16,
                           }
                         }
                       >
@@ -587,13 +588,12 @@ exports[`SearchTokenAutocomplete should render correctly 1`] = `
                             {
                               "alignItems": "center",
                               "alignSelf": "stretch",
-                              "backgroundColor": "#121314",
+                              "backgroundColor": "#4459ff",
                               "borderRadius": 12,
                               "flexDirection": "row",
                               "height": 48,
                               "justifyContent": "center",
                               "opacity": 0.5,
-                              "overflow": "hidden",
                               "paddingHorizontal": 16,
                             }
                           }

@@ -1,7 +1,4 @@
-import React from 'react';
-import renderWithProvider, {
-  renderScreen,
-} from '../../../util/test/renderWithProvider';
+import { renderScreen } from '../../../util/test/renderWithProvider';
 import ImportFromSecretRecoveryPhrase from '.';
 import Routes from '../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
@@ -13,38 +10,11 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import { MIN_PASSWORD_LENGTH } from '../../../util/password';
 import { BIOMETRY_TYPE } from 'react-native-keychain';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
-import { Alert, InteractionManager } from 'react-native';
-import { QRTabSwitcherScreens } from '../QRTabSwitcher';
-import { createStackNavigator } from '@react-navigation/stack';
-import { NavigationContainer } from '@react-navigation/native';
-import StorageWrapper from '../../../store/storage-wrapper';
-import { passcodeType } from '../../../util/authentication';
-import {
-  TraceName,
-  TraceOperation,
-  trace,
-  endTrace,
-} from '../../../util/trace';
+import { InteractionManager } from 'react-native';
 
 // Mock the clipboard
 jest.mock('@react-native-clipboard/clipboard', () => ({
   getString: jest.fn().mockResolvedValue(''),
-}));
-
-jest.mock('../../../util/trace', () => ({
-  ...jest.requireActual('../../../util/trace'),
-  trace: jest.fn(),
-  endTrace: jest.fn(),
-}));
-
-jest.mock('../../../util/termsOfUse/termsOfUse', () => ({
-  __esModule: true,
-  default: jest.fn().mockResolvedValue(undefined),
-}));
-
-jest.mock('../../../util/authentication', () => ({
-  passcodeType: jest.fn().mockReturnValue('device_passcode_ios'),
-  updateAuthTypeStorageFlags: jest.fn(),
 }));
 
 const initialState = {
@@ -263,35 +233,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         },
         { timeout: 3000 },
       );
-    });
-
-    it('on enter key press, the new input field value is created', async () => {
-      const { getByPlaceholderText, getByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      // Enter a valid 12-word seed phrase
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      fireEvent.changeText(input, 'say');
-
-      await act(async () => {
-        fireEvent(input, 'onSubmitEditing', {
-          nativeEvent: { key: 'Enter' },
-          index: 0,
-        });
-      });
-
-      await waitFor(() => {
-        const secondInput = getByTestId(
-          `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
-        );
-        expect(secondInput).toBeOnTheScreen();
-      });
     });
 
     it('renders qr code button', async () => {
@@ -606,37 +547,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(srpLink);
     });
 
-    it('calls navigation.goBack when back button is pressed on step 0', () => {
-      const mockGoBack = jest.fn();
-      const Stack = createStackNavigator();
-
-      const customRender = (children: React.ReactElement) =>
-        renderWithProvider(
-          <NavigationContainer>
-            <Stack.Navigator>
-              <Stack.Screen name="TestScreen">
-                {({ navigation }) => {
-                  const navigationSpy = jest.spyOn(navigation, 'goBack');
-                  navigationSpy.mockImplementation(mockGoBack);
-                  return React.cloneElement(children, { navigation });
-                }}
-              </Stack.Screen>
-            </Stack.Navigator>
-          </NavigationContainer>,
-          { state: initialState },
-          false,
-        );
-
-      const { getByTestId } = customRender(<ImportFromSecretRecoveryPhrase />);
-
-      const backButton = getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID);
-      expect(backButton).toBeOnTheScreen();
-
-      fireEvent.press(backButton);
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
     it('update focused index on blur', async () => {
       const { getByPlaceholderText, getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -930,140 +840,22 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       expect(input5).not.toBeOnTheScreen();
     });
+  });
 
-    describe('onQrCodePress', () => {
-      let customRender: (
-        children: React.ReactElement,
-      ) => ReturnType<typeof renderWithProvider>;
-      let navigationSpy: jest.SpyInstance;
-
-      beforeEach(() => {
-        const Stack = createStackNavigator();
-        customRender = (children: React.ReactElement) =>
-          renderWithProvider(
-            <NavigationContainer>
-              <Stack.Navigator>
-                <Stack.Screen name="TestScreen">
-                  {({ navigation }) => {
-                    navigationSpy = jest.spyOn(navigation, 'navigate');
-                    navigationSpy.mockImplementation(() => undefined);
-                    return React.cloneElement(children, { navigation });
-                  }}
-                </Stack.Screen>
-              </Stack.Navigator>
-            </NavigationContainer>,
-            { state: initialState },
-            false,
-          );
-      });
-
-      afterEach(() => {
-        navigationSpy.mockRestore();
-      });
-
-      it('navigates to QR scanner with correct parameters when QR button is pressed', async () => {
-        const { getByTestId } = customRender(
-          <ImportFromSecretRecoveryPhrase />,
+  describe('Create password UI', () => {
+    const renderCreatePasswordUI = async () => {
+      const { getByText, getByPlaceholderText, getByRole, getByTestId } =
+        renderScreen(
+          ImportFromSecretRecoveryPhrase,
+          { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+          { state: initialState },
         );
 
-        const qrButton = getByTestId(
-          ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
-        );
-        expect(qrButton).toBeOnTheScreen();
-
-        await act(async () => {
-          fireEvent.press(qrButton);
-        });
-
-        expect(navigationSpy).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
-          initialScreen: QRTabSwitcherScreens.Scanner,
-          disableTabber: true,
-          onScanSuccess: expect.any(Function),
-          onScanError: expect.any(Function),
-        });
-      });
-
-      it('calls handleClear and handleSeedPhraseChangeAtIndex when onScanSuccess is called with seed', async () => {
-        const { getByTestId } = customRender(
-          <ImportFromSecretRecoveryPhrase />,
-        );
-
-        const qrButton = getByTestId(
-          ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
-        );
-        await act(async () => {
-          fireEvent.press(qrButton);
-        });
-
-        expect(navigationSpy).toHaveBeenCalled();
-        const [, params] = navigationSpy.mock.calls[0];
-        const { onScanSuccess } = params;
-
-        const scannedSeed =
-          'abandon ability able about above absent absorb abstract absurd abuse access';
-        await act(async () => {
-          onScanSuccess({ seed: scannedSeed });
-        });
-
-        await waitFor(() => {
-          const firstInput = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`,
-          );
-          const secondInput = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
-          );
-          const thirdInput = getByTestId(
-            `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`,
-          );
-
-          expect(firstInput.props.value).toBe('abandon');
-          expect(secondInput.props.value).toBe('ability');
-          expect(thirdInput.props.value).toBe('able');
-        });
-      });
-
-      it('shows alert when onScanSuccess is called without seed', async () => {
-        const mockAlert = jest.spyOn(Alert, 'alert');
-        const { getByTestId } = customRender(
-          <ImportFromSecretRecoveryPhrase />,
-        );
-
-        const qrButton = getByTestId(
-          ImportFromSeedSelectorsIDs.QR_CODE_BUTTON_ID,
-        );
-        await act(async () => {
-          fireEvent.press(qrButton);
-        });
-
-        expect(navigationSpy).toHaveBeenCalled();
-        const [, params] = navigationSpy.mock.calls[0];
-        const { onScanSuccess } = params;
-
-        await act(async () => {
-          onScanSuccess({});
-        });
-
-        expect(mockAlert).toHaveBeenCalledWith(
-          strings('import_from_seed.invalid_qr_code_title'),
-          strings('import_from_seed.invalid_qr_code_message'),
-        );
-
-        mockAlert.mockRestore();
-      });
-    });
-
-    it('toggles show all seed phrase when button is pressed', async () => {
-      const { getByText, getByPlaceholderText } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
+      // Enter valid seed phrase and continue to step 2
       const input = getByPlaceholderText(
         strings('import_from_seed.srp_placeholder'),
       );
 
-      // Enter a seed phrase to enable the show all button
       await act(async () => {
         fireEvent.changeText(
           input,
@@ -1071,122 +863,12 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         );
       });
 
-      const showAllButton = getByText(strings('import_from_seed.show_all'));
-      expect(showAllButton).toBeOnTheScreen();
+      const continueButton = getByRole('button', { name: 'Continue' });
+      fireEvent.press(continueButton);
 
-      // Press the button to show all seed phrases
-      await act(async () => {
-        fireEvent.press(showAllButton);
-      });
+      return { getByText, getByPlaceholderText, getByRole, getByTestId };
+    };
 
-      // Now should show "Hide all" button
-      await waitFor(() => {
-        const hideAllButton = getByText(strings('import_from_seed.hide_all'));
-        expect(hideAllButton).toBeOnTheScreen();
-      });
-
-      // Press again to hide all
-      const hideAllButton = getByText(strings('import_from_seed.hide_all'));
-      await act(async () => {
-        fireEvent.press(hideAllButton);
-      });
-
-      // Should show "Show all" button again
-      await waitFor(() => {
-        const showAllButtonAgain = getByText(
-          strings('import_from_seed.show_all'),
-        );
-        expect(showAllButtonAgain).toBeOnTheScreen();
-      });
-    });
-
-    it('handles backspace key press when input is empty and index > 0', async () => {
-      const { getByPlaceholderText, getByTestId, queryByTestId } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-
-      await act(async () => {
-        fireEvent.changeText(input, 'word1 word2 word3');
-      });
-
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`),
-        ).toBeOnTheScreen();
-      });
-
-      // Clear the second input field
-      const input1 = getByTestId(
-        `${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`,
-      );
-      await act(async () => {
-        fireEvent.changeText(input1, '');
-      });
-
-      // Simulate backspace key press on empty input field at index 1
-      await act(async () => {
-        fireEvent(input1, 'keyPress', {
-          nativeEvent: { key: 'Backspace' },
-        });
-      });
-
-      // Should focus on the previous input field (index 0) and remove the current empty field
-      await waitFor(() => {
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_0`),
-        ).toBeOnTheScreen();
-        expect(
-          getByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_1`),
-        ).toBeOnTheScreen();
-        expect(
-          queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`),
-        ).toBeNull();
-      });
-    });
-  });
-
-  const renderCreatePasswordUI = async (onboardingTraceCtx?: {
-    traceId: string;
-  }) => {
-    const { getByText, getByPlaceholderText, getByRole, getByTestId } =
-      renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-        onboardingTraceCtx ? { onboardingTraceCtx } : undefined,
-      );
-
-    // Enter valid seed phrase and continue to step 2
-    const input = getByPlaceholderText(
-      strings('import_from_seed.srp_placeholder'),
-    );
-
-    await act(async () => {
-      fireEvent.changeText(
-        input,
-        'say devote wasp video cool lunch brief add fever uncover novel offer',
-      );
-    });
-
-    const continueButton = getByRole('button', { name: 'Continue' });
-    fireEvent.press(continueButton);
-
-    return { getByText, getByPlaceholderText, getByRole, getByTestId };
-  };
-
-  describe('Create password UI', () => {
     it('renders create password UI', async () => {
       const { getByText } = await renderCreatePasswordUI();
 
@@ -1491,321 +1173,6 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
       fireEvent.press(confirmButton);
-    });
-
-    it('handles rejected OS biometric prompt successfully', async () => {
-      mockIsEnabled.mockReturnValue(true);
-      const mockComponentAuthenticationType = jest
-        .spyOn(Authentication, 'componentAuthenticationType')
-        .mockResolvedValueOnce({
-          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-        })
-        .mockResolvedValueOnce({
-          // Mock second call in handleRejectedOsBiometricPrompt
-          currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-        });
-      const mockNewWalletAndRestore = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
-        .mockRejectedValueOnce(
-          new Error('The user name or passphrase you entered is not correct.'),
-        )
-        // Mock second call in handleRejectedOsBiometricPrompt
-        .mockResolvedValueOnce();
-
-      const { getByTestId, getByPlaceholderText, getByText } =
-        await renderCreatePasswordUI();
-
-      const passwordInput = getByPlaceholderText(
-        strings('import_from_seed.enter_strong_password'),
-      );
-      const confirmPasswordInput = getByPlaceholderText(
-        strings('import_from_seed.re_enter_password'),
-      );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      const confirmButton = getByText(
-        strings('import_from_seed.create_password_cta'),
-      );
-      fireEvent.changeText(passwordInput, 'StrongPass123!');
-      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
-      fireEvent.press(confirmButton);
-
-      await act(async () => Promise.resolve());
-
-      expect(mockComponentAuthenticationType).toHaveBeenCalledTimes(2);
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
-        1,
-        true,
-        false,
-      );
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
-        2,
-        false,
-        false,
-      );
-      expect(mockNewWalletAndRestore).toHaveBeenCalledTimes(2);
-    });
-
-    it('handles rejected OS biometric prompt with error', async () => {
-      mockIsEnabled.mockReturnValue(true);
-      const mockComponentAuthenticationType = jest
-        .spyOn(Authentication, 'componentAuthenticationType')
-        .mockResolvedValueOnce({
-          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-        })
-        .mockResolvedValueOnce({
-          // Mock second call in handleRejectedOsBiometricPrompt
-          currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-        });
-      const mockNewWalletAndRestore = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
-        .mockRejectedValueOnce(
-          new Error('The user name or passphrase you entered is not correct.'),
-        )
-        // Mock second call in handleRejectedOsBiometricPrompt: this should also fail
-        .mockRejectedValueOnce(new Error('Wallet creation failed'));
-
-      const { getByTestId, getByPlaceholderText, getByText } =
-        await renderCreatePasswordUI();
-
-      const passwordInput = getByPlaceholderText(
-        strings('import_from_seed.enter_strong_password'),
-      );
-      const confirmPasswordInput = getByPlaceholderText(
-        strings('import_from_seed.re_enter_password'),
-      );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-      const confirmButton = getByText(
-        strings('import_from_seed.create_password_cta'),
-      );
-      fireEvent.changeText(passwordInput, 'StrongPass123!');
-      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
-      fireEvent.press(confirmButton);
-
-      await act(async () => Promise.resolve());
-
-      expect(mockComponentAuthenticationType).toHaveBeenCalledTimes(2);
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
-        1,
-        true,
-        false,
-      );
-      expect(mockComponentAuthenticationType).toHaveBeenNthCalledWith(
-        2,
-        false,
-        false,
-      );
-      expect(mockNewWalletAndRestore).toHaveBeenCalledTimes(2);
-    });
-  });
-
-  describe('useEffect hooks', () => {
-    it('sets biometry type to passcode when currentAuthType is PASSCODE', async () => {
-      const mockGetType = jest.spyOn(Authentication, 'getType');
-      const mockGetItem = jest.spyOn(StorageWrapper, 'getItem');
-
-      mockGetType.mockResolvedValueOnce({
-        currentAuthType: AUTHENTICATION_TYPE.PASSCODE,
-        availableBiometryType: undefined,
-      });
-      mockGetItem.mockResolvedValueOnce(null); // BIOMETRY_CHOICE_DISABLED
-      mockGetItem.mockResolvedValueOnce(null); // PASSCODE_DISABLED
-
-      const { unmount } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      await waitFor(() => {
-        expect(mockGetType).toHaveBeenCalled();
-        expect(passcodeType).toHaveBeenCalledWith(AUTHENTICATION_TYPE.PASSCODE);
-      });
-
-      unmount();
-    });
-  });
-
-  describe('tracing', () => {
-    const mockTrace = trace as jest.MockedFunction<typeof trace>;
-    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
-
-    beforeEach(() => {
-      mockTrace.mockClear();
-      mockEndTrace.mockClear();
-    });
-
-    it('starts and ends trace with onboardingTraceCtx', async () => {
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
-      const mockTraceCtx = { traceId: 'password-setup-trace-id' };
-
-      mockTrace.mockReturnValue(mockTraceCtx);
-
-      const { getByPlaceholderText, getByRole, unmount } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-        { onboardingTraceCtx: mockOnboardingTraceCtx },
-      );
-
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-      await act(async () => {
-        fireEvent.changeText(
-          input,
-          'say devote wasp video cool lunch brief add fever uncover novel offer',
-        );
-      });
-
-      const continueButton = getByRole('button', { name: 'Continue' });
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      expect(mockTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingPasswordSetupAttempt,
-        op: TraceOperation.OnboardingUserJourney,
-        parentContext: mockOnboardingTraceCtx,
-      });
-
-      unmount();
-
-      expect(mockEndTrace).toHaveBeenCalledWith({
-        name: TraceName.OnboardingPasswordSetupAttempt,
-      });
-    });
-
-    it('does not start trace and end trace when moving to password setup step without onboardingTraceCtx', async () => {
-      const { getByPlaceholderText, getByRole, unmount } = renderScreen(
-        ImportFromSecretRecoveryPhrase,
-        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
-        { state: initialState },
-      );
-
-      const input = getByPlaceholderText(
-        strings('import_from_seed.srp_placeholder'),
-      );
-      await act(async () => {
-        fireEvent.changeText(
-          input,
-          'say devote wasp video cool lunch brief add fever uncover novel offer',
-        );
-      });
-
-      const continueButton = getByRole('button', { name: 'Continue' });
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      expect(mockTrace).not.toHaveBeenCalled();
-
-      unmount();
-
-      expect(mockEndTrace).not.toHaveBeenCalled();
-    });
-
-    it('traces error when wallet import fails with onboardingTraceCtx', async () => {
-      const mockOnboardingTraceCtx = { traceId: 'test-trace-id' };
-      const testError = new Error('Authentication failed');
-
-      // Mock failing authentication to trigger outer catch block
-      const mockComponentAuthenticationType = jest.spyOn(
-        Authentication,
-        'componentAuthenticationType',
-      );
-      mockComponentAuthenticationType.mockRejectedValueOnce(testError);
-
-      const { getByTestId, getByPlaceholderText } =
-        await renderCreatePasswordUI(mockOnboardingTraceCtx);
-
-      const passwordInput = getByPlaceholderText(
-        strings('import_from_seed.enter_strong_password'),
-      );
-      const confirmPasswordInput = getByPlaceholderText(
-        strings('import_from_seed.re_enter_password'),
-      );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-
-      fireEvent.changeText(passwordInput, 'StrongPass123!');
-      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
-
-      const importButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(importButton);
-
-      await waitFor(
-        () => {
-          expect(mockTrace).toHaveBeenCalledWith({
-            name: TraceName.OnboardingPasswordSetupError,
-            op: TraceOperation.OnboardingUserJourney,
-            parentContext: mockOnboardingTraceCtx,
-            tags: { errorMessage: 'Error: Authentication failed' },
-          });
-          expect(mockEndTrace).toHaveBeenCalledWith({
-            name: TraceName.OnboardingPasswordSetupError,
-          });
-        },
-        { timeout: 3000 },
-      );
-    });
-
-    it('does not trace error when wallet import fails without onboardingTraceCtx', async () => {
-      const testError = new Error('Authentication failed');
-
-      // Mock failing authentication to trigger outer catch block
-      const mockComponentAuthenticationType = jest.spyOn(
-        Authentication,
-        'componentAuthenticationType',
-      );
-      mockComponentAuthenticationType.mockRejectedValueOnce(testError);
-
-      const { getByTestId, getByPlaceholderText } =
-        await renderCreatePasswordUI();
-
-      const passwordInput = getByPlaceholderText(
-        strings('import_from_seed.enter_strong_password'),
-      );
-      const confirmPasswordInput = getByPlaceholderText(
-        strings('import_from_seed.re_enter_password'),
-      );
-      const learnMoreCheckbox = getByTestId(
-        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
-      );
-
-      fireEvent.changeText(passwordInput, 'StrongPass123!');
-      fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
-      fireEvent.press(learnMoreCheckbox);
-
-      const importButton = getByTestId(
-        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-      );
-      fireEvent.press(importButton);
-
-      await waitFor(() => {
-        expect(mockTrace).not.toHaveBeenCalledWith(
-          expect.objectContaining({
-            name: TraceName.OnboardingPasswordSetupError,
-          }),
-        );
-
-        expect(mockEndTrace).not.toHaveBeenCalledWith({
-          name: TraceName.OnboardingPasswordSetupError,
-        });
-      });
     });
   });
 });

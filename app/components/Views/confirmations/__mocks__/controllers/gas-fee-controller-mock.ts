@@ -38,14 +38,18 @@ const baseGasFeeControllerMock = {
   },
 };
 
-export const gasFeeControllerMock = merge({}, baseGasFeeControllerMock, {
-  engine: {
-    backgroundState: {
-      GasFeeController: {
-        gasFeeEstimatesByChainId: {
-          '0x1': feeMarketEstimates,
+export const gasFeeControllerMock = merge(
+  {},
+  baseGasFeeControllerMock,
+  {
+    engine: {
+      backgroundState: {
+        GasFeeController: {
+          gasFeeEstimatesByChainId: {
+            '0x1': feeMarketEstimates,
+          },
         },
       },
     },
   },
-});
+);

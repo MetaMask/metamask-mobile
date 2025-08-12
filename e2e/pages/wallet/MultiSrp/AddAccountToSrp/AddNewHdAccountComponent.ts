@@ -1,6 +1,6 @@
 import { AddNewAccountIds } from '../../../../selectors/MultiSRP/AddHdAccount.selectors';
-import Matchers from '../../../../framework/Matchers.ts';
-import Gestures from '../../../../framework/Gestures.ts';
+import Matchers from '../../../../utils/Matchers';
+import Gestures from '../../../../utils/Gestures';
 import { IndexableNativeElement } from 'detox/detox';
 
 class AddNewHdAccountComponent {
@@ -33,9 +33,7 @@ class AddNewHdAccountComponent {
   }
 
   async tapConfirm() {
-    await Gestures.waitAndTap(this.confirmButton, {
-      elemDescription: 'Confirm button on Add New HD Account screen',
-    });
+    await Gestures.waitAndTap(this.confirmButton);
   }
 
   async enterName(accountName: string) {

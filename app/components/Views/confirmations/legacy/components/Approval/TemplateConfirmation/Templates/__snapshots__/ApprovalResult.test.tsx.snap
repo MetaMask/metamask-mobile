@@ -174,13 +174,12 @@ exports[`ApprovalResult renders approval result with error type 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#4459ff",
             "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
-            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }
@@ -251,7 +250,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#457a391a",
+            "backgroundColor": "#1c7e331a",
             "borderRadius": 24,
             "height": 48,
             "justifyContent": "center",
@@ -260,7 +259,7 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
         }
       >
         <SvgMock
-          color="#457a39"
+          color="#1c7e33"
           fill="currentColor"
           height={24}
           name="Confirmation"
@@ -380,13 +379,12 @@ exports[`ApprovalResult renders approval result with success type 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "flex-start",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#4459ff",
             "borderRadius": 12,
             "flex": 1,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
-            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }

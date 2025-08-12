@@ -9,16 +9,14 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     title: {
       marginBottom: 16,
-      fontWeight: 'bold',
     },
     getStartedImageWrapper: {
       alignItems: 'center',
     },
     getStartedImage: {
-      width: screenWidth * 0.65,
-      height: screenWidth * 0.49,
+      width: screenWidth,
+      height: screenWidth * 0.75,
       alignSelf: 'center',
-      marginVertical: 16,
     },
     bulletPointContainer: {
       marginVertical: 8,

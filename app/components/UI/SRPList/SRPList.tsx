@@ -9,25 +9,14 @@ import { SRPListSelectorsIDs } from '../../../../e2e/selectors/MultiSRP/SRPList.
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import useMetrics from '../../hooks/useMetrics/useMetrics';
-import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 
-const SRPList = ({
-  onKeyringSelect,
-  containerStyle,
-  showArrowName = '',
-}: SRPListProps) => {
-  // trigger sync SRP when SRP list is shown
-  useSyncSRPs();
-
+const SRPList = ({ onKeyringSelect }: SRPListProps) => {
   const { styles } = useStyles(styleSheet, {});
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   return (
-    <View
-      style={[styles.base, containerStyle]}
-      testID={SRPListSelectorsIDs.SRP_LIST}
-    >
+    <View style={styles.base} testID={SRPListSelectorsIDs.SRP_LIST}>
       <FlatList
         data={hdKeyringsWithSnapAccounts}
         contentContainerStyle={styles.srpListContentContainer}
@@ -36,7 +25,6 @@ const SRPList = ({
             key={item.metadata.id}
             keyring={item}
             name={`${strings('accounts.secret_recovery_phrase')} ${index + 1}`}
-            showArrowName={showArrowName}
             onActionComplete={() => {
               onKeyringSelect(item.metadata.id);
               trackEvent(

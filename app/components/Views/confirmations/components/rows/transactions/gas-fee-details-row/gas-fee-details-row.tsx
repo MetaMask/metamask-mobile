@@ -1,7 +1,4 @@
-import {
-  TransactionBatchMeta,
-  TransactionMeta,
-} from '@metamask/transaction-controller';
+import { TransactionBatchMeta, TransactionMeta } from '@metamask/transaction-controller';
 import React, { useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
@@ -29,11 +26,9 @@ import styleSheet from './gas-fee-details-row.styles';
 const EstimationInfo = ({
   hideFiatForTestnet,
   feeCalculations,
-  fiatOnly,
 }: {
   hideFiatForTestnet: boolean;
   feeCalculations: ReturnType<typeof useFeeCalculations>;
-  fiatOnly: boolean;
 }) => {
   const { styles } = useStyles(styleSheet, {});
   return (
@@ -43,53 +38,33 @@ const EstimationInfo = ({
           {feeCalculations.estimatedFeeFiat}
         </Text>
       )}
-      {!fiatOnly && (
-        <Text style={styles.primaryValue}>
-          {feeCalculations.estimatedFeeNative}
-        </Text>
-      )}
+      <Text style={styles.primaryValue}>
+        {feeCalculations.estimatedFeeNative}
+      </Text>
     </View>
   );
 };
 
-const SingleEstimateInfo = ({
-  hideFiatForTestnet,
-  fiatOnly,
-}: {
-  hideFiatForTestnet: boolean;
-  fiatOnly: boolean;
-}) => {
+const SingleEstimateInfo = ({ hideFiatForTestnet }: { hideFiatForTestnet: boolean }) => {
   const transactionMetadata = useTransactionMetadataRequest();
-  const feeCalculations = useFeeCalculations(
-    transactionMetadata as TransactionMeta,
-  );
+  const feeCalculations = useFeeCalculations(transactionMetadata as TransactionMeta);
 
   return (
     <EstimationInfo
       hideFiatForTestnet={hideFiatForTestnet}
       feeCalculations={feeCalculations}
-      fiatOnly={fiatOnly}
     />
   );
 };
 
-const BatchEstimateInfo = ({
-  hideFiatForTestnet,
-  fiatOnly,
-}: {
-  hideFiatForTestnet: boolean;
-  fiatOnly: boolean;
-}) => {
+const BatchEstimateInfo = ({ hideFiatForTestnet }: { hideFiatForTestnet: boolean }) => {
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
-  const feeCalculations = useFeeCalculationsTransactionBatch(
-    transactionBatchesMetadata as TransactionBatchMeta,
-  );
+  const feeCalculations = useFeeCalculationsTransactionBatch(transactionBatchesMetadata as TransactionBatchMeta);
 
   return (
     <EstimationInfo
       hideFiatForTestnet={hideFiatForTestnet}
       feeCalculations={feeCalculations}
-      fiatOnly={fiatOnly}
     />
   );
 };
@@ -97,11 +72,9 @@ const BatchEstimateInfo = ({
 const ClickableEstimationInfo = ({
   hideFiatForTestnet,
   onPress,
-  fiatOnly,
 }: {
   hideFiatForTestnet: boolean;
   onPress: () => void;
-  fiatOnly: boolean;
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -121,7 +94,6 @@ const ClickableEstimationInfo = ({
       <EstimationInfo
         hideFiatForTestnet={hideFiatForTestnet}
         feeCalculations={feeCalculations}
-        fiatOnly={fiatOnly}
       />
     </TouchableOpacity>
   );
@@ -130,33 +102,17 @@ const ClickableEstimationInfo = ({
 const RenderEstimationInfo = ({
   transactionBatchesMetadata,
   hideFiatForTestnet,
-  fiatOnly,
 }: {
   transactionBatchesMetadata: TransactionBatchMeta | undefined;
   hideFiatForTestnet: boolean;
-  fiatOnly: boolean;
 }) => {
   if (transactionBatchesMetadata) {
-    return (
-      <BatchEstimateInfo
-        hideFiatForTestnet={hideFiatForTestnet}
-        fiatOnly={fiatOnly}
-      />
-    );
+    return <BatchEstimateInfo hideFiatForTestnet={hideFiatForTestnet} />;
   }
-  return (
-    <SingleEstimateInfo
-      hideFiatForTestnet={hideFiatForTestnet}
-      fiatOnly={fiatOnly}
-    />
-  );
+  return <SingleEstimateInfo hideFiatForTestnet={hideFiatForTestnet} />;
 };
 
-const GasFeesDetailsRow = ({
-  disableUpdate = false,
-  hideSpeed = false,
-  fiatOnly = false,
-}) => {
+const GasFeesDetailsRow = ({ disableUpdate = false }) => {
   const [gasModalVisible, setGasModalVisible] = useState(false);
   const { styles } = useStyles(styleSheet, {});
 
@@ -190,18 +146,16 @@ const GasFeesDetailsRow = ({
               <RenderEstimationInfo
                 transactionBatchesMetadata={transactionBatchesMetadata}
                 hideFiatForTestnet={hideFiatForTestnet}
-                fiatOnly={fiatOnly}
               />
             ) : (
               <ClickableEstimationInfo
                 onPress={() => setGasModalVisible(true)}
                 hideFiatForTestnet={hideFiatForTestnet}
-                fiatOnly={fiatOnly}
               />
             )}
           </View>
         </AlertRow>
-        {isUserFeeLevelExists && !hideSpeed && (
+        {isUserFeeLevelExists && (
           <AlertRow
             alertField={RowAlertKey.PendingTransaction}
             label={strings('transactions.gas_modal.speed')}

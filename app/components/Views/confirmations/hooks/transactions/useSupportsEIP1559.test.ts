@@ -44,7 +44,7 @@ describe('useSupportsEIP1559', () => {
           NetworkController: {
             selectedNetworkClientId: '0x123456',
             networksMetadata: {
-              mainnet: {
+              'mainnet': {
                 EIPS: { 1559: false },
               },
             },

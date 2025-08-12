@@ -10,12 +10,11 @@ jest.mock('../../util/test/utils', () => ({
 }));
 
 const testEvent: ITrackingEvent = {
-  name: 'test_event',
-  properties: { isTest: true },
+  name: 'test_event', properties: {isTest: true},
   sensitiveProperties: {},
   saveDataRecording: false,
   isAnonymous: false,
-  hasProperties: false,
+  hasProperties: false
 };
 
 describe('MetaMetricsTestUtils', () => {
@@ -38,7 +37,7 @@ describe('MetaMetricsTestUtils', () => {
 
   describe('Singleton pattern', () => {
     it('should return the same instance when getInstance is called multiple times', () => {
-      const instance1 = MetaMetricsTestUtils.getInstance();
+     const instance1 = MetaMetricsTestUtils.getInstance();
       const instance2 = MetaMetricsTestUtils.getInstance();
 
       expect(instance1).toBe(instance2);
@@ -97,7 +96,7 @@ describe('MetaMetricsTestUtils', () => {
 
       expect(console.error).toHaveBeenCalledWith(
         'Error sending event to test server:',
-        otherError,
+        otherError
       );
       console.error = originalConsoleError;
     });

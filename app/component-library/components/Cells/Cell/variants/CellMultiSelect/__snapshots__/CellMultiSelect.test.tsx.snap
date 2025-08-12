@@ -79,7 +79,7 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
           style={
             {
               "backgroundColor": "#ffffff",
-              "borderRadius": 8,
+              "borderRadius": 16,
               "height": 32,
               "marginRight": 16,
               "overflow": "hidden",
@@ -100,9 +100,7 @@ exports[`CellMultiSelect should render default settings correctly 1`] = `
                   "height": 32,
                   "width": 32,
                 },
-                {
-                  "borderRadius": 8,
-                },
+                undefined,
               ]
             }
           >

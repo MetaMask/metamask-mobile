@@ -66,10 +66,6 @@ export const SOLANA_FEATURE_MODAL_SHOWN = `${prefix}solanaFeatureModalShownV2`;
 
 export const SOLANA_DISCOVERY_PENDING = `${prefix}solanaDiscoveryPending`;
 
-export const BITCOIN_DISCOVERY_PENDING = `${prefix}bitcoinDiscoveryPending`;
-
 export const RESUBSCRIBE_NOTIFICATIONS_EXPIRY = `${prefix}RESUBSCRIBE_NOTIFICATIONS_EXPIRY`;
-
-export const HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS = `${prefix}HAS_USER_TURNED_OFF_ONCE_NOTIFICATIONS`;
 
 export const OPTIN_META_METRICS_UI_SEEN = `${prefix}OptinMetaMetricsUISeen`;

@@ -1,10 +1,9 @@
 import React from 'react';
-import { SolScope } from '@metamask/keyring-api';
 import { fireEvent } from '@testing-library/react-native';
-import '../../UI/Bridge/_mocks_/initialState';
-import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
-import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { selectChainId } from '../../../selectors/networkController';
+import { selectCanSignTransactions } from '../../../selectors/accountsController';
+import { isSwapsAllowed } from '../../../components/UI/Swaps/utils';
+import { SolScope } from '@metamask/keyring-api';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../util/test/renderWithProvider';
@@ -31,11 +30,6 @@ import {
 import { EarnTokenDetails } from '../../UI/Earn/types/lending.types';
 import WalletActions from './WalletActions';
 import Routes from '../../../constants/navigation/Routes';
-import { selectPerpsEnabledFlag } from '../../UI/Perps';
-
-jest.mock('../../UI/Perps', () => ({
-  selectPerpsEnabledFlag: jest.fn(),
-}));
 
 jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectStablecoinLendingEnabledFlag: jest.fn(),
@@ -169,14 +163,14 @@ jest.mock('../../UI/Bridge/utils', () => ({
   isBridgeAllowed: jest.fn().mockReturnValue(true),
 }));
 
+jest.mock('../../../selectors/featureFlagController/deposit', () => ({
+  selectDepositEntrypointWalletActions: jest.fn().mockReturnValue(true),
+}));
+
 jest.mock('../../UI/Ramp/Aggregator/hooks/useRampNetwork', () => ({
   __esModule: true,
   default: jest.fn().mockReturnValue([true]),
 }));
-
-jest.mock('../../UI/Ramp/Deposit/hooks/useDepositEnabled', () =>
-  jest.fn().mockReturnValue({ isDepositEnabled: true }),
-);
 
 jest.mock('../../../core/AppConstants', () => {
   const actual = jest.requireActual('../../../core/AppConstants');
@@ -352,10 +346,6 @@ describe('WalletActions', () => {
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeNull();
-    // Feature flag is disabled by default
-    expect(
-      queryByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
-    ).toBeNull();
   });
   it('should render earn button if the stablecoin lending feature is enabled', () => {
     (
@@ -524,8 +514,9 @@ describe('WalletActions', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       params: {
+        bridgeViewMode: 'Swap',
         sourcePage: 'MainView',
-        sourceToken: {
+        token: {
           address: ethers.constants.AddressZero,
           chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           decimals: 9,
@@ -533,7 +524,6 @@ describe('WalletActions', () => {
           name: 'Solana',
           symbol: 'SOL',
         },
-        bridgeViewMode: 'Swap',
       },
       screen: 'BridgeView',
     });
@@ -617,42 +607,6 @@ describe('WalletActions', () => {
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON),
     ).toBeNull();
-  });
-
-  it('should render the Perpetuals button if the Perps feature flag is enabled', () => {
-    (
-      selectPerpsEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsEnabledFlag
-      >
-    ).mockReturnValue(true);
-
-    const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
-    });
-
-    expect(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
-    ).toBeDefined();
-  });
-
-  it('should call the onPerps function when the Perpetuals button is pressed', () => {
-    (
-      selectPerpsEnabledFlag as jest.MockedFunction<
-        typeof selectPerpsEnabledFlag
-      >
-    ).mockReturnValue(true);
-
-    const { getByTestId } = renderWithProvider(<WalletActions />, {
-      state: mockInitialState,
-    });
-
-    fireEvent.press(
-      getByTestId(WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON),
-    );
-
-    expect(mockNavigate).toHaveBeenCalledWith('Perps', {
-      screen: 'PerpsMarketListView',
-    });
   });
 
   it('disables action buttons when the account cannot sign transactions', () => {
@@ -770,7 +724,7 @@ describe('WalletActions', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
+      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
     });
 
     it('handles hook errors gracefully', async () => {
@@ -790,7 +744,7 @@ describe('WalletActions', () => {
 
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
       // Should not navigate since hook handled it (even with internal error)
-      expect(mockNavigate).not.toHaveBeenCalledWith('SendFlowView');
+      expect(mockNavigate).not.toHaveBeenCalledWith('SendFlowView', {});
     });
 
     it('calls hook with correct asset parameters', async () => {

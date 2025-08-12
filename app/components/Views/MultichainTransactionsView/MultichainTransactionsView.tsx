@@ -13,8 +13,11 @@ import { useTheme } from '../../../util/theme';
 import { strings } from '../../../../locales/i18n';
 import Text from '../../../component-library/components/Texts/Text';
 import { baseStyles } from '../../../styles/common';
-import { getAddressUrl } from '../../../core/Multichain/utils';
-import { selectNonEvmTransactions } from '../../../selectors/multichain/multichain';
+import {
+  getAddressUrl,
+  nonEvmNetworkChainIdByAccountAddress,
+} from '../../../core/Multichain/utils';
+import { selectSolanaAccountTransactions } from '../../../selectors/multichain/multichain';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
 import styles from './MultichainTransactionsView.styles';
@@ -24,9 +27,6 @@ import MultichainTransactionsFooter from './MultichainTransactionsFooter';
 import PriceChartContext, {
   PriceChartProvider,
 } from '../../UI/AssetOverview/PriceChart/PriceChart.context';
-import MultichainBridgeTransactionListItem from '../../../components/UI/MultichainBridgeTransactionListItem';
-import { KnownCaipNamespace, parseCaipChainId } from '@metamask/utils';
-import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 
 interface MultichainTransactionsViewProps {
   /**
@@ -48,7 +48,7 @@ interface MultichainTransactionsViewProps {
   /**
    * Chain ID for block explorer links
    */
-  chainId: SupportedCaipChainId;
+  chainId?: string;
   /**
    * Enable refresh functionality
    */
@@ -82,19 +82,19 @@ const MultichainTransactionsView = ({
   const style = styles(colors);
   const defaultNavigation = useNavigation();
   const nav = navigation ?? defaultNavigation;
-  const { namespace } = parseCaipChainId(chainId as CaipChainId);
-  const isBitcoinNetwork = namespace === KnownCaipNamespace.Bip122;
 
   const defaultSelectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
   const address = selectedAddress ?? defaultSelectedAddress;
 
-  const nonEvmTransactions = useSelector(selectNonEvmTransactions);
+  const solanaAccountTransactions = useSelector(
+    selectSolanaAccountTransactions,
+  );
 
   const txList = useMemo(
-    () => transactions ?? nonEvmTransactions?.transactions,
-    [transactions, nonEvmTransactions],
+    () => transactions ?? solanaAccountTransactions?.transactions,
+    [transactions, solanaAccountTransactions],
   );
 
   const { bridgeHistoryItemsBySrcTxHash } = useBridgeHistoryItemBySrcTxHash();
@@ -122,14 +122,15 @@ const MultichainTransactionsView = ({
     </View>
   );
 
-  const url = getAddressUrl(address ?? '', chainId as CaipChainId);
+  const currentChainId =
+    chainId ?? nonEvmNetworkChainIdByAccountAddress(address ?? '');
+  const url = getAddressUrl(address ?? '', currentChainId as CaipChainId);
 
   const footer = (
     <MultichainTransactionsFooter
       url={url}
       hasTransactions={(txList?.length ?? 0) > 0}
       showDisclaimer={showDisclaimer}
-      showExplorerLink={!isBitcoinNetwork}
       onViewMore={() => {
         nav.navigate('Webview', {
           screen: 'SimpleWebview',
@@ -149,19 +150,13 @@ const MultichainTransactionsView = ({
     const srcTxHash = item.id;
     const bridgeHistoryItem = bridgeHistoryItemsBySrcTxHash[srcTxHash];
 
-    return bridgeHistoryItem ? (
-      <MultichainBridgeTransactionListItem
-        transaction={item}
-        bridgeHistoryItem={bridgeHistoryItem}
-        navigation={nav}
-        index={index}
-      />
-    ) : (
+    return (
       <MultichainTransactionListItem
         transaction={item}
+        bridgeHistoryItem={bridgeHistoryItem}
+        selectedAddress={address ?? ''}
         navigation={nav}
         index={index}
-        chainId={chainId}
       />
     );
   };
@@ -179,6 +174,7 @@ const MultichainTransactionsView = ({
               ListEmptyComponent={renderEmptyList}
               ListFooterComponent={footer}
               style={baseStyles.flexGrow}
+              estimatedItemSize={200}
               refreshControl={
                 enableRefresh ? (
                   <RefreshControl

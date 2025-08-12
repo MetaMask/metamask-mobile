@@ -138,7 +138,7 @@ exports[`Step1 should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#121314",
+                "backgroundColor": "#4459ff",
                 "borderColor": "#ffffff",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -147,7 +147,6 @@ exports[`Step1 should render correctly 1`] = `
                 "height": 32,
                 "justifyContent": "center",
                 "marginRight": 4,
-                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -180,7 +179,7 @@ exports[`Step1 should render correctly 1`] = `
                 "alignItems": "center",
                 "alignSelf": "stretch",
                 "backgroundColor": "#ffffff",
-                "borderColor": "transparent",
+                "borderColor": "#4459ff",
                 "borderRadius": 12,
                 "borderWidth": 1,
                 "flex": 0.5,
@@ -188,7 +187,6 @@ exports[`Step1 should render correctly 1`] = `
                 "height": 32,
                 "justifyContent": "center",
                 "marginLeft": 4,
-                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }
@@ -198,7 +196,7 @@ exports[`Step1 should render correctly 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#121314",
+                  "color": "#4459ff",
                   "fontFamily": "Geist Medium",
                   "fontSize": 16,
                   "letterSpacing": 0,

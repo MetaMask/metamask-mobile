@@ -7,5 +7,4 @@ export interface SRPListItemProps {
   };
   testID?: string;
   onActionComplete: (id: string) => void;
-  showArrowName?: string;
 }

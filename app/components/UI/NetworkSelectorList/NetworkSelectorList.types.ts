@@ -6,7 +6,7 @@ export interface Network {
   isSelected: boolean;
   yOffset?: number;
   imageSource: ImageSourcePropType;
-  caipChainId: CaipChainId;
+  caipChainId: CaipChainId
 }
 
 export interface NetworkConnectMultiSelectorProps {
@@ -15,10 +15,7 @@ export interface NetworkConnectMultiSelectorProps {
   isLoading?: boolean;
   selectedChainIds?: CaipChainId[];
   isMultiSelect?: boolean;
-  renderRightAccessory?: (
-    caipChainId: CaipChainId,
-    name: string,
-  ) => React.ReactNode;
+  renderRightAccessory?: (caipChainId: CaipChainId, name: string) => React.ReactNode;
   isSelectionDisabled?: boolean;
   isAutoScrollEnabled?: boolean;
 }

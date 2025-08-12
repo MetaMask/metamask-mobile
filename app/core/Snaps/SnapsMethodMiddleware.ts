@@ -10,7 +10,6 @@ import { keyringSnapPermissionsBuilder } from '../SnapKeyring/keyringSnapsPermis
 import { SnapId } from '@metamask/snaps-sdk';
 import { BaseControllerMessenger, EngineContext } from '../Engine';
 import { handleSnapRequest } from './utils';
-import { captureException } from '@sentry/react-native';
 import {
   CronjobControllerCancelAction,
   CronjobControllerGetAction,
@@ -35,7 +34,6 @@ import { MetaMetrics } from '../../../app/core/Analytics';
 import { MetricsEventBuilder } from '../Analytics/MetricsEventBuilder';
 import { Json } from '@metamask/utils';
 import { SchedulableBackgroundEvent } from '@metamask/snaps-controllers';
-import { endTrace, trace } from '../../util/trace';
 
 export function getSnapIdFromRequest(
   request: Record<string, unknown>,
@@ -131,7 +129,6 @@ const snapMethodMiddlewareBuilder = (
       controllerMessenger,
       SnapControllerGetSnapAction,
     ),
-    trackError: (error: Error) => captureException(error),
     trackEvent: (eventPayload: {
       event: string;
       properties: Record<string, Json>;
@@ -248,8 +245,6 @@ const snapMethodMiddlewareBuilder = (
       controllerMessenger,
       'NetworkController:getNetworkClientById',
     ),
-    startTrace: trace,
-    endTrace,
   });
 
 export default snapMethodMiddlewareBuilder;

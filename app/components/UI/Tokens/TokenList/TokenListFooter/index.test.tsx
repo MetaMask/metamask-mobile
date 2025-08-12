@@ -3,6 +3,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { TokenListFooter } from '.';
 import configureMockStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
+import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import useRampNetwork from '../../../Ramp/Aggregator/hooks/useRampNetwork';
 import { MetaMetricsEvents } from '../../../../../components/hooks/useMetrics';
@@ -111,6 +112,12 @@ const initialState = {
 const store = mockStore(initialState);
 
 describe('TokenListFooter', () => {
+  const mockProps = {
+    goToAddToken: jest.fn(),
+    showDetectedTokens: jest.fn(),
+    isAddTokenEnabled: true,
+  };
+
   beforeEach(() => {
     (useRampNetwork as jest.Mock).mockReturnValue([true, true]);
   });
@@ -119,10 +126,10 @@ describe('TokenListFooter', () => {
     jest.clearAllMocks();
   });
 
-  const renderComponent = (initialStore = store) =>
+  const renderComponent = (props = mockProps, initialStore = store) =>
     render(
       <Provider store={initialStore}>
-        <TokenListFooter />
+        <TokenListFooter {...props} />
       </Provider>,
     );
 
@@ -152,5 +159,46 @@ describe('TokenListFooter', () => {
     await waitFor(() => {
       expect(MetaMetricsEvents.BUY_BUTTON_CLICKED).toBeDefined();
     });
+  });
+
+  it('renders the add tokens footer link and calls goToAddToken when pressed on EVM', () => {
+    const { getByTestId } = renderComponent();
+
+    fireEvent.press(
+      getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK),
+    );
+
+    expect(mockProps.goToAddToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not render the add tokens footer link Non EVM', () => {
+    const initialStateTest = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          MultichainNetworkController: {
+            ...initialState.engine.backgroundState.MultichainNetworkController,
+            isEvmSelected: false,
+          },
+        },
+      },
+    };
+    const storeTest = mockStore(initialStateTest);
+    const { queryByTestId } = renderComponent(mockProps, storeTest);
+
+    expect(queryByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK)).toBeNull();
+  });
+
+  it('disables the add tokens footer link when isAddTokenEnabled is false', () => {
+    const { getByTestId } = renderComponent({
+      ...mockProps,
+      isAddTokenEnabled: false,
+    });
+
+    expect(
+      getByTestId(WalletViewSelectorsIDs.IMPORT_TOKEN_FOOTER_LINK).props
+        .disabled,
+    ).toBe(true);
   });
 });

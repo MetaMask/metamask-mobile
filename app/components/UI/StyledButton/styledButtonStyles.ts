@@ -47,7 +47,7 @@ const createStyles = (colors: Theme['colors']) =>
       color: colors.primary.default,
     },
     normal: {
-      backgroundColor: importedColors.transparent,
+      backgroundColor: colors.background.default,
       borderWidth: 1,
       borderColor: colors.primary.default,
     },
@@ -137,14 +137,6 @@ const createStyles = (colors: Theme['colors']) =>
     inverseText: {
       color: colors.primary.default,
     },
-    secondary: {
-      backgroundColor: colors.background.default,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-    },
-    secondaryText: {
-      color: colors.text.default,
-    },
   });
 
 function getStyles(type: string, colors: Theme['colors']) {
@@ -224,10 +216,6 @@ function getStyles(type: string, colors: Theme['colors']) {
     case 'onOverlay':
       fontStyle = styles.onOverlayText;
       containerStyle = styles.onOverlayBackground;
-      break;
-    case 'secondary':
-      fontStyle = styles.secondaryText;
-      containerStyle = styles.secondary;
       break;
     default:
       throw new Error('Unknown button type');

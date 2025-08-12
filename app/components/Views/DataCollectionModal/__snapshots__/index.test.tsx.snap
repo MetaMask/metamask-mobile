@@ -23,7 +23,7 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
     style={
       [
         {
-          "backgroundColor": "#3f434a66",
+          "backgroundColor": "#00000066",
           "bottom": 0,
           "left": 0,
           "position": "absolute",
@@ -74,8 +74,8 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
           {
             "backgroundColor": "#ffffff",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 24,
-            "borderTopRightRadius": 24,
+            "borderTopLeftRadius": 8,
+            "borderTopRightRadius": 8,
             "borderWidth": 1,
             "maxHeight": 5,
             "overflow": "hidden",
@@ -190,13 +190,12 @@ exports[`DataCollectionModal should render expected snapshot 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#121314",
+                "backgroundColor": "#4459ff",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",
                 "height": 48,
                 "justifyContent": "center",
-                "overflow": "hidden",
                 "paddingHorizontal": 16,
               }
             }

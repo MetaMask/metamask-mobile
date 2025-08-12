@@ -18,14 +18,11 @@
    *
    */
 
-  // helper functions for that ctx - optimized for batch operations
+  // helper functions for that ctx
   function write(buffer, offs) {
-    let offset = offs;
     for (let i = 2; i < arguments.length; i++) {
-      const arg = arguments[i];
-      const len = arg.length;
-      for (let j = 0; j < len; j++) {
-        buffer[offset++] = arg.charCodeAt(j);
+      for (let j = 0; j < arguments[i].length; j++) {
+        buffer[offs++] = arguments[i].charAt(j);
       }
     }
   }
@@ -45,37 +42,6 @@
 
   function byte2lsb(w) {
     return String.fromCharCode(w & 255, (w >> 8) & 255);
-  }
-
-  // Create crc32 lookup table once when module loads
-  const _crc32 = new Uint32Array(256);
-  (function initCrc32Table() {
-    for (var i = 0; i < 256; i++) {
-      let c = i;
-      for (let j = 0; j < 8; j++) {
-        if (c & 1) {
-          c = -306674912 ^ ((c >> 1) & 0x7fffffff);
-        } else {
-          c = (c >> 1) & 0x7fffffff;
-        }
-      }
-      _crc32[i] = c >>> 0; // Ensure unsigned 32-bit integer
-    }
-  })();
-
-  // Cache for HSL→RGB conversions to avoid redundant calculations
-  const hslToRgbCache = new Map();
-  const MAX_HSL_CACHE_SIZE = 1000; // Prevent memory leaks
-
-  // Optimized function to convert Uint8Array to string in chunks
-  function uint8ArrayToString(uint8Array) {
-    const chunkSize = 8192; // Process in 8KB chunks to avoid stack overflow
-    let result = '';
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-      const chunk = uint8Array.subarray(i, i + chunkSize);
-      result += String.fromCharCode.apply(null, chunk);
-    }
-    return result;
   }
 
   const PNG = function (width, height, depth) {
@@ -103,11 +69,16 @@
     this.iend_size = 4 + 4 + 4;
     this.buffer_size = this.iend_offs + this.iend_size; // total PNG size
 
-    this.buffer = new Uint8Array(this.buffer_size);
+    this.buffer = new Array();
     this.palette = new Object();
     this.pindex = 0;
 
-    // buffer is already zero-initialized (Uint8Array)
+    const _crc32 = new Array();
+
+    // initialize buffer with zero bytes
+    for (var i = 0; i < this.buffer_size; i++) {
+      this.buffer[i] = '\x00';
+    }
 
     // initialize non-zero elements
     write(
@@ -149,6 +120,19 @@
       );
     }
 
+    /* Create crc32 lookup table */
+    for (var i = 0; i < 256; i++) {
+      let c = i;
+      for (let j = 0; j < 8; j++) {
+        if (c & 1) {
+          c = -306674912 ^ ((c >> 1) & 0x7fffffff);
+        } else {
+          c = (c >> 1) & 0x7fffffff;
+        }
+      }
+      _crc32[i] = c;
+    }
+
     // compute the index into a png for a given pixel
     this.index = function (x, y) {
       const i = y * (this.width + 1) + x + 1;
@@ -162,16 +146,17 @@
       const color = (((((alpha << 8) | red) << 8) | green) << 8) | blue;
 
       if (typeof this.palette[color] === 'undefined') {
-        if (this.pindex == this.depth) return 0;
+        if (this.pindex == this.depth) return '\x00';
 
         const ndx = this.plte_offs + 8 + 3 * this.pindex;
 
-        this.buffer[ndx + 0] = red;
-        this.buffer[ndx + 1] = green;
-        this.buffer[ndx + 2] = blue;
-        this.buffer[this.trns_offs + 8 + this.pindex] = alpha;
+        this.buffer[ndx + 0] = String.fromCharCode(red);
+        this.buffer[ndx + 1] = String.fromCharCode(green);
+        this.buffer[ndx + 2] = String.fromCharCode(blue);
+        this.buffer[this.trns_offs + 8 + this.pindex] =
+          String.fromCharCode(alpha);
 
-        this.palette[color] = this.pindex++;
+        this.palette[color] = String.fromCharCode(this.pindex++);
       }
       return this.palette[color];
     };
@@ -180,7 +165,32 @@
     this.getBase64 = function () {
       const s = this.getDump();
 
-      return btoa(s);
+      const ch =
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+      let c1, c2, c3, e1, e2, e3, e4;
+      const l = s.length;
+      let i = 0;
+      let r = '';
+
+      do {
+        c1 = s.charCodeAt(i);
+        e1 = c1 >> 2;
+        c2 = s.charCodeAt(i + 1);
+        e2 = ((c1 & 3) << 4) | (c2 >> 4);
+        c3 = s.charCodeAt(i + 2);
+        if (l < i + 2) {
+          e3 = 64;
+        } else {
+          e3 = ((c2 & 0xf) << 2) | (c3 >> 6);
+        }
+        if (l < i + 3) {
+          e4 = 64;
+        } else {
+          e4 = c3 & 0x3f;
+        }
+        r += ch.charAt(e1) + ch.charAt(e2) + ch.charAt(e3) + ch.charAt(e4);
+      } while ((i += 3) < l);
+      return r;
     };
 
     // output a PNG string
@@ -194,7 +204,7 @@
 
       for (let y = 0; y < this.height; y++) {
         for (let x = -1; x < this.width; x++) {
-          s1 += this.buffer[this.index(x, y)];
+          s1 += this.buffer[this.index(x, y)].charCodeAt(0);
           s2 += s1;
           if ((n -= 1) == 0) {
             s1 %= BASE;
@@ -216,7 +226,7 @@
         let crc = -1;
         for (let i = 4; i < size - 4; i += 1) {
           crc =
-            _crc32[(crc ^ png[offs + i]) & 0xff] ^
+            _crc32[(crc ^ png[offs + i].charCodeAt(0)) & 0xff] ^
             ((crc >> 8) & 0x00ffffff);
         }
         write(png, offs + size - 4, byte4(crc ^ -1));
@@ -229,7 +239,7 @@
       crc32(this.buffer, this.iend_offs, this.iend_size);
 
       // convert PNG to string
-      return '\x89PNG\r\n\x1A\n' + uint8ArrayToString(this.buffer);
+      return '\x89PNG\r\n\x1A\n' + this.buffer.join('');
     };
 
     this.fillRect = function (x, y, w, h, color) {
@@ -264,13 +274,6 @@
   }
 
   function hsl2rgb(h, s, l) {
-    // Create cache key
-    const key = `${h.toFixed(3)},${s.toFixed(3)},${l.toFixed(3)}`;
-    
-    if (hslToRgbCache.has(key)) {
-      return hslToRgbCache.get(key);
-    }
-
     let r, g, b;
 
     if (s == 0) {
@@ -283,20 +286,11 @@
       b = hue2rgb(p, q, h - 1 / 3);
     }
 
-    const result = new Uint8Array([Math.round(r * 255), Math.round(g * 255), Math.round(b * 255), 255]);
-    
-    // Implement simple LRU: remove oldest if cache is full
-    if (hslToRgbCache.size >= MAX_HSL_CACHE_SIZE) {
-      const firstKey = hslToRgbCache.keys().next().value;
-      hslToRgbCache.delete(firstKey);
-    }
-    
-    hslToRgbCache.set(key, result);
-    return result;
+    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255), 255];
   }
 
   // The random number is a js implementation of the Xorshift PRNG
-  const randseed = new Uint32Array(4); // Xorshift: [x, y, z, w] 32 bit values
+  const randseed = new Array(4); // Xorshift: [x, y, z, w] 32 bit values
 
   function seedrand(seed) {
     for (var i = 0; i < randseed.length; i++) {
@@ -331,8 +325,6 @@
     return [h / 360, s / 100, l / 100];
   }
 
-
-
   function createImageData(size) {
     const width = size; // Only support square icons for now
     const height = size;
@@ -340,24 +332,20 @@
     const dataWidth = Math.ceil(width / 2);
     const mirrorWidth = width - dataWidth;
 
-    const data = new Uint8Array(size * size);
-    let dataIndex = 0;
-    
+    const data = [];
     for (let y = 0; y < height; y++) {
-      const row = new Uint8Array(width);
+      let row = [];
       for (let x = 0; x < dataWidth; x++) {
         // this makes foreground and background color to have a 43% (1/2.3) probability
         // spot color has 13% chance
         row[x] = Math.floor(rand() * 2.3);
       }
-      // Mirror the row
-      for (let x = 0; x < mirrorWidth; x++) {
-        row[dataWidth + x] = row[mirrorWidth - 1 - x];
-      }
+      const r = row.slice(0, mirrorWidth);
+      r.reverse();
+      row = row.concat(r);
 
-      // Copy row to data
       for (let i = 0; i < row.length; i++) {
-        data[dataIndex++] = row[i];
+        data.push(row[i]);
       }
     }
 
@@ -392,7 +380,7 @@
     const opts = buildOpts({ seed: address.toLowerCase() });
 
     const imageData = createImageData(opts.size);
-    const width = opts.size; // We know it's square, so no need for Math.sqrt
+    const width = Math.sqrt(imageData.length);
 
     const p = new PNG(opts.size * opts.scale, opts.size * opts.scale, 3);
     const bgcolor = p.color(...hsl2rgb(...opts.bgcolor));

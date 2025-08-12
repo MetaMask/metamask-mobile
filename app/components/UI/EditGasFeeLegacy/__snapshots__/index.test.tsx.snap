@@ -178,7 +178,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             {
-                              "color": "#b7bbc8",
+                              "color": "#9ca1af",
                             }
                           }
                         />
@@ -234,7 +234,7 @@ exports[`EditGasFeeLegacy should render correctly 1`] = `
                           size={14}
                           style={
                             {
-                              "color": "#b7bbc8",
+                              "color": "#9ca1af",
                             }
                           }
                         />

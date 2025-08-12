@@ -1,8 +1,5 @@
 import { useMemo } from 'react';
-import {
-  isValidSIWEOrigin,
-  WrappedSIWERequest,
-} from '@metamask/controller-utils';
+import { isValidSIWEOrigin, WrappedSIWERequest } from '@metamask/controller-utils';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import useApprovalRequest from '../useApprovalRequest';
 import { Alert, Severity } from '../../types/alerts';
@@ -39,10 +36,7 @@ export default function useDomainMismatchAlerts(): Alert[] {
 
   const isInvalidSIWEDomain =
     isSIWE &&
-    !isValidSIWEOrigin({
-      ...requestData,
-      origin: originWithProtocol,
-    } as WrappedSIWERequest);
+    !isValidSIWEOrigin({ ...requestData, origin: originWithProtocol } as WrappedSIWERequest);
 
   const alerts = useMemo(() => {
     if (!isInvalidSIWEDomain) {

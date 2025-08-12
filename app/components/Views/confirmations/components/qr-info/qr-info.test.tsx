@@ -66,6 +66,7 @@ const mockQRState = {
 };
 
 describe('QRInfo', () => {
+
   const mockKeyringController = MockEngine.context.KeyringController;
   const mockSetRequestCompleted = jest.fn();
 

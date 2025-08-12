@@ -9,11 +9,9 @@ interface UseOriginSourceProps {
   origin?: string;
 }
 
-type SourceTypeValue = (typeof SourceType)[keyof typeof SourceType];
+type SourceTypeValue = typeof SourceType[keyof typeof SourceType];
 
-export const useOriginSource = ({
-  origin,
-}: UseOriginSourceProps): SourceTypeValue | undefined => {
+export const useOriginSource = ({ origin }: UseOriginSourceProps): SourceTypeValue | undefined => {
   const { wc2Metadata } = useSelector((state: RootState) => state.sdk);
 
   // Return undefined if origin is undefined
@@ -23,9 +21,7 @@ export const useOriginSource = ({
 
   // Check if origin is a UUID (SDK channel ID format) or starts with SDK_REMOTE_ORIGIN
   const isChannelId = isUUID(origin);
-  const isSDKRemoteOrigin = origin.startsWith(
-    AppConstants.MM_SDK.SDK_REMOTE_ORIGIN,
-  );
+  const isSDKRemoteOrigin = origin.startsWith(AppConstants.MM_SDK.SDK_REMOTE_ORIGIN);
 
   const sdkConnection = isChannelId
     ? SDKConnect.getInstance().getConnection({ channelId: origin })

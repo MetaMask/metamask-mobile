@@ -138,15 +138,14 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "center",
-            "backgroundColor": "#3c4d9d0f",
-            "borderColor": "transparent",
+            "backgroundColor": "transparent",
+            "borderColor": "#4459ff",
             "borderRadius": 12,
             "borderWidth": 1,
             "flexDirection": "row",
             "height": 40,
             "justifyContent": "center",
             "margin": 4,
-            "overflow": "hidden",
             "paddingHorizontal": 16,
             "width": "48%",
           }
@@ -157,7 +156,7 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           accessibilityRole="text"
           style={
             {
-              "color": "#121314",
+              "color": "#4459ff",
               "fontFamily": "Geist Medium",
               "fontSize": 16,
               "letterSpacing": 0,
@@ -179,13 +178,12 @@ exports[`TurnOnBackupAndSync renders correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "center",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#4459ff",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 40,
             "justifyContent": "center",
             "margin": 4,
-            "overflow": "hidden",
             "paddingHorizontal": 16,
             "width": "48%",
           }

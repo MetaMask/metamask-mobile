@@ -2,10 +2,7 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import SuccessErrorSheet from '.';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 
 const mockGoBack = jest.fn();
@@ -33,6 +30,7 @@ describe('SuccessErrorSheet', () => {
       title: 'Test Title',
       description: 'Test Description',
       type: 'success' as const,
+      icon: IconName.CheckBold,
       primaryButtonLabel: 'Primary',
       secondaryButtonLabel: 'Secondary',
       onPrimaryButtonPress: jest.fn(),
@@ -41,7 +39,6 @@ describe('SuccessErrorSheet', () => {
       customButton: null,
       descriptionAlign: 'center' as const,
       reverseButtonOrder: true,
-      icon: IconName.Confirmation,
     },
   };
 
@@ -81,7 +78,6 @@ describe('SuccessErrorSheet', () => {
         description: <Text>Test Description</Text>,
         type: 'error' as const,
         icon: IconName.CircleX,
-        iconColor: IconColor.Warning,
         onPrimaryButtonPress: jest.fn(),
         onSecondaryButtonPress: jest.fn(),
         onClose: jest.fn(),

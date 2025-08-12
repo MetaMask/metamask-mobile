@@ -41,29 +41,26 @@ describe('HeroNft', () => {
   });
 
   it('renders placeholder when image is not provided', () => {
-    const { getByText, getByTestId, queryAllByText } = renderWithProvider(
-      <HeroNft />,
-      {
-        state: merge({}, MOCK_STATE_NFT, {
-          engine: {
-            backgroundState: {
-              NftController: {
-                allNfts: {
-                  [MOCK_ADDRESS_1.toLowerCase()]: {
-                    '0x1': [
-                      {
-                        ...mockNft,
-                        image: undefined,
-                      },
-                    ],
-                  },
+    const { getByText, getByTestId, queryAllByText } = renderWithProvider(<HeroNft />, {
+      state: merge({}, MOCK_STATE_NFT, {
+        engine: {
+          backgroundState: {
+            NftController: {
+              allNfts: {
+                [MOCK_ADDRESS_1.toLowerCase()]: {
+                  '0x1': [
+                    {
+                      ...mockNft,
+                      image: undefined,
+                    },
+                  ],
                 },
               },
             },
           },
-        }),
-      },
-    );
+        },
+      }),
+    });
 
     expect(getByText('Show')).toBeDefined();
     expect(queryAllByText('#12345')).toHaveLength(2);

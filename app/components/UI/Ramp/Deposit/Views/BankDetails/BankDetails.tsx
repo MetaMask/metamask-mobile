@@ -3,7 +3,7 @@ import { View, TouchableOpacity, RefreshControl } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useDispatch, useSelector } from 'react-redux';
 import styleSheet from './BankDetails.styles';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   createNavigationDetails,
   useParams,
@@ -35,20 +35,14 @@ import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { processFiatOrder } from '../../../index';
 import { useTheme } from '../../../../../../util/theme';
 import { RootState } from '../../../../../../reducers';
-import {
-  getCryptoCurrencyFromTransakId,
-  getPaymentMethodByTransakId,
-  hasDepositOrderField,
-} from '../../utils';
+import { hasDepositOrderField } from '../../utils';
 import { useDepositSDK } from '../../sdk';
 import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
-import PrivacySection from '../../components/PrivacySection';
-import useAnalytics from '../../../hooks/useAnalytics';
-import { isString } from 'lodash';
-import Logger from '../../../../../../util/Logger';
+import { SUPPORTED_PAYMENT_METHODS } from '../../constants';
+import { DepositOrder } from '@consensys/native-ramps-sdk';
 
 export interface BankDetailsParams {
   orderId: string;
@@ -64,8 +58,7 @@ const BankDetails = () => {
   const { colors } = useTheme();
   const dispatch = useDispatch();
   const dispatchThunk = useThunkDispatch();
-  const { sdk, selectedRegion } = useDepositSDK();
-  const trackEvent = useAnalytics();
+  const { sdk } = useDepositSDK();
 
   const { orderId, shouldUpdate = true } = useParams<BankDetailsParams>();
   const order = useSelector((state: RootState) => getOrderById(state, orderId));
@@ -73,25 +66,15 @@ const BankDetails = () => {
   const [showBankInfo, setShowBankInfo] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const [cancelOrderError, setCancelOrderError] = useState<Error | null>(null);
-  const [isLoadingCancelOrder, setIsLoadingCancelOrder] = useState(false);
-
-  const [confirmPaymentError, setConfirmPaymentError] = useState<string | null>(
-    null,
-  );
-  const [isLoadingConfirmPayment, setIsLoadingConfirmPayment] = useState(false);
-
-  const [, confirmPayment] = useDepositSdkMethod({
+  const [{ error: confirmPaymentError }, confirmPayment] = useDepositSdkMethod({
     method: 'confirmPayment',
     onMount: false,
-    throws: true,
   });
 
-  const [, cancelOrder] = useDepositSdkMethod(
+  const [{ error: cancelOrderError }, cancelOrder] = useDepositSdkMethod(
     {
       method: 'cancelOrder',
       onMount: false,
-      throws: true,
     },
     orderId,
   );
@@ -113,7 +96,7 @@ const BankDetails = () => {
         sdk,
       });
     } catch (error) {
-      Logger.error(error as Error, 'BankDetails: handleOnRefresh');
+      console.error(error);
     } finally {
       setIsRefreshing(false);
     }
@@ -128,30 +111,20 @@ const BankDetails = () => {
   }, []);
 
   useEffect(() => {
-    if (!order?.state) return;
-    if (order.state === FIAT_ORDER_STATES.CANCELLED) {
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: Routes.DEPOSIT.BUILD_QUOTE,
-          },
-        ],
-      });
+    if (order?.state === FIAT_ORDER_STATES.CANCELLED) {
+      navigation.navigate(Routes.WALLET.HOME);
     } else if (
-      order.state === FIAT_ORDER_STATES.PENDING ||
-      order.state === FIAT_ORDER_STATES.COMPLETED ||
-      order.state === FIAT_ORDER_STATES.FAILED
+      order?.state === FIAT_ORDER_STATES.PENDING ||
+      order?.state === FIAT_ORDER_STATES.COMPLETED ||
+      order?.state === FIAT_ORDER_STATES.FAILED
     ) {
-      navigation.dispatch(
-        StackActions.replace(
-          ...createOrderProcessingNavDetails({
-            orderId: order.id,
-          }),
-        ),
+      navigation.navigate(
+        ...createOrderProcessingNavDetails({
+          orderId,
+        }),
       );
     }
-  }, [order?.state, navigation, order?.id]);
+  }, [order?.state, navigation, orderId]);
 
   const capitalizeWords = useCallback(
     (text: string): string =>
@@ -194,7 +167,6 @@ const BankDetails = () => {
       : null;
   const accountType = getFieldValue('Account Type');
   const bankName = getFieldValue('Bank Name');
-  const beneficiaryAddress = getFieldValue('Recipient Address');
   const bankAddress = getFieldValue('Bank Address');
   const routingNumber = getFieldValue('Routing Number');
   const accountNumber = getFieldValue('Account Number');
@@ -202,18 +174,20 @@ const BankDetails = () => {
   const bic = getFieldValue('BIC');
 
   useEffect(() => {
-    const paymentMethod =
+    const paymentMethodName =
       hasDepositOrderField(order?.data, 'paymentMethod') &&
       order?.data.paymentMethod
-        ? getPaymentMethodByTransakId(order.data.paymentMethod)
-        : null;
-    const paymentMethodName = paymentMethod?.shortName ?? '';
+        ? SUPPORTED_PAYMENT_METHODS.find(
+            (method) =>
+              method.id === (order.data as DepositOrder).paymentMethod,
+          )?.name
+        : '';
 
     navigation.setOptions(
       getDepositNavbarOptions(
         navigation,
         {
-          title: strings('deposit.bank_details.navbar_title', {
+          title: strings('deposit.bank_details.title', {
             paymentMethod: paymentMethodName,
           }),
         },
@@ -223,86 +197,41 @@ const BankDetails = () => {
   }, [navigation, theme, order]);
 
   const handleBankTransferSent = useCallback(async () => {
-    setCancelOrderError(null);
-    if (isLoadingConfirmPayment || !order) return;
     try {
-      setIsLoadingConfirmPayment(true);
       if (!hasDepositOrderField(order?.data, 'paymentOptions')) {
         console.error('Order or payment options not found');
-        Logger.error(
-          new Error('Order or payment options not found'),
-          'BankDetails: handleBankTransferSent',
-        );
         return;
       }
 
       const paymentOptionId = order.data.paymentOptions?.[0]?.id;
       if (!paymentOptionId) {
         console.error('Payment options not found or empty');
-        Logger.error(
-          new Error('Payment options not found or empty'),
-          'BankDetails: handleBankTransferSent',
-        );
         return;
       }
 
-      const cryptoCurrency = getCryptoCurrencyFromTransakId(
-        order.data.cryptoCurrency,
-        order.data.network,
-      );
       await confirmPayment(order.id, paymentOptionId);
 
-      trackEvent('RAMPS_TRANSACTION_CONFIRMED', {
-        ramp_type: 'DEPOSIT',
-        amount_source: Number(order.data.fiatAmount),
-        amount_destination: Number(order.cryptoAmount),
-        exchange_rate: Number(order.data.exchangeRate),
-        gas_fee: 0, //Number(order.data.gasFee),
-        processing_fee: 0, //Number(order.data.processingFee),
-        total_fee: Number(order.data.totalFeesFiat),
-        payment_method_id: order.data.paymentMethod,
-        country: selectedRegion?.isoCode || '',
-        chain_id: cryptoCurrency?.chainId || '',
-        currency_destination: cryptoCurrency?.assetId || '',
-        currency_source: order.data.fiatCurrency,
-      });
-
       await handleOnRefresh();
+
+      navigation.navigate(
+        ...createOrderProcessingNavDetails({
+          orderId: order.id,
+        }),
+      );
     } catch (fetchError) {
-      Logger.error(fetchError as Error, 'BankDetails: handleBankTransferSent');
-      if (isString(fetchError)) {
-        setConfirmPaymentError(fetchError);
-      } else if (isString((fetchError as Error)?.message)) {
-        setConfirmPaymentError((fetchError as Error).message);
-      } else {
-        setConfirmPaymentError(strings('deposit.bank_details.error_message'));
-      }
-    } finally {
-      setIsLoadingConfirmPayment(false);
+      console.error(fetchError);
     }
-  }, [
-    isLoadingConfirmPayment,
-    order,
-    trackEvent,
-    selectedRegion?.isoCode,
-    confirmPayment,
-    handleOnRefresh,
-  ]);
+  }, [navigation, confirmPayment, handleOnRefresh, order]);
 
   const handleCancelOrder = useCallback(async () => {
-    setConfirmPaymentError(null);
-    if (isLoadingCancelOrder) return;
     try {
-      setIsLoadingCancelOrder(true);
       await cancelOrder();
+
       await handleOnRefresh();
     } catch (fetchError) {
-      Logger.error(fetchError as Error, 'BankDetails: handleCancelOrder');
-      setCancelOrderError(fetchError as Error);
-    } finally {
-      setIsLoadingCancelOrder(false);
+      console.error(fetchError);
     }
-  }, [cancelOrder, handleOnRefresh, isLoadingCancelOrder]);
+  }, [cancelOrder, handleOnRefresh]);
 
   const toggleBankInfo = useCallback(() => {
     setShowBankInfo(!showBankInfo);
@@ -311,7 +240,6 @@ const BankDetails = () => {
   return (
     <ScreenLayout>
       <ScrollView
-        testID="bank-details-refresh-control-scrollview"
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -395,15 +323,6 @@ const BankDetails = () => {
                       />
                     ) : null}
 
-                    {beneficiaryAddress ? (
-                      <BankDetailRow
-                        label={strings(
-                          'deposit.bank_details.beneficiary_address',
-                        )}
-                        value={beneficiaryAddress}
-                      />
-                    ) : null}
-
                     {bankAddress ? (
                       <BankDetailRow
                         label={strings('deposit.bank_details.bank_address')}
@@ -441,8 +360,7 @@ const BankDetails = () => {
           <View style={styles.bottomContainer}>
             {confirmPaymentError ? (
               <Text variant={TextVariant.BodySM} color={TextColor.Error}>
-                {confirmPaymentError ||
-                  strings('deposit.bank_details.error_message')}
+                {strings('deposit.bank_details.error_message')}
               </Text>
             ) : null}
             {cancelOrderError ? (
@@ -450,14 +368,22 @@ const BankDetails = () => {
                 {strings('deposit.bank_details.cancel_order_error')}
               </Text>
             ) : null}
-
-            <PrivacySection>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
+            <View style={styles.infoBanner}>
+              <Icon
+                name={IconName.SecurityKey}
+                size={IconSize.Lg}
+                color={theme.colors.icon.alternative}
+              />
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                style={styles.infoBannerText}
+              >
                 {strings('deposit.bank_details.info_banner_text', {
                   accountHolderName: accountName,
                 })}
               </Text>
-            </PrivacySection>
+            </View>
 
             <View style={styles.buttonContainer}>
               <Button
@@ -466,8 +392,6 @@ const BankDetails = () => {
                 onPress={handleCancelOrder}
                 label={strings('deposit.order_processing.cancel_order_button')}
                 size={ButtonSize.Lg}
-                loading={isLoadingCancelOrder}
-                disabled={isLoadingConfirmPayment}
               />
 
               <Button
@@ -477,8 +401,6 @@ const BankDetails = () => {
                 testID="main-action-button"
                 label={strings('deposit.bank_details.button')}
                 size={ButtonSize.Lg}
-                disabled={isLoadingCancelOrder}
-                loading={isLoadingConfirmPayment}
               />
             </View>
           </View>

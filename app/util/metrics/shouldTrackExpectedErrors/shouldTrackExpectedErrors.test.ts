@@ -26,8 +26,7 @@ describe('shouldTrackExpectedErrors', () => {
   } as unknown as IMetaMetrics;
 
   // Explicitly cast the mock function to Jest Mock type
-  const getMetaMetricsIdMock =
-    mockMetaMetricsInstance.getMetaMetricsId as jest.Mock;
+  const getMetaMetricsIdMock = mockMetaMetricsInstance.getMetaMetricsId as jest.Mock;
 
   it('returns true when error should be tracked', async () => {
     // mock EXPECTED_ERRORS_PORTION_TO_TRACK to be 0.01
@@ -40,9 +39,7 @@ describe('shouldTrackExpectedErrors', () => {
 
     const result = await shouldTrackExpectedErrors(mockMetaMetricsInstance);
 
-    expect(generateDeterministicRandomNumber).toHaveBeenCalledWith(
-      TEST_IDS.UNDER_ONE_PERCENT,
-    );
+    expect(generateDeterministicRandomNumber).toHaveBeenCalledWith(TEST_IDS.UNDER_ONE_PERCENT);
     expect(result).toBe(true);
   });
 
@@ -56,9 +53,7 @@ describe('shouldTrackExpectedErrors', () => {
 
     const result = await shouldTrackExpectedErrors(mockMetaMetricsInstance);
 
-    expect(generateDeterministicRandomNumber).toHaveBeenCalledWith(
-      TEST_IDS.OVER_NINETY_SEVEN_PERCENT,
-    );
+    expect(generateDeterministicRandomNumber).toHaveBeenCalledWith(TEST_IDS.OVER_NINETY_SEVEN_PERCENT);
     expect(result).toBe(false);
   });
 
@@ -70,3 +65,4 @@ describe('shouldTrackExpectedErrors', () => {
     expect(generateDeterministicRandomNumber).toHaveBeenCalledWith('');
   });
 });
+

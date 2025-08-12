@@ -327,7 +327,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#3f434a66",
+                              "backgroundColor": "#00000066",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -568,13 +568,12 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#121314",
+                                "backgroundColor": "#4459ff",
                                 "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": undefined,
                                 "justifyContent": "center",
                                 "marginVertical": 10,
-                                "overflow": "hidden",
                                 "padding": 8,
                                 "paddingHorizontal": 16,
                               }

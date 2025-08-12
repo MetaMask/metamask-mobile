@@ -68,8 +68,7 @@ const ApprovalTagUrl = ({
         uri: '',
       };
 
-  const showOrigin =
-    origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);
+  const showOrigin = origin && !isOriginDeepLink && !INTERNAL_ORIGINS.includes(origin);
 
   if (showOrigin) {
     return (

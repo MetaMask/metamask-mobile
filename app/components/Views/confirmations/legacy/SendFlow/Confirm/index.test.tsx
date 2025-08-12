@@ -117,9 +117,9 @@ const mockInitialState: DeepPartial<RootState> = {
 jest.mock('../../../../../Views/confirmations/hooks/useNetworkInfo', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    networkImage: 1,
-    networkName: 'Ethereum Network default RPC',
-    networkNativeCurrency: 'ETH',
+      networkImage: 1,
+      networkName: 'Ethereum Network default RPC',
+      networkNativeCurrency: 'ETH',
   })),
 }));
 

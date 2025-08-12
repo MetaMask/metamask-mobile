@@ -1,6 +1,5 @@
 import React, { useCallback, useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity, View } from 'react-native';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './styles';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +12,7 @@ import Icon, {
   IconSize,
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
+import { TouchableOpacity, View, ViewStyle } from 'react-native';
 import Modal from 'react-native-modal';
 import { WalletDetailsIds } from '../../../../../../e2e/selectors/MultichainAccounts/WalletDetails';
 import {
@@ -23,8 +23,12 @@ import {
 import { Box } from '../../../../UI/Box/Box';
 import { strings } from '../../../../../../locales/i18n';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { AccountWalletObject } from '@metamask/account-tree-controller';
-import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
+import { AccountWallet } from '@metamask/account-tree-controller';
+import Avatar, {
+  AvatarAccountType,
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../../component-library/components/Avatars/Avatar';
 import { useWalletBalances } from '../hooks/useWalletBalances';
 import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import { useSelector } from 'react-redux';
@@ -32,12 +36,9 @@ import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 import { useWalletInfo } from '../hooks/useWalletInfo';
 import Routes from '../../../../../constants/navigation/Routes';
 import WalletAddAccountActions from './components/WalletAddAccountActions';
-import AccountItem from './components/AccountItem';
-import AddAccountItem from './components/AddAccountItem';
-import { FlashList } from '@shopify/flash-list';
 
 interface BaseWalletDetailsProps {
-  wallet: AccountWalletObject;
+  wallet: AccountWallet;
   children?: React.ReactNode;
 }
 
@@ -97,40 +98,114 @@ export const BaseWalletDetails = ({
     setShowAddAccountModal(false);
   }, []);
 
-  const renderAccountItem = ({
-    item: account,
-    index,
-  }: {
-    item: InternalAccount;
-    index: number;
-  }) => {
+  const renderAccountItem = (account: InternalAccount, index: number) => {
     const totalItemsCount = keyringId ? accounts.length + 1 : accounts.length; // Include add account item if keyringId exists
+    const boxStyles: ViewStyle[] = [styles.accountBox];
     const balanceData = multichainBalancesForAllAccounts[account.id];
     const isAccountBalanceLoading =
       !balanceData || balanceData.isLoadingAccount;
     const accountBalance = balanceData?.displayBalance;
 
+    if (totalItemsCount > 1) {
+      if (index === 0) {
+        boxStyles.push(styles.firstAccountBox);
+      } else if (index === accounts.length - 1 && !keyringId) {
+        // Only make this the last item if there's no add account button
+        boxStyles.push(styles.lastAccountBox);
+      } else {
+        boxStyles.push(styles.middleAccountBox as ViewStyle);
+      }
+    }
+
     return (
-      <AccountItem
-        account={account}
-        index={index}
-        totalItemsCount={totalItemsCount}
-        accountBalance={accountBalance}
-        isAccountBalanceLoading={isAccountBalanceLoading}
-        accountAvatarType={accountAvatarType}
-        onPress={handleGoToAccountDetails}
-      />
+      <TouchableOpacity
+        key={account.id}
+        testID={`${WalletDetailsIds.ACCOUNT_ITEM}_${account.id}`}
+        onPress={() => handleGoToAccountDetails(account)}
+      >
+        <Box
+          style={boxStyles}
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          justifyContent={JustifyContent.spaceBetween}
+        >
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            <Avatar
+              variant={AvatarVariant.Account}
+              size={AvatarSize.Md}
+              accountAddress={account.address}
+              type={accountAvatarType}
+            />
+            <Text variant={TextVariant.BodyMDMedium}>
+              {account.metadata.name}
+            </Text>
+          </Box>
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            {isAccountBalanceLoading ? (
+              <AnimatedSpinner />
+            ) : (
+              <Text style={styles.text} variant={TextVariant.BodyMDMedium}>
+                {accountBalance}
+              </Text>
+            )}
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Md}
+              color={colors.text.alternative}
+            />
+          </Box>
+        </Box>
+      </TouchableOpacity>
     );
   };
 
   const renderAddAccountItem = () => {
     const totalItemsCount = accounts.length + 1;
+    const boxStyles: ViewStyle[] = [styles.accountBox];
+
+    if (totalItemsCount > 1) {
+      boxStyles.push(styles.lastAccountBox);
+    }
 
     return (
-      <AddAccountItem
-        totalItemsCount={totalItemsCount}
+      <TouchableOpacity
+        key="add-account"
+        testID={WalletDetailsIds.ADD_ACCOUNT_BUTTON}
         onPress={handleAddAccount}
-      />
+      >
+        <Box
+          style={boxStyles}
+          flexDirection={FlexDirection.Row}
+          alignItems={AlignItems.center}
+          justifyContent={JustifyContent.spaceBetween}
+        >
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            <Icon
+              name={IconName.Add}
+              size={IconSize.Md}
+              color={colors.primary.default}
+            />
+            <Text
+              style={{ color: colors.primary.default }}
+              variant={TextVariant.BodyMDMedium}
+            >
+              {strings('multichain_accounts.wallet_details.add_account')}
+            </Text>
+          </Box>
+        </Box>
+      </TouchableOpacity>
     );
   };
 
@@ -240,13 +315,7 @@ export const BaseWalletDetails = ({
           style={styles.accountsList}
           testID={WalletDetailsIds.ACCOUNTS_LIST}
         >
-          <View style={styles.listContainer}>
-            <FlashList
-              data={accounts}
-              keyExtractor={(item) => item.id}
-              renderItem={renderAccountItem}
-            />
-          </View>
+          {accounts.map((account, index) => renderAccountItem(account, index))}
           {keyringId && renderAddAccountItem()}
         </View>
 

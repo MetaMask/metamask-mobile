@@ -631,11 +631,15 @@ describe('SnapPermissions', () => {
     expect(permissionCellDates[27].props.children).toBe(
       'Approved on Jun 6 at 4:02 pm',
     );
-    expect(permissionCellTitles[28].props.children).toBe(walletSnapTitleOne);
+    expect(permissionCellTitles[28].props.children).toBe(
+      walletSnapTitleOne,
+    );
     expect(permissionCellDates[28].props.children).toBe(
       'Approved on Jun 6 at 4:02 pm',
     );
-    expect(permissionCellTitles[29].props.children).toBe(walletSnapTitleTwo);
+    expect(permissionCellTitles[29].props.children).toBe(
+      walletSnapTitleTwo,
+    );
     expect(permissionCellDates[29].props.children).toBe(
       'Approved on Jun 6 at 4:02 pm',
     );

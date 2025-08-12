@@ -34,11 +34,7 @@ export default class Utilities {
     return this.formatForExactMatchGroup(blacklistURLs);
   }
 
-  static async waitForElementToBeEnabled(
-    element,
-    timeout = 3500,
-    interval = 100,
-  ) {
+  static async waitForElementToBeEnabled(element, timeout = 3500, interval = 100) {
     const startTime = Date.now();
     let isEnabled = false;
     while (Date.now() - startTime < timeout) {
@@ -53,65 +49,67 @@ export default class Utilities {
     }
   }
 
-  /**
-   * Waits for an element to become stable (not moving) by checking its position multiple times.
-   *
-   * @param {Promise<Detox.IndexableNativeElement>} element - The element to check for stability
-   * @param {Object} [options={}] - Configuration options
-   * @param {number} [options.timeout=5000] - Maximum time to wait for stability (ms)
-   * @param {number} [options.interval=200] - Time between position checks (ms)
-   * @param {number} [options.stableCount=3] - Number of consecutive stable checks required
-   */
-  static async waitForElementToStopMoving(element, options = {}) {
-    const { timeout = 5000, interval = 200, stableCount = 3 } = options;
-    let lastPosition = null;
-    let stableChecks = 0;
-    const fallBackTimeout = 2000;
-    const start = Date.now();
 
-    const getPosition = async (element) => {
-      try {
-        const attributes = await element.getAttributes();
-        if (
-          attributes.frame &&
-          typeof attributes.frame.x === 'number' &&
-          typeof attributes.frame.y === 'number'
-        ) {
-          return { x: attributes.frame.x, y: attributes.frame.y };
+    /**
+     * Waits for an element to become stable (not moving) by checking its position multiple times.
+     *
+     * @param {Promise<Detox.IndexableNativeElement>} element - The element to check for stability
+     * @param {Object} [options={}] - Configuration options
+     * @param {number} [options.timeout=5000] - Maximum time to wait for stability (ms)
+     * @param {number} [options.interval=200] - Time between position checks (ms)
+     * @param {number} [options.stableCount=3] - Number of consecutive stable checks required
+     */
+    static async waitForElementToStopMoving(element, options = {}) {
+      const { timeout = 5000, interval = 200, stableCount = 3 } = options;
+      let lastPosition = null;
+      let stableChecks = 0;
+      const fallBackTimeout = 2000;
+      const start = Date.now();
+  
+      const getPosition = async (element) => {
+        try {
+          const attributes = await element.getAttributes();
+          if (
+            attributes.frame &&
+            typeof attributes.frame.x === 'number' &&
+            typeof attributes.frame.y === 'number'
+          ) {
+            return { x: attributes.frame.x, y: attributes.frame.y };
+          }
+            return null;
+  
+        } catch {
+          return null;
         }
-        return null;
-      } catch {
-        return null;
+      };
+  
+      while (Date.now() - start < timeout) {
+        const el = await element;
+  
+        const position = await getPosition(el);
+  
+        if (!position) {
+          await new Promise((resolve) => setTimeout(resolve, fallBackTimeout));
+          return; // Return early if position is not available
+        }
+  
+        if (
+          lastPosition &&
+          position.x === lastPosition.x &&
+          position.y === lastPosition.y
+        ) {
+          stableChecks += 1;
+          if (stableChecks >= stableCount) return;
+        } else {
+          lastPosition = position;
+          stableChecks = 1;
+        }
+  
+        await new Promise((resolve) => setTimeout(resolve, interval));
       }
-    };
-
-    while (Date.now() - start < timeout) {
-      const el = await element;
-
-      const position = await getPosition(el);
-
-      if (!position) {
-        await new Promise((resolve) => setTimeout(resolve, fallBackTimeout));
-        return; // Return early if position is not available
-      }
-
-      if (
-        lastPosition &&
-        position.x === lastPosition.x &&
-        position.y === lastPosition.y
-      ) {
-        stableChecks += 1;
-        if (stableChecks >= stableCount) return;
-      } else {
-        lastPosition = position;
-        stableChecks = 1;
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, interval));
+  
+      throw new Error('Element did not become stable in time');
     }
-
-    throw new Error('Element did not become stable in time');
-  }
 
   /**
    * Waits for a condition to be met within a given timeout period.

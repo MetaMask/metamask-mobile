@@ -1,12 +1,6 @@
 import { createAnvil, Anvil as AnvilType } from '@viem/anvil';
 import { createAnvilClients } from './anvil-clients';
-import { AnvilPort } from '../framework/fixtures/FixtureUtils';
-import { AnvilNodeOptions } from '../framework/types';
-import { createLogger } from '../framework/logger';
-
-const logger = createLogger({
-  name: 'AnvilManager',
-});
+import { AnvilPort } from '../fixtures/utils';
 
 export const DEFAULT_ANVIL_PORT = 8545;
 
@@ -14,7 +8,7 @@ export const DEFAULT_ANVIL_PORT = 8545;
  * Represents the available Ethereum hardforks for the Anvil server
  * @typedef {('Frontier'|'Homestead'|'Dao'|'Tangerine'|'SpuriousDragon'|'Byzantium'|'Constantinople'|'Petersburg'|'Istanbul'|'Muirglacier'|'Berlin'|'London'|'ArrowGlacier'|'GrayGlacier'|'Paris'|'Shanghai'|'Latest')} Hardfork
  */
-export type Hardfork =
+type Hardfork =
   | 'Frontier'
   | 'Homestead'
   | 'Dao'
@@ -96,12 +90,26 @@ class AnvilManager {
    * @throws {Error} If mnemonic is not provided
    * @throws {Error} If server fails to start
    */
-  async start(opts: AnvilNodeOptions = {}): Promise<void> {
-    const options = { ...defaultOptions, ...opts, port: AnvilPort() };
+  async start(
+    opts: {
+      balance?: number;
+      blockTime?: number;
+      chainId?: number;
+      gasLimit?: number;
+      gasPrice?: number;
+      hardfork?: Hardfork;
+      host?: string;
+      mnemonic?: string;
+      port?: number;
+      noMining?: boolean;
+    } = {},
+  ): Promise<void> {
+    const options = { ...defaultOptions, ...opts,port: AnvilPort() };
     const { port } = options;
 
     try {
-      logger.debug('Starting Anvil server...');
+      // eslint-disable-next-line no-console
+      console.log('Starting Anvil server...');
 
       // Create and start the server instance
       this.server = createAnvil({
@@ -109,9 +117,11 @@ class AnvilManager {
       });
 
       await this.server.start();
-      logger.debug(`Server started on port ${port}`);
+      // eslint-disable-next-line no-console
+      console.log(`Server started on port ${port}`);
     } catch (error) {
-      logger.error('Failed to start server:', error);
+      // eslint-disable-next-line no-console
+      console.error('Failed to start server:', error);
       throw error;
     }
   }
@@ -127,7 +137,7 @@ class AnvilManager {
     }
     const { walletClient, publicClient, testClient } = createAnvilClients(
       this.server.options.chainId ?? 1337,
-      this.server.options.port ?? AnvilPort(),
+      this.server.options.port ?? 8545,
     );
 
     return { walletClient, publicClient, testClient };
@@ -138,11 +148,13 @@ class AnvilManager {
    * @returns {Promise<string[]>} Array of account addresses
    */
   async getAccounts(): Promise<string[]> {
-    logger.debug('Getting accounts...');
+    // eslint-disable-next-line no-console
+    console.log('Getting accounts...');
     const { walletClient } = this.getProvider();
 
     const accounts = await walletClient.getAddresses();
-    logger.debug(`Found ${accounts.length} accounts`);
+    // eslint-disable-next-line no-console
+    console.log(`Found ${accounts.length} accounts`);
     return accounts;
   }
 
@@ -182,7 +194,8 @@ class AnvilManager {
       address: accountAddress,
       value: balanceInWei,
     });
-    logger.debug(`Anvil server balance set for ${accountAddress}`);
+    // eslint-disable-next-line no-console
+    console.log(`Balance set for ${accountAddress}`);
   }
 
   /**
@@ -192,14 +205,17 @@ class AnvilManager {
    */
   async quit(): Promise<void> {
     if (!this.server) {
-      throw new Error('Anvil server not running yet');
+      throw new Error('Server not running yet');
     }
     try {
-      logger.debug('Stopping Anvil server...');
+      // eslint-disable-next-line no-console
+      console.log('Stopping server...');
       await this.server.stop();
-      logger.debug('Anvil server stopped');
+      // eslint-disable-next-line no-console
+      console.log('Server stopped');
     } catch (e) {
-      logger.error(`Error stopping server: ${e}`);
+      // eslint-disable-next-line no-console
+      console.log(`Error stopping server: ${e}`);
       throw e;
     }
   }

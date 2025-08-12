@@ -11,10 +11,10 @@ const createTestState = (preferences = {}) => ({
     backgroundState: {
       PreferencesController: {
         featureFlags: {},
-        ...preferences,
-      },
-    },
-  },
+        ...preferences
+      }
+    }
+  }
 });
 
 describe('Migration #67', () => {
@@ -31,20 +31,17 @@ describe('Migration #67', () => {
     },
     {
       state: { engine: null },
-      errorMessage:
-        "FATAL ERROR: Migration 67: Invalid engine state error: 'null'",
+      errorMessage: "FATAL ERROR: Migration 67: Invalid engine state error: 'null'",
       scenario: 'engine state is invalid',
     },
     {
       state: { engine: { backgroundState: null } },
-      errorMessage:
-        "FATAL ERROR: Migration 67: Invalid engine backgroundState error: 'null'",
+      errorMessage: "FATAL ERROR: Migration 67: Invalid engine backgroundState error: 'null'",
       scenario: 'backgroundState is invalid',
     },
     {
       state: { engine: { backgroundState: { PreferencesController: null } } },
-      errorMessage:
-        "FATAL ERROR: Migration 67: Invalid PreferencesController state error: 'null'",
+      errorMessage: "FATAL ERROR: Migration 67: Invalid PreferencesController state error: 'null'",
       scenario: 'PreferencesController is invalid',
     },
   ];
@@ -55,27 +52,27 @@ describe('Migration #67', () => {
       const newState = migrate(state);
       expect(newState).toStrictEqual(state);
       expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
-      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
-        errorMessage,
-      );
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(errorMessage);
     },
   );
 
   it('should initialize preferences if they do not exist', () => {
     const state = createTestState();
     const result = migrate(state) as State;
-    expect(result.engine.backgroundState.PreferencesController).toBeDefined();
     expect(
-      result.engine.backgroundState.PreferencesController.featureFlags
-        .smartTransactionsMigrationApplied,
+      result.engine.backgroundState.PreferencesController,
+    ).toBeDefined();
+    expect(
+      result.engine.backgroundState.PreferencesController
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(true);
     expect(
       result.engine.backgroundState.PreferencesController
         .smartTransactionsOptInStatus,
     ).toBe(true);
     expect(
-      result.engine.backgroundState.PreferencesController.featureFlags
-        .smartTransactionsBannerDismissed,
+      result.engine.backgroundState.PreferencesController
+        .featureFlags.smartTransactionsBannerDismissed,
     ).toBe(false);
   });
 
@@ -90,8 +87,8 @@ describe('Migration #67', () => {
         .smartTransactionsOptInStatus,
     ).toBe(true);
     expect(
-      result.engine.backgroundState.PreferencesController.featureFlags
-        .smartTransactionsMigrationApplied,
+      result.engine.backgroundState.PreferencesController
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(true);
   });
 
@@ -106,8 +103,8 @@ describe('Migration #67', () => {
         .smartTransactionsOptInStatus,
     ).toBe(true);
     expect(
-      result.engine.backgroundState.PreferencesController.featureFlags
-        .smartTransactionsMigrationApplied,
+      result.engine.backgroundState.PreferencesController
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(true);
   });
 
@@ -122,8 +119,8 @@ describe('Migration #67', () => {
         .smartTransactionsOptInStatus,
     ).toBe(true);
     expect(
-      result.engine.backgroundState.PreferencesController.featureFlags
-        .smartTransactionsMigrationApplied,
+      result.engine.backgroundState.PreferencesController
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(false);
   });
 
@@ -138,8 +135,8 @@ describe('Migration #67', () => {
         .smartTransactionsOptInStatus,
     ).toBe(true);
     expect(
-      result.engine.backgroundState.PreferencesController.featureFlags
-        .smartTransactionsMigrationApplied,
+      result.engine.backgroundState.PreferencesController
+        .featureFlags.smartTransactionsMigrationApplied,
     ).toBe(true);
   });
 });

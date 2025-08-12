@@ -49,7 +49,6 @@ import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import useEarnToken from '../hooks/useEarnToken';
 import { Hex } from 'viem';
-import { endTrace, trace, TraceName } from '../../../../util/trace';
 
 interface BodyTextProps {
   assetSymbol: string;
@@ -147,14 +146,6 @@ export const LendingLearnMoreModal = () => {
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
   };
-
-  useEffect(() => {
-    trace({
-      name: TraceName.EarnFaqApys,
-      data: { experience: EARN_EXPERIENCES.STABLECOIN_LENDING },
-    });
-    endTrace({ name: TraceName.EarnFaq });
-  }, []);
 
   const {
     isLoading: isLoadingMarketApys,
@@ -267,7 +258,6 @@ export const LendingLearnMoreModal = () => {
   useEffect(() => {
     if (showChart) {
       chartReveal.value = withTiming(1, { duration: 350 });
-      endTrace({ name: TraceName.EarnFaqApys });
     }
   }, [showChart, chartReveal]);
 

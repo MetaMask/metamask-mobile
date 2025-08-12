@@ -219,7 +219,6 @@ describe('BaseLoginHandler', () => {
             network: 'sapphire_mainnet',
             redirect_uri: 'mock-redirect-uri',
             code_verifier: 'mock-code-verifier',
-            access_type: 'offline',
           }),
         },
       );
@@ -296,7 +295,6 @@ describe('BaseLoginHandler', () => {
             network: 'sapphire_devnet',
             redirect_uri: 'mock-redirect-uri',
             code_verifier: 'mock-code-verifier',
-            access_type: 'offline',
           }),
         },
       );
@@ -399,7 +397,6 @@ describe('BaseLoginHandler', () => {
             network: 'sapphire_mainnet',
             redirect_uri: 'mock-redirect-uri',
             code_verifier: 'mock-code-verifier',
-            access_type: 'offline',
           }),
         },
       );
@@ -448,7 +445,6 @@ describe('BaseLoginHandler', () => {
             network: 'sapphire_devnet',
             redirect_uri: 'mock-redirect-uri',
             code_verifier: 'mock-code-verifier',
-            access_type: 'offline',
           }),
         },
       );

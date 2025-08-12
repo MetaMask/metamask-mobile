@@ -7,12 +7,9 @@ import { typedSignV4ConfirmationState } from '../../../../../../util/test/confir
 import * as SignatureRequestHook from '../../../hooks/signatures/useSignatureRequest';
 import Message from './message';
 
-jest.mock(
-  '../../../hooks/signatures/useTokenDecimalsInTypedSignRequest',
-  () => ({
-    useTokenDecimalsInTypedSignRequest: () => 2,
-  }),
-);
+jest.mock('../../../hooks/signatures/useTokenDecimalsInTypedSignRequest', () => ({
+  useTokenDecimalsInTypedSignRequest: () => 2,
+}));
 
 describe('Message', () => {
   it('render correctly for V4 permit', async () => {

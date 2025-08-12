@@ -79,9 +79,7 @@ const DestinationAccountSelector = () => {
 
   const handleSelectAccount = useCallback(
     (caipAccountId: CaipAccountId | undefined) => {
-      const address = caipAccountId
-        ? parseCaipAccountId(caipAccountId).address
-        : undefined;
+      const address = caipAccountId ? parseCaipAccountId(caipAccountId).address : undefined;
       dispatch(setDestAddress(address));
     },
     [dispatch],
@@ -99,8 +97,8 @@ const DestinationAccountSelector = () => {
     // Allow undefined so user can pick an account
     const doesDestAddrMatchNetworkType =
       !destAddress ||
-      (isSolanaToEvm && !isSolanaAddress(destAddress)) ||
-      (isEvmToSolana && isSolanaAddress(destAddress));
+      ((isSolanaToEvm && !isSolanaAddress(destAddress)) ||
+        (isEvmToSolana && isSolanaAddress(destAddress)));
 
     if (
       (!hasInitialized.current && !destAddress) ||

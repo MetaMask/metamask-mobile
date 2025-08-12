@@ -1,16 +1,7 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+import Animated, { useAnimatedStyle, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
+import Icon, { IconColor, IconName, IconSize } from '../../../../../component-library/components/Icons/Icon';
 import { Box } from '../../../Box/Box';
 import { Theme } from '@metamask/design-tokens';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -48,19 +39,20 @@ export default function PulsingCircle({ color }: { color: IconColor }) {
   const { styles } = useStyles(styleSheet, {});
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      {
-        scale: withRepeat(
-          withSequence(
-            withTiming(1.5, { duration: 1000 }),
-            withTiming(1, { duration: 1000 }),
+      transform: [
+        {
+          scale: withRepeat(
+            withSequence(
+              withTiming(1.5, { duration: 1000 }),
+              withTiming(1, { duration: 1000 })
+            ),
+            -1,
+            true
           ),
-          -1,
-          true,
-        ),
-      },
-    ],
-  }));
+        },
+      ],
+    }),
+  );
 
   return (
     <Box style={styles.container}>

@@ -14,10 +14,7 @@ module.exports = {
         target: '18',
         sources: (filename) => {
           // Match file paths or directories to include in the React Compiler.
-          const pathsToInclude = [
-            'app/components/Nav',
-            'app/components/UI/DeepLinkModal',
-          ];
+          const pathsToInclude = ['app/components/Nav', 'app/components/UI/DeepLinkModal'];
           return pathsToInclude.some((path) => filename.includes(path));
         },
       },
@@ -41,24 +38,6 @@ module.exports = {
     {
       test: './node_modules/@metamask/bridge-controller',
       plugins: [['@babel/plugin-transform-private-methods', { loose: true }]],
-    },
-    {
-      test: './node_modules/@deeeed/hyperliquid-node20',
-      plugins: [
-        [
-          '@babel/plugin-transform-modules-commonjs',
-          { allowTopLevelThis: true },
-        ],
-      ],
-    },
-    {
-      test: './node_modules/@noble/secp256k1',
-      plugins: [
-        [
-          '@babel/plugin-transform-modules-commonjs',
-          { allowTopLevelThis: true },
-        ],
-      ],
     },
     {
       test: [

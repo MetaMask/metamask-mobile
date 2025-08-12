@@ -2,10 +2,7 @@ import { createSelector } from 'reselect';
 import { isMainnetByChainId } from '../../util/networks';
 import { safeToChecksumAddress, areAddressesEqual } from '../../util/address';
 import { lte } from '../../util/lodash';
-import {
-  selectChainId,
-  selectEvmChainId,
-} from '../../selectors/networkController';
+import { selectEvmChainId } from '../../selectors/networkController';
 import {
   selectAllTokens,
   selectTokens,
@@ -20,7 +17,6 @@ import { CHAIN_ID_TO_NAME_MAP } from '@metamask/swaps-controller/dist/constants'
 import { invert, omit } from 'lodash';
 import { createDeepEqualSelector } from '../../selectors/util';
 import { toHex } from '@metamask/controller-utils';
-import { SolScope } from '@metamask/keyring-api';
 
 // If we are in dev and on a testnet, just use mainnet feature flags,
 // since we don't have feature flags for testnets in the API
@@ -112,20 +108,8 @@ export const swapsLivenessSelector = createSelector(
 );
 
 export const swapsLivenessMultichainSelector = createSelector(
-  [
-    swapsStateSelector,
-    (state, chainId) =>
-      chainId !== undefined ? chainId : selectChainId(state),
-  ],
-  (swapsState, chainId) => {
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    if (chainId === SolScope.Mainnet) {
-      return true;
-    }
-    ///: END:ONLY_INCLUDE_IF(keyring-snaps)
-
-    return swapsState?.[chainId]?.isLive || false;
-  },
+  [swapsStateSelector, (_state, chainId) => chainId],
+  (swapsState, chainId) => swapsState[chainId]?.isLive || false,
 );
 
 /**

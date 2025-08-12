@@ -44,8 +44,6 @@ import { SimulatedAaveV3HealthFactorAfterWithdrawal } from '../../utils/tempLend
 import ConfirmationFooter from '../EarnLendingDepositConfirmationView/components/ConfirmationFooter';
 import Erc20TokenHero from '../EarnLendingDepositConfirmationView/components/Erc20TokenHero';
 import styleSheet from './EarnLendingWithdrawalConfirmationView.styles';
-import { endTrace, trace, TraceName } from '../../../../../util/trace';
-import useEndTraceOnMount from '../../../../hooks/useEndTraceOnMount';
 
 interface EarnWithdrawalConfirmationViewRouteParams {
   token: TokenI | EarnTokenDetails;
@@ -82,18 +80,13 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
   const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
 
-  const { earnTokenPair, getTokenSnapshot, tokenSnapshot } =
+  const { outputToken, earnToken, getTokenSnapshot, tokenSnapshot } =
     useEarnToken(token);
-
-  const earnToken = earnTokenPair?.earnToken;
-  const outputToken = earnTokenPair?.outputToken;
 
   const activeAccount = useSelector(selectSelectedInternalAccount);
   const useBlockieIcon = useSelector(
     (state: RootState) => state.settings.useBlockieIcon,
   );
-
-  useEndTraceOnMount(TraceName.EarnWithdrawReviewScreen);
 
   useEffect(() => {
     navigation.setOptions(
@@ -262,8 +255,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
       )(transactionId);
 
       emitWithdrawalTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_INITIATED);
-      // generic confirmation bottom sheet shows after transaction has been added
-      endTrace({ name: TraceName.EarnWithdrawConfirmationScreen });
 
       // Transaction Event Listeners
       Engine.controllerMessenger.subscribeOnceIf(
@@ -303,14 +294,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
           emitWithdrawalTxMetaMetric(
             MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED,
           );
-          // start trace of time between tx submitted and tx confirmed
-          trace({
-            name: TraceName.EarnLendingWithdrawTxConfirmed,
-            data: {
-              chainId: outputToken?.chainId || '',
-              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-            },
-          });
           // There is variance in when navigation can be called across chains
           setTimeout(() => {
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
@@ -325,7 +308,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
           emitWithdrawalTxMetaMetric(
             MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED,
           );
-          endTrace({ name: TraceName.EarnLendingWithdrawTxConfirmed });
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
@@ -333,32 +315,28 @@ const EarnLendingWithdrawalConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           if (!earnToken) {
-            try {
-              const tokenNetworkClientId =
-                Engine.context.NetworkController.findNetworkClientIdByChainId(
-                  tokenSnapshot?.chainId as Hex,
-                );
-              Engine.context.TokensController.addToken({
-                decimals: tokenSnapshot?.token?.decimals || 0,
-                symbol: tokenSnapshot?.token?.symbol || '',
-                address: tokenSnapshot?.token?.address || '',
-                name: tokenSnapshot?.token?.name || '',
-                networkClientId: tokenNetworkClientId,
-              }).catch(console.error);
-            } catch (error) {
+            const tokenNetworkClientId =
+              Engine.context.NetworkController.findNetworkClientIdByChainId(
+                tokenSnapshot?.chainId as Hex,
+              );
+            Engine.context.TokensController.addToken({
+              decimals: tokenSnapshot?.token?.decimals || 0,
+              symbol: tokenSnapshot?.token?.symbol || '',
+              address: tokenSnapshot?.token?.address || '',
+              name: tokenSnapshot?.token?.name || '',
+              networkClientId: tokenNetworkClientId,
+            }).catch((error) => {
               console.error(
                 error,
-                `error adding counter-token for ${
-                  outputToken?.symbol || outputToken?.ticker || ''
-                } on confirmation`,
+                'error adding counter-token on confirmation',
               );
-            }
+            });
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, tokenSnapshot, earnToken, outputToken, navigation],
+    [emitTxMetaMetric, tokenSnapshot, earnToken, navigation],
   );
 
   // Guards
@@ -407,15 +385,6 @@ const EarnLendingWithdrawalConfirmationView = () => {
           .addProperties(getTrackEventProperties('withdrawal'))
           .build(),
       );
-
-      // start trace between user intiating withdrawal and generic confirmation bottom sheet showing
-      trace({
-        name: TraceName.EarnWithdrawConfirmationScreen,
-        data: {
-          chainId: outputToken?.chainId || '',
-          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-        },
-      });
 
       // if sending max amount, send max uint256 (aave specific)
       // TODO: STAKE-1044 move this logic to earn controller and sdk.

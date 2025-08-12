@@ -29,11 +29,10 @@ describe('useMultichainBlockExplorerTxUrl', () => {
 
   it('should return EVM block explorer URL for EVM chain', async () => {
     const { result } = renderHookWithProvider(
-      () =>
-        useMultichainBlockExplorerTxUrl({
-          chainId: 1,
-          txHash: '0x123456789abcdef',
-        }),
+      () => useMultichainBlockExplorerTxUrl({
+        chainId: 1,
+        txHash: '0x123456789abcdef'
+      }),
       { state: initialState },
     );
 
@@ -49,11 +48,10 @@ describe('useMultichainBlockExplorerTxUrl', () => {
 
   it('should return Solana block explorer URL for Solana chain', async () => {
     const { result } = renderHookWithProvider(
-      () =>
-        useMultichainBlockExplorerTxUrl({
-          chainId: ChainId.SOLANA,
-          txHash: 'solana-tx-hash',
-        }),
+      () => useMultichainBlockExplorerTxUrl({
+        chainId: ChainId.SOLANA,
+        txHash: 'solana-tx-hash'
+      }),
       { state: initialState },
     );
 

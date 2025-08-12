@@ -1,6 +1,8 @@
 import { rpcErrors } from '@metamask/rpc-errors';
 import { MESSAGE_TYPE } from '../createTracingMiddleware';
-import { trackDappViewedEvent } from '../../util/metrics';
+import {
+  trackDappViewedEvent,
+} from '../../util/metrics';
 import { isSnapId } from '@metamask/snaps-utils';
 
 const requestEthereumAccounts = {
@@ -88,10 +90,7 @@ async function requestEthereumAccountsHandler(
 
   if (!isSnapId(origin)) {
     // Origin is actually a hostname here, this should change in the future.
-    trackDappViewedEvent({
-      hostname: origin,
-      numberOfConnectedAccounts: ethAccounts.length,
-    });
+    trackDappViewedEvent({ hostname: origin, numberOfConnectedAccounts: ethAccounts.length });
   }
 
   res.result = ethAccounts;

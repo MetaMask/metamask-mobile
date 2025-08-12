@@ -37,7 +37,7 @@ export type SnapKeyringBuilderAllowActions =
   | AccountsControllerListMultichainAccountsAction
   | AccountsControllerSetAccountNameAction
   | AccountsControllerSetAccountNameAndSelectAccountAction
-  | SnapKeyringAllowedActions;
+  | SnapKeyringAllowedActions
 
 export type SnapKeyringBuilderMessenger = RestrictedMessenger<
   'SnapKeyring',

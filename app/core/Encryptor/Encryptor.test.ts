@@ -1,6 +1,9 @@
 import { Encryptor } from './Encryptor';
 import { QuickCryptoLib } from './lib';
-import { ENCRYPTION_LIBRARY, LEGACY_DERIVATION_OPTIONS } from './constants';
+import {
+  ENCRYPTION_LIBRARY,
+  LEGACY_DERIVATION_OPTIONS,
+} from './constants';
 
 describe('Encryptor', () => {
   let encryptor: Encryptor;

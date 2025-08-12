@@ -11,8 +11,6 @@ import {
 } from '@sentry/core';
 import performance from 'react-native-performance';
 import { createModuleLogger, createProjectLogger } from '@metamask/utils';
-import { AGREED, METRICS_OPT_IN } from '../constants/storage';
-import StorageWrapper from '../store/storage-wrapper';
 
 // Cannot create this 'sentry' logger in Sentry util file because of circular dependency
 const projectLogger = createProjectLogger('sentry');
@@ -68,53 +66,8 @@ export enum TraceName {
   DisconnectAllAccountPermissions = 'Disconnect All Account Permissions',
   OnboardingCreateWallet = 'Onboarding Create Wallet',
   QRTabSwitcher = 'QR Tab Switcher',
-  OnboardingNewSocialAccountExists = 'Onboarding - New Social Account Exists',
-  OnboardingNewSocialCreateWallet = 'Onboarding - New Social Create Wallet',
-  OnboardingNewSrpCreateWallet = 'Onboarding - New SRP Create Wallet',
-  OnboardingExistingSocialLogin = 'Onboarding - Existing Social Login',
-  OnboardingExistingSocialAccountNotFound = 'Onboarding - Existing Social Account Not Found',
-  OnboardingExistingSrpImport = 'Onboarding - Existing SRP Import',
-  OnboardingJourneyOverall = 'Onboarding - Overall Journey',
-  OnboardingSocialLoginAttempt = 'Onboarding - Social Login Attempt',
-  OnboardingPasswordSetupAttempt = 'Onboarding - Password Setup Attempt',
-  OnboardingPasswordLoginAttempt = 'Onboarding - Password Login Attempt',
-  OnboardingResetPassword = 'Onboarding - Reset Password',
-  OnboardingCreateKeyAndBackupSrp = 'Onboarding - Create Key and Backup SRP',
-  OnboardingAddSrp = 'Onboarding - Add SRP',
-  OnboardingFetchSrps = 'Onboarding - Fetch SRPs',
-  OnboardingOAuthProviderLogin = 'Onboarding - OAuth Provider Login',
-  OnboardingOAuthBYOAServerGetAuthTokens = 'Onboarding - OAuth BYOA Server Get Auth Tokens',
-  OnboardingOAuthSeedlessAuthenticate = 'Onboarding - OAuth Seedless Authenticate',
-  OnboardingSocialLoginError = 'Onboarding - Social Login Error',
-  OnboardingPasswordSetupError = 'Onboarding - Password Setup Error',
-  OnboardingPasswordLoginError = 'Onboarding - Password Login Error',
-  OnboardingResetPasswordError = 'Onboarding - Reset Password Error',
-  OnboardingCreateKeyAndBackupSrpError = 'Onboarding - Create Key and Backup SRP Error',
-  OnboardingAddSrpError = 'Onboarding - Add SRP Error',
-  OnboardingFetchSrpsError = 'Onboarding - Fetch SRPs Error',
-  OnboardingOAuthProviderLoginError = 'Onboarding - OAuth Provider Login Error',
-  OnboardingOAuthBYOAServerGetAuthTokensError = 'Onboarding - OAuth BYOA Server Get Auth Tokens Error',
-  OnboardingOAuthSeedlessAuthenticateError = 'Onboarding - OAuth Seedless Authenticate Error',
   SwapViewLoaded = 'Swap View Loaded',
-  BridgeBalancesUpdated = 'Bridge Balances Updated',
-  // Earn
-  EarnDepositScreen = 'Earn Deposit Screen',
-  EarnDepositSpendingCapScreen = 'Earn Deposit Spending Cap Screen',
-  EarnDepositReviewScreen = 'Earn Deposit Review Screen',
-  EarnDepositConfirmationScreen = 'Earn Deposit Confirmation Screen',
-  EarnLendingDepositTxConfirmed = 'Earn Lending Deposit Tx Confirmed',
-  EarnPooledStakingDepositTxConfirmed = 'Earn Pooled Staking Deposit Tx Confirmed',
-  EarnWithdrawScreen = 'Earn Withdraw Screen',
-  EarnWithdrawReviewScreen = 'Earn Withdraw Review Screen',
-  EarnWithdrawConfirmationScreen = 'Earn Withdraw Confirmation Screen',
-  EarnLendingWithdrawTxConfirmed = 'Earn Lending Withdraw Tx Confirmed',
-  EarnPooledStakingWithdrawTxConfirmed = 'Earn Pooled Staking Withdraw Tx Confirmed',
-  EarnEarnings = 'Earn Earnings',
-  EarnFaq = 'Earn FAQ',
-  EarnFaqApys = 'Earn FAQ APYs',
-  EarnTokenList = 'Earn Token List',
-  EarnClaimConfirmationScreen = 'Earn Claim Confirmation Screen',
-  EarnPooledStakingClaimTxConfirmed = 'Earn Pooled Staking Claim Tx Confirmed',
+  BridgeBalancesUpdated = 'Bridge Balances Updated'
 }
 
 export enum TraceOperation {
@@ -136,10 +89,7 @@ export enum TraceOperation {
   CreateAccount = 'create.account',
   CreateSnapAccount = 'create.snap.account',
   RevealPrivateCredential = 'reveal.private.credential',
-  DiscoverAccounts = 'discover.accounts',
-  OnboardingUserJourney = 'onboarding.user_journey',
-  OnboardingSecurityOp = 'onboarding.security_operation',
-  OnboardingError = 'onboarding.error',
+  DiscoverAccounts = 'discover.accounts'
 }
 
 const ID_DEFAULT = 'default';
@@ -148,14 +98,11 @@ export const TRACES_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 const tracesByKey: Map<string, PendingTrace> = new Map();
 
-const localBufferedTraces: BufferedTrace[] = [];
-
 export interface PendingTrace {
   end: (timestamp?: number) => void;
   request: TraceRequest;
   startTime: number;
   timeoutId: NodeJS.Timeout;
-  span?: Span;
 }
 /**
  * A context object to associate traces with each other and generate nested traces.
@@ -165,12 +112,6 @@ export type TraceContext = unknown;
  * A callback function that can be traced.
  */
 export type TraceCallback<T> = (context?: TraceContext) => T;
-
-/**
- * Type alias for trace attribute values.
- */
-export type TraceValue = number | string | boolean;
-
 /**
  * A request to create a new trace.
  */
@@ -178,7 +119,7 @@ export interface TraceRequest {
   /**
    * Custom data to associate with the trace.
    */
-  data?: Record<string, TraceValue>;
+  data?: Record<string, number | string | boolean>;
 
   /**
    * A unique identifier when not tracing a callback.
@@ -205,7 +146,7 @@ export interface TraceRequest {
   /**
    * Custom tags to associate with the trace.
    */
-  tags?: Record<string, TraceValue>;
+  tags?: Record<string, number | string | boolean>;
   /**
    * Custom operation name to associate with the trace.
    */
@@ -230,22 +171,6 @@ export interface EndTraceRequest {
    * Override the end time of the trace.
    */
   timestamp?: number;
-
-  /**
-   * Custom data to associate with the trace when ending it.
-   * These will be set as attributes on the span.
-   */
-  data?: Record<string, TraceValue>;
-}
-
-interface SentrySpanWithName extends Span {
-  _name?: string;
-}
-
-interface BufferedTrace<T = TraceRequest | EndTraceRequest> {
-  type: 'start' | 'end';
-  request: T;
-  parentTraceName?: string; // Track parent trace name for reconnecting during flush
 }
 
 export function trace<T>(request: TraceRequest, fn: TraceCallback<T>): T;
@@ -279,28 +204,15 @@ export function trace<T>(
  *
  * @param request - The data necessary to identify and end the pending trace.
  */
-export function endTrace(request: EndTraceRequest): void {
+export function endTrace(request: EndTraceRequest) {
   const { name, timestamp } = request;
   const id = getTraceId(request);
-
-  if (getCachedConsent() !== true) {
-    bufferTraceEndCallLocal(request);
-    return;
-  }
-
   const key = getTraceKey(request);
   const pendingTrace = tracesByKey.get(key);
 
   if (!pendingTrace) {
     log('No pending trace found', name, id);
     return;
-  }
-
-  if (request.data && pendingTrace.span) {
-    const span = pendingTrace.span as Span;
-    for (const [attrKey, attrValue] of Object.entries(request.data)) {
-      span.setAttribute(attrKey, attrValue);
-    }
   }
 
   pendingTrace.end(timestamp);
@@ -315,153 +227,8 @@ export function endTrace(request: EndTraceRequest): void {
   log('Finished trace', name, id, duration, { request: pendingRequest });
 }
 
-/**
- * Create a buffered trace object for start trace requests
- */
-function createBufferedStartTrace(
-  request: TraceRequest,
-  parentTraceName?: string,
-): BufferedTrace {
-  return {
-    type: 'start',
-    request: {
-      ...request,
-      parentContext: undefined, // Remove original parentContext to avoid invalid references
-      startTime: request.startTime ?? Date.now(),
-    },
-    parentTraceName,
-  } as BufferedTrace;
-}
-
-/**
- * Create a buffered trace object for end trace requests
- */
-function createBufferedEndTrace(request: EndTraceRequest): BufferedTrace {
-  return {
-    type: 'end',
-    request: {
-      ...request,
-      timestamp: request.timestamp ?? Date.now(),
-    },
-  } as BufferedTrace;
-}
-
-/**
- * Buffer a trace start call in local memory
- */
-export function bufferTraceStartCallLocal(
-  request: TraceRequest,
-  parentTraceName?: string,
-) {
-  localBufferedTraces.push(createBufferedStartTrace(request, parentTraceName));
-}
-
-/**
- * Buffer a trace end call in local memory
- */
-export function bufferTraceEndCallLocal(request: EndTraceRequest) {
-  localBufferedTraces.push(createBufferedEndTrace(request));
-}
-
-/**
- * Flushes buffered traces to Sentry when consent is given
- */
-export async function flushBufferedTraces() {
-  const localBufferedTracesCopy = [...localBufferedTraces];
-
-  if (localBufferedTracesCopy.length === 0) {
-    return;
-  }
-
-  localBufferedTraces.length = 0;
-  const activeSpans = new Map<string, Span>();
-
-  for (const bufferedItem of localBufferedTracesCopy) {
-    if (bufferedItem.type === 'start') {
-      const traceKey = getTraceKey(bufferedItem.request);
-
-      // Get parent if applicable
-      let parentSpan: Span | undefined;
-      if (bufferedItem.parentTraceName) {
-        // Find parent span by iterating through active spans with matching name
-        for (const [key, span] of activeSpans.entries()) {
-          const [spanName] = key.split(':');
-          if (spanName === bufferedItem.parentTraceName) {
-            parentSpan = span;
-            break;
-          }
-        }
-      }
-
-      const span = trace({
-        ...bufferedItem.request,
-        parentContext: parentSpan,
-      }) as Span;
-
-      if (span) {
-        activeSpans.set(traceKey, span);
-      }
-    } else if (bufferedItem.type === 'end') {
-      endTrace(bufferedItem.request);
-      const traceKey = getTraceKey(bufferedItem.request);
-      activeSpans.delete(traceKey);
-    }
-  }
-}
-
-// Cache consent state to avoid async checks in trace functions
-// Default to null to indicate not yet loaded (traces will be buffered)
-let cachedConsent: boolean | null = null;
-
-/**
- * Check if user has given consent for metrics
- */
-export async function hasMetricsConsent(): Promise<boolean> {
-  const metricsOptIn = await StorageWrapper.getItem(METRICS_OPT_IN);
-  const hasConsent = metricsOptIn === AGREED;
-  cachedConsent = hasConsent;
-  return hasConsent;
-}
-
-/**
- * Get cached consent state synchronously
- * Note: When null, traces are buffered to ensure we don't accidentally send data before consent is checked
- */
-function getCachedConsent(): boolean | null {
-  return cachedConsent;
-}
-
-/**
- * Update cached consent state
- * @param {boolean} consent - new consent state
- */
-export function updateCachedConsent(consent: boolean) {
-  cachedConsent = consent;
-}
-
-export function discardBufferedTraces() {
-  localBufferedTraces.length = 0; // Clear local buffer as well
-}
-
 function traceCallback<T>(request: TraceRequest, fn: TraceCallback<T>): T {
   const { name } = request;
-
-  if (getCachedConsent() !== true) {
-    // Extract parent trace name if parentContext exists
-    let parentTraceName: string | undefined;
-    if (request.parentContext && typeof request.parentContext === 'object') {
-      const parentSpan = request.parentContext as SentrySpanWithName;
-      parentTraceName = parentSpan._name;
-    }
-
-    bufferTraceStartCallLocal(request, parentTraceName);
-    const result = fn(undefined);
-    bufferTraceEndCallLocal({
-      name: request.name,
-      id: request.id,
-    });
-    return result;
-  }
 
   const callback = (span: Span | undefined) => {
     log('Starting trace', name, request);
@@ -498,23 +265,9 @@ function startTrace(request: TraceRequest): TraceContext {
   const startTime = requestStartTime ?? getPerformanceTimestamp();
   const id = getTraceId(request);
 
-  if (getCachedConsent() !== true) {
-    // Extract parent trace name if parentContext exists
-    let parentTraceName: string | undefined;
-    if (request.parentContext && typeof request.parentContext === 'object') {
-      const parentSpan = request.parentContext as SentrySpanWithName;
-      parentTraceName = parentSpan._name;
-    }
-
-    bufferTraceStartCallLocal(request, parentTraceName);
-    return { _buffered: true, _name: name, _id: id, _local: true };
-  }
-
   const callback = (span: Span | undefined) => {
     const end = (timestamp?: number) => {
-      if (span?.end !== undefined) {
-        span?.end(timestamp);
-      }
+      span?.end(timestamp);
     };
 
     if (span) {
@@ -527,7 +280,7 @@ function startTrace(request: TraceRequest): TraceContext {
       tracesByKey.delete(getTraceKey(request));
     }, TRACES_CLEANUP_INTERVAL);
 
-    const pendingTrace = { end, request, startTime, timeoutId, span };
+    const pendingTrace = { end, request, startTime, timeoutId };
     const key = getTraceKey(request);
     tracesByKey.set(key, pendingTrace);
 
@@ -563,11 +316,11 @@ function startSpan<T>(
   }) as T;
 }
 
-function getTraceId(request: TraceRequest | EndTraceRequest) {
+function getTraceId(request: TraceRequest) {
   return request.id ?? ID_DEFAULT;
 }
 
-function getTraceKey(request: TraceRequest | EndTraceRequest) {
+function getTraceKey(request: TraceRequest) {
   const { name } = request;
   const id = getTraceId(request);
 

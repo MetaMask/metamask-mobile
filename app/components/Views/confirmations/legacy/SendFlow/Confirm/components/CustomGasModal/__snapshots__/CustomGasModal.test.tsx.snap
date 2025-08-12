@@ -53,7 +53,7 @@ exports[`CustomGasModal should render correctly 1`] = `
       onStartShouldSetResponder={[Function]}
       style={
         {
-          "backgroundColor": "#3f434a66",
+          "backgroundColor": "#00000066",
           "bottom": 0,
           "height": 1334,
           "left": 0,
@@ -364,7 +364,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                         "fontSize": 14,
                                       },
                                       {
-                                        "color": "#b7bbc8",
+                                        "color": "#9ca1af",
                                       },
                                       {
                                         "fontFamily": "Material Design Icons",
@@ -742,7 +742,7 @@ exports[`CustomGasModal should render correctly 1`] = `
                                         "fontSize": 14,
                                       },
                                       {
-                                        "color": "#b7bbc8",
+                                        "color": "#9ca1af",
                                       },
                                       {
                                         "fontFamily": "Material Design Icons",

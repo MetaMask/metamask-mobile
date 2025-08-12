@@ -3,6 +3,7 @@ import {
   ConnectedAccountsSelectorsIDs,
 } from '../../selectors/Browser/ConnectedAccountModal.selectors';
 import { WalletViewSelectorsText } from '../../selectors/wallet/WalletView.selectors';
+import TestHelpers from '../../helpers';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
@@ -107,104 +108,69 @@ class ConnectedAccountsModal {
   }
 
   async tapPermissionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.permissionsButton, {
-      elemDescription: 'Permissions button',
-    });
+    await Gestures.waitAndTap(this.permissionsButton);
   }
 
   async tapNetworksPicker(): Promise<void> {
-    await Gestures.waitAndTap(this.networkPicker, {
-      elemDescription: 'Network picker',
-    });
+    await Gestures.waitAndTap(this.networkPicker);
   }
 
   async tapDisconnectAllButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectAllButton, {
-      elemDescription: 'Disconnect all button',
-    });
+    await Gestures.waitAndTap(this.disconnectAllButton);
   }
 
   async tapManagePermissionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.managePermissionsButton, {
-      elemDescription: 'Manage permissions button',
-    });
+    await TestHelpers.delay(4000);
+    await Gestures.waitAndTap(this.managePermissionsButton);
   }
 
   async tapPermissionsSummaryTab(): Promise<void> {
-    await Gestures.waitAndTap(this.permissionsSummaryTab, {
-      elemDescription: 'Permissions summary tab',
-    });
+    await Gestures.waitAndTap(this.permissionsSummaryTab);
   }
 
   async tapAccountsSummaryTab(): Promise<void> {
-    await Gestures.waitAndTap(this.accountsSummaryTab, {
-      elemDescription: 'Accounts summary tab',
-    });
+    await TestHelpers.delay(1000);
+    await Gestures.waitAndTap(this.accountsSummaryTab);
   }
 
   async tapAccountListBottomSheet(): Promise<void> {
-    await Gestures.waitAndTap(this.accountListBottomSheet, {
-      elemDescription: 'Account list bottom sheet',
-    });
+    await Gestures.waitAndTap(this.accountListBottomSheet);
   }
 
   async tapDisconnectButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectButton, {
-      elemDescription: 'Disconnect button',
-    });
+    await Gestures.waitAndTap(this.disconnectButton);
   }
 
   async tapDisconnectAllAccountsAndNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectAllAccountsAndNetworksButton, {
-      elemDescription: 'Disconnect all accounts and networks button',
-    });
+    await Gestures.waitAndTap(this.disconnectAllAccountsAndNetworksButton);
   }
 
   async tapNavigateToEditNetworksPermissionsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.navigateToEditNetworksPermissionsButton, {
-      elemDescription: 'Navigate to edit networks permissions button',
-    });
+    await Gestures.waitAndTap(this.navigateToEditNetworksPermissionsButton);
   }
 
   async tapSelectAllNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.selectAllNetworksButton, {
-      elemDescription: 'Select all networks button',
-    });
+    await Gestures.waitAndTap(this.selectAllNetworksButton);
   }
 
   async tapDeselectAllNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.selectAllNetworksButton, {
-      elemDescription: 'Deselect all networks button',
-    });
+    await Gestures.waitAndTap(this.selectAllNetworksButton);
   }
 
   async tapDisconnectNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.disconnectNetworksButton, {
-      elemDescription: 'Disconnect networks button',
-    });
+    await Gestures.waitAndTap(this.disconnectNetworksButton);
   }
 
   async tapConfirmDisconnectNetworksButton(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmDisconnectNetworksButton, {
-      elemDescription: 'Confirm disconnect networks button',
-    });
+    await Gestures.waitAndTap(this.confirmDisconnectNetworksButton);
   }
 
   async scrollToBottomOfModal(): Promise<void> {
-    await Gestures.swipe(
-      this.title as Promise<IndexableNativeElement>,
-      'down',
-      {
-        speed: 'fast',
-        elemDescription: 'Scroll to bottom of modal',
-      },
-    );
+    await Gestures.swipe(this.title as Promise<IndexableNativeElement>, 'down', { speed: 'fast' });
   }
 
   async tapConnectMoreAccountsButton(): Promise<void> {
-    await Gestures.waitAndTap(this.connectAccountsButton, {
-      elemDescription: 'Connect more accounts button',
-    });
+    await Gestures.waitAndTap(this.connectAccountsButton);
   }
 
   async getNetworkName(): Promise<string> {
@@ -242,4 +208,4 @@ class ConnectedAccountsModal {
   }
 }
 
-export default new ConnectedAccountsModal();
+export default new ConnectedAccountsModal(); 

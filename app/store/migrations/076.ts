@@ -300,8 +300,7 @@ export default function migrate(oldState: unknown) {
     if (!isPermissionConstraint(ethAccountsPermission)) {
       captureException(
         new Error(
-          `Migration ${version}: Invalid state.PermissionController.subjects[${origin}].permissions[${
-            PermissionNames.eth_accounts
+          `Migration ${version}: Invalid state.PermissionController.subjects[${origin}].permissions[${PermissionNames.eth_accounts
           }]: ${JSON.stringify(ethAccountsPermission)}`,
         ),
       );
@@ -311,8 +310,7 @@ export default function migrate(oldState: unknown) {
     if (!isNonEmptyArrayOfStrings(accountsCaveatValue)) {
       captureException(
         new Error(
-          `Migration ${version}: Invalid state.PermissionController.subjects[${origin}].permissions[${
-            PermissionNames.eth_accounts
+          `Migration ${version}: Invalid state.PermissionController.subjects[${origin}].permissions[${PermissionNames.eth_accounts
           }].caveats[0].value of type ${typeof ethAccountsPermission
             .caveats?.[0]?.value}`,
         ),
@@ -330,8 +328,7 @@ export default function migrate(oldState: unknown) {
       if (!isPermissionConstraint(permittedChainsPermission)) {
         captureException(
           new Error(
-            `Migration ${version}: Invalid state.PermissionController.subjects[${origin}].permissions[${
-              PermissionNames.permittedChains
+            `Migration ${version}: Invalid state.PermissionController.subjects[${origin}].permissions[${PermissionNames.permittedChains
             }]: ${JSON.stringify(permittedChainsPermission)}`,
           ),
         );
@@ -341,8 +338,7 @@ export default function migrate(oldState: unknown) {
       if (!isNonEmptyArrayOfStrings(chainsCaveatValue)) {
         captureException(
           new Error(
-            `Migration ${version}: Invalid state.PermissionController.subjects[${origin}].permissions[${
-              PermissionNames.permittedChains
+            `Migration ${version}: Invalid state.PermissionController.subjects[${origin}].permissions[${PermissionNames.permittedChains
             }].caveats[0].value of type ${typeof permittedChainsPermission
               .caveats?.[0]?.value}`,
           ),
@@ -377,8 +373,8 @@ export default function migrate(oldState: unknown) {
     const scopeStrings: CaipChainId[] = isSnap
       ? []
       : chainIds.map<CaipChainId>(
-          (chainId) => `eip155:${hexToBigInt(chainId).toString(10)}`,
-        );
+        (chainId) => `eip155:${hexToBigInt(chainId).toString(10)}`,
+      );
     scopeStrings.push('wallet:eip155');
 
     scopeStrings.forEach((scopeString) => {

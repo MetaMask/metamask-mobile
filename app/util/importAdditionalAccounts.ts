@@ -56,7 +56,7 @@ export default async () => {
             name: TraceName.CreateHdAccount,
             op: TraceOperation.CreateAccount,
             tags: {
-              ...getTraceTags(store.getState()),
+              ...(getTraceTags(store.getState())),
               discovery: true,
             },
           });

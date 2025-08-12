@@ -32,7 +32,7 @@ exports[`AccountTag render matches snapshot when name prop is defined 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderRadius": 4,
+          "borderRadius": 8,
           "height": 16,
           "overflow": "hidden",
           "width": 16,
@@ -51,9 +51,7 @@ exports[`AccountTag render matches snapshot when name prop is defined 1`] = `
               "height": 16,
               "width": 16,
             },
-            {
-              "borderRadius": 4,
-            },
+            undefined,
           ]
         }
       >
@@ -230,7 +228,7 @@ exports[`AccountTag render matches snapshot when name prop isn't defined 1`] = `
       style={
         {
           "backgroundColor": "#ffffff",
-          "borderRadius": 4,
+          "borderRadius": 8,
           "height": 16,
           "overflow": "hidden",
           "width": 16,
@@ -249,9 +247,7 @@ exports[`AccountTag render matches snapshot when name prop isn't defined 1`] = `
               "height": 16,
               "width": 16,
             },
-            {
-              "borderRadius": 4,
-            },
+            undefined,
           ]
         }
       >

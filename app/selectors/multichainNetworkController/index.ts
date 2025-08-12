@@ -1,14 +1,19 @@
 import { ImageSourcePropType } from 'react-native';
 import { createSelector } from 'reselect';
 import {
-  MULTICHAIN_NETWORK_DECIMAL_PLACES,
-  MULTICHAIN_NETWORK_TICKER,
   MultichainNetworkControllerState,
+  NON_EVM_TESTNET_IDS,
   type MultichainNetworkConfiguration,
 } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import { CaipChainId } from '@metamask/utils';
-import { BtcScope, SolScope, EthScope } from '@metamask/keyring-api';
+import {
+  ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
+  BtcScope,
+  ///: END:ONLY_INCLUDE_IF
+  SolScope,
+  EthScope,
+} from '@metamask/keyring-api';
 import { RootState } from '../../reducers';
 import imageIcons from '../../images/image-icons';
 import { createDeepEqualSelector } from '../util';
@@ -44,49 +49,23 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
         decimals: number;
         imageSource: ImageSourcePropType;
         ticker: string;
-        isTestnet: boolean;
-        name?: string;
       }
     > = {
       [SolScope.Mainnet]: {
-        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[SolScope.Mainnet],
+        decimals: 9,
         imageSource: imageIcons.SOLANA,
-        ticker: MULTICHAIN_NETWORK_TICKER[SolScope.Mainnet],
-        isTestnet: false,
+        ticker: 'SOL',
       },
+      ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       [BtcScope.Mainnet]: {
-        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Mainnet],
+        decimals: 8,
         imageSource: imageIcons.BTC,
-        ticker: MULTICHAIN_NETWORK_TICKER[BtcScope.Mainnet],
-        isTestnet: false,
+        ticker: 'BTC',
       },
-      [BtcScope.Testnet]: {
-        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Testnet],
-        imageSource: imageIcons['BTC-TESTNET'],
-        ticker: MULTICHAIN_NETWORK_TICKER[BtcScope.Testnet],
-        isTestnet: true,
-      },
-      [BtcScope.Testnet4]: {
-        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Testnet4],
-        imageSource: imageIcons['BTC-TESTNET'],
-        ticker: MULTICHAIN_NETWORK_TICKER[BtcScope.Testnet4],
-        isTestnet: true,
-      },
-      [BtcScope.Signet]: {
-        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Signet],
-        imageSource: imageIcons['BTC-MUTINYNET'],
-        ticker: MULTICHAIN_NETWORK_TICKER[BtcScope.Signet],
-        isTestnet: true,
-        name: 'Bitcoin Mutinynet',
-      },
-      [BtcScope.Regtest]: {
-        decimals: MULTICHAIN_NETWORK_DECIMAL_PLACES[BtcScope.Regtest],
-        imageSource: imageIcons['BTC-TESTNET'],
-        ticker: MULTICHAIN_NETWORK_TICKER[BtcScope.Regtest],
-        isTestnet: true,
-      },
+      ///: END:ONLY_INCLUDE_IF
     };
 
+    // TODO: Add support for non-EVM testnets
     const networks: Record<CaipChainId, MultichainNetworkConfiguration> =
       multichainNetworkControllerState.multichainNetworkConfigurationsByChainId ||
       {};
@@ -94,14 +73,13 @@ export const selectNonEvmNetworkConfigurationsByChainId = createSelector(
     const NON_EVM_CAIP_CHAIN_IDS: CaipChainId[] = [
       ///: BEGIN:ONLY_INCLUDE_IF(bitcoin)
       BtcScope.Mainnet,
-      BtcScope.Testnet,
-      BtcScope.Signet,
       ///: END:ONLY_INCLUDE_IF
       SolScope.Mainnet,
     ];
 
     const nonEvmNetworks: Record<CaipChainId, MultichainNetworkConfiguration> =
       Object.keys(networks)
+        .filter((key) => !NON_EVM_TESTNET_IDS.includes(key as CaipChainId))
         .filter((key) => NON_EVM_CAIP_CHAIN_IDS.includes(key as CaipChainId))
         .reduce(
           (
@@ -206,34 +184,6 @@ export const getActiveNetworksByScopes = createDeepEqualSelector(
       return [
         {
           caipChainId: BtcScope.Mainnet,
-        },
-      ];
-    }
-    if (account.scopes.includes(BtcScope.Testnet)) {
-      return [
-        {
-          caipChainId: BtcScope.Testnet,
-        },
-      ];
-    }
-    if (account.scopes.includes(BtcScope.Testnet4)) {
-      return [
-        {
-          caipChainId: BtcScope.Testnet4,
-        },
-      ];
-    }
-    if (account.scopes.includes(BtcScope.Signet)) {
-      return [
-        {
-          caipChainId: BtcScope.Signet,
-        },
-      ];
-    }
-    if (account.scopes.includes(BtcScope.Regtest)) {
-      return [
-        {
-          caipChainId: BtcScope.Regtest,
         },
       ];
     }

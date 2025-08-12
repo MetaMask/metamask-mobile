@@ -3,7 +3,7 @@ import { Theme } from '../../../util/theme/models';
 
 const styleSheet = (params: {
   theme: Theme;
-  vars: { isTransactionsRedesign: boolean; noBalanceChanges?: boolean };
+  vars: { isTransactionsRedesign: boolean, noBalanceChanges?: boolean };
 }) => {
   const { theme, vars } = params;
   const { isTransactionsRedesign, noBalanceChanges = false } = vars;

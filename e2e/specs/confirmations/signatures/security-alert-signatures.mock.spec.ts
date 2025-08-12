@@ -1,21 +1,22 @@
+'use strict';
 import Browser from '../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import { loginToApp } from '../../../viewHelper';
 import SigningBottomSheet from '../../../pages/Browser/SigningBottomSheet';
 import TestDApp from '../../../pages/Browser/TestDApp';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import Assertions from '../../../framework/Assertions';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../fixtures/fixture-helper';
+import TestHelpers from '../../../helpers';
+import Assertions from '../../../utils/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import ConfirmationView from '../../../pages/Confirmation/ConfirmationView';
 import { SmokeConfirmations } from '../../../tags';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
-import { MockApiEndpoint } from '../../../framework/types';
-import { DappVariants } from '../../../framework/Constants';
+import { buildPermissions } from '../../../fixtures/utils';
 
 describe(SmokeConfirmations('Security Alert API - Signature'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
+    await TestHelpers.reverseServerPort();
   });
 
   const defaultFixture = new FixtureBuilder()
@@ -23,34 +24,30 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
     .withPermissionControllerConnectedToTestDapp(buildPermissions(['0xaa36a7']))
     .build();
 
-  const navigateToTestDAppAndTapTypedSignButton = async () => {
+  const navigateToTestDApp = async () => {
     await loginToApp();
     await TabBarComponent.tapBrowser();
     await Browser.navigateToTestDApp();
     await TestDApp.tapTypedSignButton();
-    await Assertions.expectElementToBeVisible(SigningBottomSheet.typedRequest);
+    await Assertions.checkIfVisible(SigningBottomSheet.typedRequest);
   };
 
   const runTest = async (
     testSpecificMock: {
-      GET?: MockApiEndpoint[];
-      POST?: MockApiEndpoint[];
+      GET?: Record<string, unknown>[];
+      POST?: Record<string, unknown>[];
     },
     alertAssertion: () => Promise<void>,
   ) => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: defaultFixture,
         restartDevice: true,
         testSpecificMock,
       },
       async () => {
-        await navigateToTestDAppAndTapTypedSignButton();
+        await navigateToTestDApp();
         await alertAssertion();
       },
     );
@@ -80,9 +77,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
     };
 
     await runTest(testSpecificMock, async () => {
-      await Assertions.expectElementToNotBeVisible(
-        ConfirmationView.securityAlertBanner,
-      );
+      await Assertions.checkIfNotVisible(ConfirmationView.securityAlertBanner);
     });
   });
 
@@ -112,9 +107,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
     };
 
     await runTest(testSpecificMock, async () => {
-      await Assertions.expectElementToBeVisible(
-        ConfirmationView.securityAlertBanner,
-      );
+      await Assertions.checkIfVisible(ConfirmationView.securityAlertBanner);
     });
   });
 
@@ -126,9 +119,6 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
           urlEndpoint:
             'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
           responseCode: 500,
-          response: {
-            message: 'Internal Server Error',
-          },
         },
       ],
       POST: [
@@ -145,7 +135,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
     };
 
     await runTest(testSpecificMock, async () => {
-      await Assertions.expectElementToBeVisible(
+      await Assertions.checkIfVisible(
         ConfirmationView.securityAlertResponseFailedBanner,
       );
     });

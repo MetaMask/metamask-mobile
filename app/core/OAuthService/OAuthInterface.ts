@@ -71,11 +71,9 @@ export type AuthRequestParams =
 export interface AuthResponse {
   id_token: string;
   access_token: string;
-  metadata_access_token: string;
   indexes: number[];
   endpoints: Record<string, string>;
   refresh_token?: string;
-  revoke_token?: string;
 }
 
 export interface LoginHandler {

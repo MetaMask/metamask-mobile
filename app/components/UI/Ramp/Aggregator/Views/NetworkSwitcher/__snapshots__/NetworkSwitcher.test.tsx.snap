@@ -1313,15 +1313,14 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     {
                                                       "alignItems": "center",
                                                       "alignSelf": "flex-start",
-                                                      "backgroundColor": "#3c4d9d0f",
-                                                      "borderColor": "transparent",
+                                                      "backgroundColor": "transparent",
+                                                      "borderColor": "#4459ff",
                                                       "borderRadius": 12,
                                                       "borderWidth": 1,
                                                       "flex": 1,
                                                       "flexDirection": "row",
                                                       "height": 48,
                                                       "justifyContent": "center",
-                                                      "overflow": "hidden",
                                                       "paddingHorizontal": 16,
                                                     }
                                                   }
@@ -1331,7 +1330,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     accessibilityRole="text"
                                                     style={
                                                       {
-                                                        "color": "#121314",
+                                                        "color": "#4459ff",
                                                         "fontFamily": "Geist Medium",
                                                         "fontSize": 16,
                                                         "letterSpacing": 0,
@@ -1353,7 +1352,7 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                     {
                                                       "alignItems": "center",
                                                       "alignSelf": "flex-start",
-                                                      "backgroundColor": "#121314",
+                                                      "backgroundColor": "#4459ff",
                                                       "borderRadius": 12,
                                                       "flex": 1,
                                                       "flexDirection": "row",
@@ -1361,7 +1360,6 @@ exports[`NetworkSwitcher View renders and dismisses network modal when pressing 
                                                       "justifyContent": "center",
                                                       "marginLeft": 16,
                                                       "marginTop": 0,
-                                                      "overflow": "hidden",
                                                       "paddingHorizontal": 16,
                                                     }
                                                   }

@@ -13,7 +13,6 @@ import cashoutImage from '../../../images/banners/banner_image_cashout.png';
 import aggregatedImage from '../../../images/banners/banner_image_aggregated.png';
 import backupAndSyncImage from '../../../images/banners/banner_image_backup_and_sync.png';
 import multiSrpImage from '../../../images/banners/banner_image_multisrp.png';
-import { createSmartAccountNavigationDetails } from '../../Views/confirmations/utils/generic';
 ///: BEGIN:ONLY_INCLUDE_IF(solana)
 import solanaImage from '../../../images/banners/banner_image_solana.png';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
@@ -49,7 +48,7 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
     undismissable: false,
     navigation: {
       type: 'function',
-      navigate: createSmartAccountNavigationDetails,
+      navigate: () => [Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE],
     },
   },
   {

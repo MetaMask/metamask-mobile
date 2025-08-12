@@ -1,23 +1,34 @@
+'use strict';
 import { SmokeConfirmations } from '../../tags';
+import TestHelpers from '../../helpers';
 import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../fixtures/fixture-builder';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../fixtures/fixture-helper';
 
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBottomSheet';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../utils/Assertions';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
-import { DappVariants } from '../../framework/Constants';
+import { buildPermissions } from '../../fixtures/utils';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
+  beforeAll(async () => {
+    jest.setTimeout(170000);
+    if (device.getPlatform() === 'android') {
+      await TestHelpers.reverseServerPort();
+    }
+  });
+
   it('approve custom ERC20 token amount from a dapp', async () => {
-    const testSpecificMock = {
+    const testSpecificMock  = {
       GET: [
         mockEvents.GET.suggestedGasFeesApiGanache,
         mockEvents.GET.remoteFeatureFlagsOldConfirmations,
@@ -26,23 +37,20 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
 
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder()
           .withGanacheNetwork()
-          .withPermissionControllerConnectedToTestDapp(
-            buildPermissions(['0x539']),
-          )
+          .withPermissionControllerConnectedToTestDapp(buildPermissions(['0x539']))
           .build(),
         restartDevice: true,
-        smartContracts: [HST_CONTRACT],
+        ganacheOptions: defaultGanacheOptions,
+        smartContract: HST_CONTRACT,
         testSpecificMock,
       },
-      async ({ contractRegistry }) => {
-        const hstAddress = await contractRegistry?.getContractAddress(
+      // Remove any once withFixtures is typed
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      async ({ contractRegistry }: { contractRegistry: any }) => {
+        const hstAddress = await contractRegistry.getContractAddress(
           HST_CONTRACT,
         );
         await loginToApp();
@@ -55,14 +63,14 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         await TestDApp.tapApproveERC20TokensButton();
 
         //Input custom token amount
-        await Assertions.expectElementToBeVisible(
+        await Assertions.checkIfVisible(
           ContractApprovalBottomSheet.approveTokenAmount,
         );
         await ContractApprovalBottomSheet.clearInput();
         await ContractApprovalBottomSheet.inputCustomAmount('2');
 
         // Assert that custom token amount is shown
-        await Assertions.expectElementToHaveText(
+        await Assertions.checkIfElementToHaveText(
           ContractApprovalBottomSheet.approveTokenAmount,
           '2',
         );
@@ -75,7 +83,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
         // Navigate to the activity screen
         await TabBarComponent.tapActivity();
         // Assert erc20 is approved
-        await Assertions.expectTextDisplayed(
+        await Assertions.checkIfTextIsDisplayed(
           ActivitiesViewSelectorsText.CONFIRM_TEXT,
         );
       },

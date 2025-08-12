@@ -24,7 +24,6 @@ import * as ApprovalUtils from '../../utils/approvals';
 import * as TokenUtils from '../../utils/token';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
-import { ApproveMethod } from '../../types/approve';
 import { useBatchedUnusedApprovalsAlert } from './useBatchedUnusedApprovalsAlert';
 import { TokenStandard } from '../../../../UI/SimulationDetails/types';
 
@@ -122,7 +121,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -131,9 +130,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       const { result } = runHook({
         ...batchApprovalConfirmation,
         nestedTransactions,
-        simulationData: {
-          tokenBalanceChanges: [],
-        } as unknown as SimulationData,
+        simulationData: [] as unknown as SimulationData, // no outflows
       });
 
       await waitFor(() => {
@@ -151,7 +148,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: undefined, // regular approve
           isRevokeAll: false,
@@ -175,7 +172,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: TOKEN_ADDRESS_1, // Permit2 approve
           isRevokeAll: false,
@@ -199,7 +196,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.INCREASE_ALLOWANCE,
+          name: 'increaseAllowance',
           amountOrTokenId: new BigNumber('500'),
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -223,7 +220,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.SET_APPROVAL_FOR_ALL,
+          name: 'setApprovalForAll',
           amountOrTokenId: new BigNumber('1'),
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -249,7 +246,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.SET_APPROVAL_FOR_ALL,
+          name: 'setApprovalForAll',
           amountOrTokenId: new BigNumber('0'),
           tokenAddress: undefined,
           isRevokeAll: true, // revocation
@@ -273,7 +270,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('0'), // zero amount
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -303,7 +300,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('0'), // token ID 0 for NFT
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -367,7 +364,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: 'unsupportedMethod' as ApproveMethod, // unsupported
+          name: 'unsupportedMethod', // unsupported
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -398,25 +395,25 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValueOnce({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: undefined,
           isRevokeAll: false,
         })
         .mockReturnValueOnce({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('2000'),
           tokenAddress: undefined,
           isRevokeAll: false,
         })
         .mockReturnValueOnce({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: undefined,
           isRevokeAll: false,
         })
         .mockReturnValueOnce({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('2000'),
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -449,25 +446,25 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValueOnce({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: undefined,
           isRevokeAll: false,
         })
         .mockReturnValueOnce({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('2000'),
           tokenAddress: undefined,
           isRevokeAll: false,
         })
         .mockReturnValueOnce({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: undefined,
           isRevokeAll: false,
         })
         .mockReturnValueOnce({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('2000'),
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -476,9 +473,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       const { result } = runHook({
         ...batchApprovalConfirmation,
         nestedTransactions,
-        simulationData: {
-          tokenBalanceChanges: simulationData,
-        } as unknown as SimulationData,
+        simulationData: simulationData as unknown as SimulationData,
       });
 
       await waitFor(() => {
@@ -496,7 +491,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -524,7 +519,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -567,7 +562,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -584,58 +579,6 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       });
     });
 
-    it('does not show alert when simulation data is missing', async () => {
-      const nestedTransactions = [
-        createMockNestedTransaction('0x123', TOKEN_ADDRESS_1),
-      ];
-
-      jest
-        .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
-        .mockReturnValue({
-          name: ApproveMethod.APPROVE,
-          amountOrTokenId: new BigNumber('1000'),
-          tokenAddress: undefined,
-          isRevokeAll: false,
-        });
-
-      const { result } = runHook({
-        ...batchApprovalConfirmation,
-        nestedTransactions,
-        simulationData: undefined, // Missing simulation data
-      });
-
-      await waitFor(() => {
-        expect(result.current).toEqual([]);
-      });
-    });
-
-    it('does not show alert when simulation data has no token balance changes', async () => {
-      const nestedTransactions = [
-        createMockNestedTransaction('0x123', TOKEN_ADDRESS_1),
-      ];
-
-      jest
-        .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
-        .mockReturnValue({
-          name: ApproveMethod.APPROVE,
-          amountOrTokenId: new BigNumber('1000'),
-          tokenAddress: undefined,
-          isRevokeAll: false,
-        });
-
-      const { result } = runHook({
-        ...batchApprovalConfirmation,
-        nestedTransactions,
-        simulationData: {
-          tokenBalanceChanges: undefined, // Missing token balance changes
-        } as unknown as SimulationData,
-      });
-
-      await waitFor(() => {
-        expect(result.current).toEqual([]);
-      });
-    });
-
     it('handles empty simulation data array', async () => {
       const nestedTransactions = [
         createMockNestedTransaction('0x123', TOKEN_ADDRESS_1),
@@ -644,7 +587,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       jest
         .spyOn(ApprovalUtils, 'parseApprovalTransactionData')
         .mockReturnValue({
-          name: ApproveMethod.APPROVE,
+          name: 'approve',
           amountOrTokenId: new BigNumber('1000'),
           tokenAddress: undefined,
           isRevokeAll: false,
@@ -653,9 +596,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       const { result } = runHook({
         ...batchApprovalConfirmation,
         nestedTransactions,
-        simulationData: {
-          tokenBalanceChanges: [],
-        } as unknown as SimulationData,
+        simulationData: undefined,
       });
 
       await waitFor(() => {

@@ -39,7 +39,6 @@ import { IMetaMetricsEvent } from '../../../../../core/Analytics';
 import { EVENT_LOCATIONS, EVENT_PROVIDERS } from '../../constants/events';
 import { ProgressStep } from './components/ProgressStepper';
 import BN from 'bnjs4';
-import { endTrace, trace, TraceName } from '../../../../../util/trace';
 
 export interface LendingDepositViewRouteParams {
   token?: TokenI;
@@ -99,12 +98,8 @@ const EarnLendingDepositConfirmationView = () => {
     selectStablecoinLendingEnabledFlag,
   );
 
-  const { earnTokenPair, getTokenSnapshot, tokenSnapshot } = useEarnToken(
-    token as TokenI,
-  );
-
-  const earnToken = earnTokenPair?.earnToken;
-  const outputToken = earnTokenPair?.outputToken;
+  const { earnToken, outputToken, getTokenSnapshot, tokenSnapshot } =
+    useEarnToken(token as TokenI);
 
   const needsTokenAllowanceReset = useMemo(() => {
     if (!earnToken?.chainId || !earnToken?.symbol) return false;
@@ -196,14 +191,6 @@ const EarnLendingDepositConfirmationView = () => {
       activeStep,
     ],
   );
-
-  useEffect(() => {
-    if (action === EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE) {
-      endTrace({ name: TraceName.EarnDepositSpendingCapScreen });
-    } else {
-      endTrace({ name: TraceName.EarnDepositReviewScreen });
-    }
-  }, [action]);
 
   useEffect(() => {
     trackEvent(
@@ -371,9 +358,6 @@ const EarnLendingDepositConfirmationView = () => {
         TransactionType.lendingDeposit,
       )(transactionId);
 
-      // generic confirmation bottom sheet shows after transaction has been added
-      endTrace({ name: TraceName.EarnDepositConfirmationScreen });
-
       Engine.controllerMessenger.subscribeOnceIf(
         'TransactionController:transactionDropped',
         () => {
@@ -395,14 +379,6 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionSubmitted',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_SUBMITTED);
-          // start trace of time between tx submitted and tx confirmed
-          trace({
-            name: TraceName.EarnLendingDepositTxConfirmed,
-            data: {
-              chainId: earnToken?.chainId || '',
-              experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-            },
-          });
           // There is variance in when navigation can be called across chains
           setTimeout(() => {
             navigation.navigate(Routes.TRANSACTIONS_VIEW);
@@ -415,29 +391,24 @@ const EarnLendingDepositConfirmationView = () => {
         'TransactionController:transactionConfirmed',
         () => {
           emitDepositTxMetaMetric(MetaMetricsEvents.EARN_TRANSACTION_CONFIRMED);
-          endTrace({ name: TraceName.EarnLendingDepositTxConfirmed });
 
           if (!outputToken) {
-            try {
-              const networkClientId =
-                Engine.context.NetworkController.findNetworkClientIdByChainId(
-                  tokenSnapshot?.chainId as Hex,
-                );
-              Engine.context.TokensController.addToken({
-                decimals: tokenSnapshot?.token?.decimals || 0,
-                symbol: tokenSnapshot?.token?.symbol || '',
-                address: tokenSnapshot?.token?.address || '',
-                name: tokenSnapshot?.token?.name || '',
-                networkClientId,
-              }).catch(console.error);
-            } catch (error) {
+            const networkClientId =
+              Engine.context.NetworkController.findNetworkClientIdByChainId(
+                tokenSnapshot?.chainId as Hex,
+              );
+            Engine.context.TokensController.addToken({
+              decimals: tokenSnapshot?.token?.decimals || 0,
+              symbol: tokenSnapshot?.token?.symbol || '',
+              address: tokenSnapshot?.token?.address || '',
+              name: tokenSnapshot?.token?.name || '',
+              networkClientId,
+            }).catch((error) => {
               console.error(
                 error,
-                `error adding counter-token for ${
-                  earnToken?.symbol || earnToken?.ticker || ''
-                } on confirmation`,
+                'error adding counter-token on confirmation',
               );
-            }
+            });
           }
         },
         (transactionMeta) => transactionMeta.id === transactionId,
@@ -452,7 +423,7 @@ const EarnLendingDepositConfirmationView = () => {
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
     },
-    [emitTxMetaMetric, navigation, outputToken, earnToken, tokenSnapshot],
+    [emitTxMetaMetric, navigation, outputToken, tokenSnapshot],
   );
 
   const createTransactionEventListeners = useCallback(
@@ -641,15 +612,6 @@ const EarnLendingDepositConfirmationView = () => {
 
   const depositTokens = async (networkClientId: string) => {
     if (!earnToken?.experience?.market?.protocol) return;
-
-    // start trace between user intiating deposit and generic confirmation bottom sheet showing
-    trace({
-      name: TraceName.EarnDepositConfirmationScreen,
-      data: {
-        chainId: earnToken?.chainId || '',
-        experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
-      },
-    });
 
     setIsDepositLoading(true);
 

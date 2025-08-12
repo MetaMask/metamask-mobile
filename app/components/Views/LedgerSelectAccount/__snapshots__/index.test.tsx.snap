@@ -24,7 +24,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot 1`] = `
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "marginTop": 0,
+          "marginTop": 30,
           "width": "100%",
         }
       }
@@ -508,7 +508,7 @@ exports[`LedgerSelectAccount renders correctly to match snapshot when getAccount
         {
           "alignItems": "center",
           "flexDirection": "row",
-          "marginTop": 0,
+          "marginTop": 30,
           "width": "100%",
         }
       }

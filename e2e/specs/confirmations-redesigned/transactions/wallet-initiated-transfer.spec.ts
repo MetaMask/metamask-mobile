@@ -1,14 +1,18 @@
 import { SmokeConfirmationsRedesigned } from '../../../tags';
+import TestHelpers from '../../../helpers';
 import { loginToApp } from '../../../viewHelper';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import {
+  withFixtures,
+  defaultGanacheOptions,
+} from '../../../fixtures/fixture-helper';
+import { buildPermissions } from '../../../fixtures/utils';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
-import Assertions from '../../../framework/Assertions';
+import Assertions from '../../../utils/Assertions';
 import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import FixtureBuilder from '../../../fixtures/fixture-builder';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import ConfirmationUITypes from '../../../pages/Browser/Confirmations/ConfirmationUITypes';
@@ -31,6 +35,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
+    await TestHelpers.reverseServerPort();
   });
 
   it('sends native asset', async () => {
@@ -43,12 +48,14 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
           )
           .build(),
         restartDevice: true,
+        ganacheOptions: defaultGanacheOptions,
         testSpecificMock,
       },
       async () => {
         await loginToApp();
 
         await TabBarComponent.tapActions();
+        await TestHelpers.delay(2000);
         await WalletActionsBottomSheet.tapSendButton();
 
         await SendView.inputAddress(RECIPIENT);
@@ -58,23 +65,21 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
         await AmountView.tapNextButton();
 
         // Check all expected elements are visible
-        await Assertions.expectElementToBeVisible(
+        await Assertions.checkIfVisible(
           ConfirmationUITypes.FlatConfirmationContainer,
         );
-        await Assertions.expectElementToBeVisible(RowComponents.TokenHero);
-        await Assertions.expectTextDisplayed('1 ETH');
-        await Assertions.expectElementToBeVisible(RowComponents.FromTo);
-        await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
-        await Assertions.expectElementToBeVisible(
-          RowComponents.AdvancedDetails,
-        );
+        await Assertions.checkIfVisible(RowComponents.TokenHero);
+        await Assertions.checkIfTextIsDisplayed('1 ETH');
+        await Assertions.checkIfVisible(RowComponents.FromTo);
+        await Assertions.checkIfVisible(RowComponents.GasFeesDetails);
+        await Assertions.checkIfVisible(RowComponents.AdvancedDetails);
 
         // Accept confirmation
         await FooterActions.tapConfirmButton();
 
         // Check activity tab
         await TabBarComponent.tapActivity();
-        await Assertions.expectTextDisplayed('Confirmed');
+        await Assertions.checkIfTextIsDisplayed('Confirmed');
       },
     );
   });

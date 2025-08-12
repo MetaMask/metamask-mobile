@@ -29,7 +29,6 @@ import { EARN_EXPERIENCES } from '../../constants/experiences';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
 import Engine from '../../../../../core/Engine';
-import { trace, TraceName } from '../../../../../util/trace';
 
 interface EarnEmptyStateCta {
   token: TokenI;
@@ -61,7 +60,6 @@ const EarnEmptyStateCta = ({ token }: EarnEmptyStateCta) => {
   ).toFixed(0);
   const apr = earnToken?.experience?.apr;
   const navigateToLendInputScreen = async () => {
-    trace({ name: TraceName.EarnDepositScreen });
     const { NetworkController } = Engine.context;
     const networkClientId = NetworkController.findNetworkClientIdByChainId(
       token.chainId as Hex,

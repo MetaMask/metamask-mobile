@@ -30,7 +30,6 @@ const approvalData = [
     isAllApproval: false,
     isUnlimitedApproval: false,
     nestedTransactionIndex: 0,
-    usdAmount: null,
   },
 ];
 
@@ -65,7 +64,7 @@ describe('BatchApprovalRow', () => {
       state: getAppStateForConfirmation(upgradeAccountConfirmation),
     });
 
-    expect(getByTestId('edit-spending-cap-button')).toBeTruthy();
+    expect(getByTestId('edit-amount-button-icon')).toBeTruthy();
   });
 
   it('displays alert if BatchedApprovals alert is present', () => {

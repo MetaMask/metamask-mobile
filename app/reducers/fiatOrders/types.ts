@@ -19,7 +19,6 @@ import {
   setFiatOrdersGetStartedDeposit,
   setFiatOrdersPaymentMethodAGG,
   setFiatOrdersRegionAGG,
-  setFiatOrdersRegionDeposit,
   updateFiatCustomIdData,
   updateFiatOrder,
   updateActivationKey,
@@ -31,7 +30,6 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../constants/on-ramp';
-import { DepositRegion } from '../../components/UI/Ramp/Deposit/constants';
 
 interface WyreOrder {
   order: Record<string, unknown>;
@@ -86,7 +84,6 @@ export interface FiatOrdersState {
   customOrderIds: CustomIdData[];
   networks: AggregatorNetwork[];
   selectedRegionAgg: Country | null;
-  selectedRegionDeposit: DepositRegion | null;
   selectedPaymentMethodAgg: string | null;
   getStartedAgg: boolean;
   getStartedSell: boolean;
@@ -103,7 +100,6 @@ export const ACTIONS = {
   FIAT_SET_COUNTRY: 'FIAT_SET_COUNTRY',
   // aggregator actions
   FIAT_SET_REGION_AGG: 'FIAT_SET_REGION_AGG',
-  FIAT_SET_REGION_DEPOSIT: 'FIAT_SET_REGION_DEPOSIT',
   FIAT_SET_PAYMENT_METHOD_AGG: 'FIAT_SET_PAYMENT_METHOD_AGG',
   FIAT_SET_GETSTARTED_AGG: 'FIAT_SET_GETSTARTED_AGG',
   FIAT_SET_GETSTARTED_SELL: 'FIAT_SET_GETSTARTED_SELL',
@@ -127,7 +123,6 @@ export type Action =
   | ReturnType<typeof removeFiatOrder>
   | ReturnType<typeof updateFiatOrder>
   | ReturnType<typeof setFiatOrdersRegionAGG>
-  | ReturnType<typeof setFiatOrdersRegionDeposit>
   | ReturnType<typeof setFiatOrdersPaymentMethodAGG>
   | ReturnType<typeof setFiatOrdersGetStartedAGG>
   | ReturnType<typeof setFiatOrdersGetStartedSell>

@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /* eslint-disable no-restricted-syntax */
 import { waitFor } from 'detox';
 import Utilities, { BASE_DEFAULTS } from './Utilities';
@@ -9,9 +10,6 @@ import {
   GestureOptions,
   TypeTextOptions,
 } from './types';
-import { createLogger } from './logger';
-
-const logger = createLogger({ name: 'Gestures' });
 
 /**
  * Gestures class with element stability and auto-retry
@@ -19,18 +17,16 @@ const logger = createLogger({ name: 'Gestures' });
 export default class Gestures {
   /**
    * Tap an element with stability checking (internal method)
-   * @param elem - The Detox or Web element to tap
+   * @param detoxElement - The Detox element to tap
    * @param options - Options for the tap action
    */
   private static tapWithChecks = async (
-    elem: DetoxElement | WebElement,
+    detoxElement: DetoxElement,
     options: {
       checkStability?: boolean;
       checkVisibility?: boolean;
       checkEnabled?: boolean;
       elemDescription?: string;
-      delay?: number;
-      waitForElementToDisappear?: boolean;
     },
     point?: { x: number; y: number },
   ) => {
@@ -41,48 +37,31 @@ export default class Gestures {
       elemDescription,
     } = options;
 
-    if (Utilities.isWebElement(await elem)) {
-      // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
-      await (expect(await elem) as any).toExist();
-      await (await elem).tap();
-      if (options.waitForElementToDisappear) {
-        await Utilities.waitForElementToDisappear(elem);
-      }
-      return;
+    if (Utilities.isWebElement(await detoxElement)) {
+        // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
+        await (expect(await detoxElement) as any).toExist();
+        await (await detoxElement).tap();
+        return;
     }
 
-    const el = await Utilities.checkElementReadyState(elem, {
+    const el = await Utilities.checkElementReadyState(detoxElement, {
       checkStability,
       checkVisibility,
       checkEnabled,
     });
 
-    if (options.delay) {
-      await new Promise((resolve) => setTimeout(resolve, options.delay));
-    } else {
-      await new Promise((resolve) =>
-        setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-      );
-    }
     await el.tap(point);
-
-    if (options.waitForElementToDisappear) {
-      await Utilities.waitForElementToDisappear(elem);
-    }
-
     const successMessage = elemDescription
       ? `✅ Successfully tapped element: ${elemDescription}`
       : `✅ Successfully tapped element`;
-    logger.debug(successMessage);
+    console.log(successMessage);
   };
 
   /**
    * Tap an element with stability checking and auto-retry
-   * @returns A Promise that resolves when the tap is successful
-   * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async tap(
-    elem: DetoxElement | WebElement,
+    detoxElement: DetoxElement,
     options: TapOptions = {},
   ): Promise<void> {
     const {
@@ -90,20 +69,15 @@ export default class Gestures {
       checkStability = false,
       checkVisibility = true,
       checkEnabled = true,
-      elemDescription,
-      waitForElementToDisappear = false,
-      delay = 500,
+      elemDescription
     } = options;
 
-    const fn = () =>
-      this.tapWithChecks(elem, {
-        checkStability,
-        checkVisibility,
-        checkEnabled,
-        elemDescription,
-        waitForElementToDisappear,
-        delay,
-      });
+    const fn = () => this.tapWithChecks(detoxElement, {
+      checkStability,
+      checkVisibility,
+      checkEnabled,
+      elemDescription
+    });
     return Utilities.executeWithRetry(fn, {
       timeout,
       description: 'tap()',
@@ -113,13 +87,10 @@ export default class Gestures {
 
   /**
    * Wait for an element to be visible and then tap it with enhanced options
-   * This is the same as tap() - but with an additional delay before the tap.
-   * This is useful for cases where the element might not be immediately ready for interaction.
-   * @returns A Promise that resolves when the tap is successful
-   * @throws Will retry the operation if it fails, with retry logic handled by executeWith
+   * This is the same as tap() - keeping it for backwards compatibility
    */
   static async waitAndTap(
-    elem: DetoxElement | WebElement,
+    detoxElement: DetoxElement,
     options: TapOptions = {},
   ): Promise<void> {
     const {
@@ -127,21 +98,15 @@ export default class Gestures {
       checkStability = false,
       checkVisibility = true,
       checkEnabled = true,
-      elemDescription,
-      delay = 500,
-      waitForElementToDisappear = false,
+      elemDescription
     } = options;
 
-    const fn = async () =>
-      await this.tapWithChecks(elem, {
-        checkStability,
-        checkVisibility,
-        checkEnabled,
-        elemDescription,
-        delay,
-        waitForElementToDisappear,
-      });
-
+    const fn = () => this.tapWithChecks(detoxElement, {
+      checkStability,
+      checkVisibility,
+      checkEnabled,
+      elemDescription
+    });
     return Utilities.executeWithRetry(fn, {
       timeout,
       description: 'waitAndTap()',
@@ -150,42 +115,10 @@ export default class Gestures {
   }
 
   /**
-   * Tap element at a specific index
-   * @returns A Promise that resolves when the tap is successful
-   * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
-   */
-  static async tapAtIndex(
-    elem: DetoxElement,
-    index: number,
-    options: TapOptions = {},
-  ): Promise<void> {
-    const { timeout = BASE_DEFAULTS.timeout, elemDescription } = options;
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
-        const itemElementAtIndex = el.atIndex(index);
-        await waitFor(itemElementAtIndex).toBeVisible().withTimeout(timeout);
-        await itemElementAtIndex.tap();
-        const successMessage = elemDescription
-          ? `✅ Successfully tapped element at index: ${index} ${elemDescription}`
-          : `✅ Successfully tapped element at index: ${index}`;
-        logger.debug(successMessage);
-      },
-      {
-        timeout,
-        description: `tapAtIndex(${index})`,
-      },
-    );
-  }
-
-  /**
    * Tap an element at specific point with stability checking
-   * This method is specifically designed for detox elements and should not be used with web elements.
-   * @returns A Promise that resolves when the tap is successful
-   * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async tapAtPoint(
-    elem: DetoxElement,
+    detoxElement: DetoxElement,
     point: { x: number; y: number },
     options: TapOptions = {},
   ): Promise<void> {
@@ -194,20 +127,14 @@ export default class Gestures {
       checkStability = false,
       checkVisibility = true,
       checkEnabled = true,
-      elemDescription,
+      elemDescription
     } = options;
-    const fn = () =>
-      this.tapWithChecks(
-        elem,
-        {
-          checkStability,
-          checkVisibility,
-          checkEnabled,
-          elemDescription,
-        },
-        point,
-      );
-
+    const fn = () => this.tapWithChecks(detoxElement, {
+      checkStability,
+      checkVisibility,
+      checkEnabled,
+      elemDescription
+    }, point);
     return Utilities.executeWithRetry(fn, {
       timeout,
       description: 'tapAtPoint()',
@@ -216,52 +143,10 @@ export default class Gestures {
   }
 
   /**
-   * Performs a double tap gesture on a native mobile element.
-   * This method is specifically designed for mobile automation testing and should not be used with web elements.
-   * @returns A Promise that resolves when the double tap gesture is completed
-   * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
-   */
-  static async dblTap(
-    elem: DetoxElement,
-    options: TapOptions = {},
-  ): Promise<void> {
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
-      checkVisibility = true,
-      checkEnabled = true,
-      elemDescription,
-    } = options;
-
-    return Utilities.executeWithRetry(
-      async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkVisibility,
-          checkEnabled,
-        })) as Detox.IndexableNativeElement;
-
-        await new Promise((resolve) =>
-          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-        );
-        await el.multiTap(2);
-      },
-      {
-        timeout,
-        description: 'dblTap()',
-        elemDescription,
-      },
-    );
-  }
-
-  /**
    * Long press with stability checking
-   * @returns A Promise that resolves when the long press is successful
-   * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async longPress(
-    elem: DetoxElement,
+    detoxElement: DetoxElement,
     options: LongPressOptions = {},
   ): Promise<void> {
     const {
@@ -270,17 +155,20 @@ export default class Gestures {
       checkEnabled = true,
       checkVisibility = true,
       duration = 2000,
-      elemDescription,
+      elemDescription
     } = options;
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkEnabled,
-          checkVisibility,
-        })) as Detox.IndexableNativeElement;
+        const el = (await Utilities.checkElementReadyState(
+          detoxElement,
+          {
+            timeout,
+            checkStability,
+            checkEnabled,
+            checkVisibility,
+          },
+        )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
@@ -297,11 +185,9 @@ export default class Gestures {
 
   /**
    * Type text with automatic field clearing and retry
-   * @returns A Promise that resolves when the text is successfully typed
-   * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async typeText(
-    elem: DetoxElement,
+    detoxElement: DetoxElement,
     text: string,
     options: TypeTextOptions = {},
   ): Promise<void> {
@@ -313,17 +199,20 @@ export default class Gestures {
       checkEnabled = true,
       checkVisibility = true,
       sensitive = false,
-      elemDescription,
+      elemDescription
     } = options;
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkVisibility,
-          checkEnabled,
-        })) as Detox.IndexableNativeElement;
+        const el = (await Utilities.checkElementReadyState(
+          detoxElement,
+          {
+            timeout,
+            checkStability,
+            checkVisibility,
+            checkEnabled,
+          },
+        )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
@@ -336,11 +225,7 @@ export default class Gestures {
         const textToType = hideKeyboard ? text + '\n' : text;
         await el.typeText(textToType);
 
-        logger.debug(
-          `✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${
-            elemDescription || 'unknown'
-          }`,
-        );
+        console.log(`✅ Successfully typed: "${sensitive ? '***' : text}" into element: ${elemDescription || 'unknown'}`);
       },
       {
         timeout,
@@ -352,11 +237,9 @@ export default class Gestures {
 
   /**
    * Replace text in field with retry
-   * @returns A Promise that resolves when the text is successfully replaced
-   * @throws Will retry the operation if it fails, with retry logic handled by executeWithRetry
    */
   static async replaceText(
-    elem: DetoxElement,
+    detoxElement: DetoxElement,
     text: string,
     options: GestureOptions = {},
   ): Promise<void> {
@@ -365,17 +248,20 @@ export default class Gestures {
       checkStability = false,
       checkEnabled = true,
       checkVisibility = true,
-      elemDescription,
+      elemDescription
     } = options;
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkEnabled,
-          checkVisibility,
-        })) as Detox.IndexableNativeElement;
+        const el = (await Utilities.checkElementReadyState(
+          detoxElement,
+          {
+            timeout,
+            checkStability,
+            checkEnabled,
+            checkVisibility,
+          },
+        )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
@@ -392,11 +278,9 @@ export default class Gestures {
 
   /**
    * Swipe with element readiness checking
-   * @returns A Promise that resolves when the swipe is successful
-   * @throws Will retry the operation if it fails, with retry logic handled by executeWith
    */
   static async swipe(
-    elem: DetoxElement,
+    detoxElement: DetoxElement,
     direction: 'up' | 'down' | 'left' | 'right',
     options: SwipeOptions = {},
   ): Promise<void> {
@@ -407,17 +291,20 @@ export default class Gestures {
       checkStability = false,
       checkEnabled = true,
       checkVisibility = true,
-      elemDescription,
+      elemDescription
     } = options;
 
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkEnabled,
-          checkVisibility,
-        })) as Detox.IndexableNativeElement;
+        const el = (await Utilities.checkElementReadyState(
+          detoxElement,
+          {
+            timeout,
+            checkStability,
+            checkEnabled,
+            checkVisibility,
+          },
+        )) as Detox.IndexableNativeElement;
 
         await new Promise((resolve) =>
           setTimeout(resolve, BASE_DEFAULTS.actionDelay),
@@ -431,10 +318,9 @@ export default class Gestures {
       },
     );
   }
+
   /**
-   * Scroll to element with dynamic retry and platform-specific adjustments
-   * @returns A Promise that resolves when the scroll is successful
-   * @throws Will retry the operation if it fails, with retry logic handled by executeWith
+   * Scroll to element with dynamic retry
    */
   static async scrollToElement(
     targetElement: DetoxElement,
@@ -451,45 +337,16 @@ export default class Gestures {
     return Utilities.executeWithRetry(
       async () => {
         const target = (await targetElement) as Detox.IndexableNativeElement;
-        const scrollable = await scrollableContainer;
-
-        if (device.getPlatform() === 'android') {
-          const scrollableElement = element(scrollable);
-          try {
-            await waitFor(target).toBeVisible().withTimeout(100);
-            return;
-          } catch {
-            await scrollableElement.scroll(scrollAmount, direction);
-            await waitFor(target).toBeVisible().withTimeout(100);
-          }
-        } else {
-          await waitFor(target)
-            .toBeVisible()
-            .whileElement(scrollable)
-            .scroll(scrollAmount, direction);
-        }
+        const scrollable = (await scrollableContainer); // This is only working when it's awaited
+        await waitFor(target)
+          .toBeVisible()
+          .whileElement(scrollable)
+          .scroll(scrollAmount, direction);
       },
       {
         timeout,
         description: `scrollToElement(${direction})`,
         elemDescription,
-      },
-    );
-  }
-
-  /**
-   * Scrolls a web element into the viewport with retry logic.
-   * @returns A Promise that resolves when the element has been successfully scrolled into view
-   * @throws Will throw an error if the scroll operation fails after all retry attempts
-   */
-  static async scrollToWebViewPort(elem: WebElement): Promise<void> {
-    await Utilities.executeWithRetry(
-      async () => {
-        await (await elem).scrollToView();
-      },
-      {
-        timeout: BASE_DEFAULTS.timeout,
-        description: 'scrollToWebViewPort()',
       },
     );
   }
@@ -501,10 +358,33 @@ export default class Gestures {
    * @deprecated Use longPress() instead for better error handling and retry mechanisms
    */
   static async tapAndLongPress(
-    elem: DetoxElement,
+    detoxElement: DetoxElement,
     timeout = 2000,
   ): Promise<void> {
-    return this.longPress(elem, { duration: timeout });
+    return this.longPress(detoxElement, { duration: timeout });
+  }
+
+  /**
+   * Legacy method: Tap element at a specific index
+   * @deprecated Use tap() with element.atIndex() instead for better error handling and retry mechanisms
+   */
+  static async tapAtIndex(
+    detoxElement: DetoxElement,
+    index: number,
+    timeout = 15000,
+  ): Promise<void> {
+    return Utilities.executeWithRetry(
+      async () => {
+        const el = (await detoxElement) as Detox.IndexableNativeElement;
+        const itemElementAtIndex = el.atIndex(index);
+        await waitFor(itemElementAtIndex).toBeVisible().withTimeout(timeout);
+        await itemElementAtIndex.tap();
+      },
+      {
+        timeout,
+        description: `Tapped element at index ${index}`,
+      },
+    );
   }
 
   /**
@@ -512,15 +392,15 @@ export default class Gestures {
    * @deprecated Use tap() with web elements instead for better error handling and retry mechanisms
    */
   static async tapWebElement(
-    elem: Promise<Detox.IndexableWebElement>,
+    detoxElement: Promise<Detox.IndexableWebElement>,
     timeout = 15000,
   ): Promise<void> {
     const start = Date.now();
     while (Date.now() - start < timeout) {
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, jest/valid-expect
-        await (expect(await elem) as any).toExist();
-        await (await elem).tap();
+        await (expect(await detoxElement) as any).toExist();
+        await (await detoxElement).tap();
         return;
       } catch {
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -531,12 +411,12 @@ export default class Gestures {
 
   /**
    * Legacy method: Double tap an element
-   * @deprecated Use dblTap() instead for better error handling and retry mechanisms - we should replace the function name when we have migrated all usages
+   * @deprecated Use tap() with multiTap(2) instead for better error handling and retry mechanisms
    */
-  static async doubleTap(elem: DetoxElement): Promise<void> {
+  static async doubleTap(detoxElement: DetoxElement): Promise<void> {
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await elem) as Detox.IndexableNativeElement;
+        const el = (await detoxElement) as Detox.IndexableNativeElement;
         await el.multiTap(2);
       },
       {
@@ -547,38 +427,21 @@ export default class Gestures {
 
   /**
    * Legacy method: Clear the text field
-   * @deprecated Use typeText() with clearFirst option or the replaceText() from Gestures.ts instead for better error handling and retry mechanisms
+   * @deprecated Use typeText() with clearFirst option instead for better error handling and retry mechanisms
    */
   static async clearField(
-    elem: DetoxElement,
-    options: GestureOptions = {},
+    detoxElement: DetoxElement,
+    timeout = 2500,
   ): Promise<void> {
-    const {
-      timeout = BASE_DEFAULTS.timeout,
-      checkStability = false,
-      checkEnabled = true,
-      checkVisibility = true,
-      elemDescription,
-    } = options;
-
     return Utilities.executeWithRetry(
       async () => {
-        const el = (await Utilities.checkElementReadyState(elem, {
-          timeout,
-          checkStability,
-          checkVisibility,
-          checkEnabled,
-        })) as Detox.IndexableNativeElement;
-
-        await new Promise((resolve) =>
-          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-        );
+        const el = (await detoxElement) as Detox.IndexableNativeElement;
+        await waitFor(el).toBeVisible().withTimeout(timeout);
         await el.replaceText('');
       },
       {
         timeout,
-        description: 'clearField()',
-        elemDescription,
+        description: 'Cleared field',
       },
     );
   }
@@ -588,10 +451,10 @@ export default class Gestures {
    * @deprecated Use typeText() with hideKeyboard option instead for better error handling and retry mechanisms
    */
   static async typeTextAndHideKeyboard(
-    elem: DetoxElement,
+    detoxElement: DetoxElement,
     text: string,
   ): Promise<void> {
-    return this.typeText(elem, text, {
+    return this.typeText(detoxElement, text, {
       clearFirst: true,
       hideKeyboard: true,
     });
@@ -602,10 +465,10 @@ export default class Gestures {
    * @deprecated Use typeText() with hideKeyboard: false option instead for better error handling and retry mechanisms
    */
   static async typeTextWithoutKeyboard(
-    elem: DetoxElement,
+    detoxElement: DetoxElement,
     text: string,
   ): Promise<void> {
-    return this.typeText(elem, text, {
+    return this.typeText(detoxElement, text, {
       clearFirst: false,
       hideKeyboard: false,
     });
@@ -616,10 +479,24 @@ export default class Gestures {
    * @deprecated Use replaceText() instead for better error handling and retry mechanisms
    */
   static async replaceTextInField(
-    elem: DetoxElement,
+    detoxElement: DetoxElement,
     text: string,
     timeout = 10000,
   ): Promise<void> {
-    return this.replaceText(elem, text, { timeout });
+    return this.replaceText(detoxElement, text, { timeout });
+  }
+
+  static async scrollToWebViewPort(
+    detoxElement: WebElement,
+  ): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await (await detoxElement).scrollToView();
+      },
+      {
+        timeout: BASE_DEFAULTS.timeout,
+        description: 'scrollToWebViewPort()',
+      }
+    );
   }
 }

@@ -53,7 +53,7 @@ const createStyles = (colors: any) =>
       paddingBottom: 18,
     },
     transactionIdFlex: {
-      textAlign: 'right',
+      flex: 1,
     },
     line: {
       backgroundColor: colors.border.muted,
@@ -352,12 +352,8 @@ const OrderDetails: React.FC<Props> = ({ order }: Props) => {
                   {strings('fiat_on_ramp_aggregator.order_details.id')}
                 </Text>
               </ListItemColumn>
-              <ListItemColumn widthType={WidthType.Fill}>
-                <Text
-                  variant={TextVariant.BodySMBold}
-                  selectable
-                  style={styles.transactionIdFlex}
-                >
+              <ListItemColumn>
+                <Text variant={TextVariant.BodySMBold} selectable>
                   {orderData?.providerOrderId}
                 </Text>
               </ListItemColumn>

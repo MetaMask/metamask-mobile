@@ -25,9 +25,7 @@ const useNftContract = (chainId: string, tokenAddress: string) => {
     (account) => nftContractsAll[account]?.[chainId as `0x${string}`] ?? [],
   );
 
-  return nftContracts.find(
-    (nft) => nft.address.toLowerCase() === tokenAddress.toLowerCase(),
-  );
+  return nftContracts.find((nft) => nft.address.toLowerCase() === tokenAddress.toLowerCase());
 };
 
 export const useNft = (): UseNftResponse => {
@@ -38,9 +36,7 @@ export const useNft = (): UseNftResponse => {
   const tokenId = transactionData?.args?._value ?? undefined;
 
   const nfts: Nft[] = useSelector(collectiblesSelector);
-  const nft = tokenId
-    ? nfts.find((c) => c.tokenId === tokenId.toString())
-    : undefined;
+  const nft = tokenId ? nfts.find((c) => c.tokenId === tokenId.toString()) : undefined;
 
   const nftContract = useNftContract(chainId, tokenAddress);
 

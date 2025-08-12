@@ -216,6 +216,7 @@ const AddressList = ({
               chainId={chainId}
             />
           )}
+          estimatedItemSize={80}
           keyExtractor={(item) => item.id}
         />
       </View>

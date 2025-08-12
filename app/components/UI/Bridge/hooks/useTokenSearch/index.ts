@@ -15,9 +15,7 @@ interface UseTokenSearchResult {
   searchResults: BridgeToken[];
 }
 
-export function useTokenSearch({
-  tokens,
-}: UseTokenSearchProps): UseTokenSearchResult {
+export function useTokenSearch({ tokens }: UseTokenSearchProps): UseTokenSearchResult {
   const [searchString, setSearchString] = useState('');
   const debouncedSearchString = useDebouncedValue<string>(searchString);
 
@@ -36,16 +34,12 @@ export function useTokenSearch({
   );
 
   const tokenSearchResults = useMemo(
-    () =>
-      tokenFuse
-        .search(debouncedSearchString)
-        .slice(0, MAX_TOKENS_RESULTS)
-        .sort((a, b) => {
-          // Sort results by balance fiat in descending order
-          const balanceA = a.tokenFiatAmount ?? 0;
-          const balanceB = b.tokenFiatAmount ?? 0;
-          return balanceB - balanceA;
-        }),
+    () => (tokenFuse.search(debouncedSearchString)).slice(0, MAX_TOKENS_RESULTS).sort((a, b) => {
+      // Sort results by balance fiat in descending order
+      const balanceA = a.tokenFiatAmount ?? 0;
+      const balanceB = b.tokenFiatAmount ?? 0;
+      return balanceB - balanceA;
+    }),
     [debouncedSearchString, tokenFuse],
   );
 

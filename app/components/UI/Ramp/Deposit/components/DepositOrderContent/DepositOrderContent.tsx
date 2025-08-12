@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View, TouchableOpacity, Image } from 'react-native';
+import { View, TouchableOpacity, Image, Linking } from 'react-native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -19,7 +19,8 @@ import {
   getCryptoCurrencyFromTransakId,
   hasDepositOrderField,
 } from '../../utils';
-import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
+import { selectChainId } from '../../../../../../selectors/networkController';
+import { selectEvmNetworkName } from '../../../../../../selectors/networkInfos';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useAccountName } from '../../../../../hooks/useAccountName';
 import Avatar, {
@@ -27,17 +28,12 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import BadgeNetwork from '../../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../../../component-library/components/Badges/BadgeWrapper';
 import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import { FiatOrder } from '../../../../../../reducers/fiatOrders';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import styleSheet from './DepositOrderContent.styles';
-import { DepositOrder } from '@consensys/native-ramps-sdk';
+import { SEPA_PAYMENT_METHOD } from '../../constants';
 
 interface DepositOrderContentProps {
   order: FiatOrder;
@@ -45,6 +41,8 @@ interface DepositOrderContentProps {
 
 const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const chainId = useSelector(selectChainId);
+  const networkName = useSelector(selectEvmNetworkName);
   const accountName = useAccountName();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -60,22 +58,10 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     if (!hasDepositOrderField(order?.data, 'cryptoCurrency')) {
       return null;
     }
-    return getCryptoCurrencyFromTransakId(
-      order.data.cryptoCurrency,
-      order.data.network,
-    );
+    return getCryptoCurrencyFromTransakId(order.data.cryptoCurrency);
   };
 
   const cryptoToken = getCryptoToken();
-
-  const allNetworkConfigurations = useSelector(
-    selectNetworkConfigurationsByCaipChainId,
-  );
-  const networkName =
-    allNetworkConfigurations[order.network as `${string}:${string}`]?.name;
-  const networkImageSource = getNetworkImageSource({
-    chainId: cryptoToken?.chainId ?? '',
-  });
 
   const getIconContainerStyle = () => {
     if (order.state === FIAT_ORDER_STATES.COMPLETED) {
@@ -90,20 +76,52 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
     return styles.processingIconContainer;
   };
 
-  const providerOrderId = (order.data as DepositOrder).providerOrderId;
-
   const handleCopyOrderId = useCallback(() => {
-    if (providerOrderId) {
-      Clipboard.setString(providerOrderId);
+    if (order?.id) {
+      Clipboard.setString(order.id);
     }
-  }, [providerOrderId]);
+  }, [order?.id]);
 
-  const shortOrderId = providerOrderId?.slice(-6) ?? order.id.slice(-6);
+  const handleViewInTransak = useCallback(() => {
+    if (
+      hasDepositOrderField(order?.data, 'providerOrderLink') &&
+      order.data.providerOrderLink
+    ) {
+      Linking.openURL(order.data.providerOrderLink);
+    }
+  }, [order?.data]);
+
+  const shortOrderId = order.id.slice(-6);
+  const totalAmount =
+    order.amount && order.fee
+      ? (
+          parseFloat(order.amount.toString()) + parseFloat(order.fee.toString())
+        ).toString()
+      : order.amount;
 
   const orderFee = formatCurrency(
     order.fee || order.cryptoFee || 0,
     order.currency,
   );
+
+  let subtitle = strings('deposit.order_processing.description');
+
+  if (order.state === FIAT_ORDER_STATES.COMPLETED) {
+    subtitle = strings('deposit.order_processing.success_description', {
+      amount: order.amount,
+      currency: order.currency,
+    });
+  } else if (order.state === FIAT_ORDER_STATES.FAILED) {
+    subtitle = strings('deposit.order_processing.error_description');
+  } else if (order.state === FIAT_ORDER_STATES.CANCELLED) {
+    subtitle = strings('deposit.order_processing.cancel_order_description');
+  } else if (
+    order.state === FIAT_ORDER_STATES.PENDING &&
+    hasDepositOrderField(order.data, 'paymentMethod') &&
+    order.data.paymentMethod === SEPA_PAYMENT_METHOD.id
+  ) {
+    subtitle = strings('deposit.order_processing.bank_transfer_description');
+  }
 
   return (
     <>
@@ -128,23 +146,10 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             )}
           </View>
           {cryptoToken ? (
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                <BadgeNetwork
-                  name={networkName}
-                  imageSource={getNetworkImageSource({
-                    chainId: cryptoToken.chainId,
-                  })}
-                />
-              }
-            >
-              <AvatarToken
-                name={cryptoToken.name}
-                imageSource={{ uri: cryptoToken.iconUrl }}
-                size={AvatarSize.Lg}
-              />
-            </BadgeWrapper>
+            <Image
+              source={{ uri: cryptoToken.logo }}
+              style={styles.cryptoIcon}
+            />
           ) : null}
         </View>
 
@@ -152,16 +157,13 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
           {order.cryptoAmount} {order.cryptocurrency}
         </Text>
 
-        {hasDepositOrderField(order.data, 'statusDescription') &&
-        order.data.statusDescription ? (
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
-            style={styles.subtitle}
-          >
-            {order.data.statusDescription}
-          </Text>
-        ) : null}
+        <Text
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+          style={styles.subtitle}
+        >
+          {subtitle}
+        </Text>
       </View>
 
       <View style={styles.detailsContainer}>
@@ -187,9 +189,10 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             {strings('deposit.order_processing.network')}
           </Text>
           <View style={styles.networkInfo}>
-            {networkImageSource ? (
-              <Image source={networkImageSource} style={styles.networkIcon} />
-            ) : null}
+            <Image
+              source={getNetworkImageSource({ chainId })}
+              style={styles.networkIcon}
+            />
             <Text variant={TextVariant.BodyMD}>{networkName}</Text>
           </View>
         </View>
@@ -227,10 +230,27 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             {strings('deposit.order_processing.total')}
           </Text>
           <Text variant={TextVariant.BodyMD}>
-            {formatCurrency(order.amount, order.currency)}
+            {formatCurrency(totalAmount || order.amount, order.currency)}
           </Text>
         </View>
       </View>
+
+      {hasDepositOrderField(order.data, 'providerOrderLink') &&
+      order.data.providerOrderLink ? (
+        <TouchableOpacity
+          style={styles.transakLink}
+          onPress={handleViewInTransak}
+        >
+          <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+            {strings('deposit.order_processing.view_order_details_in_transak')}
+          </Text>
+          <Icon
+            name={IconName.Export}
+            size={IconSize.Sm}
+            color={theme.colors.primary.default}
+          />
+        </TouchableOpacity>
+      ) : null}
     </>
   );
 };

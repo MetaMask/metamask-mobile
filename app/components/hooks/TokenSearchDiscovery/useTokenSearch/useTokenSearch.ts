@@ -18,6 +18,7 @@ export const useTokenSearchDiscovery = () => {
   const latestRequestId = useRef<number>(0);
   const tokenSearchEnabled = useSelector(tokenSearchDiscoveryEnabled);
 
+
   const searchTokens = useMemo(
     () =>
       debounce(async (query: string) => {
@@ -34,17 +35,16 @@ export const useTokenSearchDiscovery = () => {
 
         try {
           const { TokenSearchDiscoveryController } = Engine.context;
-          const result =
-            await TokenSearchDiscoveryController.searchSwappableTokens({
-              query,
-              limit: MAX_RESULTS,
-            });
+          const result = await TokenSearchDiscoveryController.searchSwappableTokens({
+            query,
+            limit: MAX_RESULTS,
+          });
           if (requestId === latestRequestId.current) {
             setResults(result);
           }
         } catch (err) {
           if (requestId === latestRequestId.current) {
-            setError(err as Error);
+          setError(err as Error);
           }
         } finally {
           if (requestId === latestRequestId.current) {

@@ -1,32 +1,32 @@
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+'use strict';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../../fixtures/fixture-helper';
+import TestHelpers from '../../../../helpers';
 import Browser from '../../../../pages/Browser/BrowserView';
 import ConnectBottomSheet from '../../../../pages/Browser/ConnectBottomSheet';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import { CustomNetworks } from '../../../../resources/networks.e2e';
 import { SmokeNetworkAbstractions } from '../../../../tags';
-import Assertions from '../../../../framework/Assertions';
+import Assertions from '../../../../utils/Assertions';
 import { loginToApp } from '../../../../viewHelper';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
-import { DappVariants } from '../../../../framework/Constants';
+import { ConnectedAccountsSelectorsIDs } from '../../../../selectors/Browser/ConnectedAccountModal.selectors';
+import Matchers from '../../../../utils/Matchers';
 
 describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
   beforeAll(async () => {
     jest.setTimeout(150000);
+    await TestHelpers.reverseServerPort();
   });
 
   describe('When a dApp requests to switch to a new chain', () => {
     it('should grant permission to the new chain and switch to it when approved', async () => {
       await withFixtures(
         {
-          dapps: [
-            {
-              dappVariant: DappVariants.TEST_DAPP,
-            },
-          ],
+          dapp: true,
           fixture: new FixtureBuilder()
             .withNetworkController(CustomNetworks.ElysiumTestnet)
             .withNetworkController(CustomNetworks.EthereumMainCustom)
@@ -38,7 +38,7 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
           // Setup: Login and navigate to browser
           await loginToApp();
           await TabBarComponent.tapBrowser();
-          await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+          await Assertions.checkIfVisible(Browser.browserScreenID);
 
           // Connect to test dApp
           await Browser.navigateToTestDApp();
@@ -62,7 +62,7 @@ describe(SmokeNetworkAbstractions('Chain Permission System'), () => {
           await ConnectedAccountsModal.tapPermissionsSummaryTab();
 
           const networkPicker = ConnectedAccountsModal.networkPicker;
-          await Assertions.expectElementToHaveLabel(networkPicker, 'E');
+          await Assertions.checkIfElementHasLabel(networkPicker, 'E');
         },
       );
     });

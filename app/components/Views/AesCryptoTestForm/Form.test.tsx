@@ -15,7 +15,6 @@ describe('TestForm', () => {
         callback={() => jest.fn()}
         callbackTestId={'random-callback-test-id'}
         responseTestId={'random-response-test-id'}
-        responseTextTestId={'random-response-text-test-id'}
         styles={{
           container: {},
           title: {},

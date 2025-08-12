@@ -14,18 +14,24 @@ const styles = StyleSheet.create({
   },
 });
 
-export const ConfirmedText = ({ testID, ...props }) => (
-  <Text testID={testID} bold green style={styles.status} {...props} />
+export const ConfirmedText = ({testID, ...props}) => (
+  <Text
+    testID={testID}
+    bold
+    green
+    style={styles.status}
+    {...props}
+  />
 );
 ConfirmedText.propTypes = {
   testID: PropTypes.string,
 };
 
-export const PendingText = ({ testID, ...props }) => {
+export const PendingText = ({testID, ...props}) => {
   const { colors } = useTheme();
   return (
     <Text
-      testID={testID}
+     testID={testID}
       bold
       style={[styles.status, { color: colors.warning.default }]}
       {...props}
@@ -36,7 +42,7 @@ PendingText.propTypes = {
   testID: PropTypes.string,
 };
 
-export const FailedText = ({ testID, ...props }) => {
+export const FailedText = ({testID, ...props} ) => {
   const { colors } = useTheme();
   return (
     <Text
@@ -56,7 +62,7 @@ function StatusText({ status, context, testID, ...props }) {
     case 'Confirmed':
     case 'confirmed':
       return (
-        <ConfirmedText testID={testID} {...props}>
+        <ConfirmedText testID={testID}  {...props}>
           {strings(`${context}.${status}`)}
         </ConfirmedText>
       );
@@ -65,18 +71,14 @@ function StatusText({ status, context, testID, ...props }) {
     case 'Submitted':
     case 'submitted':
       return (
-        <PendingText testID={testID} {...props}>
-          {strings(`${context}.${status}`)}
-        </PendingText>
+        <PendingText testID={testID} {...props}>{strings(`${context}.${status}`)}</PendingText>
       );
     case 'Failed':
     case 'Cancelled':
     case 'failed':
     case 'cancelled':
       return (
-        <FailedText testID={testID} {...props}>
-          {strings(`${context}.${status}`)}
-        </FailedText>
+        <FailedText testID={testID} {...props}>{strings(`${context}.${status}`)}</FailedText>
       );
 
     case FIAT_ORDER_STATES.COMPLETED:

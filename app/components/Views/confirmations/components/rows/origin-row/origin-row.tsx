@@ -40,15 +40,17 @@ const InfoRowOrigin = ({
     fromAddress = transactionMetadata?.txParams?.from;
     url = transactionMetadata?.origin;
   } else if (transactionBatchesMetadata) {
-    chainId = transactionBatchesMetadata?.chainId;
-    fromAddress = transactionBatchesMetadata?.from;
-    url = transactionBatchesMetadata?.origin;
+      chainId = transactionBatchesMetadata?.chainId;
+      fromAddress = transactionBatchesMetadata?.from;
+      url = transactionBatchesMetadata?.origin;
   } else {
     return null;
   }
 
   return (
-    <InfoSection testID={ConfirmationRowComponentIDs.ORIGIN_INFO}>
+    <InfoSection
+      testID={ConfirmationRowComponentIDs.ORIGIN_INFO}
+    >
       <AlertRow
         alertField={RowAlertKey.RequestFrom}
         label={strings('confirm.label.request_from')}
@@ -63,7 +65,9 @@ const InfoRowOrigin = ({
       {isSignatureRequest && isSIWEMessage && (
         <InfoRow
           label={strings('confirm.label.signing_in_with')}
-          testID={ConfirmationRowComponentIDs.SIWE_SIGNING_ACCOUNT_INFO}
+          testID={
+            ConfirmationRowComponentIDs.SIWE_SIGNING_ACCOUNT_INFO
+          }
         >
           <Address address={fromAddress} chainId={chainId} />
         </InfoRow>

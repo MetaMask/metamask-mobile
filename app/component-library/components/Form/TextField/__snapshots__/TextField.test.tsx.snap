@@ -30,11 +30,6 @@ exports[`TextField should render default settings correctly 1`] = `
       isStateStylesDisabled={true}
       onBlur={[Function]}
       onFocus={[Function]}
-      style={
-        {
-          "backgroundColor": "inherit",
-        }
-      }
       textVariant="sBodyMD"
     />
   </View>

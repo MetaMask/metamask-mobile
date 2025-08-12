@@ -29,7 +29,6 @@ import { addSwapsTransaction } from '../swaps/swaps-transactions';
 import { Hex } from '@metamask/utils';
 import { isPerDappSelectedNetworkEnabled } from '../networks';
 import { isLegacyTransaction } from '../transactions';
-import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 
 export type AllowedActions = never;
 
@@ -351,9 +350,7 @@ class SmartTransactionHook {
       return await this.#smartTransactionsController.getFees(
         { ...this.#txParams, chainId: this.#chainId },
         undefined,
-        isPerDappSelectedNetworkEnabled()
-          ? { networkClientId: this.#transactionMeta.networkClientId }
-          : undefined,
+        isPerDappSelectedNetworkEnabled() ? { networkClientId: this.#transactionMeta.networkClientId } : undefined,
       );
     } catch (error) {
       return undefined;
@@ -365,10 +362,8 @@ class SmartTransactionHook {
       this.#approvalController.state.pendingApprovals,
     ).filter(
       ({ origin: pendingApprovalOrigin, type, requestState }) =>
-        // MM_FOX_CODE is the origin for MM Legacy Swaps
-        // ORIGIN_METAMASK is the origin for Unified Swaps and Bridge
-        (pendingApprovalOrigin === process.env.MM_FOX_CODE ||
-          pendingApprovalOrigin === ORIGIN_METAMASK) &&
+        // MM_FOX_CODE is the origin for MM Swaps
+        pendingApprovalOrigin === process.env.MM_FOX_CODE &&
         type === ApprovalTypes.SMART_TRANSACTION_STATUS &&
         requestState?.isInSwapFlow &&
         requestState?.isSwapApproveTx,
@@ -444,11 +439,7 @@ class SmartTransactionHook {
     getFeesResponse?: Fees;
   } = {}) => {
     let signedTransactions: string[] = [];
-    if (
-      this.#transactions &&
-      Array.isArray(this.#transactions) &&
-      this.#transactions.length > 0
-    ) {
+    if (this.#transactions && Array.isArray(this.#transactions) && this.#transactions.length > 0) {
       // Batch transaction mode - extract signed transactions from this.#transactions[].signedTx
       signedTransactions = this.#transactions
         .filter((tx) => tx?.signedTx)

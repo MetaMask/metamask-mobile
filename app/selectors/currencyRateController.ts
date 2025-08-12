@@ -84,8 +84,7 @@ export const selectConversionRateByChainId = createSelector(
   (_state: RootState, chainId: string) => chainId,
   (state: RootState) => state.settings.showFiatOnTestnets,
   selectNativeCurrencyByChainId,
-  (_state: RootState, _chainId: string, skipTestNetCheck?: boolean) =>
-    skipTestNetCheck,
+  (_state: RootState, _chainId: string, skipTestNetCheck?: boolean) => skipTestNetCheck,
   (
     currencyRates: CurrencyRateState['currencyRates'],
     chainId,
@@ -104,22 +103,5 @@ export const selectConversionRateByChainId = createSelector(
 export const selectUsdConversionRate = createSelector(
   selectCurrencyRates,
   selectCurrentCurrency,
-  (currencyRates, currentCurrency) =>
-    currencyRates?.[currentCurrency]?.usdConversionRate,
-);
-
-export const selectUSDConversionRateByChainId = createSelector(
-  [
-    selectCurrencyRates,
-    (_state: RootState, chainId: string) => chainId,
-    (state: RootState, chainId: string) =>
-      selectNetworkConfigurationByChainId(state, chainId),
-  ],
-  (currencyRates, _chainId, networkConfiguration) => {
-    if (!networkConfiguration) {
-      return undefined;
-    }
-    const { nativeCurrency } = networkConfiguration;
-    return currencyRates?.[nativeCurrency]?.usdConversionRate;
-  },
+  (currencyRates, currentCurrency) => currencyRates?.[currentCurrency]?.usdConversionRate,
 );

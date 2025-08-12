@@ -1,7 +1,4 @@
-import {
-  AccountTreeController,
-  AccountTreeControllerMessenger,
-} from '@metamask/account-tree-controller';
+import { AccountTreeController, AccountTreeControllerMessenger } from '@metamask/account-tree-controller';
 import type { ControllerInitFunction } from '../../../core/Engine/types';
 
 /**

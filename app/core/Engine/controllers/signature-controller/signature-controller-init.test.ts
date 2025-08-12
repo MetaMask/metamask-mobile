@@ -1,11 +1,5 @@
-import {
-  PreferencesController,
-  PreferencesState,
-} from '@metamask/preferences-controller';
-import {
-  SignatureController,
-  type SignatureControllerMessenger,
-} from '@metamask/signature-controller';
+import { PreferencesController, PreferencesState } from '@metamask/preferences-controller';
+import { SignatureController, type SignatureControllerMessenger } from '@metamask/signature-controller';
 import { ExtendedControllerMessenger } from '../../../ExtendedControllerMessenger';
 import AppConstants from '../../../AppConstants';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
@@ -108,8 +102,9 @@ describe('SignatureController Init', () => {
 
       SignatureControllerInit(requestMock);
 
-      const isDecodeSignatureRequestEnabledFn = signatureControllerClassMock
-        .mock.calls[0][0].isDecodeSignatureRequestEnabled as () => boolean;
+      const isDecodeSignatureRequestEnabledFn =
+        signatureControllerClassMock.mock.calls[0][0]
+          .isDecodeSignatureRequestEnabled as () => boolean;
       expect(isDecodeSignatureRequestEnabledFn()).toBe(true);
     });
 

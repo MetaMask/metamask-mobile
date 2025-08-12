@@ -1,6 +1,5 @@
 import React, { useCallback, useRef } from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 
 import Text, {
   TextVariant,
@@ -15,16 +14,24 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../../../component-library/components/Icons/Icon';
 
 import styleSheet from './UnsupportedRegionModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
-import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 
-import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
-import { useDepositSDK } from '../../../sdk';
-import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
+interface UnsupportedRegionModalNavigationDetails {
+  onExitToWalletHome?: () => void;
+  onSelectDifferentRegion?: () => void;
+}
 
 export const createUnsupportedRegionModalNavigationDetails =
   createNavigationDetails(
@@ -34,78 +41,66 @@ export const createUnsupportedRegionModalNavigationDetails =
 
 function UnsupportedRegionModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
-  const { selectedRegion } = useDepositSDK();
+  const { onExitToWalletHome, onSelectDifferentRegion } =
+    useParams<UnsupportedRegionModalNavigationDetails>();
 
   const { styles } = useStyles(styleSheet, {});
 
-  const handleNavigateToBuy = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      // @ts-expect-error navigation prop mismatch
-      navigation.dangerouslyGetParent()?.pop();
-      navigation.navigate(...createBuyNavigationDetails());
-    });
-  }, [navigation]);
+  const handleExitToWalletHome = useCallback(() => {
+    if (onExitToWalletHome) {
+      sheetRef.current?.onCloseBottomSheet(onExitToWalletHome);
+    }
+  }, [onExitToWalletHome]);
 
   const handleSelectDifferentRegion = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(...createRegionSelectorModalNavigationDetails());
-    });
-  }, [navigation]);
-
-  const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-    });
-  }, [navigation]);
+    if (onSelectDifferentRegion) {
+      sheetRef.current?.onCloseBottomSheet(onSelectDifferentRegion);
+    }
+  }, [onSelectDifferentRegion]);
 
   return (
     <BottomSheet ref={sheetRef} shouldNavigateBack isInteractable={false}>
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeader onClose={handleExitToWalletHome}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('deposit.unsupported_region_modal.title')}
         </Text>
       </BottomSheetHeader>
 
       <View style={styles.content}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-          {strings('deposit.unsupported_region_modal.location_prefix')}
-        </Text>
-        <View style={styles.countryContainer}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {selectedRegion?.flag}
-          </Text>
-          <Text
-            variant={TextVariant.BodyMD}
-            color={TextColor.Default}
-            style={styles.countryName}
-          >
-            {selectedRegion?.name}
-          </Text>
+        <View style={styles.iconContainer}>
+          <Icon
+            name={IconName.Warning}
+            size={IconSize.Xl}
+            color={styles.warningIcon.color}
+          />
         </View>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          {strings('deposit.unsupported_region_modal.description')}{' '}
+
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.description}
+        >
+          {strings('deposit.unsupported_region_modal.description')}
         </Text>
       </View>
 
       <View style={styles.footer}>
         <Button
           size={ButtonSize.Lg}
-          onPress={handleSelectDifferentRegion}
-          label={strings('deposit.unsupported_region_modal.change_region')}
-          variant={ButtonVariants.Link}
+          onPress={handleExitToWalletHome}
+          label={strings(
+            'deposit.unsupported_region_modal.exit_to_wallet_home',
+          )}
+          variant={ButtonVariants.Primary}
           width={ButtonWidthTypes.Full}
         />
         <Button
           size={ButtonSize.Lg}
-          onPress={handleNavigateToBuy}
-          label={strings('deposit.unsupported_region_modal.buy_crypto')}
-          variant={ButtonVariants.Primary}
+          onPress={handleSelectDifferentRegion}
+          label={strings(
+            'deposit.unsupported_region_modal.select_different_region',
+          )}
+          variant={ButtonVariants.Link}
           width={ButtonWidthTypes.Full}
         />
       </View>

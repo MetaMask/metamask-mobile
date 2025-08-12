@@ -1,6 +1,5 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { colors as importedColors } from '../../../../../../styles/common';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
@@ -34,8 +33,8 @@ export function getNavbar({
     },
     headerStyle: {
       backgroundColor: theme.colors.background.alternative,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
+      // @ts-expect-error - null is the only way to remove the shadow but it's not typed
+      shadowOffset: null,
     },
   });
 
@@ -60,51 +59,6 @@ export function getNavbar({
         testID={`${title}-navbar-back-button`}
       />
     ),
-    headerStyle: innerStyles.headerStyle,
-  };
-}
-
-export function useSendAssetNavbar({
-  theme,
-  onClose,
-}: {
-  theme: Theme;
-  onClose: () => void;
-}) {
-  const innerStyles = StyleSheet.create({
-    headerLeft: {
-      marginLeft: 16,
-    },
-    headerRight: {
-      marginHorizontal: 16,
-    },
-    headerStyle: {
-      backgroundColor: theme.colors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-  });
-
-  const handleClosePress = useCallback(() => {
-    onClose();
-  }, [onClose]);
-
-  return {
-    headerLeft: () => (
-      <View style={innerStyles.headerLeft}>
-        <MorphText variant={TextVariant.HeadingLG}>Send</MorphText>
-      </View>
-    ),
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSizes.Lg}
-        iconName={IconName.Close}
-        onPress={handleClosePress}
-        style={innerStyles.headerRight}
-        testID="send-asset-navbar-close-button"
-      />
-    ),
-    headerTitle: null,
     headerStyle: innerStyles.headerStyle,
   };
 }

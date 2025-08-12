@@ -56,7 +56,6 @@ const BottomSheetDialog = forwardRef<
       children,
       isFullscreen = false,
       isInteractable = true,
-      keyboardAvoidingViewEnabled = true,
       onClose,
       onOpen,
       style,
@@ -233,7 +232,6 @@ const BottomSheetDialog = forwardRef<
         keyboardVerticalOffset={
           Platform.OS === 'ios' ? -screenBottomPadding : frameY
         }
-        enabled={keyboardAvoidingViewEnabled}
         {...props}
       >
         <PanGestureHandler

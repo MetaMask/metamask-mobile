@@ -44,11 +44,8 @@ describe('RemoveAccount', () => {
     fireEvent.press(deleteButton);
 
     expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
-      {
-        screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT,
-        params: { account: mockAccount },
-      },
+      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.DELETE_ACCOUNT,
+      { account: mockAccount },
     );
   });
 });

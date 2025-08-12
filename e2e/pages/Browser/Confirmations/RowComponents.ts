@@ -1,52 +1,52 @@
 import { ConfirmationRowComponentIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
-import Matchers from '../../../framework/Matchers';
+import Matchers from '../../../utils/Matchers';
 
 class RowComponents {
-  get AccountNetwork(): DetoxElement {
+  get AccountNetwork() {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.ACCOUNT_NETWORK);
   }
 
-  get AdvancedDetails(): DetoxElement {
+  get AdvancedDetails() {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.ADVANCED_DETAILS,
     );
   }
 
-  get FromTo(): DetoxElement {
+  get FromTo() {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.FROM_TO);
   }
 
-  get GasFeesDetails(): DetoxElement {
+  get GasFeesDetails() {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.GAS_FEES_DETAILS,
     );
   }
 
-  get Message(): DetoxElement {
+  get Message() {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.MESSAGE);
   }
 
-  get OriginInfo(): DetoxElement {
+  get OriginInfo() {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.ORIGIN_INFO);
   }
 
-  get SimulationDetails(): DetoxElement {
+  get SimulationDetails() {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.SIMULATION_DETAILS,
     );
   }
 
-  get SiweSigningAccountInfo(): DetoxElement {
+  get SiweSigningAccountInfo() {
     return Matchers.getElementByID(
       ConfirmationRowComponentIDs.SIWE_SIGNING_ACCOUNT_INFO,
     );
   }
 
-  get TokenHero(): DetoxElement {
+  get TokenHero() {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.TOKEN_HERO);
   }
 
-  get ApproveRow(): DetoxElement {
+  get ApproveRow() {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.APPROVE_ROW);
   }
 }

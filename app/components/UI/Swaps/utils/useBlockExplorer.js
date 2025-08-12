@@ -8,7 +8,9 @@ import {
 import { strings } from '../../../../../locales/i18n';
 import { getEtherscanBaseUrl } from '../../../../util/etherscan';
 import { useSelector } from 'react-redux';
-import { selectProviderConfig } from '../../../../selectors/networkController';
+import {
+  selectProviderConfig,
+} from '../../../../selectors/networkController';
 
 function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
   const [explorer, setExplorer] = useState({
@@ -24,21 +26,21 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
     const definitiveProviderConfig =
       providerConfigTokenExplorer ?? providerConfig;
     try {
-      const { rpcUrl, type } = definitiveProviderConfig;
+      const { rpcUrl , type } = definitiveProviderConfig;
 
       let blockExplorer;
       let name;
 
       if (type === RPC) {
         blockExplorer = findBlockExplorerForRpc(rpcUrl, networkConfigurations);
-        name =
+        name = 
           getBlockExplorerName(blockExplorer) ||
           strings('swaps.block_explorer');
       } else {
         blockExplorer = getEtherscanBaseUrl(type);
         name = 'Etherscan';
       }
-
+ 
       if (!blockExplorer) {
         throw new Error('No block explorer url');
       }
@@ -64,7 +66,11 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
         baseUrl: '',
       });
     }
-  }, [networkConfigurations, providerConfig, providerConfigTokenExplorer]);
+  }, [
+    networkConfigurations,
+    providerConfig,
+    providerConfigTokenExplorer,
+  ]);
 
   const tx = useCallback(
     (hash) => {
@@ -98,10 +104,7 @@ function useBlockExplorer(networkConfigurations, providerConfigTokenExplorer) {
       // Regardless of whether the chain uses Etherscan,
       // we should always use the RPC explorer URL that we retrieved,
       // as the built-in URL mapping from `etherscanLink` may be outdated.
-      return etherscanLink.createCustomTokenTrackerLink(
-        address,
-        explorer.value,
-      );
+      return etherscanLink.createCustomTokenTrackerLink(address, explorer.value);
     },
     [explorer],
   );

@@ -14,7 +14,6 @@ import {
   Platform,
 } from 'react-native';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -40,7 +39,7 @@ import { WELCOME_SCREEN_CAROUSEL_TITLE_ID } from '../../../../wdio/screen-object
 import { OnboardingCarouselSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingCarousel.selectors';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { isQa, isTest } from '../../../util/test/utils';
+import { isTest } from '../../../util/test/utils';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { Dispatch } from 'redux';
 import {
@@ -61,89 +60,61 @@ const ANDROID_PADDING = DEVICE_HEIGHT > 800 ? 80 : 150;
 const IOS_PADDING = Device.isIphoneX() ? 80 : Device.isIphone5S() ? 160 : 150;
 const IMG_PADDING = Device.isAndroid() ? ANDROID_PADDING : IOS_PADDING;
 
-// Reduce image size for medium devices
-const getCarouselSize = () => {
-  const baseWidth = DEVICE_WIDTH - IMG_PADDING;
-  const adjustedWidth = Device.isMediumDevice() ? baseWidth * 0.85 : baseWidth;
-  return {
-    width: adjustedWidth,
-    height: adjustedWidth * IMAGE_RATIO,
-  };
+const carouselSize = {
+  width: DEVICE_WIDTH - IMG_PADDING,
+  height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_RATIO,
 };
-
-const carouselSize = getCarouselSize();
-
-const ctaIosPaddingBottom = Device.isIphoneX() ? 40 : 20;
-const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
+const createStyles = () =>
   StyleSheet.create({
     scroll: {
       flexGrow: 1,
-      justifyContent: 'space-between',
     },
     wrapper: {
       flex: 1,
       flexDirection: 'column',
-      justifyContent: 'space-between',
-      paddingBottom: 16,
-      paddingTop: Device.isMediumDevice()
-        ? 16
-        : Platform.OS === 'android'
-        ? Math.max(safeAreaInsets.top + 8, 32)
-        : 0,
+      justifyContent: 'space-around',
+      paddingVertical: 24,
+      rowGap: 24,
     },
     title: {
-      fontSize: Device.isMediumDevice() ? 30 : 40,
-      lineHeight: Device.isMediumDevice() ? 30 : 40,
+      fontSize: 40,
+      lineHeight: 40,
       justifyContent: 'center',
       textAlign: 'center',
-      paddingHorizontal: Device.isMediumDevice() ? 16 : 24,
-      fontFamily:
-        Platform.OS === 'android' ? 'MM Sans Regular' : 'MMSans-Regular',
+      paddingHorizontal: 40,
+      fontFamily: 'MMSans-Regular',
     },
     subtitle: {
       textAlign: 'center',
+      paddingHorizontal: 16,
     },
     ctas: {
       paddingHorizontal: 16,
-      paddingTop: Device.isMediumDevice() ? 12 : 16,
-      paddingBottom:
-        Platform.OS === 'android'
-          ? Math.max(
-              safeAreaInsets.bottom + (Device.isMediumDevice() ? 12 : 16),
-              24,
-            )
-          : ctaIosPaddingBottom,
+      paddingBottom: Device.isIphoneX() ? 40 : 20,
       flexDirection: 'column',
     },
     carouselImage: {},
     carouselImage1: {
       ...carouselSize,
-      resizeMode: 'contain',
     },
     carouselImage2: {
       ...carouselSize,
-      resizeMode: 'contain',
     },
     carouselImage3: {
       ...carouselSize,
-      resizeMode: 'contain',
     },
     carouselImageWrapper: {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      minHeight: Device.isMediumDevice() ? 180 : 200,
-      paddingHorizontal: 16,
     },
     carouselTextWrapper: {
-      flex: 2,
+      flex: 1,
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: Device.isMediumDevice() ? 12 : 16,
-      gap: Device.isMediumDevice() ? 12 : 16,
+      rowGap: 24,
     },
     bar: {
       width: 10,
@@ -158,16 +129,17 @@ const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
     progressContainer: {
       flexDirection: 'row',
       alignSelf: 'center',
-      paddingTop: 16,
     },
     tab: {
       marginHorizontal: 16,
-      position: 'relative',
-      minHeight: 30,
     },
     metricsData: {
       textAlign: 'center',
-      paddingVertical: 16,
+    },
+    gettingStartedButton: {
+      borderRadius: 12,
+      color: constColors.whiteTransparent,
+      backgroundColor: constColors.btnBlack,
     },
   });
 
@@ -198,9 +170,8 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
   );
   const themeContext = useContext(ThemeContext);
   const colors = themeContext.colors || mockTheme.colors;
-  const safeAreaInsets = useSafeAreaInsets();
 
-  const styles = createStyles(safeAreaInsets);
+  const styles = createStyles();
 
   const track = useCallback(
     (event: ITrackingEvent) => {
@@ -327,7 +298,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         WELCOME_SCREEN_CAROUSEL_TITLE_ID(key),
                       )}
                     >
-                      {(isTest || isQa) && (
+                      {isTest && (
                         // This Text component is used to grab the App Start Time for our E2E test
                         // ColdStartToOnboardingScreen.feature
                         <Text
@@ -359,11 +330,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                         {strings(`onboarding_carousel.title${key}`)}
                       </Text>
                       <Text
-                        variant={
-                          Device.isMediumDevice()
-                            ? TextVariant.BodySM
-                            : TextVariant.BodyMD
-                        }
+                        variant={TextVariant.BodyMD}
                         color={onboardingCarouselColors[value].color}
                         style={styles.subtitle}
                       >
@@ -389,8 +356,9 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
             variant={ButtonVariants.Primary}
             label={strings('onboarding_carousel.get_started')}
             onPress={onPressGetStarted}
+            style={styles.gettingStartedButton}
             width={ButtonWidthTypes.Full}
-            size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
+            size={ButtonSize.Lg}
             testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
           />
         </View>

@@ -1,4 +1,6 @@
-import { personalSignatureConfirmationState } from '../../../../../util/test/confirm-data-helpers';
+import {
+  personalSignatureConfirmationState
+} from '../../../../../util/test/confirm-data-helpers';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { generateStablecoinLendingDepositConfirmationState } from '../../__mocks__/controllers/transaction-batch-mock';
 import { useTransactionBatchesMetadata } from './useTransactionBatchesMetadata';

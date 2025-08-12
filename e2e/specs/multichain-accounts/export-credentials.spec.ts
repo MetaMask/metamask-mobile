@@ -1,3 +1,4 @@
+'use strict';
 import { SmokeWalletPlatform } from '../../tags.js';
 import {
   HD_ACCOUNT,
@@ -5,7 +6,7 @@ import {
   withMultichainAccountDetailsEnabled,
 } from './common';
 import AccountDetails from '../../pages/MultichainAccounts/AccountDetails';
-import Assertions from '../../framework/Assertions';
+import Assertions from '../../utils/Assertions.js';
 import ExportCredentials from '../../pages/MultichainAccounts/ExportCredentials';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView';
 import { completeSrpQuiz } from '../multisrp/utils';
@@ -15,13 +16,9 @@ import TestHelpers from '../../helpers';
 const PASSWORD = '123123123';
 
 const checkCredentials = async () => {
-  await Assertions.expectElementToBeVisible(
-    RevealPrivateKey.revealCredentialQRCodeTab,
-  );
+  await Assertions.checkIfVisible(RevealPrivateKey.revealCredentialQRCodeTab);
   await RevealPrivateKey.tapToRevealPrivateCredentialQRCode();
-  await Assertions.expectElementToBeVisible(
-    RevealPrivateKey.revealCredentialQRCodeImage,
-  );
+  await Assertions.checkIfVisible(RevealPrivateKey.revealCredentialQRCodeImage);
   await RevealPrivateKey.tapDoneButton();
 };
 
@@ -34,6 +31,9 @@ const exportPrivateKey = async () => {
 
 const exportSrp = async () => {
   await AccountDetails.tapExportSrpButton();
+  await Assertions.checkIfVisible(ExportCredentials.srpInfoContainer);
+  await ExportCredentials.tapNextButton();
+  // this also checks the srp
   await completeSrpQuiz(defaultOptions.mnemonic);
 };
 

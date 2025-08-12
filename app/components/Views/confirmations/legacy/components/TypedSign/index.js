@@ -234,9 +234,7 @@ class TypedSign extends PureComponent {
       );
     }
     if (messageParams.version === 'V3' || messageParams.version === 'V4') {
-      const { sanitizedMessage } = parseAndSanitizeSignTypedData(
-        messageParams.data,
-      );
+      const { sanitizedMessage } = parseAndSanitizeSignTypedData(messageParams.data);
       return this.renderTypedMessageV3(sanitizedMessage);
     }
   };

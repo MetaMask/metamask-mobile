@@ -16,7 +16,6 @@ import {
   renderFullAddress,
   areAddressesEqual,
   toFormattedAddress,
-  toChecksumAddress,
 } from '../../../util/address';
 import {
   decodeTransferData,
@@ -24,6 +23,7 @@ import {
   getActionKey,
   TRANSACTION_TYPES,
 } from '../../../util/transactions';
+import { toChecksumAddress } from 'ethereumjs-util';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { isSwapsNativeAsset } from '../Swaps/utils';
 import Engine from '../../../core/Engine';

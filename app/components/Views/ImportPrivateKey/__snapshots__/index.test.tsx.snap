@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ImportPrivateKey render matches snapshot 1`] = `
+exports[`ImportPrivateKey should render correctly 1`] = `
 <View
   style={
     {
@@ -312,7 +312,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <RCTSafeAreaView
+                    <View
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -333,15 +333,14 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                           }
                         }
                         enableAutomaticScroll={true}
-                        enableOnAndroid={true}
+                        enableOnAndroid={false}
                         enableResetScrollToCoords={true}
                         extraHeight={75}
-                        extraScrollHeight={100}
+                        extraScrollHeight={0}
                         getScrollResponder={[Function]}
                         handleOnScroll={[Function]}
-                        keyboardDismissMode="none"
+                        keyboardDismissMode="interactive"
                         keyboardOpeningTime={250}
-                        keyboardShouldPersistTaps="always"
                         keyboardSpace={0}
                         onScroll={[Function]}
                         resetKeyboardSpace={[Function]}
@@ -357,7 +356,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                         scrollToEnd={[Function]}
                         scrollToFocusedInput={[Function]}
                         scrollToPosition={[Function]}
-                        showsVerticalScrollIndicator={false}
+                        showsVerticalScrollIndicator={true}
                         style={
                           {
                             "backgroundColor": "#4459ff1a",
@@ -377,137 +376,135 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                             testID="import-account-screen"
                           >
                             <TouchableOpacity
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={false}
                               onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
                                 {
-                                  "alignItems": "center",
                                   "alignSelf": "flex-end",
-                                  "borderRadius": 8,
-                                  "height": 32,
-                                  "justifyContent": "center",
-                                  "marginRight": 16,
                                   "marginTop": 40,
-                                  "opacity": 1,
-                                  "width": 32,
+                                  "paddingBottom": 10,
+                                  "paddingHorizontal": 22,
+                                  "paddingTop": 20,
                                 }
                               }
-                              testID="close-button-on-account-screen"
                             >
-                              <SvgMock
-                                color="#121314"
-                                fill="currentColor"
-                                height={24}
-                                name="Close"
+                              <Text
+                                allowFontScaling={false}
+                                selectable={false}
                                 style={
-                                  {
-                                    "height": 24,
-                                    "width": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": undefined,
+                                      "fontSize": 15,
+                                    },
+                                    {
+                                      "color": "#121314",
+                                      "fontSize": 28,
+                                    },
+                                    {
+                                      "fontFamily": "Material Icons",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    {},
+                                  ]
                                 }
-                                width={24}
-                              />
+                                testID="close-button-on-account-screen"
+                              >
+                                
+                              </Text>
                             </TouchableOpacity>
                             <View
                               style={
                                 {
-                                  "padding": 24,
+                                  "padding": 30,
                                   "paddingTop": 0,
-                                  "width": "100%",
                                 }
                               }
                             >
-                              <SvgMock
-                                color="#121314"
-                                fill="currentColor"
-                                height={72}
-                                name="Download"
+                              <Text
+                                allowFontScaling={false}
+                                selectable={false}
+                                style={
+                                  [
+                                    {
+                                      "color": undefined,
+                                      "fontSize": 12,
+                                    },
+                                    {
+                                      "color": "#686e7d",
+                                      "fontSize": 50,
+                                      "marginLeft": 0,
+                                      "marginTop": 0,
+                                      "textAlign": "left",
+                                    },
+                                    {
+                                      "fontFamily": "Feather",
+                                      "fontStyle": "normal",
+                                      "fontWeight": "normal",
+                                    },
+                                    {},
+                                  ]
+                                }
+                              >
+                                
+                              </Text>
+                              <Text
                                 style={
                                   {
-                                    "height": 72,
-                                    "width": 72,
+                                    "color": "#121314",
+                                    "fontFamily": "CentraNo1-Book",
+                                    "fontSize": 32,
+                                    "fontWeight": "400",
+                                    "justifyContent": "center",
+                                    "marginBottom": 40,
+                                    "marginTop": 20,
+                                    "textAlign": "left",
                                   }
                                 }
-                                width={72}
-                              />
+                              >
+                                Import Account
+                              </Text>
                               <View
                                 style={
                                   {
-                                    "alignItems": "flex-start",
-                                    "display": "flex",
-                                    "flexDirection": "column",
-                                    "justifyContent": "flex-start",
-                                    "marginTop": 16,
-                                    "paddingLeft": 12,
-                                    "rowGap": 24,
-                                    "width": "90%",
+                                    "marginBottom": 10,
                                   }
                                 }
                               >
                                 <Text
-                                  accessibilityRole="text"
                                   style={
                                     {
                                       "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 32,
+                                      "fontSize": 14,
                                       "fontWeight": "400",
-                                      "justifyContent": "center",
-                                      "letterSpacing": 0,
-                                      "lineHeight": 40,
                                       "textAlign": "left",
                                     }
                                   }
                                 >
-                                  Import Account
+                                  Imported accounts are viewable in your wallet but are not recoverable with your MetaMask Secret Recovery Phrase.
                                 </Text>
-                                <Text
-                                  accessibilityRole="text"
-                                  style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
+                              </View>
+                              <View
+                                style={
+                                  {
+                                    "marginBottom": 10,
                                   }
-                                >
-                                  Imported private keys are backed up to your account and sync automatically when you sign in with the same Google or Apple login.
-                                </Text>
+                                }
+                              >
                                 <Text
-                                  accessibilityRole="text"
                                   onPress={[Function]}
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
+                                      "fontFamily": "CentraNo1-Book",
                                       "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
+                                      "fontWeight": "400",
+                                      "textAlign": "left",
                                     }
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
-                                    style={
-                                      {
-                                        "color": "#4459ff",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 14,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
-                                    }
-                                  >
-                                    Learn more
-                                     
-                                  </Text>
-                                  about how imported keys work.
+                                  Learn more about imported accounts here.
                                 </Text>
                               </View>
                             </View>
@@ -515,26 +512,34 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                               style={
                                 {
                                   "backgroundColor": "#ffffff",
-                                  "paddingHorizontal": 16,
-                                  "paddingVertical": 24,
+                                  "padding": 30,
                                   "width": "100%",
                                 }
                               }
                             >
-                              <Text
-                                accessibilityRole="text"
+                              <View
                                 style={
                                   {
                                     "color": "#121314",
-                                    "fontFamily": "Geist Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
+                                    "fontFamily": "CentraNo1-Bold",
+                                    "fontSize": 18,
+                                    "fontWeight": "600",
                                   }
                                 }
                               >
-                                Paste your private key string
-                              </Text>
+                                <Text
+                                  style={
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "CentraNo1-Bold",
+                                      "fontSize": 18,
+                                      "fontWeight": "600",
+                                    }
+                                  }
+                                >
+                                  Paste your private key string
+                                </Text>
+                              </View>
                               <TextInput
                                 autoCapitalize="none"
                                 blurOnSubmit={true}
@@ -543,25 +548,27 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                 numberOfLines={3}
                                 onChangeText={[Function]}
                                 onSubmitEditing={[Function]}
-                                placeholder="e.g.
-3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266"
-                                placeholderTextColor="#b7bbc8"
+                                placeholder="e.g. 3a1076bf45ab87712ad64ccb3b10217737f7faacbf2872e88fdd9a537d8fe266"
+                                placeholderTextColor="#9ca1af"
                                 returnKeyType="next"
                                 style={
                                   [
                                     {
                                       "backgroundColor": "#ffffff",
-                                      "borderColor": "#b7bbc866",
-                                      "borderRadius": 6,
+                                      "borderColor": "#b7bbc8",
+                                      "borderRadius": 4,
                                       "borderWidth": 0.5,
-                                      "color": "#b7bbc8",
+                                      "color": "#121314",
                                       "fontFamily": "CentraNo1-Book",
-                                      "fontSize": 14,
+                                      "fontSize": 15,
                                       "fontWeight": "400",
                                       "height": 120,
-                                      "marginVertical": 16,
-                                      "paddingHorizontal": 16,
-                                      "paddingVertical": 12,
+                                      "marginBottom": 10,
+                                      "marginTop": 20,
+                                      "paddingBottom": 20,
+                                      "paddingLeft": 20,
+                                      "paddingRight": 20,
+                                      "paddingTop": 20,
                                     },
                                     {},
                                   ]
@@ -573,43 +580,19 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                 style={
                                   {
                                     "alignItems": "center",
-                                    "display": "flex",
-                                    "flexDirection": "row",
                                     "justifyContent": "center",
-                                    "width": "100%",
+                                    "marginTop": 20,
                                   }
                                 }
                               >
                                 <TouchableOpacity
-                                  accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
                                   onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
-                                    {
-                                      "alignItems": "center",
-                                      "alignSelf": "flex-start",
-                                      "backgroundColor": "transparent",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
-                                    }
-                                  }
                                 >
                                   <Text
-                                    accessibilityRole="text"
                                     style={
                                       {
                                         "color": "#4459ff",
-                                        "fontFamily": "Geist Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
+                                        "fontSize": 14,
                                       }
                                     }
                                   >
@@ -625,54 +608,70 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                                 "backgroundColor": "#ffffff",
                                 "flex": 1,
                                 "justifyContent": "flex-end",
-                                "paddingBottom": 36,
-                                "paddingHorizontal": 16,
+                                "padding": 20,
                               }
                             }
                           >
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
-                              activeOpacity={1}
-                              loading={false}
+                              activeOpacity={0.2}
                               onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
                               style={
-                                {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#121314",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
-                                }
+                                [
+                                  [
+                                    {
+                                      "borderRadius": 12,
+                                      "justifyContent": "center",
+                                      "padding": 15,
+                                    },
+                                    {
+                                      "backgroundColor": "#4459ff",
+                                      "minHeight": 50,
+                                    },
+                                    {
+                                      "marginBottom": 20,
+                                    },
+                                  ],
+                                  null,
+                                ]
                               }
                               testID="import-button"
                             >
                               <Text
-                                accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#007aff",
+                                      "fontSize": 17,
+                                      "fontWeight": "500",
+                                      "textAlign": "center",
+                                    },
+                                    null,
+                                    [
+                                      {
+                                        "fontFamily": "CentraNo1-Bold",
+                                        "fontSize": 14,
+                                        "fontWeight": "600",
+                                        "textAlign": "center",
+                                      },
+                                      {
+                                        "color": "#ffffff",
+                                      },
+                                      undefined,
+                                    ],
+                                    null,
+                                  ]
                                 }
                               >
-                                Import
+                                IMPORT
                               </Text>
                             </TouchableOpacity>
                           </View>
                         </View>
                       </RCTScrollView>
                       <View />
-                    </RCTSafeAreaView>
+                    </View>
                   </View>
                 </View>
               </View>

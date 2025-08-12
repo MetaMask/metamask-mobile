@@ -2,8 +2,8 @@ import {
   NotificationMenuViewSelectorsIDs,
   NotificationMenuViewSelectorsText,
 } from '../../selectors/Notifications/NotificationMenuView.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import Gestures from '../../utils/Gestures';
+import Matchers from '../../utils/Matchers';
 
 class EnableNotificationsModal {
   get title() {
@@ -41,9 +41,7 @@ class EnableNotificationsModal {
     await Gestures.waitAndTap(this.announcements_tab);
   }
   async tapOnNotificationItem(id: string) {
-    await Gestures.waitAndTap(this.selectNotificationItem(id), {
-      elemDescription: `Notification Menu - Notification Item with ID: ${id}`,
-    });
+    await Gestures.waitAndTap(this.selectNotificationItem(id));
   }
   async scrollToNotificationItem(id: string) {
     await Gestures.scrollToElement(

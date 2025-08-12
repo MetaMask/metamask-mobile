@@ -51,33 +51,7 @@ exports[`StyledButton should render correctly on Android the button with type co
 </TouchableNativeFeedback>
 `;
 
-exports[`StyledButton should render correctly on Android the button with type danger 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "#ca3542",
-          "borderColor": "#ca3542",
-          "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type info 1`] = `
+exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
 <TouchableNativeFeedback
   accessibilityRole="button"
   accessible={true}
@@ -93,83 +67,6 @@ exports[`StyledButton should render correctly on Android the button with type in
         {
           "backgroundColor": "#ffffff",
           "borderColor": "#4459ff",
-          "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type inverse-transparent 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "transparent",
-          "borderColor": "transparent",
-          "borderWidth": 0,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type normal 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
-          "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type onOverlay 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "borderColor": "#ffffff",
           "borderWidth": 1,
         },
         null,
@@ -196,58 +93,6 @@ exports[`StyledButton should render correctly on Android the button with type or
         {
           "borderColor": "#9a6300",
           "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type secondary 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "#ffffff",
-          "borderColor": "#b7bbc8",
-          "borderWidth": 1,
-        },
-        null,
-        undefined,
-      ]
-    }
-  />
-</TouchableNativeFeedback>
-`;
-
-exports[`StyledButton should render correctly on Android the button with type transparent 1`] = `
-<TouchableNativeFeedback
-  accessibilityRole="button"
-  accessible={true}
->
-  <View
-    style={
-      [
-        {
-          "borderRadius": 12,
-          "justifyContent": "center",
-          "padding": 15,
-        },
-        {
-          "backgroundColor": "transparent",
-          "borderColor": "transparent",
-          "borderWidth": 0,
         },
         null,
         undefined,
@@ -330,44 +175,7 @@ exports[`StyledButton should render correctly on iOS the button with type confir
 />
 `;
 
-exports[`StyledButton should render correctly on iOS the button with type danger 1`] = `
-<Button
-  accessibilityRole="button"
-  containerStyle={
-    [
-      {
-        "borderRadius": 12,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      {
-        "backgroundColor": "#ca3542",
-        "borderColor": "#ca3542",
-        "borderWidth": 1,
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "CentraNo1-Bold",
-        "fontSize": 14,
-        "fontWeight": "600",
-        "textAlign": "center",
-      },
-      {
-        "color": "#ffffff",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
-/>
-`;
-
-exports[`StyledButton should render correctly on iOS the button with type info 1`] = `
+exports[`StyledButton should render correctly on iOS the button with type normal 1`] = `
 <Button
   accessibilityRole="button"
   containerStyle={
@@ -396,119 +204,6 @@ exports[`StyledButton should render correctly on iOS the button with type info 1
       },
       {
         "color": "#4459ff",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
-/>
-`;
-
-exports[`StyledButton should render correctly on iOS the button with type inverse-transparent 1`] = `
-<Button
-  accessibilityRole="button"
-  containerStyle={
-    [
-      {
-        "borderRadius": 12,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      {
-        "backgroundColor": "transparent",
-        "borderColor": "transparent",
-        "borderWidth": 0,
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "CentraNo1-Bold",
-        "fontSize": 14,
-        "fontWeight": "600",
-        "textAlign": "center",
-      },
-      {
-        "color": "#ffffff",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
-/>
-`;
-
-exports[`StyledButton should render correctly on iOS the button with type normal 1`] = `
-<Button
-  accessibilityRole="button"
-  containerStyle={
-    [
-      {
-        "borderRadius": 12,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      {
-        "backgroundColor": "transparent",
-        "borderColor": "#4459ff",
-        "borderWidth": 1,
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "CentraNo1-Bold",
-        "fontSize": 14,
-        "fontWeight": "600",
-        "textAlign": "center",
-      },
-      {
-        "color": "#4459ff",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
-/>
-`;
-
-exports[`StyledButton should render correctly on iOS the button with type onOverlay 1`] = `
-<Button
-  accessibilityRole="button"
-  containerStyle={
-    [
-      {
-        "borderRadius": 12,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      {
-        "borderColor": "#ffffff",
-        "borderWidth": 1,
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "CentraNo1-Bold",
-        "fontSize": 14,
-        "fontWeight": "600",
-        "textAlign": "center",
-      },
-      {
-        "color": "#ffffff",
-        "fontFamily": "CentraNo1-Bold",
-        "fontSize": 18,
-        "fontWeight": "600",
       },
       undefined,
     ]
@@ -545,82 +240,6 @@ exports[`StyledButton should render correctly on iOS the button with type orange
       },
       {
         "color": "#9a6300",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
-/>
-`;
-
-exports[`StyledButton should render correctly on iOS the button with type secondary 1`] = `
-<Button
-  accessibilityRole="button"
-  containerStyle={
-    [
-      {
-        "borderRadius": 12,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      {
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
-        "borderWidth": 1,
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "CentraNo1-Bold",
-        "fontSize": 14,
-        "fontWeight": "600",
-        "textAlign": "center",
-      },
-      {
-        "color": "#121314",
-      },
-      undefined,
-    ]
-  }
-  styleDisabled={null}
-/>
-`;
-
-exports[`StyledButton should render correctly on iOS the button with type transparent 1`] = `
-<Button
-  accessibilityRole="button"
-  containerStyle={
-    [
-      {
-        "borderRadius": 12,
-        "justifyContent": "center",
-        "padding": 15,
-      },
-      {
-        "backgroundColor": "transparent",
-        "borderColor": "transparent",
-        "borderWidth": 0,
-      },
-      undefined,
-    ]
-  }
-  disabledContainerStyle={null}
-  style={
-    [
-      {
-        "fontFamily": "CentraNo1-Bold",
-        "fontSize": 14,
-        "fontWeight": "600",
-        "textAlign": "center",
-      },
-      {
-        "color": "#ffffff",
-        "fontFamily": "CentraNo1-Bold",
-        "fontWeight": "600",
       },
       undefined,
     ]

@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useWindowDimensions } from 'react-native';
 
 // External dependencies.
 import EvmAccountSelectorList from '../../UI/EvmAccountSelectorList';
@@ -48,10 +49,11 @@ import {
 import { getTraceTags } from '../../../util/sentry/tags';
 import BottomSheetFooter from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import { ButtonProps } from '../../../component-library/components/Buttons/Button/Button.types';
-import { useSyncSRPs } from '../../hooks/useSyncSRPs';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { height: screenHeight } = useWindowDimensions();
+
+  const { styles } = useStyles(styleSheet, { screenHeight });
   const dispatch = useDispatch();
   const { trackEvent, createEventBuilder } = useMetrics();
   const routeParams = useMemo(() => route?.params, [route?.params]);
@@ -68,8 +70,6 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
   const privacyMode = useSelector(selectPrivacyMode);
   const sheetRef = useRef<BottomSheetRef>(null);
-
-  useSyncSRPs();
 
   // Memoize useAccounts parameters to prevent unnecessary recalculations
   const accountsParams = useMemo(

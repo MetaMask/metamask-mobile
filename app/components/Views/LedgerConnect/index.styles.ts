@@ -1,10 +1,9 @@
-import { StyleSheet, TextStyle } from 'react-native';
-import { type EdgeInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../../util/theme/models';
+import { StyleSheet, TextStyle } from 'react-native';
 import Device from '../../../util/device';
 import { fontStyles } from '../../../styles/common';
 
-const createStyles = (colors: Colors, insets: EdgeInsets) =>
+const createStyles = (colors: Colors) =>
   StyleSheet.create({
     container: {
       position: 'relative',
@@ -17,7 +16,7 @@ const createStyles = (colors: Colors, insets: EdgeInsets) =>
       marginRight: Device.getDeviceWidth() * 0.07,
     },
     header: {
-      marginTop: insets.top,
+      marginTop: Device.isIphoneX() ? 30 : 20,
       flexDirection: 'row',
       width: '100%',
       alignItems: 'center',
@@ -67,7 +66,11 @@ const createStyles = (colors: Colors, insets: EdgeInsets) =>
       marginTop: Device.getDeviceHeight() * 0.08,
     },
     buttonContainer: {
-      marginBottom: insets.bottom + 20,
+      position: 'absolute',
+      display: 'flex',
+      bottom: Device.getDeviceHeight() * 0.025,
+      left: 0,
+      width: '100%',
     },
     lookingForDeviceContainer: {
       flexDirection: 'row',

@@ -427,14 +427,14 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                       testID="source-token-area"
                                     >
                                       <View
-                                        alignItems="flex-end"
+                                        alignItems="center"
                                         flexDirection="row"
                                         gap={4}
                                         justifyContent="flex-end"
                                         style={
                                           [
                                             {
-                                              "alignItems": "flex-end",
+                                              "alignItems": "center",
                                               "flexDirection": "row",
                                               "gap": 4,
                                               "justifyContent": "flex-end",
@@ -442,8 +442,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                             {
                                               "backgroundColor": "#ffffff",
                                               "borderRadius": 100,
-                                              "paddingLeft": 8,
-                                              "paddingRight": 11,
+                                              "paddingHorizontal": 12,
                                               "paddingVertical": 8,
                                               "shadowColor": "#0000001a",
                                               "shadowOffset": {
@@ -612,10 +611,10 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 24,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 28,
                                             }
                                           }
                                         >
@@ -658,7 +657,7 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         }
                                       }
                                     >
-                                      2 ETH
+                                      2.0 ETH
                                     </Text>
                                   </View>
                                 </View>
@@ -817,12 +816,11 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "flex-start",
-                                          "backgroundColor": "#121314",
+                                          "backgroundColor": "#4459ff",
                                           "borderRadius": 12,
                                           "flexDirection": "row",
                                           "height": 40,
                                           "justifyContent": "center",
-                                          "overflow": "hidden",
                                           "paddingHorizontal": 16,
                                         }
                                       }
@@ -1394,14 +1392,14 @@ exports[`BridgeView renders 1`] = `
                                       testID="source-token-area"
                                     >
                                       <View
-                                        alignItems="flex-end"
+                                        alignItems="center"
                                         flexDirection="row"
                                         gap={4}
                                         justifyContent="flex-end"
                                         style={
                                           [
                                             {
-                                              "alignItems": "flex-end",
+                                              "alignItems": "center",
                                               "flexDirection": "row",
                                               "gap": 4,
                                               "justifyContent": "flex-end",
@@ -1409,8 +1407,7 @@ exports[`BridgeView renders 1`] = `
                                             {
                                               "backgroundColor": "#ffffff",
                                               "borderRadius": 100,
-                                              "paddingLeft": 8,
-                                              "paddingRight": 11,
+                                              "paddingHorizontal": 12,
                                               "paddingVertical": 8,
                                               "shadowColor": "#0000001a",
                                               "shadowOffset": {
@@ -1579,10 +1576,10 @@ exports[`BridgeView renders 1`] = `
                                           style={
                                             {
                                               "color": "#121314",
-                                              "fontFamily": "Geist Medium",
+                                              "fontFamily": "Geist Regular",
                                               "fontSize": 24,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 28,
                                             }
                                           }
                                         >
@@ -1625,7 +1622,7 @@ exports[`BridgeView renders 1`] = `
                                         }
                                       }
                                     >
-                                      2 ETH
+                                      2.0 ETH
                                     </Text>
                                   </View>
                                 </View>
@@ -1784,12 +1781,11 @@ exports[`BridgeView renders 1`] = `
                                         {
                                           "alignItems": "center",
                                           "alignSelf": "flex-start",
-                                          "backgroundColor": "#121314",
+                                          "backgroundColor": "#4459ff",
                                           "borderRadius": 12,
                                           "flexDirection": "row",
                                           "height": 40,
                                           "justifyContent": "center",
-                                          "overflow": "hidden",
                                           "paddingHorizontal": 16,
                                         }
                                       }

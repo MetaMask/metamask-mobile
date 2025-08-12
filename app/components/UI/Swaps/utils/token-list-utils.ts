@@ -1,13 +1,7 @@
 import { Hex } from '@metamask/utils';
 import { isSwapsNativeAsset } from '.';
 import { safeToChecksumAddress } from '../../../../util/address';
-import {
-  balanceToFiatNumber,
-  hexToBN,
-  renderFromTokenMinimalUnit,
-  renderFromWei,
-  weiToFiatNumber,
-} from '../../../../util/number';
+import { balanceToFiatNumber, hexToBN, renderFromTokenMinimalUnit, renderFromWei, weiToFiatNumber } from '../../../../util/number';
 
 export interface Token {
   address: string;
@@ -75,19 +69,19 @@ export const getFiatValue = ({
   const tokenAddress = safeToChecksumAddress(token.address);
 
   if (isSwapsNativeAsset(token)) {
-    const balance = account ? renderFromWei(account.balance) : undefined;
-    const balanceFiat = account
-      ? weiToFiatNumber(
-          hexToBN(account.balance),
-          conversionRate,
-          (currencyCode === 'usd' && 2) || undefined,
-        ).toString()
-      : undefined;
+    const balance = account ? renderFromWei(
+      account.balance,
+    ) : undefined;
+    const balanceFiat = account ? weiToFiatNumber(
+      hexToBN(account.balance),
+      conversionRate,
+      (currencyCode === 'usd' && 2) || undefined
+    ).toString() : undefined;
     return { balance, balanceFiat };
   }
 
   const exchangeRate =
-    tokenExchangeRates && tokenAddress && tokenAddress in tokenExchangeRates
+    tokenExchangeRates && tokenAddress &&  tokenAddress in tokenExchangeRates
       ? tokenExchangeRates[tokenAddress]?.price
       : undefined;
   const balance =
@@ -95,7 +89,11 @@ export const getFiatValue = ({
       ? renderFromTokenMinimalUnit(balances[tokenAddress], token.decimals)
       : '0';
   const balanceFiat = exchangeRate
-    ? balanceToFiatNumber(balance, conversionRate, exchangeRate).toString()
+    ? balanceToFiatNumber(
+        balance,
+        conversionRate,
+        exchangeRate,
+      ).toString()
     : undefined;
   return { balance, balanceFiat };
 };
@@ -140,20 +138,15 @@ export const getSortedTokensByFiatValue = ({
   balances: Balances;
   conversionRate: number;
   currencyCode: string;
-}) =>
-  tokens
-    .map((token) =>
-      getTokenWithFiatValue({
-        token,
-        account,
-        tokenExchangeRates,
-        balances,
-        conversionRate,
-        currencyCode,
-      }),
-    )
-    .sort((a, b) => {
-      const bFiat = Number(b.balanceFiat ?? 0);
-      const aFiat = Number(a.balanceFiat ?? 0);
-      return bFiat - aFiat;
-    });
+}) => tokens.map((token) => getTokenWithFiatValue({
+  token,
+  account,
+  tokenExchangeRates,
+  balances,
+  conversionRate,
+  currencyCode,
+})).sort((a, b) => {
+  const bFiat = Number(b.balanceFiat ?? 0);
+  const aFiat = Number(a.balanceFiat ?? 0);
+  return bFiat - aFiat;
+});

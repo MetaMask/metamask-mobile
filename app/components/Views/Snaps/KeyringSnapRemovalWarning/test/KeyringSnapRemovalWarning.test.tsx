@@ -273,7 +273,11 @@ describe('KeyringSnapRemovalWarning', () => {
     fireEvent.press(continueButton);
 
     await waitFor(() => {
-      expect(getByText(`Failed to remove ${mockSnapName}`)).toBeTruthy();
+      expect(
+        getByText(
+          `Failed to remove ${mockSnapName}`,
+        ),
+      ).toBeTruthy();
     });
   });
 

@@ -29,8 +29,7 @@ export const InfoSectionOriginAndDetails = () => {
   const signatureRequest = useSignatureRequest();
   const isPermit = isRecognizedPermit(signatureRequest);
 
-  const parsedData =
-    parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
+  const parsedData = parseAndNormalizeSignTypedDataFromSignatureRequest(signatureRequest);
   const spender = parsedData.message?.spender;
   const verifyingContract = parsedData.domain?.verifyingContract;
 
@@ -41,7 +40,9 @@ export const InfoSectionOriginAndDetails = () => {
   const chainId = signatureRequest.chainId;
 
   return (
-    <InfoSection testID={ConfirmationRowComponentIDs.ORIGIN_INFO}>
+    <InfoSection
+      testID={ConfirmationRowComponentIDs.ORIGIN_INFO}
+    >
       {isPermit && spender && (
         <>
           <InfoRow label={strings('confirm.label.spender')}>

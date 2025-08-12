@@ -1,15 +1,15 @@
+'use strict';
 import TestHelpers from '../../../../helpers';
 import { SmokeNetworkAbstractions } from '../../../../tags';
 import Browser from '../../../../pages/Browser/BrowserView';
 import TabBarComponent from '../../../../pages/wallet/TabBarComponent';
 import ConnectedAccountsModal from '../../../../pages/Browser/ConnectedAccountsModal';
-import FixtureBuilder from '../../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../../../fixtures/fixture-builder';
+import { withFixtures } from '../../../../fixtures/fixture-helper';
 import { loginToApp } from '../../../../viewHelper';
-import Assertions from '../../../../framework/Assertions';
+import Assertions from '../../../../utils/Assertions';
 import NetworkConnectMultiSelector from '../../../../pages/Browser/NetworkConnectMultiSelector';
 import NetworkNonPemittedBottomSheet from '../../../../pages/Network/NetworkNonPemittedBottomSheet';
-import { DappVariants } from '../../../../framework/Constants';
 
 describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   beforeAll(async () => {
@@ -20,11 +20,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
   it('preserves original chain permissions when user cancels modification', async () => {
     await withFixtures(
       {
-        dapps: [
-          {
-            dappVariant: DappVariants.TEST_DAPP,
-          },
-        ],
+        dapp: true,
         fixture: new FixtureBuilder()
           .withPermissionControllerConnectedToTestDapp()
           .withChainPermission()
@@ -34,7 +30,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapBrowser();
-        await Assertions.expectElementToBeVisible(Browser.browserScreenID);
+        await Assertions.checkIfVisible(Browser.browserScreenID);
 
         await Browser.navigateToTestDApp();
 
@@ -57,7 +53,7 @@ describe(SmokeNetworkAbstractions('Chain Permission Management'), () => {
         await NetworkNonPemittedBottomSheet.tapEthereumMainNetNetworkName();
 
         // Verify the disconnect all button appears (indicating no chain are selected)
-        await Assertions.expectElementToBeVisible(
+        await Assertions.checkIfVisible(
           ConnectedAccountsModal.disconnectNetworksButton,
         );
       },

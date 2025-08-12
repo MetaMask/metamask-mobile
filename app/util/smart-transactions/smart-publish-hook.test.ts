@@ -22,7 +22,7 @@ import {
   AllowedEvents,
   SubmitSmartTransactionRequest,
   submitSmartTransactionHook,
-  submitBatchSmartTransactionHook,
+  submitBatchSmartTransactionHook
 } from './smart-publish-hook';
 import { ChainId } from '@metamask/controller-utils';
 import { ApprovalController } from '@metamask/approval-controller';
@@ -351,7 +351,7 @@ describe('submitSmartTransactionHook', () => {
             signedCanceledTransactions: [],
             txParams,
             transactionMeta: request.transactionMeta,
-          }),
+          })
         );
 
         expect(
@@ -447,7 +447,7 @@ describe('submitSmartTransactionHook', () => {
             signedCanceledTransactions: [],
             txParams,
             transactionMeta: request.transactionMeta,
-          }),
+          })
         );
 
         expect(
@@ -544,7 +544,7 @@ describe('submitSmartTransactionHook', () => {
               signedCanceledTransactions: [],
               txParams,
               transactionMeta: request.transactionMeta,
-            }),
+            })
           );
 
           expect(
@@ -666,7 +666,7 @@ describe('submitSmartTransactionHook', () => {
               signedCanceledTransactions: [],
               txParams,
               transactionMeta: request.transactionMeta,
-            }),
+            })
           );
 
           expect(
@@ -739,9 +739,9 @@ describe('submitBatchSmartTransactionHook', () => {
 
         // The function should throw an error because smart transactions are disabled
         await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
-          'STX publishHook: Smart Transaction is required for batch submissions',
+          'STX publishHook: Smart Transaction is required for batch submissions'
         );
-      },
+      }
     );
   });
 
@@ -753,9 +753,9 @@ describe('submitBatchSmartTransactionHook', () => {
       async ({ request }) => {
         // The function should throw an error because transactions is required
         await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
-          'STX publishHook: A list of transactions are required for batch submissions',
+          'STX publishHook: A list of transactions are required for batch submissions'
         );
-      },
+      }
     );
   });
 
@@ -765,11 +765,12 @@ describe('submitBatchSmartTransactionHook', () => {
         transactions: [],
       },
       async ({ request }) => {
+
         // The function should throw an error because transactions cannot be empty
         await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
-          'STX publishHook: A list of transactions are required for batch submissions',
+          'STX publishHook: A list of transactions are required for batch submissions'
         );
-      },
+      }
     );
   });
 
@@ -787,7 +788,7 @@ describe('submitBatchSmartTransactionHook', () => {
         await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
           'No smart transaction UUID',
         );
-      },
+      }
     );
   });
 
@@ -814,7 +815,7 @@ describe('submitBatchSmartTransactionHook', () => {
         await expect(submitBatchSmartTransactionHook(request)).rejects.toThrow(
           'Smart Transaction does not have a transaction hash, there was a problem',
         );
-      },
+      }
     );
   });
 
@@ -861,7 +862,10 @@ describe('submitBatchSmartTransactionHook', () => {
         const result = await submitBatchSmartTransactionHook(request);
 
         expect(result).toEqual({
-          results: [{ transactionHash }, { transactionHash }],
+          results: [
+            { transactionHash },
+            { transactionHash },
+          ],
         });
 
         expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
@@ -869,7 +873,7 @@ describe('submitBatchSmartTransactionHook', () => {
             signedTransactions: [mockSignedTx, mockSignedTx],
             signedCanceledTransactions: [],
             transactionMeta: request.transactionMeta,
-          }),
+          })
         );
 
         expect(
@@ -957,7 +961,10 @@ describe('submitBatchSmartTransactionHook', () => {
         const result = await submitBatchSmartTransactionHook(request);
 
         expect(result).toEqual({
-          results: [{ transactionHash }, { transactionHash }],
+          results: [
+            { transactionHash },
+            { transactionHash },
+          ],
         });
 
         expect(submitSignedTransactionsSpy).toHaveBeenCalledWith(
@@ -965,7 +972,7 @@ describe('submitBatchSmartTransactionHook', () => {
             signedTransactions: [mockSignedTx, mockSignedTx],
             signedCanceledTransactions: [],
             transactionMeta: request.transactionMeta,
-          }),
+          })
         );
 
         expect(
@@ -1006,7 +1013,9 @@ describe('submitBatchSmartTransactionHook', () => {
     const mockSignedTx = createSignedTransaction();
     withRequest(
       {
-        transactions: [{ signedTx: mockSignedTx, id: '1', params: {} }],
+        transactions: [
+          { signedTx: mockSignedTx, id: '1', params: {} },
+        ],
       },
       async ({ request, controllerMessenger, submitSignedTransactionsSpy }) => {
         submitSignedTransactionsSpy.mockResolvedValue({

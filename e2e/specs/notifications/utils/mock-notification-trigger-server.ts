@@ -64,32 +64,14 @@ export class MockttpNotificationTriggerServer {
       .matching((request) =>
         getDecodedProxiedURL(request.url).includes(GET_CONFIG_URL),
       )
-      .asPriority(999)
-      .thenCallback((request) => {
-        // eslint-disable-next-line no-console
-        console.log(
-          `Mocking ${request.method} request to: ${getDecodedProxiedURL(
-            request.url,
-          )}`,
-        );
-        return this.getConfig(request);
-      });
+      .thenCallback((request) => this.getConfig(request));
 
     await server
       .forPost('/proxy')
       .matching((request) =>
         getDecodedProxiedURL(request.url).includes(UPDATE_CONFIG_URL),
       )
-      .asPriority(999)
-      .thenCallback((request) => {
-        // eslint-disable-next-line no-console
-        console.log(
-          `Mocking ${request.method} request to: ${getDecodedProxiedURL(
-            request.url,
-          )}`,
-        );
-        return this.updateConfig(request);
-      });
+      .thenCallback((request) => this.updateConfig(request));
   };
 
   // Helper methods for testing

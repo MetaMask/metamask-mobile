@@ -227,12 +227,11 @@ exports[`SeedphraseModal renders matches snapshot 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#121314",
+            "backgroundColor": "#4459ff",
             "borderRadius": 12,
             "flexDirection": "row",
             "height": 48,
             "justifyContent": "center",
-            "overflow": "hidden",
             "paddingHorizontal": 16,
           }
         }

@@ -76,8 +76,8 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       zIndex: 10,
       position: 'absolute',
-      bottom: 160,
-      right: 16,
+      bottom: 175,
+      right: 32,
       boxShadow: `0px 3px 8px ${colors.icon.default}`,
     },
     footerHelpText: {

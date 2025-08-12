@@ -19,10 +19,7 @@ import { isAssetFromSearch } from '../../../../../selectors/tokenSearchDiscovery
 import { PopularList } from '../../../../../util/networks/customNetworks';
 import { useAddNetwork } from '../../../../hooks/useAddNetwork';
 import { swapsUtils } from '@metamask/swaps-controller';
-import {
-  selectIsBridgeEnabledSource,
-  selectIsUnifiedSwapsEnabled,
-} from '../../../../../core/redux/slices/bridge';
+import { selectIsBridgeEnabledSource } from '../../../../../core/redux/slices/bridge';
 import { RootState } from '../../../../../reducers';
 import { trace, TraceName } from '../../../../../util/trace';
 
@@ -35,17 +32,17 @@ export enum SwapBridgeNavigationLocation {
 /**
  * Returns functions that are used to navigate to the MetaMask Bridge and MetaMask Swaps routes.
  * @param location location of navigation call – used for analytics.
- * @param sourceToken token object containing address and chainId we want to set as source.
+ * @param token token object containing address and chainId we want to set as source.
  * @returns An object containing functions that can be used to navigate to the existing Bridges page in the browser and the MetaMask Swaps page. If there isn't an existing bridge page, one is created based on the current chain ID and passed token address (if provided).
  */
 export const useSwapBridgeNavigation = ({
   location,
   sourcePage,
-  sourceToken: tokenBase,
+  token: tokenBase,
 }: {
   location: SwapBridgeNavigationLocation;
   sourcePage: string;
-  sourceToken?: BridgeToken;
+  token?: BridgeToken;
 }) => {
   const navigation = useNavigation();
   const selectedChainId = useSelector(selectChainId);
@@ -54,7 +51,6 @@ export const useSwapBridgeNavigation = ({
   const isBridgeEnabledSource = useSelector((state: RootState) =>
     selectIsBridgeEnabledSource(state, selectedChainId),
   );
-  const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   // Bridge
   const goToNativeBridge = useCallback(
@@ -80,34 +76,34 @@ export const useSwapBridgeNavigation = ({
             }
           : undefined;
 
-      const candidateSourceToken =
+      const candidateBridgeToken =
         tokenBase ?? bridgeNativeSourceTokenFormatted;
-      const sourceToken = isBridgeEnabledSource
-        ? candidateSourceToken
+      const bridgeToken = isBridgeEnabledSource
+        ? candidateBridgeToken
         : undefined;
 
-      if (!sourceToken) {
+      if (!bridgeToken) {
         return;
       }
-
-      const params: BridgeRouteParams = {
-        sourceToken,
-        sourcePage,
-        bridgeViewMode,
-      };
-
-      navigation.navigate(Routes.BRIDGE.ROOT, {
-        screen: Routes.BRIDGE.BRIDGE_VIEW,
-        params,
+      navigation.navigate('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          token: bridgeToken,
+          sourcePage,
+          bridgeViewMode,
+        } as BridgeRouteParams,
       });
-
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.SWAP_BUTTON_CLICKED)
+        createEventBuilder(
+          bridgeViewMode === BridgeViewMode.Bridge
+            ? MetaMetricsEvents.BRIDGE_BUTTON_CLICKED
+            : MetaMetricsEvents.SWAP_BUTTON_CLICKED,
+        )
           .addProperties({
             location,
-            chain_id_source: getDecimalChainId(sourceToken.chainId),
-            token_symbol_source: sourceToken?.symbol,
-            token_address_source: sourceToken?.address,
+            chain_id_source: getDecimalChainId(bridgeToken.chainId),
+            token_symbol_source: bridgeToken?.symbol,
+            token_address_source: bridgeToken?.address,
           })
           .build(),
       );
@@ -142,7 +138,7 @@ export const useSwapBridgeNavigation = ({
   const { addPopularNetwork, networkModal } = useAddNetwork();
 
   // Swaps
-  const handleLegacySwapsNavigation = useCallback(
+  const handleSwapsNavigation = useCallback(
     async (currentToken?: BridgeToken) => {
       const swapToken = currentToken ??
         tokenBase ?? {
@@ -218,11 +214,6 @@ export const useSwapBridgeNavigation = ({
 
   const goToSwaps = useCallback(
     async (currentToken?: BridgeToken) => {
-      if (isUnifiedSwapsEnabled) {
-        goToBridge(BridgeViewMode.Unified);
-        return;
-      }
-
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       if (
         tokenBase?.chainId === SolScope.Mainnet ||
@@ -233,7 +224,7 @@ export const useSwapBridgeNavigation = ({
       }
       ///: END:ONLY_INCLUDE_IF
 
-      await handleLegacySwapsNavigation(currentToken);
+      await handleSwapsNavigation(currentToken);
     },
     [
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -241,8 +232,7 @@ export const useSwapBridgeNavigation = ({
       selectedChainId,
       goToBridge,
       ///: END:ONLY_INCLUDE_IF
-      handleLegacySwapsNavigation,
-      isUnifiedSwapsEnabled,
+      handleSwapsNavigation,
     ],
   );
 

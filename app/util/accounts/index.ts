@@ -5,11 +5,7 @@ import {
   EnsByAccountAddress,
 } from '../../components/hooks/useAccounts';
 import { isDefaultAccountName } from '../ENSUtils';
-import {
-  CaipAccountId,
-  KnownCaipNamespace,
-  parseCaipAccountId,
-} from '@metamask/utils';
+import { CaipAccountId, KnownCaipNamespace, parseCaipAccountId } from '@metamask/utils';
 
 /**
  * Gets the Account nickname, ENS name, or default account name - Whichever one is available.
@@ -28,18 +24,16 @@ export const getAccountNameWithENS = ({
   accounts: Account[];
   ensByAccountAddress: EnsByAccountAddress;
 }) => {
-  const account = accounts.find((acc) =>
-    isCaipAccountIdInPermittedAccountIds(acc.caipAccountId, [caipAccountId]),
+  const account = accounts.find(
+    (acc) =>
+      isCaipAccountIdInPermittedAccountIds(
+        acc.caipAccountId,
+        [caipAccountId]
+      )
   );
 
-  const {
-    address,
-    chain: { namespace },
-  } = parseCaipAccountId(caipAccountId);
-  const ensName =
-    namespace === KnownCaipNamespace.Eip155
-      ? ensByAccountAddress[address]
-      : undefined;
+  const {address, chain: {namespace}} = parseCaipAccountId(caipAccountId);
+  const ensName = namespace === KnownCaipNamespace.Eip155 ? ensByAccountAddress[address] : undefined;
   return isDefaultAccountName(account?.name) && ensName
     ? ensName
     : account?.name || '';

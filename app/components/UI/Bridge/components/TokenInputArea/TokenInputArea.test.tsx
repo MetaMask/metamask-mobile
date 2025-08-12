@@ -1,24 +1,13 @@
 import React from 'react';
-import { initialState } from '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
-import {
-  TokenInputArea,
-  TokenInputAreaType,
-  calculateFontSize,
-  getDisplayAmount,
-} from '.';
-import { BridgeToken } from '../../types';
-
-jest.mock('../../hooks/useLatestBalance', () => ({
-  useLatestBalance: jest.fn(),
-}));
+import { TokenInputArea, TokenInputAreaType, calculateFontSize, getDisplayAmount } from '.';
+import { initialState } from '../../_mocks_/initialState';
 
 const mockOnTokenPress = jest.fn();
 const mockOnFocus = jest.fn();
 const mockOnBlur = jest.fn();
 const mockOnInputPress = jest.fn();
-const mockOnMaxPress = jest.fn();
 
 describe('TokenInputArea', () => {
   beforeEach(() => {
@@ -69,100 +58,6 @@ describe('TokenInputArea', () => {
     fireEvent(input, 'blur');
     expect(mockOnBlur).toHaveBeenCalled();
   });
-
-  it('displays max button for source token with balance and calls onMaxPress when clicked', () => {
-    // Arrange
-    const mockToken: BridgeToken = {
-      address: '0x1234567890123456789012345678901234567890',
-      symbol: 'TEST',
-      decimals: 18,
-      chainId: '0x1' as `0x${string}`,
-    };
-    const tokenBalance = '100.5';
-
-    const { getByText } = renderScreen(
-      () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Source}
-          token={mockToken}
-          tokenBalance={tokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />
-      ),
-      {
-        name: 'TokenInputArea',
-      },
-      { state: initialState },
-    );
-
-    // Act
-    const maxButton = getByText('Max');
-    fireEvent.press(maxButton);
-
-    // Assert
-    expect(mockOnMaxPress).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not display max button for destination token', () => {
-    // Arrange
-    const mockToken: BridgeToken = {
-      address: '0x1234567890123456789012345678901234567890',
-      symbol: 'TEST',
-      decimals: 18,
-      chainId: '0x1' as `0x${string}`,
-    };
-    const tokenBalance = '100.5';
-
-    const { queryByText } = renderScreen(
-      () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Destination}
-          token={mockToken}
-          tokenBalance={tokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />
-      ),
-      {
-        name: 'TokenInputArea',
-      },
-      { state: initialState },
-    );
-
-    // Assert
-    expect(queryByText('Max')).toBeNull();
-  });
-
-  it('does not display max button for native assets', () => {
-    // Arrange
-    const nativeToken: BridgeToken = {
-      address: '0x0000000000000000000000000000000000000000', // AddressZero for native ETH
-      symbol: 'ETH',
-      decimals: 18,
-      chainId: '0x1' as `0x${string}`,
-    };
-    const tokenBalance = '1.5';
-
-    const { queryByText } = renderScreen(
-      () => (
-        <TokenInputArea
-          testID="token-input"
-          tokenType={TokenInputAreaType.Source}
-          token={nativeToken}
-          tokenBalance={tokenBalance}
-          onMaxPress={mockOnMaxPress}
-        />
-      ),
-      {
-        name: 'TokenInputArea',
-      },
-      { state: initialState },
-    );
-
-    // Assert
-    expect(queryByText('Max')).toBeNull();
-  });
 });
 
 describe('calculateFontSize', () => {
@@ -209,8 +104,6 @@ describe('getDisplayAmount', () => {
 
   it('parses amount for destination type', () => {
     const amount = '1234567890123456789.12345';
-    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe(
-      '1234567890123456789.12345',
-    );
+    expect(getDisplayAmount(amount, TokenInputAreaType.Destination)).toBe('1234567890123456789.12345');
   });
 });

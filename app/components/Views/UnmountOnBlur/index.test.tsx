@@ -9,9 +9,7 @@ jest.mock('@react-navigation/native', () => ({
   useIsFocused: jest.fn(),
 }));
 
-const mockUseIsFocused = useIsFocused as jest.MockedFunction<
-  typeof useIsFocused
->;
+const mockUseIsFocused = useIsFocused as jest.MockedFunction<typeof useIsFocused>;
 
 describe('UnmountOnBlur', () => {
   beforeEach(() => {
@@ -27,7 +25,7 @@ describe('UnmountOnBlur', () => {
       const { getByText } = render(
         <UnmountOnBlur>
           <Text>Test Content</Text>
-        </UnmountOnBlur>,
+        </UnmountOnBlur>
       );
 
       expect(getByText('Test Content')).toBeTruthy();
@@ -40,7 +38,7 @@ describe('UnmountOnBlur', () => {
             <Text>Complex Content</Text>
             <Text>Multiple Children</Text>
           </View>
-        </UnmountOnBlur>,
+        </UnmountOnBlur>
       );
 
       expect(getByTestId('test-container')).toBeTruthy();
@@ -58,7 +56,7 @@ describe('UnmountOnBlur', () => {
       const { queryByText } = render(
         <UnmountOnBlur>
           <Text>Test Content</Text>
-        </UnmountOnBlur>,
+        </UnmountOnBlur>
       );
 
       expect(queryByText('Test Content')).toBeNull();
@@ -68,7 +66,7 @@ describe('UnmountOnBlur', () => {
       const { getByText, queryByText } = render(
         <UnmountOnBlur fallback={<Text>Fallback Content</Text>}>
           <Text>Main Content</Text>
-        </UnmountOnBlur>,
+        </UnmountOnBlur>
       );
 
       expect(queryByText('Main Content')).toBeNull();
@@ -79,7 +77,7 @@ describe('UnmountOnBlur', () => {
       const { queryByText } = render(
         <UnmountOnBlur>
           <Text>Test Content</Text>
-        </UnmountOnBlur>,
+        </UnmountOnBlur>
       );
 
       // Verify that children are not rendered
@@ -90,11 +88,11 @@ describe('UnmountOnBlur', () => {
   describe('focus state changes', () => {
     it('unmounts and remounts children when focus changes', () => {
       mockUseIsFocused.mockReturnValue(true);
-
+      
       const { getByText, queryByText, rerender } = render(
         <UnmountOnBlur>
           <Text>Dynamic Content</Text>
-        </UnmountOnBlur>,
+        </UnmountOnBlur>
       );
 
       // Initially focused - children should render
@@ -105,7 +103,7 @@ describe('UnmountOnBlur', () => {
       rerender(
         <UnmountOnBlur>
           <Text>Dynamic Content</Text>
-        </UnmountOnBlur>,
+        </UnmountOnBlur>
       );
 
       // Children should be unmounted
@@ -116,11 +114,11 @@ describe('UnmountOnBlur', () => {
       rerender(
         <UnmountOnBlur>
           <Text>Dynamic Content</Text>
-        </UnmountOnBlur>,
+        </UnmountOnBlur>
       );
 
       // Children should be remounted
       expect(getByText('Dynamic Content')).toBeTruthy();
     });
   });
-});
+}); 

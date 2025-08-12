@@ -562,9 +562,7 @@ class MetaMetrics implements IMetaMetrics {
         await this.#getDeleteRegulationDateFromPrefs();
       this.dataRecorded = await this.#getIsDataRecordedFromPrefs();
 
-      this.segmentClient?.add({
-        plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId),
-      });
+      this.segmentClient?.add({ plugin: new MetaMetricsPrivacySegmentPlugin(this.metametricsId) });
 
       this.#isConfigured = true;
 
@@ -711,8 +709,8 @@ class MetaMetrics implements IMetaMetrics {
         event.name,
         {
           anonymous: true,
-          ...event.properties,
-          ...event.sensitiveProperties,
+        ...event.properties,
+        ...event.sensitiveProperties,
         },
         saveDataRecording,
       );

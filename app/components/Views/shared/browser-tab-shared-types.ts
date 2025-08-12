@@ -15,10 +15,7 @@ export interface SharedTabProps {
   /**
    * Function to update the tab information
    */
-  updateTabInfo: (
-    tabID: number,
-    info: { url?: string; isArchived?: boolean; image?: string },
-  ) => void;
+  updateTabInfo: (tabID: number, info: { url?: string; isArchived?: boolean; image?: string }) => void;
 }
 
 /**

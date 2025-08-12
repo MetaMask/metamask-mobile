@@ -47,6 +47,7 @@ describe('handleMetaMaskProtocol', () => {
 
   const handled = jest.fn();
 
+
   let url = '';
 
   let params = {
@@ -77,7 +78,7 @@ describe('handleMetaMaskProtocol', () => {
         navigation: {
           navigate: mockNavigate,
         },
-      },
+      }
     }));
 
     mockWC2ManagerGetInstance.mockResolvedValue({
@@ -289,6 +290,7 @@ describe('handleMetaMaskProtocol', () => {
         screen: Routes.SHEET.RETURN_TO_DAPP_MODAL,
       });
     });
+
 
     it('should call handleDeeplink when channel exists and params.redirect is falsy', () => {
       origin = AppConstants.DEEPLINKS.ORIGIN_DEEPLINK;

@@ -18,7 +18,7 @@ import { TextFieldProps } from '../../../../../../component-library/components/F
 import { Theme } from '../../../../../../util/theme/models';
 
 interface DepositTextFieldProps extends Omit<TextFieldProps, 'size'> {
-  label: string | React.ReactNode;
+  label: string;
   error?: string;
   containerStyle?: StyleProp<ViewStyle>;
 }
@@ -48,13 +48,9 @@ const DepositTextField = forwardRef<TextInput, DepositTextFieldProps>(
 
     return (
       <View style={[styles.field, containerStyle]}>
-        {typeof label === 'string' ? (
-          <Label variant={TextVariant.BodyMD} style={styles.label}>
-            {label}
-          </Label>
-        ) : (
-          <View style={styles.label}>{label}</View>
-        )}
+        <Label variant={TextVariant.BodyMD} style={styles.label}>
+          {label}
+        </Label>
         <TextField
           size={TextFieldSize.Lg}
           placeholderTextColor={theme.colors.text.muted}

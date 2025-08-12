@@ -19,6 +19,7 @@ import SDKConnect from '../../../../../../../app/core/SDKConnect/SDKConnect';
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import { ClearPrivacyModalSelectorsIDs } from '../../../../../../../e2e/selectors/Settings/SecurityAndPrivacy/ClearPrivacyModal.selectors';
 
+
 const ClearPrivacy = () => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -42,10 +43,7 @@ const ClearPrivacy = () => {
       onRequestClose={() => setModalVisible(false)}
       onConfirmPress={clearApprovals}
     >
-      <View
-        style={styles.modalView}
-        testID={ClearPrivacyModalSelectorsIDs.CONTAINER}
-      >
+      <View style={styles.modalView} testID={ClearPrivacyModalSelectorsIDs.CONTAINER}>
         <Text variant={TextVariant.HeadingMD} style={styles.modalTitle}>
           {strings('app_settings.clear_approvals_modal_title')}
         </Text>

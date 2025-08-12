@@ -1,10 +1,4 @@
-import {
-  Account,
-  Balances,
-  Token,
-  getSortedTokensByFiatValue,
-  getFiatValue,
-} from './token-list-utils';
+import { Account, Balances, Token, getSortedTokensByFiatValue, getFiatValue } from './token-list-utils';
 
 describe('getSortedTokensByFiatValue', () => {
   const mockAccount: Account = {
@@ -104,9 +98,7 @@ describe('getSortedTokensByFiatValue', () => {
     // TOKEN2: 1 token * $50 = $50
     expect(result[0].symbol).toBe('TOKEN2');
     expect(result[1].symbol).toBe('TOKEN1');
-    expect(Number(result[0].balanceFiat)).toBeGreaterThan(
-      Number(result[1].balanceFiat),
-    );
+    expect(Number(result[0].balanceFiat)).toBeGreaterThan(Number(result[1].balanceFiat));
   });
 
   it('should handle tokens with no exchange rate', () => {
@@ -191,7 +183,7 @@ describe('getFiatValue', () => {
           pricePercentChange30d: 0,
           pricePercentChange200d: 0,
           pricePercentChange1y: 0,
-        },
+        }
       },
       balances: {}, // Empty balances object
       conversionRate: 1,

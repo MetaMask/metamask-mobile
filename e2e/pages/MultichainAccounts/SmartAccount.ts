@@ -1,20 +1,18 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import { SmartAccountIds } from '../../selectors/MultichainAccounts/SmartAccount.selectors';
 
 class SmartAccount {
-  get container(): DetoxElement {
+  get container() {
     return Matchers.getElementByID(SmartAccountIds.SMART_ACCOUNT_CONTAINER);
   }
 
-  get smartAccountSwitch(): DetoxElement {
+  get smartAccountSwitch() {
     return Matchers.getElementByID(SmartAccountIds.SMART_ACCOUNT_SWITCH);
   }
 
-  async tapSmartAccountSwitch(): Promise<void> {
-    await Gestures.waitAndTap(this.smartAccountSwitch, {
-      elemDescription: 'Smart Account Switch in Smart Account',
-    });
+  async tapSmartAccountSwitch() {
+    await Gestures.waitAndTap(this.smartAccountSwitch);
   }
 }
 

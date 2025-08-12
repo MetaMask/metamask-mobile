@@ -123,9 +123,7 @@ describe('NotificationManager', () => {
       });
 
       expect(title).toBe(strings('notifications.default_message_title'));
-      expect(message).toBe(
-        strings('notifications.default_message_description'),
-      );
+      expect(message).toBe(strings('notifications.default_message_description'));
     });
   });
 
@@ -133,27 +131,25 @@ describe('NotificationManager', () => {
     const mockTransactionController = {
       getTransactions: jest.fn(),
       state: {
-        transactions: [
-          {
-            id: '0x123',
-            txParams: {
-              nonce: '0x1',
-              from: '0x123',
-            },
-            chainId: '0x1',
-            time: 123,
-            status: 'failed' as TransactionMeta['status'],
-            error: { message: 'test error', rpc: { code: 0 }, name: 'Error' },
+        transactions: [{
+          id: '0x123',
+          txParams: {
+            nonce: '0x1',
+            from: '0x123'
           },
-        ],
-      },
+          chainId: '0x1',
+          time: 123,
+          status: 'failed' as TransactionMeta['status'],
+          error: { message: 'test error', rpc: { code: 0 }, name: 'Error' }
+        }]
+      }
     };
 
     const mockControllerMessenger = {
       subscribe: jest.fn(),
       unsubscribe: jest.fn(),
       subscribeOnceIf: jest.fn(),
-      tryUnsubscribe: jest.fn(),
+      tryUnsubscribe: jest.fn()
     };
 
     let showNotificationSpy: jest.SpyInstance;
@@ -164,12 +160,12 @@ describe('NotificationManager', () => {
         value: {
           TransactionController: mockTransactionController,
         },
-        writable: true,
+        writable: true
       });
 
       Object.defineProperty(Engine, 'controllerMessenger', {
         value: mockControllerMessenger,
-        writable: true,
+        writable: true
       });
     });
 
@@ -187,10 +183,7 @@ describe('NotificationManager', () => {
       });
 
       // Create spy on the instance method
-      showNotificationSpy = jest.spyOn(
-        notificationManager,
-        '_showNotification',
-      );
+      showNotificationSpy = jest.spyOn(notificationManager, '_showNotification');
     });
 
     afterAll(() => {
@@ -207,14 +200,13 @@ describe('NotificationManager', () => {
       notificationManager.watchSubmittedTransaction({
         id: '0x123',
         txParams: {
-          nonce: '0x1',
+          nonce: '0x1'
         },
-        silent: false,
+        silent: false
       });
 
       // Get the subscriber callback
-      const subscriberCallback =
-        mockControllerMessenger.subscribe.mock.calls[0][1];
+      const subscriberCallback = mockControllerMessenger.subscribe.mock.calls[0][1];
       await subscriberCallback(transaction);
 
       expect(showNotificationSpy).toHaveBeenCalledWith({
@@ -228,12 +220,10 @@ describe('NotificationManager', () => {
       const mockTransaction = {
         id: '0x123',
         txParams: {
-          nonce: '0x1',
-        },
+          nonce: '0x1'
+        }
       };
-      mockTransactionController.getTransactions.mockReturnValue([
-        mockTransaction,
-      ]);
+      mockTransactionController.getTransactions.mockReturnValue([mockTransaction]);
 
       const smartTransaction = {
         status: SmartTransactionStatuses.CANCELLED,
@@ -243,14 +233,13 @@ describe('NotificationManager', () => {
       notificationManager.watchSubmittedTransaction({
         id: '0x123',
         txParams: {
-          nonce: '0x1',
+          nonce: '0x1'
         },
-        silent: false,
+        silent: false
       });
 
       // Get the subscriber callback
-      const subscriberCallback =
-        mockControllerMessenger.subscribe.mock.calls[0][1];
+      const subscriberCallback = mockControllerMessenger.subscribe.mock.calls[0][1];
       await subscriberCallback(smartTransaction);
 
       expect(showNotificationSpy).toHaveBeenCalledWith({
@@ -270,19 +259,18 @@ describe('NotificationManager', () => {
       notificationManager.watchSubmittedTransaction({
         id: '0x123',
         txParams: {
-          nonce: '0x1',
+          nonce: '0x1'
         },
-        silent: false,
+        silent: false
       });
 
       // Get the subscriber callback
-      const subscriberCallback =
-        mockControllerMessenger.subscribe.mock.calls[0][1];
+      const subscriberCallback = mockControllerMessenger.subscribe.mock.calls[0][1];
       await subscriberCallback(transaction);
 
       expect(mockControllerMessenger.unsubscribe).toHaveBeenCalledWith(
         'SmartTransactionsController:smartTransaction',
-        subscriberCallback,
+        subscriberCallback
       );
     });
 
@@ -290,9 +278,9 @@ describe('NotificationManager', () => {
       const transaction = {
         id: '0x123',
         txParams: {
-          nonce: '0x1',
+          nonce: '0x1'
         },
-        silent: false,
+        silent: false
       };
 
       notificationManager.watchSubmittedTransaction(transaction);
@@ -301,17 +289,17 @@ describe('NotificationManager', () => {
       expect(mockControllerMessenger.subscribeOnceIf).toHaveBeenCalledWith(
         'TransactionController:transactionConfirmed',
         expect.any(Function),
-        expect.any(Function),
+        expect.any(Function)
       );
       expect(mockControllerMessenger.subscribeOnceIf).toHaveBeenCalledWith(
         'TransactionController:transactionFailed',
         expect.any(Function),
-        expect.any(Function),
+        expect.any(Function)
       );
       expect(mockControllerMessenger.subscribeOnceIf).toHaveBeenCalledWith(
         'TransactionController:speedupTransactionAdded',
         expect.any(Function),
-        expect.any(Function),
+        expect.any(Function)
       );
     });
   });

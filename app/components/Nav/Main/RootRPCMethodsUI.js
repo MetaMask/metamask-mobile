@@ -78,7 +78,6 @@ import SnapDialogApproval from '../../Snaps/SnapDialogApproval/SnapDialogApprova
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import SnapAccountCustomNameApproval from '../../Approvals/SnapAccountCustomNameApproval';
-import { getIsBridgeTransaction } from '../../UI/Bridge/utils/transaction';
 ///: END:ONLY_INCLUDE_IF
 
 const hstInterface = new ethers.utils.Interface(abi);
@@ -390,8 +389,7 @@ const RootRPCMethodsUI = (props) => {
           transactionMeta.origin,
           to,
           props.chainId,
-        ) ||
-        getIsBridgeTransaction(transactionMeta)
+        )
       ) {
         autoSign(transactionMeta);
       } else {

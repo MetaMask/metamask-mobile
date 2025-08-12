@@ -1,10 +1,7 @@
 import { BrowserViewSelectorsIDs } from '../../selectors/Browser/BrowserView.selectors';
-import {
-  PortfolioPageSelectorsXpath,
-  PortfolioPageSelectorsWebID,
-} from '../../selectors/Browser/PortfolioPage.selectors';
-import Gestures from '../../framework/Gestures';
-import Matchers from '../../framework/Matchers';
+import { PortfolioPageSelectorsXpath, PortfolioPageSelectorsWebID } from '../../selectors/Browser/PortfolioPage.selectors';
+import Gestures from '../../utils/Gestures';
+import Matchers from '../../utils/Matchers';
 
 class PortfolioHomePage {
   get connectWalletButton(): WebElement {
@@ -36,28 +33,20 @@ class PortfolioHomePage {
   }
 
   async tapConnectMetaMask(): Promise<void> {
-    await Gestures.waitAndTap(this.connectWalletButton, {
-      elemDescription: 'Portfolio - Connect MetaMask button',
-    });
+    await Gestures.tapWebElement(this.connectWalletButton);
   }
 
   async closePrivacyModal(): Promise<void> {
-    await Gestures.waitAndTap(this.closeIconPrivacyModal, {
-      elemDescription: 'Portfolio - Close privacy modal',
-    });
+    await Gestures.tapWebElement(this.closeIconPrivacyModal, {delayBeforeTap: 1000});
   }
 
   async tapAccountButton(): Promise<void> {
-    await Gestures.waitAndTap(this.accountButton, {
-      elemDescription: 'Portfolio - Account button',
-    });
+    await Gestures.tapWebElement(this.accountButton);
   }
 
   async tapBurgerMenu(): Promise<void> {
-    await Gestures.waitAndTap(this.burgerMenu, {
-      elemDescription: 'Portfolio - Burger menu',
-    });
+    await Gestures.tapWebElement(this.burgerMenu);
   }
 }
 
-export default new PortfolioHomePage();
+export default new PortfolioHomePage(); 

@@ -87,9 +87,7 @@ describe('connectToChannel', () => {
         socketServerUrl: 'ws://test-url',
         rpcqueueManager: {},
         navigation: {
-          getCurrentRoute: jest
-            .fn()
-            .mockReturnValue({ name: 'default-main-route' }),
+          getCurrentRoute: jest.fn().mockReturnValue({ name: 'default-main-route' }),
           navigate: jest.fn(),
           dispatch: jest.fn(),
           reset: jest.fn(),
@@ -126,9 +124,7 @@ describe('connectToChannel', () => {
       },
       connect: mockConnect,
       navigation: {
-        getCurrentRoute: jest
-          .fn()
-          .mockReturnValue({ name: 'default-mock-conn-route' }),
+        getCurrentRoute: jest.fn().mockReturnValue({ name: 'default-mock-conn-route' }),
         navigate: jest.fn(),
       } as unknown as NavigationContainerRef,
     } as unknown as Connection;
@@ -137,35 +133,33 @@ describe('connectToChannel', () => {
     MockedConnection.mockClear();
     MockedConnection.mockImplementation(
       (props: ConnectionProps) =>
-        ({
-          ...props,
-          remote: {
-            getKeyInfo: mockGetKeyInfo,
-            reject: mockConnectionRemoteReject,
-            connect: jest.fn().mockResolvedValue(undefined),
-            state: {},
-            sendMessage: jest.fn().mockResolvedValue(undefined),
-          },
+      ({
+        ...props,
+        remote: {
+          getKeyInfo: mockGetKeyInfo,
+          reject: mockConnectionRemoteReject,
           connect: jest.fn().mockResolvedValue(undefined),
-          isReady: false,
-          navigation: {
-            getCurrentRoute: jest
-              .fn()
-              .mockReturnValue({ name: 'default-new-conn-route' }),
-            navigate: jest.fn(),
-            dispatch: jest.fn(),
-            reset: jest.fn(),
-            goBack: jest.fn(),
-            isFocused: jest.fn().mockReturnValue(true),
-            canGoBack: jest.fn().mockReturnValue(true),
-            getParent: jest.fn(),
-            getState: jest.fn(),
-            addListener: jest.fn(),
-            removeListener: jest.fn(),
-            setParams: jest.fn(),
-            setOptions: jest.fn(),
-          } as unknown as NavigationContainerRef,
-        } as unknown as Connection),
+          state: {},
+          sendMessage: jest.fn().mockResolvedValue(undefined),
+        },
+        connect: jest.fn().mockResolvedValue(undefined),
+        isReady: false,
+        navigation: {
+          getCurrentRoute: jest.fn().mockReturnValue({ name: 'default-new-conn-route' }),
+          navigate: jest.fn(),
+          dispatch: jest.fn(),
+          reset: jest.fn(),
+          goBack: jest.fn(),
+          isFocused: jest.fn().mockReturnValue(true),
+          canGoBack: jest.fn().mockReturnValue(true),
+          getParent: jest.fn(),
+          getState: jest.fn(),
+          addListener: jest.fn(),
+          removeListener: jest.fn(),
+          setParams: jest.fn(),
+          setOptions: jest.fn(),
+        } as unknown as NavigationContainerRef,
+      } as unknown as Connection),
     );
   });
 
@@ -301,14 +295,10 @@ describe('connectToChannel', () => {
 
     it('should track wallet_connection_user_rejected when checkPermissions rejects', async () => {
       originatorInfo.anonId = 'test-anon-id';
-      (checkPermissions as jest.Mock).mockRejectedValue(
-        new Error('Permission denied'),
-      );
+      (checkPermissions as jest.Mock).mockRejectedValue(new Error('Permission denied'));
 
       if (mockInstance.state.navigation) {
-        mockInstance.state.navigation.getCurrentRoute = jest
-          .fn()
-          .mockReturnValue({ name: 'rejection-test-route' });
+        mockInstance.state.navigation.getCurrentRoute = jest.fn().mockReturnValue({ name: 'rejection-test-route' });
       }
 
       await connectToChannel({

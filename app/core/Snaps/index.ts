@@ -5,7 +5,10 @@ import {
   ExcludedSnapEndowments,
   EndowmentPermissions,
 } from './permissions/permissions';
-import { detectSnapLocation, DetectSnapLocationOptions } from './location';
+import {
+  detectSnapLocation,
+  DetectSnapLocationOptions,
+} from './location';
 
 export {
   SnapBridge,

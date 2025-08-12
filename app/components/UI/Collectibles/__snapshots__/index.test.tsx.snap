@@ -72,10 +72,11 @@ exports[`Collectibles should render correctly collectibles 1`] = `
           onPress={[Function]}
           style={
             {
-              "alignItems": "center",
+              "alignItems": "flex-start",
               "flex": 1,
               "flexDirection": "row",
-              "height": 64,
+              "paddingHorizontal": 15,
+              "paddingVertical": 14,
             }
           }
           testID="asset-undefined"
@@ -225,6 +226,7 @@ exports[`Collectibles should render correctly collectibles 1`] = `
             style={
               {
                 "alignItems": "flex-end",
+                "alignSelf": "flex-end",
                 "flexShrink": 0,
               }
             }
@@ -274,7 +276,7 @@ exports[`Collectibles should render empty collectibles correctly 1`] = `
         <Text
           style={
             {
-              "color": "#b7bbc8",
+              "color": "#9ca1af",
               "fontFamily": "CentraNo1-Book",
               "fontSize": 20,
               "fontWeight": "400",

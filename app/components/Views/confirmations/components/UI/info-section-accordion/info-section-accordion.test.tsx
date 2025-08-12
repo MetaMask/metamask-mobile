@@ -11,12 +11,12 @@ describe('InfoSectionAccordion', () => {
     const testContent = 'Test Content';
 
     const { getByText, queryByText } = renderWithProvider(
-      <InfoSectionAccordion header={testHeader}>
-        <Text>{testContent}</Text>
-      </InfoSectionAccordion>,
-      {
-        state: stakingDepositConfirmationState,
-      },
+        <InfoSectionAccordion header={testHeader}>
+            <Text>{testContent}</Text>
+        </InfoSectionAccordion>,
+        {
+            state: stakingDepositConfirmationState,
+        },
     );
 
     expect(getByText(testHeader)).toBeDefined();
@@ -38,12 +38,12 @@ describe('InfoSectionAccordion', () => {
     const testContent = 'Test Content';
 
     const { getByText, queryByText } = renderWithProvider(
-      <InfoSectionAccordion header={testHeader} initiallyExpanded>
-        <Text>{testContent}</Text>
-      </InfoSectionAccordion>,
-      {
-        state: stakingDepositConfirmationState,
-      },
+        <InfoSectionAccordion header={testHeader} initiallyExpanded>
+            <Text>{testContent}</Text>
+        </InfoSectionAccordion>,
+        {
+            state: stakingDepositConfirmationState,
+        },
     );
 
     expect(getByText(testHeader)).toBeDefined();

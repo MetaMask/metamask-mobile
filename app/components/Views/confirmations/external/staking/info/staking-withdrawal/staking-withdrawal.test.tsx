@@ -7,7 +7,6 @@ import { useConfirmActions } from '../../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../../hooks/metrics/useConfirmationMetricEvents';
 import { getNavbar } from '../../../../components/UI/navbar/navbar';
 import StakingWithdrawal from './staking-withdrawal';
-import { endTrace, TraceName } from '../../../../../../../util/trace';
 
 jest.mock('../../../../../../hooks/AssetPolling/AssetPollingProvider', () => ({
   AssetPollingProvider: () => null,
@@ -23,9 +22,6 @@ jest.mock('../../../../../../../core/Engine', () => ({
       startPolling: jest.fn(),
       stopPollingByPollingToken: jest.fn(),
     },
-  },
-  controllerMessenger: {
-    subscribeOnceIf: jest.fn(),
   },
 }));
 
@@ -44,11 +40,6 @@ jest.mock('../../../../components/UI/navbar/navbar', () => ({
 jest.mock('../../../../utils/token', () => ({
   ...jest.requireActual('../../../../utils/token'),
   fetchErc20Decimals: jest.fn().mockResolvedValue(18),
-}));
-
-jest.mock('../../../../../../../util/trace', () => ({
-  ...jest.requireActual('../../../../../../../util/trace'),
-  endTrace: jest.fn(),
 }));
 
 const noop = () => undefined;
@@ -72,7 +63,6 @@ describe('StakingWithdrawal', () => {
   const mockUseConfirmationMetricEvents = jest.mocked(
     useConfirmationMetricEvents,
   );
-  const mockEndTrace = jest.mocked(endTrace);
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -156,28 +146,6 @@ describe('StakingWithdrawal', () => {
           }),
         }),
       );
-    });
-  });
-
-  it('ends the EarnWithdrawConfirmationScreen trace on mount', () => {
-    renderWithProvider(
-      <StakingWithdrawal
-        route={{
-          params: {
-            amountWei: '1000000000000000000',
-            amountFiat: '1000000000000000000',
-          },
-          key: 'mockRouteKey',
-          name: 'params',
-        }}
-      />,
-      {
-        state: stakingWithdrawalConfirmationState,
-      },
-    );
-
-    expect(mockEndTrace).toHaveBeenCalledWith({
-      name: TraceName.EarnWithdrawConfirmationScreen,
     });
   });
 });

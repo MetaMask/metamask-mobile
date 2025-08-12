@@ -7,9 +7,7 @@ describe('useBluetoothDevices', () => {
 
   beforeEach(() => {
     subscribeMock = jest.fn();
-    jest
-      .spyOn(Observable.prototype, 'subscribe')
-      .mockImplementation(subscribeMock);
+    jest.spyOn(Observable.prototype, 'subscribe').mockImplementation(subscribeMock);
   });
 
   afterEach(() => {
@@ -31,6 +29,7 @@ describe('useBluetoothDevices', () => {
   });
 
   it('returns expected device and no error when permissions and bluetooth are on and devices scan return devices', async () => {
+
     const expectedDevice1 = {
       id: '1',
       name: 'Device 1',

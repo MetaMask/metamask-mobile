@@ -1,33 +1,31 @@
-import Matchers from '../../framework/Matchers';
-import Gestures from '../../framework/Gestures';
+import Matchers from '../../utils/Matchers';
+import Gestures from '../../utils/Gestures';
 import { EditAccountNameIds } from '../../selectors/MultichainAccounts/EditAccountName.selectors';
 
 class EditAccountName {
-  get container(): DetoxElement {
+  get container() {
     return Matchers.getElementByID(
       EditAccountNameIds.EDIT_ACCOUNT_NAME_CONTAINER,
     );
   }
 
-  get accountNameInput(): DetoxElement {
-    return Matchers.getElementByID(EditAccountNameIds.ACCOUNT_NAME_INPUT);
+  get accountNameInput() {
+    return Matchers.getElementByID(
+      EditAccountNameIds.ACCOUNT_NAME_INPUT,
+    ) as Promise<Detox.IndexableNativeElement>;
   }
 
-  get saveButton(): DetoxElement {
+  get saveButton() {
     return Matchers.getElementByID(EditAccountNameIds.SAVE_BUTTON);
   }
 
-  async updateAccountName(newName: string): Promise<void> {
-    await Gestures.typeText(this.accountNameInput, newName, {
-      elemDescription: 'Account Name Input in Edit Account Name',
-      hideKeyboard: true,
-    });
+  async updateAccountName(newName: string) {
+    await Gestures.clearField(this.accountNameInput);
+    await Gestures.typeTextAndHideKeyboard(this.accountNameInput, newName);
   }
 
-  async tapSave(): Promise<void> {
-    await Gestures.waitAndTap(this.saveButton, {
-      elemDescription: 'Save Button in Edit Account Name',
-    });
+  async tapSave() {
+    await Gestures.waitAndTap(this.saveButton);
   }
 }
 

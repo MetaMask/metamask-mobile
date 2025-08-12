@@ -227,13 +227,12 @@ exports[`PhishingModal should render correctly 1`] = `
       {
         "alignItems": "center",
         "alignSelf": "stretch",
-        "backgroundColor": "#121314",
+        "backgroundColor": "#4459ff",
         "borderRadius": 12,
         "flexDirection": "row",
         "height": 48,
         "justifyContent": "center",
         "marginTop": 32,
-        "overflow": "hidden",
         "paddingHorizontal": 16,
       }
     }

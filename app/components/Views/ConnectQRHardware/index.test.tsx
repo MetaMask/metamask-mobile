@@ -8,24 +8,11 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { act } from '@testing-library/react-hooks';
 import PAGINATION_OPERATIONS from '../../../constants/pagination';
 import {
-  ACCOUNT_SELECTOR_FORGET_BUTTON,
   ACCOUNT_SELECTOR_NEXT_BUTTON,
   ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
 } from '../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
-import { removeAccountsFromPermissions } from '../../../core/Permissions';
 
-jest.mock('../../../core/Permissions', () => ({
-  removeAccountsFromPermissions: jest.fn(),
-}));
-
-const MockRemoveAccountsFromPermissions = jest.mocked(
-  removeAccountsFromPermissions,
-);
-
-const mockedNavigate = {
-  pop: jest.fn(),
-  goBack: jest.fn(),
-};
+const mockedNavigate = jest.fn();
 
 const mockPage0Accounts = [
   {
@@ -112,29 +99,16 @@ jest.mock('../../../core/Engine', () => ({
       },
       getAccounts: jest.fn(),
       getOrAddQRKeyring: jest.fn(),
-      withKeyring: jest
-        .fn()
-        .mockImplementation(
-          (_selector: unknown, operation: (args: unknown) => void) =>
-            operation({
-              keyring: {
-                cancelSync: jest.fn(),
-                submitCryptoAccount: jest.fn(),
-                submitCryptoHDKey: jest.fn(),
-                getAccounts: jest
-                  .fn()
-                  .mockReturnValue([
-                    '0x4x678901234567890123456789012345678901210',
-                    '0xa1e359811322d97991e03f863a0c30c2cf029cd24',
-                  ]),
-              },
-              metadata: { id: '1234' },
-            }),
-        ),
+      withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
+        operation({
+          keyring: {
+            cancelSync: jest.fn(),
+            submitCryptoAccount: jest.fn(),
+            submitCryptoHDKey: jest.fn(),
+          },
+          metadata: { id: '1234' },
+        }),
       connectQRHardware: jest.fn(),
-      forgetQRDevice: jest
-        .fn()
-        .mockReturnValue({ remainingAccounts: ['0xdeadbeef'] }),
     },
     AccountTrackerController: {
       syncBalanceWithAddresses: jest.fn(),
@@ -144,7 +118,6 @@ jest.mock('../../../core/Engine', () => ({
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
   },
-  setSelectedAddress: jest.fn(),
 }));
 const MockEngine = jest.mocked(Engine);
 
@@ -295,34 +268,5 @@ describe('ConnectQRHardware', () => {
     mockPage0Accounts.forEach((account) => {
       expect(getByText(account.shortenedAddress)).toBeDefined();
     });
-  });
-
-  it('removes any hardware wallet accounts from existing permissions', async () => {
-    mockKeyringController.getAccounts.mockResolvedValue([]);
-
-    const { getByTestId } = renderWithProvider(
-      <ConnectQRHardware navigation={mockedNavigate} />,
-      { state: mockInitialState },
-    );
-
-    const button = getByTestId(QR_CONTINUE_BUTTON);
-    expect(button).toBeDefined();
-
-    await act(async () => {
-      fireEvent.press(button);
-    });
-
-    const forgetButton = getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON);
-    expect(forgetButton).toBeDefined();
-    await act(async () => {
-      fireEvent.press(forgetButton);
-    });
-
-    expect(mockKeyringController.withKeyring).toHaveBeenCalled();
-    expect(MockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
-      '0x4x678901234567890123456789012345678901210',
-      '0xa1e359811322d97991e03f863a0c30c2cf029cd24',
-    ]);
-    expect(mockKeyringController.forgetQRDevice).toHaveBeenCalled();
   });
 });

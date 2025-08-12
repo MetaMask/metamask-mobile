@@ -49,14 +49,13 @@ export const getPhishingTestResultAsync = async (
       // result is true if site is UNSAFE (Block action)
       result:
         scanResult.recommendedAction !== RecommendedAction.None &&
-        scanResult.recommendedAction !== RecommendedAction.Warn &&
-        scanResult.recommendedAction !== RecommendedAction.Verified,
+        scanResult.recommendedAction !== RecommendedAction.Warn,
       name: 'Product safety dapp scanning is enabled',
       type: 'DAPP_SCANNING' as PhishingDetectorResultType,
     };
   }
 
-  await PhishingController.maybeUpdateState();
+  PhishingController.maybeUpdateState();
   const result = PhishingController.test(origin);
   // Return the raw result from EPD - result is true if site is UNSAFE
   return result;

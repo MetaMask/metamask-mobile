@@ -4782,7 +4782,7 @@ exports[`Regions View renders correctly with unsupportedRegion 1`] = `
                               onStartShouldSetResponder={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3f434a66",
+                                  "backgroundColor": "#00000066",
                                   "bottom": 0,
                                   "height": 1334,
                                   "left": 0,
@@ -5938,7 +5938,7 @@ exports[`Regions View renders correctly with unsupportedRegion 2`] = `
                               onStartShouldSetResponder={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3f434a66",
+                                  "backgroundColor": "#00000066",
                                   "bottom": 0,
                                   "height": 1334,
                                   "left": 0,
@@ -7096,7 +7096,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                               onStartShouldSetResponder={[Function]}
                               style={
                                 {
-                                  "backgroundColor": "#3f434a66",
+                                  "backgroundColor": "#00000066",
                                   "bottom": 0,
                                   "height": 1334,
                                   "left": 0,
@@ -7417,7 +7417,7 @@ exports[`Regions View renders regions modal when pressing select button 1`] = `
                                           <TextInput
                                             onChangeText={[Function]}
                                             placeholder="Search by country"
-                                            placeholderTextColor="#b7bbc8"
+                                            placeholderTextColor="#9ca1af"
                                             style={
                                               {
                                                 "color": "#121314",

@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { useTheme } from '../../../../util/theme';
 import createStyles from '../styles';
@@ -15,18 +15,13 @@ import { strings } from '../../../../../locales/i18n';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectNetworkName } from '../../../../selectors/networkInfos';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../component-library/components/Buttons/ButtonIcon';
+import ButtonIcon from '../../../../component-library/components/Buttons/ButtonIcon';
 import {
   createTokenBottomSheetFilterNavDetails,
   createTokensBottomSheetNavDetails,
 } from '../TokensBottomSheet';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import TextComponent, {
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -70,11 +65,11 @@ export const TokenListControlBar = ({
         <ButtonBase
           testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
           label={
-            <TextComponent variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+            <Text style={styles.controlButtonText} numberOfLines={1}>
               {isAllNetworks && isPopularNetwork && isEvmSelected
                 ? strings('wallet.popular_networks')
                 : networkName ?? strings('wallet.current_network')}
-            </TextComponent>
+            </Text>
           }
           isDisabled={isDisabled}
           onPress={isEvmSelected ? showFilterControls : () => null}
@@ -87,18 +82,19 @@ export const TokenListControlBar = ({
         <View style={styles.controlButtonInnerWrapper}>
           <ButtonIcon
             testID={WalletViewSelectorsIDs.SORT_BY}
-            size={ButtonIconSizes.Lg}
             onPress={showSortControls}
             iconName={IconName.SwapVertical}
             style={styles.controlIconButton}
           />
           <ButtonIcon
             testID={WalletViewSelectorsIDs.IMPORT_TOKEN_BUTTON}
-            size={ButtonIconSizes.Lg}
             onPress={goToAddToken}
             iconName={IconName.Add}
-            isDisabled={!isEvmSelected}
-            style={styles.controlIconButton}
+            style={
+              isEvmSelected
+                ? styles.controlIconButton
+                : styles.controlIconButtonDisabled
+            }
             disabled={!isEvmSelected}
           />
         </View>

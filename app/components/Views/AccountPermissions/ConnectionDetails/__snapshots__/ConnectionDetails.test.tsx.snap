@@ -110,13 +110,12 @@ exports[`ConnectionDetails renders correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "#121314",
+          "backgroundColor": "#4459ff",
           "borderRadius": 12,
           "flex": 1,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
-          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }

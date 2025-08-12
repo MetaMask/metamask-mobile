@@ -9,7 +9,18 @@ interface ArrangeMocksMetamaskStateOverrides {
   useExternalServices: boolean;
   isSignedIn: boolean;
   completedOnboarding: boolean;
+  isBackupAndSyncEnabled: boolean;
+  participateInMetaMetrics: boolean;
+  isNotificationServicesEnabled: boolean;
 }
+
+const mockMetricsIsEnabled = jest.fn();
+
+jest.mock('../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    isEnabled: mockMetricsIsEnabled,
+  }),
+}));
 
 const arrangeMockState = (
   stateOverrides: ArrangeMocksMetamaskStateOverrides,
@@ -22,6 +33,13 @@ const arrangeMockState = (
       },
       AuthenticationController: {
         isSignedIn: stateOverrides.isSignedIn,
+      },
+      UserStorageController: {
+        isBackupAndSyncEnabled: stateOverrides.isBackupAndSyncEnabled,
+      },
+      NotificationServicesController: {
+        isNotificationServicesEnabled:
+          stateOverrides.isNotificationServicesEnabled,
       },
     },
   },
@@ -37,6 +55,8 @@ const arrangeMocks = (stateOverrides: ArrangeMocksMetamaskStateOverrides) => {
   jest.clearAllMocks();
   const state = arrangeMockState(stateOverrides);
 
+  mockMetricsIsEnabled.mockReturnValue(stateOverrides.participateInMetaMetrics);
+
   const mockPerformSignInAction = jest.spyOn(actions, 'performSignIn');
   return {
     state,
@@ -49,6 +69,12 @@ const prerequisitesStateKeys = [
   'useExternalServices',
   'isSignedIn',
   'completedOnboarding',
+];
+
+const authDependentFeaturesStateKeys = [
+  'isBackupAndSyncEnabled',
+  'participateInMetaMetrics',
+  'isNotificationServicesEnabled',
 ];
 
 const shouldAutoSignInTestCases: ArrangeMocksMetamaskStateOverrides[] = [];
@@ -71,27 +97,42 @@ const generateCombinations = (keys: string[]) => {
 };
 
 const prerequisiteCombinations = generateCombinations(prerequisitesStateKeys);
+const authDependentCombinations = generateCombinations(
+  authDependentFeaturesStateKeys,
+);
 
-prerequisiteCombinations.forEach((combinedState) => {
-  if (
-    combinedState.isUnlocked &&
-    combinedState.useExternalServices &&
-    combinedState.completedOnboarding &&
-    !combinedState.isSignedIn
-  ) {
-    shouldAutoSignInTestCases.push(combinedState);
-  } else {
-    shouldNotAutoSignInTestCases.push(combinedState);
-  }
+prerequisiteCombinations.forEach((prerequisiteState) => {
+  authDependentCombinations.forEach((authDependentState) => {
+    const combinedState = {
+      ...prerequisiteState,
+      ...authDependentState,
+    };
+    if (
+      combinedState.isUnlocked &&
+      combinedState.useExternalServices &&
+      combinedState.completedOnboarding &&
+      !combinedState.isSignedIn &&
+      authDependentFeaturesStateKeys.some(
+        (key) => combinedState[key as keyof ArrangeMocksMetamaskStateOverrides],
+      )
+    ) {
+      shouldAutoSignInTestCases.push(combinedState);
+    } else {
+      shouldNotAutoSignInTestCases.push(combinedState);
+    }
+  });
 });
 
 describe('useAutoSignIn', () => {
   it('initializes correctly', () => {
     const { state } = arrangeMocks({
       isUnlocked: false,
+      isBackupAndSyncEnabled: false,
       isSignedIn: false,
       completedOnboarding: false,
+      participateInMetaMetrics: false,
       useExternalServices: false,
+      isNotificationServicesEnabled: false,
     });
     const hook = renderHookWithProvider(() => useAutoSignIn(), {
       state,
@@ -133,6 +174,9 @@ describe('useAutoSignIn', () => {
       useExternalServices: true,
       isSignedIn: true,
       completedOnboarding: true,
+      isBackupAndSyncEnabled: true,
+      participateInMetaMetrics: false,
+      isNotificationServicesEnabled: false,
     };
     const { state, mockPerformSignInAction } = arrangeMocks(stateOverrides);
     const hook = renderHookWithProvider(() => useAutoSignIn(), { state });

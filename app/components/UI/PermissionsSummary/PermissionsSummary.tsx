@@ -6,6 +6,7 @@ import {
   View,
 } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
+import DefaultTabBar from 'react-native-scrollable-tab-view/DefaultTabBar';
 import { useNavigation } from '@react-navigation/native';
 import { NON_EVM_TESTNET_IDS } from '@metamask/multichain-network-controller';
 import StyledButton from '../StyledButton';
@@ -40,7 +41,6 @@ import Routes from '../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../component-library/components/Buttons/ButtonIcon';
-import TabBar from '../../../component-library/components-temp/TabBar';
 import {
   getNetworkImageSource,
   isPerDappSelectedNetworkEnabled,
@@ -121,13 +121,16 @@ const PermissionsSummary = ({
   const privacyMode = useSelector(selectPrivacyMode);
   const [bottomSheetHeight, setBottomSheetHeight] = useState(0);
 
-  const hostname = useMemo(() => {
-    try {
-      return new URL(currentPageInformation.url).hostname;
-    } catch {
-      return currentPageInformation.url;
-    }
-  }, [currentPageInformation.url]);
+  const hostname = useMemo(
+    () => {
+      try {
+        return new URL(currentPageInformation.url).hostname
+      } catch {
+        return currentPageInformation.url;
+      }
+    },
+    [currentPageInformation.url],
+  );
   const { networkName, networkImageSource } = useNetworkInfo(hostname);
 
   // if network switch, we get the chain name from the customNetworkInformation
@@ -541,9 +544,22 @@ const PermissionsSummary = ({
 
   const renderTabBar = useCallback(
     (props: Record<string, unknown>) => (
-      <TabBar backgroundColor={colors.background.alternative} {...props} />
+      <View style={styles.base}>
+        <DefaultTabBar
+          underlineStyle={styles.tabUnderlineStyle}
+          activeTextColor={colors.primary.default}
+          inactiveUnderlineStyle={styles.tabUnderlineStyleInactive}
+          inactiveTextColor={colors.text.muted}
+          backgroundColor={colors.background.alternative}
+          tabStyle={styles.tabStyle}
+          textStyle={styles.textStyle}
+          tabPadding={16}
+          style={styles.tabBar}
+          {...props}
+        />
+      </View>
     ),
-    [colors],
+    [styles, colors],
   );
 
   const filteredAccountAddresses = useMemo(

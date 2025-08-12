@@ -12,7 +12,6 @@ import {
 
 import { createDeepEqualSelector } from '../util';
 import { RootState } from '../../reducers';
-import { selectRemoteFeatureFlags } from '../featureFlagController';
 
 type NotificationServicesState = NotificationServicesControllerState;
 
@@ -23,11 +22,6 @@ const selectNotificationServicesControllerState = (state: RootState) =>
 const selectNotificationServicesPushControllerState = (state: RootState) =>
   state?.engine?.backgroundState?.NotificationServicesPushController ??
   pushControllerDefaultState;
-
-export const getIsNotificationEnabledByDefaultFeatureFlag = createSelector(
-  [selectRemoteFeatureFlags],
-  (remoteFlags) => Boolean(remoteFlags?.assetsEnableNotificationsByDefault),
-);
 
 export const selectIsMetamaskNotificationsEnabled = createSelector(
   selectNotificationServicesControllerState,

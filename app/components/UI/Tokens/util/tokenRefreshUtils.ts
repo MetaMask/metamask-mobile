@@ -16,42 +16,28 @@ export const performEvmRefresh = async (
     TokenRatesController,
     TokenBalancesController,
     NetworkController,
-    PreferencesController,
   } = Engine.context;
 
-  const tokenListChains = PreferencesController.state.tokenNetworkFilter;
-  const networkConfigurations =
-    NetworkController.state.networkConfigurationsByChainId;
-
-  const chainIds = Object.keys(tokenListChains) as Hex[];
-  const networkClientIds = chainIds
-    .map((c) => {
-      const config = networkConfigurations[c];
-      if (!config) {
-        return undefined;
-      }
-
-      return config?.rpcEndpoints?.[config?.defaultRpcEndpointIndex]
-        ?.networkClientId;
-    })
-    .filter((c: string | undefined): c is string => Boolean(c));
+  const networkClientIds = Object.values(
+    NetworkController.state.networkConfigurationsByChainId,
+  ).map(
+    (network) =>
+      network?.rpcEndpoints?.[network.defaultRpcEndpointIndex]?.networkClientId,
+  );
 
   const actions = [
     TokenDetectionController.detectTokens({
-      chainIds,
+      chainIds: Object.keys(evmNetworkConfigurationsByChainId) as Hex[],
     }),
     TokenBalancesController.updateBalances({
-      chainIds,
+      chainIds: Object.keys(evmNetworkConfigurationsByChainId) as Hex[],
     }),
     AccountTrackerController.refresh(networkClientIds),
     CurrencyRateController.updateExchangeRate(nativeCurrencies),
     TokenRatesController.updateExchangeRatesByChainId(
-      chainIds
-        .filter((chainId) => {
-          const config = evmNetworkConfigurationsByChainId[chainId];
-          return config?.chainId && config?.nativeCurrency;
-        })
-        .map((c) => evmNetworkConfigurationsByChainId[c]),
+      Object.values(evmNetworkConfigurationsByChainId).filter(
+        (n) => n.chainId && n.nativeCurrency,
+      ),
     ),
   ];
 

@@ -15,10 +15,9 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { strings } from '../../../../../locales/i18n';
 import Networks, {
   getAllNetworks,
-  getMainnetNetworks,
-  getTestNetworks,
   getNetworkImageSource,
-  isMainnetNetwork,
+  isDefaultMainnet,
+  isLineaMainnet,
   isMainNet,
   isTestNet,
 } from '../../../../util/networks';
@@ -182,6 +181,8 @@ class NetworksSettings extends PureComponent {
     this.updateNavBar();
   };
 
+  getOtherNetworks = () => getAllNetworks().slice(2);
+
   onNetworkPress = (networkTypeOrRpcUrl) => {
     const { navigation } = this.props;
     navigation.navigate(Routes.ADD_NETWORK, {
@@ -262,54 +263,62 @@ class NetworksSettings extends PureComponent {
     const styles = createStyles(colors);
     return (
       <View key={`network-${networkTypeOrRpcUrl}`}>
-        {isMainnetNetwork(networkTypeOrRpcUrl) ? (
-          this.renderMainnetNetworks(networkTypeOrRpcUrl)
-        ) : (
-          <TouchableOpacity
-            key={`network-${i}`}
-            onPress={() => this.onNetworkPress(networkTypeOrRpcUrl)}
-            onLongPress={() =>
-              isCustomRPC && this.showRemoveMenu(networkTypeOrRpcUrl)
-            }
-          >
-            <View style={styles.network}>
-              {isCustomRPC ? (
-                <AvatarNetwork
-                  variant={AvatarVariant.Network}
-                  name={name}
-                  imageSource={image}
-                  style={styles.networkIcon}
-                  size={AvatarSize.Xs}
-                />
-              ) : null}
-              {!isCustomRPC &&
-                (image ? (
-                  <ImageIcons image={image} style={styles.networkIcon} />
-                ) : (
-                  <View
-                    style={[styles.networkIcon, { backgroundColor: color }]}
-                  >
-                    <Text style={styles.text}>{name[0]}</Text>
-                  </View>
-                ))}
-              <Text style={styles.networkLabel}>{name}</Text>
-              {!isCustomRPC && (
-                <FontAwesome
-                  name="lock"
-                  size={20}
-                  color={colors.icon.default}
-                  style={styles.icon}
-                />
-              )}
-            </View>
-          </TouchableOpacity>
-        )}
+        {
+          // Do not change. This logic must check for 'mainnet' and is used for rendering the out of the box mainnet when searching.
+          isDefaultMainnet(networkTypeOrRpcUrl) ? (
+            this.renderMainnet()
+          ) : isLineaMainnet(networkTypeOrRpcUrl) ? (
+            this.renderLineaMainnet()
+          ) : (
+            <TouchableOpacity
+              key={`network-${i}`}
+              onPress={() => this.onNetworkPress(networkTypeOrRpcUrl)}
+              onLongPress={() =>
+                isCustomRPC && this.showRemoveMenu(networkTypeOrRpcUrl)
+              }
+            >
+              <View style={styles.network}>
+                {isCustomRPC ? (
+                  <AvatarNetwork
+                    variant={AvatarVariant.Network}
+                    name={name}
+                    imageSource={image}
+                    style={styles.networkIcon}
+                    size={AvatarSize.Xs}
+                  />
+                ) : null}
+                {!isCustomRPC &&
+                  (image ? (
+                    <ImageIcons
+                      image={networkTypeOrRpcUrl.toUpperCase()}
+                      style={styles.networkIcon}
+                    />
+                  ) : (
+                    <View
+                      style={[styles.networkIcon, { backgroundColor: color }]}
+                    >
+                      <Text style={styles.text}>{name[0]}</Text>
+                    </View>
+                  ))}
+                <Text style={styles.networkLabel}>{name}</Text>
+                {!isCustomRPC && (
+                  <FontAwesome
+                    name="lock"
+                    size={20}
+                    color={colors.icon.default}
+                    style={styles.icon}
+                  />
+                )}
+              </View>
+            </TouchableOpacity>
+          )
+        }
       </View>
     );
   }
 
-  renderTestNetworks() {
-    return getTestNetworks().map((networkType, i) => {
+  renderOtherNetworks() {
+    return this.getOtherNetworks().map((networkType, i) => {
       const { name, imageSource, color } = Networks[networkType];
       return this.networkElement(
         name,
@@ -322,11 +331,7 @@ class NetworksSettings extends PureComponent {
     });
   }
 
-  /**
-   *
-   * @param {string[]} excludedChainIds
-   */
-  renderRpcNetworks = (excludedChainIds) => {
+  renderRpcNetworks = () => {
     const { networkConfigurations } = this.props;
     return Object.values(networkConfigurations).map(
       (
@@ -337,7 +342,8 @@ class NetworksSettings extends PureComponent {
           !chainId ||
           isTestNet(chainId) ||
           isMainNet(chainId) ||
-          excludedChainIds.includes(chainId) ||
+          chainId === CHAIN_IDS.LINEA_MAINNET ||
+          chainId === CHAIN_IDS.GOERLI ||
           isNonEvmChainId(chainId)
         ) {
           return null;
@@ -353,8 +359,15 @@ class NetworksSettings extends PureComponent {
 
   renderRpcNetworksView = () => {
     const { networkConfigurations } = this.props;
-    // Define the chainIds to exclude (from our predefined networks list)
-    const excludedChainIds = getAllNetworks().map((n) => Networks[n].chainId);
+    // Define the chainIds to exclude (Mainnet and Linea)
+    const excludedChainIds = [
+      CHAIN_IDS.MAINNET,
+      CHAIN_IDS.LINEA_MAINNET,
+      CHAIN_IDS.GOERLI,
+      CHAIN_IDS.LINEA_GOERLI,
+      CHAIN_IDS.SEPOLIA,
+      CHAIN_IDS.LINEA_SEPOLIA,
+    ];
 
     const filteredChain = Object.keys(networkConfigurations).reduce(
       (filtered, key) => {
@@ -377,55 +390,67 @@ class NetworksSettings extends PureComponent {
           <Text style={styles.sectionLabel}>
             {strings('app_settings.custom_network_name')}
           </Text>
-          {this.renderRpcNetworks(excludedChainIds)}
+          {this.renderRpcNetworks()}
         </View>
       );
     }
   };
 
-  /**
-   * @param {string | undefined} mainnetNetwork - used to render a specific mainnet network
-   */
-  renderMainnetNetworks(mainnetNetwork) {
-    const networkKeys = mainnetNetwork
-      ? [mainnetNetwork]
-      : getMainnetNetworks();
-    const mainnetNetworks = networkKeys
-      .map((n) => Networks[n])
-      .filter((n) => Boolean(n));
+  renderMainnet() {
+    const { name: mainnetName } = Networks.mainnet;
     const colors = this.context.colors || mockTheme.colors;
     const styles = createStyles(colors);
+
     return (
-      <>
-        {mainnetNetworks.map((network) => (
-          <View
-            style={styles.mainnetHeader}
-            key={`mainnet-network-${network.chainId}`}
-          >
-            <TouchableOpacity
-              style={styles.network}
-              key={`network-${MAINNET}`}
-              onPress={() => this.onNetworkPress(MAINNET)}
-            >
-              <View style={styles.networkWrapper}>
-                <ImageIcons
-                  image={network.imageSource}
-                  style={styles.networkIcon}
-                />
-                <View style={styles.networkInfo}>
-                  <Text style={styles.networkLabel}>{network.name}</Text>
-                </View>
-              </View>
-              <FontAwesome
-                name="lock"
-                size={20}
-                color={colors.icon.default}
-                style={styles.icon}
-              />
-            </TouchableOpacity>
+      <View style={styles.mainnetHeader}>
+        <TouchableOpacity
+          style={styles.network}
+          key={`network-${MAINNET}`}
+          onPress={() => this.onNetworkPress(MAINNET)}
+        >
+          <View style={styles.networkWrapper}>
+            <ImageIcons image="ETHEREUM" style={styles.networkIcon} />
+            <View style={styles.networkInfo}>
+              <Text style={styles.networkLabel}>{mainnetName}</Text>
+            </View>
           </View>
-        ))}
-      </>
+          <FontAwesome
+            name="lock"
+            size={20}
+            color={colors.icon.default}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  renderLineaMainnet() {
+    const { name: lineaMainnetName } = Networks['linea-mainnet'];
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    return (
+      <View style={styles.mainnetHeader}>
+        <TouchableOpacity
+          style={styles.network}
+          key={`network-${LINEA_MAINNET}`}
+          onPress={() => this.onNetworkPress(LINEA_MAINNET)}
+        >
+          <View style={styles.networkWrapper}>
+            <ImageIcons image="LINEA-MAINNET" style={styles.networkIcon} />
+            <View style={styles.networkInfo}>
+              <Text style={styles.networkLabel}>{lineaMainnetName}</Text>
+            </View>
+          </View>
+          <FontAwesome
+            name="lock"
+            size={20}
+            color={colors.icon.default}
+            style={styles.icon}
+          />
+        </TouchableOpacity>
+      </View>
     );
   }
 
@@ -564,7 +589,8 @@ class NetworksSettings extends PureComponent {
               <Text style={styles.sectionLabel}>
                 {strings('app_settings.mainnet')}
               </Text>
-              {this.renderMainnetNetworks()}
+              {this.renderMainnet()}
+              {this.renderLineaMainnet()}
               {
                 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
                 this.renderSolanaMainnet()
@@ -574,7 +600,7 @@ class NetworksSettings extends PureComponent {
               <Text style={styles.sectionLabel}>
                 {strings('app_settings.test_network_name')}
               </Text>
-              {this.renderTestNetworks()}
+              {this.renderOtherNetworks()}
             </>
           )}
         </ScrollView>

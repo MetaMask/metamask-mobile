@@ -3,6 +3,8 @@ import React, { useCallback, useMemo } from 'react';
 import NotificationsService from '../../../../util/notifications/services/NotificationService';
 import { ActivityIndicator, FlatList, FlatListProps, View } from 'react-native';
 import ScrollableTabView, {
+  DefaultTabBar,
+  DefaultTabBarProps,
   TabBarProps,
 } from 'react-native-scrollable-tab-view';
 import { NotificationsViewSelectorsIDs } from '../../../../../e2e/selectors/wallet/NotificationsView.selectors';
@@ -24,7 +26,6 @@ import Empty from '../Empty';
 import { NotificationMenuItem } from '../NotificationMenuItem';
 import useStyles from './useStyles';
 import { NotificationMenuViewSelectorsIDs } from '../../../../../e2e/selectors/Notifications/NotificationMenuView.selectors';
-import TabBar from '../../../../component-library/components-temp/TabBar/TabBar';
 
 interface NotificationsListProps {
   navigation: NavigationProp<ParamListBase>;
@@ -178,6 +179,10 @@ function SingleNotificationList(props: NotificationsListProps) {
 }
 
 function TabbedNotificationList(props: NotificationsListProps) {
+  const {
+    theme: { colors },
+    styles,
+  } = useStyles();
   const { trackEvent, createEventBuilder } = useMetrics();
 
   const getListProps = useNotificationListProps(props);
@@ -209,9 +214,18 @@ function TabbedNotificationList(props: NotificationsListProps) {
 
   return (
     <ScrollableTabView
-      renderTabBar={(tabProps: TabBarProps) => (
+      renderTabBar={(tabProps: TabBarProps<DefaultTabBarProps>) => (
         <View>
-          <TabBar {...tabProps} />
+          <DefaultTabBar
+            underlineStyle={styles.tabUnderlineStyle}
+            activeTextColor={colors.primary.default}
+            inactiveTextColor={colors.text.default}
+            backgroundColor={colors.background.default}
+            tabStyle={styles.tabStyle}
+            textStyle={styles.textStyle}
+            style={styles.tabBar}
+            {...tabProps}
+          />
         </View>
       )}
       onChangeTab={(val) => onTabClick(val.ref.props.tabLabel)}

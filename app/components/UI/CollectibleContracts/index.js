@@ -14,6 +14,7 @@ import {
   FlatList,
   RefreshControl,
   ActivityIndicator,
+  Text,
 } from 'react-native';
 import { connect, useSelector } from 'react-redux';
 import { fontStyles } from '../../../styles/common';
@@ -63,9 +64,6 @@ import Logger from '../../../util/Logger';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 import { isNonEvmChainId } from '../../../core/Multichain/utils';
-import TextComponent, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -81,6 +79,10 @@ const createStyles = (colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      paddingLeft: 8,
+      paddingRight: 8,
+      paddingBottom: 16,
+      paddingTop: 8,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
@@ -95,20 +97,26 @@ const createStyles = (colors) =>
     controlButtonText: {
       color: colors.text.default,
     },
-    controlButton: {
-      backgroundColor: colors.background.default,
-      borderColor: colors.border.default,
-      marginRight: 4,
-      maxWidth: '60%',
-      paddingHorizontal: 0,
-    },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
-      marginRight: 4,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
       maxWidth: '60%',
-      paddingHorizontal: 0,
       opacity: 0.5,
+      borderRadius: 20,
+    },
+    controlButton: {
+      backgroundColor: colors.background.default,
+      borderColor: colors.border.default,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      marginLeft: 5,
+      marginRight: 5,
+      maxWidth: '60%',
+      borderRadius: 20,
     },
     emptyView: {
       justifyContent: 'center',
@@ -347,17 +355,17 @@ const CollectibleContracts = ({
           />
         ) : null}
 
-        <TextComponent style={styles.emptyText}>
+        <Text style={styles.emptyText}>
           {strings('wallet.no_collectibles')}
-        </TextComponent>
+        </Text>
         <TouchableOpacity
           onPress={goToAddCollectible}
           disabled={!isAddNFTEnabled}
           testID={WalletViewSelectorsIDs.IMPORT_NFT_BUTTON}
         >
-          <TextComponent style={styles.addText}>
+          <Text style={styles.addText}>
             {strings('wallet.add_collectibles')}
-          </TextComponent>
+          </Text>
         </TouchableOpacity>
       </View>
     ),
@@ -486,12 +494,12 @@ const CollectibleContracts = ({
           source={require('../../../images/no-nfts-placeholder.png')}
           resizeMode={'contain'}
         />
-        <TextComponent center style={styles.emptyTitleText} bold>
+        <Text center style={styles.emptyTitleText} bold>
           {strings('wallet.no_nfts_yet')}
-        </TextComponent>
-        <TextComponent center big link onPress={goToLearnMore}>
+        </Text>
+        <Text center big link onPress={goToLearnMore}>
           {strings('wallet.learn_more')}
-        </TextComponent>
+        </Text>
       </View>
     ),
     [goToLearnMore, styles],
@@ -557,14 +565,11 @@ const CollectibleContracts = ({
           <ButtonBase
             testID={WalletViewSelectorsIDs.TOKEN_NETWORK_FILTER}
             label={
-              <TextComponent
-                variant={TextVariant.BodyMDMedium}
-                numberOfLines={1}
-              >
+              <Text style={styles.controlButtonText} numberOfLines={1}>
                 {isAllNetworks && isPopularNetwork && isEvmSelected
                   ? strings('wallet.popular_networks')
                   : networkName ?? strings('wallet.current_network')}
-              </TextComponent>
+              </Text>
             }
             isDisabled={isTestNet(chainId) || !isPopularNetwork}
             onPress={isEvmSelected ? showFilterControls : () => null}

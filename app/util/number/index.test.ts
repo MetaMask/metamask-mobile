@@ -148,14 +148,14 @@ describe('Number utils :: fromTokenMinimalUnit', () => {
     expect(fromTokenMinimalUnit(new BN4('1000000000000000000000'), 18)).toEqual(
       '1000',
     );
-    expect(
-      fromTokenMinimalUnit(new BN4('10000000000000000000000'), 18),
-    ).toEqual('10000');
+    expect(fromTokenMinimalUnit(new BN4('10000000000000000000000'), 18)).toEqual(
+      '10000',
+    );
 
     // test decimal greater than 30,000
-    expect(
-      fromTokenMinimalUnit(new BN4('50000000000000000000000'), 18),
-    ).toEqual('49999.999999999995805696');
+    expect(fromTokenMinimalUnit(new BN4('50000000000000000000000'), 18)).toEqual(
+      '49999.999999999995805696',
+    );
 
     // test decimal less than 1e-14
     expect(fromTokenMinimalUnit(hexToBN('576129d2d21d64a5'), 18)).toEqual(
@@ -289,9 +289,9 @@ describe('Number utils :: fromTokenMinimalUnitString', () => {
     expect(fromTokenMinimalUnitString(new BN4('1337').toString(10), 0)).toEqual(
       '1337',
     );
-    expect(
-      fromTokenMinimalUnitString(new BN4('1337').toString(10), 18),
-    ).toEqual('0.000000000000001337');
+    expect(fromTokenMinimalUnitString(new BN4('1337').toString(10), 18)).toEqual(
+      '0.000000000000001337',
+    );
     expect(fromTokenMinimalUnitString(new BN4('123456').toString(), 5)).toEqual(
       '1.23456',
     );
@@ -307,9 +307,7 @@ describe('Number utils :: fromTokenMinimalUnitString', () => {
     expect(fromTokenMinimalUnitString(new BN4('1').toString(), 18)).toEqual(
       '0.000000000000000001',
     );
-    expect(fromTokenMinimalUnitString(new BN4('0').toString(), 18)).toEqual(
-      '0',
-    );
+    expect(fromTokenMinimalUnitString(new BN4('0').toString(), 18)).toEqual('0');
     expect(
       fromTokenMinimalUnitString(new BN4('123456789').toString(), 5),
     ).toEqual('1234.56789');
@@ -367,9 +365,7 @@ describe('Number utils :: toTokenMinimalUnit', () => {
 
   it('toTokenMinimalUnit using BN number', () => {
     expect(toTokenMinimalUnit(new BN4('1337'), 0)).toEqual(new BN4('1337'));
-    expect(toTokenMinimalUnit(new BN4('1337'), 6)).toEqual(
-      new BN4('1337000000'),
-    );
+    expect(toTokenMinimalUnit(new BN4('1337'), 6)).toEqual(new BN4('1337000000'));
   });
 
   it('toTokenMinimalUnit using invalid inputs', () => {
@@ -397,9 +393,7 @@ describe('Number utils :: renderFromTokenMinimalUnit', () => {
   it('renderFromTokenMinimalUnit using BN number', () => {
     expect(renderFromTokenMinimalUnit(new BN4('1337'), 0)).toEqual('1337');
     expect(renderFromTokenMinimalUnit(new BN4('1337'), 6)).toEqual('0.00134');
-    expect(renderFromTokenMinimalUnit(new BN4('1337'), 10)).toEqual(
-      '< 0.00001',
-    );
+    expect(renderFromTokenMinimalUnit(new BN4('1337'), 10)).toEqual('< 0.00001');
     expect(renderFromTokenMinimalUnit(new BN4('0'), 10)).toEqual('0');
   });
 });

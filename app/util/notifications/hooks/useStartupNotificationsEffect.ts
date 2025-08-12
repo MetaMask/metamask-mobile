@@ -1,40 +1,44 @@
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { RESUBSCRIBE_NOTIFICATIONS_EXPIRY } from '../../../constants/storage';
 import { selectIsSignedIn } from '../../../selectors/identity';
 import { selectIsUnlocked } from '../../../selectors/keyringController';
-import {
-  getIsNotificationEnabledByDefaultFeatureFlag,
-  selectIsMetamaskNotificationsEnabled,
-} from '../../../selectors/notifications';
+import { selectIsMetamaskNotificationsEnabled } from '../../../selectors/notifications';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import storageWrapper from '../../../store/storage-wrapper';
 import Logger from '../../Logger';
 import { isNotificationsFeatureEnabled } from '../constants';
 import {
   useEnableNotifications,
   useListNotifications,
 } from './useNotifications';
-import {
-  hasNotificationSubscriptionExpired,
-  hasUserTurnedOffNotificationsOnce,
-} from '../constants/notification-storage-keys';
-import { useStorageValue } from '../../../store/storage-wrapper-hooks';
-import { SOLANA_FEATURE_MODAL_SHOWN } from '../../../constants/storage';
 
-const showPushNush = { nudgeEnablePush: true };
+const EXPIRY_DURATION_MS = 24 * 60 * 60 * 1000; // 1 day
 
-const useEnableAndRefresh = () => {
-  const { enableNotifications } = useEnableNotifications(showPushNush);
-  const { listNotifications } = useListNotifications();
-  return useCallback(
-    async (shouldEnable = true) => {
-      shouldEnable && (await enableNotifications());
-      await listNotifications();
-    },
-    [enableNotifications, listNotifications],
+const hasExpired = async () => {
+  const expiryTimestamp: string | undefined = await storageWrapper.getItem(
+    RESUBSCRIBE_NOTIFICATIONS_EXPIRY,
+  );
+  if (!expiryTimestamp) {
+    return true;
+  }
+  const now = Date.now();
+  return now > parseInt(expiryTimestamp, 10);
+};
+
+const setExpiry = async () => {
+  const now = Date.now();
+  const expiryTimestamp = now + EXPIRY_DURATION_MS;
+  await storageWrapper.setItem(
+    RESUBSCRIBE_NOTIFICATIONS_EXPIRY,
+    expiryTimestamp.toString(),
   );
 };
 
-const useNotificationStartupSelectors = () => {
+/**
+ * Effect that queries for notifications on startup if notifications are enabled.
+ */
+export function useStartupNotificationsEffect() {
   // Base requirements
   const isUnlocked = Boolean(useSelector(selectIsUnlocked));
   const isBasicFunctionalityEnabled = Boolean(
@@ -50,27 +54,21 @@ const useNotificationStartupSelectors = () => {
   const notificationsEnabled =
     notificationsFlagEnabled && notificationsControllerEnabled && isSignedIn;
 
-  return {
-    isUnlocked,
-    isBasicFunctionalityEnabled,
-    notificationsEnabled,
-    notificationsFlagEnabled,
-  };
-};
-
-export function useRegisterAndFetchNotifications() {
-  const { isUnlocked, isBasicFunctionalityEnabled, notificationsEnabled } =
-    useNotificationStartupSelectors();
-
   // Actions
-  const enableAndRefresh = useEnableAndRefresh();
+  const { enableNotifications } = useEnableNotifications();
+  const { listNotifications } = useListNotifications();
 
   // App Open Effect
   useEffect(() => {
     const run = async () => {
       try {
         if (isUnlocked && isBasicFunctionalityEnabled && notificationsEnabled) {
-          await enableAndRefresh(await hasNotificationSubscriptionExpired());
+          if (await hasExpired()) {
+            // Re-enabling notifications to keep subscriptions up to date
+            await enableNotifications();
+            await setExpiry();
+          }
+          await listNotifications();
         }
       } catch (error) {
         const errorMessage =
@@ -83,66 +81,10 @@ export function useRegisterAndFetchNotifications() {
 
     run();
   }, [
-    enableAndRefresh,
+    enableNotifications,
     isBasicFunctionalityEnabled,
     isUnlocked,
+    listNotifications,
     notificationsEnabled,
   ]);
-}
-
-export function useEnableNotificationsByDefaultEffect() {
-  const {
-    isUnlocked,
-    isBasicFunctionalityEnabled,
-    notificationsEnabled,
-    notificationsFlagEnabled,
-  } = useNotificationStartupSelectors();
-  const isNotificationsEnabledByDefaultFeatureFlag = useSelector(
-    getIsNotificationEnabledByDefaultFeatureFlag,
-  );
-
-  const enableAndRefresh = useEnableAndRefresh();
-
-  // Ensure in-app modals are closed
-  const solanaModalFlag = useStorageValue(SOLANA_FEATURE_MODAL_SHOWN);
-  const solanaModalClosed =
-    !solanaModalFlag.loading && solanaModalFlag.value === 'true';
-
-  useEffect(() => {
-    const run = async () => {
-      try {
-        if (
-          isBasicFunctionalityEnabled &&
-          isUnlocked &&
-          !notificationsEnabled &&
-          isNotificationsEnabledByDefaultFeatureFlag &&
-          notificationsFlagEnabled &&
-          solanaModalClosed
-        ) {
-          if (!(await hasUserTurnedOffNotificationsOnce())) {
-            await enableAndRefresh();
-          }
-        }
-      } catch {
-        // Do nothing
-      }
-    };
-    run();
-  }, [
-    enableAndRefresh,
-    isBasicFunctionalityEnabled,
-    isNotificationsEnabledByDefaultFeatureFlag,
-    isUnlocked,
-    notificationsEnabled,
-    notificationsFlagEnabled,
-    solanaModalClosed,
-  ]);
-}
-
-/**
- * Effect that queries for notifications on startup if notifications are enabled.
- */
-export function useStartupNotificationsEffect() {
-  useRegisterAndFetchNotifications();
-  useEnableNotificationsByDefaultEffect();
 }

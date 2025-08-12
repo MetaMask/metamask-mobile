@@ -7,14 +7,6 @@ import { AvatarBaseProps } from '../../foundation/AvatarBase';
 export enum AvatarAccountType {
   JazzIcon = 'JazzIcon',
   Blockies = 'Blockies',
-  Maskicon = 'Maskicon',
-}
-
-/**
- * Border radius mapping by avatar size.
- */
-export interface BorderRadiusByAvatarSize {
-  [key: string]: number;
 }
 
 /**
@@ -26,16 +18,8 @@ export interface AvatarAccountProps extends AvatarBaseProps {
    */
   accountAddress: string;
   /**
-   * Optional enum to select the avatar type between `JazzIcon`, `Blockies`, and `Maskicon`.
+   * Optional enum to select the avatar type between `JazzIcon` and `Blockies`.
    * @default JazzIcon
    */
   type?: AvatarAccountType;
 }
-
-/**
- * Style sheet input parameters.
- */
-export type AvatarAccountStyleSheetVars = Pick<
-  AvatarAccountProps,
-  'style' | 'size'
->;

@@ -99,12 +99,9 @@ describe('NetworkAndOriginRow', () => {
   });
 
   it('does not display origin info for internal transactions', async () => {
-    const { getByText, queryByText } = renderWithProvider(
-      <NetworkAndOriginRow />,
-      {
-        state: internalTransactionState,
-      },
-    );
+    const { getByText, queryByText } = renderWithProvider(<NetworkAndOriginRow />, {
+      state: internalTransactionState,
+    });
 
     expect(getByText('Test Network')).toBeDefined();
     expect(queryByText('Request from')).toBeNull();

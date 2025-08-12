@@ -6,12 +6,9 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeDestTokenSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  selectBridgeViewMode,
-  setDestToken,
-} from '../../../../../core/redux/slices/bridge';
+import { setDestToken } from '../../../../../core/redux/slices/bridge';
 import { cloneDeep } from 'lodash';
-import { BridgeViewMode } from '../../types';
+import { useRoute } from '@react-navigation/native';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -22,6 +19,11 @@ jest.mock('@react-navigation/native', () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
   }),
+  useRoute: jest.fn().mockReturnValue({
+    params: {
+      bridgeViewMode: 'Bridge',
+    },
+  }),
 }));
 
 jest.mock('../../../../../core/redux/slices/bridge', () => {
@@ -31,7 +33,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     ...actual,
     default: actual.default,
     setDestToken: jest.fn(actual.setDestToken),
-    selectBridgeViewMode: jest.fn().mockReturnValue('Bridge'),
   };
 });
 
@@ -247,9 +248,11 @@ describe('BridgeDestTokenSelector', () => {
   });
 
   it('hides destination network bar when mode is Swap', async () => {
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
-      BridgeViewMode.Swap,
-    );
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        bridgeViewMode: 'Swap',
+      },
+    });
     const { queryByText } = renderScreen(
       BridgeDestTokenSelector,
       {
@@ -262,9 +265,11 @@ describe('BridgeDestTokenSelector', () => {
     expect(seeAllButton).toBeNull();
 
     // Restore the original mock
-    (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
-      BridgeViewMode.Bridge,
-    );
+    (useRoute as jest.Mock).mockReturnValue({
+      params: {
+        bridgeViewMode: 'Bridge',
+      },
+    });
   });
 
   it('shows destination network bar when mode is Bridge', async () => {

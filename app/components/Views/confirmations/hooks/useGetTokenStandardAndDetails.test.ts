@@ -15,6 +15,7 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 describe('useGetTokenStandardAndDetails', () => {
+
   afterEach(() => {
     jest.clearAllMocks();
 
@@ -23,9 +24,7 @@ describe('useGetTokenStandardAndDetails', () => {
   });
 
   it('returns initial state when address or chainId is not provided', () => {
-    const { result } = renderHook(() =>
-      useGetTokenStandardAndDetails(undefined, undefined),
-    );
+    const { result } = renderHook(() => useGetTokenStandardAndDetails(undefined, undefined));
 
     expect(result.current).toEqual({
       details: { decimalsNumber: undefined },
@@ -40,10 +39,9 @@ describe('useGetTokenStandardAndDetails', () => {
       standard: 'ERC20',
     };
 
-    (
-      Engine.context.AssetsContractController
-        .getTokenStandardAndDetails as jest.Mock
-    ).mockResolvedValueOnce(mockDetails);
+    (Engine.context.AssetsContractController.getTokenStandardAndDetails as jest.Mock).mockResolvedValueOnce(
+      mockDetails,
+    );
 
     const { result, waitForNextUpdate } = renderHook(() =>
       useGetTokenStandardAndDetails(mockAddress, mockChainId),
@@ -58,18 +56,20 @@ describe('useGetTokenStandardAndDetails', () => {
       isPending: false,
     });
 
-    expect(
-      Engine.context.AssetsContractController.getTokenStandardAndDetails,
-    ).toHaveBeenCalledWith(mockAddress, undefined, undefined, mockChainId);
+    expect(Engine.context.AssetsContractController.getTokenStandardAndDetails).toHaveBeenCalledWith(
+      mockAddress,
+      undefined,
+      undefined,
+      mockChainId,
+    );
   });
 
   it('should handle loading state and errors during fetch', async () => {
     const mockError = new Error('Failed to fetch token details');
 
-    (
-      Engine.context.AssetsContractController
-        .getTokenStandardAndDetails as jest.Mock
-    ).mockRejectedValueOnce(mockError);
+    (Engine.context.AssetsContractController.getTokenStandardAndDetails as jest.Mock).mockRejectedValueOnce(
+      mockError,
+    );
 
     const { result, waitForNextUpdate } = renderHook(() =>
       useGetTokenStandardAndDetails(mockAddress, mockChainId),

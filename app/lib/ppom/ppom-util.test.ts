@@ -26,12 +26,7 @@ import {
 } from '../../components/Views/confirmations/legacy/components/BlockaidBanner/BlockaidBanner.types';
 import Logger from '../../util/Logger';
 
-const CHAIN_ID_REQUEST_MOCK = '0x1' as Hex;
-const CHAIN_ID_TRANSACTION_MOCK = '0x2' as Hex;
-const CHAIN_ID_GLOBAL_MOCK = '0x3' as Hex;
-const NETWORK_CLIENT_ID_REQUEST_MOCK = 'testNetwork1';
-const NETWORK_CLIENT_ID_TRANSACTION_MOCK = 'testNetwork2';
-const NETWORK_CLIENT_ID_GLOBAL_MOCK = 'testNetwork3';
+const CHAIN_ID_MOCK = '0x1';
 const TRANSACTION_ID_MOCK = '111-222-333';
 
 const SIGN_TYPED_DATA_PARAMS_MOCK_1 = '0x123';
@@ -100,7 +95,6 @@ const mockRequest = {
   id: 4247010338,
   jsonrpc: '2.0',
   method: 'eth_sendTransaction',
-  networkClientId: NETWORK_CLIENT_ID_REQUEST_MOCK,
   origin: 'metamask.github.io',
   params: [
     {
@@ -140,11 +134,7 @@ const mockTransactionNormalizedWithGasAndGasPrice = {
   ],
 };
 
-const mockTransactionMeta = {
-  id: TRANSACTION_ID_MOCK,
-  networkClientId: NETWORK_CLIENT_ID_TRANSACTION_MOCK,
-  txParams: { gas: '0x5028', gasPrice: '0x2540be400' },
-} as TransactionMeta;
+const mockTransactionMeta = { id: CHAIN_ID_MOCK, txParams: { gas: '0x5028', gasPrice: '0x2540be400' } } as TransactionMeta;
 
 const mockSignatureRequest = {
   method: 'personal_sign',
@@ -180,16 +170,12 @@ describe('PPOM Utils', () => {
     MockEngine.context.PreferencesController.state.securityAlertsEnabled = true;
 
     MockEngine.context.NetworkController = {
-      getNetworkClientById: (networkClientId) => ({
+      getNetworkClientById: () => ({
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         configuration: {
           rpcUrl: 'https://mainnet.infura.io/v3',
-          chainId: {
-            [NETWORK_CLIENT_ID_GLOBAL_MOCK]: CHAIN_ID_GLOBAL_MOCK,
-            [NETWORK_CLIENT_ID_REQUEST_MOCK]: CHAIN_ID_REQUEST_MOCK,
-            [NETWORK_CLIENT_ID_TRANSACTION_MOCK]: CHAIN_ID_TRANSACTION_MOCK,
-          }[networkClientId] as Hex,
+          chainId: CHAIN_ID_MOCK as Hex,
           ticker: 'ETH',
           type: NetworkClientType.Custom,
         },
@@ -216,7 +202,7 @@ describe('PPOM Utils', () => {
           },
         },
         networksMetadata: {},
-        selectedNetworkClientId: NETWORK_CLIENT_ID_GLOBAL_MOCK,
+        selectedNetworkClientId: 'mainnet',
       },
     };
 
@@ -237,9 +223,7 @@ describe('PPOM Utils', () => {
       );
       MockEngine.context.PreferencesController.state.securityAlertsEnabled =
         false;
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-      });
+      await PPOMUtil.validateRequest(mockRequest, { transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta });
       expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
         0,
       );
@@ -258,9 +242,7 @@ describe('PPOM Utils', () => {
             address: '0x0c54FcCd2e384b4BB6f2E405Bf5Cbc15a017AaFb',
           },
         ]);
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-      });
+      await PPOMUtil.validateRequest(mockRequest, { transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta });
       expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
         0,
       );
@@ -279,9 +261,7 @@ describe('PPOM Utils', () => {
       jest
         .spyOn(NetworkControllerSelectors, 'selectChainId')
         .mockReturnValue('0xfa');
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-      });
+      await PPOMUtil.validateRequest(mockRequest, { transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta });
       expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
         0,
       );
@@ -321,9 +301,7 @@ describe('PPOM Utils', () => {
     });
 
     it('should invoke PPOMController usePPOM if securityAlertsEnabled is true', async () => {
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-      });
+      await PPOMUtil.validateRequest(mockRequest, { transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta });
       expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
         1,
       );
@@ -334,9 +312,7 @@ describe('PPOM Utils', () => {
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-      });
+      await PPOMUtil.validateRequest(mockRequest, { transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta });
       expect(spy).toHaveBeenCalledTimes(2);
     });
 
@@ -352,9 +328,10 @@ describe('PPOM Utils', () => {
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      await PPOMUtil.validateRequest(mockRequest, {
-        securityAlertId: mockSecurityAlertId,
-      });
+      await PPOMUtil.validateRequest(
+        mockRequest,
+        { securityAlertId: mockSecurityAlertId },
+      );
       jest.advanceTimersByTime(10000);
       expect(spy).toHaveBeenCalledTimes(2);
     });
@@ -371,9 +348,10 @@ describe('PPOM Utils', () => {
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      await PPOMUtil.validateRequest(mockRequest, {
-        securityAlertId: mockSecurityAlertId,
-      });
+      await PPOMUtil.validateRequest(
+        mockRequest,
+        { securityAlertId: mockSecurityAlertId },
+      );
       jest.advanceTimersByTime(10000);
       expect(spy).toHaveBeenCalledTimes(0);
     });
@@ -396,9 +374,7 @@ describe('PPOM Utils', () => {
         (callback: any) => callback(ppomMock),
       );
 
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-      });
+      await PPOMUtil.validateRequest(mockRequest, { transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta });
 
       expect(normalizeTransactionParamsMock).toHaveBeenCalledTimes(1);
       expect(normalizeTransactionParamsMock).toHaveBeenCalledWith(
@@ -420,9 +396,7 @@ describe('PPOM Utils', () => {
 
       const spyLogger = jest.spyOn(Logger, 'log');
 
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-      });
+      await PPOMUtil.validateRequest(mockRequest, { transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta });
 
       expect(spyLogger).toHaveBeenCalledTimes(1);
       expect(spyLogger).toHaveBeenCalledWith(
@@ -456,72 +430,20 @@ describe('PPOM Utils', () => {
       );
 
       expect(validateMock).toHaveBeenCalledTimes(1);
-      expect(validateMock).toHaveBeenCalledWith(
-        mockTransactionNormalizedWithGasAndGasPrice,
-      );
+      expect(validateMock).toHaveBeenCalledWith(mockTransactionNormalizedWithGasAndGasPrice);
     });
 
     it('uses security alerts API if enabled', async () => {
       isSecurityAlertsEnabledMock.mockReturnValue(true);
 
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-      });
+      await PPOMUtil.validateRequest(mockRequest, { transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta });
 
       expect(MockEngine.context.PPOMController?.usePPOM).not.toHaveBeenCalled();
 
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
-        expect.any(String),
+        CHAIN_ID_MOCK,
         mockTransactionNormalized,
-      );
-    });
-
-    it('uses chain ID from transaction if provided', async () => {
-      isSecurityAlertsEnabledMock.mockReturnValue(true);
-
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: {
-          id: TRANSACTION_ID_MOCK,
-          networkClientId: NETWORK_CLIENT_ID_TRANSACTION_MOCK,
-        } as TransactionMeta,
-      });
-
-      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
-      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
-        CHAIN_ID_TRANSACTION_MOCK,
-        expect.any(Object),
-      );
-    });
-
-    it('uses chain ID from request if provided', async () => {
-      isSecurityAlertsEnabledMock.mockReturnValue(true);
-
-      await PPOMUtil.validateRequest({
-        ...mockRequest,
-        method: METHOD_SIGN_TYPED_DATA_V3,
-      });
-
-      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
-      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
-        CHAIN_ID_REQUEST_MOCK,
-        expect.any(Object),
-      );
-    });
-
-    it('uses chain ID from global network as fallback', async () => {
-      isSecurityAlertsEnabledMock.mockReturnValue(true);
-
-      await PPOMUtil.validateRequest({
-        ...mockRequest,
-        method: METHOD_SIGN_TYPED_DATA_V3,
-        networkClientId: undefined,
-      });
-
-      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
-      expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
-        CHAIN_ID_GLOBAL_MOCK,
-        expect.any(Object),
       );
     });
 
@@ -532,9 +454,7 @@ describe('PPOM Utils', () => {
         new Error('Test Error'),
       );
 
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: mockTransactionMeta,
-      });
+      await PPOMUtil.validateRequest(mockRequest, { transactionMeta: mockTransactionMeta });
 
       expect(MockEngine.context.PPOMController?.usePPOM).toHaveBeenCalledTimes(
         1,
@@ -542,7 +462,7 @@ describe('PPOM Utils', () => {
 
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
       expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
-        CHAIN_ID_TRANSACTION_MOCK,
+        CHAIN_ID_MOCK,
         mockTransactionNormalizedWithGasAndGasPrice,
       );
     });
@@ -552,9 +472,7 @@ describe('PPOM Utils', () => {
         TransactionActions,
         'setTransactionSecurityAlertResponse',
       );
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-      });
+      await PPOMUtil.validateRequest(mockRequest, { transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta });
       expect(spy).toHaveBeenCalledTimes(2);
     });
 
@@ -575,13 +493,11 @@ describe('PPOM Utils', () => {
         (callback: any) => callback(ppomMock),
       );
 
-      await PPOMUtil.validateRequest(mockRequest, {
-        transactionMeta: mockTransactionMeta,
-      });
+      await PPOMUtil.validateRequest(mockRequest, { transactionMeta: mockTransactionMeta });
 
       expect(spy).toHaveBeenCalledTimes(2);
-      expect(spy).toHaveBeenCalledWith(TRANSACTION_ID_MOCK, {
-        chainId: CHAIN_ID_TRANSACTION_MOCK,
+      expect(spy).toHaveBeenCalledWith(CHAIN_ID_MOCK, {
+        chainId: CHAIN_ID_MOCK,
         req: mockRequest,
         result_type: ResultType.Failed,
         reason: Reason.failed,
@@ -609,13 +525,11 @@ describe('PPOM Utils', () => {
           method,
           params,
         };
-        await PPOMUtil.validateRequest(request, {
-          transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta,
-        });
+        await PPOMUtil.validateRequest(request, { transactionMeta: { id: TRANSACTION_ID_MOCK } as TransactionMeta });
 
         expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledTimes(1);
         expect(validateWithSecurityAlertsAPIMock).toHaveBeenCalledWith(
-          CHAIN_ID_REQUEST_MOCK,
+          CHAIN_ID_MOCK,
           {
             ...request,
             params: firstTwoParams,

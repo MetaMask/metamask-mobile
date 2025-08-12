@@ -1,5 +1,6 @@
 import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
+import BottomSheet from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
   ParamListBase,
@@ -7,12 +8,12 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { RevealPrivateCredential } from '../../../RevealPrivateCredential';
 import { PRIVATE_KEY } from '../../../RevealPrivateCredential/RevealPrivateCredential';
-import SheetHeader from '../../../../../component-library/components/Sheet/SheetHeader';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import styleSheet from './RevealPrivateKey.styles';
-import { useStyles } from '../../../../hooks/useStyles';
 
 interface RootNavigationParamList extends ParamListBase {
   RevealPrivateKey: {
@@ -26,7 +27,6 @@ type RevealPrivateKeyProp = RouteProp<
 >;
 
 export const RevealPrivateKey = () => {
-  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const route = useRoute<RevealPrivateKeyProp>();
   const { account } = route.params;
@@ -35,11 +35,12 @@ export const RevealPrivateKey = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <SheetHeader
-        onBack={handleOnBack}
-        title={strings('multichain_accounts.reveal_private_key.title')}
-      />
+    <BottomSheet isFullscreen>
+      <BottomSheetHeader onBack={handleOnBack}>
+        <Text variant={TextVariant.HeadingMD}>
+          {strings('multichain_accounts.reveal_private_key.title')}
+        </Text>
+      </BottomSheetHeader>
       <RevealPrivateCredential
         credentialName={PRIVATE_KEY}
         navigation={navigation}
@@ -54,6 +55,6 @@ export const RevealPrivateKey = () => {
           },
         }}
       />
-    </SafeAreaView>
+    </BottomSheet>
   );
 };

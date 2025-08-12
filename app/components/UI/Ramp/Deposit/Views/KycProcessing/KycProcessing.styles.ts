@@ -15,7 +15,6 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       marginTop: 12,
       marginBottom: 16,
-      fontWeight: 'bold',
     },
     description: {
       textAlign: 'center',

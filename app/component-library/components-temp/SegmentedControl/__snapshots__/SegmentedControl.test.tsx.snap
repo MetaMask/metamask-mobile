@@ -43,7 +43,6 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
-          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -89,7 +88,6 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
-          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -135,7 +133,6 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
-          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -181,7 +178,6 @@ exports[`SegmentedControl Multi-select mode renders correctly with default selec
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
-          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -243,7 +239,6 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
-          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -289,7 +284,6 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
-          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -335,7 +329,6 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
-          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -381,7 +374,6 @@ exports[`SegmentedControl Single-select mode renders correctly with default sele
           "flexDirection": "row",
           "height": 40,
           "justifyContent": "center",
-          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
