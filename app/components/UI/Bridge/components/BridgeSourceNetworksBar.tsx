@@ -82,7 +82,7 @@ export const BridgeSourceNetworksBar: React.FC<SourceNetworksButtonProps> = ({
         <Box
           flexDirection={FlexDirection.Row}
           alignItems={AlignItems.center}
-          gap={4}
+          gap={8}
         >
           <Box flexDirection={FlexDirection.Row} alignItems={AlignItems.center}>
             <AvatarGroup
