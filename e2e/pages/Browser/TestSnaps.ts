@@ -184,6 +184,11 @@ class TestSnaps {
     await Gestures.waitAndTap(this.footerButton);
   }
 
+  async dismissAlert() {
+    const button = Matchers.getElementByText('Ok');
+    await Gestures.tap(button);
+  }
+
   async getOptionValueByText(
     webElement: IndexableWebElement,
     text: string,
