@@ -18,6 +18,16 @@ on:
         description: 'The Cucumber tag expression to use for filtering tests'
         required: true
         type: string
+      split_number:
+        description: 'Which split number to run (1-based index)'
+        required: false
+        type: number
+        default: 1
+      total_splits:
+        description: 'Total number of splits to divide tests into'
+        required: false
+        type: number
+        default: 1
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}
@@ -35,6 +45,8 @@ jobs:
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
+      SPLIT_NUMBER: ${{ inputs.split_number }}
+      TOTAL_SPLITS: ${{ inputs.total_splits }}
       GITHUB_CI: 'true'
       MM_UNIFIED_SWAPS_ENABLED: 'true'
       RAMP_INTERNAL_BUILD: 'true'
@@ -165,7 +177,9 @@ jobs:
             export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
           fi
           
-          ./scripts/run-e2e-tags.sh
+          # Always use the splitting script (handles both split and non-split cases)
+          echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
+          ./scripts/run-e2e-tags-split.sh
           
           echo "✅ Test execution completed"
 
