@@ -15,7 +15,7 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     // Container styles for different states
     expandedContainer: {
-      backgroundColor: colors.background.section,
+      backgroundColor: colors.background.alternative, // Darker contrasting background
       borderRadius: 12,
       padding: 16,
       marginVertical: 6,
@@ -23,11 +23,15 @@ const styleSheet = (params: { theme: Theme }) => {
     collapsedContainer: {
       borderRadius: 8,
       paddingVertical: 12,
+      marginVertical: 2, // Reduced spacing between cards
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+    },
+    headerExpanded: {
+      marginBottom: 16, // Extra spacing for expanded cards before the divider
     },
     // Icon section styles
     perpIcon: {
@@ -66,8 +70,8 @@ const styleSheet = (params: { theme: Theme }) => {
     body: {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
-      paddingVertical: 8,
-      marginBottom: 8,
+      paddingVertical: 16,
+      marginBottom: 16,
     },
     bodyRow: {
       flexDirection: 'row',
@@ -77,6 +81,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       alignItems: 'flex-start',
     },
+    bodyItemLabel: {
+      marginBottom: 4,
+    },
     footer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -84,6 +91,9 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     footerButton: {
       flex: 1,
+    },
+    footerButtonExpanded: {
+      backgroundColor: colors.background.default, // Darker uniform button background
     },
   });
 };

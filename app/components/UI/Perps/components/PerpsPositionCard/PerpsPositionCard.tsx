@@ -154,14 +154,16 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     <>
       <TouchableOpacity
         style={expanded ? styles.expandedContainer : styles.collapsedContainer}
-        onPress={handleCardPress}
+        // There's not functional reason for the card to be clickable when expanded
+        onPress={expanded ? undefined : handleCardPress}
         testID="PerpsPositionCard"
-        disabled={disabled}
+        disabled={disabled || expanded}
+        activeOpacity={expanded ? 1 : 0.2}
       >
         {/* Header - Always shown */}
-        <View style={styles.header}>
-          {/* Icon Section - Conditionally shown */}
-          {showIcon && (
+        <View style={[styles.header, expanded && styles.headerExpanded]}>
+          {/* Icon Section - Conditionally shown (only in collapsed mode) */}
+          {showIcon && !expanded && (
             <View style={styles.perpIcon}>
               {assetUrl ? (
                 <RemoteImage
@@ -223,7 +225,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
           <View style={styles.body}>
             <View style={styles.bodyRow}>
               <View style={styles.bodyItem}>
-                <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
                   {strings('perps.position.card.entry_price')}
                 </Text>
                 <Text
@@ -234,7 +239,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
               </View>
               <View style={styles.bodyItem}>
-                <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
                   {strings('perps.position.card.market_price')}
                 </Text>
                 <Text
@@ -247,7 +255,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
               </View>
               <View style={styles.bodyItem}>
-                <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
                   {strings('perps.position.card.liquidity_price')}
                 </Text>
                 <Text
@@ -263,7 +274,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
 
             <View style={styles.bodyRow}>
               <View style={styles.bodyItem}>
-                <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
                   {strings('perps.position.card.take_profit')}
                 </Text>
                 <Text
@@ -276,7 +290,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
               </View>
               <View style={styles.bodyItem}>
-                <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
                   {strings('perps.position.card.stop_loss')}
                 </Text>
                 <Text
@@ -289,7 +306,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                 </Text>
               </View>
               <View style={styles.bodyItem}>
-                <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
                   {strings('perps.position.card.margin')}
                 </Text>
                 <Text
@@ -313,17 +333,17 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               label={strings('perps.position.card.edit_tpsl')}
               onPress={handleEditTPSL}
               disabled={disabled}
-              style={styles.footerButton}
+              style={[styles.footerButton, styles.footerButtonExpanded]}
               testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
             />
             <Button
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               width={ButtonWidthTypes.Auto}
               label={strings('perps.position.card.close_position')}
               onPress={handleClosePress}
               disabled={disabled}
-              style={styles.footerButton}
+              style={[styles.footerButton, styles.footerButtonExpanded]}
               testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
             />
           </View>
