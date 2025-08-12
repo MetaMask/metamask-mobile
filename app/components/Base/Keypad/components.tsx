@@ -1,126 +1,128 @@
 import React from 'react';
+import { StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ViewStyle,
-  TextStyle,
-  AccessibilityRole,
-} from 'react-native';
-import IonicIcon from 'react-native-vector-icons/Ionicons';
-import Device from '../../../util/device';
-import Text from '../Text';
+  Box,
+  BoxFlexDirection,
+  Icon,
+  IconName,
+  IconSize,
+  Text,
+  TextVariant,
+  type BoxProps,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
-    keypad: {
-      paddingHorizontal: 25,
-    },
-    keypadRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-    },
     keypadButton: {
-      paddingHorizontal: 20,
-      paddingVertical: Device.isMediumDevice()
-        ? Device.isIphone5()
-          ? 4
-          : 8
-        : 12,
-      flex: 1,
+      backgroundColor: colors.background.muted,
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      height: 40,
       justifyContent: 'center',
       alignItems: 'center',
     },
-    keypadButtonText: {
-      color: colors.text.default,
-      textAlign: 'center' as const,
-      fontSize: 30,
-    },
-    deleteIcon: {
-      fontSize: 25,
-      marginTop: 5,
+    keypadDeleteButton: {
+      borderRadius: 12,
+      paddingHorizontal: 16,
+      height: 40,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });
 
-interface KeypadContainerProps {
-  style?: ViewStyle | ViewStyle[];
+interface KeypadContainerProps extends BoxProps {
   children?: React.ReactNode;
 }
 
-const KeypadContainer: React.FC<KeypadContainerProps> = ({
-  style,
-  ...props
-}) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-
-  return <View style={[styles.keypad, style]} {...props} />;
-};
+const KeypadContainer: React.FC<KeypadContainerProps> = (props) => (
+  <Box gap={3} {...props} />
+);
 
 interface KeypadRowProps {
   children?: React.ReactNode;
 }
 
-const KeypadRow: React.FC<KeypadRowProps> = (props) => {
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
-
-  return <View style={styles.keypadRow} {...props} />;
-};
+const KeypadRow: React.FC<KeypadRowProps> = (props) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    justifyContent={BoxJustifyContent.Between}
+    gap={3}
+    {...props}
+  />
+);
 
 interface KeypadButtonProps {
   style?: ViewStyle | ViewStyle[];
-  textStyle?: TextStyle | TextStyle[];
   children?: React.ReactNode;
   onPress?: () => void;
-  accessibilityRole?: AccessibilityRole;
-  accessible?: boolean;
+  isDisabled?: boolean;
+  boxWrapperProps?: BoxProps;
 }
 
 const KeypadButton: React.FC<KeypadButtonProps> = ({
   style,
-  textStyle,
   children,
+  isDisabled,
+  boxWrapperProps,
   ...props
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
-    <TouchableOpacity style={[styles.keypadButton, style]} {...props}>
-      <Text style={[styles.keypadButtonText, textStyle]}>{children}</Text>
-    </TouchableOpacity>
+    // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
+    <Box twClassName="flex-1" {...boxWrapperProps}>
+      <TouchableOpacity
+        style={[styles.keypadButton, style]}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessible
+        {...props}
+      >
+        <Text
+          twClassName="font-medium text-center"
+          variant={TextVariant.DisplayMd}
+          accessibilityRole="none"
+        >
+          {children}
+        </Text>
+      </TouchableOpacity>
+    </Box>
   );
 };
 
 interface KeypadDeleteButtonProps {
   style?: ViewStyle | ViewStyle[];
-  icon?: React.ReactNode;
   onPress?: () => void;
   onLongPress?: () => void;
   delayLongPress?: number;
   testID?: string;
+  boxWrapperProps?: BoxProps;
 }
 
 const KeypadDeleteButton: React.FC<KeypadDeleteButtonProps> = ({
   style,
-  icon,
+  boxWrapperProps,
   ...props
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
   return (
-    <TouchableOpacity style={[styles.keypadButton, style]} {...props}>
-      {icon || (
-        <IonicIcon
-          style={[styles.keypadButtonText, styles.deleteIcon]}
-          name="arrow-back"
-        />
-      )}
-    </TouchableOpacity>
+    // Required wrapper to ensure the KeypadButton takes up space available in KeypadRow
+    <Box twClassName="flex-1" {...boxWrapperProps}>
+      <TouchableOpacity
+        style={[styles.keypadDeleteButton, style]}
+        accessibilityRole="button"
+        accessible
+        {...props}
+      >
+        <Icon name={IconName.Backspace} size={IconSize.Xl} />
+      </TouchableOpacity>
+    </Box>
   );
 };
 
@@ -136,3 +138,8 @@ Keypad.Button = KeypadButton;
 Keypad.DeleteButton = KeypadDeleteButton;
 
 export default Keypad;
+export type {
+  KeypadContainerProps,
+  KeypadButtonProps,
+  KeypadDeleteButtonProps,
+};

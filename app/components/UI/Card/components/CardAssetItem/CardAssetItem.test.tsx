@@ -75,7 +75,7 @@ describe('CardAssetItem Component', () => {
     chainId: '0x1',
     address: '0x0000000000000000000000000000000000000000',
     isStaked: false,
-    allowanceState: AllowanceState.NotActivated,
+    allowanceState: AllowanceState.NotEnabled,
     allowance: ethers.BigNumber.from('1000000000000000000'),
     decimals: 18,
     symbol: 'ETH',
