@@ -1,76 +1,53 @@
-import { EXISTING_USER } from '../../constants/storage';
-import { ensureValidState, ValidState } from './util';
-import { captureException } from '@sentry/react-native';
-import StorageWrapper from '../storage-wrapper';
-import { cloneDeep } from 'lodash';
 import { isObject } from '@metamask/utils';
+import { captureException } from '@sentry/react-native';
+import { ensureValidState } from './util';
+import Logger from '../../util/Logger';
 
-// Import the user initial state
-import { userInitialState } from '../../reducers/user';
-
-// Extend ValidState to include the user state
-interface ValidStateWithUser extends ValidState {
-  user?: {
-    existingUser?: boolean;
-    [key: string]: unknown;
-  };
-}
+const migrationVersion = 92;
 
 /**
- * Migration 92: Move EXISTING_USER flag from MMKV to Redux state
- * This unifies user state management and fixes iCloud backup inconsistencies
- *
- * IMPORTANT: After iCloud restore, we should default to existingUser: false
- * because keychain credentials are not backed up, even if MMKV data is restored
+ * Migration 92 cleans up the smart transactions state by wiping all existing smart transactions
+ * for all accounts across all networks. We don't need it anymore since we don't persist new smart transactions.
  */
-const migration = async (state: unknown): Promise<unknown> => {
-  if (!ensureValidState(state, 92)) {
+export default function migrate(state: unknown) {
+  if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
-  const newState = cloneDeep(state) as ValidStateWithUser;
+  const smartTransactionsControllerState =
+    state.engine.backgroundState.SmartTransactionsController;
 
-  try {
-    const existingUser = await StorageWrapper.getItem(EXISTING_USER);
-    const existingUserValue = existingUser === 'true';
-
-    if (!isObject(newState.user)) {
-      const error = new Error(
-        `Migration 92: User state is missing or invalid. Expected object, got: ${typeof newState.user}`,
-      );
-      captureException(error);
-
-      newState.user = {
-        ...userInitialState,
-        existingUser: existingUserValue,
-      };
-    } else {
-      newState.user.existingUser = existingUserValue;
-    }
-
-    if (existingUser !== null) {
-      try {
-        await StorageWrapper.removeItem(EXISTING_USER);
-      } catch (removeError) {
-        // If removeItem fails, capture the error but don't change the existingUser value
-        // since we successfully retrieved it from MMKV
-        captureException(removeError as Error);
-      }
-    }
-  } catch (error) {
-    captureException(error as Error);
-
-    if (!isObject(newState.user)) {
-      newState.user = {
-        ...userInitialState,
-        existingUser: false, // Default to false only if we can't read from MMKV
-      };
-    } else {
-      newState.user.existingUser = false;
-    }
+  // If SmartTransactionsController doesn't exist (fresh install), skip migration
+  if (!smartTransactionsControllerState) {
+    return state;
   }
 
-  return newState;
-};
+  if (!isObject(smartTransactionsControllerState)) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Invalid SmartTransactionsController state: '${typeof smartTransactionsControllerState}'`,
+      ),
+    );
+    return state;
+  }
 
-export default migration;
+  if (
+    !isObject(smartTransactionsControllerState.smartTransactionsState) ||
+    !isObject(
+      smartTransactionsControllerState.smartTransactionsState.smartTransactions,
+    )
+  ) {
+    return state;
+  }
+
+  // Wipe smart transactions for all chains
+  // We're resetting the entire smartTransactions object to ensure complete cleanup
+  smartTransactionsControllerState.smartTransactionsState.smartTransactions =
+    {};
+
+  Logger.log(
+    `Migration ${migrationVersion}: Wiped all smart transactions from state`,
+  );
+
+  return state;
+}

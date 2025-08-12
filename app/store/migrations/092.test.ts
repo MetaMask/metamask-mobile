@@ -1,338 +1,243 @@
-import { captureException } from '@sentry/react-native';
-import { ensureValidState } from './util';
 import migrate from './092';
-import { EXISTING_USER } from '../../constants/storage';
-import StorageWrapper from '../storage-wrapper';
-import { userInitialState } from '../../reducers/user';
+import { merge } from 'lodash';
+import { captureException } from '@sentry/react-native';
+import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller/dist/types';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
-
-jest.mock('./util', () => ({
-  ensureValidState: jest.fn(),
-}));
-
-jest.mock('../storage-wrapper', () => ({
-  getItem: jest.fn(),
-  removeItem: jest.fn(),
-}));
+jest.mock('../../util/Logger');
 
 const mockedCaptureException = jest.mocked(captureException);
-const mockedEnsureValidState = jest.mocked(ensureValidState);
-const mockedStorageWrapper = jest.mocked(StorageWrapper);
 
-describe('Migration 089', () => {
+// Create a minimal base state for testing
+const createBaseState = () => ({
+  engine: {
+    backgroundState: {},
+  },
+});
+
+describe('Migration #92', () => {
   beforeEach(() => {
+    jest.restoreAllMocks();
     jest.resetAllMocks();
   });
 
-  it('returns state unchanged if ensureValidState fails', async () => {
-    const state = { some: 'state' };
-
-    mockedEnsureValidState.mockReturnValue(false);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toBe(state);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-    expect(mockedStorageWrapper.getItem).not.toHaveBeenCalled();
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-  });
-
-  it('moves EXISTING_USER from MMKV to Redux state when value is "true"', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('true');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: true,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('moves EXISTING_USER from MMKV to Redux state when value is "false"', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('false');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: false,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('sets existingUser to false when MMKV value is null', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue(null);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: false,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('captures exception when user state is missing, but continues migration', async () => {
-    const state = {};
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('true');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        ...userInitialState,
-        existingUser: true, // Should use the MMKV value, not default to false
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message:
-          'Migration 89: User state is missing or invalid. Expected object, got: undefined',
+  const invalidStates = [
+    {
+      state: null,
+      errorMessage: "FATAL ERROR: Migration 92: Invalid state error: 'object'",
+      scenario: 'state is invalid',
+    },
+    {
+      state: merge({}, createBaseState(), {
+        engine: null,
       }),
+      errorMessage:
+        "FATAL ERROR: Migration 92: Invalid engine state error: 'object'",
+      scenario: 'engine state is invalid',
+    },
+    {
+      state: merge({}, createBaseState(), {
+        engine: {
+          backgroundState: null,
+        },
+      }),
+      errorMessage:
+        "FATAL ERROR: Migration 92: Invalid engine backgroundState error: 'object'",
+      scenario: 'backgroundState is invalid',
+    },
+  ];
+
+  it.each(invalidStates)(
+    'captures exception if $scenario',
+    ({ errorMessage, state }) => {
+      const newState = migrate(state);
+
+      expect(newState).toStrictEqual(state);
+      expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+      expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+        errorMessage,
+      );
+    },
+  );
+
+  it('returns state unchanged when SmartTransactionsController is undefined (fresh install)', () => {
+    const state = merge({}, createBaseState(), {
+      engine: {
+        backgroundState: {
+          SmartTransactionsController: undefined,
+        },
+      },
+    });
+
+    const newState = migrate(state);
+
+    expect(newState).toStrictEqual(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('wipes all smart transactions when they exist', () => {
+    const oldState = merge({}, createBaseState(), {
+      engine: {
+        backgroundState: {
+          SmartTransactionsController: {
+            smartTransactionsState: {
+              smartTransactions: {
+                [CHAIN_IDS.MAINNET]: [
+                  {
+                    txHash: '0x123',
+                    status: SmartTransactionStatuses.SUCCESS,
+                  },
+                  {
+                    txHash: '0x456',
+                    status: SmartTransactionStatuses.PENDING,
+                  },
+                ],
+                [CHAIN_IDS.OPTIMISM]: [
+                  {
+                    txHash: '0x789',
+                    status: SmartTransactionStatuses.SUCCESS,
+                  },
+                ],
+                [CHAIN_IDS.POLYGON]: [
+                  {
+                    txHash: '0xabc',
+                    status: SmartTransactionStatuses.CANCELLED,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const expectedState = merge({}, oldState);
+    const smartTransactionsState = expectedState.engine.backgroundState
+      .SmartTransactionsController.smartTransactionsState as {
+      smartTransactions: Record<string, unknown>;
+    };
+    smartTransactionsState.smartTransactions = {};
+
+    const newState = migrate(oldState);
+
+    expect(newState).toStrictEqual(expectedState);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('wipes smart transactions with minimal state', () => {
+    const oldState = merge({}, createBaseState(), {
+      engine: {
+        backgroundState: {
+          SmartTransactionsController: {
+            smartTransactionsState: {
+              smartTransactions: {
+                [CHAIN_IDS.MAINNET]: [
+                  {
+                    txHash: '0x123',
+                    status: SmartTransactionStatuses.SUCCESS,
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const expectedState = merge({}, oldState);
+    const smartTransactionsState = expectedState.engine.backgroundState
+      .SmartTransactionsController.smartTransactionsState as {
+      smartTransactions: Record<string, unknown>;
+    };
+    smartTransactionsState.smartTransactions = {};
+
+    const newState = migrate(oldState);
+
+    expect(newState).toStrictEqual(expectedState);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('handles invalid SmartTransactionsController structure gracefully', () => {
+    const state = merge({}, createBaseState(), {
+      engine: {
+        backgroundState: {
+          SmartTransactionsController: {
+            // Missing smartTransactionsState
+          },
+        },
+      },
+    });
+
+    const newState = migrate(state);
+
+    expect(newState).toStrictEqual(state);
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('handles SmartTransactionsController as non-object', () => {
+    const state = merge({}, createBaseState(), {
+      engine: {
+        backgroundState: {
+          SmartTransactionsController: 'invalid',
+        },
+      },
+    });
+
+    const newState = migrate(state);
+
+    expect(newState).toStrictEqual(state);
+    expect(mockedCaptureException).toHaveBeenCalledWith(expect.any(Error));
+    expect(mockedCaptureException.mock.calls[0][0].message).toBe(
+      "Migration 92: Invalid SmartTransactionsController state: 'string'",
     );
   });
 
-  it('captures exception when user state is not an object, but continues migration', async () => {
-    const state = {
-      user: 'not an object',
+  it('handles empty smart transactions', () => {
+    const state = merge({}, createBaseState(), {
+      engine: {
+        backgroundState: {
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                'account-1': {
+                  id: 'account-1',
+                  address: '0x1234567890abcdef1234567890abcdef12345678',
+                  metadata: { name: 'Account 1' },
+                },
+              },
+              selectedAccount: 'account-1',
+            },
+          },
+          SmartTransactionsController: {
+            smartTransactionsState: {
+              smartTransactions: {},
+            },
+          },
+        },
+      },
+    });
+
+    const newState = migrate(state);
+
+    // State should remain unchanged but smartTransactions should still be an empty object
+    const stateWithController = newState as {
+      engine: {
+        backgroundState: {
+          SmartTransactionsController: {
+            smartTransactionsState: {
+              smartTransactions: Record<string, unknown>;
+            };
+          };
+        };
+      };
     };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('true');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        ...userInitialState,
-        existingUser: true, // Should use the MMKV value, not default to false
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message:
-          'Migration 89: User state is missing or invalid. Expected object, got: string',
-      }),
-    );
-  });
-
-  it('uses MMKV value of false when user state is corrupted', async () => {
-    const state = {
-      user: 'not an object',
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('false');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        ...userInitialState,
-        existingUser: false, // Should use the MMKV value of false
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message:
-          'Migration 89: User state is missing or invalid. Expected object, got: string',
-      }),
-    );
-  });
-
-  it('handles StorageWrapper.getItem throwing an error', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    const error = new Error('Storage error');
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockRejectedValue(error);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: false,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-    expect(mockedCaptureException).toHaveBeenCalledWith(error);
-  });
-
-  it('handles StorageWrapper.removeItem throwing an error', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    const error = new Error('Remove error');
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('true');
-    mockedStorageWrapper.removeItem.mockRejectedValue(error);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: true,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).toHaveBeenCalledWith(error);
-  });
-
-  it('initializes with full userInitialState when user state is missing and error occurs', async () => {
-    const state = {};
-
-    const error = new Error('Storage error');
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockRejectedValue(error);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        ...userInitialState,
-        existingUser: false, // Default to false for safety
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-    expect(mockedCaptureException).toHaveBeenCalledWith(error);
-  });
-
-  it('preserves existing existingUser value in Redux if already set', async () => {
-    const state = {
-      user: {
-        existingUser: true,
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('false');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        existingUser: false, // Should be overwritten by MMKV value
-        someOtherField: 'value',
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('does not remove from MMKV if value was null', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue(null);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: false,
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-    expect(mockedCaptureException).not.toHaveBeenCalled();
-  });
-
-  it('handles edge case with empty string value', async () => {
-    const state = {
-      user: {
-        someOtherField: 'value',
-      },
-    };
-
-    mockedEnsureValidState.mockReturnValue(true);
-    mockedStorageWrapper.getItem.mockResolvedValue('');
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toEqual({
-      user: {
-        someOtherField: 'value',
-        existingUser: false, // Empty string !== 'true'
-      },
-    });
-
-    expect(mockedStorageWrapper.getItem).toHaveBeenCalledWith(EXISTING_USER);
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(EXISTING_USER);
+    expect(
+      stateWithController.engine.backgroundState.SmartTransactionsController
+        .smartTransactionsState.smartTransactions,
+    ).toStrictEqual({});
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 });
