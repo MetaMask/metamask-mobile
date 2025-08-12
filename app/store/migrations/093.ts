@@ -5,14 +5,14 @@ import { NetworkConfiguration } from '@metamask/network-controller';
 import { NETWORK_CHAIN_ID } from '../../util/networks/customNetworks';
 
 /**
- * Migration 092: Update Sei Network Name
+ * Migration 093: Update Sei Network Name
  *
  * This migration updates:
  * - the SEI network name from `Sei Network` to `Sei Mainnet`.
  * - the SEI RPC name from `Sei Network` to `Sei Mainnet`.
  */
 export default function migrate(state: unknown): unknown {
-  const migrationVersion = 92;
+  const migrationVersion = 93;
   const fromName = 'Sei Network';
   const toName = 'Sei Mainnet';
   const seiChainId = NETWORK_CHAIN_ID.SEI_MAINNET;

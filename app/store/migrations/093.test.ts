@@ -15,7 +15,7 @@ jest.mock('./util', () => ({
 const mockedCaptureException = jest.mocked(captureException);
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 
-describe('Migration 92: Update Sei Network name', () => {
+describe('Migration 93: Update Sei Network name', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
