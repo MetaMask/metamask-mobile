@@ -15,6 +15,7 @@ import {
   RegressionStage,
   craftRegressionLabel,
   externalContributorLabel,
+  needsTriageLabel,
   invalidIssueTemplateLabel,
   invalidPullRequestTemplateLabel,
 } from './shared/label';
@@ -109,6 +110,8 @@ async function main(): Promise<void> {
 
       // Add regression label to the bug report issue
       addRegressionLabelToIssue(octokit, labelable);
+
+      await addNeedsTriageLabelToIssue(octokit, labelable);
 
     } else {
       const errorMessage =
@@ -230,6 +233,14 @@ function extractReleaseVersionFromBugReportIssueBody(
   }
 
   return version;
+}
+
+// This function adds the "needs-triage" label to the issue if it doesn't have it
+async function addNeedsTriageLabelToIssue(
+  octokit: InstanceType<typeof GitHub>,
+  issue: Labelable,
+): Promise<void> {
+  await addLabelToLabelable(octokit, issue, needsTriageLabel);
 }
 
 // This function adds the correct regression label to the issue, and removes other ones
