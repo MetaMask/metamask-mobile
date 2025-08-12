@@ -36,7 +36,6 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
-import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
@@ -138,7 +137,7 @@ const PerpsOrderViewContent: React.FC = () => {
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
-      onSuccess: (position) => {
+      onSuccess: () => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
@@ -157,11 +156,7 @@ const PerpsOrderViewContent: React.FC = () => {
           hasNoTimeout: false,
         });
 
-        if (position) {
-          navigation.navigate(Routes.PERPS.POSITION_DETAILS, { position });
-        } else {
-          navigation.navigate(Routes.PERPS.POSITIONS);
-        }
+        navigation.goBack();
       },
       onError: (error) => {
         toastRef?.current?.showToast({
