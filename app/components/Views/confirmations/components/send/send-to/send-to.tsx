@@ -1,4 +1,3 @@
-import Clipboard from '@react-native-clipboard/clipboard';
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 
@@ -24,24 +23,16 @@ export const SendTo = () => {
   const { to, updateTo } = useSendContext();
   const { toAddressError, toAddressWarning } = useToAddressValidation();
   const { handleSubmitPress } = useSendActions();
-  const {
-    captureRecipientSelected,
-    setRecipientInputMethodManual,
-    setRecipientInputMethodPasted,
-  } = useRecipientSelectionMetrics();
+  const { captureRecipientSelected, setRecipientInputMethodManual } =
+    useRecipientSelectionMetrics();
   useSendNavbar({ currentRoute: Routes.SEND.RECIPIENT });
 
   const onTextChange = useCallback(
-    async (sendTo: string) => {
+    (sendTo: string) => {
       updateTo(sendTo);
-      const clipboardText = await Clipboard.getString();
-      if (clipboardText === sendTo) {
-        setRecipientInputMethodPasted();
-      } else {
-        setRecipientInputMethodManual();
-      }
+      setRecipientInputMethodManual();
     },
-    [setRecipientInputMethodManual, setRecipientInputMethodPasted, updateTo],
+    [setRecipientInputMethodManual, updateTo],
   );
 
   const onSubmit = useCallback(() => {

@@ -65,7 +65,7 @@ export const Amount = () => {
   );
 
   const updateToNewAmount = useCallback(
-    async (amt: string) => {
+    (amt: string) => {
       updateAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
       setAmountInputMethodManual();
