@@ -692,14 +692,34 @@ export class HyperLiquidSubscriptionService {
 
   /**
    * Notify all price subscribers with their requested symbols from cache
+   * Optimized to batch updates per subscriber
    */
   private notifyAllPriceSubscribers(): void {
+    // Group updates by subscriber to batch notifications
+    const subscriberUpdates = new Map<
+      (prices: PriceUpdate[]) => void,
+      PriceUpdate[]
+    >();
+
     this.priceSubscribers.forEach((subscriberSet, symbol) => {
       const priceUpdate = this.cachedPriceData.get(symbol);
       if (priceUpdate) {
         subscriberSet.forEach((callback) => {
-          callback([priceUpdate]);
+          if (!subscriberUpdates.has(callback)) {
+            subscriberUpdates.set(callback, []);
+          }
+          const updates = subscriberUpdates.get(callback);
+          if (updates) {
+            updates.push(priceUpdate);
+          }
         });
+      }
+    });
+
+    // Send batched updates to each subscriber
+    subscriberUpdates.forEach((updates, callback) => {
+      if (updates.length > 0) {
+        callback(updates);
       }
     });
   }

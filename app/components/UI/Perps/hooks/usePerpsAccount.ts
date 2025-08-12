@@ -1,17 +1,13 @@
 import { useSelector } from 'react-redux';
-import { createSelector } from 'reselect';
 import type { RootState } from '../../../../reducers';
 import type { AccountState } from '../controllers/types';
 
 /**
- * Memoized selector for Perps account state
- * Uses createSelector for consistency and performance
+ * Direct selector for Perps account state
+ * No need for createSelector as we're not transforming the data
  */
-const selectPerpsAccountState = createSelector(
-  (state: RootState) =>
-    state.engine.backgroundState.PerpsController?.accountState,
-  (accountState): AccountState | null => accountState || null,
-);
+const selectPerpsAccountState = (state: RootState): AccountState | null =>
+  state.engine.backgroundState.PerpsController?.accountState || null;
 
 /**
  * Hook to get persisted account state from Redux

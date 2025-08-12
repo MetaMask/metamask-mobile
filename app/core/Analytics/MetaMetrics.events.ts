@@ -575,7 +575,7 @@ enum EVENT_NAME {
   PERPS_TAKE_PROFIT_SET = 'Take Profit Set',
   PERPS_STOP_LOSS_EXECUTED = 'Stop Loss Executed',
   PERPS_TAKE_PROFIT_EXECUTED = 'Take Profit Executed',
-  PERPS_POSITION_LIQUIDATED = 'Position liquidated',
+  PERPS_ORDER_LIQUIDATED = 'Order liquidated',
 
   // Error Management Flow
   PERPS_WARNING_DISPLAYED = 'Warning displayed',
@@ -1483,7 +1483,7 @@ const events = {
   PERPS_TAKE_PROFIT_EXECUTED: generateOpt(
     EVENT_NAME.PERPS_TAKE_PROFIT_EXECUTED,
   ),
-  PERPS_POSITION_LIQUIDATED: generateOpt(EVENT_NAME.PERPS_POSITION_LIQUIDATED),
+  PERPS_ORDER_LIQUIDATED: generateOpt(EVENT_NAME.PERPS_ORDER_LIQUIDATED),
 
   // Error Management Flow (2 events)
   PERPS_WARNING_DISPLAYED: generateOpt(EVENT_NAME.PERPS_WARNING_DISPLAYED),

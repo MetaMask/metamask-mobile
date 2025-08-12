@@ -73,7 +73,8 @@ const LeverageSlider: React.FC<{
   minValue: number;
   maxValue: number;
   colors: Theme['colors'];
-}> = ({ value, onValueChange, minValue, maxValue, colors }) => {
+  onInteraction?: () => void;
+}> = ({ value, onValueChange, minValue, maxValue, colors, onInteraction }) => {
   const styles = createStyles(colors);
   const sliderWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
@@ -131,8 +132,9 @@ const LeverageSlider: React.FC<{
   const updateValue = useCallback(
     (newValue: number) => {
       onValueChange(newValue);
+      onInteraction?.();
     },
-    [onValueChange],
+    [onValueChange, onInteraction],
   );
 
   const panGesture = Gesture.Pan()
@@ -231,6 +233,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [tempLeverage, setTempLeverage] = useState(initialLeverage);
+  const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
   const { trackEvent, createEventBuilder } = useMetrics();
   const screenLoadStartRef = useRef<number>(0);
   const hasTrackedLeverageView = useRef(false);
@@ -287,7 +290,9 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
               : PerpsEventValues.DIRECTION.SHORT,
           [PerpsEventProperties.LEVERAGE_USED]: tempLeverage,
           [PerpsEventProperties.INPUT_METHOD]:
-            PerpsEventValues.INPUT_METHOD.SLIDER,
+            inputMethod === 'slider'
+              ? PerpsEventValues.INPUT_METHOD.SLIDER
+              : PerpsEventValues.INPUT_METHOD.PRESET,
         })
         .build(),
     );
@@ -453,6 +458,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             minValue={minLeverage}
             maxValue={maxLeverage}
             colors={colors}
+            onInteraction={() => setInputMethod('slider')}
           />
           <View style={styles.sliderLabels}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
@@ -473,7 +479,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 styles.quickSelectButton,
                 tempLeverage === value && styles.quickSelectButtonActive,
               ]}
-              onPress={() => setTempLeverage(value)}
+              onPress={() => {
+                setTempLeverage(value);
+                setInputMethod('preset');
+              }}
             >
               <Text
                 variant={TextVariant.BodyLGMedium}

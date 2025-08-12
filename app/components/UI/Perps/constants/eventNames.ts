@@ -68,7 +68,7 @@ export const PerpsEventProperties = {
   NOTIFICATION_TYPE: 'Notification Type',
 
   // Other properties
-  INPUT_METHOD: 'Input Method',
+  INPUT_METHOD: 'inputMethod', // camelCase per requirements
   FAILURE_REASON: 'Failure Reason',
   WARNING_TYPE: 'Warning Type',
   WARNING_MESSAGE: 'Warning Message',

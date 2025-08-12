@@ -55,7 +55,6 @@ import {
 } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 // import useTooltipModal from '../../../../hooks/useTooltipModal';
-import performance from 'react-native-performance';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
   endTrace,
@@ -96,6 +95,10 @@ import {
   PerpsOrderProvider,
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
+import {
+  PerpsPriceProvider,
+  usePerpsPriceContext,
+} from '../../contexts/PerpsPriceContext';
 import type {
   OrderParams,
   OrderType,
@@ -110,13 +113,13 @@ import {
   usePerpsOrderFees,
   usePerpsOrderValidation,
   usePerpsPaymentTokens,
-  usePerpsPrices,
 } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import { setMeasurement } from '@sentry/react-native';
+import performance from 'react-native-performance';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsOrderView.styles';
 
@@ -137,7 +140,7 @@ interface OrderRouteParams {
 }
 
 // Extract the main content into a separate component that uses context
-const PerpsOrderViewContent: React.FC = () => {
+const PerpsOrderViewContent: React.FC = React.memo(() => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { top } = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -314,16 +317,19 @@ const PerpsOrderViewContent: React.FC = () => {
     });
   }, [orderForm.asset, orderForm.direction, orderForm.type]);
 
-  // Track balance display updates
+  // Track balance display updates - measure after actual render
   useEffect(() => {
     if (cachedAccountState?.availableBalance !== undefined) {
-      const balanceUpdateStart = performance.now();
-      const balanceUpdateDuration = performance.now() - balanceUpdateStart;
-      setMeasurement(
-        PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED,
-        balanceUpdateDuration,
-        'millisecond',
-      );
+      const startTime = performance.now();
+      // Use requestAnimationFrame to measure after actual DOM update
+      requestAnimationFrame(() => {
+        const duration = performance.now() - startTime;
+        setMeasurement(
+          PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED,
+          duration,
+          'millisecond',
+        );
+      });
     }
   }, [cachedAccountState?.availableBalance]);
 
@@ -357,17 +363,9 @@ const PerpsOrderViewContent: React.FC = () => {
 
   // Note: Navigation params for order type modal are no longer needed
 
-  // Memoize the asset array
-  const assetSymbols = useMemo(() => [orderForm.asset], [orderForm.asset]);
-
-  // Get real-time price data from HyperLiquid
-  // - price: Mid price (average of best bid and ask)
-  // - bestBid: Highest price buyers are willing to pay
-  // - bestAsk: Lowest price sellers are willing to accept
-  // - spread: Difference between ask and bid
-  // - includeOrderBook: When true, fetches bid/ask data for limit orders
-  const priceData = usePerpsPrices(assetSymbols, orderForm.type === 'limit');
-  const currentPrice = priceData[orderForm.asset];
+  // Get real-time price data from context instead of direct hook
+  const { prices } = usePerpsPriceContext();
+  const currentPrice = prices[orderForm.asset];
 
   // Track screen load with centralized hook
   usePerpsScreenTracking({
@@ -464,7 +462,7 @@ const PerpsOrderViewContent: React.FC = () => {
     }
   }, [marketDataError, orderForm.asset, toastRef, navigation]);
 
-  // Real-time position size calculation
+  // Real-time position size calculation - memoized to prevent recalculation
   const positionSize = useMemo(
     () =>
       calculatePositionSize({
@@ -503,6 +501,50 @@ const PerpsOrderViewContent: React.FC = () => {
     hasExistingPosition,
   });
 
+  // Track dependent metrics update performance when amount or leverage changes
+  const prevInputValuesRef = useRef({ amount: '', leverage: 1 });
+  useEffect(() => {
+    const hasAmountChanged =
+      prevInputValuesRef.current.amount !== orderForm.amount;
+    const hasLeverageChanged =
+      prevInputValuesRef.current.leverage !== orderForm.leverage;
+
+    if (
+      (hasAmountChanged || hasLeverageChanged) &&
+      parseFloat(orderForm.amount) > 0
+    ) {
+      // Measure after all dependent calculations have completed
+      const startTime = performance.now();
+
+      // These values trigger recalculation when amount/leverage changes:
+      // - positionSize (memoized)
+      // - marginRequired (from calculations)
+      // - liquidationPrice (from hook)
+      // - orderValidation (from hook)
+
+      // Use requestAnimationFrame to measure after React has updated
+      requestAnimationFrame(() => {
+        const duration = performance.now() - startTime;
+        setMeasurement(
+          PerpsMeasurementName.UPDATE_DEPENDENT_METRICS,
+          duration,
+          'millisecond',
+        );
+      });
+
+      prevInputValuesRef.current = {
+        amount: orderForm.amount,
+        leverage: orderForm.leverage,
+      };
+    }
+  }, [
+    orderForm.amount,
+    orderForm.leverage,
+    positionSize,
+    marginRequired,
+    liquidationPrice,
+  ]);
+
   // Handlers
 
   const handleAmountPress = () => {
@@ -511,16 +553,7 @@ const PerpsOrderViewContent: React.FC = () => {
 
   const handleKeypadChange = useCallback(
     ({ value }: { value: string; valueAsNumber: number }) => {
-      const metricsUpdateStart = performance.now();
       setAmount(value || '0');
-
-      // Measure update dependent metrics
-      const metricsDuration = performance.now() - metricsUpdateStart;
-      setMeasurement(
-        PerpsMeasurementName.UPDATE_DEPENDENT_METRICS,
-        metricsDuration,
-        'millisecond',
-      );
 
       // Track position size entry with proper event properties
       const eventProps = {
@@ -1237,9 +1270,9 @@ const PerpsOrderViewContent: React.FC = () => {
       )}
     </SafeAreaView>
   );
-};
+});
 
-// Main component that wraps content with context provider
+// Main component that wraps content with context providers
 const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
 
@@ -1251,6 +1284,9 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
   } = route.params || {};
 
+  // Memoize the asset symbols for price provider
+  const priceSymbols = useMemo(() => [asset], [asset]);
+
   return (
     <PerpsOrderProvider
       initialAsset={asset}
@@ -1258,7 +1294,9 @@ const PerpsOrderView: React.FC = () => {
       initialAmount={paramAmount}
       initialLeverage={paramLeverage}
     >
-      <PerpsOrderViewContent />
+      <PerpsPriceProvider symbols={priceSymbols} includeOrderBook>
+        <PerpsOrderViewContent />
+      </PerpsPriceProvider>
     </PerpsOrderProvider>
   );
 };

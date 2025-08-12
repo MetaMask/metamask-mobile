@@ -47,7 +47,17 @@ export const PerpsConnectionProvider: React.FC<
   useEffect(() => {
     const updateState = () => {
       const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
+      setConnectionState((prevState) => {
+        // Only update if state has actually changed
+        if (
+          prevState.isConnected !== state.isConnected ||
+          prevState.isConnecting !== state.isConnecting ||
+          prevState.isInitialized !== state.isInitialized
+        ) {
+          return state;
+        }
+        return prevState;
+      });
     };
 
     // Poll every 100ms for state changes
@@ -66,7 +76,17 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.connect();
       const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
+      setConnectionState((prevState) => {
+        // Only update if state has actually changed
+        if (
+          prevState.isConnected !== state.isConnected ||
+          prevState.isConnecting !== state.isConnecting ||
+          prevState.isInitialized !== state.isInitialized
+        ) {
+          return state;
+        }
+        return prevState;
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Unknown connection error';
@@ -79,7 +99,17 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.disconnect();
       const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
+      setConnectionState((prevState) => {
+        // Only update if state has actually changed
+        if (
+          prevState.isConnected !== state.isConnected ||
+          prevState.isConnecting !== state.isConnecting ||
+          prevState.isInitialized !== state.isInitialized
+        ) {
+          return state;
+        }
+        return prevState;
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Unknown disconnection error';
@@ -103,7 +133,17 @@ export const PerpsConnectionProvider: React.FC<
       try {
         await PerpsConnectionManager.connect();
         const state = PerpsConnectionManager.getConnectionState();
-        setConnectionState(state);
+        setConnectionState((prevState) => {
+          // Only update if state has actually changed
+          if (
+            prevState.isConnected !== state.isConnected ||
+            prevState.isConnecting !== state.isConnecting ||
+            prevState.isInitialized !== state.isInitialized
+          ) {
+            return state;
+          }
+          return prevState;
+        });
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Unknown connection error';
