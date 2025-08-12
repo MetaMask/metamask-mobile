@@ -1,0 +1,63 @@
+name: Detect Mobile Build Changes
+
+on:
+  workflow_call:
+    outputs:
+      android_changed:
+        description: 'Whether Android-impacting files changed'
+        value: ${{ jobs.detect.outputs.android }}
+      ios_changed:
+        description: 'Whether iOS-impacting files changed'
+        value: ${{ jobs.detect.outputs.ios }}
+      any_changed:
+        description: 'Whether either platform requires a build'
+        value: ${{ jobs.detect.outputs.any }}
+
+jobs:
+  detect:
+    name: Detect platform changes (Android/iOS)
+    runs-on: ubuntu-latest
+    outputs:
+      android: ${{ steps.filter.outputs.android }}
+      ios: ${{ steps.filter.outputs.ios }}
+      any: ${{ steps.set-any.outputs.any_changed }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Paths filter (Android/iOS impact)
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            android:
+              - 'android/**'
+              - '**/*.gradle*'
+              - '**/gradle-wrapper.properties'
+              - 'package.json'
+              - 'yarn.lock'
+              - 'scripts/**'
+              - 'app/**'
+            ios:
+              - 'ios/**'
+              - 'package.json'
+              - 'yarn.lock'
+              - 'scripts/**'
+              - 'app/**'
+
+      - name: Set any_changed output
+        id: set-any
+        run: |
+          if [[ "${{ steps.filter.outputs.android }}" == 'true' || "${{ steps.filter.outputs.ios }}" == 'true' ]]; then
+            echo "any_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "any_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Summary
+        run: |
+          echo "Android changed: ${{ steps.filter.outputs.android }}" >> $GITHUB_STEP_SUMMARY
+          echo "iOS changed: ${{ steps.filter.outputs.ios }}" >> $GITHUB_STEP_SUMMARY
+          echo "Any changed: ${{ steps.set-any.outputs.any_changed }}" >> $GITHUB_STEP_SUMMARY
