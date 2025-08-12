@@ -53,6 +53,7 @@ import {
   getNetworkImageSource,
 } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
+import Keypad from '../../../../Base/Keypad';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
@@ -96,7 +97,6 @@ import createStyles from './PerpsOrderView.styles';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import Keypad from '../../../../Base/Keypad';
 import {
   PerpsOrderProvider,
   usePerpsOrderContext,
@@ -781,7 +781,6 @@ const PerpsOrderViewContent: React.FC = () => {
           </View>
 
           <Keypad
-            style={styles.keypad}
             value={orderForm.amount}
             onChange={handleKeypadChange}
             currency="USD"
