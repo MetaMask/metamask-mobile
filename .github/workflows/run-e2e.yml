@@ -51,6 +51,7 @@ jobs:
       test_suite_tag: ".*SmokeConfirmations.*"
       split_number: ${{ matrix.split }}
       total_splits: 3
+      e2e-max-workers: 1
     secrets: inherit
 
   smoke-confirmations-redesigned-ios:
@@ -67,6 +68,7 @@ jobs:
       test_suite_tag: ".*SmokeConfirmationsRedesigned.*"
       split_number: ${{ matrix.split }}
       total_splits: 2
+      e2e-max-workers: 1
     secrets: inherit
 
   smoke-trade-ios:

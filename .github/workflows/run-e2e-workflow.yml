@@ -28,6 +28,11 @@ on:
         required: false
         type: number
         default: 1
+      e2e-max-workers:
+        description: 'Override Jest maxWorkers for E2E (e.g., 1 for serial)'
+        required: false
+        type: number
+        default: 0
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}
@@ -48,6 +53,7 @@ jobs:
       SPLIT_NUMBER: ${{ inputs.split_number }}
       TOTAL_SPLITS: ${{ inputs.total_splits }}
       GITHUB_CI: 'true'
+      E2E_MAX_WORKERS: ${{ inputs.e2e-max-workers && inputs.e2e-max-workers > 0 && inputs.e2e-max-workers || null }}
       MM_UNIFIED_SWAPS_ENABLED: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       MM_BRIDGE_ENABLED: 'true'
@@ -179,6 +185,9 @@ jobs:
           
           # Always use the splitting script (handles both split and non-split cases)
           echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
+          if [[ -n "${{ inputs.e2e-max-workers }}" && "${{ inputs.e2e-max-workers }}" != "0" ]]; then
+            echo "Forcing Jest maxWorkers=${{ inputs.e2e-max-workers }}"
+          fi
           ./scripts/run-e2e-tags-split.sh
           
           echo "✅ Test execution completed"
