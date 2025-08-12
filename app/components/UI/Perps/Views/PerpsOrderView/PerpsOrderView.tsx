@@ -116,7 +116,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
-import { measurePerformance } from '../../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsOrderView.styles';
 
@@ -318,9 +318,11 @@ const PerpsOrderViewContent: React.FC = () => {
   useEffect(() => {
     if (cachedAccountState?.availableBalance !== undefined) {
       const balanceUpdateStart = performance.now();
-      measurePerformance(
+      const balanceUpdateDuration = performance.now() - balanceUpdateStart;
+      setMeasurement(
         PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED,
-        balanceUpdateStart,
+        balanceUpdateDuration,
+        'millisecond',
       );
     }
   }, [cachedAccountState?.availableBalance]);
@@ -513,9 +515,11 @@ const PerpsOrderViewContent: React.FC = () => {
       setAmount(value || '0');
 
       // Measure update dependent metrics
-      measurePerformance(
+      const metricsDuration = performance.now() - metricsUpdateStart;
+      setMeasurement(
         PerpsMeasurementName.UPDATE_DEPENDENT_METRICS,
-        metricsUpdateStart,
+        metricsDuration,
+        'millisecond',
       );
 
       // Track position size entry with proper event properties

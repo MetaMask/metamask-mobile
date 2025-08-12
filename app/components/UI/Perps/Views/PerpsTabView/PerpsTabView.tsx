@@ -38,7 +38,7 @@ import {
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import performance from 'react-native-performance';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { measurePerformance } from '../../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 import styleSheet from './PerpsTabView.styles';
 
 interface PerpsTabViewProps {}
@@ -86,9 +86,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       cachedAccountState?.totalBalance !== undefined
     ) {
       // Track position data loaded performance
-      measurePerformance(
+      const duration = performance.now() - screenLoadStartRef.current;
+      setMeasurement(
         PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB,
-        screenLoadStartRef.current,
+        duration,
+        'millisecond',
       );
 
       // Track homescreen tab viewed event with exact property names from requirements

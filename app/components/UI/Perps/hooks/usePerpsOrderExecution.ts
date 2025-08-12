@@ -5,7 +5,7 @@ import { usePerpsTrading } from './usePerpsTrading';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import performance from 'react-native-performance';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import { measurePerformance } from '../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 
 interface UsePerpsOrderExecutionParams {
   onSuccess?: (position?: Position) => void;
@@ -51,9 +51,11 @@ export function usePerpsOrderExecution(
         setLastResult(result);
 
         // Measure order submission toast loaded
-        measurePerformance(
+        const submissionDuration = performance.now() - orderSubmissionStart;
+        setMeasurement(
           PerpsMeasurementName.ORDER_SUBMISSION_TOAST_LOADED,
-          orderSubmissionStart,
+          submissionDuration,
+          'millisecond',
         );
 
         if (result.success) {
@@ -76,9 +78,12 @@ export function usePerpsOrderExecution(
             );
 
             // Measure order confirmation toast loaded
-            measurePerformance(
+            const confirmationDuration =
+              performance.now() - orderConfirmationStart;
+            setMeasurement(
               PerpsMeasurementName.ORDER_CONFIRMATION_TOAST_LOADED,
-              orderConfirmationStart,
+              confirmationDuration,
+              'millisecond',
             );
 
             if (newPosition) {

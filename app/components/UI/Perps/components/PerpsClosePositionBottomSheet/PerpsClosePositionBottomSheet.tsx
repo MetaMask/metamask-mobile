@@ -36,7 +36,7 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { measurePerformance } from '../../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 interface PerpsClosePositionBottomSheetProps {
@@ -146,9 +146,11 @@ const PerpsClosePositionBottomSheet: React.FC<
       // Measure close screen loaded - only once
       if (!hasTrackedCloseView.current) {
         setTimeout(() => {
-          measurePerformance(
+          const duration = performance.now() - screenLoadStartRef.current;
+          setMeasurement(
             PerpsMeasurementName.CLOSE_SCREEN_LOADED,
-            screenLoadStartRef.current,
+            duration,
+            'millisecond',
           );
 
           // Track position close screen viewed

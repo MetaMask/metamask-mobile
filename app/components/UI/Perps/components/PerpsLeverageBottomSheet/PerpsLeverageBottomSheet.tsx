@@ -50,7 +50,7 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { measurePerformance } from '../../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 interface PerpsLeverageBottomSheetProps {
@@ -243,9 +243,11 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
       // Measure and track leverage bottom sheet loaded - only once
       if (!hasTrackedLeverageView.current) {
         setTimeout(() => {
-          measurePerformance(
+          const duration = performance.now() - screenLoadStartRef.current;
+          setMeasurement(
             PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
-            screenLoadStartRef.current,
+            duration,
+            'millisecond',
           );
 
           // Track leverage screen viewed event

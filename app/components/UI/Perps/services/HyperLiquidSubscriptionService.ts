@@ -11,7 +11,6 @@ import {
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
-import { measurePerformance } from '../utils/perpsDebug';
 import {
   trace,
   endTrace,
@@ -434,9 +433,11 @@ export class HyperLiquidSubscriptionService {
         // Notify all price subscribers with their requested symbols
         this.notifyAllPriceSubscribers();
 
-        measurePerformance(
+        const duration = performance.now() - processStart;
+        setMeasurement(
           PerpsMeasurementName.PRICE_UPDATE_PROCESS_MS,
-          processStart,
+          duration,
+          'millisecond',
         );
 
         // Track update frequency every 100 messages

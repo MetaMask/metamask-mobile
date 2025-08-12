@@ -46,7 +46,7 @@ import {
 } from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { measurePerformance } from '../../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -167,9 +167,11 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Track screen load when data is available
   useEffect(() => {
     if (flatListData.length > 0) {
-      measurePerformance(
+      const duration = performance.now() - screenLoadStartRef.current;
+      setMeasurement(
         PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED,
-        screenLoadStartRef.current,
+        duration,
+        'millisecond',
       );
     }
   }, [flatListData.length]);

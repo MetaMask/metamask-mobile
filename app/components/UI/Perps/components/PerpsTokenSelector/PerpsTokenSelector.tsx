@@ -42,7 +42,7 @@ import {
 } from '../../constants/hyperLiquidConfig';
 import { PerpsTokenSelectorSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { measurePerformance } from '../../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 
 // Re-export BridgeToken as PerpsToken for backward compatibility
 export type PerpsToken = BridgeToken;
@@ -90,9 +90,11 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
       screenLoadStartRef.current = performance.now();
       // Measure after modal animation completes
       setTimeout(() => {
-        measurePerformance(
+        const duration = performance.now() - screenLoadStartRef.current;
+        setMeasurement(
           PerpsMeasurementName.FUNDING_SOURCE_TOKEN_LIST_LOADED,
-          screenLoadStartRef.current,
+          duration,
+          'millisecond',
         );
       }, 300);
     }

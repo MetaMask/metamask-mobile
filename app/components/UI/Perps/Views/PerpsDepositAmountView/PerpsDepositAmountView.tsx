@@ -108,7 +108,7 @@ import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsDepositAmountView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { PerpsEventProperties } from '../../constants/eventNames';
-import { measurePerformance } from '../../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
@@ -136,6 +136,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const prevTokenRef = useRef<PerpsToken | undefined>();
   const hasTrackedFundingInput = useRef(false);
   const hasTrackedFundingReview = useRef(false);
+  const reviewLoadStartRef = useRef<number>(0);
 
   // Selectors
   const selectedAddress = useSelector(
@@ -456,16 +457,20 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       const depositResult = await deposit(depositParams);
 
       // Measure transaction submission screen loaded
-      measurePerformance(
+      const submissionDuration = performance.now() - fundingStartTime;
+      setMeasurement(
         PerpsMeasurementName.TRANSACTION_SUBMISSION_SCREEN_LOADED,
-        fundingStartTime,
+        submissionDuration,
+        'millisecond',
       );
 
       if (depositResult.success && depositResult.txHash) {
         // Measure transaction execution confirmation
-        measurePerformance(
+        const confirmationDuration = performance.now() - fundingStartTime;
+        setMeasurement(
           PerpsMeasurementName.TRANSACTION_EXECUTION_CONFIRMATION_SCREEN_LOADED,
-          fundingStartTime,
+          confirmationDuration,
+          'millisecond',
         );
 
         // Track funding completed
@@ -593,6 +598,18 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       formattedQuoteData.receivingAmount &&
       !hasTrackedFundingReview.current
     ) {
+      // Start measuring review screen load time
+      if (reviewLoadStartRef.current === 0) {
+        reviewLoadStartRef.current = performance.now();
+      }
+
+      // Measure review screen loaded
+      const duration = performance.now() - reviewLoadStartRef.current;
+      setMeasurement(
+        PerpsMeasurementName.FUNDING_SCREEN_REVIEW_LOADED,
+        duration,
+        'millisecond',
+      );
       trackEvent(
         createEventBuilder(MetaMetricsEvents.PERPS_FUNDING_REVIEW_VIEWED)
           .addProperties({

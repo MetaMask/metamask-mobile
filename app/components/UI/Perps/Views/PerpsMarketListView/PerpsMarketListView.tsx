@@ -40,7 +40,7 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { measurePerformance } from '../../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 
 const PerpsMarketRowItemSkeleton = () => {
@@ -201,9 +201,11 @@ const PerpsMarketListView = ({
       !hasTrackedSkeletonDisplay.current
     ) {
       // Measure time to skeleton display (should be instant)
-      measurePerformance(
+      const duration = performance.now() - screenLoadStartRef.current;
+      setMeasurement(
         PerpsMeasurementName.MARKETS_SCREEN_LOADED,
-        screenLoadStartRef.current,
+        duration,
+        'millisecond',
       );
       hasTrackedSkeletonDisplay.current = true;
     }
@@ -249,10 +251,11 @@ const PerpsMarketListView = ({
       positions.length >= 0 &&
       !isLoadingPositions
     ) {
-      const positionLoadStart = performance.now();
-      measurePerformance(
+      const duration = performance.now() - screenLoadStartRef.current;
+      setMeasurement(
         PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB,
-        positionLoadStart,
+        duration,
+        'millisecond',
       );
     }
   }, [activeTab, positions, isLoadingPositions]);

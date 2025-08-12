@@ -6,7 +6,6 @@ import { setMeasurement } from '@sentry/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { measurePerformance } from '../../utils/perpsDebug';
 import {
   FEE_RATES,
   getBridgeInfo,
@@ -192,9 +191,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
       // Validate order parameters
       const validationStart = performance.now();
       const validation = validateOrderParams(params);
-      measurePerformance(
+      const validationDuration = performance.now() - validationStart;
+      setMeasurement(
         PerpsMeasurementName.ORDER_VALIDATION_MS,
-        validationStart,
+        validationDuration,
+        'millisecond',
       );
 
       if (!validation.isValid) {
@@ -375,7 +376,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orders,
         grouping,
       });
-      measurePerformance(PerpsMeasurementName.ORDER_SUBMISSION_MS, submitStart);
+      const submitDuration = performance.now() - submitStart;
+      setMeasurement(
+        PerpsMeasurementName.ORDER_SUBMISSION_MS,
+        submitDuration,
+        'millisecond',
+      );
 
       if (result.status !== 'ok') {
         throw new Error(`Order failed: ${JSON.stringify(result)}`);
@@ -416,7 +422,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
         );
       }
 
-      measurePerformance(PerpsMeasurementName.TOTAL_ORDER_TIME_MS, startTime);
+      const totalDuration = performance.now() - startTime;
+      setMeasurement(
+        PerpsMeasurementName.TOTAL_ORDER_TIME_MS,
+        totalDuration,
+        'millisecond',
+      );
 
       return {
         success: true,
@@ -790,7 +801,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const positionsStart = performance.now();
       const positions = await this.getPositions();
-      measurePerformance(PerpsMeasurementName.GET_POSITIONS_MS, positionsStart);
+      const positionsDuration = performance.now() - positionsStart;
+      setMeasurement(
+        PerpsMeasurementName.GET_POSITIONS_MS,
+        positionsDuration,
+        'millisecond',
+      );
 
       const position = positions.find((p) => p.coin === params.coin);
 
@@ -811,9 +827,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         reduceOnly: true,
       });
 
-      measurePerformance(
+      const closeDuration = performance.now() - startTime;
+      setMeasurement(
         PerpsMeasurementName.TOTAL_CLOSE_POSITION_MS,
-        startTime,
+        closeDuration,
+        'millisecond',
       );
 
       return result;
@@ -1174,9 +1192,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         infoClient.clearinghouseState({ user: userAddress }),
         infoClient.spotClearinghouseState({ user: userAddress }),
       ]);
-      measurePerformance(
+      const apiDuration = performance.now() - apiCallStart;
+      setMeasurement(
         PerpsMeasurementName.ACCOUNT_STATE_API_MS,
-        apiCallStart,
+        apiDuration,
+        'millisecond',
       );
 
       DevLogger.log('Perps state:', perpsState);
@@ -1185,9 +1205,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const accountState = adaptAccountStateFromSDK(perpsState, spotState);
       DevLogger.log('Adapted account state:', accountState);
 
-      measurePerformance(
+      const totalStateDuration = performance.now() - startTime;
+      setMeasurement(
         PerpsMeasurementName.TOTAL_ACCOUNT_STATE_MS,
-        startTime,
+        totalStateDuration,
+        'millisecond',
       );
 
       return accountState;
@@ -1213,10 +1235,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const infoClient = this.clientService.getInfoClient();
       const apiStart = performance.now();
       const meta = await infoClient.meta();
-      measurePerformance(PerpsMeasurementName.MARKETS_API_MS, apiStart);
+      const apiDuration = performance.now() - apiStart;
+      setMeasurement(
+        PerpsMeasurementName.MARKETS_API_MS,
+        apiDuration,
+        'millisecond',
+      );
 
       const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
-      measurePerformance(PerpsMeasurementName.TOTAL_MARKETS_MS, startTime);
+      const totalMarketsDuration = performance.now() - startTime;
+      setMeasurement(
+        PerpsMeasurementName.TOTAL_MARKETS_MS,
+        totalMarketsDuration,
+        'millisecond',
+      );
       setMeasurement(
         PerpsMeasurementName.MARKETS_COUNT,
         markets.length,

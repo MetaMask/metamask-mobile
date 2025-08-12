@@ -63,7 +63,7 @@ import {
   useWithdrawTokens,
   useWithdrawValidation,
 } from '../../hooks';
-import { measurePerformance } from '../../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 import createStyles from './PerpsWithdrawView.styles';
 
 const PerpsWithdrawView: React.FC = () => {
@@ -94,9 +94,11 @@ const PerpsWithdrawView: React.FC = () => {
   // Track screen load - only once
   useEffect(() => {
     if (!hasTrackedWithdrawView.current) {
-      measurePerformance(
+      const duration = performance.now() - screenLoadStartRef.current;
+      setMeasurement(
         PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED,
-        screenLoadStartRef.current,
+        duration,
+        'millisecond',
       );
 
       // Track withdrawal input viewed
@@ -252,16 +254,20 @@ const PerpsWithdrawView: React.FC = () => {
       });
 
       // Measure withdrawal transaction submission
-      measurePerformance(
+      const submissionDuration = performance.now() - withdrawStartTime;
+      setMeasurement(
         PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED,
-        withdrawStartTime,
+        submissionDuration,
+        'millisecond',
       );
 
       if (result.success) {
         // Measure withdrawal transaction confirmation
-        measurePerformance(
+        const confirmationDuration = performance.now() - withdrawStartTime;
+        setMeasurement(
           PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
-          withdrawStartTime,
+          confirmationDuration,
+          'millisecond',
         );
 
         // Track withdrawal completed

@@ -11,7 +11,7 @@ import {
 } from '../constants/eventNames';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import performance from 'react-native-performance';
-import { measurePerformance } from '../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -54,18 +54,22 @@ export const usePerpsClosePosition = (
         });
 
         // Measure close order submission toast
-        measurePerformance(
+        const submissionDuration = performance.now() - closeStartTime;
+        setMeasurement(
           PerpsMeasurementName.CLOSE_ORDER_SUBMISSION_TOAST_LOADED,
-          closeStartTime,
+          submissionDuration,
+          'millisecond',
         );
 
         DevLogger.log('usePerpsClosePosition: Close result', result);
 
         if (result.success) {
           // Measure close order confirmation toast
-          measurePerformance(
+          const confirmationDuration = performance.now() - closeStartTime;
+          setMeasurement(
             PerpsMeasurementName.CLOSE_ORDER_CONFIRMATION_TOAST_LOADED,
-            closeStartTime,
+            confirmationDuration,
+            'millisecond',
           );
 
           // Track position close executed

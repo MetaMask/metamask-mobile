@@ -44,7 +44,7 @@ import {
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { measurePerformance } from '../../utils/perpsDebug';
+import { setMeasurement } from '@sentry/react-native';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
@@ -109,9 +109,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       !hasTrackedAssetView.current
     ) {
       // Track asset screen loaded
-      measurePerformance(
+      const duration = performance.now() - screenLoadStartRef.current;
+      setMeasurement(
         PerpsMeasurementName.ASSET_SCREEN_LOADED,
-        screenLoadStartRef.current,
+        duration,
+        'millisecond',
       );
 
       // Track asset screen viewed event - only once
@@ -132,9 +134,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   useEffect(() => {
     if (!isLoadingPosition && market) {
       // Track position data loaded for asset screen
-      measurePerformance(
+      const duration = performance.now() - screenLoadStartRef.current;
+      setMeasurement(
         PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN,
-        screenLoadStartRef.current,
+        duration,
+        'millisecond',
       );
     }
   }, [isLoadingPosition, market]);
