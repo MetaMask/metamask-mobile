@@ -1,6 +1,6 @@
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { DeFiPositionsControllerState } from '@metamask/assets-controllers';
-import type { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
+import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
 import { RootState } from '../reducers';
 import { createDeepEqualSelector } from './util';
 import { selectSelectedInternalAccountAddress } from './accountsController';

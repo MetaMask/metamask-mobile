@@ -1,5 +1,5 @@
-import type { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
-import { Hex } from '@metamask/utils';
+import { NetworkEnablementControllerState } from '@metamask/network-enablement-controller';
+import { CaipChainId } from '@metamask/utils';
 import { RootState } from '../../reducers';
 import { createDeepEqualSelector } from '../util';
 
@@ -18,6 +18,6 @@ export const selectEVMEnabledNetworks = createDeepEqualSelector(
     enabledNetworksByNamespace: NetworkEnablementControllerState['enabledNetworkMap'],
   ) =>
     Object.keys(enabledNetworksByNamespace?.eip155 ?? {}).filter(
-      (chainId) => enabledNetworksByNamespace?.eip155?.[chainId as Hex],
+      (chainId) => enabledNetworksByNamespace?.eip155?.[chainId as CaipChainId],
     ),
 );

@@ -1,6 +1,4 @@
 import { NetworkType, toHex } from '@metamask/controller-utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { PopularList } from '../util/networks/customNetworks';
 
 export const INFURA_PROJECT_ID = process.env.MM_INFURA_PROJECT_ID;
 
