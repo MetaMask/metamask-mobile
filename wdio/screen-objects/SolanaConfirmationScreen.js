@@ -11,11 +11,11 @@ class SolanaConfirmationScreen {
   }
 
   get field() {
-    return AppwrightSelectors.getElementByResourceId(this._device, 'snap-ui-info-row');
+    return AppwrightSelectors.getElementByID(this._device, 'snap-ui-info-row');
   }
 
   get confirmButton() {
-    return AppwrightSelectors.getElementByResourceId(this._device, 'transaction-confirmation-submit-button-snap-footer-button');
+    return AppwrightSelectors.getElementByID(this._device, 'transaction-confirmation-submit-button-snap-footer-button');
   }
 
   async isFieldVisible() {

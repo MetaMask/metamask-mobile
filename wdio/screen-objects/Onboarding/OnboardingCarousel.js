@@ -28,7 +28,7 @@ class WelcomeScreen  {
         SPLASH_SCREEN_METAMASK_ANIMATION_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, SPLASH_SCREEN_METAMASK_ANIMATION_ID);
+      return AppwrightSelectors.getElementByID(this._device, SPLASH_SCREEN_METAMASK_ANIMATION_ID);
     }
   }
 
@@ -38,7 +38,7 @@ class WelcomeScreen  {
         OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID);
     }
   }
 
@@ -48,7 +48,7 @@ class WelcomeScreen  {
         OnboardingCarouselSelectorIDs.CONTAINER_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, OnboardingCarouselSelectorIDs.CONTAINER_ID);
+      return AppwrightSelectors.getElementByID(this._device, OnboardingCarouselSelectorIDs.CONTAINER_ID);
     }
   }
 
@@ -58,7 +58,7 @@ class WelcomeScreen  {
         OnboardingCarouselSelectorIDs.APP_START_TIME_ID,
       );
     } else {
-      return await AppwrightSelectors.getElementByResourceId(this._device, OnboardingCarouselSelectorIDs.APP_START_TIME_ID);
+      return await AppwrightSelectors.getElementByID(this._device, OnboardingCarouselSelectorIDs.APP_START_TIME_ID);
     }
   }
 
@@ -155,7 +155,7 @@ class WelcomeScreen  {
       await driver.pause(7000);
       screenExist = await element.isExisting();
     } else {
-      const button = await AppwrightSelectors.getElementByResourceId(this._device, OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID);
+      const button = await AppwrightSelectors.getElementByID(this._device, OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID);
       await button.tap();
     }
   }

@@ -23,7 +23,7 @@ class SolanaNewFeatureSheet {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET);
+      return AppwrightSelectors.getElementByID(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_NEW_FEATURE_SHEET);
     }
   }
 
@@ -32,7 +32,7 @@ class SolanaNewFeatureSheet {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON);
     }
   }
 
@@ -40,7 +40,7 @@ class SolanaNewFeatureSheet {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_LEARN_MORE_BUTTON);
     }
   }
 
@@ -48,7 +48,7 @@ class SolanaNewFeatureSheet {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON);
     }
   }
 
@@ -56,7 +56,7 @@ class SolanaNewFeatureSheet {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET);
+      return AppwrightSelectors.getElementByID(this._device, SolanaNewFeatureSheetSelectorsIDs.SOLANA_ADD_ACCOUNT_BUTTON_IN_SHEET);
     }
   }
 
@@ -64,7 +64,7 @@ class SolanaNewFeatureSheet {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE);
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.CAROUSEL_SIXTH_SLIDE);
     }
   }
 

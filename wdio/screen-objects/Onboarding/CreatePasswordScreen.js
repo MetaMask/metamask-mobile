@@ -18,7 +18,7 @@ class CreatePasswordScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(ChoosePasswordSelectorsIDs.CONTAINER_ID);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, ChoosePasswordSelectorsIDs.CONTAINER_ID);
+      return AppwrightSelectors.getElementByID(this._device, ChoosePasswordSelectorsIDs.CONTAINER_ID);
     }
   }
 
@@ -28,7 +28,7 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
+      return AppwrightSelectors.getElementByID(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
     }
   }
 
@@ -38,7 +38,7 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
+      return AppwrightSelectors.getElementByID(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
     }
   }
 
@@ -48,7 +48,7 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID);
+      return AppwrightSelectors.getElementByID(this._device, ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID);
     }
   }
 
@@ -58,7 +58,7 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID);
+      return AppwrightSelectors.getElementByID(this._device, ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID);
     }
   }
 
@@ -68,7 +68,7 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
     }
   }
 

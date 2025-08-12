@@ -29,7 +29,7 @@ class OnboardingSheet {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, OnboardingSheetSelectorIDs.IMPORT_SEED_BUTTON);
     }
   }
 

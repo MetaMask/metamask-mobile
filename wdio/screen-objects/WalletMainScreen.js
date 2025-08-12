@@ -35,7 +35,7 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ICON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
     }
   }
 
@@ -43,7 +43,7 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_CONTAINER);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.WALLET_CONTAINER);
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.WALLET_CONTAINER);
     }
   }
 
@@ -69,7 +69,7 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
     }
   }
 
@@ -89,7 +89,8 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.WALLET);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TabBarSelectorIDs.WALLET);
+      return AppwrightSelectors.getElementByID(this._device, TabBarSelectorIDs.WALLET);
+
     }
   }
 
@@ -123,6 +124,25 @@ class WalletMainScreen {
 
   async tapNFTTab() {
     await Gestures.tapTextByXpath('NFTs');
+  }
+
+  async tapOnToken(token) {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.accountIcon);
+    } else {
+      const isAndroid = await AppwrightSelectors.isAndroid(this._device);
+      
+      let tokenName;
+      if (isAndroid) {
+        // For Android: use asset-{token} approach
+        tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
+      } else {
+        // For iOS: use catch-all selector
+        tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, `${token}`);
+      }
+      
+      await tokenName.tap();
+    }
   }
 
   async tapIdenticon() {

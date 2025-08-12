@@ -15,7 +15,7 @@ class AddNewHdAccountComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddNewAccountIds.CONTAINER);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddNewAccountIds.CONTAINER);
+      return AppwrightSelectors.getElementByID(this._device, AddNewAccountIds.CONTAINER);
     }
   }
 
@@ -23,7 +23,7 @@ class AddNewHdAccountComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddNewAccountIds.SRP_SELECTOR);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddNewAccountIds.SRP_SELECTOR);
+      return AppwrightSelectors.getElementByID(this._device, AddNewAccountIds.SRP_SELECTOR);
     }
   }
 
@@ -31,7 +31,7 @@ class AddNewHdAccountComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddNewAccountIds.CANCEL);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddNewAccountIds.CANCEL);
+      return AppwrightSelectors.getElementByID(this._device, AddNewAccountIds.CANCEL);
     }
   }
 
@@ -39,7 +39,7 @@ class AddNewHdAccountComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddNewAccountIds.CONFIRM);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddNewAccountIds.CONFIRM);
+      return AppwrightSelectors.getElementByID(this._device, AddNewAccountIds.CONFIRM);
     }
   }
 
@@ -47,7 +47,7 @@ class AddNewHdAccountComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddNewAccountIds.NAME_INPUT);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddNewAccountIds.NAME_INPUT);
+      return AppwrightSelectors.getElementByID(this._device, AddNewAccountIds.NAME_INPUT);
     }
   }
 

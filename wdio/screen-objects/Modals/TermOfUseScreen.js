@@ -18,7 +18,7 @@ class TermOfUseScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.CONTAINER);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TermsOfUseModalSelectorsIDs.CONTAINER);
+      return AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.CONTAINER);
     }
   }
 
@@ -26,7 +26,7 @@ class TermOfUseScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.CHECKBOX);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TermsOfUseModalSelectorsIDs.CHECKBOX);
+      return AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.CHECKBOX);
     }
   }
 
@@ -34,7 +34,7 @@ class TermOfUseScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON);
     }
   }
 
@@ -42,7 +42,7 @@ class TermOfUseScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
     }
   }
 
@@ -50,7 +50,7 @@ class TermOfUseScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TermsOfUseModalSelectorsIDs.WEBVIEW);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TermsOfUseModalSelectorsIDs.WEBVIEW);
+      return AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.WEBVIEW);
     }
   }
 
@@ -79,7 +79,7 @@ class TermOfUseScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.checkbox);
     } else {
-      const cb = await AppwrightSelectors.getElementByResourceId(this._device, TermsOfUseModalSelectorsIDs.CHECKBOX);
+      const cb = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.CHECKBOX);
       await cb.tap();
     }
   }
@@ -88,7 +88,7 @@ class TermOfUseScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.scrollEndArrowButton);
     } else {
-      const button = await AppwrightSelectors.getElementByResourceId(this._device, TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON);
+      const button = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.SCROLL_ARROW_BUTTON);
       await button.tap();
     }
   }
@@ -107,7 +107,7 @@ class TermOfUseScreen {
     if (!this._device) {
       await Gestures.tap(this.acceptButton);
     } else {
-      const button = await AppwrightSelectors.getElementByResourceId(this._device, TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
+      const button = await AppwrightSelectors.getElementByID(this._device, TermsOfUseModalSelectorsIDs.ACCEPT_BUTTON);
       await button.tap();
     }
   }

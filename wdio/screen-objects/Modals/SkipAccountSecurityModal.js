@@ -19,7 +19,7 @@ class SkipAccountSecurityModal {
         SkipAccountSecurityModalSelectorsIDs.ANDROID_SKIP_BACKUP_BUTTON_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, SkipAccountSecurityModalSelectorsIDs.ANDROID_SKIP_BACKUP_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, SkipAccountSecurityModalSelectorsIDs.ANDROID_SKIP_BACKUP_BUTTON_ID);
     }
   }
 
@@ -32,7 +32,7 @@ class SkipAccountSecurityModal {
     } else {
       const button = await this.skipBackupText;
       await button.tap();
-      const skipButton = await AppwrightSelectors.getElementByResourceId(this._device, 'Skip-button');
+      const skipButton = await AppwrightSelectors.getElementByID(this._device, 'Skip-button');
       await skipButton.tap();
     }
   }

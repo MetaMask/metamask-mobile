@@ -78,7 +78,7 @@ test('Asset View', async ({ device }, testInfo) => {
     'Time since the user clicks on the asset view button until the user sees the token overview screen',
   );
   assetViewScreen.start();
-  await CommonScreen.tapOnAsset('Ethereum');
+  await WalletMainScreen.tapOnToken('Ethereum');
   await TokenOverviewScreen.isTokenOverviewVisible();
   assetViewScreen.stop();
 

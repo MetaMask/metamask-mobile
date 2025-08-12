@@ -24,19 +24,19 @@ class SendSolanaScreen {
   }
 
   get addressField() {
-    return AppwrightSelectors.getElementByResourceId(this._device, 'send-to-snap-ui-input');
+    return AppwrightSelectors.getElementByID(this._device, 'send-to-snap-ui-input');
   }
 
   get amountField() {
-    return AppwrightSelectors.getElementByResourceId(this._device, 'send-amount-input-snap-ui-input');
+    return AppwrightSelectors.getElementByID(this._device, 'send-amount-input-snap-ui-input');
   }
 
   get continueButton() {
-    return AppwrightSelectors.getElementByResourceId(this._device, 'send-submit-button-snap-footer-button');
+    return AppwrightSelectors.getElementByID(this._device, 'send-submit-button-snap-footer-button');
   }
 
   get cancelButton() {
-    return AppwrightSelectors.getElementByResourceId(this._device, 'send-cancel-button-snap-footer-button');
+    return AppwrightSelectors.getElementByID(this._device, 'send-cancel-button-snap-footer-button');
   }
 
   async isAddressFieldVisible() {

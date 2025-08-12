@@ -21,7 +21,7 @@ class AmountScreen {
     if (!this._device) {
       return Selectors.getElementByPlatform(TRANSACTION_AMOUNT_INPUT);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TRANSACTION_AMOUNT_INPUT);
+      return AppwrightSelectors.getElementByID(this._device, TRANSACTION_AMOUNT_INPUT);
     }
   }
 
@@ -29,7 +29,7 @@ class AmountScreen {
     if (!this._device) {
       return Selectors.getElementByPlatform(AMOUNT_SCREEN);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AMOUNT_SCREEN);
+      return AppwrightSelectors.getElementByID(this._device, AMOUNT_SCREEN);
     }
   }
 
@@ -41,7 +41,7 @@ class AmountScreen {
     if (!this._device) {
       return Selectors.getElementByPlatform(NEXT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, NEXT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, NEXT_BUTTON);
     }
   }
 
@@ -50,7 +50,7 @@ class AmountScreen {
       await Gestures.waitAndTap(this.amountInputField);
       await Gestures.typeText(this.amountInputField, text);
     } else {
-      const element = await AppwrightSelectors.getElementByResourceId(this._device, TRANSACTION_AMOUNT_INPUT);
+      const element = await AppwrightSelectors.getElementByID(this._device, TRANSACTION_AMOUNT_INPUT);
       await element.fill(text);
     }
   }

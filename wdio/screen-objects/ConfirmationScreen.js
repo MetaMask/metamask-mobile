@@ -19,19 +19,19 @@ class ConfirmationScreen {
   }
 
   get accountSendTo() {
-    return AppwrightSelectors.getElementByResourceId(this._device, 'from-to');
+    return AppwrightSelectors.getElementByID(this._device, 'from-to');
   }
 
   get network() {
-    return AppwrightSelectors.getElementByResourceId(this._device, 'gas-fees-details');
+    return AppwrightSelectors.getElementByID(this._device, 'gas-fees-details');
   }
 
   get advancedSettings() {
-    return AppwrightSelectors.getElementByResourceId(this._device, 'info-section');
+    return AppwrightSelectors.getElementByID(this._device, 'info-section');
   }
 
   get confirmButton() {
-    return AppwrightSelectors.getElementByResourceId(this._device, 'confirm-button');
+    return AppwrightSelectors.getElementByID(this._device, 'confirm-button');
   }
 
   async isAccountSendToVisible() {

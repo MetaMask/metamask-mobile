@@ -17,7 +17,7 @@ class OnboardingSuccessView {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, OnboardingSuccessSelectorIDs.DONE_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, OnboardingSuccessSelectorIDs.DONE_BUTTON);
     }
   }
 

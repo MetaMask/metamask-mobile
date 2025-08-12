@@ -16,7 +16,7 @@ class TokenOverviewScreen {
     if (!this._device) {
       return Selectors.getElementByPlatform(TokenOverviewSelectorsIDs.CONTAINER);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TokenOverviewSelectorsIDs.CONTAINER);
+      return AppwrightSelectors.getElementByID(this._device, TokenOverviewSelectorsIDs.CONTAINER);
     }
   }
 

@@ -11,15 +11,15 @@ class SwapScreen {
     this._device = device;
   }
   get sourceTokenInput() {
-    return AppwrightSelectors.getElementByResourceId(this._device, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID);
+    return AppwrightSelectors.getElementByID(this._device, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID);
   }
 
   get destTokenInput() {
-    return AppwrightSelectors.getElementByResourceId(this._device, SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID);
+    return AppwrightSelectors.getElementByID(this._device, SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID);
   }
 
   get quoteDisplayed() {
-    return AppwrightSelectors.getElementByResourceId(this._device, SWAP_SCREEN_QUOTE_DISPLAYED_ID);
+    return AppwrightSelectors.getElementByID(this._device, SWAP_SCREEN_QUOTE_DISPLAYED_ID);
   }
 
   async isQuoteDisplayed() {

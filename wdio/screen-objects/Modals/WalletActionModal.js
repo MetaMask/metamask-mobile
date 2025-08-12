@@ -16,7 +16,7 @@ class WalletActionModal {
     if (!this._device) {
       return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, 'wallet-send-button');
+      return AppwrightSelectors.getElementByID(this._device, 'wallet-send-button');
     }
   }
 
@@ -28,7 +28,7 @@ class WalletActionModal {
     if (!this._device) {
       return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, 'wallet-swap-button');
+      return AppwrightSelectors.getElementByID(this._device, 'wallet-swap-button');
     }
   }
 

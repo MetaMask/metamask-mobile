@@ -19,7 +19,7 @@ class AccountListComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
+      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID);
     }
   }
 
@@ -27,7 +27,7 @@ class AccountListComponent {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID);
     }
   }
 

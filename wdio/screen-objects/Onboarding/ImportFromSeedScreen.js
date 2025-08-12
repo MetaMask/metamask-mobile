@@ -19,7 +19,7 @@ class ImportFromSeedScreen {
         ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID);
+      return AppwrightSelectors.getElementByID(this._device, ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID);
     }
   }
 
@@ -29,7 +29,7 @@ class ImportFromSeedScreen {
         ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID);
+      return AppwrightSelectors.getElementByID(this._device, ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID);
     }
   }
 
@@ -37,7 +37,7 @@ class ImportFromSeedScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID);
     }
   }
 
@@ -72,16 +72,16 @@ class ImportFromSeedScreen {
         await form.fill(`${firstWord} `);
         for (let i = 1; i < phraseArray.length - 1; i++) {
           const wordElement = await this.inputOfIndex(i);
-          const input = await AppwrightSelectors.getElementByResourceId(this.device, wordElement);
+          const input = await AppwrightSelectors.getElementByID(this.device, wordElement);
           await input.fill(`${phraseArray[i]} `);
         }
         const wordElement = await this.inputOfIndex(phraseArray.length - 1);
-        const lastInput = await AppwrightSelectors.getElementByResourceId(this.device, wordElement);
+        const lastInput = await AppwrightSelectors.getElementByID(this.device, wordElement);
         await lastInput.fill(lastWord);
       } else {
         for (let i = 1; i <= phraseArray.length; i++) {
           const wordElement = await this.inputOfIndex(i, false);
-          const input = await AppwrightSelectors.getElementByResourceId(this.device, wordElement);
+          const input = await AppwrightSelectors.getElementByID(this.device, wordElement);
           await input.fill(`${phraseArray[i-1]} `);
         }
       }
@@ -102,7 +102,7 @@ class ImportFromSeedScreen {
       } else {
         const isIOS = await AppwrightSelectors.isIOS(this.device);
         if (isIOS) {
-          const element = await AppwrightSelectors.getElementByResourceId(this.device, 'import-button');
+          const element = await AppwrightSelectors.getElementByID(this.device, 'import-button');
           await element.tap();
         } else {
           const element = await AppwrightSelectors.getElementByText(this.device, 'Continue');

@@ -16,7 +16,7 @@ class AddAccountModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON);
     }
   }
 
@@ -24,7 +24,7 @@ class AddAccountModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON);
     }
   }
 
@@ -32,7 +32,7 @@ class AddAccountModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON);
     }
   }
 
@@ -40,7 +40,7 @@ class AddAccountModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON);
     }
   }
 
@@ -48,7 +48,7 @@ class AddAccountModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON);
     }
   }
 

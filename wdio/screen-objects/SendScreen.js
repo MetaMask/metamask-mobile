@@ -63,7 +63,7 @@ class SendScreen {
     if (!this._device) {
       await Gestures.typeText(this.sendAddressInputField, address);
     } else {
-      const element = await AppwrightSelectors.getElementByResourceId(this._device, SEND_ADDRESS_INPUT_FIELD);
+      const element = await AppwrightSelectors.getElementByID(this._device, SEND_ADDRESS_INPUT_FIELD);
       await element.fill(address);
     }
   }
@@ -123,7 +123,7 @@ class SendScreen {
     if (!this._device) {
       await Gestures.tapTextByXpath(NEXT_BUTTON);
     } else {
-      const element = await AppwrightSelectors.getElementByResourceId(this._device, SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON);
+      const element = await AppwrightSelectors.getElementByID(this._device, SendViewSelectorsIDs.ADDRESS_BOOK_NEXT_BUTTON);
       await element.tap();
     }
   }
