@@ -273,23 +273,30 @@ class TestDApp {
   }
 
   async getConnectedAccounts(): Promise<string> {
-    const webview = Matchers.getWebViewByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
+    const webview = Matchers.getWebViewByID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    );
     const accountsElement = webview.element(by.web.id(`accounts`));
 
-    return await accountsElement
+    const accountsText = await accountsElement
       .runScript('(el) => el.textContent')
       .catch(() => '');
+
+    return typeof accountsText === 'string' ? accountsText : '';
   }
 
   async getConnectedChainId(): Promise<string> {
-    const webview = Matchers.getWebViewByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID);
+    const webview = Matchers.getWebViewByID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    );
     const chainIdElement = webview.element(by.web.id(`chainId`));
 
-    return await chainIdElement
+    const chainIdText = await chainIdElement
       .runScript('(el) => el.textContent')
       .catch(() => '');
-  }
 
+    return typeof chainIdText === 'string' ? chainIdText : '';
+  }
 
   async connect(): Promise<void> {
     await Gestures.waitAndTap(this.DappConnectButton, {
