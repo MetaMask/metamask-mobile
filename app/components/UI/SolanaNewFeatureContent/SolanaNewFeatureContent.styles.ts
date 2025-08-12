@@ -38,7 +38,6 @@ const createStyles = () =>
       position: 'relative',
       width: '100%',
       paddingHorizontal: 30,
-      justifyContent: 'space-between',
     },
     createWrapper: {
       display: 'flex',
@@ -46,6 +45,7 @@ const createStyles = () =>
       justifyContent: 'flex-end',
       rowGap: 5,
       marginBottom: 16,
+      paddingHorizontal: 30,
     },
     learnMoreButton: {
       textDecorationLine: 'underline',
