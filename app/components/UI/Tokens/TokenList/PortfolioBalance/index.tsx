@@ -29,7 +29,7 @@ import Loader from '../../../../../component-library/components-temp/Loader/Load
 import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 
-export const PortfolioBalance = React.memo(() => {
+export const PortfolioBalance = () => {
   const { PreferencesController } = Engine.context;
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -53,19 +53,78 @@ export const PortfolioBalance = React.memo(() => {
   // account group), replace this derivation with that selector and remove this logic.
   // Using the proper selector ensures we always read the exact group the user has
   // selected and avoids assumptions about group naming (e.g., `/default`).
-  const derivedGroupId = derivedWallet
-    ? `${derivedWallet.id}/default`
-    : undefined;
-  const selectBalanceForDerivedGroup = React.useMemo(
+  // Legacy placeholder, no longer used after membership-based resolution
+  // const derivedGroupId = derivedWallet ? `${derivedWallet.id}/default` : undefined;
+  // Selector for derivedGroupId kept for reference; resolvedGroupId is used instead
+  // const selectBalanceForDerivedGroup = React.useMemo(
+  //   () =>
+  //     derivedGroupId
+  //       ? balanceSelectors.selectBalanceByAccountGroup(derivedGroupId)
+  //       : null,
+  //   [derivedGroupId],
+  // );
+  // Kept for potential future comparison; currently unused after resolvedGroupId path
+  // const derivedGroupBalance = useSelector((state: RootState) =>
+  //   selectBalanceForDerivedGroup ? selectBalanceForDerivedGroup(state) : null,
+  // );
+
+  // Read full wallets/groups to detect when aggregated data is hydrated
+  const { selectBalanceForAllWallets } = balanceSelectors;
+  const assetsControllersBalance = useSelector(selectBalanceForAllWallets());
+
+  // Try to resolve the correct group id by membership of the selected account
+  const groupIdFromMembership = React.useMemo(() => {
+    if (!derivedWallet?.groups || !selectedAccount?.id) return undefined;
+    const entry = Object.entries(derivedWallet.groups).find(([, group]) =>
+      Array.isArray(group?.accounts)
+        ? group.accounts.some((a: string) => a === selectedAccount.id)
+        : false,
+    );
+    return entry?.[0];
+  }, [derivedWallet?.groups, selectedAccount?.id]);
+
+  // Gather available group ids from assets-controllers for the wallet
+  const availableGroupIds = React.useMemo(
     () =>
-      derivedGroupId
-        ? balanceSelectors.selectBalanceByAccountGroup(derivedGroupId)
+      Object.keys(
+        (derivedWallet?.id &&
+          assetsControllersBalance?.wallets?.[derivedWallet.id]?.groups) ||
+          {},
+      ),
+    [assetsControllersBalance?.wallets, derivedWallet?.id],
+  );
+
+  // Resolve final group id to use for aggregated balance
+  const resolvedGroupId = React.useMemo(() => {
+    if (
+      groupIdFromMembership &&
+      availableGroupIds.includes(groupIdFromMembership)
+    ) {
+      return groupIdFromMembership;
+    }
+    return availableGroupIds[0];
+  }, [availableGroupIds, groupIdFromMembership]);
+
+  const hasAggregatedGroup = Boolean(
+    derivedWallet?.id &&
+      resolvedGroupId &&
+      assetsControllersBalance?.wallets?.[derivedWallet.id]?.groups?.[
+        resolvedGroupId
+      ],
+  );
+
+  const selectBalanceForResolvedGroup = React.useMemo(
+    () =>
+      resolvedGroupId
+        ? balanceSelectors.selectBalanceByAccountGroup(resolvedGroupId)
         : null,
-    [derivedGroupId],
+    [resolvedGroupId],
   );
-  const derivedGroupBalance = useSelector((state: RootState) =>
-    selectBalanceForDerivedGroup ? selectBalanceForDerivedGroup(state) : null,
+  const resolvedGroupBalance = useSelector((state: RootState) =>
+    selectBalanceForResolvedGroup ? selectBalanceForResolvedGroup(state) : null,
   );
+
+  // No dev logs in production build
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const renderAggregatedPercentage = () => {
@@ -100,9 +159,13 @@ export const PortfolioBalance = React.memo(() => {
   );
 
   const selectedDisplay = React.useMemo(() => {
-    if (isMultichainState2Enabled && derivedGroupBalance) {
-      const value = derivedGroupBalance.totalBalanceInUserCurrency;
-      const currency = derivedGroupBalance.userCurrency;
+    if (
+      isMultichainState2Enabled &&
+      hasAggregatedGroup &&
+      resolvedGroupBalance
+    ) {
+      const value = resolvedGroupBalance.totalBalanceInUserCurrency;
+      const currency = resolvedGroupBalance.userCurrency;
       return formatWithThreshold(value, 0.01, I18n.locale, {
         style: 'currency',
         currency: currency.toUpperCase(),
@@ -111,9 +174,12 @@ export const PortfolioBalance = React.memo(() => {
     return selectedAccountMultichainBalance?.displayBalance;
   }, [
     isMultichainState2Enabled,
-    derivedGroupBalance,
+    hasAggregatedGroup,
+    resolvedGroupBalance,
     selectedAccountMultichainBalance?.displayBalance,
   ]);
+
+  // No dev logs in production build
 
   return (
     <View style={styles.portfolioBalance}>
@@ -155,4 +221,4 @@ export const PortfolioBalance = React.memo(() => {
       </View>
     </View>
   );
-});
+};
