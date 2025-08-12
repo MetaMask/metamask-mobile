@@ -208,7 +208,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
       {isBottomSheetVisible && (
         <Modal visible transparent animationType="fade">
-          <BottomSheet ref={bottomSheetRef} onClose={handleCloseBottomSheet}>
+          <BottomSheet
+            ref={bottomSheetRef}
+            onClose={handleCloseBottomSheet}
+            shouldNavigateBack={false}
+          >
             <BottomSheetHeader onClose={handleCloseBottomSheet}>
               <Text variant={TextVariant.HeadingMD}>
                 {strings('perps.manage_balance')}
