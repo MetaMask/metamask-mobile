@@ -31,7 +31,9 @@ const EstimationInfo = ({
   feeCalculations,
 }: {
   hideFiatForTestnet: boolean;
-  feeCalculations: ReturnType<typeof useFeeCalculations>;
+  feeCalculations:
+    | ReturnType<typeof useFeeCalculations>
+    | ReturnType<typeof useFeeCalculationsTransactionBatch>;
 }) => {
   const { styles } = useStyles(styleSheet, {});
   return (
