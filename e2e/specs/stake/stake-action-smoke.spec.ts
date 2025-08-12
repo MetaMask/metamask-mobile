@@ -120,8 +120,7 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
   });
 
   it('should send ETH to new account', async (): Promise<void> => {
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSendButton();
+    await WalletView.tapWalletSendButton();
     await SendView.inputAddress(wallet.address);
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount(AMOUNT_TO_SEND);
