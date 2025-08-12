@@ -8,10 +8,14 @@ import {
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 
 const useTokenDetectionPolling = ({
   chainIds,
@@ -26,21 +30,33 @@ const useTokenDetectionPolling = ({
   const useTokenDetection = useSelector(selectUseTokenDetection);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
+  const enabledEvmNetworks = useSelector(selectEVMEnabledNetworks);
 
-  // if all networks are selected, poll all popular networks
-  const filteredChainIds =
-    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
-      ? Object.values(networkConfigurationsPopularNetworks).map(
-          (network) => network.chainId,
-        )
-      : [currentChainId];
+  let filteredChainIds: Hex[] = [];
 
-  // if portfolio view is enabled, poll all chain ids
+  if (isPortfolioViewEnabled()) {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      // When global network selector is removed, use enabled EVM networks
+      filteredChainIds = enabledEvmNetworks;
+    } else {
+      // When global network selector is enabled, use popular networks or current chain
+      filteredChainIds =
+        isAllNetworksSelected && isPopularNetwork
+          ? Object.values(networkConfigurationsPopularNetworks).map(
+              (network) => network.chainId,
+            )
+          : [currentChainId];
+    }
+  } else {
+    // Portfolio view is disabled, use current chain only
+    filteredChainIds = [currentChainId];
+  }
+
   const chainIdsToPoll =
     useTokenDetection && isEvmSelected
       ? [
           {
-            chainIds: filteredChainIds as Hex[],
+            chainIds: filteredChainIds,
             address: selectedAccount?.address as Hex,
           },
         ]
@@ -55,7 +71,7 @@ const useTokenDetectionPolling = ({
     providedChainIdsAndAddress = useTokenDetection
       ? [
           {
-            chainIds: chainIds as Hex[],
+            chainIds,
             address: address as Hex,
           },
         ]

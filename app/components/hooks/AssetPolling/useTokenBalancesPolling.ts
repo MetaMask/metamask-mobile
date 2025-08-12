@@ -8,8 +8,12 @@ import {
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 
 const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   // Selectors to determine polling input
@@ -20,13 +24,27 @@ const useTokenBalancesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const enabledEvmNetworks = useSelector(selectEVMEnabledNetworks);
 
-  const networkConfigurationsToPoll =
-    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
-      ? Object.values(networkConfigurationsPopularNetworks).map(
-          (network) => network.chainId,
-        )
-      : [currentChainId];
+  let networkConfigurationsToPoll: Hex[] = [];
+
+  if (isPortfolioViewEnabled()) {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      // When global network selector is removed, use enabled EVM networks
+      networkConfigurationsToPoll = enabledEvmNetworks;
+    } else {
+      // When global network selector is enabled, use popular networks or current chain
+      networkConfigurationsToPoll =
+        isAllNetworksSelected && isPopularNetwork
+          ? Object.values(networkConfigurationsPopularNetworks).map(
+              (network) => network.chainId,
+            )
+          : [currentChainId];
+    }
+  } else {
+    // Portfolio view is disabled, use current chain only
+    networkConfigurationsToPoll = [currentChainId];
+  }
 
   const chainIdsToPoll = isEvmSelected
     ? networkConfigurationsToPoll.map((chainId) => ({

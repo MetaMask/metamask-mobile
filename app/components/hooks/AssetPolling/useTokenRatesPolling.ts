@@ -8,8 +8,12 @@ import {
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
 import { Hex } from '@metamask/utils';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 
 const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   // Selectors to determine polling input
@@ -20,14 +24,27 @@ const useTokenRatesPolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const enabledEvmNetworks = useSelector(selectEVMEnabledNetworks);
 
-  // if all networks are selected, poll all popular networks
-  const filteredChainIds =
-    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
-      ? Object.values(networkConfigurationsPopularNetworks).map(
-          (network) => network.chainId,
-        )
-      : [currentChainId];
+  let filteredChainIds: Hex[] = [];
+
+  if (isPortfolioViewEnabled()) {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      // When global network selector is removed, use all enabled EVM networks
+      filteredChainIds = enabledEvmNetworks;
+    } else {
+      // When global network selector is enabled, use popular networks or current chain
+      filteredChainIds =
+        isAllNetworksSelected && isPopularNetwork
+          ? Object.values(networkConfigurationsPopularNetworks).map(
+              (network) => network.chainId,
+            )
+          : [currentChainId];
+    }
+  } else {
+    // Portfolio view is disabled, use current chain only
+    filteredChainIds = [currentChainId];
+  }
 
   const chainIdsToPoll = isEvmSelected
     ? [

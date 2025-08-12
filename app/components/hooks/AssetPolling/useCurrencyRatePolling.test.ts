@@ -3,6 +3,8 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
 import { SolScope } from '@metamask/keyring-api';
+// eslint-disable-next-line import/no-namespace
+import * as networks from '../../../util/networks';
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -288,5 +290,190 @@ describe('useCurrencyRatePolling', () => {
         nativeCurrencies: ['ETH'],
       },
     );
+  });
+
+  describe('Feature flag scenarios', () => {
+    const baseState = {
+      engine: {
+        backgroundState: {
+          MultichainNetworkController: {
+            isEvmSelected: true,
+            selectedMultichainNetworkChainId: SolScope.Mainnet,
+            multichainNetworkConfigurationsByChainId: {},
+          },
+          NetworkController: {
+            selectedNetworkClientId: 'selectedNetworkClientId',
+            networkConfigurationsByChainId: {
+              '0x1': {
+                chainId: '0x1',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'selectedNetworkClientId',
+                  },
+                ],
+              },
+              '0x89': {
+                chainId: '0x89',
+                nativeCurrency: 'POL',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'selectedNetworkClientId2',
+                  },
+                ],
+              },
+              '0x5': {
+                chainId: '0x5',
+                nativeCurrency: 'ETH',
+                rpcEndpoints: [
+                  {
+                    networkClientId: 'selectedNetworkClientId3',
+                  },
+                ],
+              },
+            },
+          },
+          PreferencesController: {
+            tokenNetworkFilter: {
+              '0x1': true,
+              '0x89': true,
+              '0x5': true,
+            },
+          },
+          NetworkEnablementController: {
+            enabledNetworkMap: {
+              eip155: {
+                '0x1': true,
+                '0x89': true,
+                '0x5': true,
+              },
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    it('should poll enabled EVM networks when global network selector is removed and portfolio view is enabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      jest
+        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(true);
+
+      renderHookWithProvider(() => useCurrencyRatePolling(), {
+        state: baseState,
+      });
+
+      expect(
+        jest.mocked(Engine.context.CurrencyRateController.startPolling),
+      ).toHaveBeenCalledWith({ nativeCurrencies: ['ETH', 'POL'] });
+    });
+
+    it('should poll current chain when portfolio view is disabled', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(false);
+
+      renderHookWithProvider(() => useCurrencyRatePolling(), {
+        state: baseState,
+      });
+
+      expect(
+        jest.mocked(Engine.context.CurrencyRateController.startPolling),
+      ).toHaveBeenCalledWith({ nativeCurrencies: ['ETH'] });
+    });
+
+    it('should handle empty enabled networks gracefully', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      jest
+        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(true);
+
+      const stateWithEmptyNetworks = {
+        ...baseState,
+        engine: {
+          ...baseState.engine,
+          backgroundState: {
+            ...baseState.engine.backgroundState,
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: {},
+              },
+            },
+          },
+        },
+      };
+
+      renderHookWithProvider(() => useCurrencyRatePolling(), {
+        state: stateWithEmptyNetworks,
+      });
+
+      expect(
+        jest.mocked(Engine.context.CurrencyRateController.startPolling),
+      ).toHaveBeenCalledWith({ nativeCurrencies: [] });
+    });
+
+    it('should handle missing network configurations gracefully', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      jest
+        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(true);
+
+      const stateWithMissingConfigs = {
+        ...baseState,
+        engine: {
+          ...baseState.engine,
+          backgroundState: {
+            ...baseState.engine.backgroundState,
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                eip155: {
+                  '0x1': true,
+                  '0x999': true, // Network not in configurations
+                },
+              },
+            },
+          },
+        },
+      };
+
+      renderHookWithProvider(() => useCurrencyRatePolling(), {
+        state: stateWithMissingConfigs,
+      });
+
+      expect(
+        jest.mocked(Engine.context.CurrencyRateController.startPolling),
+      ).toHaveBeenCalledWith({ nativeCurrencies: ['ETH'] });
+    });
+
+    it('should handle undefined enabled networks gracefully', () => {
+      jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
+      jest
+        .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
+        .mockReturnValue(true);
+
+      const stateWithUndefinedNetworks = {
+        ...baseState,
+        engine: {
+          ...baseState.engine,
+          backgroundState: {
+            ...baseState.engine.backgroundState,
+            NetworkEnablementController: {
+              enabledNetworkMap: {
+                // No eip155 namespace
+                solana: {
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      renderHookWithProvider(() => useCurrencyRatePolling(), {
+        state: stateWithUndefinedNetworks,
+      });
+
+      expect(
+        jest.mocked(Engine.context.CurrencyRateController.startPolling),
+      ).toHaveBeenCalledWith({ nativeCurrencies: [] });
+    });
   });
 });

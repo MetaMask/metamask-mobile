@@ -9,8 +9,12 @@ import {
   selectIsPopularNetwork,
 } from '../../../selectors/networkController';
 import Engine from '../../../core/Engine';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 
 // Polls native currency prices across networks.
 const useCurrencyRatePolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
@@ -25,19 +29,47 @@ const useCurrencyRatePolling = ({ chainIds }: { chainIds?: Hex[] } = {}) => {
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const enabledEvmNetworks = useSelector(selectEVMEnabledNetworks);
+
+  let networkConfigurationsToPoll: { nativeCurrency: string }[] = [];
 
   // if all networks are selected, poll all popular networks
-  const networkConfigurationsToPoll =
-    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
-      ? Object.values(networkConfigurationsPopularNetworks).map((network) => ({
-          nativeCurrency: network.nativeCurrency,
-        }))
-      : [
+  if (isPortfolioViewEnabled()) {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      // When global network selector is removed, use enabled EVM networks
+      networkConfigurationsToPoll = (enabledEvmNetworks || [])
+        .filter((network) => networkConfigurations[network]?.nativeCurrency)
+        .map((network) => ({
+          nativeCurrency: networkConfigurations[network].nativeCurrency,
+        }));
+    } else {
+      networkConfigurationsToPoll =
+        isAllNetworksSelected && isPopularNetwork
+          ? Object.values(networkConfigurationsPopularNetworks).map(
+              (network) => ({
+                nativeCurrency: network.nativeCurrency,
+              }),
+            )
+          : networkConfigurations[currentChainId]?.nativeCurrency
+          ? [
+              {
+                nativeCurrency:
+                  networkConfigurations[currentChainId].nativeCurrency,
+              },
+            ]
+          : [];
+    }
+  } else {
+    networkConfigurationsToPoll = networkConfigurations[currentChainId]
+      ?.nativeCurrency
+      ? [
           {
             nativeCurrency:
               networkConfigurations[currentChainId].nativeCurrency,
           },
-        ];
+        ]
+      : [];
+  }
 
   // get all native currencies to poll
   const nativeCurrenciesToPoll = isEvmSelected

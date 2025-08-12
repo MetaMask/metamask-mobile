@@ -7,8 +7,12 @@ import {
   selectSelectedNetworkClientId,
 } from '../../../selectors/networkController';
 import Engine from '../../../core/Engine';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 
 // Polls native currency prices across networks.
 const useAccountTrackerPolling = ({
@@ -21,21 +25,51 @@ const useAccountTrackerPolling = ({
   const isAllNetworksSelected = useSelector(selectIsAllNetworks);
   const isPopularNetwork = useSelector(selectIsPopularNetwork);
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const enabledEvmNetworks = useSelector(selectEVMEnabledNetworks);
 
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   const networkClientIdsConfig = Object.values(
     networkConfigurationsPopularNetworks,
-  ).map((network) => ({
-    networkClientId:
-      network?.rpcEndpoints?.[network?.defaultRpcEndpointIndex]
-        ?.networkClientId,
-  }));
+  )
+    .map((network) => ({
+      networkClientId:
+        network?.rpcEndpoints?.[network?.defaultRpcEndpointIndex]
+          ?.networkClientId,
+    }))
+    .filter((config) => config.networkClientId);
 
-  // if all networks are selected, poll all popular networks
-  const networkConfigurationsToPoll =
-    isAllNetworksSelected && isPopularNetwork && isPortfolioViewEnabled()
-      ? networkClientIdsConfig
-      : [{ networkClientId: selectedNetworkClientId }];
+  let networkConfigurationsToPoll: { networkClientId: string }[] = [];
+
+  if (isPortfolioViewEnabled()) {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      // When global network selector is removed, use enabled EVM networks
+      networkConfigurationsToPoll = (enabledEvmNetworks || [])
+        .map((network) => {
+          const currentNetworkConfig =
+            networkConfigurationsPopularNetworks[network];
+          const defaultRpcEndpointIndex =
+            currentNetworkConfig?.defaultRpcEndpointIndex;
+
+          return {
+            networkClientId:
+              currentNetworkConfig?.rpcEndpoints?.[defaultRpcEndpointIndex]
+                ?.networkClientId,
+          };
+        })
+        .filter((config) => config.networkClientId);
+    } else {
+      networkConfigurationsToPoll =
+        isAllNetworksSelected && isPopularNetwork
+          ? networkClientIdsConfig
+          : selectedNetworkClientId
+          ? [{ networkClientId: selectedNetworkClientId }]
+          : [];
+    }
+  } else {
+    networkConfigurationsToPoll = selectedNetworkClientId
+      ? [{ networkClientId: selectedNetworkClientId }]
+      : [];
+  }
 
   const chainIdsToPoll = isEvmSelected
     ? networkConfigurationsToPoll.map((network) => ({
