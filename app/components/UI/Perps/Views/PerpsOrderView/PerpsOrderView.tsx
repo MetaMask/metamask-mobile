@@ -1212,6 +1212,25 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
   );
 });
 
+// Wrapper component that provides price context with order-type-aware configuration
+const PerpsOrderViewWithPriceProvider: React.FC<{ asset: string }> = ({
+  asset,
+}) => {
+  const { orderForm } = usePerpsOrderContext();
+  const priceSymbols = useMemo(() => [asset], [asset]);
+
+  // Only include order book data for limit orders
+  const includeOrderBook = orderForm.type === 'limit';
+  return (
+    <PerpsPriceProvider
+      symbols={priceSymbols}
+      includeOrderBook={includeOrderBook}
+    >
+      <PerpsOrderViewContent />
+    </PerpsPriceProvider>
+  );
+};
+
 // Main component that wraps content with context providers
 const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
@@ -1224,9 +1243,6 @@ const PerpsOrderView: React.FC = () => {
     leverage: paramLeverage,
   } = route.params || {};
 
-  // Memoize the asset symbols for price provider
-  const priceSymbols = useMemo(() => [asset], [asset]);
-
   return (
     <PerpsOrderProvider
       initialAsset={asset}
@@ -1234,9 +1250,7 @@ const PerpsOrderView: React.FC = () => {
       initialAmount={paramAmount}
       initialLeverage={paramLeverage}
     >
-      <PerpsPriceProvider symbols={priceSymbols} includeOrderBook>
-        <PerpsOrderViewContent />
-      </PerpsPriceProvider>
+      <PerpsOrderViewWithPriceProvider asset={asset} />
     </PerpsOrderProvider>
   );
 };

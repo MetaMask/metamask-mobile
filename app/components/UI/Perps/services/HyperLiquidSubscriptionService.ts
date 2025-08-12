@@ -8,6 +8,7 @@ import {
   type PerpsAssetCtx,
   type Book,
 } from '@deeeed/hyperliquid-node20';
+import performance from 'react-native-performance';
 import {
   trace,
   endTrace,
