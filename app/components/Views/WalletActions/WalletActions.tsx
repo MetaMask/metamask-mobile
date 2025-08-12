@@ -279,7 +279,9 @@ const WalletActions = () => {
     );
 
     // Try non-EVM first, if handled, return early
-    const wasHandledAsNonEvm = await sendNonEvmAsset();
+    const wasHandledAsNonEvm = await sendNonEvmAsset(
+      InitSendLocation.WalletActions,
+    );
     if (wasHandledAsNonEvm) {
       return;
     }

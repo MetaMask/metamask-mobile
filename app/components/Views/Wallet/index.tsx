@@ -379,7 +379,9 @@ const Wallet = ({
     try {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Try non-EVM first, if handled, return early
-      const wasHandledAsNonEvm = await sendNonEvmAsset();
+      const wasHandledAsNonEvm = await sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
       if (wasHandledAsNonEvm) {
         return;
       }

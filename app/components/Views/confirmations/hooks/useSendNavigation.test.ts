@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react-native';
 
 import { AssetType } from '../types/token';
-import { useSendNavigation } from './useSendNavigation';
 import { InitSendLocation } from '../constants/send';
+import { useSendNavigation } from './useSendNavigation';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({

@@ -196,7 +196,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const onSend = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // Try non-EVM first, if handled, return early
-    const wasHandledAsNonEvm = await sendNonEvmAsset();
+    const wasHandledAsNonEvm = await sendNonEvmAsset(
+      InitSendLocation.AssetOverview,
+    );
     if (wasHandledAsNonEvm) {
       return;
     }
