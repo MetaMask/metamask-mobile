@@ -10,6 +10,7 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import Icon, {
+  IconColor,
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -60,7 +61,7 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
   order,
   onCancel,
   disabled = false,
-  expanded = true,
+  expanded = false,
   showIcon = false,
   rightAccessory,
 }) => {
@@ -116,9 +117,9 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
       disabled={disabled}
     >
       {/* Header - Always shown */}
-      <View style={styles.header}>
-        {/* Icon Section - Conditionally shown */}
-        {showIcon && (
+      <View style={[styles.header, expanded && styles.headerExpanded]}>
+        {/* Icon Section - Conditionally shown (only in collapsed mode) */}
+        {showIcon && !expanded && (
           <View style={styles.perpIcon}>
             {assetUrl ? (
               <RemoteImage
@@ -126,7 +127,7 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
                 style={styles.tokenIcon}
               />
             ) : (
-              <Icon name={IconName.Coin} size={IconSize.Md} />
+              <Icon name={IconName.Coin} size={IconSize.Lg} />
             )}
           </View>
         )}
@@ -134,17 +135,23 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
         <View style={styles.headerLeft}>
           <View style={styles.headerRow}>
             {/* Show order type or direction */}
-            <Text
-              variant={TextVariant.BodySMBold}
-              color={order.side === 'buy' ? TextColor.Success : TextColor.Error}
-            >
+            <Text variant={TextVariant.BodySMMedium} color={TextColor.Default}>
               {order.detailedOrderType || derivedData.direction}
             </Text>
-            {/* Fill percentage badge */}
+            {/* Fill percentage badge with icon */}
             {derivedData.fillPercentage > 0 &&
               derivedData.fillPercentage < 100 && (
                 <View style={styles.fillBadge}>
-                  <Text variant={TextVariant.BodyXS} color={TextColor.Default}>
+                  <Icon
+                    name={IconName.Loading}
+                    size={IconSize.Xss}
+                    color={IconColor.Alternative}
+                    style={styles.fillBadgeIcon}
+                  />
+                  <Text
+                    variant={TextVariant.BodyXS}
+                    color={TextColor.Alternative}
+                  >
                     {derivedData.fillPercentage.toFixed(0)}%{' '}
                     {strings('perps.order.filled')}
                   </Text>
@@ -158,15 +165,7 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
 
         <View style={styles.headerRight}>
           <View style={styles.headerRow}>
-            <Icon
-              name={
-                order.side === 'buy' ? IconName.Arrow2Up : IconName.Arrow2Down
-              }
-              size={IconSize.Xs}
-              color={order.side === 'buy' ? TextColor.Success : TextColor.Error}
-              style={styles.headerIcon}
-            />
-            <Text variant={TextVariant.BodySMBold} color={TextColor.Default}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
               {formatPrice(derivedData.sizeInUSD)}
             </Text>
           </View>
@@ -186,7 +185,7 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
         <View style={styles.body}>
           <View style={styles.bodyRow}>
             <View style={styles.bodyItem}>
-              <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+              <Text variant={TextVariant.BodyXS} color={TextColor.Alternative}>
                 {order.isTrigger
                   ? strings('perps.order.trigger_price')
                   : strings('perps.order.limit_price')}
@@ -202,7 +201,10 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
             {!order.isTrigger && (
               <>
                 <View style={styles.bodyItem}>
-                  <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                  <Text
+                    variant={TextVariant.BodyXS}
+                    color={TextColor.Alternative}
+                  >
                     {strings('perps.order.take_profit')}
                   </Text>
                   <Text
@@ -215,7 +217,10 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
                   </Text>
                 </View>
                 <View style={styles.bodyItem}>
-                  <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+                  <Text
+                    variant={TextVariant.BodyXS}
+                    color={TextColor.Alternative}
+                  >
                     {strings('perps.order.stop_loss')}
                   </Text>
                   <Text
@@ -231,8 +236,11 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
             )}
             {/* Show reduce only status for trigger orders */}
             {order.isTrigger && order.reduceOnly && (
-              <View style={styles.bodyItem}>
-                <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+              <View style={[styles.bodyItem, styles.bodyItemReduceOnly]}>
+                <Text
+                  variant={TextVariant.BodyXS}
+                  color={TextColor.Alternative}
+                >
                   {strings('perps.order.reduce_only')}
                 </Text>
                 <Text
@@ -257,7 +265,7 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
             label={strings('perps.order.cancel_order')}
             onPress={handleCancelPress}
             disabled={disabled}
-            style={styles.footerButton}
+            style={[styles.footerButton, styles.footerButtonExpanded]}
             testID={PerpsOrderCardSelectorsIDs.CANCEL_BUTTON}
           />
         </View>

@@ -8,13 +8,13 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     // Container styles for different states
     expandedContainer: {
-      backgroundColor: colors.background.section,
+      backgroundColor: colors.background.alternative, // Darker contrasting background
       borderRadius: 12,
       padding: 16,
       marginVertical: 6,
     },
     collapsedContainer: {
-      backgroundColor: colors.background.section,
+      backgroundColor: colors.background.alternative, // Same darker contrasting background as expanded
       borderRadius: 8,
       padding: 12,
       marginVertical: 4,
@@ -25,11 +25,14 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       marginBottom: 8,
     },
+    headerExpanded: {
+      marginBottom: 16, // Extra spacing for expanded cards before the divider
+    },
     // Icon section styles
     perpIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       marginRight: 12,
       alignItems: 'center',
       justifyContent: 'center',
@@ -37,9 +40,9 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.alternative,
     },
     tokenIcon: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
     },
     headerLeft: {
       flex: 1,
@@ -64,8 +67,8 @@ const styleSheet = (params: { theme: Theme }) => {
     body: {
       borderTopWidth: 1,
       borderTopColor: colors.border.muted,
-      paddingVertical: 8,
-      marginBottom: 8,
+      paddingVertical: 16,
+      marginBottom: 16,
     },
     bodyRow: {
       flexDirection: 'row',
@@ -75,6 +78,10 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       alignItems: 'flex-start',
     },
+    bodyItemReduceOnly: {
+      flex: 0, // Don't expand, take natural width to create space-between effect
+      alignItems: 'flex-end', // Right-align the content
+    },
     footer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -83,12 +90,20 @@ const styleSheet = (params: { theme: Theme }) => {
     footerButton: {
       flex: 1,
     },
+    footerButtonExpanded: {
+      backgroundColor: colors.background.default, // Darker uniform button background
+    },
     fillBadge: {
-      backgroundColor: colors.background.alternative,
+      backgroundColor: colors.background.default,
       borderRadius: 8,
       paddingHorizontal: 8,
       paddingVertical: 4,
       marginLeft: 8,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    fillBadgeIcon: {
+      marginRight: 4,
     },
 
     statusIndicator: {
