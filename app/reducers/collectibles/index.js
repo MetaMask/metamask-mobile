@@ -44,7 +44,10 @@ export const multichainCollectibleContractsByEnabledNetworksSelector =
       const enabledNetworksForEip155 =
         enabledNetworks?.[KnownCaipNamespace.Eip155] || {};
 
-      if (Object.keys(enabledNetworksForEip155).length === 0) {
+      if (
+        !enabledNetworksForEip155 ||
+        Object.keys(enabledNetworksForEip155).length === 0
+      ) {
         return {};
       }
 
@@ -91,7 +94,10 @@ export const multichainCollectiblesByEnabledNetworksSelector =
       const enabledNetworksForEip155 =
         enabledNetworks?.[KnownCaipNamespace.Eip155] || {};
 
-      if (Object.keys(enabledNetworksForEip155).length === 0) {
+      if (
+        !enabledNetworksForEip155 ||
+        Object.keys(enabledNetworksForEip155).length === 0
+      ) {
         return {};
       }
 
