@@ -110,6 +110,8 @@ import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { PerpsEventProperties } from '../../constants/eventNames';
 import { measurePerformance } from '../../utils/perpsDebug';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 
 interface PerpsDepositAmountViewProps {}
 
@@ -119,6 +121,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   const dispatch = useDispatch();
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { track } = usePerpsEventTracking();
 
   // State
   const [sourceAmount, setSourceAmount] = useState<string | undefined>('');
@@ -131,7 +134,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
   // Refs
   const inputRef = useRef<TokenInputAreaRef>(null);
   const prevTokenRef = useRef<PerpsToken | undefined>();
-  const screenLoadStartRef = useRef<number>(performance.now());
   const hasTrackedFundingInput = useRef(false);
   const hasTrackedFundingReview = useRef(false);
 
@@ -182,6 +184,12 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
 
     return baseToken;
   }, [tokenList, sourceToken]);
+
+  // Track screen load with centralized hook
+  usePerpsScreenTracking({
+    screenName: PerpsMeasurementName.FUNDING_SCREEN_INPUT_LOADED,
+    dependencies: [sourceToken, destToken],
+  });
 
   useEffect(() => {
     if (!sourceToken && tokenList) {
@@ -416,16 +424,11 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
       setError(null);
 
       // Track funding initiated
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_FUNDING_INITIATED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.SOURCE_ASSET]: sourceToken.symbol,
-            [PerpsEventProperties.SOURCE_AMOUNT]: parseFloat(sourceAmount),
-            [PerpsEventProperties.SOURCE_CHAIN]: sourceToken.chainId,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_FUNDING_INITIATED, {
+        [PerpsEventProperties.SOURCE_ASSET]: sourceToken.symbol,
+        [PerpsEventProperties.SOURCE_AMOUNT]: parseFloat(sourceAmount),
+        [PerpsEventProperties.SOURCE_CHAIN]: sourceToken.chainId,
+      });
 
       const supportedRoutes = getDepositRoutes();
       const selectedTokenAddress = sourceToken.address.toLowerCase();
@@ -466,17 +469,12 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         );
 
         // Track funding completed
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PERPS_FUNDING_COMPLETED)
-            .addProperties({
-              [PerpsEventProperties.TIMESTAMP]: Date.now(),
-              [PerpsEventProperties.SOURCE_ASSET]: sourceToken.symbol,
-              [PerpsEventProperties.SOURCE_AMOUNT]: parseFloat(sourceAmount),
-              [PerpsEventProperties.COMPLETION_DURATION]:
-                performance.now() - fundingStartTime,
-            })
-            .build(),
-        );
+        track(MetaMetricsEvents.PERPS_FUNDING_COMPLETED, {
+          [PerpsEventProperties.SOURCE_ASSET]: sourceToken.symbol,
+          [PerpsEventProperties.SOURCE_AMOUNT]: parseFloat(sourceAmount),
+          [PerpsEventProperties.COMPLETION_DURATION]:
+            performance.now() - fundingStartTime,
+        });
 
         // Show success toast
         toastRef?.current?.showToast({
@@ -498,15 +496,10 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         navigation.navigate(Routes.PERPS.TRADING_VIEW);
       } else {
         // Track funding failed
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PERPS_FUNDING_FAILED)
-            .addProperties({
-              [PerpsEventProperties.TIMESTAMP]: Date.now(),
-              [PerpsEventProperties.ERROR_MESSAGE]:
-                depositResult.error || 'Unknown error',
-            })
-            .build(),
-        );
+        track(MetaMetricsEvents.PERPS_FUNDING_FAILED, {
+          [PerpsEventProperties.ERROR_MESSAGE]:
+            depositResult.error || 'Unknown error',
+        });
 
         // Use centralized error handler for all errors
         const errorMessage = handlePerpsError({
@@ -533,8 +526,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     deposit,
     toastRef,
     navigation,
-    trackEvent,
-    createEventBuilder,
+    track,
   ]);
 
   const hasAmount = sourceAmount && parseFloat(sourceAmount) > 0;
@@ -576,16 +568,6 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
     () => hasAmount && !isQuoteLoading && !quoteFetchError,
     [hasAmount, isQuoteLoading, quoteFetchError],
   );
-
-  // Track funding screen loaded
-  useEffect(() => {
-    if (sourceToken && destToken) {
-      measurePerformance(
-        PerpsMeasurementName.FUNDING_SCREEN_INPUT_LOADED,
-        screenLoadStartRef.current,
-      );
-    }
-  }, [sourceToken, destToken]);
 
   // Track funding input viewed - only once
   useEffect(() => {

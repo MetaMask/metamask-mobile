@@ -9,8 +9,8 @@ import React, {
   useContext,
   useEffect,
   useMemo,
-  useState,
   useRef,
+  useState,
 } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -55,16 +55,19 @@ import {
 } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 // import useTooltipModal from '../../../../hooks/useTooltipModal';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import performance from 'react-native-performance';
+import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
-  trace,
   endTrace,
+  trace,
   TraceName,
   TraceOperation,
 } from '../../../../../util/trace';
-import performance from 'react-native-performance';
 import Keypad from '../../../../Base/Keypad';
+import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
+import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
+import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsLeverageBottomSheet from '../../components/PerpsLeverageBottomSheet';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
@@ -74,12 +77,10 @@ import PerpsTokenSelector, {
   type PerpsToken,
 } from '../../components/PerpsTokenSelector';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { measurePerformance } from '../../utils/perpsDebug';
 import {
   ARBITRUM_MAINNET_CHAIN_ID,
   HYPERLIQUID_MAINNET_CHAIN_ID,
@@ -89,7 +90,12 @@ import {
   USDC_NAME,
   USDC_SYMBOL,
 } from '../../constants/hyperLiquidConfig';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+import {
+  PerpsOrderProvider,
+  usePerpsOrderContext,
+} from '../../contexts/PerpsOrderContext';
 import type {
   OrderParams,
   OrderType,
@@ -106,17 +112,13 @@ import {
   usePerpsPaymentTokens,
   usePerpsPrices,
 } from '../../hooks';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
+import { measurePerformance } from '../../utils/perpsDebug';
 import { enhanceTokenWithIcon } from '../../utils/tokenIconUtils';
 import createStyles from './PerpsOrderView.styles';
-import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
-import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
-import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import {
-  PerpsOrderProvider,
-  usePerpsOrderContext,
-} from '../../contexts/PerpsOrderContext';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -150,6 +152,7 @@ const PerpsOrderViewContent: React.FC = () => {
   const toastRef = toastContext?.toastRef;
   // const { openTooltipModal } = useTooltipModal(); // Unused for now
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { track } = usePerpsEventTracking();
 
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
@@ -294,8 +297,7 @@ const PerpsOrderViewContent: React.FC = () => {
     }
   }, [paymentTokens, selectedPaymentToken]);
 
-  // Track screen load - only on mount/unmount
-  const screenLoadStartRef = useRef<number>(performance.now());
+  // Tracking refs for one-time events
   const hasTrackedTradingView = useRef(false);
   const hasTrackedOrderTypeView = useRef(false);
 
@@ -345,15 +347,11 @@ const PerpsOrderViewContent: React.FC = () => {
             : PerpsEventValues.DIRECTION.SHORT,
       };
 
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_TRADING_SCREEN_VIEWED)
-          .addProperties(eventProps)
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_TRADING_SCREEN_VIEWED, eventProps);
 
       hasTrackedTradingView.current = true;
     }
-  }, [orderForm.asset, orderForm.direction, createEventBuilder, trackEvent]);
+  }, [orderForm.asset, orderForm.direction, track]);
 
   // Note: Navigation params for order type modal are no longer needed
 
@@ -368,6 +366,13 @@ const PerpsOrderViewContent: React.FC = () => {
   // - includeOrderBook: When true, fetches bid/ask data for limit orders
   const priceData = usePerpsPrices(assetSymbols, orderForm.type === 'limit');
   const currentPrice = priceData[orderForm.asset];
+
+  // Track screen load with centralized hook
+  usePerpsScreenTracking({
+    screenName: PerpsMeasurementName.TRADE_SCREEN_LOADED,
+    dependencies: [currentPrice, cachedAccountState],
+  });
+
   const assetData = useMemo(() => {
     if (!currentPrice) {
       return { price: 0, change: 0 };
@@ -397,15 +402,7 @@ const PerpsOrderViewContent: React.FC = () => {
     });
   }, [tokenList, isIpfsGatewayEnabled]);
 
-  // Track screen load time when data is ready
-  useEffect(() => {
-    if (currentPrice && cachedAccountState) {
-      measurePerformance(
-        PerpsMeasurementName.TRADE_SCREEN_LOADED,
-        screenLoadStartRef.current,
-      );
-    }
-  }, [currentPrice, cachedAccountState]);
+  // Screen load tracking is handled by usePerpsScreenTracking above
 
   // Track order input viewed - only once
   useEffect(() => {
@@ -414,21 +411,16 @@ const PerpsOrderViewContent: React.FC = () => {
       parseFloat(orderForm.amount) > 0 &&
       !hasTrackedOrderTypeView.current
     ) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_ORDER_TYPE_VIEWED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.ASSET]: orderForm.asset,
-            [PerpsEventProperties.DIRECTION]:
-              orderForm.direction === 'long'
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_SIZE]: parseFloat(orderForm.amount),
-            [PerpsEventProperties.LEVERAGE_USED]: orderForm.leverage,
-            [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_ORDER_TYPE_VIEWED, {
+        [PerpsEventProperties.ASSET]: orderForm.asset,
+        [PerpsEventProperties.DIRECTION]:
+          orderForm.direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.ORDER_SIZE]: parseFloat(orderForm.amount),
+        [PerpsEventProperties.LEVERAGE_USED]: orderForm.leverage,
+        [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
+      });
       hasTrackedOrderTypeView.current = true;
     }
   }, [
@@ -437,8 +429,7 @@ const PerpsOrderViewContent: React.FC = () => {
     orderForm.leverage,
     orderForm.asset,
     orderForm.type,
-    trackEvent,
-    createEventBuilder,
+    track,
   ]);
 
   // Show error toast if market data is not available
@@ -546,16 +537,11 @@ const PerpsOrderViewContent: React.FC = () => {
           PerpsEventValues.INPUT_METHOD.KEYBOARD,
       };
 
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_ORDER_SIZE_CHANGED)
-          .addProperties(eventProps)
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_ORDER_SIZE_CHANGED, eventProps);
     },
     [
       setAmount,
-      trackEvent,
-      createEventBuilder,
+      track,
       orderForm.asset,
       orderForm.direction,
       orderForm.leverage,
