@@ -301,6 +301,10 @@ const PerpsMarketListView = ({
     );
   };
 
+  const handleTutorialClick = () => {
+    navigation.navigate(Routes.PERPS.TUTORIAL);
+  };
+
   return (
     <SafeAreaView style={[styles.container, { marginTop: top }]}>
       {/* Hidden close button for navigation tests */}
@@ -318,18 +322,27 @@ const PerpsMarketListView = ({
         >
           {strings('perps.perpetuals')}
         </Text>
-        {activeTab === 'markets' && (
+        <View style={styles.headerActions}>
+          {activeTab === 'markets' && (
+            <TouchableOpacity
+              style={styles.searchButton}
+              onPress={handleSearchToggle}
+              testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
+            >
+              <Icon
+                name={isSearchVisible ? IconName.Close : IconName.Search}
+                size={IconSize.Md}
+              />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
-            style={styles.searchButton}
-            onPress={handleSearchToggle}
-            testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
+            onPress={() => handleTutorialClick()}
+            testID={PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON}
+            style={styles.tutorialButton}
           >
-            <Icon
-              name={isSearchVisible ? IconName.Close : IconName.Search}
-              size={IconSize.Md}
-            />
+            <Icon name={IconName.Question} size={IconSize.Md} />
           </TouchableOpacity>
-        )}
+        </View>
       </View>
 
       {/* Tab Buttons or Search Bar */}

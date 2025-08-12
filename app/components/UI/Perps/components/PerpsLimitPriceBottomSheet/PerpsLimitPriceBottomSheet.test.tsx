@@ -67,8 +67,8 @@ jest.mock('../../hooks/index', () => ({
   usePerpsConnection: jest.fn(),
 }));
 
-// Mock Keypad component from Ramp/Aggregator
-jest.mock('../../../Ramp/Aggregator/components/Keypad', () => {
+// Mock Keypad component from Base
+jest.mock('../../../../Base/Keypad', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
   return ({
     value,
@@ -239,7 +239,6 @@ jest.mock('./PerpsLimitPriceBottomSheet.styles', () => ({
       alignItems: 'center',
     },
     keypadContainer: { marginBottom: 16, padding: 0 },
-    keypad: { paddingHorizontal: 0 },
     footerContainer: { paddingHorizontal: 16, paddingBottom: 24 },
   }),
 }));

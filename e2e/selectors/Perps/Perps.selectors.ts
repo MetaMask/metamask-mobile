@@ -110,6 +110,7 @@ export const getPerpsPayWithRowSelector = {
 // ========================================
 
 export const PerpsMarketListViewSelectorsIDs = {
+  TUTORIAL_BUTTON: 'tutorial-button',
   SEARCH_TOGGLE_BUTTON: 'search-toggle-button',
   CLOSE_BUTTON: 'close-button',
   SEARCH_CLEAR_BUTTON: 'search-clear-button',
@@ -275,6 +276,26 @@ export const PerpsTransactionSelectorsIDs = {
   BLOCK_EXPLORER_BUTTON: 'block-explorer-button',
 };
 
+export const PerpsChartGridLinesSelectorsIDs = {
+  // Chart grid lines container
+  CHART_GRID_LINES: 'chart-grid-lines',
+  // Dynamic grid line selectors (use with index)
+  GRID_LINE: 'grid-line', // Use as `grid-line-${index}`
+  GRID_LINE_BAR: 'grid-line-bar', // Use as `grid-line-bar-${index}`
+  GRID_PRICE_LABEL: 'grid-price-label', // Use as `grid-price-label-${index}`
+};
+
+export const PerpsChartAuxiliaryLinesSelectorsIDs = {
+  // Auxiliary lines container (TP/SL lines)
+  AUXILIARY_LINES: 'auxiliary-lines',
+};
+
+export const PerpsChartAdditionalSelectorsIDs = {
+  // Chart axis and components
+  CANDLESTICK_X_AXIS: 'chart-x-axis',
+  CHART_GRID: 'chart-grid',
+  CANDLESTICK_AUXILIARY_LINES: 'candlestick-auxiliary-lines',
+};
 // ========================================
 // PERPS BOTTOM SHEET TOOLTIP SELECTORS
 // ========================================

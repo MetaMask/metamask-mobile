@@ -11,6 +11,7 @@ import {
   ChartDataPoint,
 } from '../utils/chartUtils';
 import { styleSheet } from './CandlestickChartXAxis.styles';
+import { PerpsChartAdditionalSelectorsIDs } from '../../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 interface CandlestickChartXAxisProps {
   /** Transformed chart data for time calculations */
@@ -31,7 +32,7 @@ const CandlestickChartXAxis: React.FC<CandlestickChartXAxisProps> = ({
   transformedData,
   chartWidth,
   labelCount = 5,
-  testID = 'chart-x-axis',
+  testID = PerpsChartAdditionalSelectorsIDs.CANDLESTICK_X_AXIS,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
