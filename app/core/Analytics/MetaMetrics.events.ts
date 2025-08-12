@@ -93,6 +93,10 @@ enum EVENT_NAME {
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
   NETWORK_SELECTOR = 'Network Menu Opened',
 
+  // Asset Filter
+  ASSET_FILTER_SELECTED = 'Default Asset Filter Selected',
+  ASSET_FILTER_CUSTOM_SELECTED = 'Custom Asset Filter Selected',
+
   // Send transaction
   SEND_TRANSACTION_STARTED = 'Send Transaction Started',
   SEND_TRANSACTION_COMPLETED = 'Send Transaction Completed',
@@ -1289,6 +1293,11 @@ const events = {
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
 
+  // Asset Filter
+  ASSET_FILTER_SELECTED: generateOpt(EVENT_NAME.ASSET_FILTER_SELECTED),
+  ASSET_FILTER_CUSTOM_SELECTED: generateOpt(
+    EVENT_NAME.ASSET_FILTER_CUSTOM_SELECTED,
+  ),
   // Card
   CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
   CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),

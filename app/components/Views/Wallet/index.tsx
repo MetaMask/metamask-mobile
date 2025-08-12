@@ -48,6 +48,7 @@ import {
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
   isTestNet,
+  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -143,6 +144,12 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import {
@@ -450,6 +457,13 @@ const Wallet = ({
   const accountName = useAccountName();
   useAccountsWithNetworkActivitySync();
 
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
+
   useEffect(() => {
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -576,6 +590,7 @@ const Wallet = ({
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
@@ -632,11 +647,17 @@ const Wallet = ({
         [chainId]: true,
       });
     }
-  }, [chainId, tokenNetworkFilter]);
+    if (
+      isRemoveGlobalNetworkSelectorEnabled() &&
+      enabledEVMNetworks.length === 0
+    ) {
+      selectNetwork(chainId);
+    }
+  }, [chainId, tokenNetworkFilter, selectNetwork, enabledEVMNetworks]);
 
   useEffect(() => {
     handleNetworkFilter();
-  }, [chainId, handleNetworkFilter]);
+  }, [chainId, handleNetworkFilter, enabledEVMNetworks]);
 
   /**
    * Check to see if notifications are enabled
