@@ -4,15 +4,15 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import PerpsMarketListView from '../Views/PerpsMarketListView/PerpsMarketListView';
+import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
 import PerpsDepositAmountView from '../Views/PerpsDepositAmountView';
-import PerpsDepositPreviewView from '../Views/PerpsDepositPreviewView';
-import PerpsDepositProcessingView from '../Views/PerpsDepositProcessingView';
-import PerpsDepositSuccessView from '../Views/PerpsDepositSuccessView';
 import PerpsView from '../Views/PerpsView';
 import PerpsPositionDetailsView from '../Views/PerpsPositionDetailsView';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
+import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
+import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -65,33 +65,24 @@ const PerpsScreenStack = () => (
         }}
       />
 
+      {/* Withdrawal flow screens */}
       <Stack.Screen
-        name={Routes.PERPS.DEPOSIT_PREVIEW}
-        component={PerpsDepositPreviewView}
+        name={Routes.PERPS.WITHDRAW}
+        component={PerpsWithdrawView}
         options={{
-          title: strings('perps.deposit.preview.title'),
+          title: strings('perps.withdrawal.title'),
           headerShown: false,
         }}
       />
 
       <Stack.Screen
-        name={Routes.PERPS.DEPOSIT_PROCESSING}
-        component={PerpsDepositProcessingView}
+        name={Routes.PERPS.MARKET_DETAILS}
+        component={PerpsMarketDetailsView}
         options={{
-          title: strings('perps.deposit.processing.title'),
+          title: strings('perps.market.details.title'),
           headerShown: false,
         }}
       />
-
-      <Stack.Screen
-        name={Routes.PERPS.DEPOSIT_SUCCESS}
-        component={PerpsDepositSuccessView}
-        options={{
-          title: strings('perps.deposit.success.title'),
-          headerShown: false,
-        }}
-      />
-
       <Stack.Screen
         name={Routes.PERPS.POSITIONS}
         component={PerpsPositionsView}
@@ -119,6 +110,15 @@ const PerpsScreenStack = () => (
         }}
       />
 
+      <Stack.Screen
+        name={Routes.PERPS.TUTORIAL}
+        component={PerpsTutorialCarousel}
+        options={{
+          title: 'Tutorial',
+          headerShown: false,
+        }}
+      />
+
       {/* Modal stack for bottom sheet modals */}
       <Stack.Screen
         name={Routes.PERPS.MODALS.ROOT}
@@ -131,13 +131,6 @@ const PerpsScreenStack = () => (
           animationEnabled: false,
         }}
       />
-
-      {/*
-      Removed for minimal PR (can be added back in future PRs):
-      - PerpsMarketListView (Market list)
-      - PerpsOrderHistoryView (Order history)
-      - PerpsOrderDetailsView (Order details)
-    */}
     </Stack.Navigator>
   </PerpsConnectionProvider>
 );

@@ -51,6 +51,7 @@ import { TextFieldSize } from '../../../component-library/components/Form/TextFi
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Routes from '../../../constants/navigation/Routes';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import { AppThemeKey } from '../../../util/theme/models';
 
 /**
  * View that's shown during the second step of
@@ -210,7 +211,11 @@ const ManualBackupStep1 = ({
         testID={ManualBackUpStepsSelectorsIDs.BLUR_BUTTON}
       >
         <ImageBackground
-          source={require('../../../images/blur.png')}
+          source={
+            themeAppearance === AppThemeKey.dark
+              ? require('../../../images/dark-blur.png')
+              : require('../../../images/blur.png')
+          }
           style={styles.blurView}
           resizeMode="cover"
         />
@@ -218,7 +223,7 @@ const ManualBackupStep1 = ({
           <Icon
             name={IconName.EyeSlash}
             size={IconSize.Xl}
-            color={colors.overlay.default}
+            color={colors.icon.default}
           />
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {strings('manual_backup_step_1.reveal')}

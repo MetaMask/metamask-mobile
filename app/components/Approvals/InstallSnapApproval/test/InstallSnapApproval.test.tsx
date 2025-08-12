@@ -212,7 +212,7 @@ describe('InstallSnapApprovalFlow', () => {
       throw new Error('Installation error');
     });
 
-    const { getByTestId, findByTestId } = render(<InstallSnapApproval />, {
+    const { getByTestId } = render(<InstallSnapApproval />, {
       wrapper: Wrapper,
     });
     const permissionsRequest = getByTestId(SNAP_INSTALL_PERMISSIONS_REQUEST);
@@ -221,9 +221,7 @@ describe('InstallSnapApprovalFlow', () => {
       SNAP_INSTALL_PERMISSIONS_REQUEST_APPROVE,
     );
     fireEvent.press(permissionsConfirmButton);
-    await waitFor(() => {
-      expect(findByTestId(SNAP_INSTALL_ERROR)).toBeDefined();
-    });
+    await waitFor(() => expect(getByTestId(SNAP_INSTALL_ERROR)).toBeDefined());
   });
 
   it('calls onCancel on cancel button click', () => {

@@ -66,6 +66,7 @@ import { getNetworkImageSource } from '../../../../../../util/networks';
 import { strings } from '../../../../../../../locales/i18n';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import Logger from '../../../../../../util/Logger';
+import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import {
   selectChainId,
@@ -78,10 +79,24 @@ import {
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
-  APPLE_PAY_PAYMENT_METHOD,
+  DEBIT_CREDIT_PAYMENT_METHOD,
 } from '../../constants';
+import {
+  createNavigationDetails,
+  useParams,
+} from '../../../../../../util/navigation/navUtils';
+import Routes from '../../../../../../constants/navigation/Routes';
+
+interface BuildQuoteParams {
+  shouldRouteImmediately?: boolean;
+}
+
+export const createBuildQuoteNavDetails =
+  createNavigationDetails<BuildQuoteParams>(Routes.DEPOSIT.BUILD_QUOTE);
 
 const BuildQuote = () => {
+  const { shouldRouteImmediately } = useParams<BuildQuoteParams>();
+
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
@@ -93,7 +108,7 @@ const BuildQuote = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
-    APPLE_PAY_PAYMENT_METHOD,
+    DEBIT_CREDIT_PAYMENT_METHOD,
   );
   const [cryptoCurrency, setCryptoCurrency] =
     useState<DepositCryptoCurrency>(USDC_TOKEN);
@@ -153,6 +168,15 @@ const BuildQuote = () => {
       ),
     );
   }, [navigation, theme]);
+
+  useEffect(() => {
+    endTrace({
+      name: TraceName.LoadDepositExperience,
+      data: {
+        destination: Routes.DEPOSIT.BUILD_QUOTE,
+      },
+    });
+  }, []);
 
   useEffect(() => {
     if (selectedRegion?.currency) {
@@ -236,6 +260,19 @@ const BuildQuote = () => {
     setIsLoading(true);
     let quote: BuyQuote | undefined;
 
+    // Start tracing the continue flow process (if not coming from OTP)
+    if (!shouldRouteImmediately) {
+      trace({
+        name: TraceName.DepositContinueFlow,
+        tags: {
+          amount: amountAsNumber,
+          currency: cryptoCurrency.symbol,
+          paymentMethod: paymentMethod.id,
+          authenticated: isAuthenticated,
+        },
+      });
+    }
+
     try {
       trackEvent('RAMPS_ORDER_PROPOSED', {
         ramp_type: 'DEPOSIT',
@@ -261,6 +298,18 @@ const BuildQuote = () => {
         throw new Error(strings('deposit.buildQuote.quoteFetchError'));
       }
     } catch (quoteError) {
+      if (!shouldRouteImmediately) {
+        endTrace({
+          name: TraceName.DepositContinueFlow,
+          data: {
+            error:
+              quoteError instanceof Error
+                ? quoteError.message
+                : 'Unknown error',
+          },
+        });
+      }
+
       Logger.error(
         quoteError as Error,
         'Deposit::BuildQuote - Error fetching quote',
@@ -359,6 +408,7 @@ const BuildQuote = () => {
     amount,
     routeAfterAuthentication,
     navigateToVerifyIdentity,
+    shouldRouteImmediately,
   ]);
 
   const handleKeypadChange = useCallback(
@@ -447,6 +497,15 @@ const BuildQuote = () => {
   const networkImageSource = getNetworkImageSource({
     chainId: cryptoCurrency.chainId,
   });
+
+  useEffect(() => {
+    if (shouldRouteImmediately) {
+      navigation.setParams({
+        shouldRouteImmediately: false,
+      });
+      handleOnPressContinue();
+    }
+  }, [handleOnPressContinue, shouldRouteImmediately, navigation]);
 
   return (
     <ScreenLayout>
@@ -581,12 +640,13 @@ const BuildQuote = () => {
           </TouchableOpacity>
 
           <Keypad
-            style={styles.keypad}
             value={amount}
             onChange={handleKeypadChange}
             currency={fiatCurrency.symbol}
             decimals={0}
-            deleteIcon={<Icon name={IconName.Arrow2Left} size={IconSize.Lg} />}
+            periodButtonProps={{
+              isDisabled: true,
+            }}
           />
         </ScreenLayout.Content>
       </ScreenLayout.Body>

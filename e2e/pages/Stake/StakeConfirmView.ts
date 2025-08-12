@@ -1,5 +1,5 @@
-import Gestures from '../../utils/Gestures';
-import Matchers from '../../utils/Matchers';
+import Gestures from '../../framework/Gestures';
+import Matchers from '../../framework/Matchers';
 import { StakeConfirmViewSelectors } from '../../selectors/Stake/StakeConfirmView.selectors.js';
 
 class StakeConfirmationView {
@@ -7,8 +7,10 @@ class StakeConfirmationView {
     return Matchers.getElementByText(StakeConfirmViewSelectors.CONFIRM);
   }
 
-  async tapConfirmButton() {
-    await Gestures.waitAndTap(this.confirmButton);
+  async tapConfirmButton(): Promise<void> {
+    await Gestures.waitAndTap(this.confirmButton, {
+      elemDescription: 'Confirm Button in Stake Confirmation View',
+    });
   }
 }
 

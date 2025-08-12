@@ -88,6 +88,8 @@ describe('perps controller init', () => {
       activeDepositTransactions: {},
       lastError: null,
       lastUpdateTimestamp: Date.now(),
+      isEligible: false,
+      isFirstTimeUser: true,
     };
 
     initRequestMock.persistedState = {

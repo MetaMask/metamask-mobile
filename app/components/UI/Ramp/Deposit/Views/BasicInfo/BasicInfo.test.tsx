@@ -8,6 +8,7 @@ import { createEnterAddressNavDetails } from '../EnterAddress/EnterAddress';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { DEPOSIT_REGIONS, DepositRegion } from '../../constants';
 import { timestampToTransakFormat } from '../../utils';
+import { endTrace } from '../../../../../../util/trace';
 
 const mockTrackEvent = jest.fn();
 
@@ -21,6 +22,19 @@ const mockQuote = {
 const mockSelectedRegion = DEPOSIT_REGIONS.find(
   (region) => region.isoCode === 'US',
 ) as DepositRegion;
+
+let mockUseParamsReturnValue: {
+  quote: BuyQuote;
+  previousFormData?: {
+    firstName: string;
+    lastName: string;
+    mobileNumber: string;
+    dob: string;
+    ssn?: string;
+  };
+} = {
+  quote: mockQuote,
+};
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -38,17 +52,24 @@ jest.mock('@react-navigation/native', () => {
         actualReactNavigation.useNavigation().setOptions,
       ),
     }),
-    useRoute: () => ({
-      params: { quote: mockQuote as unknown as BuyQuote },
-    }),
   };
 });
+
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  ...jest.requireActual('../../../../../../util/navigation/navUtils'),
+  useParams: () => mockUseParamsReturnValue,
+}));
 
 jest.mock('../../sdk', () => ({
   useDepositSDK: () => mockUseDepositSDK(),
 }));
 
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
+jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
+  endTrace: jest.fn(),
+}));
 
 function render(Component: React.ComponentType) {
   return renderScreen(
@@ -155,6 +176,46 @@ describe('BasicInfo Component', () => {
       region: 'US',
       ramp_type: 'DEPOSIT',
       kyc_type: 'SIMPLE',
+    });
+  });
+
+  it('prefills form data when previousFormData is provided', () => {
+    const mockPreviousFormData = {
+      firstName: 'John',
+      lastName: 'Doe',
+      mobileNumber: '+1234567890',
+      dob: '1993-03-25T00:00:00.000Z',
+      ssn: '123456789',
+    };
+
+    mockUseParamsReturnValue = {
+      quote: mockQuote,
+      previousFormData: mockPreviousFormData,
+    };
+
+    render(BasicInfo);
+
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('should call endTrace twice when component mounts', () => {
+    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+    mockEndTrace.mockClear();
+
+    render(BasicInfo);
+
+    expect(mockEndTrace).toHaveBeenCalledTimes(2);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Continue Flow',
+      data: {
+        destination: 'BasicInfo',
+      },
+    });
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Input OTP',
+      data: {
+        destination: 'BasicInfo',
+      },
     });
   });
 });

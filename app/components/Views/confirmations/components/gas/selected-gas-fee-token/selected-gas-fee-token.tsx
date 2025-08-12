@@ -46,7 +46,7 @@ export function SelectedGasFeeToken() {
 
   const { networkNativeCurrency: nativeCurrency } = useNetworkInfo(chainId);
 
-  const onPress = useCallback(() => {
+  const handlePress = useCallback(() => {
     if (!supportsGasFeeTokens) {
       return;
     }
@@ -64,7 +64,7 @@ export function SelectedGasFeeToken() {
         <GasFeeTokenModal onClose={() => setIsModalOpen(false)} />
       )}
       <TouchableOpacity
-        onPress={onPress}
+        onPress={handlePress}
         style={styles.gasFeeTokenButton}
         testID="selected-gas-fee-token"
       >

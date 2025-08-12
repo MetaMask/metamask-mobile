@@ -510,14 +510,21 @@ class Onboarding extends PureComponent {
     });
 
     const action = async () => {
+      this.props.setLoading();
       const loginHandler = createLoginHandler(Platform.OS, provider);
       const result = await OAuthLoginService.handleOAuthLogin(
         loginHandler,
       ).catch((error) => {
-        this.handleLoginError(error, 'google');
+        this.props.unsetLoading();
+        this.handleLoginError(error, provider);
         return { type: 'error', error, existingUser: false };
       });
       this.handlePostSocialLogin(result, createWallet, provider);
+
+      // delay unset loading to avoid flash of loading state
+      setTimeout(() => {
+        this.props.unsetLoading();
+      }, 1000);
     };
     this.handleExistingUser(action);
   };
@@ -533,12 +540,19 @@ class Onboarding extends PureComponent {
       // For OAuth API failures (excluding user cancellation/dismissal), handle based on analytics consent
       if (
         error.code !== OAuthErrorType.UserCancelled &&
-        error.code !== OAuthErrorType.UserDismissed
+        error.code !== OAuthErrorType.UserDismissed &&
+        error.code !== OAuthErrorType.GoogleLoginError &&
+        error.code !== OAuthErrorType.AppleLoginError
       ) {
         this.handleOAuthLoginError(error);
         return;
       }
-      if (error.code === OAuthErrorType.UserCancelled) {
+      if (
+        error.code === OAuthErrorType.UserCancelled ||
+        error.code === OAuthErrorType.UserDismissed ||
+        error.code === OAuthErrorType.GoogleLoginError ||
+        error.code === OAuthErrorType.AppleLoginError
+      ) {
         // QA: do not show error sheet if user cancelled
         return;
       }

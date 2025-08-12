@@ -312,7 +312,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                       }
                     }
                   >
-                    <View
+                    <RCTSafeAreaView
                       style={
                         {
                           "backgroundColor": "#ffffff",
@@ -333,14 +333,15 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                           }
                         }
                         enableAutomaticScroll={true}
-                        enableOnAndroid={false}
+                        enableOnAndroid={true}
                         enableResetScrollToCoords={true}
                         extraHeight={75}
-                        extraScrollHeight={0}
+                        extraScrollHeight={100}
                         getScrollResponder={[Function]}
                         handleOnScroll={[Function]}
-                        keyboardDismissMode="interactive"
+                        keyboardDismissMode="none"
                         keyboardOpeningTime={250}
+                        keyboardShouldPersistTaps="always"
                         keyboardSpace={0}
                         onScroll={[Function]}
                         resetKeyboardSpace={[Function]}
@@ -356,7 +357,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                         scrollToEnd={[Function]}
                         scrollToFocusedInput={[Function]}
                         scrollToPosition={[Function]}
-                        showsVerticalScrollIndicator={true}
+                        showsVerticalScrollIndicator={false}
                         style={
                           {
                             "backgroundColor": "#4459ff1a",
@@ -671,7 +672,7 @@ exports[`ImportPrivateKey render matches snapshot 1`] = `
                         </View>
                       </RCTScrollView>
                       <View />
-                    </View>
+                    </RCTSafeAreaView>
                   </View>
                 </View>
               </View>

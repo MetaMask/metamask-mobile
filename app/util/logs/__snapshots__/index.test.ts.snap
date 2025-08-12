@@ -12,9 +12,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
       },
       "AccountTreeController": {
+        "accountGroupsMetadata": {},
         "accountTree": {
+          "selectedAccountGroup": "",
           "wallets": {},
         },
+        "accountWalletsMetadata": {},
       },
       "AccountsController": {
         "internalAccounts": {
@@ -318,6 +321,18 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         },
         "selectedNetworkClientId": "mainnet",
       },
+      "NetworkEnablementController": {
+        "enabledNetworkMap": {
+          "eip155": {
+            "0x1": true,
+            "0x2105": true,
+            "0xe708": true,
+          },
+          "solana": {
+            "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true,
+          },
+        },
+      },
       "NotificationServicesController": {
         "isCheckingAccountsPresence": false,
         "isFeatureAnnouncementsEnabled": false,
@@ -350,6 +365,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "currentDepositTxHash": null,
         "depositError": null,
         "depositStatus": "idle",
+        "isEligible": false,
+        "isFirstTimeUser": true,
         "isTestnet": false,
         "lastError": null,
         "lastUpdateTimestamp": 0,

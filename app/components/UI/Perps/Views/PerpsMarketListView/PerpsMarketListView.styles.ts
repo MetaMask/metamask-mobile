@@ -16,15 +16,22 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingVertical: 8,
-      marginTop: 32,
       marginBottom: 16,
     },
     headerTitle: {
       flex: 1,
       textAlign: 'left',
     },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    tutorialButton: {
+      padding: 4,
+    },
     searchButton: {
       padding: 4,
+      marginRight: 4,
     },
     tabContainer: {
       flexDirection: 'row',

@@ -102,12 +102,16 @@ import {
   PerpsModalStack,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
+import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
+import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
+import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
+import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
-import { isSendRedesignEnabled } from '../../Views/confirmations/utils/confirm';
+import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -621,16 +625,6 @@ const SendView = () => (
   </Stack.Navigator>
 );
 
-const SendComponent = () => (
-  <Stack.Navigator headerMode="screen">
-    <Stack.Screen name={Routes.SEND.ROOT} component={Send} />
-    <Stack.Screen
-      name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
-      component={RedesignedConfirm}
-    />
-  </Stack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const NftDetailsModeView = (props) => (
   <Stack.Navigator>
@@ -847,13 +841,13 @@ const MainNavigator = () => {
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
         name="Send"
-        component={SendComponent}
+        component={Send}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />
       <Stack.Screen
         name="SendFlowView"
-        component={isSendRedesignEnabled() ? SendComponent : SendFlowView}
+        component={isSendRedesignEnabled() ? Send : SendFlowView}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />
@@ -906,6 +900,34 @@ const MainNavigator = () => {
           />
         </>
       )}
+      {isPerpsEnabled && (
+        <>
+          <Stack.Screen
+            name={Routes.PERPS.POSITION_TRANSACTION}
+            component={PerpsPositionTransactionView}
+            options={{
+              title: 'Position Transaction',
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PERPS.ORDER_TRANSACTION}
+            component={PerpsOrderTransactionView}
+            options={{
+              title: 'Order Transaction',
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PERPS.FUNDING_TRANSACTION}
+            component={PerpsFundingTransactionView}
+            options={{
+              title: 'Funding Transaction',
+              headerShown: true,
+            }}
+          />
+        </>
+      )}
       <Stack.Screen
         name="SetPasswordFlow"
         component={SetPasswordFlow}
@@ -945,6 +967,7 @@ const MainNavigator = () => {
           headerShown: true,
         }}
       />
+      <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
     </Stack.Navigator>
   );
 };

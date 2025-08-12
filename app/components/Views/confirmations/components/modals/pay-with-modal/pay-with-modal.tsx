@@ -21,7 +21,7 @@ import { TokenSelectorItem } from '../../../../../UI/Bridge/components/TokenSele
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
-import { useTransactionPayToken } from '../../../hooks/transactions/useTransactionPayToken';
+import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
 
@@ -69,8 +69,8 @@ export function PayWithModal() {
       const networkName = allNetworkConfigurations[chainId]?.name;
 
       const isSelected =
-        payToken.chainId === chainId &&
-        payToken.address.toLowerCase() === item.address.toLowerCase();
+        payToken?.chainId === chainId &&
+        payToken?.address.toLowerCase() === item.address.toLowerCase();
 
       const networkImageSource = getNetworkImageSource({
         chainId,

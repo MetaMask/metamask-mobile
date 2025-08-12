@@ -17,18 +17,21 @@ import OnboardingSuccessView from './pages/Onboarding/OnboardingSuccessView';
 import TermsOfUseModal from './pages/Onboarding/TermsOfUseModal';
 import TabBarComponent from './pages/wallet/TabBarComponent';
 import LoginView from './pages/wallet/LoginView';
-import { getGanachePort } from './fixtures/utils';
+import { getGanachePort } from './framework/fixtures/FixtureUtils';
 import Assertions from './framework/Assertions';
 import { CustomNetworks } from './resources/networks.e2e';
 import ToastModal from './pages/wallet/ToastModal';
 import TestDApp from './pages/Browser/TestDApp';
 import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
+import Matchers from './utils/Matchers';
+import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
-  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
+  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true' ||
+  process.env.SEEDLESS_ONBOARDING_ENABLED === undefined;
 
 /**
  * Accepts the terms of use modal.
@@ -178,13 +181,7 @@ export const importWalletWithRecoveryPhrase = async ({
   );
 
   await OnboardingView.tapHaveAnExistingWallet();
-
-  if (SEEDLESS_ONBOARDING_ENABLED) {
-    await Assertions.expectElementToBeVisible(OnboardingSheet.container, {
-      description: 'Onboarding Sheet should be visible',
-    });
-    await OnboardingSheet.tapImportSeedButton();
-  }
+  await OnboardingSheet.tapImportSeedButton();
 
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
@@ -295,10 +292,9 @@ export const CreateNewWallet = async ({ optInToMetrics = true } = {}) => {
   });
   await OnboardingSuccessView.tapDone();
 
+  await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
-
-  await closeOnboardingModals(false);
 };
 
 /**
@@ -433,4 +429,29 @@ export const waitForTestDappToLoad = async () => {
   }
 
   throw new Error('Test dapp failed to become fully interactive');
+};
+
+export const waitForTestSnapsToLoad = async () => {
+  const MAX_RETRIES = 3;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await Assertions.expectElementToBeVisible(
+        Matchers.getElementByWebID(
+          BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+          'root',
+        ),
+      );
+    } catch (error) {
+      if (attempt === MAX_RETRIES) {
+        throw new Error(
+          `Test Snaps failed to load after ${MAX_RETRIES} attempts: ${
+            error instanceof Error ? error.message : 'Unknown error'
+          }`,
+        );
+      }
+    }
+  }
+
+  throw new Error('Test Snaps failed to become fully interactive.');
 };

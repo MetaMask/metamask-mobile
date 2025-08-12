@@ -81,6 +81,7 @@ jest.mock('@consensys/native-ramps-sdk', () => ({
       isKycApproved: jest.fn().mockReturnValue(true),
     }),
     setAccessToken: jest.fn(),
+    logout: jest.fn(),
     getGeolocation: jest.fn().mockResolvedValue({ ipCountryCode: 'US' }),
   })),
 }));
@@ -461,15 +462,15 @@ describe('Deposit SDK Context', () => {
       jest.requireMock('../utils/ProviderTokenVault').getProviderToken =
         originalMock;
     });
-    it('clears authentication state when calling clearAuthToken', async () => {
+    it('clears authentication state when calling logoutFromProvider with default requireServerInvalidation=true', async () => {
       const resetProviderTokenMock = jest.fn().mockResolvedValue(undefined);
       jest.requireMock('../utils/ProviderTokenVault').resetProviderToken =
         resetProviderTokenMock;
 
-      const clearAccessTokenMock = jest.fn();
+      const logoutMock = jest.fn();
       (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
         setAccessToken: jest.fn(),
-        clearAccessToken: clearAccessTokenMock,
+        logout: logoutMock,
       }));
 
       let contextValue: ReturnType<typeof useDepositSDK> | undefined;
@@ -501,13 +502,149 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.authToken).toEqual(mockToken);
 
       await act(async () => {
-        contextValue?.clearAuthToken();
+        contextValue?.logoutFromProvider();
       });
 
       expect(resetProviderTokenMock).toHaveBeenCalled();
-      expect(clearAccessTokenMock).toHaveBeenCalled();
+      expect(logoutMock).toHaveBeenCalled();
       expect(contextValue?.isAuthenticated).toBe(false);
       expect(contextValue?.authToken).toBeUndefined();
+    });
+
+    it('clears authentication state when calling logoutFromProvider with requireServerInvalidation=false even if SDK logout fails', async () => {
+      const resetProviderTokenMock = jest.fn().mockResolvedValue(undefined);
+      jest.requireMock('../utils/ProviderTokenVault').resetProviderToken =
+        resetProviderTokenMock;
+
+      const logoutMock = jest
+        .fn()
+        .mockRejectedValue(new Error('SDK logout failed'));
+      (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
+        setAccessToken: jest.fn(),
+        logout: logoutMock,
+      }));
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return <Text>Test Component</Text>;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const mockToken = {
+        id: 'test-token-id',
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      await act(async () => {
+        await contextValue?.setAuthToken(mockToken);
+      });
+
+      expect(contextValue?.isAuthenticated).toBe(true);
+      expect(contextValue?.authToken).toEqual(mockToken);
+
+      // Should not throw even when SDK logout fails
+      await act(async () => {
+        await contextValue?.logoutFromProvider(false);
+      });
+
+      expect(resetProviderTokenMock).toHaveBeenCalled();
+      expect(logoutMock).toHaveBeenCalled();
+      expect(contextValue?.isAuthenticated).toBe(false);
+      expect(contextValue?.authToken).toBeUndefined();
+    });
+
+    it('throws error when requireServerInvalidation=true and SDK logout fails', async () => {
+      const resetProviderTokenMock = jest.fn().mockResolvedValue(undefined);
+      jest.requireMock('../utils/ProviderTokenVault').resetProviderToken =
+        resetProviderTokenMock;
+
+      const logoutMock = jest
+        .fn()
+        .mockRejectedValue(new Error('SDK logout failed'));
+      (NativeRampsSdk as jest.Mock).mockImplementationOnce(() => ({
+        setAccessToken: jest.fn(),
+        logout: logoutMock,
+      }));
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return <Text>Test Component</Text>;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: mockedState },
+      );
+
+      const mockToken = {
+        id: 'test-token-id',
+        accessToken: 'test-token',
+        ttl: 3600,
+        created: new Date(),
+        userId: 'test-user-id',
+      };
+
+      await act(async () => {
+        await contextValue?.setAuthToken(mockToken);
+      });
+
+      expect(contextValue?.isAuthenticated).toBe(true);
+
+      await expect(async () => {
+        await contextValue?.logoutFromProvider(true);
+      }).rejects.toThrow('SDK logout failed');
+
+      expect(contextValue?.isAuthenticated).toBe(true);
+      expect(contextValue?.authToken).toEqual(mockToken);
+    });
+
+    it('throws error when SDK is not initialized during logout', async () => {
+      const stateWithoutProviderKeys = {
+        ...mockedState,
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                depositConfig: {
+                  providerApiKey: null,
+                  providerFrontendAuth: null,
+                },
+              },
+            },
+          },
+        },
+      };
+
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return <Text>Test Component</Text>;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        { state: stateWithoutProviderKeys },
+      );
+
+      await expect(async () => {
+        await contextValue?.logoutFromProvider();
+      }).rejects.toThrow();
     });
   });
 });

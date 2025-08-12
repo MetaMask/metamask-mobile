@@ -1,10 +1,10 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import EnterEmail from './EnterEmail';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
-import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import initialRootState from '../../../../../../util/test/initial-root-state';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -26,8 +26,6 @@ let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'sendUserOtp'> = {
   ...mockUseDepositSdkMethodInitialValues,
 };
 
-const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
-
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
 }));
@@ -46,17 +44,19 @@ jest.mock('@react-navigation/native', () => {
       ),
     }),
     useRoute: () => ({
-      params: {
-        quote: mockQuote,
-        paymentMethodId: 'test-payment-method-id',
-        cryptoCurrencyChainId: '1',
-      },
+      params: {},
     }),
   };
 });
 
 function render(Component: React.ComponentType) {
-  return renderDepositTestComponent(Component, Routes.DEPOSIT.ENTER_EMAIL);
+  return renderScreen(
+    Component,
+    { name: Routes.DEPOSIT.ENTER_EMAIL },
+    {
+      state: initialRootState,
+    },
+  );
 }
 
 describe('EnterEmail Component', () => {
@@ -95,9 +95,6 @@ describe('EnterEmail Component', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.OTP_CODE, {
         email: 'test@example.com',
-        quote: mockQuote,
-        paymentMethodId: 'test-payment-method-id',
-        cryptoCurrencyChainId: '1',
       });
     });
   });

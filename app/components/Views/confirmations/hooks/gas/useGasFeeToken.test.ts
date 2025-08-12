@@ -43,16 +43,13 @@ function getState({ gasFeeTokens }: { gasFeeTokens?: GasFeeToken[] } = {}) {
             },
           ],
         },
-        PreferencesController: {
-          showFiatInTestnets: true,
-        },
         CurrencyRateController: {
           currentCurrency: 'USD',
           currencyRates: {
             ETH: {
               conversionDate: 1732887955.694,
-              conversionRate: 3596.25,
-              usdConversionRate: 3596.25,
+              conversionRate: 556.12,
+              usdConversionRate: 556.12,
             },
           },
         },
@@ -111,12 +108,46 @@ describe('useGasFeeToken', () => {
 
   it('returns fiat amount', () => {
     const result = runHook({ tokenAddress: GAS_FEE_TOKEN_MOCK.tokenAddress });
-    expect(result.amountFiat).toStrictEqual('$7,979.87');
+    expect(result.amountFiat).toStrictEqual('$1,234.00');
   });
 
   it('returns fiat balance', () => {
     const result = runHook({ tokenAddress: GAS_FEE_TOKEN_MOCK.tokenAddress });
-    expect(result.balanceFiat).toStrictEqual('$15,164.34');
+    expect(result.balanceFiat).toStrictEqual('$2,345.00');
+  });
+
+  it('returns token transfer transaction', () => {
+    const result = runHook({ tokenAddress: GAS_FEE_TOKEN_MOCK.tokenAddress });
+    expect(result.transferTransaction).toStrictEqual({
+      data: `0xa9059cbb000000000000000000000000${GAS_FEE_TOKEN_MOCK.recipient.slice(
+        2,
+      )}00000000000000000000000000000000000000000000000000000000000004d2`,
+      gas: GAS_FEE_TOKEN_MOCK.gasTransfer,
+      maxFeePerGas: GAS_FEE_TOKEN_MOCK.maxFeePerGas,
+      maxPriorityFeePerGas: GAS_FEE_TOKEN_MOCK.maxPriorityFeePerGas,
+      to: GAS_FEE_TOKEN_MOCK.tokenAddress,
+    });
+  });
+
+  it('returns native transfer tranasction if future native token', () => {
+    const result = runHook({
+      gasFeeTokens: [
+        { ...GAS_FEE_TOKEN_MOCK, tokenAddress: NATIVE_TOKEN_ADDRESS },
+      ],
+      tokenAddress: NATIVE_TOKEN_ADDRESS,
+    });
+    expect(result.transferTransaction).toStrictEqual({
+      gas: GAS_FEE_TOKEN_MOCK.gasTransfer,
+      maxFeePerGas: GAS_FEE_TOKEN_MOCK.maxFeePerGas,
+      maxPriorityFeePerGas: GAS_FEE_TOKEN_MOCK.maxPriorityFeePerGas,
+      to: GAS_FEE_TOKEN_MOCK.recipient,
+      value: GAS_FEE_TOKEN_MOCK.amount,
+    });
+  });
+
+  it('returns native gas fee token if no token address', () => {
+    const result = runHook({ tokenAddress: undefined });
+    expect(result.tokenAddress).toStrictEqual(NATIVE_TOKEN_ADDRESS);
   });
 
   it('returns token transfer transaction when tokenAddress is not the native token address', () => {
@@ -187,9 +218,9 @@ describe('useSelectedGasFeeToken', () => {
     expect(result).toEqual(
       expect.objectContaining({
         ...GAS_FEE_TOKEN_MOCK,
-        amountFiat: '$7,979.87',
+        amountFiat: '$1,234.00',
         amountFormatted: '1.234',
-        balanceFiat: '$15,164.34',
+        balanceFiat: '$2,345.00',
       }),
     );
   });

@@ -525,7 +525,7 @@ describe('WalletActions', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       params: {
         sourcePage: 'MainView',
-        token: {
+        sourceToken: {
           address: ethers.constants.AddressZero,
           chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
           decimals: 9,
@@ -533,6 +533,7 @@ describe('WalletActions', () => {
           name: 'Solana',
           symbol: 'SOL',
         },
+        bridgeViewMode: 'Swap',
       },
       screen: 'BridgeView',
     });
@@ -769,7 +770,7 @@ describe('WalletActions', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView', {});
+      expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
     });
 
     it('handles hook errors gracefully', async () => {
@@ -789,7 +790,7 @@ describe('WalletActions', () => {
 
       expect(mockSendNonEvmAsset).toHaveBeenCalled();
       // Should not navigate since hook handled it (even with internal error)
-      expect(mockNavigate).not.toHaveBeenCalledWith('SendFlowView', {});
+      expect(mockNavigate).not.toHaveBeenCalledWith('SendFlowView');
     });
 
     it('calls hook with correct asset parameters', async () => {
