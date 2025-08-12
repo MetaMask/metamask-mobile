@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
@@ -87,7 +87,7 @@ export const PortfolioBalance = () => {
       ],
   );
 
-  const selectBalanceForResolvedGroup = React.useMemo(
+  const selectBalanceForResolvedGroup = useMemo(
     () =>
       resolvedGroupId
         ? balanceSelectors.selectBalanceByAccountGroup(resolvedGroupId)
