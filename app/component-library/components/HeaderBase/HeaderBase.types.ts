@@ -1,6 +1,9 @@
 // Third party dependencies.
 import { ViewProps } from 'react-native';
 
+// Internal dependencies.
+import { HeaderBaseAlign } from './HeaderBase.constants';
+
 /**
  * HeaderBase component props.
  */
@@ -23,12 +26,20 @@ export interface HeaderBaseProps extends ViewProps {
    * @default: false
    */
   includesTopInset?: boolean;
+  /**
+   * Optional prop to set the alignment of the header title.
+   * @default: HeaderBaseAlign.Center
+   */
+  align?: HeaderBaseAlign;
 }
 
 /**
  * Style sheet input parameters.
  */
-export type HeaderBaseStyleSheetVars = Pick<HeaderBaseProps, 'style'> & {
+export type HeaderBaseStyleSheetVars = Pick<
+  HeaderBaseProps,
+  'style' | 'align'
+> & {
   startAccessorySize: { width: number; height: number } | null;
   endAccessorySize: { width: number; height: number } | null;
 };
