@@ -124,6 +124,7 @@ const getStories = () => {
     "./app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx"),
     "./app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx"),
     "./app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx": require("../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx"),
+    "./app/component-library/components-temp/ListItemMultiSelectWithMenuButton/ListItemMultiSelectWithMenuButton.stories.tsx": require("../app/component-library/components-temp/ListItemMultiSelectWithMenuButton/ListItemMultiSelectWithMenuButton.stories.tsx"),
   };
 };
 

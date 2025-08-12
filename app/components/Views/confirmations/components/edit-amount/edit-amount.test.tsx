@@ -141,4 +141,24 @@ describe('EditAmount', () => {
     expect(updateTokenAmountMock).toHaveBeenCalledWith('600.25');
     expect(input).toHaveProp('value', '600.25');
   });
+
+  it('does nothing if percentage button pressed with no pay token selected', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      balanceFiat: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { getByTestId, getByText } = render();
+
+    const input = getByTestId('edit-amount-input');
+
+    await act(async () => {
+      fireEvent.press(input);
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('50%'));
+    });
+
+    expect(updateTokenAmountMock).not.toHaveBeenCalled();
+  });
 });

@@ -91,6 +91,10 @@ describe('useGasFeeToken', () => {
       preciseNativeFeeInHex: '0x1',
       estimatedFeeFiat: null,
       estimatedFeeNative: null,
+      maxFeeFiat: null,
+      maxFeeNative: null,
+      maxFeeNativePrecise: null,
+      maxFeeNativeHex: null,
       calculateGasEstimate: jest.fn(),
     } as ReturnType<typeof useFeeCalculations>);
   });

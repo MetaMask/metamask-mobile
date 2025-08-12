@@ -53,6 +53,12 @@ import { enableAllNetworksFilter } from '../../UI/Tokens/util/enableAllNetworksF
 import Engine from '../../../core/Engine';
 import NetworkListBottomSheet from './components/NetworkListBottomSheet';
 import NetworkFilterBottomSheet from './components/NetworkFilterBottomSheet';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 export enum FilterOption {
   AllNetworks,
@@ -106,6 +112,12 @@ const AddAsset = () => {
     [allNetworks],
   );
   const isAllNetworksEnabled = useSelector(selectTokenNetworkFilter);
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
 
   const [openNetworkFilter, setOpenNetworkFilter] = useState(false);
   const [openNetworkSelector, setOpenNetworkSelector] = useState(false);
@@ -148,6 +160,9 @@ const AddAsset = () => {
   };
 
   const onFilterControlsBottomSheetPress = (option: FilterOption) => {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      selectNetwork(chainId);
+    }
     handleFilterControlsPress({
       option,
       allNetworksEnabled,

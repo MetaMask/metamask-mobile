@@ -43,6 +43,9 @@ const styleSheet = (params: {
       flex: 1,
       alignItems: 'flex-start',
     },
+    cellMultiSelectBaseInfo: {
+      alignItems: 'flex-start',
+    },
     optionalAccessory: {
       marginLeft: 16,
     },
