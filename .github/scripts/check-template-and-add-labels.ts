@@ -126,7 +126,7 @@ async function main(): Promise<void> {
       );
 
       // Add regression label to the bug report issue
-      addRegressionLabelToIssue(octokit, labelable);
+      await addRegressionLabelToIssue(octokit, labelable);
 
       await addNeedsTriageLabelToIssue(octokit, labelable);
 
