@@ -134,6 +134,48 @@ describe('BasicInfo Component', () => {
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 
+  it('snapshot matches validation errors when continue is pressed with invalid format fields', () => {
+    render(BasicInfo);
+
+    fireEvent.changeText(screen.getByTestId('first-name-input'), '   ');
+    fireEvent.changeText(screen.getByTestId('last-name-input'), 'A'.repeat(36));
+    fireEvent.changeText(
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '123456789',
+    );
+    fireEvent.changeText(
+      screen.getByTestId('date-of-birth-input'),
+      'invalid-date',
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    expect(screen.toJSON()).toMatchSnapshot();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('snapshot matches validation errors when continue is pressed with invalid format fields for non-US region', () => {
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: { isoCode: 'CA' } as DepositRegion,
+    });
+
+    render(BasicInfo);
+
+    fireEvent.changeText(screen.getByTestId('first-name-input'), '   ');
+    fireEvent.changeText(screen.getByTestId('last-name-input'), 'A'.repeat(36));
+    fireEvent.changeText(
+      screen.getByTestId('deposit-phone-field-test-id'),
+      '123456789',
+    );
+    fireEvent.changeText(
+      screen.getByTestId('date-of-birth-input'),
+      'invalid-date',
+    );
+
+    fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+    expect(screen.toJSON()).toMatchSnapshot();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('navigates to address page when form is valid and continue is pressed', async () => {
     const dob = new Date('1990-01-01').getTime().toString();
     render(BasicInfo);
