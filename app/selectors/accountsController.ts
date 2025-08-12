@@ -266,7 +266,7 @@ export const selectInternalAccountsByScope = createDeepEqualSelector(
     accountsMap: Record<AccountId, InternalAccount>,
     scope: CaipChainId,
   ): InternalAccount[] => {
-    const accounts = accountsMap ? Object.values(accountsMap) : [];
+    const accounts = Object.values(accountsMap);
     if (!Array.isArray(accounts) || accounts.length === 0) {
       return [];
     }

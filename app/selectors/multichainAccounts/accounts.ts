@@ -188,17 +188,3 @@ export const selectInternalAccountByAccountGroupAndScope =
           scope,
         ),
   );
-
-/**
- * Selector to get all internal accounts across all wallets that are valid for a given scope.
- *
- * For EVM scopes (eip155:*), this returns all accounts that have any EVM scope
- * (i.e., any scope that starts with 'eip155:'). For non-EVM scopes, this returns
- * all accounts that include the exact scope.
- *
- * The search space is the set of account IDs referenced by any account group in any wallet
- * within the `AccountTreeController`. Accounts not referenced by any group are ignored.
- *
- * @param state - The Redux root state
- * @returns A function that takes a scope and returns an array of matching internal accounts
- */
