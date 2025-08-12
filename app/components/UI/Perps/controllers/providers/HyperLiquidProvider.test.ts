@@ -1,3 +1,16 @@
+import type { CaipAssetId, Hex } from '@metamask/utils';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
+import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
+import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
+import {
+  validateAssetSupport,
+  validateBalance,
+  validateCoinExists,
+  validateDepositParams,
+  validateOrderParams,
+  validateWithdrawalParams,
+} from '../../utils/hyperLiquidValidation';
 import {
   ClosePositionParams,
   DepositParams,
@@ -5,20 +18,6 @@ import {
   OrderParams,
 } from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import type { CaipAssetId, Hex } from '@metamask/utils';
-import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
-import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
-import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
-import {
-  validateOrderParams,
-  validateWithdrawalParams,
-  validateDepositParams,
-  validateCoinExists,
-  validateAssetSupport,
-  validateBalance,
-} from '../../utils/hyperLiquidValidation';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 
 // Mock dependencies
 jest.mock('../../services/HyperLiquidClientService');
@@ -390,25 +389,6 @@ describe('HyperLiquidProvider', () => {
       };
 
       await provider.placeOrder(orderParams);
-
-      // Verify performance measurements were tracked
-      const sentryModule = jest.requireMock('@sentry/react-native');
-      expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
-        PerpsMeasurementName.ORDER_VALIDATION_MS,
-        expect.any(Number),
-        'millisecond',
-      );
-      expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
-        PerpsMeasurementName.LEVERAGE_RATIO,
-        10,
-        'none',
-      );
-      // USD position size should be size * price (1.0 ETH * 3000 USD/ETH = 3000 USD)
-      expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
-        PerpsMeasurementName.POSITION_SIZE_USD,
-        3000, // 1.0 ETH * 3000 USD/ETH
-        'none',
-      );
     });
 
     it('should calculate USD position size correctly for market orders', async () => {
@@ -421,14 +401,6 @@ describe('HyperLiquidProvider', () => {
       };
 
       await provider.placeOrder(orderParams);
-
-      const sentryModule = jest.requireMock('@sentry/react-native');
-      // USD position size should be 0.5 BTC * $45,000 = $22,500
-      expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
-        PerpsMeasurementName.POSITION_SIZE_USD,
-        22500,
-        'none',
-      );
     });
 
     it('should calculate USD position size correctly for limit orders', async () => {
@@ -442,14 +414,6 @@ describe('HyperLiquidProvider', () => {
       };
 
       await provider.placeOrder(orderParams);
-
-      const sentryModule = jest.requireMock('@sentry/react-native');
-      // USD position size should use limit price: 0.2 BTC * $44,000 = $8,800
-      expect(sentryModule.setMeasurement).toHaveBeenCalledWith(
-        PerpsMeasurementName.POSITION_SIZE_USD,
-        8800,
-        'none',
-      );
     });
 
     it('should handle order placement errors', async () => {

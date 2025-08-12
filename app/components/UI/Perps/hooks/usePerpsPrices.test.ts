@@ -13,6 +13,7 @@ describe('usePerpsPrices', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
 
     (usePerpsTrading as jest.Mock).mockReturnValue({
       subscribeToPrices: mockSubscribeToPrices,
@@ -23,6 +24,11 @@ describe('usePerpsPrices', () => {
     });
 
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   it('should return empty prices initially', () => {
@@ -56,6 +62,8 @@ describe('usePerpsPrices', () => {
           markPrice: '3001.00',
         },
       ]);
+      // Run the debounce timer (100ms)
+      jest.advanceTimersByTime(100);
     });
 
     expect(result.current).toEqual({

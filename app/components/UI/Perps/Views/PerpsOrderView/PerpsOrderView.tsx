@@ -526,7 +526,7 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
       requestAnimationFrame(() => {
         const duration = performance.now() - startTime;
         setMeasurement(
-          PerpsMeasurementName.UPDATE_DEPENDENT_METRICS,
+          PerpsMeasurementName.UPDATE_DEPENDENT_METRICS_ON_INPUT,
           duration,
           'millisecond',
         );
@@ -604,21 +604,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
   };
 
   const handlePlaceOrder = useCallback(async () => {
-    // Track order preview shown
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_ORDER_PREVIEW_SHOWN)
-        .addProperties({
-          market: orderForm.asset,
-          direction: orderForm.direction,
-          orderType: orderForm.type,
-          leverage: orderForm.leverage,
-          positionSize,
-          marginRequired,
-          estimatedFees,
-        })
-        .build(),
-    );
-
     // Validation errors are shown in the UI
     if (!orderValidation.isValid) {
       const firstError = orderValidation.errors[0];
@@ -648,23 +633,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
 
       return;
     }
-
-    // Track order submit clicked
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_ORDER_SUBMIT_CLICKED)
-        .addProperties({
-          market: orderForm.asset,
-          direction: orderForm.direction,
-          orderType: orderForm.type,
-          leverage: orderForm.leverage,
-          positionSize,
-          marginRequired,
-          paymentToken: selectedPaymentToken?.symbol,
-          hasTakeProfit: !!orderForm.takeProfitPrice,
-          hasStopLoss: !!orderForm.stopLossPrice,
-        })
-        .build(),
-    );
 
     // Track trade transaction initiated
     trackEvent(
@@ -746,8 +714,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
     trackEvent,
     createEventBuilder,
     marginRequired,
-    estimatedFees,
-    selectedPaymentToken,
   ]);
 
   // Memoize the tooltip handlers to prevent recreating them on every render
@@ -1147,20 +1113,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
         onTokenSelect={(token) => {
           setSelectedPaymentToken(token);
           setIsTokenSelectorVisible(false);
-
-          // Track payment token selected
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.PERPS_PAYMENT_TOKEN_SELECTED)
-              .addProperties({
-                market: orderForm.asset,
-                direction: orderForm.direction,
-                orderType: orderForm.type,
-                paymentToken: token.symbol,
-                paymentChain: token.chainId,
-                previousToken: selectedPaymentToken?.symbol,
-              })
-              .build(),
-          );
         }}
         tokens={paymentTokens}
         selectedTokenAddress={selectedPaymentToken?.address || ''}
@@ -1244,18 +1196,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
             setLimitPrice(undefined);
           }
           setIsOrderTypeVisible(false);
-
-          // Track order type change
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.PERPS_ORDER_TYPE_CHANGED)
-              .addProperties({
-                market: orderForm.asset,
-                direction: orderForm.direction,
-                newOrderType: type,
-                previousOrderType: orderForm.type,
-              })
-              .build(),
-          );
         }}
         currentOrderType={orderForm.type}
       />

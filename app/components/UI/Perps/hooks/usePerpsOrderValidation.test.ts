@@ -39,11 +39,17 @@ describe('usePerpsOrderValidation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     // Default to immediate resolution
     mockValidateOrder.mockResolvedValue({ isValid: true });
     (usePerpsTrading as jest.Mock).mockReturnValue({
       validateOrder: mockValidateOrder,
     });
+  });
+
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
   const defaultOrderForm: OrderFormState = {
@@ -73,6 +79,9 @@ describe('usePerpsOrderValidation', () => {
         usePerpsOrderValidation(defaultParams),
       );
 
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
+
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
@@ -90,6 +99,9 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation(defaultParams),
       );
+
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -111,6 +123,9 @@ describe('usePerpsOrderValidation', () => {
         }),
       );
 
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
+
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
@@ -131,6 +146,9 @@ describe('usePerpsOrderValidation', () => {
           marginRequired: '10.00',
         }),
       );
+
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -160,6 +178,9 @@ describe('usePerpsOrderValidation', () => {
         }),
       );
 
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
+
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
@@ -184,6 +205,9 @@ describe('usePerpsOrderValidation', () => {
         }),
       );
 
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
+
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
@@ -207,6 +231,9 @@ describe('usePerpsOrderValidation', () => {
           },
         }),
       );
+
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -233,6 +260,9 @@ describe('usePerpsOrderValidation', () => {
         }),
       );
 
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
+
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
@@ -253,6 +283,9 @@ describe('usePerpsOrderValidation', () => {
           },
         }),
       );
+
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -281,6 +314,9 @@ describe('usePerpsOrderValidation', () => {
         }),
       );
 
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
+
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
@@ -303,6 +339,9 @@ describe('usePerpsOrderValidation', () => {
         }),
       );
 
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
+
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
@@ -319,6 +358,9 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation(defaultParams),
       );
+
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -344,6 +386,9 @@ describe('usePerpsOrderValidation', () => {
           marginRequired: '10.00',
         }),
       );
+
+      // Advance timers to trigger debounced validation
+      jest.advanceTimersByTime(300);
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);

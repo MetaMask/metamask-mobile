@@ -580,13 +580,6 @@ enum EVENT_NAME {
   // Error Management Flow
   PERPS_WARNING_DISPLAYED = 'Warning displayed',
   PERPS_ERROR_ENCOUNTERED = 'Error Encountered',
-  // Keep legacy events for backward compatibility (will be removed later)
-  PERPS_DASHBOARD_VIEWED = 'Perps Dashboard Viewed',
-  PERPS_POSITION_SIZE_ENTERED = 'Perps Position Size Entered',
-  PERPS_ORDER_PREVIEW_SHOWN = 'Perps Order Preview Shown',
-  PERPS_ORDER_SUBMIT_CLICKED = 'Perps Order Submit Clicked',
-  PERPS_PAYMENT_TOKEN_SELECTED = 'Perps Payment Token Selected',
-  PERPS_ORDER_TYPE_CHANGED = 'Perps Order Type Changed',
 
   // Card
   CARD_VIEWED = 'Card Viewed',
@@ -1358,21 +1351,7 @@ const events = {
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED: generateOpt(
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
-  // Perps Events
-  // Legacy events - keeping for backward compatibility
-  PERPS_DASHBOARD_VIEWED: generateOpt(EVENT_NAME.PERPS_DASHBOARD_VIEWED),
-  PERPS_POSITION_SIZE_ENTERED: generateOpt(
-    EVENT_NAME.PERPS_POSITION_SIZE_ENTERED,
-  ),
-  PERPS_ORDER_PREVIEW_SHOWN: generateOpt(EVENT_NAME.PERPS_ORDER_PREVIEW_SHOWN),
-  PERPS_ORDER_SUBMIT_CLICKED: generateOpt(
-    EVENT_NAME.PERPS_ORDER_SUBMIT_CLICKED,
-  ),
-  PERPS_PAYMENT_TOKEN_SELECTED: generateOpt(
-    EVENT_NAME.PERPS_PAYMENT_TOKEN_SELECTED,
-  ),
-  PERPS_ORDER_TYPE_CHANGED: generateOpt(EVENT_NAME.PERPS_ORDER_TYPE_CHANGED),
-  // New events mapped to dashboard requirements - ALL 47 events
+  // Perps Events - Mapped to dashboard requirements (47 events total)
   // Tutorial Flow (3 events)
   PERPS_TUTORIAL_VIEWED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_VIEWED),
   PERPS_TUTORIAL_STARTED: generateOpt(EVENT_NAME.PERPS_TUTORIAL_STARTED),

@@ -18,6 +18,7 @@ jest.mock('../../hooks', () => ({
   usePerpsPositions: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsFirstTimeUser: jest.fn(),
+  usePerpsAccount: jest.fn(),
 }));
 
 // Mock components
@@ -118,6 +119,7 @@ describe('PerpsTabView', () => {
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
+  const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
 
   const mockPosition: Position = {
     coin: 'ETH',
@@ -167,6 +169,8 @@ describe('PerpsTabView', () => {
       error: null,
       refresh: jest.fn(),
     });
+
+    mockUsePerpsAccount.mockReturnValue(null);
   });
 
   describe('Component Rendering', () => {

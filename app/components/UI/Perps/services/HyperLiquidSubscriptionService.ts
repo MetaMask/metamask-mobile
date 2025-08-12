@@ -8,9 +8,6 @@ import {
   type PerpsAssetCtx,
   type Book,
 } from '@deeeed/hyperliquid-node20';
-import performance from 'react-native-performance';
-import { setMeasurement } from '@sentry/react-native';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import {
   trace,
   endTrace,
@@ -421,9 +418,6 @@ export class HyperLiquidSubscriptionService {
         wsMetrics.messagesReceived++;
         wsMetrics.lastMessageTime = Date.now();
 
-        // Measure message processing time
-        const processStart = performance.now();
-
         // Update cache for ALL available symbols
         Object.entries(data.mids).forEach(([symbol, price]) => {
           const priceUpdate = this.createPriceUpdate(symbol, price.toString());
@@ -432,25 +426,6 @@ export class HyperLiquidSubscriptionService {
 
         // Notify all price subscribers with their requested symbols
         this.notifyAllPriceSubscribers();
-
-        const duration = performance.now() - processStart;
-        setMeasurement(
-          PerpsMeasurementName.PRICE_UPDATE_PROCESS_MS,
-          duration,
-          'millisecond',
-        );
-
-        // Track update frequency every 100 messages
-        if (wsMetrics.messagesReceived % 100 === 0) {
-          const messagesPerMinute =
-            wsMetrics.messagesReceived /
-            ((Date.now() - wsMetrics.startTime) / 60000);
-          setMeasurement(
-            PerpsMeasurementName.WS_MESSAGES_PER_MINUTE,
-            messagesPerMinute,
-            'none',
-          );
-        }
       })
       .then((sub) => {
         this.globalAllMidsSubscription = sub;
