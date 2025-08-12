@@ -10,6 +10,7 @@ import { selectFlattenedKeyringAccounts } from './keyringController';
 import {
   BtcMethod,
   EthMethod,
+  EthScope,
   SolMethod,
   isEvmAccountType,
 } from '@metamask/keyring-api';
@@ -288,8 +289,6 @@ export const selectInternalAccountsByScope = createDeepEqualSelector(
     }
 
     if (namespace === KnownCaipNamespace.Eip155) {
-      const evmWildcard = `${KnownCaipNamespace.Eip155}:0` as CaipChainId;
-
       // If requesting eip155:0 (wildcard), include any account that has any EVM scope
       if (reference === '0') {
         return accounts.filter(
@@ -308,7 +307,7 @@ export const selectInternalAccountsByScope = createDeepEqualSelector(
         (account) =>
           Array.isArray(account.scopes) &&
           (account.scopes.includes(scope) ||
-            account.scopes.includes(evmWildcard)),
+            account.scopes.includes(EthScope.Eoa)),
       );
     }
 
