@@ -6,13 +6,19 @@ import { merge } from 'lodash';
 import renderWithProvider, {
   ProviderValues,
 } from '../../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../../constants/navigation/Routes';
 import {
   SOLANA_ASSET,
   TOKEN_ADDRESS_MOCK_1,
   evmSendStateMock,
 } from '../../../__mocks__/send.mock';
 import { SendContextProvider } from '../../../context/send-context';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { Amount } from './amount';
+
+jest.mock('../../../hooks/send/useSendNavbar', () => ({
+  useSendNavbar: jest.fn(),
+}));
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -74,6 +80,14 @@ describe('Amount', () => {
   it('renders correctly', async () => {
     const { getByTestId } = renderComponent();
     expect(getByTestId('send_amount')).toBeTruthy();
+  });
+
+  it('calls useSendNavbar with correct currentRoute', () => {
+    renderComponent();
+
+    expect(useSendNavbar).toHaveBeenCalledWith({
+      currentRoute: Routes.SEND.AMOUNT,
+    });
   });
 
   it('asset passed in nav params should be used if present', () => {
