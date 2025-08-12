@@ -8,7 +8,6 @@ import {
   REDIRECTION_URL,
 } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
-import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
 
 jest.mock('@react-navigation/compat', () => ({
   withNavigation: jest.fn((component) => component),
@@ -151,19 +150,6 @@ jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 const mockUseHandleNewOrder = jest.mocked(useHandleNewOrder);
 
-const mockPreviousFormData = {
-  addressLine1: '',
-  addressLine2: '',
-  city: '',
-  countryCode: '',
-  dob: '',
-  firstName: '',
-  lastName: '',
-  mobileNumber: '',
-  postCode: '',
-  state: '',
-};
-
 describe('useDepositRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -226,9 +212,11 @@ describe('useDepositRouting', () => {
     expect(result.current.routeAfterAuthentication).toBeDefined();
     expect(result.current.navigateToKycWebview).toBeDefined();
     expect(result.current.navigateToVerifyIdentity).toBeDefined();
+    expect(result.current.navigateToEnterEmail).toBeDefined();
     expect(typeof result.current.routeAfterAuthentication).toBe('function');
     expect(typeof result.current.navigateToKycWebview).toBe('function');
     expect(typeof result.current.navigateToVerifyIdentity).toBe('function');
+    expect(typeof result.current.navigateToEnterEmail).toBe('function');
   });
 
   describe('Manual bank transfer payment method routing', () => {
@@ -348,7 +336,6 @@ describe('useDepositRouting', () => {
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
-        previousFormData: mockPreviousFormData,
       });
     });
 
@@ -380,7 +367,6 @@ describe('useDepositRouting', () => {
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
-        previousFormData: mockPreviousFormData,
       });
     });
 
@@ -412,7 +398,6 @@ describe('useDepositRouting', () => {
       verifyPopToBuildQuoteCalled();
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
-        previousFormData: mockPreviousFormData,
       });
     });
 
@@ -578,7 +563,6 @@ describe('useDepositRouting', () => {
       expect(mockFetchKycForms).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith('BasicInfo', {
         quote: mockQuote,
-        previousFormData: mockPreviousFormData,
       });
     });
 
@@ -805,9 +789,18 @@ describe('useDepositRouting', () => {
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
 
       verifyPopToBuildQuoteCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(
-        ...createEnterEmailNavDetails({}),
-      );
+      expect(mockNavigate.mock.calls).toMatchInlineSnapshot(`
+        [
+          [
+            "EnterEmail",
+            {
+              "cryptoCurrencyChainId": "eip155:1",
+              "paymentMethodId": "credit_debit_card",
+              "quote": {},
+            },
+          ],
+        ]
+      `);
     });
   });
 
@@ -1086,6 +1079,25 @@ describe('useDepositRouting', () => {
         quote: mockQuote,
         cryptoCurrencyChainId: 'eip155:1',
         paymentMethodId: 'credit_debit_card',
+      });
+    });
+
+    it('should call popToBuildQuote before navigating in navigateToEnterEmail', () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      result.current.navigateToEnterEmail({ quote: mockQuote });
+
+      verifyPopToBuildQuoteCalled();
+      expect(mockNavigate).toHaveBeenCalledWith('EnterEmail', {
+        quote: mockQuote,
+        paymentMethodId: 'credit_debit_card',
+        cryptoCurrencyChainId: 'eip155:1',
       });
     });
 

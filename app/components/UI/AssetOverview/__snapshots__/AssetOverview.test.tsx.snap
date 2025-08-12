@@ -426,7 +426,7 @@ exports[`AssetOverview should render correctly 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -532,7 +532,7 @@ exports[`AssetOverview should render correctly 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -638,7 +638,7 @@ exports[`AssetOverview should render correctly 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -744,7 +744,7 @@ exports[`AssetOverview should render correctly 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -850,7 +850,7 @@ exports[`AssetOverview should render correctly 1`] = `
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -1113,7 +1113,7 @@ exports[`AssetOverview should render correctly 1`] = `
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -1590,7 +1590,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -1696,7 +1696,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -1802,7 +1802,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -1908,7 +1908,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -2014,7 +2014,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -2313,7 +2313,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
@@ -2790,7 +2790,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -2896,7 +2896,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -3002,7 +3002,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -3108,7 +3108,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -3214,7 +3214,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               [
                 {
                   "alignItems": "center",
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#3c4d9d1a",
                   "borderRadius": 12,
                   "justifyContent": "center",
                   "opacity": 1,
@@ -3511,7 +3511,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
             style={
               {
                 "color": "#121314",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,

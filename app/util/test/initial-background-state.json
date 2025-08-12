@@ -19,11 +19,8 @@
   },
   "AccountTreeController": {
     "accountTree": {
-      "selectedAccountGroup": "",
       "wallets": {}
-    },
-    "accountGroupsMetadata": {},
-    "accountWalletsMetadata": {}
+    }
   },
   "AddressBookController": {
     "addressBook": {}
@@ -166,18 +163,6 @@
             "url": "https://base-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
-      }
-    }
-  },
-  "NetworkEnablementController": {
-    "enabledNetworkMap": {
-      "eip155": {
-        "0x1": true,
-        "0x2105": true,
-        "0xe708": true
-      },
-      "solana": {
-        "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp": true
       }
     }
   },

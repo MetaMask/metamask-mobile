@@ -139,27 +139,36 @@ exports[`Login renders matching snapshot 1`] = `
               "flexDirection": "column",
               "justifyContent": "flex-start",
               "marginBottom": 10,
-              "rowGap": 8,
+              "rowGap": 2,
               "width": "100%",
             }
           }
         >
-          <Text
-            accessibilityRole="text"
+          <View
             style={
               {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginBottom": -4,
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
               }
             }
-            testID="label"
           >
-            Password
-          </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              testID="label"
+            >
+              Password
+            </Text>
+          </View>
           <View
             style={
               {
@@ -482,27 +491,36 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
               "flexDirection": "column",
               "justifyContent": "flex-start",
               "marginBottom": 10,
-              "rowGap": 8,
+              "rowGap": 2,
               "width": "100%",
             }
           }
         >
-          <Text
-            accessibilityRole="text"
+          <View
             style={
               {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginBottom": -4,
+                "alignItems": "center",
+                "flexDirection": "row",
+                "justifyContent": "space-between",
               }
             }
-            testID="label"
           >
-            Password
-          </Text>
+            <Text
+              accessibilityRole="text"
+              style={
+                {
+                  "color": "#121314",
+                  "fontFamily": "Geist Medium",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
+              }
+              testID="label"
+            >
+              Password
+            </Text>
+          </View>
           <View
             style={
               {

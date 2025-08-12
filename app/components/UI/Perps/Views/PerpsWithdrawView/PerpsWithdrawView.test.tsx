@@ -141,7 +141,7 @@ jest.mock('../../../../UI/Bridge/components/TokenInputArea', () => {
 });
 
 // Mock Keypad component
-jest.mock('../../../../Base/Keypad', () => {
+jest.mock('../../../Ramp/Aggregator/components/Keypad', () => {
   const View = jest.requireActual('react-native').View;
   const TouchableOpacity = jest.requireActual('react-native').TouchableOpacity;
   const Text = jest.requireActual('react-native').Text;
