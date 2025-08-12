@@ -122,7 +122,6 @@ export const switchEthereumChainHandler = {
     getCurrentChainIdForDomain: true,
     requestPermittedChainsPermissionIncrementalForOrigin: true,
     setTokenNetworkFilter: true,
-    selectNetwork: true,
     hasApprovalRequestsForOrigin: true,
     rejectApprovalRequestsForOrigin: true,
   },
