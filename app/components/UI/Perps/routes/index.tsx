@@ -12,6 +12,7 @@ import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
+import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -109,6 +110,15 @@ const PerpsScreenStack = () => (
         }}
       />
 
+      <Stack.Screen
+        name={Routes.PERPS.TUTORIAL}
+        component={PerpsTutorialCarousel}
+        options={{
+          title: 'Tutorial',
+          headerShown: false,
+        }}
+      />
+
       {/* Modal stack for bottom sheet modals */}
       <Stack.Screen
         name={Routes.PERPS.MODALS.ROOT}
@@ -121,13 +131,6 @@ const PerpsScreenStack = () => (
           animationEnabled: false,
         }}
       />
-
-      {/*
-      Removed for minimal PR (can be added back in future PRs):
-      - PerpsMarketListView (Market list)
-      - PerpsOrderHistoryView (Order history)
-      - PerpsOrderDetailsView (Order details)
-    */}
     </Stack.Navigator>
   </PerpsConnectionProvider>
 );

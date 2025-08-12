@@ -11,9 +11,9 @@ import {
 } from './utils/mocks';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { Mockttp } from 'mockttp';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../fixtures/utils';
+import { Mockttp } from 'mockttp';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   let mockServer: Mockttp;
@@ -26,6 +26,8 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   });
 
   it('should enable notifications and view feature announcements and wallet notifications', async () => {
+    // Notification mocks are now enabled by default inside the fixture helper
+    // since they're turned on by default
     await withFixtures(
       {
         fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
@@ -45,6 +47,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
           NotificationMenuView.selectNotificationItem(
             getMockFeatureAnnouncementItemId(),
           ),
+          {
+            description: 'Feature Announcement Item',
+          },
         );
 
         // Feature Annonucement Details
@@ -53,6 +58,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         );
         await Assertions.expectElementToBeVisible(
           NotificationDetailsView.title,
+          {
+            description: 'Feature Announcement Details',
+          },
         );
         await NotificationDetailsView.tapOnBackButton();
 
@@ -67,6 +75,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
           );
           await Assertions.expectElementToBeVisible(
             NotificationDetailsView.title,
+            {
+              description: 'Wallet Announcement Details',
+            },
           );
           await NotificationDetailsView.tapOnBackButton();
         }
