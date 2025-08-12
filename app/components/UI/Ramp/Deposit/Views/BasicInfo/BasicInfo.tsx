@@ -218,7 +218,6 @@ const BasicInfo = (): JSX.Element => {
         }),
       );
     } catch (submissionError) {
-      setLoading(false);
       setError(
         submissionError instanceof Error && submissionError.message
           ? submissionError.message
