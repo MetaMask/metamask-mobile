@@ -5,7 +5,7 @@ import {
 } from '@metamask/base-controller';
 import { successfulFetch, toHex } from '@metamask/controller-utils';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
-import type {
+import {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionSubmittedEvent,
@@ -639,7 +639,7 @@ export class PerpsController extends BaseController<
     const { result } = await TransactionController.addTransaction(transaction, {
       networkClientId,
       origin: 'metamask',
-      type: 'perpsDeposit' as TransactionType,
+      type: TransactionType.perpsDeposit,
     });
 
     return {

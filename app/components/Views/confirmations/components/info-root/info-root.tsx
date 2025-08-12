@@ -54,7 +54,7 @@ const ConfirmationInfoComponentMap = {
       case TransactionType.tokenMethodSetApprovalForAll:
       case TransactionType.tokenMethodIncreaseAllowance:
         return Approve;
-      case 'perpsDeposit' as TransactionType:
+      case TransactionType.perpsDeposit:
         return PerpsDeposit;
       // Default to contract interaction as generic transaction confirmation
       default:

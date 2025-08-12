@@ -133,6 +133,7 @@ export const useTokenAmount = ({
 
       updateEditableParams(transactionId as string, {
         data: newData,
+        updateType: false,
       });
     },
     [decimals, recipient, transactionId],
@@ -180,7 +181,7 @@ export const useTokenAmount = ({
       break;
     }
     case TransactionType.contractInteraction:
-    case 'perpsDeposit' as TransactionType:
+    case TransactionType.perpsDeposit:
     case TransactionType.tokenMethodTransfer: {
       // ERC20
       const contractExchangeRate =
