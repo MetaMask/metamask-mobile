@@ -16,6 +16,8 @@ import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import Engine from '../../../../../../core/Engine';
 import { TransactionMeta } from '@metamask/transaction-controller';
 import { ParamListBase, RouteProp, useRoute } from '@react-navigation/native';
+import Routes from '../../../../../../constants/navigation/Routes';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -32,6 +34,10 @@ jest.mock('@react-navigation/native', () => ({
       },
     },
   }),
+}));
+
+jest.mock('../../../hooks/send/useSendNavbar', () => ({
+  useSendNavbar: jest.fn(),
 }));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -72,6 +78,14 @@ describe('SendTo', () => {
     const { getByText } = renderComponent();
 
     expect(getByText('To:')).toBeTruthy();
+  });
+
+  it('calls useSendNavbar with correct currentRoute', () => {
+    renderComponent();
+
+    expect(useSendNavbar).toHaveBeenCalledWith({
+      currentRoute: Routes.SEND.RECIPIENT,
+    });
   });
 
   it('display error and warning if present', async () => {
