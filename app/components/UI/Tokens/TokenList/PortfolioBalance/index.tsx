@@ -49,6 +49,14 @@ export const PortfolioBalance = () => {
   const assetsControllersBalance = useSelector(selectBalanceForAllWallets());
 
   // Try to resolve the correct group id by membership of the selected account
+  // TODO(ASSETS-1125): Temporary resolver
+  // Until the Account Tree exposes a reliable selector for the currently selected
+  // account group id, we resolve `groupId` by:
+  // 1) Finding the group in the current wallet that contains the selected account
+  // 2) Falling back to the first available group from assets-controllers if needed
+  // Long term: replace this with a dedicated "selected account group id" selector
+  // from the Account Tree to remove assumptions about membership/order and delete
+  // this resolver.
   const groupIdFromMembership = (() => {
     if (!derivedWallet?.groups || !selectedAccount?.id) return undefined;
     const entry = Object.entries(derivedWallet.groups).find(([, group]) =>
