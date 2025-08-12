@@ -252,26 +252,25 @@ const PerpsMarketListView = ({
             {strings('perps.title')}
           </Text>
         </View>
-
-          // POST_REBASE_CHECK: Ensure tutorial changes are still working.
+        <View style={styles.titleButtonsRightContainer}>
           <TouchableOpacity
-          onPress={() => handleTutorialClick()}
-          testID={PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON}
-          style={styles.tutorialButton}
+            style={styles.searchButton}
+            onPress={handleSearchToggle}
+            testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
           >
-          <Icon name={IconName.Question} size={IconSize.Md} />
+            <Icon
+              name={isSearchVisible ? IconName.Close : IconName.Search}
+              size={IconSize.Md}
+            />
           </TouchableOpacity>
-          
-        <TouchableOpacity
-          style={styles.searchButton}
-          onPress={handleSearchToggle}
-          testID={PerpsMarketListViewSelectorsIDs.SEARCH_TOGGLE_BUTTON}
-        >
-          <Icon
-            name={isSearchVisible ? IconName.Close : IconName.Search}
-            size={IconSize.Md}
-          />
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => handleTutorialClick()}
+            testID={PerpsMarketListViewSelectorsIDs.TUTORIAL_BUTTON}
+            style={styles.tutorialButton}
+          >
+            <Icon name={IconName.Question} size={IconSize.Md} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {isSearchVisible && (

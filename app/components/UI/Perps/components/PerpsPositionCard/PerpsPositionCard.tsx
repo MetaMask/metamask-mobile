@@ -21,7 +21,6 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import type {
   PerpsNavigationParamList,
   Position,
-  PriceUpdate,
 } from '../../controllers/types';
 import {
   formatPercentage,
@@ -50,9 +49,6 @@ interface PerpsPositionCardProps {
   showIcon?: boolean;
   rightAccessory?: React.ReactNode;
   onPositionUpdate?: () => Promise<void>;
-  // TODO: POST_REBASE_CHECK: Is this still in use?
-  isInPerpsNavContext?: boolean; // NEW: Indicates if this is used within the Perps navigation stack
-  priceData?: PriceUpdate | null; // Current market price data
 }
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
@@ -62,9 +58,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   showIcon = false, // Default to not showing icon
   rightAccessory,
   onPositionUpdate,
-  // TODO: POST_REBASE_CHECK: Is this still in use?
-  isInPerpsNavContext = true, // Default to true since most usage is within Perps stack
-  priceData,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();

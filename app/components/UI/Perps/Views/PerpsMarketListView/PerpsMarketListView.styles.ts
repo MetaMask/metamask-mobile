@@ -29,6 +29,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
     },
+    titleButtonsRightContainer: {
+      flexDirection: 'row',
+    },
     tutorialButton: {
       padding: 4,
     },

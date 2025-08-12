@@ -218,7 +218,6 @@ const Routes = {
     POSITIONS: 'PerpsPositions',
     MARKETS: 'PerpsMarketListView',
     MARKET_DETAILS: 'PerpsMarketDetails',
-    // POST_REBASE_CHECK: Is POSITION_DETAILS still in use?
     POSITION_DETAILS: 'PerpsPositionDetails',
     TUTORIAL: 'PerpsTutorial',
     MODALS: {

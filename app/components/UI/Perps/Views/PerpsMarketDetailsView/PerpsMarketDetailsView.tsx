@@ -40,6 +40,7 @@ import { useSelector } from 'react-redux';
 import { selectPerpsProvider } from '../../selectors/perpsController';
 import { capitalize } from '../../../../../util/general';
 import {
+  useHasExistingPosition,
   usePerpsAccount,
   usePerpsConnection,
   usePerpsOpenOrders,
