@@ -21,6 +21,10 @@ describe(FlaskBuildTests('Error Snap Tests'), () => {
         await TestSnaps.navigateToTestSnap();
 
         await TestSnaps.installSnap('connectErrorSnapButton');
+
+        await TestSnaps.checkInstalledSnaps(
+          'npm:@metamask/preinstalled-example-snap, npm:@metamask/error-example-snap',
+        );
       },
     );
   });

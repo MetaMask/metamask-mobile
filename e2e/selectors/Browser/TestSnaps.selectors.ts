@@ -103,6 +103,7 @@ export const TestSnapResultSelectorWebIDS = {
   getBackgroundEventsResultSpan: 'getBackgroundEventsResult',
   getStateResultSpan: 'getStateResult',
   getStateUnencryptedResultSpan: 'getStateUnencryptedResult',
+  installedSnapResultSpan: 'installedSnapsResult',
   networkAccessResultSpan: 'networkAccessResult',
   ethereumProviderResultSpan: 'ethproviderResult',
   personalSignResultSpan: 'personalSignResult',
