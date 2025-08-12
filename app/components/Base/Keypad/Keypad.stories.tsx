@@ -15,7 +15,7 @@ const DefaultKeypadStory = () => {
   };
 
   return (
-    <Box>
+    <Box twClassName="px-4">
       <Text variant={TextVariant.DisplayMd} twClassName="mb-4">
         Current Value: {value}
       </Text>

@@ -5,7 +5,7 @@ import ContactsView from '../../pages/Settings/Contacts/ContactsView';
 import AddContactView from '../../pages/Settings/Contacts/AddContactView';
 import AddAddressModal from '../../pages/Send/AddAddressModal';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -44,8 +44,7 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSendButton();
+        await WalletView.tapWalletSendButton();
         // Make sure view with my accounts visible
         await Assertions.expectElementToBeVisible(
           SendView.CurrentAccountElement,
@@ -82,8 +81,7 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSendButton();
+        await WalletView.tapWalletSendButton();
         await SendView.inputAddress(TETHER_ADDRESS); //Input token address to test for error
         await Assertions.expectElementToBeVisible(SendView.contractWarning);
         await SendView.removeAddress();
@@ -130,8 +128,7 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
         // should go back to send flow to validate newly added address is displayed
         await CommonView.tapBackButton();
         await TabBarComponent.tapWallet();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSendButton();
+        await WalletView.tapWalletSendButton();
         await Assertions.expectTextDisplayed('Ibrahim edited');
       },
     );
@@ -173,8 +170,7 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
 
           // should display all EVM contacts in the send flow
           await TabBarComponent.tapWallet();
-          await TabBarComponent.tapActions();
-          await WalletActionsBottomSheet.tapSendButton();
+          await WalletView.tapWalletSendButton();
           await SendView.inputAddress(TEST_CONTACT.editedName[0]);
           await Assertions.expectTextDisplayed(TEST_CONTACT.editedName, {
             allowDuplicates: true,
