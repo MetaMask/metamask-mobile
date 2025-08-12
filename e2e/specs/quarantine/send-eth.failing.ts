@@ -11,7 +11,6 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
 import Assertions from '../../framework/Assertions';
-import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
