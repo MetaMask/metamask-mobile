@@ -1,31 +1,59 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
+import React, { useMemo } from 'react';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
-import { useTransactionMetadataOrThrow } from '../../hooks/transactions/useTransactionMetadataRequest';
 import { View } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
-import { selectTickerByChainId } from '../../../../../selectors/networkController';
-import { RootState } from '../../../../../reducers';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './token-amount-native.styles';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
+import { useTokenAsset } from '../../hooks/useTokenAsset';
+import { BigNumber } from 'bignumber.js';
+import { formatAmount } from '../../../../UI/SimulationDetails/formatAmount';
+import I18n from '../../../../../../locales/i18n';
+import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
+import { Hex } from 'viem';
 
 export function TokenAmountNative() {
   const { styles } = useStyles(styleSheet, {});
-  const { amountNative } = useTokenAmount();
-  const { chainId } = useTransactionMetadataOrThrow();
+  const { amountUnformatted } = useTokenAmount();
+  const { asset } = useTokenAsset();
+  const { payToken } = useTransactionPayToken();
 
-  const ticker = useSelector((state: RootState) =>
-    selectTickerByChainId(state, chainId),
+  const fiatRequests = useMemo(
+    () => [
+      {
+        chainId: payToken?.chainId as Hex,
+        address: payToken?.address as Hex,
+      },
+      {
+        chainId: asset?.chainId as Hex,
+        address: asset?.address as Hex,
+      },
+    ],
+    [asset, payToken],
   );
+
+  const fiatRates = useTokenFiatRates(fiatRequests);
+  const payTokenFiatRate = fiatRates[0] ?? 1;
+  const assetFiatRate = fiatRates[1] ?? 1;
+
+  const assetToPayTokenRate = new BigNumber(assetFiatRate).dividedBy(
+    payTokenFiatRate,
+  );
+
+  const payTokenAmount = new BigNumber(amountUnformatted || '0').multipliedBy(
+    assetToPayTokenRate,
+  );
+
+  const formattedAmount = formatAmount(I18n.locale, payTokenAmount);
 
   return (
     <View style={styles.container}>
       <Text>
-        {amountNative} {ticker}
+        {formattedAmount} {payToken?.symbol}
       </Text>
       <Icon name={IconName.SwapVertical} size={IconSize.Md} />
     </View>
