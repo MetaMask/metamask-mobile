@@ -20,7 +20,7 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketTabsSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import PerpsOrderCard from '../PerpsOrderCard';
+import PerpsOpenOrderCard from '../PerpsOpenOrderCard';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
@@ -250,7 +250,7 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
             ) : (
               <>
                 {unfilledOrders.map((order) => (
-                  <PerpsOrderCard
+                  <PerpsOpenOrderCard
                     key={order.orderId}
                     order={order}
                     expanded

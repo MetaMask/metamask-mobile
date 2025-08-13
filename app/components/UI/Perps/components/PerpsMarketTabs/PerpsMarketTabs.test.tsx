@@ -57,7 +57,7 @@ jest.mock('../PerpsPositionCard', () => ({
   },
 }));
 
-jest.mock('../PerpsOrderCard', () => ({
+jest.mock('../PerpsOpenOrderCard', () => ({
   __esModule: true,
   default: ({
     order,
@@ -68,7 +68,7 @@ jest.mock('../PerpsOrderCard', () => ({
   }) => {
     const { View, TouchableOpacity } = jest.requireActual('react-native');
     return (
-      <View testID="perps-order-card">
+      <View testID="perps-open-order-card">
         <TouchableOpacity
           onPress={() => onCancel?.(order)}
           testID="order-cancel-trigger"
@@ -287,7 +287,7 @@ describe('PerpsMarketTabs', () => {
     expect(
       getByTestId(PerpsMarketTabsSelectorsIDs.ORDERS_CONTENT),
     ).toBeTruthy();
-    expect(getByTestId('perps-order-card')).toBeTruthy();
+    expect(getByTestId('perps-open-order-card')).toBeTruthy();
   });
 
   it('shows tooltip when tooltip is triggered', async () => {

@@ -320,13 +320,13 @@ export const PerpsOrderViewSelectorsIDs = {
 };
 
 // ========================================
-// PERPS ORDER CARD SELECTORS
+// PERPS OPEN ORDER CARD SELECTORS
 // ========================================
 
-export const PerpsOrderCardSelectorsIDs = {
-  CARD: 'perps-order-card',
-  CANCEL_BUTTON: 'perps-order-card-cancel-button',
-  EDIT_BUTTON: 'perps-order-card-edit-button',
+export const PerpsOpenOrderCardSelectorsIDs = {
+  CARD: 'perps-open-order-card',
+  CANCEL_BUTTON: 'perps-open-order-card-cancel-button',
+  EDIT_BUTTON: 'perps-open-order-card-edit-button',
 };
 
 // ========================================

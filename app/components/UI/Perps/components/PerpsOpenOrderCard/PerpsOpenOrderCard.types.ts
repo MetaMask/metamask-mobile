@@ -1,6 +1,6 @@
 import type { Order } from '../../controllers/types';
 
-export interface PerpsOrderCardProps {
+export interface PerpsOpenOrderCardProps {
   order: Order;
   onCancel?: (order: Order) => void;
   disabled?: boolean;
@@ -9,7 +9,7 @@ export interface PerpsOrderCardProps {
   rightAccessory?: React.ReactNode;
 }
 
-export interface OrderCardDerivedData {
+export interface OpenOrderCardDerivedData {
   direction: 'long' | 'short';
   sizeInUSD: string;
   fillPercentage: number;

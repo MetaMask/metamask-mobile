@@ -22,18 +22,18 @@ import {
   formatPositionSize,
   formatTransactionDate,
 } from '../../utils/formatUtils';
-import styleSheet from './PerpsOrderCard.styles';
-import { PerpsOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import styleSheet from './PerpsOpenOrderCard.styles';
+import { PerpsOpenOrderCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import RemoteImage from '../../../../Base/RemoteImage';
 import type {
-  PerpsOrderCardProps,
-  OrderCardDerivedData,
-} from './PerpsOrderCard.types';
+  PerpsOpenOrderCardProps,
+  OpenOrderCardDerivedData,
+} from './PerpsOpenOrderCard.types';
 import BigNumber from 'bignumber.js';
 
 /**
- * PerpsOrderCard Component
+ * PerpsOpenOrderCard Component
  *
  * Displays an individual perpetual futures order card with comprehensive order details.
  * This component is specifically designed for displaying OPEN orders (including partially filled)
@@ -46,9 +46,9 @@ import BigNumber from 'bignumber.js';
  * - Provides cancel functionality for open orders
  * - Supports both expanded and collapsed views
  *
- * Note: This component assumes all orders have 'open' status since it's used in the
- * pending orders context. Filled, canceled, or rejected orders are not handled as they
- * don't appear in the HyperLiquid frontendOpenOrders API response.
+ * Note: This component is designed for OPEN orders only. If a non-open order is passed,
+ * the component will return null. Filled, canceled, or rejected orders should not be
+ * passed to this component as they don't appear in the HyperLiquid frontendOpenOrders API.
  *
  * @param order - The order object from HyperLiquid API
  * @param onCancel - Optional callback for order cancellation
@@ -57,7 +57,7 @@ import BigNumber from 'bignumber.js';
  * @param showIcon - Whether to show the asset icon
  * @param rightAccessory - Optional component to render on the right side
  */
-const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
+const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   order,
   onCancel,
   disabled = false,
@@ -69,7 +69,7 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
   const { assetUrl } = usePerpsAssetMetadata(order.symbol);
 
   // Derive order data for display
-  const derivedData = useMemo<OrderCardDerivedData>(() => {
+  const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
     const direction = order.side === 'buy' ? 'long' : 'short';
 
     // Calculate size in USD
@@ -91,22 +91,27 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
     };
   }, [order]);
 
+  // Early return for non-open orders - this component only handles open orders
+  if (order.status !== 'open') {
+    return null;
+  }
+
   const handleCancelPress = () => {
-    DevLogger.log('PerpsOrderCard: Cancel button pressed', {
+    DevLogger.log('PerpsOpenOrderCard: Cancel button pressed', {
       orderId: order.orderId,
     });
     if (onCancel) {
       onCancel(order);
     } else {
       // Future: Navigate to order cancellation flow
-      DevLogger.log('PerpsOrderCard: No onCancel handler provided');
+      DevLogger.log('PerpsOpenOrderCard: No onCancel handler provided');
     }
   };
 
   return (
     <TouchableOpacity
       style={expanded ? styles.expandedContainer : styles.collapsedContainer}
-      testID={PerpsOrderCardSelectorsIDs.CARD}
+      testID={PerpsOpenOrderCardSelectorsIDs.CARD}
       disabled={disabled}
     >
       {/* Header - Always shown */}
@@ -248,8 +253,8 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
         </View>
       )}
 
-      {/* Footer - Only shown when expanded and for open orders */}
-      {expanded && order.status === 'open' && (
+      {/* Footer - Only shown when expanded */}
+      {expanded && (
         <View style={styles.footer}>
           <Button
             variant={ButtonVariants.Secondary}
@@ -259,7 +264,7 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
             onPress={handleCancelPress}
             disabled={disabled}
             style={[styles.footerButton, styles.footerButtonExpanded]}
-            testID={PerpsOrderCardSelectorsIDs.CANCEL_BUTTON}
+            testID={PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON}
           />
         </View>
       )}
@@ -267,6 +272,4 @@ const PerpsOrderCard: React.FC<PerpsOrderCardProps> = ({
   );
 };
 
-PerpsOrderCard.displayName = 'PerpsOrderCard';
-
-export default PerpsOrderCard;
+export default PerpsOpenOrderCard;
