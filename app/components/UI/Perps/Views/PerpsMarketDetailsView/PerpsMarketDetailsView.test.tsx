@@ -3,20 +3,28 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsMarketDetailsView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsMarketHeaderSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
+
+// Navigation mock functions
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: () => ({
-      navigate: jest.fn(),
-      goBack: jest.fn(),
+      navigate: mockNavigate,
+      goBack: mockGoBack,
     }),
     useRoute: () => ({
       params: {
@@ -137,6 +145,8 @@ describe('PerpsMarketDetailsView', () => {
     mockRefreshCandleData.mockClear();
     mockRefreshOrders.mockClear();
     mockRefreshMarketStats.mockClear();
+    mockNavigate.mockClear();
+    mockGoBack.mockClear();
   });
 
   it('renders correctly', () => {
@@ -525,6 +535,95 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('Navigation functionality', () => {
+    it('calls navigation.goBack when back button is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const backButton = getByTestId(PerpsMarketHeaderSelectorsIDs.BACK_BUTTON);
+      fireEvent.press(backButton);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates to long order screen when long button is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const longButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+      );
+      fireEvent.press(longButton);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
+        direction: 'long',
+        asset: 'BTC',
+      });
+    });
+
+    it('navigates to short order screen when short button is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const shortButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+      );
+      fireEvent.press(shortButton);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ORDER, {
+        direction: 'short',
+        asset: 'BTC',
+      });
+    });
+
+    it('navigates to deposit screen when add funds button is pressed', () => {
+      // Set zero balance to show add funds button
+      mockUsePerpsAccount.mockReturnValue({
+        availableBalance: '0.00',
+        totalBalance: '0.00',
+        marginUsed: '0.00',
+        unrealizedPnl: '0.00',
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      const addFundsButton = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON,
+      );
+      fireEvent.press(addFundsButton);
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.DEPOSIT);
     });
   });
 });
