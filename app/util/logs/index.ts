@@ -34,7 +34,7 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
     refreshToken,
     revokeToken,
     authPubKey,
-  } = SeedlessOnboardingController.state;
+  } = SeedlessOnboardingController.state ?? {};
 
   return {
     userId,
@@ -51,7 +51,7 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
     }),
 
     // return node index only
-    nodeAuthTokens: nodeAuthTokens?.map((item) => item.nodeIndex),
+    nodeAuthTokens: (nodeAuthTokens ?? []).map((item) => item.nodeIndex),
 
     // Return Boolean for state availablity of sensitive data
     vault: Boolean(vault),

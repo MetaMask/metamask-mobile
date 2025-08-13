@@ -49,7 +49,15 @@ jest.mock('../../core/Engine', () => ({
     SeedlessOnboardingController: {
       state: {
         userId: 'userId',
-        isSeedlessOnboardingUserAuthenticated: false,
+        isSeedlessOnboardingUserAuthenticated: true,
+        socialBackupsMetadata: [
+          {
+            type: 'google',
+            keyringId: 'keyring1',
+            hash: 'should not be in logs',
+          },
+        ],
+        nodeAuthTokens: [{ nodeIndex: 1 }, { nodeIndex: 2 }],
       },
     },
   },

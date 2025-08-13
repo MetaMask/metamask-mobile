@@ -450,10 +450,20 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "authPubKey": false,
         "encryptedKeyringEncryptionKey": false,
         "encryptedSeedlessEncryptionKey": false,
-        "isSeedlessOnboardingUserAuthenticated": false,
+        "isSeedlessOnboardingUserAuthenticated": true,
         "metadataAccessToken": false,
+        "nodeAuthTokens": [
+          1,
+          2,
+        ],
         "refreshToken": false,
         "revokeToken": false,
+        "socialBackupsMetadata": [
+          {
+            "keyringId": "keyring1",
+            "type": "google",
+          },
+        ],
         "userId": "userId",
         "vault": false,
         "vaultEncryptionKey": false,
