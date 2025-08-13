@@ -315,10 +315,10 @@ describe('EarningsHistory', () => {
     const timePeriodButton7D = getByText('7D');
     fireEvent.press(timePeriodButton7D);
 
-    expect(getByText('31 December')).toBeTruthy();
+    expect(getByText('December 31')).toBeTruthy();
     expect(getByText('$1.49')).toBeTruthy();
     expect(getByText('+ 0.00044 ETH')).toBeTruthy();
-    expect(getByText('1 January')).toBeTruthy();
+    expect(getByText('January 1')).toBeTruthy();
     expect(getByText('$1.82')).toBeTruthy();
     expect(getByText('+ 0.00054 ETH')).toBeTruthy();
 

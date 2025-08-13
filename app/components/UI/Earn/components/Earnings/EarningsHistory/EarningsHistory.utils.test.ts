@@ -14,9 +14,9 @@ import { DateRange } from './EarningsTimePeriod/EarningsTimePeriod.types';
 const mockChartGroupDaily = {
   dateStr: '2023-10-01',
   chartGroup: '2023-10-01',
-  chartGroupLabel: '1 October',
+  chartGroupLabel: 'October 1',
   listGroup: '2023-10-01',
-  listGroupLabel: '1 October',
+  listGroupLabel: 'October 1',
   listGroupHeader: '',
 };
 
