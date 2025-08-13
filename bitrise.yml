@@ -356,7 +356,7 @@ stages:
   run_smoke_e2e_performance_ios_android_stage:
     workflows:
       # - run_tag_smoke_performance_ios: {}
-      - run_tag_smoke_performance_android: {}
+      #- run_tag_smoke_performance_android: {}
   # TODO: This stage does the same thing as build_smoke_e2e_ios_android_stage
   build_regression_e2e_ios_android_stage:
     abort_on_fail: true

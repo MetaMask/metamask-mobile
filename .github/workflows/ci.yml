@@ -125,6 +125,9 @@ jobs:
             echo "No changes detected"
           fi
   e2e-tests:
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/run-e2e.yml
     secrets: inherit
   merge-unit-tests:
