@@ -226,7 +226,7 @@ describe('Amount', () => {
     expect(getByText('400.00000 SOL available')).toBeTruthy();
   });
 
-  it('on amount page options - 25%, 50%, Max are present', () => {
+  it('on amount page options - 25%, 50%, 75%, Max are present', () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
         asset: {
@@ -239,8 +239,25 @@ describe('Amount', () => {
     const { getByText } = renderComponent();
     expect(getByText('25%')).toBeTruthy();
     expect(getByText('50%')).toBeTruthy();
+    expect(getByText('75%')).toBeTruthy();
     expect(getByText('Max')).toBeTruthy();
-    expect(getByText('Done')).toBeTruthy();
+  });
+
+  it('percentage options are not present as amount value is entered', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          address: TOKEN_ADDRESS_MOCK_1,
+          decimals: 2,
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText } = renderComponent();
+    expect(getByText('25%')).toBeTruthy();
+    expect(getByText('50%')).toBeTruthy();
+    expect(getByText('75%')).toBeTruthy();
+    expect(getByText('Max')).toBeTruthy();
   });
 
   it('on amount page options optionMax is not visible for non-evm native tokens', () => {
@@ -250,10 +267,11 @@ describe('Amount', () => {
       },
     } as RouteProp<ParamListBase, string>);
 
-    const { getByText, queryByText } = renderComponent();
-    expect(getByText('25%')).toBeTruthy();
-    expect(getByText('50%')).toBeTruthy();
-    expect(getByText('Done')).toBeTruthy();
+    const { getByTestId, queryByText } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), '1');
+    expect(queryByText('25%')).toBeNull();
+    expect(queryByText('50%')).toBeNull();
+    expect(queryByText('75%')).toBeNull();
     expect(queryByText('Max')).toBeNull();
   });
 
@@ -271,8 +289,13 @@ describe('Amount', () => {
     expect(getByTestId('send_amount').props.value).toBe('');
     fireEvent.press(getByText('Max'));
     expect(getByTestId('send_amount').props.value).toBe('0.05');
+    fireEvent.changeText(getByTestId('send_amount'), '');
+    fireEvent.press(getByText('75%'));
+    expect(getByTestId('send_amount').props.value).toBe('0.03');
+    fireEvent.changeText(getByTestId('send_amount'), '');
     fireEvent.press(getByText('50%'));
     expect(getByTestId('send_amount').props.value).toBe('0.02');
+    fireEvent.changeText(getByTestId('send_amount'), '');
     fireEvent.press(getByText('25%'));
     expect(getByTestId('send_amount').props.value).toBe('0.01');
   });
@@ -360,7 +383,6 @@ describe('Amount', () => {
 
     const { getByText, getByTestId } = renderComponent();
     fireEvent.changeText(getByTestId('send_amount'), '100');
-    fireEvent.press(getByText('Done'));
     expect(getByText('Insufficient funds')).toBeTruthy();
   });
 
@@ -373,7 +395,6 @@ describe('Amount', () => {
 
     const { getByText, getByTestId } = renderComponent();
     fireEvent.changeText(getByTestId('send_amount'), '1000');
-    fireEvent.press(getByText('Done'));
     expect(getByText('Insufficient funds')).toBeTruthy();
   });
 
@@ -392,14 +413,13 @@ describe('Amount', () => {
 
     const { getByText, getByTestId } = renderComponent();
     fireEvent.changeText(getByTestId('send_amount'), '100');
-    fireEvent.press(getByText('Done'));
     expect(getByText('Insufficient funds')).toBeTruthy();
   });
 
   it('navigate to next page when continue button is clicked', () => {
-    const { getByText, getByTestId } = renderComponent();
+    const { getByText, getByTestId, queryByText } = renderComponent();
+    expect(queryByText('Continue')).toBeNull();
     fireEvent.changeText(getByTestId('send_amount'), '.01');
-    fireEvent.press(getByText('Done'));
     fireEvent.press(getByText('Continue'));
     expect(mockNavigate).toHaveBeenCalled();
   });
@@ -416,7 +436,6 @@ describe('Amount', () => {
 
     const { getByText, getByTestId } = renderComponent();
     fireEvent.changeText(getByTestId('send_amount'), '.01');
-    fireEvent.press(getByText('Done'));
     fireEvent.press(getByText('Continue'));
     expect(mockCaptureAmountSelected).toHaveBeenCalled();
   });
