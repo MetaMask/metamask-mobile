@@ -193,7 +193,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           {/* Main Candlestick Chart */}
           <CandlestickChart
             height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
-            width={chartWidth - 65}
+            width={chartWidth}
             style={styles.chartWithPadding}
           >
             {/* Candlestick Data */}

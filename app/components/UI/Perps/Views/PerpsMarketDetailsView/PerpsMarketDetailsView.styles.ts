@@ -60,6 +60,7 @@ export const createStyles = ({
     },
     chartSection: {
       paddingTop: 0,
+      marginTop: 16,
     },
     actionsContainer: {
       position: 'absolute',
