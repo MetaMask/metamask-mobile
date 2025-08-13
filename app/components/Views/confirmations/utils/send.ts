@@ -14,18 +14,31 @@ import { toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
 export const isSendRedesignEnabled = () =>
   process.env.MM_SEND_REDESIGN_ENABLED === 'true';
+
+const captureSendStartedEvent = (location: string) => {
+  const { trackEvent } = MetaMetrics.getInstance();
+  trackEvent(
+    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_STARTED)
+      .addProperties({ location })
+      .build(),
+  );
+};
 
 export const handleSendPageNavigation = (
   navigate: <RouteName extends string>(
     screenName: RouteName,
     params?: object,
   ) => void,
+  location: string,
   asset?: AssetType | Nft,
 ) => {
   if (isSendRedesignEnabled()) {
+    captureSendStartedEvent(location);
     const screen = asset ? Routes.SEND.AMOUNT : Routes.SEND.ASSET;
     navigate(Routes.SEND.DEFAULT, {
       screen,
