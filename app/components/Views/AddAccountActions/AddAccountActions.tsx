@@ -29,7 +29,7 @@ import Text, {
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { CaipChainId } from '@metamask/utils';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
-import { SolScope, BtcScope } from '@metamask/keyring-api';
+import { SolScope, BtcScope, TrxScope } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { selectHDKeyrings } from '../../../selectors/keyringController';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
@@ -111,14 +111,17 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   const createNonEvmAccount = async (scope: CaipChainId) => {
-    let clientType: WalletClientType;
-    if (Object.values(BtcScope).includes(scope as BtcScope)) {
-      clientType = WalletClientType.Bitcoin;
-    } else if (Object.values(SolScope).includes(scope as SolScope)) {
-      clientType = WalletClientType.Solana;
-    } else {
-      throw new Error(`Unsupported scope: ${scope}`);
-    }
+    const getClientType = (chainScope: CaipChainId): WalletClientType => {
+      if (Object.values(BtcScope).includes(chainScope as BtcScope))
+        return WalletClientType.Bitcoin;
+      if (Object.values(SolScope).includes(chainScope as SolScope))
+        return WalletClientType.Solana;
+      if (Object.values(TrxScope).includes(chainScope as TrxScope))
+        return WalletClientType.Tron;
+      throw new Error(`Unsupported scope: ${chainScope}`);
+    };
+
+    const clientType = getClientType(scope);
 
     navigate(Routes.SHEET.ADD_ACCOUNT, {
       scope,
@@ -179,6 +182,21 @@ const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
             testID={
               AddAccountBottomSheetSelectorsIDs.ADD_BITCOIN_ACCOUNT_BUTTON
             }
+          />
+          {
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+          }
+          <AccountAction
+            actionTitle={strings('account_actions.add_tron_account')}
+            iconName={IconName.Add}
+            onPress={async () => {
+              await createNonEvmAccount(TrxScope.Mainnet);
+            }}
+            disabled={isLoading}
+            testID={AddAccountBottomSheetSelectorsIDs.ADD_TRON_ACCOUNT_BUTTON}
           />
           {
             ///: END:ONLY_INCLUDE_IF

@@ -1942,7 +1942,10 @@
       "bitcoin_regtest_account_name": "Bitcoin Regtest Account",
       "solana_devnet_account_name": "Solana Devnet Account",
       "solana_testnet_account_name": "Solana Testnet Account",
-      "solana_account_name": "Solana Account"
+      "solana_account_name": "Solana Account",
+      "tron_account_name": "Tron Account",
+      "tron_nile_account_name": "Tron Nile Account",
+      "tron_shasta_account_name": "Tron Shasta Account"
     },
     "error_messages": {
       "failed_to_create_account": "Failed to create {{clientType}} account"
@@ -4781,12 +4784,14 @@
     "import_account": "Private key",
     "add_bitcoin_account": "Bitcoin account",
     "add_solana_account": "Solana account",
+    "add_tron_account": "Tron account",
     "switch_to_smart_account": "Switch to Smart account",
     "rename_account": "Rename account",
     "addresses": "Addresses",
     "headers": {
       "bitcoin": "Bitcoin",
-      "solana": "Solana"
+      "solana": "Solana",
+      "tron": "Tron"
     }
   },
   "show_nft": {

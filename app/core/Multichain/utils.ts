@@ -54,6 +54,43 @@ export function isSolanaAccount(account: InternalAccount): boolean {
 }
 
 /**
+ * Returns whether an address is a valid Tron address.
+ * Tron addresses are base58-encoded strings that are 34 characters long and start with 'T'.
+ *
+ * @param address - The address to check.
+ * @returns `true` if the address is a valid Tron address, `false` otherwise.
+ */
+export function isTronAddress(address: string): boolean {
+  // Tron addresses must be strings
+  if (typeof address !== 'string') {
+    return false;
+  }
+
+  // Tron addresses must be exactly 34 characters long
+  if (address.length !== 34) {
+    return false;
+  }
+
+  // Tron addresses must start with 'T'
+  if (!address.startsWith('T')) {
+    return false;
+  }
+
+  // Tron addresses must contain only base58 characters
+  const base58Regex = /^[1-9A-HJ-NP-Za-km-z]+$/iu;
+
+  if (!base58Regex.test(address)) {
+    return false;
+  }
+
+  return true;
+}
+
+export function isTronAccount(account: InternalAccount): boolean {
+  return isTronAddress(account.address);
+}
+
+/**
  * Returns whether an address is a non-EVM address.
  *
  * @param address - The address to check.
