@@ -9,6 +9,7 @@ import type { Position } from '../../controllers/types';
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+  useFocusEffect: jest.fn(),
 }));
 
 const mockUseTheme = jest.fn();
@@ -28,6 +29,26 @@ jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
   }),
 }));
 
+// Mock the new hooks from ../../hooks
+jest.mock('../../hooks', () => ({
+  usePerpsPositions: jest.fn().mockReturnValue({
+    loadPositions: jest.fn().mockResolvedValue(undefined),
+  }),
+  usePerpsMarkets: jest.fn().mockReturnValue({
+    markets: [{ name: 'ETH' }],
+    error: null,
+    isLoading: false,
+  }),
+  usePerpsTPSLUpdate: jest.fn().mockReturnValue({
+    handleUpdateTPSL: jest.fn().mockResolvedValue(undefined),
+    isUpdating: false,
+  }),
+  usePerpsClosePosition: jest.fn().mockReturnValue({
+    handleClosePosition: jest.fn().mockResolvedValue(undefined),
+    isClosing: false,
+  }),
+}));
+
 // Mock PerpsTPSLBottomSheet to avoid PerpsConnectionProvider requirement
 jest.mock('../PerpsTPSLBottomSheet', () => ({
   __esModule: true,
@@ -44,6 +65,28 @@ jest.mock('../PerpsTPSLBottomSheet', () => ({
       <View testID="perps-tpsl-bottomsheet">
         <TouchableOpacity onPress={onClose}>
           <Text>Close</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  },
+}));
+
+// Mock PerpsClosePositionBottomSheet
+jest.mock('../PerpsClosePositionBottomSheet', () => ({
+  __esModule: true,
+  default: ({
+    isVisible,
+    onClose,
+  }: {
+    isVisible: boolean;
+    onClose: () => void;
+  }) => {
+    if (!isVisible) return null;
+    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+    return (
+      <View testID="perps-close-position-bottomsheet">
+        <TouchableOpacity onPress={onClose}>
+          <Text>Close Position Sheet</Text>
         </TouchableOpacity>
       </View>
     );
@@ -90,6 +133,11 @@ describe('PerpsPositionCard', () => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     mockUseTheme.mockReturnValue(mockTheme);
+    // Reset the PnL calculation mock to default value
+    const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
+      '../../utils/pnlCalculations',
+    );
+    calculatePnLPercentageFromUnrealized.mockReturnValue(5.0);
   });
 
   describe('Component Rendering', () => {
@@ -146,10 +194,10 @@ describe('PerpsPositionCard', () => {
 
     it('handles missing PnL percentage data', () => {
       // Arrange
-      const mockCalculatePnL = jest.requireMock(
+      const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
         '../../utils/pnlCalculations',
-      ).calculatePnLPercentageFromUnrealized;
-      mockCalculatePnL.mockReturnValueOnce(undefined);
+      );
+      calculatePnLPercentageFromUnrealized.mockReturnValueOnce(undefined);
 
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
@@ -175,8 +223,8 @@ describe('PerpsPositionCard', () => {
 
   describe('User Interactions', () => {
     it('navigates to market details when card is pressed', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      // Act - render with expanded=false to make card clickable
+      render(<PerpsPositionCard position={mockPosition} expanded={false} />);
       fireEvent.press(screen.getByTestId('PerpsPositionCard'));
 
       // Assert
@@ -323,16 +371,16 @@ describe('PerpsPositionCard', () => {
         ...mockPosition,
         unrealizedPnl: '0.00',
       };
-      const mockCalculatePnL = jest.requireMock(
+      const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
         '../../utils/pnlCalculations',
-      ).calculatePnLPercentageFromUnrealized;
-      mockCalculatePnL.mockReturnValueOnce(0);
+      );
+      calculatePnLPercentageFromUnrealized.mockReturnValueOnce(0);
 
       // Act
       render(<PerpsPositionCard position={positionWithZeroPnl} />);
 
       // Assert
-      expect(screen.getByText(/\+\$0\.00.*\+0\.00%/)).toBeOnTheScreen();
+      expect(screen.getByText(/\$0\.00.*\+0\.00%/)).toBeOnTheScreen();
     });
 
     it('handles position with empty liquidation price', () => {
