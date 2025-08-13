@@ -33,7 +33,7 @@ export type OrderStatus =
 
 export type OrderResult = {
   status: OrderStatus;
-  messsage?: string;
+  message?: string;
 };
 
 export type Order = {
