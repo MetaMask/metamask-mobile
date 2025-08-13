@@ -10,7 +10,7 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../parseOriginatorInfo';
 import extractURLParams from './extractURLParams';
-import connectionRegistrySingleton from '../../SDKConnectV2/services/ConnectionRegistrySingleton';
+import SDKConnectV2 from '../../SDKConnectV2';
 
 export function handleMetaMaskDeeplink({
   instance,
@@ -28,7 +28,7 @@ export function handleMetaMaskDeeplink({
   url: string;
 }) {
   handled();
-  
+
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
     DevLogger.log(
       `DeeplinkManager:: metamask launched via android sdk deeplink`,
@@ -42,8 +42,8 @@ export function handleMetaMaskDeeplink({
   }
 
   if (url.includes('v=2') && url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
-    DevLogger.log(`[DeeplinkManager] V2 protocol deeplink detected. Routing to ConnectionRegistry.`,url);
-    connectionRegistrySingleton.handleConnectDeeplink(url);
+    DevLogger.log(`[DeeplinkManager] V2 protocol deeplink detected. Routing to ConnectionRegistry.`, url);
+    SDKConnectV2.handleConnectDeeplink(url);
     return;
   }
 
@@ -74,8 +74,7 @@ export function handleMetaMaskDeeplink({
         const protocolVersion = parseInt(params.v ?? '1', 10);
 
         DevLogger.log(
-          `handleMetaMaskDeeplink:: deeplink_scheme typeof(protocolVersion)=${typeof protocolVersion} protocolVersion=${protocolVersion} v=${
-            params.v
+          `handleMetaMaskDeeplink:: deeplink_scheme typeof(protocolVersion)=${typeof protocolVersion} protocolVersion=${protocolVersion} v=${params.v
           }`,
         );
 

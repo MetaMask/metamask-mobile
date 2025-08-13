@@ -1,7 +1,7 @@
 // HACK: Using relative path to local vendored package.
 // The module resolver will use the package.json inside 'vendor/core/' to find the correct types in 'dist/'.
 // TODO: Replace with '@metamask/mobile-wallet-protocol-core' once published.
-import { SessionRequest } from '../vendor/core';
+import { SessionRequest } from '../vendor/core/dist';
 import { DappMetadata } from './dapp-metadata';
 
 /**

@@ -1,4 +1,4 @@
-import { Connection } from '../types/connection';
+import { Connection } from './connection';
 
 /**
  * Defines the contract for the host MetaMask Mobile application.

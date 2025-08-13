@@ -1,5 +1,5 @@
 import { Connection } from '../types/connection';
-import { IConnectionStore } from './IConnectionStore';
+import { IConnectionStore } from '../types/connection-store';
 
 /**
  * Placeholder implementation of the IConnectionStore.

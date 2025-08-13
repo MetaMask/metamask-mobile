@@ -1,5 +1,5 @@
-import { IHostApplicationAdapter } from '../adapters/IHostApplicationAdapter';
-import { IConnectionStore } from '../store/IConnectionStore';
+import { IHostApplicationAdapter } from '../types/host-application-adapter';
+import { IConnectionStore } from '../types/connection-store';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
