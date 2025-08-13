@@ -38,6 +38,7 @@ import {
 } from '../../constants/eventNames';
 import { setMeasurement } from '@sentry/react-native';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 
 interface PerpsClosePositionBottomSheetProps {
   isVisible: boolean;
@@ -61,6 +62,7 @@ const PerpsClosePositionBottomSheet: React.FC<
   const screenLoadStartRef = useRef<number>(0);
   const hasTrackedCloseView = useRef(false);
   const { trackEvent, createEventBuilder } = useMetrics();
+  const { track } = usePerpsEventTracking();
 
   // State for order type tabs
   const [orderType, setOrderType] = useState<OrderType>('market');
@@ -194,56 +196,33 @@ const PerpsClosePositionBottomSheet: React.FC<
 
     // Track position close value changed
     if (isVisible && closePercentage !== 100) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_POSITION_CLOSE_VALUE_CHANGED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.ASSET]: position.coin,
-            [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
-            [PerpsEventProperties.CLOSE_VALUE]: newAmount * currentPrice,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_VALUE_CHANGED, {
+        [PerpsEventProperties.ASSET]: position.coin,
+        [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
+        [PerpsEventProperties.CLOSE_VALUE]: newAmount * currentPrice,
+      });
     }
-  }, [
-    closePercentage,
-    absSize,
-    currentPrice,
-    isVisible,
-    position.coin,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [closePercentage, absSize, currentPrice, isVisible, position.coin, track]);
 
   const handleConfirm = () => {
     // Track position close initiated
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED)
-        .addProperties({
-          [PerpsEventProperties.TIMESTAMP]: Date.now(),
-          [PerpsEventProperties.ASSET]: position.coin,
-          [PerpsEventProperties.DIRECTION]: isLong
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_TYPE]: orderType,
-          [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
-          [PerpsEventProperties.CLOSE_VALUE]: closingValue,
-          [PerpsEventProperties.PNL_DOLLAR]: pnl * (closePercentage / 100),
-          [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
-        })
-        .build(),
-    );
+    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED, {
+      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.DIRECTION]: isLong
+        ? PerpsEventValues.DIRECTION.LONG
+        : PerpsEventValues.DIRECTION.SHORT,
+      [PerpsEventProperties.ORDER_TYPE]: orderType,
+      [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
+      [PerpsEventProperties.CLOSE_VALUE]: closingValue,
+      [PerpsEventProperties.PNL_DOLLAR]: pnl * (closePercentage / 100),
+      [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
+    });
 
     // Track position close submitted
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_POSITION_CLOSE_SUBMITTED)
-        .addProperties({
-          [PerpsEventProperties.TIMESTAMP]: Date.now(),
-          [PerpsEventProperties.ASSET]: position.coin,
-          [PerpsEventProperties.ORDER_TYPE]: orderType,
-        })
-        .build(),
-    );
+    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SUBMITTED, {
+      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.ORDER_TYPE]: orderType,
+    });
 
     // For full close, don't send size parameter
     const sizeToClose = closePercentage === 100 ? undefined : closeAmount;
@@ -312,19 +291,12 @@ const PerpsClosePositionBottomSheet: React.FC<
             onPress={() => {
               setOrderType('market');
               // Track order type changed
-              trackEvent(
-                createEventBuilder(
-                  MetaMetricsEvents.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED,
-                )
-                  .addProperties({
-                    [PerpsEventProperties.TIMESTAMP]: Date.now(),
-                    [PerpsEventProperties.ASSET]: position.coin,
-                    [PerpsEventProperties.CURRENT_ORDER_TYPE]: orderType,
-                    [PerpsEventProperties.SELECTED_ORDER_TYPE]:
-                      PerpsEventValues.ORDER_TYPE.MARKET,
-                  })
-                  .build(),
-              );
+              track(MetaMetricsEvents.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED, {
+                [PerpsEventProperties.ASSET]: position.coin,
+                [PerpsEventProperties.CURRENT_ORDER_TYPE]: orderType,
+                [PerpsEventProperties.SELECTED_ORDER_TYPE]:
+                  PerpsEventValues.ORDER_TYPE.MARKET,
+              });
             }}
           >
             <Text
@@ -344,19 +316,12 @@ const PerpsClosePositionBottomSheet: React.FC<
             onPress={() => {
               setOrderType('limit');
               // Track order type changed
-              trackEvent(
-                createEventBuilder(
-                  MetaMetricsEvents.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED,
-                )
-                  .addProperties({
-                    [PerpsEventProperties.TIMESTAMP]: Date.now(),
-                    [PerpsEventProperties.ASSET]: position.coin,
-                    [PerpsEventProperties.CURRENT_ORDER_TYPE]: orderType,
-                    [PerpsEventProperties.SELECTED_ORDER_TYPE]:
-                      PerpsEventValues.ORDER_TYPE.LIMIT,
-                  })
-                  .build(),
-              );
+              track(MetaMetricsEvents.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED, {
+                [PerpsEventProperties.ASSET]: position.coin,
+                [PerpsEventProperties.CURRENT_ORDER_TYPE]: orderType,
+                [PerpsEventProperties.SELECTED_ORDER_TYPE]:
+                  PerpsEventValues.ORDER_TYPE.LIMIT,
+              });
             }}
           >
             <Text
