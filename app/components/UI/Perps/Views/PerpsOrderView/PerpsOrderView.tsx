@@ -1143,19 +1143,33 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
       <PerpsLeverageBottomSheet
         isVisible={isLeverageVisible}
         onClose={() => setIsLeverageVisible(false)}
-        onConfirm={(leverage) => {
+        onConfirm={(leverage, inputMethod) => {
           setLeverage(leverage);
           setIsLeverageVisible(false);
 
-          // Track leverage change
+          // Track leverage change (consolidated here to avoid duplicate tracking)
+          const eventProperties: Record<string, string | number> = {
+            [PerpsEventProperties.TIMESTAMP]: Date.now(),
+            [PerpsEventProperties.ASSET]: orderForm.asset,
+            [PerpsEventProperties.DIRECTION]:
+              orderForm.direction === 'long'
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.LEVERAGE_USED]: leverage,
+            previousLeverage: orderForm.leverage,
+          };
+
+          // Add input method if provided
+          if (inputMethod) {
+            eventProperties[PerpsEventProperties.INPUT_METHOD] =
+              inputMethod === 'slider'
+                ? PerpsEventValues.INPUT_METHOD.SLIDER
+                : PerpsEventValues.INPUT_METHOD.PRESET;
+          }
+
           trackEvent(
             createEventBuilder(MetaMetricsEvents.PERPS_LEVERAGE_CHANGED)
-              .addProperties({
-                market: orderForm.asset,
-                direction: orderForm.direction,
-                newLeverage: leverage,
-                previousLeverage: orderForm.leverage,
-              })
+              .addProperties(eventProperties)
               .build(),
           );
         }}

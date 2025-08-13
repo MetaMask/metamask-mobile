@@ -56,7 +56,7 @@ import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
-  onConfirm: (leverage: number) => void;
+  onConfirm: (leverage: number, inputMethod?: 'slider' | 'preset') => void;
   leverage: number;
   minLeverage: number;
   maxLeverage: number;
@@ -276,28 +276,11 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   }, [isVisible, direction, asset, trackEvent, createEventBuilder]);
 
   const handleConfirm = () => {
-    DevLogger.log(`Confirming leverage: ${tempLeverage}`);
-
-    // Track leverage changed event
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_LEVERAGE_CHANGED)
-        .addProperties({
-          [PerpsEventProperties.TIMESTAMP]: Date.now(),
-          [PerpsEventProperties.ASSET]: asset,
-          [PerpsEventProperties.DIRECTION]:
-            direction === 'long'
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.LEVERAGE_USED]: tempLeverage,
-          [PerpsEventProperties.INPUT_METHOD]:
-            inputMethod === 'slider'
-              ? PerpsEventValues.INPUT_METHOD.SLIDER
-              : PerpsEventValues.INPUT_METHOD.PRESET,
-        })
-        .build(),
+    DevLogger.log(
+      `Confirming leverage: ${tempLeverage}, method: ${inputMethod}`,
     );
 
-    onConfirm(tempLeverage);
+    onConfirm(tempLeverage, inputMethod);
     onClose();
   };
 
