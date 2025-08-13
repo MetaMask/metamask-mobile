@@ -143,6 +143,7 @@ jest.mock('../../../core/Engine', () => {
         setEnabledNetwork: jest.fn(),
         setDisabledNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: jest.fn(),
       },
     },
   };
