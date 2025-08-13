@@ -42,6 +42,10 @@ const styleSheet = (params: {
     dropDownIcon: {
       marginLeft: 8,
     },
+    accountName: {
+      flexShrink: 1,
+      maxWidth: '50%',
+    },
   });
 };
 
