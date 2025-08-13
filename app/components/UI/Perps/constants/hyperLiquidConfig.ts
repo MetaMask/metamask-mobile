@@ -1,4 +1,4 @@
-import type { CaipAssetId, CaipChainId } from '@metamask/utils';
+import type { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import type {
   HyperLiquidNetwork,
   HyperLiquidEndpoints,
@@ -102,14 +102,20 @@ export const FEE_RATES: FeeRatesConfig = {
   maker: 0.00015, // 0.015% - Limit orders that add liquidity
 };
 
+const BUILDER_FEE_MAX_FEE_DECIMAL = 0.001;
+
 // Builder fee configuration
 export const BUILDER_FEE_CONFIG = {
   // Test wallet address for builder fees, currently staking test wallet
-  testnetBuilder: '0x316BDE155acd07609872a56Bc32CcfB0B13201fA' as `0x${string}`,
+  testnetBuilder: '0x316BDE155acd07609872a56Bc32CcfB0B13201fA' as Hex,
   // Production builder wallet
-  mainnetBuilder: '0xe95a5e31904e005066614247d309e00d8ad753aa' as `0x${string}`,
-  // Fee in basis points (10 bp = 0.1% - this is the maximum allowed)
-  feeBps: 10, // 10 basis points (0.1%)
+  mainnetBuilder: '0xe95a5e31904e005066614247d309e00d8ad753aa' as Hex,
+  // Fee in decimal (10 bp = 0.1%)
+  maxFeeDecimal: BUILDER_FEE_MAX_FEE_DECIMAL,
+  maxFeeTenthsBps: BUILDER_FEE_MAX_FEE_DECIMAL * 100000,
+  maxFeeRate: `${(BUILDER_FEE_MAX_FEE_DECIMAL * 100)
+    .toFixed(4)
+    .replace(/\.?0+$/, '')}%` as `${string}%`,
 };
 
 // Referral code configuration

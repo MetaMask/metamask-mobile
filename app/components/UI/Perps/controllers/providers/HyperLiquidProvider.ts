@@ -180,33 +180,14 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Convert basis points to percentage string
-   * @param bps - Fee in basis points (1 bp = 0.01%)
-   */
-  private bpsToPercentString(bps: number): `${string}%` {
-    const percent = bps * 0.01;
-    return `${percent.toFixed(4).replace(/\.?0+$/, '')}%` as `${string}%`;
-  }
-
-  /**
-   * Convert basis points to tenths of basis points (for HyperLiquid API)
-   * @param bps - Fee in basis points (1 bp = 0.01%)
-   * @returns Tenths of basis points (10 tenths = 1 bp)
-   */
-  private bpsToTenthsBps(bps: number): number {
-    return bps * 10;
-  }
-
-  /**
    * Check current builder fee approval for the user
    * @param builder - Builder address to check approval for
    * @returns Current max fee rate or null if not approved
    */
-  private async checkBuilderFeeApproval(
-    builder: `0x${string}`,
-  ): Promise<number | null> {
+  private async checkBuilderFeeApproval(): Promise<number | null> {
     const infoClient = this.clientService.getInfoClient();
     const userAddress = await this.walletService.getUserAddressWithDefault();
+    const builder = this.getBuilderAddress(this.clientService.isTestnetMode());
 
     return infoClient.maxBuilderFee({
       user: userAddress,
@@ -218,19 +199,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Ensure builder fee approval before placing orders
    */
   private async ensureBuilderFeeApproval(): Promise<void> {
-    const { isApproved, requiredRate, builderAddress, builderFeeBps } =
-      await this.checkBuilderFeeStatus();
+    const { isApproved, requiredDecimal } = await this.checkBuilderFeeStatus();
+    const builderAddress = this.getBuilderAddress(
+      this.clientService.isTestnetMode(),
+    );
 
     if (!isApproved) {
       DevLogger.log('Builder fee approval required', {
         builder: builderAddress,
         currentApproval: isApproved,
-        requiredDecimal: requiredRate,
-        feeBps: builderFeeBps,
+        requiredDecimal,
       });
 
       const exchangeClient = this.clientService.getExchangeClient();
-      const maxFeeRate = this.bpsToPercentString(builderFeeBps);
+      const maxFeeRate = BUILDER_FEE_CONFIG.maxFeeRate;
 
       await exchangeClient.approveBuilderFee({
         builder: builderAddress,
@@ -238,17 +220,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
       });
 
       // Verify approval was successful
-      const afterApproval = await this.checkBuilderFeeApproval(builderAddress);
+      const afterApprovalDecimal = await this.checkBuilderFeeApproval();
 
       // this throw will block the order from being placed
       // this should ideally never happen
-      if (afterApproval === null || afterApproval < requiredRate) {
+      if (
+        afterApprovalDecimal === null ||
+        afterApprovalDecimal < requiredDecimal
+      ) {
         throw new Error('Builder fee approval failed or insufficient');
       }
 
       DevLogger.log('Builder fee approval successful', {
         builder: builderAddress,
-        approvedRate: afterApproval,
+        approvedDecimal: afterApprovalDecimal,
         maxFeeRate,
       });
     }
@@ -261,21 +246,16 @@ export class HyperLiquidProvider implements IPerpsProvider {
   private async checkBuilderFeeStatus(): Promise<{
     isApproved: boolean;
     currentRate: number | null;
-    requiredRate: number;
-    builderAddress: `0x${string}`;
-    builderFeeBps: number;
+    requiredDecimal: number;
   }> {
-    const builder = this.getBuilderAddress(this.clientService.isTestnetMode());
-    const currentApproval = await this.checkBuilderFeeApproval(builder);
-    const requiredDecimal = BUILDER_FEE_CONFIG.feeBps * 0.0001;
+    const currentApproval = await this.checkBuilderFeeApproval();
+    const requiredDecimal = BUILDER_FEE_CONFIG.maxFeeDecimal;
 
     return {
       isApproved:
         currentApproval !== null && currentApproval >= requiredDecimal,
       currentRate: currentApproval,
-      requiredRate: requiredDecimal,
-      builderAddress: builder,
-      builderFeeBps: BUILDER_FEE_CONFIG.feeBps,
+      requiredDecimal,
     };
   }
 
@@ -404,9 +384,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           params.orderType === 'limit'
             ? { limit: { tif: 'Gtc' } }
             : { limit: { tif: 'Ioc' } },
-        c: params.clientOrderId
-          ? (params.clientOrderId as `0x${string}`)
-          : undefined,
+        c: params.clientOrderId ? (params.clientOrderId as Hex) : undefined,
       };
       orders.push(mainOrder);
 
@@ -472,7 +450,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         grouping,
         builder: {
           b: this.getBuilderAddress(this.clientService.isTestnetMode()),
-          f: this.bpsToTenthsBps(BUILDER_FEE_CONFIG.feeBps),
+          f: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
         },
       });
 
@@ -572,7 +550,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             ? { limit: { tif: 'Gtc' } }
             : { limit: { tif: 'Ioc' } },
         c: params.newOrder.clientOrderId
-          ? (params.newOrder.clientOrderId as `0x${string}`)
+          ? (params.newOrder.clientOrderId as Hex)
           : undefined,
       };
 
@@ -581,7 +559,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const result = await exchangeClient.modify({
         oid:
           typeof params.orderId === 'string'
-            ? (params.orderId as `0x${string}`)
+            ? (params.orderId as Hex)
             : params.orderId,
         order: newOrder,
       });
@@ -837,7 +815,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         grouping: 'positionTpsl',
         builder: {
           b: this.getBuilderAddress(this.clientService.isTestnetMode()),
-          f: this.bpsToTenthsBps(BUILDER_FEE_CONFIG.feeBps),
+          f: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
         },
       });
 
@@ -2108,11 +2086,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
         // we may want to block this completely, but for now we just log the error
         // as the referrer may need to address an issue first and we may not want to completely
         // block orders for this
-        DevLogger.log('Referral code not ready - skipping', {
-          network,
-          referrerAddress,
-          userAddress,
-        });
         return;
       }
       // Check if user already has a referral set on this network
@@ -2123,10 +2096,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
           network,
           referralCode: expectedReferralCode,
         });
-        await this.setReferralCode();
+        const result = await this.setReferralCode();
+        if (result === true) {
+          DevLogger.log('Referral code set', {
+            network,
+            referralCode: expectedReferralCode,
+          });
+        } else {
+          throw new Error('Failed to set referral code');
+        }
       }
     } catch (error) {
-      DevLogger.log(errorMessage, error);
       console.error(errorMessage, error);
       throw new Error(errorMessage);
     }
@@ -2165,7 +2145,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
       });
       return false;
     } catch (error) {
-      DevLogger.log(errorMessage, error);
       console.error(errorMessage, error);
       return false;
     }
@@ -2190,7 +2169,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         referralData,
       });
 
-      return !!referralData?.referredBy || !!referralData.referredBy?.code;
+      return !!referralData?.referredBy?.code;
     } catch (error) {
       DevLogger.log('Error checking referral status:', error);
       // do not throw here, return false as we can try to set it again
@@ -2223,7 +2202,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       return result?.status === 'ok';
     } catch (error) {
-      DevLogger.log(errorMessage, error);
       console.error(errorMessage, error);
       throw new Error(errorMessage);
     }
