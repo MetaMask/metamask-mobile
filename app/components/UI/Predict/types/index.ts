@@ -87,4 +87,3 @@ export interface IPredictProvider {
 
   // ...extend as needed
 }
-
