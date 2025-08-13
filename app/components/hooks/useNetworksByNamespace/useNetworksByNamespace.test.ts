@@ -105,6 +105,7 @@ describe('useNetworksByNamespace', () => {
       disableNetwork: jest.fn(),
       toggleNetwork: jest.fn(),
       isNetworkEnabled: jest.fn(),
+      hasOneEnabledNetwork: false,
     });
 
     mockUseSelector.mockImplementation((selector) => {
@@ -278,6 +279,7 @@ describe('useNetworksByNamespace', () => {
         disableNetwork: jest.fn(),
         toggleNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       const { result } = renderHook(() =>
@@ -326,6 +328,7 @@ describe('useNetworksByNamespace', () => {
         disableNetwork: jest.fn(),
         toggleNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       const { result } = renderHook(() =>
@@ -424,6 +427,7 @@ describe('useNetworksByNamespace', () => {
         disableNetwork: jest.fn(),
         toggleNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       (parseCaipChainId as jest.Mock).mockReturnValue({
