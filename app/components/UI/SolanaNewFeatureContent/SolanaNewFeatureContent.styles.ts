@@ -22,13 +22,15 @@ const createStyles = () =>
       lineHeight: 60,
       textAlign: 'center',
       paddingTop: Device.isLargeDevice() ? 40 : 10,
-      fontFamily: 'MMPoly-Regular',
+      fontFamily: 'MM Poly Regular',
+      color: importedColors.gettingStartedTextColor,
     },
     titleDescription: {
       paddingTop: 20,
       textAlign: 'center',
       fontSize: 16,
-      fontFamily: 'MMSans-Regular',
+      fontFamily: 'MM Sans Regular',
+      color: importedColors.gettingStartedTextColor,
     },
     foxImage: {
       height: Device.isLargeDevice() ? 350 : 260,
@@ -58,11 +60,17 @@ const createStyles = () =>
       borderRadius: 12,
       backgroundColor: importedColors.gettingStartedTextColor,
     },
+    importWalletButtonText: {
+      color: importedColors.white,
+    },
     notNowButton: {
       borderRadius: 12,
       backgroundColor: importedColors.transparent,
       borderWidth: 1,
       borderColor: importedColors.transparent,
+    },
+    notNowButtonText: {
+      color: importedColors.gettingStartedTextColor,
     },
   });
 
