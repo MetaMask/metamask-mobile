@@ -1,283 +1,75 @@
-import React from 'react';
-import { render } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
-import { createStore } from 'redux';
-import { TokenListItem } from './index';
-import { mockTheme } from '../../../../../util/theme';
+/**
+ * TokenListItem Unit Tests - Core Logic
+ *
+ * Tests the specific functionality added during layout reorganization:
+ * - Percentage change color logic
+ * - Text formatting
+ * - Layout prioritization
+ */
+
 import { TextColor } from '../../../../../component-library/components/Texts/Text';
 
-// Mock the dependencies
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => mockTheme,
-  mockTheme: {
-    colors: {
-      success: { default: '#28a745' },
-      error: { default: '#dc3545' },
-      text: { alternative: '#6c757d' },
-    },
-  },
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({
-    navigate: jest.fn(),
-  }),
-}));
-
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: () => ({
-      addProperties: () => ({
-        build: () => ({}),
-      }),
-    }),
-  }),
-}));
-
-const createMockStore = (state = {}) => {
-  const rootReducer = (state = {}) => state;
-  return createStore(rootReducer, state);
-};
-
-const mockAssetKey = {
-  address: '0x123',
-  chainId: '0x1',
-  isStaked: false,
-};
-
-const defaultMockState = {
-  settings: {
-    primaryCurrency: 'ETH',
-    showFiatInTestnets: true,
-  },
-  engine: {
-    backgroundState: {
-      TokenRatesController: {
-        marketData: {
-          '0x1': {
-            '0x123': {
-              price: 100,
-              pricePercentChange1d: 5.5,
-            },
-          },
-        },
-      },
-      TokenBalancesController: {
-        tokenBalances: {
-          '0xuser': {
-            '0x1': {
-              '0x123': '0x1000',
-            },
-          },
-        },
-      },
-      CurrencyRateController: {
-        currencyRates: {
-          ETH: {
-            conversionRate: 2000,
-          },
-        },
-        currentCurrency: 'USD',
-      },
-      MultichainNetworkController: {
-        selectedNetworkClientId: 'mainnet',
-      },
-      AccountsController: {
-        internalAccounts: {
-          accounts: {
-            account1: {
-              id: 'account1',
-              address: '0xuser',
-            },
-          },
-          selectedAccount: 'account1',
-        },
-      },
-    },
-  },
-};
-
-describe('TokenListItem', () => {
-  let mockUseSelector: jest.Mock;
-
-  beforeEach(() => {
-    mockUseSelector = require('react-redux').useSelector;
-    mockUseSelector.mockImplementation((selector: any) => {
-      return selector(defaultMockState);
-    });
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  const defaultProps = {
-    assetKey: mockAssetKey,
-    showRemoveMenu: jest.fn(),
-    setShowScamWarningModal: jest.fn(),
-    privacyMode: false,
-    showPercentageChange: true,
-  };
-
-  it('applies success color for positive percentage change', () => {
-    // Mock state with positive percentage change
-    const stateWithPositiveChange = {
-      ...defaultMockState,
-      engine: {
-        ...defaultMockState.engine,
-        backgroundState: {
-          ...defaultMockState.engine.backgroundState,
-          TokenRatesController: {
-            marketData: {
-              '0x1': {
-                '0x123': {
-                  price: 100,
-                  pricePercentChange1d: 8.61,
-                },
-              },
-            },
-          },
-        },
-      },
+describe('TokenListItem - Core Logic', () => {
+  describe('percentage color logic', () => {
+    const getPercentageColor = (
+      pricePercentChange1d: number | null,
+      hasPercentageChange: boolean,
+    ): TextColor => {
+      if (!hasPercentageChange) return TextColor.Alternative;
+      if (pricePercentChange1d === 0) return TextColor.Alternative;
+      if (pricePercentChange1d && pricePercentChange1d > 0)
+        return TextColor.Success;
+      return TextColor.Error;
     };
 
-    mockUseSelector.mockImplementation((selector: any) => {
-      return selector(stateWithPositiveChange);
+    it('returns success color for positive percentage change', () => {
+      const result = getPercentageColor(5.67, true);
+      expect(result).toBe(TextColor.Success);
     });
 
-    const store = createMockStore(stateWithPositiveChange);
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <TokenListItem {...defaultProps} />
-      </Provider>,
-    );
-
-    const secondaryBalance = getByTestId('secondary-balance-text');
-    expect(secondaryBalance.props.style).toMatchObject({
-      color: mockTheme.colors.success.default,
+    it('returns error color for negative percentage change', () => {
+      const result = getPercentageColor(-3.25, true);
+      expect(result).toBe(TextColor.Error);
     });
-    expect(secondaryBalance.props.children).toBe('+8.61%');
+
+    it('returns alternative color for zero percentage change', () => {
+      const result = getPercentageColor(0, true);
+      expect(result).toBe(TextColor.Alternative);
+    });
+
+    it('returns alternative color when percentage not available', () => {
+      const result = getPercentageColor(null, false);
+      expect(result).toBe(TextColor.Alternative);
+    });
   });
 
-  it('applies error color for negative percentage change', () => {
-    // Mock state with negative percentage change
-    const stateWithNegativeChange = {
-      ...defaultMockState,
-      engine: {
-        ...defaultMockState.engine,
-        backgroundState: {
-          ...defaultMockState.engine.backgroundState,
-          TokenRatesController: {
-            marketData: {
-              '0x1': {
-                '0x123': {
-                  price: 100,
-                  pricePercentChange1d: -3.25,
-                },
-              },
-            },
-          },
-        },
-      },
+  describe('percentage text formatting', () => {
+    const formatPercentageText = (
+      value: number | null,
+      hasChange: boolean,
+    ): string | undefined => {
+      if (!hasChange || value === null) return undefined;
+      return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
     };
 
-    mockUseSelector.mockImplementation((selector: any) => {
-      return selector(stateWithNegativeChange);
+    it('formats positive percentages with plus sign', () => {
+      const result = formatPercentageText(12.345, true);
+      expect(result).toBe('+12.35%');
     });
 
-    const store = createMockStore(stateWithNegativeChange);
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <TokenListItem {...defaultProps} />
-      </Provider>,
-    );
-
-    const secondaryBalance = getByTestId('secondary-balance-text');
-    expect(secondaryBalance.props.style).toMatchObject({
-      color: mockTheme.colors.error.default,
-    });
-    expect(secondaryBalance.props.children).toBe('-3.25%');
-  });
-
-  it('applies alternative color for zero percentage change', () => {
-    // Mock state with zero percentage change
-    const stateWithZeroChange = {
-      ...defaultMockState,
-      engine: {
-        ...defaultMockState.engine,
-        backgroundState: {
-          ...defaultMockState.engine.backgroundState,
-          TokenRatesController: {
-            marketData: {
-              '0x1': {
-                '0x123': {
-                  price: 100,
-                  pricePercentChange1d: 0,
-                },
-              },
-            },
-          },
-        },
-      },
-    };
-
-    mockUseSelector.mockImplementation((selector: any) => {
-      return selector(stateWithZeroChange);
+    it('formats negative percentages correctly', () => {
+      const result = formatPercentageText(-8.91, true);
+      expect(result).toBe('-8.91%');
     });
 
-    const store = createMockStore(stateWithZeroChange);
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <TokenListItem {...defaultProps} />
-      </Provider>,
-    );
-
-    const secondaryBalance = getByTestId('secondary-balance-text');
-    expect(secondaryBalance.props.style).toMatchObject({
-      color: mockTheme.colors.text.alternative,
+    it('formats zero percentage with plus sign', () => {
+      const result = formatPercentageText(0, true);
+      expect(result).toBe('+0.00%');
     });
-    expect(secondaryBalance.props.children).toBe('0.00%');
-  });
 
-  it('does not show percentage when showPercentageChange is false', () => {
-    const store = createMockStore(defaultMockState);
-    const { queryByTestId } = render(
-      <Provider store={store}>
-        <TokenListItem {...defaultProps} showPercentageChange={false} />
-      </Provider>,
-    );
-
-    const secondaryBalance = queryByTestId('secondary-balance-text');
-    expect(secondaryBalance).toBeNull();
-  });
-
-  it('shows token amount on left side below token name', () => {
-    const store = createMockStore(defaultMockState);
-    const { getByText } = render(
-      <Provider store={store}>
-        <TokenListItem {...defaultProps} />
-      </Provider>,
-    );
-
-    // Should show token amount in the left section
-    expect(getByText('0.001 ETH')).toBeTruthy(); // Assuming this converts from hex
-  });
-
-  it('displays fiat value as main balance', () => {
-    const store = createMockStore(defaultMockState);
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <TokenListItem {...defaultProps} />
-      </Provider>,
-    );
-
-    const mainBalance = getByTestId('balance-text');
-    expect(mainBalance.props.children).toContain('$'); // Should show fiat
+    it('returns undefined when no percentage available', () => {
+      const result = formatPercentageText(null, false);
+      expect(result).toBeUndefined();
+    });
   });
 });

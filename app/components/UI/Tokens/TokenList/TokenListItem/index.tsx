@@ -24,6 +24,9 @@ import TextComponent, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
 import { RootState } from '../../../../../reducers';
 import {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -254,15 +257,18 @@ export const TokenListItem = React.memo(
       : undefined;
 
     secondaryBalance = percentageText;
+    let secondaryBalanceColorToUse: TextColor | undefined = percentageColor;
 
     if (evmAsset?.hasBalanceError) {
       mainBalance = evmAsset.symbol;
       secondaryBalance = strings('wallet.unable_to_load');
+      secondaryBalanceColorToUse = undefined; // Don't apply percentage color to error messages
     }
 
     if (balanceFiat === TOKEN_RATE_UNDEFINED) {
       mainBalance = balanceValueFormatted;
       secondaryBalance = strings('wallet.unable_to_find_conversion_rate');
+      secondaryBalanceColorToUse = undefined; // Don't apply percentage color to error messages
     }
 
     asset = asset && { ...asset, balanceFiat, isStaked: asset?.isStaked };
@@ -405,7 +411,7 @@ export const TokenListItem = React.memo(
         asset={asset}
         balance={mainBalance}
         secondaryBalance={secondaryBalance}
-        secondaryBalanceColor={percentageColor}
+        secondaryBalanceColor={secondaryBalanceColorToUse}
         privacyMode={privacyMode}
       >
         <BadgeWrapper
@@ -434,12 +440,14 @@ export const TokenListItem = React.memo(
           </View>
           <View style={styles.percentageChange}>
             {balanceValueFormatted ? (
-              <TextComponent
+              <SensitiveText
                 variant={TextVariant.BodySMMedium}
                 style={styles.balanceFiat}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
               >
                 {balanceValueFormatted?.toUpperCase()}
-              </TextComponent>
+              </SensitiveText>
             ) : null}
             {renderEarnCta()}
           </View>

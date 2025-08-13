@@ -29,6 +29,9 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../component-library/components/Texts/SensitiveText';
 import { TokenI } from '../../Tokens/types';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -42,6 +45,7 @@ import EarnBalance from '../../Earn/components/EarnBalance';
 
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 import { selectPricePercentChange1d } from '../../../../selectors/tokenRatesController';
+import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 
@@ -95,6 +99,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   );
 
   const isEvmNetworkSelected = useSelector(selectIsEvmNetworkSelected);
+  const privacyMode = useSelector(selectPrivacyMode);
   const evmPricePercentChange1d = useSelector((state: RootState) =>
     selectPricePercentChange1d(
       state,
@@ -192,6 +197,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         balance={mainBalance}
         secondaryBalance={percentageText}
         secondaryBalanceColor={percentageColor}
+        privacyMode={privacyMode}
         onPress={handlePress}
       >
         <BadgeWrapper
@@ -212,9 +218,14 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
           <Text variant={TextVariant.BodyMD}>{asset.name || asset.symbol}</Text>
 
           {secondaryBalance && (
-            <Text variant={TextVariant.BodySMMedium} style={styles.tokenAmount}>
+            <SensitiveText
+              variant={TextVariant.BodySMMedium}
+              style={styles.tokenAmount}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+            >
               {secondaryBalance}
-            </Text>
+            </SensitiveText>
           )}
         </View>
       </AssetElement>
