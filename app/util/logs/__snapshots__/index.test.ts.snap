@@ -455,6 +455,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "nodeAuthTokens": [
           1,
           2,
+          null,
         ],
         "refreshToken": false,
         "revokeToken": false,
@@ -463,6 +464,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
             "keyringId": "keyring1",
             "type": "google",
           },
+          {},
         ],
         "userId": "userId",
         "vault": false,
