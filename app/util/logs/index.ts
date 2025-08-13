@@ -15,33 +15,55 @@ import { MetaMetrics } from '../../core/Analytics';
 
 const getSanitizedSeedlessOnboardingControllerState = () => {
   const { SeedlessOnboardingController } = Engine.context;
-  return {
-    userId: SeedlessOnboardingController.state.userId,
-    isSeedlessOnboardingUserAuthenticated:
-      SeedlessOnboardingController.state.isSeedlessOnboardingUserAuthenticated,
-    passwordOutdatedCache:
-      SeedlessOnboardingController.state.passwordOutdatedCache,
+  const {
+    userId,
+    socialLoginEmail,
+    authConnection,
+    isSeedlessOnboardingUserAuthenticated,
+    passwordOutdatedCache,
+    socialBackupsMetadata,
+    nodeAuthTokens,
 
-    // Return Boolean for state availablity
-    vault: Boolean(SeedlessOnboardingController.state.vault),
-    vaultEncryptionKey: Boolean(
-      SeedlessOnboardingController.state.vaultEncryptionKey,
-    ),
-    vaultEncryptionSalt: Boolean(
-      SeedlessOnboardingController.state.vaultEncryptionSalt,
-    ),
-    encryptedSeedlessEncryptionKey: Boolean(
-      SeedlessOnboardingController.state.encryptedSeedlessEncryptionKey,
-    ),
-    encryptedKeyringEncryptionKey: Boolean(
-      SeedlessOnboardingController.state.encryptedKeyringEncryptionKey,
-    ),
-    metadataAccessToken: Boolean(
-      SeedlessOnboardingController.state.metadataAccessToken,
-    ),
-    accessToken: Boolean(SeedlessOnboardingController.state.accessToken),
-    refreshToken: Boolean(SeedlessOnboardingController.state.refreshToken),
-    revokeToken: Boolean(SeedlessOnboardingController.state.revokeToken),
+    vault,
+    vaultEncryptionKey,
+    vaultEncryptionSalt,
+    encryptedSeedlessEncryptionKey,
+    encryptedKeyringEncryptionKey,
+    metadataAccessToken,
+    accessToken,
+    refreshToken,
+    revokeToken,
+    authPubKey,
+  } = SeedlessOnboardingController.state;
+
+  return {
+    userId,
+    socialLoginEmail,
+    authConnection,
+    isSeedlessOnboardingUserAuthenticated,
+    passwordOutdatedCache,
+    socialBackupsMetadata: socialBackupsMetadata?.map((item) => {
+      const { type, keyringId } = item;
+      return {
+        keyringId,
+        type,
+      };
+    }),
+
+    // return node index only
+    nodeAuthTokens: nodeAuthTokens?.map((item) => item.nodeIndex),
+
+    // Return Boolean for state availablity of sensitive data
+    vault: Boolean(vault),
+    vaultEncryptionKey: Boolean(vaultEncryptionKey),
+    vaultEncryptionSalt: Boolean(vaultEncryptionSalt),
+    encryptedSeedlessEncryptionKey: Boolean(encryptedSeedlessEncryptionKey),
+    encryptedKeyringEncryptionKey: Boolean(encryptedKeyringEncryptionKey),
+    metadataAccessToken: Boolean(metadataAccessToken),
+    accessToken: Boolean(accessToken),
+    refreshToken: Boolean(refreshToken),
+    revokeToken: Boolean(revokeToken),
+    authPubKey: Boolean(authPubKey),
   };
 };
 
@@ -57,6 +79,8 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
   delete fullState.engine.backgroundState.DeFiPositionsController;
+
+  // Remove SeedlessController controller data so that encrypted vault and sensitive data is not included in logs
   delete fullState.engine.backgroundState.SeedlessOnboardingController;
 
   // Remove Keyring controller data  so that encrypted vault is not included in logs
