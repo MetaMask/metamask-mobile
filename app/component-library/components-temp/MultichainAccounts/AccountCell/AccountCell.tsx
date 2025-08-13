@@ -1,6 +1,7 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../hooks';
 import styleSheet from './AccountCell.styles';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
@@ -12,6 +13,7 @@ import {
 } from '../../../../components/UI/Box/box.types';
 import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
 import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
@@ -20,6 +22,13 @@ interface AccountCellProps {
 
 export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
+  const { navigate } = useNavigation();
+
+  const handleMenuPress = useCallback(() => {
+    navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS, {
+      accountGroup,
+    });
+  }, [navigate, accountGroup]);
 
   return (
     <Box
@@ -62,6 +71,7 @@ export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
         <TouchableOpacity
           testID={AccountCellIds.MENU}
           style={styles.menuButton}
+          onPress={handleMenuPress}
         >
           <Icon
             name={IconName.MoreVertical}
@@ -73,3 +83,5 @@ export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
     </Box>
   );
 };
+
+export default React.memo(AccountCell);
