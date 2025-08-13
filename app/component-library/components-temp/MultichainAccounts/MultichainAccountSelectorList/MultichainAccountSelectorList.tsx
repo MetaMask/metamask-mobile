@@ -138,10 +138,10 @@ const MultichainAccountSelectorList = ({
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
       // Prevent multiple rapid calls for the same account
-      if (selectedAccountGroup?.id === accountGroup.id) return;
+      if (selectedAccountGroup.id === accountGroup.id) return;
       onSelectAccount?.(accountGroup);
     },
-    [onSelectAccount, selectedAccountGroup?.id],
+    [onSelectAccount, selectedAccountGroup.id],
   );
 
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
@@ -153,7 +153,7 @@ const MultichainAccountSelectorList = ({
           }
 
           case 'cell': {
-            const isSelected = item.data.id === selectedAccountGroup?.id;
+            const isSelected = item.data.id === selectedAccountGroup.id;
             return (
               <AccountListCell
                 accountGroup={item.data}
@@ -171,7 +171,7 @@ const MultichainAccountSelectorList = ({
             return null;
         }
       },
-      [selectedAccountGroup?.id, handleSelectAccount],
+      [selectedAccountGroup.id, handleSelectAccount],
     );
 
   const keyExtractor = useCallback(

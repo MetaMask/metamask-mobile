@@ -4,102 +4,20 @@ import {
   AccountGroupObject,
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
-import { AccountWalletType, AccountGroupType } from '@metamask/account-api';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import MultichainAccountSelectorList from './MultichainAccountSelectorList';
-import renderWithProvider, {
-  DeepPartial,
-} from '../../../../util/test/renderWithProvider';
-import { RootState } from '../../../../reducers';
+import renderWithProvider from '../../../../util/test/renderWithProvider';
 import {
   MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
   MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID,
 } from './MultichainAccountSelectorList.constants';
-
-const createMockInternalAccount = (
-  id: string,
-  address: string,
-  name: string,
-): InternalAccount => ({
-  id,
-  address,
-  type: 'eip155:eoa',
-  scopes: ['eip155:1'],
-  options: {},
-  methods: ['personal_sign', 'eth_sign', 'eth_signTypedData_v4'],
-  metadata: {
-    name,
-    keyring: {
-      type: KeyringTypes.simple,
-    },
-    importTime: Date.now(),
-  },
-});
-
-const createMockAccountGroup = (
-  id: string,
-  name: string,
-  accounts: string[] = [`account-${id}`],
-): AccountGroupObject => {
-  if (accounts.length === 1) {
-    return {
-      id: id as AccountGroupObject['id'],
-      type: AccountGroupType.SingleAccount,
-      accounts: [accounts[0]] as [string],
-      metadata: {
-        name,
-        pinned: false,
-        hidden: false,
-      },
-    } as AccountGroupObject;
-  }
-  return {
-    id: id as AccountGroupObject['id'],
-    type: AccountGroupType.MultichainAccount,
-    accounts: accounts as [string, ...string[]],
-    metadata: {
-      name,
-      pinned: false,
-      hidden: false,
-      entropy: {
-        groupIndex: 0,
-      },
-    },
-  } as AccountGroupObject;
-};
-
-const createMockWallet = (
-  id: string,
-  name: string,
-  groups: AccountGroupObject[],
-): AccountWalletObject =>
-  ({
-    id: id as AccountWalletObject['id'],
-    type: AccountWalletType.Keyring,
-    metadata: {
-      name,
-      keyring: {
-        type: KeyringTypes.simple,
-      },
-    },
-    groups: groups.reduce((acc, group) => {
-      acc[group.id] = group;
-      return acc;
-    }, {} as Record<string, AccountGroupObject>),
-  } as AccountWalletObject);
-
-const mockFeatureFlagController = {
-  RemoteFeatureFlagController: {
-    remoteFeatureFlags: {
-      enableMultichainAccounts: {
-        enabled: true,
-        featureVersion: '1',
-        minimumVersion: '1.0.0',
-      },
-    },
-  },
-};
+import {
+  createMockAccountGroup,
+  createMockWallet,
+  createMockState,
+  createMockInternalAccountsFromGroups,
+  createMockInternalAccountsWithAddresses,
+} from '../test-utils';
 
 describe('MultichainAccountSelectorList', () => {
   const mockOnSelectAccount = jest.fn();
@@ -107,74 +25,6 @@ describe('MultichainAccountSelectorList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  // Helper function to create mock state with accounts and internal accounts
-  const createMockState = (
-    wallets: AccountWalletObject[],
-    internalAccounts: Record<string, InternalAccount>,
-  ): DeepPartial<RootState> => ({
-    engine: {
-      backgroundState: {
-        AccountTreeController: {
-          accountTree: {
-            wallets: wallets.reduce((acc, wallet) => {
-              acc[`keyring:${wallet.id}`] = wallet;
-              return acc;
-            }, {} as Record<string, AccountWalletObject>),
-          },
-        },
-        AccountsController: {
-          internalAccounts: {
-            accounts: internalAccounts,
-            selectedAccount: Object.keys(internalAccounts)[0],
-          },
-        },
-        ...mockFeatureFlagController,
-      },
-    },
-  });
-
-  // Helper function to create mock internal accounts from account groups
-  const createMockInternalAccountsFromGroups = (
-    accountGroups: AccountGroupObject[],
-  ): Record<string, InternalAccount> => {
-    const internalAccounts: Record<string, InternalAccount> = {};
-
-    accountGroups.forEach((group, groupIndex) => {
-      group.accounts.forEach((accountId, accountIndex) => {
-        internalAccounts[accountId] = createMockInternalAccount(
-          accountId,
-          `0x${(groupIndex + 1).toString().padStart(4, '0')}${(accountIndex + 1)
-            .toString()
-            .padStart(4, '0')}${accountId.slice(-8)}`,
-          group.metadata.name,
-        );
-      });
-    });
-
-    return internalAccounts;
-  };
-
-  // Helper function to create mock internal accounts with custom addresses
-  const createMockInternalAccountsWithAddresses = (
-    accountGroups: AccountGroupObject[],
-    addresses: Record<string, string>,
-  ): Record<string, InternalAccount> => {
-    const internalAccounts: Record<string, InternalAccount> = {};
-
-    accountGroups.forEach((group) => {
-      group.accounts.forEach((accountId) => {
-        const address = addresses[accountId] || `0x${accountId.slice(-8)}`;
-        internalAccounts[accountId] = createMockInternalAccount(
-          accountId,
-          address,
-          group.metadata.name,
-        );
-      });
-    });
-
-    return internalAccounts;
-  };
 
   // Helper function to perform search and wait for results
   const performSearch = async (
@@ -689,7 +539,7 @@ describe('MultichainAccountSelectorList', () => {
           expect(queryByText('My Account')).toBeTruthy();
           expect(queryByText('Test Account')).toBeFalsy();
         },
-        { timeout: 500 },
+        { timeout: 1000 }, // Increased timeout to account for debounce delay
       );
     });
   });
