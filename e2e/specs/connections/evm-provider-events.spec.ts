@@ -58,7 +58,7 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
     );
   });
 
-  it('should notify account changes on when adding and removing a permitted account for a permitted dapp', async () => {
+  it('should notify account changes when adding and removing a permitted account for a dapp', async () => {
     await withFixtures(
       {
         dapps: [
