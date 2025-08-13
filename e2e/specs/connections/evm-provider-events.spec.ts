@@ -113,7 +113,7 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
     );
   });
 
-  it('should notify the newly selected account when changing the selected account for a permitted dapp', async () => {
+  it('notifies a dapp when the wallet switches to an account it has permission to access. ', async () => {
     await withFixtures(
       {
         dapps: [
