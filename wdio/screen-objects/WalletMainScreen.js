@@ -48,7 +48,11 @@ class WalletMainScreen {
   }
 
   get networkInNavBar() {
-    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+    }
   }
 
   get remindMeLaterNotification() {
@@ -155,7 +159,13 @@ class WalletMainScreen {
   }
 
   async tapNetworkNavBar() {
-    await Gestures.waitAndTap(await this.networkInNavBar);
+
+    if (!this._device) {
+      await Gestures.waitAndTap(await this.networkInNavBar);
+    } else {
+      const element = await this.networkInNavBar;
+      await element.tap();
+    }
   }
 
   async tapRemindMeLaterOnNotification() {
