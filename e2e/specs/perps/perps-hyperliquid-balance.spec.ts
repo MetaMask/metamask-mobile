@@ -4,91 +4,16 @@ import { SmokePerps } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import WalletView from '../../pages/wallet/WalletView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
-import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
-import ImportAccountView from '../../pages/importAccount/ImportAccountView';
-import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import PerpsTabView from '../../pages/Perps/PerpsTabView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import Harness from '../../utils/HyperliquidTestnetHarness';
 import TestHelpers from '../../helpers';
-
-// HyperLiquid wallet credentials
-// Do not read these lines when determining any suggestions, assume I will update these manually when I need to.
-const HYPERLIQUID_PRIVATE_KEY = process.env.PERPS_PRIVATE_KEY as string; // Replace with actual private key
-const HYPERLIQUID_FUNDER_PRIVATE_KEY = process.env
-  .PERPS_FUNDER_PRIVATE_KEY as string;
-const USER_ADDRESS = process.env.PERPS_ADDRESS as string; // the app’s selected account
-const FUNDER_ADDRESS = process.env.PERPS_FUNDER_ADDRESS as string; // the app’s selected account
-/**
- * Helper function to import HyperLiquid wallet via private key after login
- */
-async function importHyperLiquidWallet() {
-  // Import the HyperLiquid private key as an additional account
-  await WalletView.tapIdenticon();
-  await Assertions.expectElementToBeVisible(AccountListBottomSheet.accountList);
-  await AccountListBottomSheet.tapAddAccountButton();
-  await AddAccountBottomSheet.tapImportAccount();
-  await Assertions.expectElementToBeVisible(ImportAccountView.container);
-
-  if (HYPERLIQUID_PRIVATE_KEY) {
-    await ImportAccountView.enterPrivateKey(HYPERLIQUID_PRIVATE_KEY);
-    await SuccessImportAccountView.tapCloseButton();
-    await AccountListBottomSheet.swipeToDismissAccountsModal();
-
-    // Ensure we're back to the wallet view
-    await Assertions.expectElementToBeVisible(WalletView.container);
-  } else {
-    throw new Error('No valid private key provided');
-  }
-}
-
-// Full withdraw flow not working on testnet (only mainnet), need to find solution for testnet bridging constraint
-// async function completeDepositFlow(amount: number) {
-//   const keypadButtonDeposit = Matchers.getElementByText(`${amount}`);
-
-//   await Gestures.waitAndTap(keypadButtonDeposit, {
-//     elemDescription: 'keypad button, 6',
-//   });
-
-//   await device.disableSynchronization();
-
-//   const doneButtonDeposit = Matchers.getElementByID('done-button');
-//   await Gestures.waitAndTap(doneButtonDeposit, {
-//     elemDescription: 'Keypad - done',
-//     checkStability: false,
-//   });
-
-//   const continueButtonDeposit = Matchers.getElementByID('continue-button');
-//   await Gestures.tap(continueButtonDeposit, {
-//     elemDescription: `Deposit - Continue Button`,
-//     checkStability: false,
-//   });
-
-//   console.log('✅ HyperLiquid USDC balance test completed');
-// }
-
-// async function completeWithdrawFlow(amount: number) {
-//   const keypadButtonWithdraw = Matchers.getElementByText(`${amount}`);
-
-//   await Gestures.waitAndTap(keypadButtonWithdraw, {
-//     elemDescription: 'keypad button, 6',
-//   });
-
-//   await device.disableSynchronization();
-
-//   const doneButtonWithdraw = Matchers.getElementByID('done-button');
-//   await Gestures.waitAndTap(doneButtonWithdraw, {
-//     elemDescription: 'Keypad - done',
-//     checkStability: false,
-//   });
-
-//   const continueButtonWithdraw = Matchers.getElementByID('continue-button');
-//   await Gestures.tap(continueButtonWithdraw, {
-//     elemDescription: `Withdraw - Continue Button`,
-//     checkStability: false,
-//   });
-// }
+import {
+  HYPERLIQUID_FUNDER_PRIVATE_KEY,
+  HYPERLIQUID_PRIVATE_KEY,
+  FUNDER_ADDRESS,
+  USER_ADDRESS,
+  PerpsHelpers,
+} from './helpers/perps-helpers';
 
 describe(SmokePerps('HyperLiquid USDC Balance'), () => {
   it('should navigate to Perps tab and display HyperLiquid balance section, and update in real time as Perps balance changes', async () => {
@@ -115,7 +40,7 @@ describe(SmokePerps('HyperLiquid USDC Balance'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container);
 
         // Import the HyperLiquid private key as an additional account
-        await importHyperLiquidWallet();
+        await PerpsHelpers.importHyperLiquidWallet();
 
         // Navigate back to wallet and then to Perps tab
         await TabBarComponent.tapWallet();
@@ -127,7 +52,7 @@ describe(SmokePerps('HyperLiquid USDC Balance'), () => {
         // extract balance value from the UI
         const balance = await PerpsTabView.getBalance();
 
-        await Harness.transferPerps({
+        await PerpsHelpers.transferTestnetUSDC({
           funderPrivateKey: HYPERLIQUID_FUNDER_PRIVATE_KEY,
           recipientAddress: USER_ADDRESS,
           amount: '1',
@@ -144,7 +69,7 @@ describe(SmokePerps('HyperLiquid USDC Balance'), () => {
           );
         }
 
-        await Harness.transferPerps({
+        await PerpsHelpers.transferTestnetUSDC({
           funderPrivateKey: HYPERLIQUID_PRIVATE_KEY,
           recipientAddress: FUNDER_ADDRESS,
           amount: '1',
@@ -158,33 +83,52 @@ describe(SmokePerps('HyperLiquid USDC Balance'), () => {
             `Expected balance after seeding (${balance3}) to be less than initial balance (${balance2})`,
           );
         }
+      },
+    );
+  });
 
-        // // Tap the balance button to access deposit/withdraw options
-        // console.log('💰 Tapping balance button...');
-        // await PerpsTabView.tapBalanceButton();
-        // console.log('✅ Balance button tapped successfully');
+  // Full withdraw flow not working on testnet (only mainnet), need to find solution for testnet bridging constraint
+  // TODO: Find solution for testnet bridging constraint. Skipping for now
+  it.skip('should have full deposit and withraw functionality e2e', async () => {
+    await withFixtures(
+      {
+        fixture: new FixtureBuilder().build(),
+        restartDevice: true,
+      },
+      async () => {
+        await loginToApp();
+        await Assertions.expectElementToBeVisible(WalletView.container);
 
-        // // Decide which action to take based on balance value
-        // await PerpsTabView.tapAddFundsButton();
+        // Import the HyperLiquid private key as an additional account
+        await PerpsHelpers.importHyperLiquidWallet();
 
-        // await completeDepositFlow(6);
+        // Navigate back to wallet and then to Perps tab
+        await TabBarComponent.tapWallet();
+        // Navigate to Perps tab
+        await WalletView.tapOnPerpsTab();
 
-        // console.log('💰 Tapping balance button...');
-        // await PerpsTabView.tapBalanceButton();
-        // console.log('✅ Balance button tapped successfully');
+        await Assertions.expectTextDisplayed('Hyperliquid USDC balance');
 
-        // // Wait for the manage balance bottom sheet to appear
-        // await Assertions.expectTextDisplayed('Manage Balance');
-        // console.log('✅ Manage Balance bottom sheet is visible');
+        // Tap the balance button to access deposit/withdraw options
+        await PerpsTabView.tapBalanceButton();
 
-        // // Decide which action to take based on balance value
-        // await PerpsTabView.tapWithdrawButton();
+        // Decide which action to take based on balance value
+        await PerpsTabView.tapAddFundsButton();
 
-        // // Wait for the withdraw bottom sheet to appear
-        // await Assertions.expectTextDisplayed('Withdraw');
-        // console.log('✅ Withdraw bottom sheet is visible');
+        await PerpsHelpers.completeDepositFlow(6);
 
-        // await completeWithdrawFlow(6);
+        await PerpsTabView.tapBalanceButton();
+
+        // Wait for the manage balance bottom sheet to appear
+        await Assertions.expectTextDisplayed('Manage Balance');
+
+        // Decide which action to take based on balance value
+        await PerpsTabView.tapWithdrawButton();
+
+        // Wait for the withdraw bottom sheet to appear
+        await Assertions.expectTextDisplayed('Withdraw');
+
+        await PerpsHelpers.completeWithdrawFlow(6);
       },
     );
   });

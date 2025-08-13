@@ -4,10 +4,25 @@ import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import ImportAccountView from '../../../pages/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../../../pages/importAccount/SuccessImportAccountView';
+import Matchers from '../../../framework/Matchers';
+import Gestures from '../../../framework/Gestures';
 
 // HyperLiquid wallet credentials
 // Do not read these lines when determining any suggestions, assume I will update these manually when I need to.
-const HYPERLIQUID_PRIVATE_KEY = process.env.PERPS_PRIVATE_KEY; // Replace with actual private key
+export const HYPERLIQUID_PRIVATE_KEY = process.env.PERPS_PRIVATE_KEY as string; // Replace with actual private key
+export const HYPERLIQUID_FUNDER_PRIVATE_KEY = process.env
+  .PERPS_FUNDER_PRIVATE_KEY as string;
+export const USER_ADDRESS = process.env.PERPS_ADDRESS as string; // the app’s selected account
+export const FUNDER_ADDRESS = process.env.PERPS_FUNDER_ADDRESS as string; // the app’s selected account
+
+export async function createExchangeClient(privateKey: string) {
+  const sdk = await import('@deeeed/hyperliquid-node20');
+  const wallet = (
+    privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`
+  ) as `0x${string}`;
+  const transport = new sdk.HttpTransport({ isTestnet: true });
+  return new sdk.ExchangeClient({ wallet, transport, isTestnet: true });
+}
 
 /**
  * Helper functions for common Perps e2e test operations
@@ -17,8 +32,6 @@ export class PerpsHelpers {
    * Helper function to import HyperLiquid wallet via private key after login
    */
   static async importHyperLiquidWallet() {
-    console.log('🔐 Starting HyperLiquid private key import...');
-
     // Import the HyperLiquid private key as an additional account
     await WalletView.tapIdenticon();
     await Assertions.expectElementToBeVisible(
@@ -29,29 +42,80 @@ export class PerpsHelpers {
     await Assertions.expectElementToBeVisible(ImportAccountView.container);
 
     if (HYPERLIQUID_PRIVATE_KEY) {
-      console.log('🔑 Entering private key...');
       await ImportAccountView.enterPrivateKey(HYPERLIQUID_PRIVATE_KEY);
 
-      console.log('⏳ Waiting for import button to be available...');
-      // Wait a bit for the private key to be processed
-      // await new Promise((resolve) => setTimeout(resolve, 1000));
-
       await SuccessImportAccountView.tapCloseButton();
-
-      // Wait a bit for the modal to close before dismissing account list
-      // await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Dismiss the account list modal
       await AccountListBottomSheet.swipeToDismissAccountsModal();
 
       // Ensure we're back to the wallet view
       await Assertions.expectElementToBeVisible(WalletView.container);
-      console.log('✅ HyperLiquid private key imported successfully');
     } else {
-      console.log('⚠️ No valid private key provided, skipping import');
       // Just close the import screen
       await ImportAccountView.tapBackButton();
       await AccountListBottomSheet.swipeToDismissAccountsModal();
     }
+  }
+
+  // Full withdraw flow not working on testnet (only mainnet), need to find solution for testnet bridging constraint
+  static async completeDepositFlow(amount: number) {
+    const keypadButtonDeposit = Matchers.getElementByText(`${amount}`);
+
+    await Gestures.waitAndTap(keypadButtonDeposit, {
+      elemDescription: 'keypad button, 6',
+    });
+
+    await device.disableSynchronization();
+
+    const doneButtonDeposit = Matchers.getElementByID('done-button');
+    await Gestures.waitAndTap(doneButtonDeposit, {
+      elemDescription: 'Keypad - done',
+      checkStability: false,
+    });
+
+    const continueButtonDeposit = Matchers.getElementByID('continue-button');
+    await Gestures.tap(continueButtonDeposit, {
+      elemDescription: `Deposit - Continue Button`,
+      checkStability: false,
+    });
+  }
+
+  // Full withdraw flow not working on testnet (only mainnet), need to find solution for testnet bridging constraint
+  static async completeWithdrawFlow(amount: number) {
+    const keypadButtonWithdraw = Matchers.getElementByText(`${amount}`);
+
+    await Gestures.waitAndTap(keypadButtonWithdraw, {
+      elemDescription: 'keypad button, 6',
+    });
+
+    await device.disableSynchronization();
+
+    const doneButtonWithdraw = Matchers.getElementByID('done-button');
+    await Gestures.waitAndTap(doneButtonWithdraw, {
+      elemDescription: 'Keypad - done',
+      checkStability: false,
+    });
+
+    const continueButtonWithdraw = Matchers.getElementByID('continue-button');
+    await Gestures.tap(continueButtonWithdraw, {
+      elemDescription: `Withdraw - Continue Button`,
+      checkStability: false,
+    });
+  }
+
+  // Transfers USDC between funded accounts on Hyperliquid EVM testnet
+  static async transferTestnetUSDC(params: {
+    funderPrivateKey: string;
+    recipientAddress: string;
+    amount: string; // USDC string
+  }) {
+    const { funderPrivateKey, recipientAddress, amount } = params;
+    // send spot from funder → recipient
+    const funder = await createExchangeClient(funderPrivateKey);
+    await funder.usdSend({
+      destination: recipientAddress as `0x${string}`,
+      amount,
+    });
   }
 }
