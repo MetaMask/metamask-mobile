@@ -17,6 +17,7 @@ const ASSET_TYPE = {
 export const useAssetSelectionMetrics = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const {
+    accountType,
     assetFilterMethod,
     assetListSize,
     setAssetFilterMethod,
@@ -43,6 +44,7 @@ export const useAssetSelectionMetrics = () => {
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SEND_ASSET_SELECTED)
           .addProperties({
+            account_type: accountType,
             assetType,
             asset_list_position: position,
             asset_list_size: assetListSize,
@@ -53,7 +55,13 @@ export const useAssetSelectionMetrics = () => {
           .build(),
       );
     },
-    [assetFilterMethod, assetListSize, createEventBuilder, trackEvent],
+    [
+      accountType,
+      assetFilterMethod,
+      assetListSize,
+      createEventBuilder,
+      trackEvent,
+    ],
   );
 
   return {

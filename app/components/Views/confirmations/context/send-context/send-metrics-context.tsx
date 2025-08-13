@@ -4,6 +4,10 @@ import React, {
   useContext,
   useState,
 } from 'react';
+import { isAddress as isEvmAddress } from 'ethers/lib/utils';
+
+import { getAddressAccountType } from '../../../../../util/address';
+import { useSendContext } from './send-context';
 
 export const AssetFilterMethod = {
   None: 'none',
@@ -30,6 +34,7 @@ export const RecipientInputMethod = {
 };
 
 export interface SendMetricsContextType {
+  accountType?: string;
   assetListSize: string;
   amountInputMethod: string;
   amountInputType: string;
@@ -43,6 +48,7 @@ export interface SendMetricsContextType {
 }
 
 export const SendMetricsContext = createContext<SendMetricsContextType>({
+  accountType: undefined,
   assetListSize: '',
   amountInputMethod: AmountInputMethod.Manual,
   amountInputType: AmountInputType.Token,
@@ -69,10 +75,14 @@ export const SendMetricsContextProvider: React.FC<{
   const [recipientInputMethod, setRecipientInputMethod] = useState(
     RecipientInputMethod.Manual,
   );
+  const { from } = useSendContext();
 
   return (
     <SendMetricsContext.Provider
       value={{
+        accountType: isEvmAddress(from)
+          ? getAddressAccountType(from)
+          : undefined,
         assetListSize,
         amountInputMethod,
         amountInputType,

@@ -13,7 +13,7 @@ export const useRecipientSelectionMetrics = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { chainId, to } = useSendContext();
   const { isEvmSendType } = useSendType();
-  const { recipientInputMethod, setRecipientInputMethod } =
+  const { accountType, recipientInputMethod, setRecipientInputMethod } =
     useSendMetricsContext();
 
   const setRecipientInputMethodManual = useCallback(() => {
@@ -29,6 +29,7 @@ export const useRecipientSelectionMetrics = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SEND_RECIPIENT_SELECTED)
         .addProperties({
+          account_type: accountType,
           input_method: inputMethod,
           chain_id: isEvmSendType ? chainId : undefined,
           chain_id_caip: isEvmSendType ? undefined : chainId,
@@ -36,6 +37,7 @@ export const useRecipientSelectionMetrics = () => {
         .build(),
     );
   }, [
+    accountType,
     chainId,
     createEventBuilder,
     isEvmSendType,

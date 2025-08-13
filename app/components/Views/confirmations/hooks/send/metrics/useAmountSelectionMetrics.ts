@@ -15,6 +15,7 @@ export const useAmountSelectionMetrics = () => {
   const { chainId, value } = useSendContext();
   const { isEvmSendType } = useSendType();
   const {
+    accountType,
     amountInputMethod,
     amountInputType,
     setAmountInputMethod,
@@ -46,6 +47,7 @@ export const useAmountSelectionMetrics = () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SEND_AMOUNT_SELECTED)
         .addProperties({
+          account_type: accountType,
           input_method: inputMethod,
           input_type: amountInputType,
           chain_id: isEvmSendType ? chainId : undefined,
@@ -54,6 +56,7 @@ export const useAmountSelectionMetrics = () => {
         .build(),
     );
   }, [
+    accountType,
     amountInputMethod,
     amountInputType,
     chainId,
