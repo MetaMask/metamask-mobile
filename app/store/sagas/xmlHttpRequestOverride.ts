@@ -51,6 +51,7 @@ export function overrideXMLHttpRequest() {
       // Inform listeners that an error occurred
       const onerror = xhr.onerror;
       if (typeof onerror === 'function') {
+        // @ts-expect-error - ProgressEvent is not supported by React Native and we don't need it
         onerror(error);
       }
     } catch {
@@ -70,6 +71,7 @@ export function overrideXMLHttpRequest() {
       // Fire loadend if present to complete any pending listeners
       const onloadend = xhr.onloadend;
       if (typeof onloadend === 'function') {
+        // @ts-expect-error - ProgressEvent is not supported by React Native and we don't need it
         onloadend();
       }
     } catch {
