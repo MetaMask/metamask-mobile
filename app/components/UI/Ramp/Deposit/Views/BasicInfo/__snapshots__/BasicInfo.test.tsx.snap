@@ -1898,7 +1898,7 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={8}
+              handlerTag={9}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
