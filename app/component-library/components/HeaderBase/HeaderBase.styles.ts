@@ -6,6 +6,7 @@ import { Theme } from '../../../util/theme/models';
 
 // Internal dependencies.
 import { HeaderBaseStyleSheetVars } from './HeaderBase.types';
+import { HeaderBaseAlign } from './HeaderBase.constants';
 
 /**
  * Style sheet function for HeaderBase component.
@@ -20,9 +21,18 @@ const styleSheet = (params: {
   vars: HeaderBaseStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const { style, startAccessorySize, endAccessorySize } = vars;
+  const {
+    style,
+    startAccessorySize,
+    endAccessorySize,
+    align = HeaderBaseAlign.Center,
+  } = vars;
+
+  const isLeftAligned = align === HeaderBaseAlign.Left;
+
+  // Only calculate accessoryWidth for center alignment to ensure visual centering
   let accessoryWidth;
-  if (startAccessorySize && endAccessorySize) {
+  if (!isLeftAligned && startAccessorySize && endAccessorySize) {
     accessoryWidth = Math.max(startAccessorySize.width, endAccessorySize.width);
   }
 
@@ -36,11 +46,11 @@ const styleSheet = (params: {
     ) as ViewStyle,
     titleWrapper: {
       flex: 1,
-      alignItems: 'center',
+      alignItems: isLeftAligned ? 'flex-start' : 'center',
       marginHorizontal: accessoryWidth ? 0 : 16,
     },
     title: {
-      textAlign: 'center',
+      textAlign: isLeftAligned ? 'left' : 'center',
     },
     accessoryWrapper: {
       width: accessoryWidth,

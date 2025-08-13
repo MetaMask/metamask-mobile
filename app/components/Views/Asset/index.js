@@ -682,15 +682,12 @@ let cacheKey = null;
 const mapStateToProps = (state, { route }) => {
   const selectedInternalAccount = selectSelectedInternalAccount(state);
   const evmTransactions = selectTransactions(state);
+  const asset = route.params;
 
   let allTransactions = evmTransactions;
+
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  if (
-    selectedInternalAccount &&
-    !isEvmAccountType(selectedInternalAccount.type) &&
-    route.params?.chainId &&
-    isNonEvmChainId(route.params.chainId)
-  ) {
+  if (asset?.chainId && isNonEvmChainId(asset.chainId)) {
     const nonEvmTransactions = selectNonEvmTransactions(state);
     const txs = nonEvmTransactions?.transactions || [];
 

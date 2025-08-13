@@ -40,10 +40,13 @@ export const useSendActions = () => {
     );
   }, [asset, chainId, navigation, fromAccount, from, isEvmSendType, to, value]);
 
-  // todo: depending on the designs this function may not be needed
   const handleCancelPress = useCallback(() => {
+    navigation.navigate(Routes.WALLET_VIEW);
+  }, [navigation]);
+
+  const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
 
-  return { handleSubmitPress, handleCancelPress };
+  return { handleSubmitPress, handleCancelPress, handleBackPress };
 };
