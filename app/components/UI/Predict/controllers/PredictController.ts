@@ -88,7 +88,7 @@ const metadata = {
   isTestnet: { persist: true, anonymous: false },
   connectionStatus: { persist: false, anonymous: false },
   markets: { persist: false, anonymous: false },
-  positions: { persist: false, anonymous: false },
+  positions: { persist: true, anonymous: false },
   orders: { persist: false, anonymous: false },
   pendingOrders: { persist: false, anonymous: false },
   isEligible: { persist: false, anonymous: false },
