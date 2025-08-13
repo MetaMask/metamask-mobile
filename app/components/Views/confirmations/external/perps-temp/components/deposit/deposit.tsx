@@ -7,7 +7,6 @@ import { strings } from '../../../../../../../../locales/i18n';
 import { TokenAmountNative } from '../../../../components/token-amount-native';
 import { TotalRow } from '../../../../components/rows/total-row';
 import InfoSection from '../../../../components/UI/info-row/info-section/info-section';
-import { PayTokenBalance } from '../../../../components/pay-token-balance';
 import { BridgeTimeRow } from '../../../../components/rows/bridge-time-row';
 import { AlertMessage } from '../../../../components/alert-message';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
@@ -45,7 +44,6 @@ export function PerpsDeposit() {
         onKeyboardHide={handleKeyboardHide}
       >
         <Box gap={16}>
-          {isKeyboardVisible && <PayTokenBalance />}
           <AlertMessage field={RowAlertKey.Amount} />
           <TokenAmountNative />
         </Box>
