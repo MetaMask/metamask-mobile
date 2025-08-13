@@ -860,6 +860,7 @@ const NetworkSelector = () => {
         } else {
           // Remove the chainId from the tokenNetworkFilter
           const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
+          // TODO: Do I need to set the enabled network in this instance?
           PreferencesController.setTokenNetworkFilter({
             // TODO fix type of preferences controller level
             // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
