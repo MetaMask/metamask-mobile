@@ -5,7 +5,6 @@ import type {
   GenerateChallengeDto,
   ChallengeResponseDto,
   LoginDto,
-  LoginResponseDto,
   DevOnlyLoginDto,
   SubscriptionDto,
   JoinSubscriptionDto,
@@ -62,7 +61,7 @@ export const rewardsApi = createApi({
         body,
       }),
     }),
-    login: builder.mutation<LoginResponseDto, LoginDto>({
+    login: builder.mutation<void, LoginDto>({
       query: (body) => ({
         url: '/auth/login',
         method: 'POST',

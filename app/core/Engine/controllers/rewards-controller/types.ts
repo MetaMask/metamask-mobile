@@ -22,7 +22,7 @@ export interface LoginDto {
 }
 
 export interface LoginResponseDto {
-  token: string;
+  sessionId: string;
   subscription: SubscriptionDto;
 }
 
@@ -176,11 +176,19 @@ export enum RewardClaimStatus {
 /**
  * State for the RewardsController
  */
+export interface SilentAuthState {
+  lastAuthenticatedAccount: string | null;
+  subscriptionAccounts: string[];
+  lastAuthTime: number;
+  [key: string]: string | string[] | number | null;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsControllerState = {
   devOnlyLoginAddress: string | null;
   // UI state
   lastUpdated: number | null;
+  silentAuth: SilentAuthState;
 };
 
 /**
