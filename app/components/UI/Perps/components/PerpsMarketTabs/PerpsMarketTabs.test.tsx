@@ -334,4 +334,66 @@ describe('PerpsMarketTabs', () => {
     fireEvent.press(getByTestId('position-update-trigger'));
     expect(onPositionUpdate).toHaveBeenCalled();
   });
+
+  it('calls Engine.context.PerpsController.cancelOrder when order cancel is triggered', async () => {
+    const Engine = jest.requireMock('../../../../../core/Engine');
+    const mockCancelOrder = Engine.context.PerpsController.cancelOrder;
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsMarketTabs
+        {...defaultProps}
+        position={mockPosition}
+        unfilledOrders={[mockOrder]}
+      />,
+      { state: initialState },
+    );
+
+    // Switch to orders tab to see the order cards
+    fireEvent.press(getByTestId(PerpsMarketTabsSelectorsIDs.ORDERS_TAB));
+
+    // Trigger the cancel action on the order card
+    fireEvent.press(getByTestId('order-cancel-trigger'));
+
+    // Wait for the async cancelOrder call
+    await waitFor(() => {
+      expect(mockCancelOrder).toHaveBeenCalledWith({
+        orderId: mockOrder.orderId,
+        coin: mockOrder.symbol,
+      });
+    });
+  });
+
+  it('handles error when order cancellation fails', async () => {
+    const Engine = jest.requireMock('../../../../../core/Engine');
+    const mockCancelOrder = Engine.context.PerpsController.cancelOrder;
+
+    // Mock the cancelOrder to reject
+    mockCancelOrder.mockRejectedValueOnce(new Error('Cancellation failed'));
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsMarketTabs
+        {...defaultProps}
+        position={mockPosition}
+        unfilledOrders={[mockOrder]}
+      />,
+      { state: initialState },
+    );
+
+    // Switch to orders tab
+    fireEvent.press(getByTestId(PerpsMarketTabsSelectorsIDs.ORDERS_TAB));
+
+    // Trigger the cancel action
+    fireEvent.press(getByTestId('order-cancel-trigger'));
+
+    // Wait for the async call to complete
+    await waitFor(() => {
+      expect(mockCancelOrder).toHaveBeenCalledWith({
+        orderId: mockOrder.orderId,
+        coin: mockOrder.symbol,
+      });
+    });
+
+    // Reset the mock for other tests
+    mockCancelOrder.mockResolvedValue({});
+  });
 });
