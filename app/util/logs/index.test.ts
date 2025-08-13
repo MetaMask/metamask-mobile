@@ -46,6 +46,13 @@ jest.mock('../../core/Engine', () => ({
         isUnlocked: true,
       },
     },
+    SeedlessOnboardingController: {
+      state: {
+        userId: 'userId',
+        isSeedlessOnboardingUserAuthenticated: true,
+        passwordOutdatedCache: true,
+      },
+    },
   },
 }));
 
