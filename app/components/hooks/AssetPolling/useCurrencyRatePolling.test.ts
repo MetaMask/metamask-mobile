@@ -41,6 +41,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
               '0x89': {
                 chainId: '0x89',
@@ -50,6 +51,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId2',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
             },
           },
@@ -91,6 +93,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
               '0x89': {
                 chainId: '0x89',
@@ -100,6 +103,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId2',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
             },
           },
@@ -141,6 +145,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
               '0x89': {
                 chainId: '0x89',
@@ -150,6 +155,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId2',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
             },
           },
@@ -192,6 +198,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
               '0x89': {
                 nativeCurrency: 'POL',
@@ -201,6 +208,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId2',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
             },
           },
@@ -224,19 +232,10 @@ describe('useCurrencyRatePolling', () => {
       Engine.context.CurrencyRateController,
     );
 
-    expect(mockedCurrencyRateController.startPolling).toHaveBeenCalledTimes(2);
-    expect(mockedCurrencyRateController.startPolling).toHaveBeenNthCalledWith(
-      1,
-      {
-        nativeCurrencies: ['ETH'],
-      },
-    );
-    expect(mockedCurrencyRateController.startPolling).toHaveBeenNthCalledWith(
-      2,
-      {
-        nativeCurrencies: ['POL'],
-      },
-    );
+    expect(mockedCurrencyRateController.startPolling).toHaveBeenCalledTimes(1);
+    expect(mockedCurrencyRateController.startPolling).toHaveBeenCalledWith({
+      nativeCurrencies: ['ETH', 'POL'],
+    });
   });
 
   it('handles chain ids without matching network configurations', () => {
@@ -260,6 +259,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
             },
           },
@@ -312,6 +312,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
               '0x89': {
                 chainId: '0x89',
@@ -321,6 +322,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId2',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
               '0x5': {
                 chainId: '0x5',
@@ -330,6 +332,7 @@ describe('useCurrencyRatePolling', () => {
                     networkClientId: 'selectedNetworkClientId3',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
             },
           },
@@ -407,7 +410,7 @@ describe('useCurrencyRatePolling', () => {
 
       expect(
         jest.mocked(Engine.context.CurrencyRateController.startPolling),
-      ).toHaveBeenCalledWith({ nativeCurrencies: [] });
+      ).not.toHaveBeenCalled();
     });
 
     it('should handle missing network configurations gracefully', () => {
@@ -473,7 +476,7 @@ describe('useCurrencyRatePolling', () => {
 
       expect(
         jest.mocked(Engine.context.CurrencyRateController.startPolling),
-      ).toHaveBeenCalledWith({ nativeCurrencies: [] });
+      ).not.toHaveBeenCalled();
     });
   });
 });

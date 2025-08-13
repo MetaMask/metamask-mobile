@@ -81,16 +81,16 @@ describe('useAccountTrackerPolling', () => {
     );
 
     expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
-      2,
+      1,
     );
     expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-      networkClientIds: ['otherNetworkClientId'],
+      networkClientIds: ['selectedNetworkClientId', 'otherNetworkClientId'],
     });
 
     unmount();
     expect(
       mockedAccountTrackerController.stopPollingByPollingToken,
-    ).toHaveBeenCalledTimes(2);
+    ).toHaveBeenCalledTimes(1);
   });
 
   it('should use provided network client IDs when specified, even with portfolio view enabled', () => {
@@ -150,7 +150,7 @@ describe('useAccountTrackerPolling', () => {
                     chainId: '0x82750',
                     rpcEndpoints: [
                       {
-                        networkClientId: 'otherNetworkClientId',
+                        networkClientId: 'otherNetworkClientId2',
                       },
                     ],
                     defaultRpcEndpointIndex: 0,
@@ -236,20 +236,14 @@ describe('useAccountTrackerPolling', () => {
     );
 
     expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
-      2,
-    );
-    expect(mockedAccountTrackerController.startPolling).toHaveBeenNthCalledWith(
       1,
-      {
-        networkClientIds: ['specificNetworkClientId1'],
-      },
     );
-    expect(mockedAccountTrackerController.startPolling).toHaveBeenNthCalledWith(
-      2,
-      {
-        networkClientIds: ['specificNetworkClientId2'],
-      },
-    );
+    expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
+      networkClientIds: [
+        'specificNetworkClientId1',
+        'specificNetworkClientId2',
+      ],
+    });
   });
 
   describe('Feature flag scenarios', () => {
@@ -336,22 +330,20 @@ describe('useAccountTrackerPolling', () => {
       );
 
       expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledTimes(
-        3,
+        1,
       );
       expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-        networkClientIds: ['selectedNetworkClientId'],
-      });
-      expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-        networkClientIds: ['selectedNetworkClientId2'],
-      });
-      expect(mockedAccountTrackerController.startPolling).toHaveBeenCalledWith({
-        networkClientIds: ['selectedNetworkClientId3'],
+        networkClientIds: [
+          'selectedNetworkClientId',
+          'selectedNetworkClientId2',
+          'selectedNetworkClientId3',
+        ],
       });
 
       unmount();
       expect(
         mockedAccountTrackerController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(3);
+      ).toHaveBeenCalledTimes(1);
     });
 
     it('should poll current chain when portfolio view is disabled', () => {

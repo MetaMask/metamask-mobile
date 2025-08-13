@@ -42,6 +42,7 @@ describe('useTokenBalancesPolling', () => {
                   networkClientId: 'selectedNetworkClientId',
                 },
               ],
+              defaultRpcEndpointIndex: 0,
             },
             '0x89': {
               chainId: '0x89',
@@ -50,6 +51,16 @@ describe('useTokenBalancesPolling', () => {
                   networkClientId: 'selectedNetworkClientId2',
                 },
               ],
+              defaultRpcEndpointIndex: 0,
+            },
+            '0x5': {
+              chainId: '0x5',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId3',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
             },
           },
         },
@@ -97,7 +108,7 @@ describe('useTokenBalancesPolling', () => {
     ).toHaveBeenCalledTimes(1);
   });
 
-  it('should poll all network configurations when portfolio view is enabled and global selector is enabled', () => {
+  it('should poll all network configurations when portfolio view is enabled and global network selector is not removed', () => {
     jest.spyOn(networks, 'isPortfolioViewEnabled').mockReturnValue(true);
     jest
       .spyOn(networks, 'isRemoveGlobalNetworkSelectorEnabled')
@@ -187,6 +198,7 @@ describe('useTokenBalancesPolling', () => {
                         networkClientId: 'selectedNetworkClientId',
                       },
                     ],
+                    defaultRpcEndpointIndex: 0,
                   },
                 },
               },
@@ -288,8 +300,9 @@ describe('useTokenBalancesPolling', () => {
         Engine.context.TokenBalancesController,
       );
 
+      // We only poll multiple popular networks, custom networks do not included in multiple polling
       expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledTimes(
-        3,
+        2,
       );
       expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
         chainId: '0x1',
@@ -297,14 +310,11 @@ describe('useTokenBalancesPolling', () => {
       expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
         chainId: '0x89',
       });
-      expect(mockedTokenBalancesController.startPolling).toHaveBeenCalledWith({
-        chainId: '0x5',
-      });
 
       unmount();
       expect(
         mockedTokenBalancesController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(3);
+      ).toHaveBeenCalledTimes(2);
     });
 
     it('should poll current chain when portfolio view is disabled', () => {
@@ -357,6 +367,7 @@ describe('useTokenBalancesPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
                 '0x89': {
                   chainId: '0x89' as const,
@@ -365,6 +376,7 @@ describe('useTokenBalancesPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
                 '0xa': {
                   chainId: '0xa' as const,
@@ -373,6 +385,7 @@ describe('useTokenBalancesPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
               },
             },
