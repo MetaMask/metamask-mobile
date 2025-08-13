@@ -40,6 +40,56 @@ jest.mock('../../hooks/useHasExistingPosition', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePerpsAccount', () => ({
+  usePerpsAccount: () => ({
+    availableBalance: '1000.00',
+    totalBalance: '1000.00',
+    marginUsed: '0.00',
+    unrealizedPnl: '0.00',
+  }),
+}));
+
+jest.mock('../../providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+  usePerpsConnection: () => ({
+    isConnected: true,
+    isConnecting: false,
+    error: null,
+  }),
+}));
+
+jest.mock('../../hooks/usePerpsOpenOrders', () => ({
+  usePerpsOpenOrders: () => ({
+    orders: [],
+    refresh: jest.fn(),
+    isLoading: false,
+    error: null,
+  }),
+}));
+
+jest.mock('../../hooks/usePerpsMarketStats', () => ({
+  usePerpsMarketStats: () => ({
+    currentPrice: '$45,000.00',
+    priceChange24h: '+$1,125.00',
+    high24h: '$46,000.00',
+    low24h: '$44,000.00',
+    volume24h: '$1.23B',
+    openInterest: '$500M',
+    fundingRate: '+0.01%',
+    fundingCountdown: '5h 30m',
+    refresh: jest.fn(),
+  }),
+}));
+
+jest.mock('../../hooks/usePerpsPositionData', () => ({
+  usePerpsPositionData: () => ({
+    candleData: [],
+    isLoadingHistory: false,
+    error: null,
+  }),
+}));
+
 // Mock PerpsBottomSheetTooltip to avoid SafeAreaProvider issues
 jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
