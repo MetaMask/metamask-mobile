@@ -12,7 +12,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
-import AggregatedPortfolioChange from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPortfolioChange';
+import AccountGroupBalanceChange from '../../../Assets/BalanceChange/AccountGroupBalanceChange';
 import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
 import {
   selectBalanceForAllWallets,
@@ -117,7 +117,7 @@ export const PortfolioBalance = () => {
 
     if (isMultichainState2Enabled && portfolioChange1d) {
       return (
-        <AggregatedPortfolioChange
+        <AccountGroupBalanceChange
           privacyMode={privacyMode}
           amountChangeInUserCurrency={
             portfolioChange1d.amountChangeInUserCurrency
