@@ -16,19 +16,13 @@ import { QuickActionButtonProps } from './QuickActionButton.types';
  */
 const QuickActionButton: React.FC<QuickActionButtonProps> = ({
   children,
-  onPress,
-  isDisabled = false,
   variant = ButtonVariant.Secondary,
   size = ButtonSize.Lg,
-  testID,
   ...props
 }) => (
   <Button
     variant={variant}
     size={size}
-    testID={testID}
-    onPress={onPress}
-    isDisabled={isDisabled}
     isFullWidth
     {...props}
     twClassName={`px-2 min-w-0 ${props.twClassName || ''}`}
