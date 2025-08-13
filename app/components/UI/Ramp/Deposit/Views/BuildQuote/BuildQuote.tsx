@@ -3,6 +3,8 @@ import { View, TouchableOpacity, InteractionManager } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
+import { Hex, isHexString } from '@metamask/utils';
 
 import styleSheet from './BuildQuote.styles';
 
@@ -66,7 +68,7 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import Logger from '../../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
-import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+import { selectNetworkConfigurations , selectChainId } from '../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
@@ -114,6 +116,7 @@ const BuildQuote = () => {
     });
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+  const chainId = useSelector(selectChainId);
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
@@ -197,6 +200,36 @@ const BuildQuote = () => {
     supportedTokens,
     setCryptoCurrency,
   ]);
+
+  useEffect(() => {
+    if (supportedTokens.length > 0) {
+      let caipChainId;
+      if (isHexString(chainId)) {
+        caipChainId = toEvmCaipChainId(chainId as Hex);
+      } else {
+        caipChainId = chainId;
+      }
+
+      if (cryptoCurrency.chainId !== caipChainId) {
+        const token = supportedTokens.find(
+          (supportedToken) => supportedToken.chainId === caipChainId,
+        );
+        if (token) {
+          setCryptoCurrency(token);
+          return;
+        }
+      }
+
+      if (
+        !supportedTokens.some(
+          (token) => token.assetId === cryptoCurrency.assetId,
+        )
+      ) {
+        setCryptoCurrency(supportedTokens[0]);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chainId, supportedTokens]);
 
   const handleRegionPress = useCallback(() => {
     navigation.navigate(...createRegionSelectorModalNavigationDetails());
@@ -380,31 +413,29 @@ const BuildQuote = () => {
   ]);
 
   const handleKeypadChange = useCallback(
-    (data: { value: string; valueAsNumber: number; pressedKey: string }) => {
+    ({
+      value,
+      valueAsNumber,
+    }: {
+      value: string;
+      valueAsNumber: number;
+      pressedKey: string;
+    }) => {
       setError(null);
-      setAmount(data.value || '0');
-      setAmountAsNumber(data.valueAsNumber || 0);
+      setAmount(value || '0');
+      setAmountAsNumber(valueAsNumber || 0);
     },
     [],
   );
 
   const handleCryptoPress = useCallback(
-    () =>
-      navigation.navigate(
-        ...createTokenSelectorModalNavigationDetails({
-          selectedAssetId: cryptoCurrency.assetId,
-        }),
-      ),
-    [cryptoCurrency.assetId, navigation],
+    () => navigation.navigate(...createTokenSelectorModalNavigationDetails()),
+    [navigation],
   );
 
   const handlePaymentMethodPress = useCallback(() => {
-    navigation.navigate(
-      ...createPaymentMethodSelectorModalNavigationDetails({
-        selectedPaymentMethodId: paymentMethod.id,
-      }),
-    );
-  }, [paymentMethod.id, navigation]);
+    navigation.navigate(...createPaymentMethodSelectorModalNavigationDetails());
+  }, [navigation]);
 
   const networkName = allNetworkConfigurations[cryptoCurrency.chainId]?.name;
   const networkImageSource = getNetworkImageSource({
