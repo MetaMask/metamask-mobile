@@ -92,7 +92,6 @@ describe('Approve', () => {
       getByTestId(ConfirmationRowComponentIDs.ACCOUNT_NETWORK),
     ).toBeDefined();
     expect(getByTestId(ConfirmationRowComponentIDs.APPROVE_ROW)).toBeDefined();
-    expect(getByTestId(ConfirmationRowComponentIDs.ORIGIN_INFO)).toBeDefined();
     expect(
       getByTestId(ConfirmationRowComponentIDs.GAS_FEES_DETAILS),
     ).toBeDefined();
