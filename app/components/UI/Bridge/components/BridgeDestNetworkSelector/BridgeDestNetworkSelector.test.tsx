@@ -1,5 +1,6 @@
 import { initialState } from '../../_mocks_/initialState';
 import { fireEvent } from '@testing-library/react-native';
+import Engine from '../../../../../core/Engine';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { BridgeDestNetworkSelector } from '.';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -27,6 +28,16 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     setSelectedDestChainId: jest.fn(actual.setSelectedDestChainId),
   };
 });
+
+jest.mock('../../../../../core/Engine', () => ({
+  context: {
+    NetworkEnablementController: {
+      enableNetwork: jest.fn(),
+    },
+  },
+}));
+
+jest.mocked(Engine);
 
 describe('BridgeDestNetworkSelector', () => {
   const mockChainId = '0x1' as Hex;
