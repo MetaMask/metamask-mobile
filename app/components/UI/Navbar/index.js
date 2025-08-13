@@ -1049,57 +1049,6 @@ export function getWalletNavbarOptions(
     navigation.navigate(Routes.CARD.ROOT);
   };
 
-  // Action buttons for right side
-  const actionButtons = (
-    <View style={innerStyles.actionButtonsContainer}>
-      <View testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}>
-        <AddressCopy
-          account={selectedInternalAccount}
-          hitSlop={innerStyles.touchAreaSlop}
-        />
-      </View>
-      {isCardholder ? (
-        <CardButton
-          onPress={handleCardPress}
-          touchAreaSlop={innerStyles.touchAreaSlop}
-        />
-      ) : null}
-      {isNotificationsFeatureEnabled() && (
-        <BadgeWrapper
-          position={BadgeWrapperPosition.TopRight}
-          positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-          badge={
-            isNotificationEnabled && unreadNotificationCount > 0 ? (
-              <BadgeStatus status={BadgeStatusStatus.Active} />
-            ) : null
-          }
-        >
-          <ButtonIcon
-            iconProps={{ color: MMDSIconColor.Default }}
-            onPress={handleNotificationOnPress}
-            iconName={IconName.Notification}
-            size={ButtonIconSize.Lg}
-            testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-            hitSlop={innerStyles.touchAreaSlop}
-          />
-        </BadgeWrapper>
-      )}
-    </View>
-  );
-
-  // Network picker component
-  const networkPicker = (
-    <PickerNetwork
-      onPress={onPressTitle}
-      label={networkName}
-      imageSource={networkImageSource}
-      testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-      hideNetworkName
-      hitSlop={innerStyles.touchAreaSlop}
-      style={innerStyles.networkPickerStyle}
-    />
-  );
-
   return {
     header: () => (
       <HeaderBase
@@ -1126,7 +1075,50 @@ export function getWalletNavbarOptions(
           )
         }
         endAccessory={
-          <View style={innerStyles.endAccessoryContainer}>{actionButtons}</View>
+          <View style={innerStyles.endAccessoryContainer}>
+            {
+              <View style={innerStyles.actionButtonsContainer}>
+                <View
+                  testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+                >
+                  <AddressCopy
+                    account={selectedInternalAccount}
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                </View>
+                {isCardholder ? (
+                  <CardButton
+                    onPress={handleCardPress}
+                    touchAreaSlop={innerStyles.touchAreaSlop}
+                  />
+                ) : null}
+                {isNotificationsFeatureEnabled() && (
+                  <BadgeWrapper
+                    position={BadgeWrapperPosition.TopRight}
+                    positionAnchorShape={
+                      BadgeWrapperPositionAnchorShape.Circular
+                    }
+                    badge={
+                      isNotificationEnabled && unreadNotificationCount > 0 ? (
+                        <BadgeStatus status={BadgeStatusStatus.Active} />
+                      ) : null
+                    }
+                  >
+                    <ButtonIcon
+                      iconProps={{ color: MMDSIconColor.Default }}
+                      onPress={handleNotificationOnPress}
+                      iconName={IconName.Notification}
+                      size={ButtonIconSize.Lg}
+                      testID={
+                        WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
+                      }
+                      hitSlop={innerStyles.touchAreaSlop}
+                    />
+                  </BadgeWrapper>
+                )}
+              </View>
+            }
+          </View>
         }
       >
         <PickerAccount
