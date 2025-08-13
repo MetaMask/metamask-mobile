@@ -16,6 +16,7 @@ import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import BN from 'bnjs4';
 
 export const isSendRedesignEnabled = () =>
   process.env.MM_SEND_REDESIGN_ENABLED === 'true';
@@ -133,3 +134,18 @@ export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
   }
   return '0';
 }
+
+export const toBNWithDecimals = (num: string, decimals: number) =>
+  new BN(num.toString().replace('.', '')).mul(
+    new BN(10).pow(
+      new BN(decimals - (num.toString().split('.')[1] || '').length),
+    ),
+  );
+
+export const fromBNWithDecimals = (bnValue: BN, decimals: number) => {
+  const base = new BN(10).pow(new BN(decimals));
+  const intPart = bnValue.div(base).toString();
+  const fracPart = bnValue.mod(base).toString().padStart(decimals, '0');
+  const trimmedFrac = fracPart.replace(/0+$/, '');
+  return trimmedFrac ? `${intPart}.${trimmedFrac}` : intPart;
+};
