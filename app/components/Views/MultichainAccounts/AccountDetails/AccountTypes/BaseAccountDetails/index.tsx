@@ -38,7 +38,7 @@ import { AccountDetailsIds } from '../../../../../../../e2e/selectors/Multichain
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
 import { selectWalletByAccount } from '../../../../../../selectors/multichainAccounts/accountTreeController';
-import { selectGroupIdByAccountId } from '../../../../../../selectors/multichainAccounts/accountGroup';
+import { selectGroupIdByAccountId } from '../../../../../../selectors/multichainAccounts/accounts';
 import { selectMultichainAccountsState2Enabled } from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 
 interface BaseAccountDetailsProps {
