@@ -1,5 +1,5 @@
 import { Connection } from '../types/connection';
-import { IHostApplicationAdapter } from './IHostApplicationAdapter';
+import { IHostApplicationAdapter } from '../types/host-application-adapter';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showConnectionApproval(

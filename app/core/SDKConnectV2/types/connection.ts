@@ -1,9 +1,8 @@
 // HACK: Using relative paths to local vendored packages.
 // The module resolver will use the package.json inside these folders to find the correct types in 'dist/'.
 // TODO: Replace with published packages once available.
-import { Session } from '../vendor/core';
-import { WalletClient } from '../vendor/wallet-client';
-
+import { Session } from '../vendor/core/dist';
+import { WalletClient } from '../vendor/wallet-client/dist';
 import { BackgroundBridge } from '../../BackgroundBridge/BackgroundBridge';
 import { DappMetadata } from './dapp-metadata';
 
