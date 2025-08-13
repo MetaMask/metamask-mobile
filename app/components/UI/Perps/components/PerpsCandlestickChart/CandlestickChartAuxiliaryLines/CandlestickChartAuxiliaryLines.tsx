@@ -173,7 +173,7 @@ const CandlestickChartAuxiliaryLines: React.FC<
               styles.line,
               {
                 top: line.position,
-                width: chartWidth - 20, // Match the chart width
+                width: chartWidth - 65, // Match the chart width
               },
             ]}
           >

@@ -11,7 +11,7 @@ export const styleSheet = () =>
       height: 40, // Increased height to accommodate two lines
       marginTop: 4,
       marginBottom: 8,
-      // paddingRight: 50, // Match the chart's right padding to align with rightmost candle
+      paddingRight: 50, // Match the chart's right padding to align with rightmost candle
     },
     timeLabel: {
       position: 'absolute',

@@ -439,7 +439,7 @@ describe('CandlestickChartComponent', () => {
         PerpsCandlestickChartSelectorsIDs.CONTAINER,
       );
       expect(chart).toHaveProp('data-height', 280);
-      expect(chart).toHaveProp('data-width', 750);
+      expect(chart).toHaveProp('data-width', 685);
     });
 
     it('handles missing candle data gracefully', () => {

@@ -7,15 +7,16 @@ export const styleSheet = () =>
       top: 0,
       left: 0,
       right: 0,
-      zIndex: -1, // Hide grid lines behind the candles
+      zIndex: 1,
       pointerEvents: 'none',
     },
     gridPriceLabel: {
       position: 'absolute',
-      right: 0,
+      right: 4,
       paddingHorizontal: 4,
       paddingVertical: 2,
       borderRadius: 4,
+      minWidth: 60,
       zIndex: 10,
     },
   });
