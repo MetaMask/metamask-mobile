@@ -1,4 +1,4 @@
-import type { Position, Order } from '../../controllers/types';
+import type { Position, Order, PriceUpdate } from '../../controllers/types';
 import { usePerpsMarketStats } from '../../hooks';
 
 export interface TabViewProps {
@@ -12,4 +12,5 @@ export interface MarketDetailsTabsProps {
   unfilledOrders: Order[];
   onPositionUpdate?: () => Promise<void>;
   onActiveTabChange?: (tabId: string) => void;
+  priceData?: PriceUpdate | null;
 }

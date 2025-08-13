@@ -99,7 +99,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
   // Get candlestick data
-  const { candleData, isLoadingHistory, refreshCandleData } =
+  const { candleData, isLoadingHistory, priceData, refreshCandleData } =
     usePerpsPositionData({
       coin: market?.symbol || '',
       selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
@@ -280,6 +280,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             unfilledOrders={openOrders}
             onPositionUpdate={refreshPosition}
             onActiveTabChange={setActiveTabId}
+            priceData={priceData}
           />
         </View>
 
