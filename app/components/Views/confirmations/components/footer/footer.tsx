@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
+import { useNavigation } from '@react-navigation/native';
 
 import { ConfirmationFooterSelectorIDs } from '../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,6 +29,7 @@ import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmat
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { isStakingConfirmation } from '../../utils/confirm';
 import styleSheet from './footer.styles';
+import Routes from '../../../../../constants/navigation/Routes';
 
 export const Footer = () => {
   const {
@@ -50,6 +52,7 @@ export const Footer = () => {
   );
   const { isFooterVisible, isTransactionValueUpdating } =
     useConfirmationContext();
+  const navigation = useNavigation();
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
@@ -69,8 +72,12 @@ export const Footer = () => {
 
   const onHandleConfirm = useCallback(async () => {
     hideConfirmAlertModal();
-    await onConfirm();
-  }, [hideConfirmAlertModal, onConfirm]);
+    try {
+      await onConfirm();
+    } catch (error) {
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    }
+  }, [hideConfirmAlertModal, onConfirm, navigation]);
 
   const onSignConfirm = useCallback(async () => {
     if (hasDangerAlerts) {

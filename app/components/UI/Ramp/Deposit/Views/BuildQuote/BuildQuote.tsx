@@ -79,7 +79,7 @@ import {
   USD_CURRENCY,
   DepositFiatCurrency,
   EUR_CURRENCY,
-  APPLE_PAY_PAYMENT_METHOD,
+  DEBIT_CREDIT_PAYMENT_METHOD,
 } from '../../constants';
 import {
   createNavigationDetails,
@@ -108,7 +108,7 @@ const BuildQuote = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
-    APPLE_PAY_PAYMENT_METHOD,
+    DEBIT_CREDIT_PAYMENT_METHOD,
   );
   const [cryptoCurrency, setCryptoCurrency] =
     useState<DepositCryptoCurrency>(USDC_TOKEN);
@@ -640,11 +640,13 @@ const BuildQuote = () => {
           </TouchableOpacity>
 
           <Keypad
-            style={styles.keypad}
             value={amount}
             onChange={handleKeypadChange}
             currency={fiatCurrency.symbol}
             decimals={0}
+            periodButtonProps={{
+              isDisabled: true,
+            }}
           />
         </ScreenLayout.Content>
       </ScreenLayout.Body>

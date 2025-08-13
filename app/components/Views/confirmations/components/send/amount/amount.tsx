@@ -16,6 +16,7 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { formatToFixedDecimals } from '../../../utils/send';
@@ -24,6 +25,7 @@ import { useBalance } from '../../../hooks/send/useBalance';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendContext } from '../../../context/send-context';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { AmountKeyboard } from './amount-keyboard';
 import { styleSheet } from './amount.styles';
 
@@ -44,6 +46,7 @@ export const Amount = () => {
     inputError: insufficientBalance ?? false,
   });
   useRouteParams();
+  useSendNavbar({ currentRoute: Routes.SEND.AMOUNT });
 
   useEffect(() => {
     setFiatMode(primaryCurrency === 'Fiat');

@@ -239,7 +239,6 @@ jest.mock('./PerpsLimitPriceBottomSheet.styles', () => ({
       alignItems: 'center',
     },
     keypadContainer: { marginBottom: 16, padding: 0 },
-    keypad: { paddingHorizontal: 0 },
     footerContainer: { paddingHorizontal: 16, paddingBottom: 24 },
   }),
 }));

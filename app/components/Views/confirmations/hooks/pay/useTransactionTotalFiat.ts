@@ -18,7 +18,7 @@ export function useTransactionTotalFiat() {
   const gasCost = useGasCost();
   const quotesGasCost = useQuotesGasCost();
   const fiatFormatter = useFiatFormatter();
-  const { totalWithBalanceFiat: quotesCost } = useTransactionRequiredFiat();
+  const { totalFiat: quotesCost } = useTransactionRequiredFiat();
 
   const value = gasCost + quotesGasCost + quotesCost;
   const formatted = fiatFormatter(new BigNumber(value));

@@ -9,10 +9,12 @@ import Input from '../../../../../../component-library/components/Form/TextField
 import Text, {
   TextColor,
 } from '../../../../../../component-library/components/Texts/Text';
+import Routes from '../../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useSendActions } from '../../../hooks/send/useSendActions';
 import { useSendContext } from '../../../context/send-context';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { styleSheet } from './send-to.styles';
 
 export const SendTo = () => {
@@ -20,6 +22,7 @@ export const SendTo = () => {
   const { to, updateTo } = useSendContext();
   const { toAddressError, toAddressWarning } = useToAddressValidation();
   const { handleSubmitPress } = useSendActions();
+  useSendNavbar({ currentRoute: Routes.SEND.RECIPIENT });
 
   return (
     <View>
