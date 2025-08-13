@@ -43,7 +43,7 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
     isSeedlessOnboardingUserAuthenticated,
     passwordOutdatedCache,
     socialBackupsMetadata: (socialBackupsMetadata ?? []).map((item) => {
-      const { type, keyringId } = item;
+      const { type, keyringId } = item ?? {};
       return {
         keyringId,
         type,
@@ -51,7 +51,10 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
     }),
 
     // return node index only
-    nodeAuthTokens: (nodeAuthTokens ?? []).map((item) => item.nodeIndex),
+    nodeAuthTokens: (nodeAuthTokens ?? []).map((item) => {
+      const { nodeIndex } = item ?? {};
+      return nodeIndex;
+    }),
 
     // Return Boolean for state availablity of sensitive data
     vault: Boolean(vault),
