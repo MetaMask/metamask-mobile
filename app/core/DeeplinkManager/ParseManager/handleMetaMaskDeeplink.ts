@@ -41,8 +41,8 @@ export function handleMetaMaskDeeplink({
     return;
   }
 
-  if (url.includes('v=2') && url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
-    DevLogger.log(`[DeeplinkManager] V2 protocol deeplink detected. Routing to SDKConnectV2.`, url);
+  if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`)) {
+    DevLogger.log(`DeeplinkManager:: Mobile Web Protocol deeplink detected. Routing to SDKConnectV2.`, url);
     SDKConnectV2.handleConnectDeeplink(url);
     return;
   }
