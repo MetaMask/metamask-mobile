@@ -1,3 +1,4 @@
+import BN from 'bnjs4';
 import { BNToHex, toHex } from '@metamask/controller-utils';
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -16,7 +17,6 @@ import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
-import BN from 'bnjs4';
 
 export const isSendRedesignEnabled = () =>
   process.env.MM_SEND_REDESIGN_ENABLED === 'true';
