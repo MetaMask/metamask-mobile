@@ -34,14 +34,18 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
     refreshToken,
     revokeToken,
     authPubKey,
+    authConnectionId,
   } = SeedlessOnboardingController.state ?? {};
 
   return {
     userId,
     socialLoginEmail,
     authConnection,
+    authConnectionId,
     isSeedlessOnboardingUserAuthenticated,
     passwordOutdatedCache,
+    authPubKey,
+
     socialBackupsMetadata: (socialBackupsMetadata ?? []).map((item) => {
       const { type, keyringId } = item ?? {};
       return {
@@ -50,10 +54,13 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
       };
     }),
 
-    // return node index only
+    // return node index and nodePubKey only
     nodeAuthTokens: (nodeAuthTokens ?? []).map((item) => {
-      const { nodeIndex } = item ?? {};
-      return nodeIndex;
+      const { nodeIndex, nodePubKey } = item ?? {};
+      return {
+        nodeIndex,
+        nodePubKey,
+      };
     }),
 
     // Return Boolean for state availablity of sensitive data
@@ -66,7 +73,6 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
     accessToken: Boolean(accessToken),
     refreshToken: Boolean(refreshToken),
     revokeToken: Boolean(revokeToken),
-    authPubKey: Boolean(authPubKey),
   };
 };
 

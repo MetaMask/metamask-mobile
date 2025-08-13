@@ -447,15 +447,18 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "SeedlessOnboardingController": {
         "accessToken": false,
-        "authPubKey": false,
         "encryptedKeyringEncryptionKey": false,
         "encryptedSeedlessEncryptionKey": false,
         "isSeedlessOnboardingUserAuthenticated": true,
         "metadataAccessToken": false,
         "nodeAuthTokens": [
-          1,
-          2,
-          null,
+          {
+            "nodeIndex": 1,
+          },
+          {
+            "nodeIndex": 2,
+          },
+          {},
         ],
         "refreshToken": false,
         "revokeToken": false,
