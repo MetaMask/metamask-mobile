@@ -9,6 +9,7 @@ import { AccountId } from '@metamask/accounts-controller';
 import {
   AccountWalletObject,
   AccountGroupObject,
+  AccountTreeControllerState,
 } from '@metamask/account-tree-controller';
 
 // Stable empty references to prevent unnecessary re-renders
@@ -204,4 +205,17 @@ export const selectSelectedAccountGroup = createSelector(
 
     return accountToGroupMap[selectedAccountId] ?? null;
   },
+);
+
+/**
+ * Selector to get the currently selected account group from the AccountTreeController state.
+ * This selector retrieves the selected account group ID from the account tree state.
+ *
+ * @param state - The Redux root state
+ * @returns The currently selected account group ID or null if none is found
+ */
+export const selectSelectedAccountGroupId = createSelector(
+  [selectAccountTreeControllerState],
+  (accountTreeState: AccountTreeControllerState) =>
+    accountTreeState?.accountTree?.selectedAccountGroup || null,
 );
