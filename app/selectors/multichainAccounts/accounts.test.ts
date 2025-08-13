@@ -13,7 +13,6 @@ import {
   getWalletIdFromAccountGroup,
   selectSelectedInternalAccountByScope,
   selectInternalAccountByAccountGroupAndScope,
-  selectGroupIdByAccountId,
   selectInternalAccountsByGroupId,
   selectInternalAccountListSpreadByScopesByGroupId,
 } from './accounts';
@@ -969,73 +968,6 @@ describe('accounts selectors', () => {
         const secondBtcResult = selector(BITCOIN_SCOPE, secondEntropyGroup);
         expect(secondBtcResult).toEqual(secondBtcAccount);
       });
-    });
-  });
-
-  describe('selectGroupIdByAccountId', () => {
-    it('returns undefined when AccountTreeController is undefined', () => {
-      const mockState = createMockState(undefined);
-      const selector = selectGroupIdByAccountId(mockState);
-      const result = selector(ACCOUNT_ID_1);
-      expect(result).toBeUndefined();
-    });
-
-    it('returns undefined when account ID does not exist in any group', () => {
-      const mockState = createMockState({
-        accountTree: {
-          wallets: {
-            [WALLET_ID_1]: {
-              id: WALLET_ID_1,
-              metadata: { name: 'Wallet 1' },
-              groups: {
-                [ACCOUNT_GROUP_ID_1]: {
-                  accounts: [ACCOUNT_ID_1],
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const selector = selectGroupIdByAccountId(mockState);
-      const result = selector(ACCOUNT_ID_2);
-      expect(result).toBeUndefined();
-    });
-
-    it('returns correct group ID for given account ID', () => {
-      const mockState = createMockState({
-        accountTree: {
-          wallets: {
-            [WALLET_ID_1]: {
-              id: WALLET_ID_1,
-              metadata: { name: 'Wallet 1' },
-              groups: {
-                [ACCOUNT_GROUP_ID_1]: {
-                  accounts: [ACCOUNT_ID_1],
-                  id: ACCOUNT_GROUP_ID_1,
-                },
-              },
-            },
-            [WALLET_ID_2]: {
-              id: WALLET_ID_2,
-              metadata: { name: 'Wallet 2' },
-              groups: {
-                [ACCOUNT_GROUP_ID_2]: {
-                  accounts: [ACCOUNT_ID_2],
-                  id: ACCOUNT_GROUP_ID_2,
-                },
-              },
-            },
-          },
-        },
-      });
-
-      const selector = selectGroupIdByAccountId(mockState);
-      const result1 = selector(ACCOUNT_ID_1);
-      expect(result1).toBe(ACCOUNT_GROUP_ID_1);
-
-      const result2 = selector(ACCOUNT_ID_2);
-      expect(result2).toBe(ACCOUNT_GROUP_ID_2);
     });
   });
 

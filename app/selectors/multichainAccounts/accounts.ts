@@ -224,41 +224,6 @@ export const selectInternalAccountByAccountGroupAndScope =
   );
 
 /**
- * Selector to get the group ID for a specific account ID.
- *
- * This selector retrieves the group ID for a given account ID by searching through
- * all wallets and their groups in the AccountTreeController state. It returns the
- * group ID if found, or undefined if the account does not belong to any group.
- *
- * Note: This is a temporary selector that should be later deprecated
- *
- * @param state - The Redux root state
- * @param accountId - The ID of the account to find the group for
- * @returns A function that takes an account ID and returns its group ID or undefined
- */
-export const selectGroupIdByAccountId = createDeepEqualSelector(
-  [selectAccountTreeControllerState],
-  (accountTreeState: AccountTreeControllerState) =>
-    (accountId: AccountId): AccountGroupId | undefined => {
-      if (!accountTreeState?.accountTree?.wallets) {
-        return undefined;
-      }
-
-      for (const wallet of Object.values(
-        accountTreeState.accountTree.wallets,
-      )) {
-        for (const group of Object.values(wallet.groups)) {
-          if (group.accounts.includes(accountId)) {
-            return group.id;
-          }
-        }
-      }
-
-      return undefined;
-    },
-);
-
-/**
  * Selector to get internal accounts by group ID.
  * This selector retrieves all internal accounts associated with a specific account group ID.
  *
