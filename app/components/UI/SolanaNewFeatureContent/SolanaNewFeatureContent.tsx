@@ -86,19 +86,11 @@ const SolanaNewFeatureContent = () => {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.wrapper}>
-          <Text
-            style={styles.title}
-            variant={TextVariant.HeadingLG}
-            color={importedColors.gettingStartedTextColor}
-          >
+          <Text style={styles.title} variant={TextVariant.HeadingLG}>
             {strings('solana_new_feature_content.title')}
           </Text>
           <View style={styles.ctas}>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={importedColors.gettingStartedTextColor}
-              style={styles.titleDescription}
-            >
+            <Text variant={TextVariant.BodyMD} style={styles.titleDescription}>
               {strings('solana_new_feature_content.title_description')}
             </Text>
 
