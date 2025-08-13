@@ -410,6 +410,104 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
     });
 
+    it('should edit a market order with slippage calculation', async () => {
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          slippage: 0.02, // 2% slippage
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      expect(result.success).toBe(true);
+      expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+    });
+
+    it('should handle editOrder when asset is not found', async () => {
+      (
+        mockClientService.getInfoClient().meta as jest.Mock
+      ).mockResolvedValueOnce({
+        universe: [], // Empty universe - asset not found
+      });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          coin: 'UNKNOWN',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'limit',
+          price: '50000',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Asset UNKNOWN not found');
+    });
+
+    it('should handle editOrder when no price is available', async () => {
+      (
+        mockClientService.getInfoClient().allMids as jest.Mock
+      ).mockResolvedValueOnce({}); // Empty price data
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('No price available for BTC');
+    });
+
+    it('should handle editOrder when asset ID is not found', async () => {
+      // Create a spy on the coinToAssetId.get method to return undefined for BTC
+      // eslint-disable-next-line dot-notation
+      const originalGet = provider['coinToAssetId'].get;
+      jest
+        // eslint-disable-next-line dot-notation
+        .spyOn(provider['coinToAssetId'], 'get')
+        .mockImplementation((coin) => {
+          if (coin === 'BTC') {
+            return undefined; // Simulate BTC not found in mapping
+          }
+          // eslint-disable-next-line dot-notation
+          return originalGet.call(provider['coinToAssetId'], coin);
+        });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'limit',
+          price: '50000',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Asset ID not found for BTC');
+
+      // Restore the original method
+      jest.restoreAllMocks();
+    });
+
     it('should cancel an order successfully', async () => {
       const cancelParams = {
         orderId: '123',
