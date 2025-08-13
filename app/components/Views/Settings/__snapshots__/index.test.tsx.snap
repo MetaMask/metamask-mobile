@@ -766,6 +766,7 @@ exports[`Settings should render correctly 1`] = `
     </TouchableOpacity>
     <TouchableOpacity
       onPress={[Function]}
+      testID="snaps"
     >
       <View
         accessibilityRole="none"

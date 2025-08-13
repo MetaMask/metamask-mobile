@@ -166,6 +166,7 @@ describe('NetworkMultiSelector', () => {
       disableNetwork: jest.fn(),
       toggleNetwork: jest.fn(),
       isNetworkEnabled: jest.fn(),
+      hasOneEnabledNetwork: false,
     });
 
     mockUseNetworksByNamespace.mockReturnValue({
@@ -304,6 +305,7 @@ describe('NetworkMultiSelector', () => {
         disableNetwork: jest.fn(),
         toggleNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       const { queryByTestId } = render(
@@ -337,6 +339,7 @@ describe('NetworkMultiSelector', () => {
         disableNetwork: jest.fn(),
         toggleNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       const { getByTestId } = render(
@@ -393,6 +396,7 @@ describe('NetworkMultiSelector', () => {
         disableNetwork: jest.fn(),
         toggleNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       const { getByTestId } = render(

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { Box, Text } from '@metamask/design-system-react-native';
 
@@ -6,6 +6,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import TabBar from '../../../../../../component-library/components-temp/TabBar/TabBar';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import { TextFieldSize } from '../../../../../../component-library/components/Form/TextField/TextField.types';
+import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
 import { useSelectedEVMAccountTokens } from '../../../hooks/send/evm/useSelectedEVMAccountTokens';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
 import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
@@ -15,7 +16,27 @@ export const Asset = () => {
   const tokens = useSelectedEVMAccountTokens();
   const { searchQuery, setSearchQuery, filteredTokens, clearSearch } =
     useTokenSearch(tokens);
+  const {
+    setAssetListSize,
+    setNoneAssetFilterMethod,
+    setSearchAssetFilterMethod,
+  } = useAssetSelectionMetrics();
+
   useSendNavbar({ currentRoute: Routes.SEND.ASSET });
+
+  useEffect(() => {
+    setAssetListSize(
+      filteredTokens?.length ? filteredTokens?.length.toString() : '',
+    );
+  }, [filteredTokens, setAssetListSize]);
+
+  useEffect(() => {
+    if (searchQuery.length) {
+      setSearchAssetFilterMethod();
+    } else {
+      setNoneAssetFilterMethod();
+    }
+  }, [searchQuery, setNoneAssetFilterMethod, setSearchAssetFilterMethod]);
 
   return (
     <Box twClassName="flex-1 px-4">
