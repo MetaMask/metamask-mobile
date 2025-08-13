@@ -3,7 +3,6 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import {
   selectAppServicesReady,
-  selectIsConnectionRemoved,
   selectUserLoggedIn,
   selectUserState,
 } from './selectors';
@@ -13,7 +12,6 @@ const mockState = {
   user: {
     appServicesReady: false,
     userLoggedIn: true,
-    isConnectionRemoved: false,
   },
 };
 
@@ -44,23 +42,6 @@ describe('user state selectors', () => {
   describe('selectUserLoggedIn', () => {
     it('should return true when user is logged in', () => {
       const { result } = renderHook(() => useSelector(selectUserLoggedIn));
-      expect(result.current).toBe(true);
-    });
-  });
-
-  describe('selectIsConnectionRemoved', () => {
-    it('should return false when user change password less than 20 times', () => {
-      const { result } = renderHook(() =>
-        useSelector(selectIsConnectionRemoved),
-      );
-      expect(result.current).toBe(false);
-    });
-
-    it('should return true when user change password more than 20 times', () => {
-      mockState.user.isConnectionRemoved = true;
-      const { result } = renderHook(() =>
-        useSelector(selectIsConnectionRemoved),
-      );
       expect(result.current).toBe(true);
     });
   });

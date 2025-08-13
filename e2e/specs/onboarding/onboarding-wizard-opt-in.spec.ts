@@ -17,7 +17,7 @@ import {
 } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 import { MockttpServer } from 'mockttp';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
+import { getMockServerPort } from '../../fixtures/utils';
 import { startMockServer } from '../../api-mocking/mock-server';
 import Utilities from '../../utils/Utilities';
 

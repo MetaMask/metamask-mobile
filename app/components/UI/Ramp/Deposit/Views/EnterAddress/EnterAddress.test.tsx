@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
-import EnterAddress, { AddressFormData } from './EnterAddress';
+import EnterAddress from './EnterAddress';
 import Routes from '../../../../../../constants/navigation/Routes';
 
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
@@ -30,7 +30,6 @@ let mockUseParamsReturnValue: {
   formData: BasicInfoFormData;
   quote: BuyQuote;
   kycUrl?: string;
-  previousFormData?: BasicInfoFormData & AddressFormData;
 } = {
   formData: mockFormData,
   quote: mockQuote,
@@ -416,31 +415,5 @@ describe('EnterAddress Component', () => {
     await waitFor(() => {
       expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
-  });
-
-  it('prefills form data when previousFormData is provided', () => {
-    const mockPreviousFormData = {
-      firstName: 'John',
-      lastName: 'Doe',
-      mobileNumber: '+1234567890',
-      dob: '1993-03-25T00:00:00.000Z',
-      ssn: '123456789',
-      addressLine1: '456 Oak Street',
-      addressLine2: 'Apt 2B',
-      city: 'New York',
-      state: 'NY',
-      postCode: '10002',
-      countryCode: 'US',
-    };
-
-    mockUseParamsReturnValue = {
-      formData: mockFormData,
-      quote: mockQuote,
-      previousFormData: mockPreviousFormData,
-    };
-
-    render(EnterAddress);
-
-    expect(screen.toJSON()).toMatchSnapshot();
   });
 });

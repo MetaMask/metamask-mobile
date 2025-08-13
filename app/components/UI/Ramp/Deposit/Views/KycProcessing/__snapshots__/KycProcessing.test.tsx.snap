@@ -116,87 +116,30 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -250,87 +193,47 @@ exports[`KycProcessing Component render matches snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -856,87 +759,30 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -990,87 +836,47 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -1654,87 +1460,30 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -1788,87 +1537,47 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -2438,87 +2147,30 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -2572,87 +2224,47 @@ exports[`KycProcessing Component renders loading state snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -3178,87 +2790,30 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -3312,87 +2867,47 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -3962,87 +3477,30 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="ArrowLeft"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="button-icon"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="ArrowLeft"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -4096,87 +3554,47 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>

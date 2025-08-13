@@ -1,5 +1,6 @@
 import React, { useCallback, useState, useEffect, useRef, FC } from 'react';
 import { TextInput, View, TouchableOpacity, Linking } from 'react-native';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
@@ -23,6 +24,7 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import DepositProgressBar from '../../components/DepositProgressBar';
 import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { useDepositSDK } from '../../sdk';
+import { useDepositRouting } from '../../hooks/useDepositRouting';
 import Row from '../../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../constants';
 import PoweredByTransak from '../../components/PoweredByTransak';
@@ -33,10 +35,12 @@ import Button, {
 } from '../../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
-import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
 
 export interface OtpCodeParams {
+  quote: BuyQuote;
   email: string;
+  paymentMethodId: string;
+  cryptoCurrencyChainId: string;
 }
 
 export const createOtpCodeNavDetails = createNavigationDetails<OtpCodeParams>(
@@ -67,13 +71,19 @@ const OtpCode = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { setAuthToken } = useDepositSDK();
-  const { email } = useParams<OtpCodeParams>();
+  const { quote, email, paymentMethodId, cryptoCurrencyChainId } =
+    useParams<OtpCodeParams>();
   const trackEvent = useAnalytics();
   const { selectedRegion } = useDepositSDK();
 
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
+
+  const { routeAfterAuthentication } = useDepositRouting({
+    cryptoCurrencyChainId,
+    paymentMethodId,
+  });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [resendButtonState, setResendButtonState] = useState<
@@ -166,9 +176,7 @@ const OtpCode = () => {
       try {
         setIsLoading(true);
         setError(null);
-
         const response = await submitCode();
-
         if (!response) {
           throw new Error('No response from submitCode');
         }
@@ -177,12 +185,7 @@ const OtpCode = () => {
           ramp_type: 'DEPOSIT',
           region: selectedRegion?.isoCode || '',
         });
-
-        navigation.navigate(
-          ...createBuildQuoteNavDetails({
-            shouldRouteImmediately: true,
-          }),
-        );
+        await routeAfterAuthentication(quote);
       } catch (e) {
         trackEvent('RAMPS_OTP_FAILED', {
           ramp_type: 'DEPOSIT',
@@ -202,8 +205,9 @@ const OtpCode = () => {
       }
     }
   }, [
-    navigation,
     isLoading,
+    quote,
+    routeAfterAuthentication,
     setAuthToken,
     submitCode,
     value.length,

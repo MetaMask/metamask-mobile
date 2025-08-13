@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { BuyQuote } from '@consensys/native-ramps-sdk';
 import EnterEmail from './EnterEmail';
 import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
@@ -26,6 +27,8 @@ let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'sendUserOtp'> = {
   ...mockUseDepositSdkMethodInitialValues,
 };
 
+const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
+
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
 }));
@@ -44,7 +47,11 @@ jest.mock('@react-navigation/native', () => {
       ),
     }),
     useRoute: () => ({
-      params: {},
+      params: {
+        quote: mockQuote,
+        paymentMethodId: 'test-payment-method-id',
+        cryptoCurrencyChainId: '1',
+      },
     }),
   };
 });
@@ -95,6 +102,9 @@ describe('EnterEmail Component', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.OTP_CODE, {
         email: 'test@example.com',
+        quote: mockQuote,
+        paymentMethodId: 'test-payment-method-id',
+        cryptoCurrencyChainId: '1',
       });
     });
   });

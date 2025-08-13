@@ -385,8 +385,8 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 24,
-                                "borderTopRightRadius": 24,
+                                "borderTopLeftRadius": 8,
+                                "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "height": 1334,
                                 "maxHeight": 1334,
@@ -941,8 +941,8 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 24,
-                                "borderTopRightRadius": 24,
+                                "borderTopLeftRadius": 8,
+                                "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "height": 1334,
                                 "maxHeight": 1334,

@@ -8,7 +8,6 @@ import reducer, {
   setBridgeViewMode,
   selectBridgeViewMode,
   selectIsUnifiedSwapsEnabled,
-  setDestToken,
 } from '.';
 import {
   BridgeToken,
@@ -166,16 +165,6 @@ describe('bridge slice', () => {
       const state = reducer(initialState, action);
 
       expect(state.destAmount).toBeUndefined();
-    });
-  });
-
-  describe('setDestToken', () => {
-    it('should set the destination token and update selectedDestChainId', () => {
-      const action = setDestToken(mockDestToken);
-      const state = reducer(initialState, action);
-
-      expect(state.destToken).toBe(mockDestToken);
-      expect(state.selectedDestChainId).toBe(mockDestToken.chainId);
     });
   });
 

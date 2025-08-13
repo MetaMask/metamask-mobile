@@ -11,7 +11,6 @@ import {
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { DepositStatus } from './types';
-import { CandlePeriod } from '../constants/chartConfig';
 
 // Mock the HyperLiquid SDK first
 jest.mock('@deeeed/hyperliquid-node20', () => ({
@@ -109,10 +108,7 @@ describe('PerpsController', () => {
       withdraw: jest.fn(),
       getDepositRoutes: jest.fn(),
       getWithdrawalRoutes: jest.fn(),
-      validateDeposit: jest.fn().mockResolvedValue({ isValid: true }),
-      validateOrder: jest.fn().mockResolvedValue({ isValid: true }),
-      validateClosePosition: jest.fn().mockResolvedValue({ isValid: true }),
-      validateWithdrawal: jest.fn().mockResolvedValue({ isValid: true }),
+      validateDeposit: jest.fn(),
       subscribeToPrices: jest.fn(),
       subscribeToPositions: jest.fn(),
       subscribeToOrderFills: jest.fn(),
@@ -124,10 +120,6 @@ describe('PerpsController', () => {
       getMaxLeverage: jest.fn(),
       calculateFees: jest.fn(),
       getMarketDataWithPrices: jest.fn(),
-      getBlockExplorerUrl: jest.fn(),
-      getOrderFills: jest.fn(),
-      getOrders: jest.fn(),
-      getFunding: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -497,7 +489,7 @@ describe('PerpsController', () => {
         // @ts-ignore - Accessing private property for testing
         controller.isInitialized = false;
         expect(() => controller.getActiveProvider()).toThrow(
-          'CLIENT_NOT_INITIALIZED',
+          'HyperLiquid SDK clients not properly initialized',
         );
       });
     });
@@ -525,18 +517,14 @@ describe('PerpsController', () => {
 
         // Mock validateDeposit to return validation errors
         mockHyperLiquidProvider.validateDeposit
-          .mockReturnValueOnce(
-            Promise.resolve({
-              isValid: false,
-              error: 'Amount is required and must be greater than 0',
-            }),
-          )
-          .mockReturnValueOnce(
-            Promise.resolve({
-              isValid: false,
-              error: 'AssetId is required for deposit validation',
-            }),
-          );
+          .mockReturnValueOnce({
+            isValid: false,
+            error: 'Amount is required and must be greater than 0',
+          })
+          .mockReturnValueOnce({
+            isValid: false,
+            error: 'AssetId is required for deposit validation',
+          });
 
         await controller.initializeProviders();
 
@@ -577,12 +565,10 @@ describe('PerpsController', () => {
         ]);
 
         // Mock validateDeposit to return error for unsupported route
-        mockHyperLiquidProvider.validateDeposit.mockReturnValue(
-          Promise.resolve({
-            isValid: false,
-            error: 'Only direct deposits are currently supported',
-          }),
-        );
+        mockHyperLiquidProvider.validateDeposit.mockReturnValue({
+          isValid: false,
+          error: 'Only direct deposits are currently supported',
+        });
 
         await controller.initializeProviders();
 
@@ -1152,7 +1138,7 @@ describe('PerpsController', () => {
         // Arrange
         const mockCandleData = {
           coin: 'BTC',
-          interval: CandlePeriod.ONE_HOUR,
+          interval: '1h',
           candles: [
             {
               time: 1700000000000,
@@ -1186,7 +1172,7 @@ describe('PerpsController', () => {
         // Act
         const result = await controller.fetchHistoricalCandles(
           'BTC',
-          CandlePeriod.ONE_HOUR,
+          '1h',
           100,
         );
 
@@ -1194,7 +1180,7 @@ describe('PerpsController', () => {
         expect(result).toEqual(mockCandleData);
         expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
           'BTC',
-          CandlePeriod.ONE_HOUR,
+          '1h',
           100,
         );
       });
@@ -1217,11 +1203,11 @@ describe('PerpsController', () => {
 
         // Act & Assert
         await expect(
-          controller.fetchHistoricalCandles('BTC', CandlePeriod.ONE_HOUR, 100),
+          controller.fetchHistoricalCandles('BTC', '1h', 100),
         ).rejects.toThrow(errorMessage);
         expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
           'BTC',
-          CandlePeriod.ONE_HOUR,
+          '1h',
           100,
         );
       });
@@ -1237,7 +1223,7 @@ describe('PerpsController', () => {
 
         // Act & Assert
         await expect(
-          controller.fetchHistoricalCandles('BTC', CandlePeriod.ONE_HOUR, 100),
+          controller.fetchHistoricalCandles('BTC', '1h', 100),
         ).rejects.toThrow(
           'Historical candles not supported by current provider',
         );
@@ -1252,8 +1238,8 @@ describe('PerpsController', () => {
 
         // Act & Assert
         await expect(
-          controller.fetchHistoricalCandles('BTC', CandlePeriod.ONE_HOUR, 100),
-        ).rejects.toThrow('CLIENT_NOT_INITIALIZED');
+          controller.fetchHistoricalCandles('BTC', '1h', 100),
+        ).rejects.toThrow('HyperLiquid SDK clients not properly initialized');
       });
     });
 
@@ -1262,7 +1248,7 @@ describe('PerpsController', () => {
         // Arrange
         const mockCandleData = {
           coin: 'ETH',
-          interval: CandlePeriod.FIFTEEN_MINUTES,
+          interval: '15m',
           candles: [],
         };
 
@@ -1278,7 +1264,7 @@ describe('PerpsController', () => {
         // Act
         const result = await controller.fetchHistoricalCandles(
           'ETH',
-          CandlePeriod.FIFTEEN_MINUTES,
+          '15m',
           50,
         );
 
@@ -1286,7 +1272,7 @@ describe('PerpsController', () => {
         expect(result).toEqual(mockCandleData);
         expect(mockClientService.fetchHistoricalCandles).toHaveBeenCalledWith(
           'ETH',
-          CandlePeriod.FIFTEEN_MINUTES,
+          '15m',
           50,
         );
       });
@@ -2178,7 +2164,7 @@ describe('PerpsController', () => {
           controller.isInitialized = false;
 
           await expect(controller.calculateFees(params)).rejects.toThrow(
-            'CLIENT_NOT_INITIALIZED',
+            'HyperLiquid SDK clients not properly initialized',
           );
         });
       });
@@ -2305,395 +2291,6 @@ describe('PerpsController', () => {
 
         expect(controller.state.isEligible).toBe(false);
         expect(mockSuccessfulFetch).toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('validateOrder', () => {
-    it('should delegate to active provider', async () => {
-      const mockParams = {
-        coin: 'BTC',
-        isBuy: true,
-        size: '0.1',
-        orderType: 'market' as const,
-      };
-
-      const mockResult = { isValid: true };
-      mockHyperLiquidProvider.validateOrder.mockResolvedValue(mockResult);
-
-      await withController(async ({ controller }) => {
-        const result = await controller.validateOrder(mockParams);
-
-        expect(mockHyperLiquidProvider.validateOrder).toHaveBeenCalledWith(
-          mockParams,
-        );
-        expect(result).toBe(mockResult);
-      });
-    });
-
-    it('should throw error if no active provider', async () => {
-      await withController(async ({ controller }) => {
-        // Mock getActiveProvider to throw error for non-existent provider
-        jest
-          .spyOn(controller as any, 'getActiveProvider')
-          .mockImplementation(() => {
-            throw new Error('PROVIDER_NOT_AVAILABLE');
-          });
-
-        await expect(controller.validateOrder({} as any)).rejects.toThrow(
-          'PROVIDER_NOT_AVAILABLE',
-        );
-      });
-    });
-  });
-
-  describe('validateClosePosition', () => {
-    it('should delegate to active provider', async () => {
-      const mockParams = {
-        coin: 'BTC',
-        orderType: 'market' as const,
-      };
-
-      const mockResult = { isValid: true };
-      mockHyperLiquidProvider.validateClosePosition.mockResolvedValue(
-        mockResult,
-      );
-
-      await withController(async ({ controller }) => {
-        const result = await controller.validateClosePosition(mockParams);
-
-        expect(
-          mockHyperLiquidProvider.validateClosePosition,
-        ).toHaveBeenCalledWith(mockParams);
-        expect(result).toBe(mockResult);
-      });
-    });
-
-    it('should throw error if no active provider', async () => {
-      await withController(async ({ controller }) => {
-        // Mock getActiveProvider to throw error for non-existent provider
-        jest
-          .spyOn(controller as any, 'getActiveProvider')
-          .mockImplementation(() => {
-            throw new Error('PROVIDER_NOT_AVAILABLE');
-          });
-
-        await expect(
-          controller.validateClosePosition({} as any),
-        ).rejects.toThrow('PROVIDER_NOT_AVAILABLE');
-      });
-    });
-  });
-
-  describe('validateWithdrawal', () => {
-    it('should delegate to active provider', async () => {
-      const mockParams = {
-        amount: '100',
-        destination: '0x123' as Hex,
-        assetId: 'eip155:42161/erc20:0x123/default' as CaipAssetId,
-      };
-
-      const mockResult = { isValid: true };
-      mockHyperLiquidProvider.validateWithdrawal.mockResolvedValue(mockResult);
-
-      await withController(async ({ controller }) => {
-        const result = await controller.validateWithdrawal(mockParams);
-
-        expect(mockHyperLiquidProvider.validateWithdrawal).toHaveBeenCalledWith(
-          mockParams,
-        );
-        expect(result).toBe(mockResult);
-      });
-    });
-
-    it('should throw error if no active provider', async () => {
-      await withController(async ({ controller }) => {
-        // Mock getActiveProvider to throw error for non-existent provider
-        jest
-          .spyOn(controller as any, 'getActiveProvider')
-          .mockImplementation(() => {
-            throw new Error('PROVIDER_NOT_AVAILABLE');
-          });
-
-        await expect(controller.validateWithdrawal({} as any)).rejects.toThrow(
-          'PROVIDER_NOT_AVAILABLE',
-        );
-      });
-    });
-  });
-
-  describe('getBlockExplorerUrl', () => {
-    it('should delegate to active provider', async () => {
-      withController(async ({ controller }) => {
-        await controller.initializeProviders();
-
-        const mockUrl = 'https://app.hyperliquid.xyz/explorer/address/0x123';
-        mockHyperLiquidProvider.getBlockExplorerUrl.mockReturnValue(mockUrl);
-
-        const result = controller.getBlockExplorerUrl('0x123');
-
-        expect(result).toBe(mockUrl);
-        expect(
-          mockHyperLiquidProvider.getBlockExplorerUrl,
-        ).toHaveBeenCalledWith('0x123');
-      });
-    });
-
-    it('should get base URL when no address provided', async () => {
-      withController(async ({ controller }) => {
-        await controller.initializeProviders();
-
-        const mockBaseUrl = 'https://app.hyperliquid.xyz/explorer';
-        mockHyperLiquidProvider.getBlockExplorerUrl.mockReturnValue(
-          mockBaseUrl,
-        );
-
-        const result = controller.getBlockExplorerUrl();
-
-        expect(result).toBe(mockBaseUrl);
-        expect(
-          mockHyperLiquidProvider.getBlockExplorerUrl,
-        ).toHaveBeenCalledWith(undefined);
-      });
-    });
-
-    it('should handle testnet URLs', async () => {
-      withController(async ({ controller }) => {
-        await controller.initializeProviders();
-
-        const mockTestnetUrl =
-          'https://app.hyperliquid-testnet.xyz/explorer/address/0x456';
-        mockHyperLiquidProvider.getBlockExplorerUrl.mockReturnValue(
-          mockTestnetUrl,
-        );
-
-        const result = controller.getBlockExplorerUrl('0x456');
-
-        expect(result).toBe(mockTestnetUrl);
-        expect(
-          mockHyperLiquidProvider.getBlockExplorerUrl,
-        ).toHaveBeenCalledWith('0x456');
-      });
-    });
-  });
-
-  describe('getOrderFills', () => {
-    it('should retrieve order fills correctly', async () => {
-      const mockOrderFills = [
-        {
-          coin: 'BTC',
-          size: '0.1',
-          price: '50000',
-          quoteAmount: '5000',
-          timestamp: 1700000000000,
-          isBuy: true,
-          fee: '2.5',
-          orderId: 'order-123',
-          orderType: 'market' as const,
-          symbol: 'BTC',
-          side: 'buy' as const,
-          pnl: '0',
-          direction: 'buy' as const,
-          feeToken: 'BTC',
-        },
-        {
-          coin: 'ETH',
-          size: '1.5',
-          price: '3000',
-          quoteAmount: '4500',
-          timestamp: 1700000001000,
-          isBuy: false,
-          fee: '2.25',
-          orderId: 'order-456',
-          orderType: 'limit' as const,
-          symbol: 'ETH',
-          side: 'sell' as const,
-          pnl: '0',
-          direction: 'sell' as const,
-          feeToken: 'ETH',
-        },
-      ];
-
-      const params = { limit: 10, user: '0x123' as Hex };
-
-      withController(async ({ controller }) => {
-        mockHyperLiquidProvider.getOrderFills.mockResolvedValue(mockOrderFills);
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-
-        await controller.initializeProviders();
-        const result = await controller.getOrderFills(params);
-
-        expect(result).toEqual(mockOrderFills);
-        expect(mockHyperLiquidProvider.getOrderFills).toHaveBeenCalledWith(
-          params,
-        );
-      });
-    });
-
-    it('should handle errors when getting order fills', async () => {
-      const errorMessage = 'Failed to fetch order fills';
-
-      withController(async ({ controller }) => {
-        mockHyperLiquidProvider.getOrderFills.mockRejectedValue(
-          new Error(errorMessage),
-        );
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-
-        await controller.initializeProviders();
-
-        try {
-          await controller.getOrderFills();
-          // Should not reach here
-          fail('Expected getOrderFills to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
-      });
-    });
-  });
-
-  describe('getOrders', () => {
-    it('should retrieve orders correctly', async () => {
-      const mockOrders = [
-        {
-          id: 'order-123',
-          coin: 'BTC',
-          size: '0.1',
-          price: '50000',
-          limitPrice: '50000',
-          timestamp: 1700000000000,
-          isBuy: true,
-          type: 'limit' as const,
-          status: 'open' as const,
-          filled: '0',
-          symbol: 'BTC',
-          side: 'buy' as const,
-          orderType: 'limit' as const,
-          orderId: 'order-123',
-          pnl: '0',
-          direction: 'buy' as const,
-          originalSize: '0.1',
-          filledSize: '0',
-          remainingSize: '0.1',
-          lastUpdated: 1700000000000,
-        },
-        {
-          id: 'order-456',
-          coin: 'ETH',
-          size: '1.5',
-          price: '3000',
-          timestamp: 1700000001000,
-          isBuy: false,
-          type: 'market' as const,
-          status: 'filled' as const,
-          filled: '1.5',
-          symbol: 'ETH',
-          side: 'sell' as const,
-          orderType: 'market' as const,
-          orderId: 'order-456',
-          pnl: '0',
-          direction: 'sell' as const,
-          originalSize: '1.5',
-          filledSize: '1.5',
-          remainingSize: '0',
-          lastUpdated: 1700000001000,
-        },
-      ];
-
-      const params = { limit: 10, status: 'all' };
-
-      withController(async ({ controller }) => {
-        mockHyperLiquidProvider.getOrders.mockResolvedValue(mockOrders);
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-
-        await controller.initializeProviders();
-        const result = await controller.getOrders(params);
-
-        expect(result).toEqual(mockOrders);
-        expect(mockHyperLiquidProvider.getOrders).toHaveBeenCalledWith(params);
-      });
-    });
-
-    it('should handle errors when getting orders', async () => {
-      const errorMessage = 'Failed to fetch orders';
-
-      withController(async ({ controller }) => {
-        mockHyperLiquidProvider.getOrders.mockRejectedValue(
-          new Error(errorMessage),
-        );
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-
-        await controller.initializeProviders();
-
-        try {
-          await controller.getOrders();
-          // Should not reach here
-          fail('Expected getOrders to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
-      });
-    });
-  });
-
-  describe('getFunding', () => {
-    it('should retrieve funding data correctly', async () => {
-      const mockFunding = [
-        {
-          coin: 'BTC',
-          amount: '10.5',
-          timestamp: 1700000000000,
-          rate: '0.01',
-          positionSize: '1.0',
-          symbol: 'BTC',
-          amountUsd: '10.5',
-        },
-        {
-          coin: 'ETH',
-          amount: '-5.2',
-          timestamp: 1700000001000,
-          rate: '-0.005',
-          positionSize: '10.0',
-          symbol: 'ETH',
-          amountUsd: '10.0',
-        },
-      ];
-
-      const params = { limit: 20 };
-
-      withController(async ({ controller }) => {
-        mockHyperLiquidProvider.getFunding.mockResolvedValue(mockFunding);
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-
-        await controller.initializeProviders();
-        const result = await controller.getFunding(params);
-
-        expect(result).toEqual(mockFunding);
-        expect(mockHyperLiquidProvider.getFunding).toHaveBeenCalledWith(params);
-      });
-    });
-
-    it('should handle errors when getting funding data', async () => {
-      const errorMessage = 'Failed to fetch funding data';
-
-      withController(async ({ controller }) => {
-        mockHyperLiquidProvider.getFunding.mockRejectedValue(
-          new Error(errorMessage),
-        );
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-
-        await controller.initializeProviders();
-
-        try {
-          await controller.getFunding();
-          // Should not reach here
-          fail('Expected getFunding to throw an error');
-        } catch (error) {
-          expect(error).toBeInstanceOf(Error);
-          expect((error as Error).message).toBe(errorMessage);
-        }
       });
     });
   });

@@ -2401,8 +2401,8 @@ workflows:
       - YARN_COMMAND: 'build:android:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/rc.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
@@ -2416,8 +2416,8 @@ workflows:
       - YARN_COMMAND: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/rc.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
@@ -3402,16 +3402,16 @@ app:
       PROJECT_LOCATION_IOS: ios
     - opts:
         is_expand: false
-      VERSION_NAME: 7.54.0
+      VERSION_NAME: 7.53.0
     - opts:
         is_expand: false
-      VERSION_NUMBER: 2203
+      VERSION_NUMBER: 2245
     - opts:
         is_expand: false
-      FLASK_VERSION_NAME: 7.54.0
+      FLASK_VERSION_NAME: 7.53.0
     - opts:
         is_expand: false
-      FLASK_VERSION_NUMBER: 2203
+      FLASK_VERSION_NUMBER: 2245
     - opts:
         is_expand: false
       ANDROID_APK_LINK: ''
