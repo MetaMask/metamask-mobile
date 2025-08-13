@@ -42,7 +42,7 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
     authConnection,
     isSeedlessOnboardingUserAuthenticated,
     passwordOutdatedCache,
-    socialBackupsMetadata: socialBackupsMetadata?.map((item) => {
+    socialBackupsMetadata: (socialBackupsMetadata ?? []).map((item) => {
       const { type, keyringId } = item;
       return {
         keyringId,
