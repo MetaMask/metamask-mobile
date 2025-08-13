@@ -21,6 +21,11 @@ export interface LoginDto {
   signature: string;
 }
 
+export interface LoginResponseDto {
+  token: string;
+  subscription: SubscriptionDto;
+}
+
 export interface JoinSubscriptionDto {
   challengeId: string;
   signature: string;

@@ -1,9 +1,11 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import AppConstants from '../../../../AppConstants';
+import { getRewardsToken } from '../utils/RewardsTokenVault';
 import type {
   GenerateChallengeDto,
   ChallengeResponseDto,
   LoginDto,
+  LoginResponseDto,
   DevOnlyLoginDto,
   SubscriptionDto,
   JoinSubscriptionDto,
@@ -34,9 +36,15 @@ export const rewardsApi = createApi({
   ],
   baseQuery: fetchBaseQuery({
     baseUrl: AppConstants.REWARDS_API_URL,
-    credentials: 'include',
-    prepareHeaders: (headers) => {
+    prepareHeaders: async (headers) => {
       headers.set('Content-Type', 'application/json');
+
+      // Add Bearer token for authenticated requests
+      const tokenResult = await getRewardsToken();
+      if (tokenResult.success && tokenResult.token) {
+        headers.set('Authorization', `Bearer ${tokenResult.token}`);
+      }
+
       return headers;
     },
   }),
@@ -54,7 +62,7 @@ export const rewardsApi = createApi({
         body,
       }),
     }),
-    login: builder.mutation<void, LoginDto>({
+    login: builder.mutation<LoginResponseDto, LoginDto>({
       query: (body) => ({
         url: '/auth/login',
         method: 'POST',
