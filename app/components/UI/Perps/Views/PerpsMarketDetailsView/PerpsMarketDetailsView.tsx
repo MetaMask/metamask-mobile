@@ -99,11 +99,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
   // Get candlestick data
-  const { candleData, isLoadingHistory } = usePerpsPositionData({
-    coin: market?.symbol || '',
-    selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
-    selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
-  });
+  const { candleData, isLoadingHistory, refreshCandleData } =
+    usePerpsPositionData({
+      coin: market?.symbol || '',
+      selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
+      selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
+    });
 
   // Check if user has an existing position for this market
   const {
@@ -135,6 +136,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setRefreshing(true);
 
     try {
+      // Always refresh chart data regardless of active tab
+      if (candleData) {
+        await refreshCandleData();
+      }
+
       switch (activeTabId) {
         case 'position':
           // Refresh position data
@@ -162,7 +168,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [activeTabId, refreshPosition, refreshOrders, marketStats]);
+  }, [
+    activeTabId,
+    refreshPosition,
+    refreshOrders,
+    marketStats,
+    candleData,
+    refreshCandleData,
+  ]);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -241,6 +254,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             isLoading={isLoadingHistory}
             height={350}
             selectedDuration={selectedDuration}
+            tpslLines={
+              existingPosition
+                ? {
+                    takeProfitPrice: existingPosition.takeProfitPrice,
+                    stopLossPrice: existingPosition.stopLossPrice,
+                    entryPrice: existingPosition.entryPrice,
+                    liquidationPrice: existingPosition.liquidationPrice,
+                    currentPrice: marketStats.currentPrice?.toString(),
+                  }
+                : undefined
+            }
             onDurationChange={handleDurationChange}
             onGearPress={handleGearPress}
           />
