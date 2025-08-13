@@ -13,6 +13,9 @@ import {
   getWalletIdFromAccountGroup,
   selectSelectedInternalAccountByScope,
   selectInternalAccountByAccountGroupAndScope,
+  selectGroupIdByAccountId,
+  selectInternalAccountsByGroupId,
+  selectInternalAccountListSpreadByScopesByGroupId,
 } from './accounts';
 
 const WALLET_ID_1 = 'keyring:wallet1' as const;
@@ -39,7 +42,10 @@ const ENTROPY_EVM_ACCOUNT_ID = 'entropyEvmAccount' as AccountId;
 const ENTROPY_SOLANA_ACCOUNT_ID = 'entropySolanaAccount' as AccountId;
 
 const EVM_SCOPE = 'eip155:1' as CaipChainId;
-const SOLANA_SCOPE = 'solana:mainnet' as CaipChainId;
+const SOLANA_MAINNET_SCOPE =
+  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' as CaipChainId;
+const SOLANA_TESTNET_SCOPE =
+  'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z' as CaipChainId;
 const BITCOIN_SCOPE = 'bip122:000000000019d6689c085ae165831e93' as CaipChainId;
 
 const mockEvmAccount: InternalAccount = {
@@ -55,7 +61,7 @@ const mockSolanaAccount: InternalAccount = {
     SolAccountType.DataAccount,
   ),
   id: ACCOUNT_ID_2,
-  scopes: [SOLANA_SCOPE],
+  scopes: [SOLANA_MAINNET_SCOPE, SOLANA_TESTNET_SCOPE],
 };
 
 const mockBitcoinAccount: InternalAccount = {
@@ -75,7 +81,7 @@ const mockAnotherSolanaAccount: InternalAccount = {
     SolAccountType.DataAccount,
   ),
   id: ACCOUNT_ID_4,
-  scopes: [SOLANA_SCOPE],
+  scopes: [SOLANA_MAINNET_SCOPE],
 };
 
 // Mock accounts for entropy wallet testing
@@ -92,7 +98,7 @@ const mockEntropySolanaAccount: InternalAccount = {
     SolAccountType.DataAccount,
   ),
   id: ENTROPY_SOLANA_ACCOUNT_ID,
-  scopes: [SOLANA_SCOPE],
+  scopes: [SOLANA_MAINNET_SCOPE],
 };
 
 const createMockState = (
@@ -108,6 +114,45 @@ const createMockState = (
         AccountsController: {
           internalAccounts: {
             accounts: internalAccounts,
+          },
+        },
+        NetworkController: {
+          networkConfigurationsByChainId: {
+            0x1: {
+              chainId: '0x1',
+              name: 'Ethereum',
+            },
+            0xaa36a7: {
+              chainId: '0xaa36a7',
+              name: 'Sepolia Test Network',
+            },
+            0x2105: {
+              chainId: '0x2105',
+              name: 'Base',
+            },
+            0xa4b1: {
+              chainId: '0xa4b1',
+              name: 'Arbitrum One',
+            },
+          },
+        },
+        MultichainNetworkController: {
+          multichainNetworkConfigurationsByChainId: {
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+              name: 'Solana Mainnet',
+              chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+              isTestnet: false,
+            },
+            'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z': {
+              name: 'Solana Testnet',
+              chainId: 'solana:4uhcVJyU9pJkvQyS88uRDiswHXSCkY3z',
+              isTestnet: true,
+            },
+            'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1': {
+              name: 'Solana Devnet',
+              chainId: 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1',
+              isTestnet: true,
+            },
           },
         },
       },
@@ -259,7 +304,7 @@ describe('accounts selectors', () => {
       );
 
       const selector = selectSelectedInternalAccountByScope(mockState);
-      const result = selector(SOLANA_SCOPE);
+      const result = selector(SOLANA_MAINNET_SCOPE);
       expect(result).toBeUndefined();
     });
 
@@ -311,7 +356,7 @@ describe('accounts selectors', () => {
       );
 
       const selector = selectSelectedInternalAccountByScope(mockState);
-      const result = selector(SOLANA_SCOPE);
+      const result = selector(SOLANA_MAINNET_SCOPE);
       expect(result).toEqual(mockSolanaAccount);
     });
 
@@ -461,7 +506,7 @@ describe('accounts selectors', () => {
       );
 
       const selector = selectInternalAccountByAccountGroupAndScope(mockState);
-      const result = selector(SOLANA_SCOPE, ACCOUNT_GROUP_ID_1);
+      const result = selector(SOLANA_MAINNET_SCOPE, ACCOUNT_GROUP_ID_1);
       expect(result).toBeUndefined();
     });
 
@@ -511,7 +556,7 @@ describe('accounts selectors', () => {
       );
 
       const selector = selectInternalAccountByAccountGroupAndScope(mockState);
-      const result = selector(SOLANA_SCOPE, ACCOUNT_GROUP_ID_2);
+      const result = selector(SOLANA_MAINNET_SCOPE, ACCOUNT_GROUP_ID_2);
       expect(result).toEqual(mockSolanaAccount);
     });
 
@@ -561,7 +606,7 @@ describe('accounts selectors', () => {
       );
 
       const selector = selectInternalAccountByAccountGroupAndScope(mockState);
-      const result = selector(SOLANA_SCOPE, ACCOUNT_GROUP_ID_1);
+      const result = selector(SOLANA_MAINNET_SCOPE, ACCOUNT_GROUP_ID_1);
       expect(result).toEqual(mockAnotherSolanaAccount);
     });
 
@@ -624,7 +669,7 @@ describe('accounts selectors', () => {
       const result1 = selector(EVM_SCOPE, ACCOUNT_GROUP_ID_1);
       expect(result1).toEqual(mockEvmAccount);
 
-      const result2 = selector(SOLANA_SCOPE, ACCOUNT_GROUP_ID_2);
+      const result2 = selector(SOLANA_MAINNET_SCOPE, ACCOUNT_GROUP_ID_2);
       expect(result2).toEqual(mockSolanaAccount);
     });
 
@@ -676,10 +721,10 @@ describe('accounts selectors', () => {
       expect(selector(BITCOIN_SCOPE, ACCOUNT_GROUP_ID_3)).toEqual(
         mockBitcoinAccount,
       );
-      expect(selector(SOLANA_SCOPE, ACCOUNT_GROUP_ID_2)).toEqual(
+      expect(selector(SOLANA_MAINNET_SCOPE, ACCOUNT_GROUP_ID_2)).toEqual(
         mockAnotherSolanaAccount,
       );
-      expect(selector(SOLANA_SCOPE, 'nonexistent')).toBeUndefined();
+      expect(selector(SOLANA_MAINNET_SCOPE, 'nonexistent')).toBeUndefined();
       expect(selector(EVM_SCOPE, ACCOUNT_GROUP_ID_1)).toEqual(mockEvmAccount);
     });
 
@@ -773,7 +818,7 @@ describe('accounts selectors', () => {
         );
 
         const selector = selectInternalAccountByAccountGroupAndScope(mockState);
-        const result = selector(SOLANA_SCOPE, ENTROPY_GROUP_ID);
+        const result = selector(SOLANA_MAINNET_SCOPE, ENTROPY_GROUP_ID);
         expect(result).toEqual(mockEntropySolanaAccount);
       });
 
@@ -843,7 +888,7 @@ describe('accounts selectors', () => {
         const evmResult = selector(EVM_SCOPE);
         expect(evmResult).toEqual(mockEntropyEvmAccount);
 
-        const solanaResult = selector(SOLANA_SCOPE);
+        const solanaResult = selector(SOLANA_MAINNET_SCOPE);
         expect(solanaResult).toEqual(mockEntropySolanaAccount);
       });
 
@@ -911,7 +956,10 @@ describe('accounts selectors', () => {
         const firstEvmResult = selector(EVM_SCOPE, ENTROPY_GROUP_ID);
         expect(firstEvmResult).toEqual(mockEntropyEvmAccount);
 
-        const firstSolanaResult = selector(SOLANA_SCOPE, ENTROPY_GROUP_ID);
+        const firstSolanaResult = selector(
+          SOLANA_MAINNET_SCOPE,
+          ENTROPY_GROUP_ID,
+        );
         expect(firstSolanaResult).toEqual(mockEntropySolanaAccount);
 
         // Test second entropy wallet (EVM and Bitcoin)
@@ -921,6 +969,203 @@ describe('accounts selectors', () => {
         const secondBtcResult = selector(BITCOIN_SCOPE, secondEntropyGroup);
         expect(secondBtcResult).toEqual(secondBtcAccount);
       });
+    });
+  });
+
+  describe('selectGroupIdByAccountId', () => {
+    it('returns undefined when AccountTreeController is undefined', () => {
+      const mockState = createMockState(undefined);
+      const selector = selectGroupIdByAccountId(mockState);
+      const result = selector(ACCOUNT_ID_1);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when account ID does not exist in any group', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              id: WALLET_ID_1,
+              metadata: { name: 'Wallet 1' },
+              groups: {
+                [ACCOUNT_GROUP_ID_1]: {
+                  accounts: [ACCOUNT_ID_1],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const selector = selectGroupIdByAccountId(mockState);
+      const result = selector(ACCOUNT_ID_2);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns correct group ID for given account ID', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              id: WALLET_ID_1,
+              metadata: { name: 'Wallet 1' },
+              groups: {
+                [ACCOUNT_GROUP_ID_1]: {
+                  accounts: [ACCOUNT_ID_1],
+                  id: ACCOUNT_GROUP_ID_1,
+                },
+              },
+            },
+            [WALLET_ID_2]: {
+              id: WALLET_ID_2,
+              metadata: { name: 'Wallet 2' },
+              groups: {
+                [ACCOUNT_GROUP_ID_2]: {
+                  accounts: [ACCOUNT_ID_2],
+                  id: ACCOUNT_GROUP_ID_2,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const selector = selectGroupIdByAccountId(mockState);
+      const result1 = selector(ACCOUNT_ID_1);
+      expect(result1).toBe(ACCOUNT_GROUP_ID_1);
+
+      const result2 = selector(ACCOUNT_ID_2);
+      expect(result2).toBe(ACCOUNT_GROUP_ID_2);
+    });
+  });
+
+  describe('selectInternalAccountsByGroupId', () => {
+    it('returns empty array when AccountTreeController is undefined', () => {
+      const mockState = createMockState(undefined);
+      const selector = selectInternalAccountsByGroupId(mockState);
+      const result = selector(ACCOUNT_GROUP_ID_1);
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when group ID does not exist', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              id: WALLET_ID_1,
+              metadata: { name: 'Wallet 1' },
+              groups: {},
+            },
+          },
+        },
+      });
+
+      const selector = selectInternalAccountsByGroupId(mockState);
+      const result = selector(ACCOUNT_GROUP_ID_1);
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when group has no accounts', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              id: WALLET_ID_1,
+              metadata: { name: 'Wallet 1' },
+              groups: {
+                [ACCOUNT_GROUP_ID_1]: {
+                  accounts: [],
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const selector = selectInternalAccountsByGroupId(mockState);
+      const result = selector(ACCOUNT_GROUP_ID_1);
+      expect(result).toEqual([]);
+    });
+
+    it('returns accounts for given group ID', () => {
+      const mockState = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [WALLET_ID_1]: {
+                id: WALLET_ID_1,
+                metadata: { name: 'Wallet 1' },
+                groups: {
+                  [ACCOUNT_GROUP_ID_1]: {
+                    accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          [ACCOUNT_ID_1]: mockEvmAccount,
+          [ACCOUNT_ID_2]: mockSolanaAccount,
+        },
+      );
+
+      const selector = selectInternalAccountsByGroupId(mockState);
+      const result = selector(ACCOUNT_GROUP_ID_1);
+      expect(result).toEqual([mockEvmAccount, mockSolanaAccount]);
+    });
+  });
+
+  describe('selectInternalAccountListSpreadByScopesByGroupId', () => {
+    it('returns internal accounts spread by networks', () => {
+      const mockState = createMockState(
+        {
+          accountTree: {
+            wallets: {
+              [WALLET_ID_1]: {
+                id: WALLET_ID_1,
+                metadata: { name: 'Wallet 1' },
+                groups: {
+                  [ACCOUNT_GROUP_ID_1]: {
+                    accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          [ACCOUNT_ID_1]: mockEvmAccount,
+          [ACCOUNT_ID_2]: mockSolanaAccount,
+        },
+      );
+
+      const result =
+        selectInternalAccountListSpreadByScopesByGroupId(mockState)(
+          ACCOUNT_GROUP_ID_1,
+        );
+      expect(result).toEqual([
+        {
+          account: mockEvmAccount,
+          scope: 'eip155:1',
+          networkName: 'Ethereum',
+        },
+        {
+          account: mockEvmAccount,
+          scope: 'eip155:33875',
+          networkName: 'Base',
+        },
+        {
+          account: mockEvmAccount,
+          scope: 'eip155:270689',
+          networkName: 'Arbitrum One',
+        },
+        {
+          account: mockSolanaAccount,
+          scope: SOLANA_MAINNET_SCOPE,
+          networkName: 'Solana Mainnet',
+        },
+      ]);
     });
   });
 });

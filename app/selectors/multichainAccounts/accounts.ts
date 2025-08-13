@@ -1,6 +1,4 @@
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { createDeepEqualSelector } from '../util';
-import { selectAccountTreeControllerState } from './accountTreeController';
 import {
   AccountTreeControllerState,
   AccountWalletObject,
@@ -11,8 +9,17 @@ import {
   selectOne,
 } from '@metamask/account-api';
 import { CaipChainId } from '@metamask/utils';
-import { selectInternalAccountsById } from '../accountsController';
 import { AccountId } from '@metamask/accounts-controller';
+import { EthAccountType } from '@metamask/keyring-api';
+
+import { createDeepEqualSelector } from '../util';
+import { selectAccountTreeControllerState } from './accountTreeController';
+import { selectInternalAccountsById } from '../accountsController';
+import {
+  type EvmAndMultichainNetworkConfigurationsWithCaipChainId,
+  selectNetworkConfigurationsByCaipChainId,
+} from '../networkController';
+import { TEST_NETWORK_IDS } from '../../constants/network';
 
 /**
  * Extracts the wallet ID from an account group ID.
@@ -116,6 +123,33 @@ const findInternalAccountByScope = (
 };
 
 /**
+ * Helper function to filter out testnets from a list of scopes.
+ *
+ * Given a list of scopes and the available network configurations, this function filters out all testnet scopes
+ * for both EVM and non-EVM networks.
+ *
+ * @param scopes - The list of scopes to filter.
+ * @param networksData - The network configurations data containing information about each scope.
+ * @returns A new list of scopes excluding testnets.
+ */
+const filterTestnets = (
+  scopes: CaipChainId[],
+  networksData: Record<
+    CaipChainId,
+    EvmAndMultichainNetworkConfigurationsWithCaipChainId
+  >,
+): CaipChainId[] =>
+  scopes.filter((scope) => {
+    const network = networksData[scope];
+    // TODO: Improve network data types on core module
+    // @ts-expect-error - The typing here is not consistent because of NetworkConfiguration and MultichainNetworkConfiguration types
+    return (
+      network &&
+      (!network.isTestnet || !TEST_NETWORK_IDS.includes(network.chainId))
+    );
+  });
+
+/**
  * Selector to get an internal account by scope from the currently selected account group.
  *
  * This selector finds an account that matches the given scope within the currently
@@ -187,4 +221,113 @@ export const selectInternalAccountByAccountGroupAndScope =
           accountGroupId,
           scope,
         ),
+  );
+
+/**
+ * Selector to get the group ID for a specific account ID.
+ *
+ * This selector retrieves the group ID for a given account ID by searching through
+ * all wallets and their groups in the AccountTreeController state. It returns the
+ * group ID if found, or undefined if the account does not belong to any group.
+ *
+ * Note: This is a temporary selector that should be later deprecated
+ *
+ * @param state - The Redux root state
+ * @param accountId - The ID of the account to find the group for
+ * @returns A function that takes an account ID and returns its group ID or undefined
+ */
+export const selectGroupIdByAccountId = createDeepEqualSelector(
+  [selectAccountTreeControllerState],
+  (accountTreeState: AccountTreeControllerState) =>
+    (accountId: AccountId): AccountGroupId | undefined => {
+      if (!accountTreeState?.accountTree?.wallets) {
+        return undefined;
+      }
+
+      for (const wallet of Object.values(
+        accountTreeState.accountTree.wallets,
+      )) {
+        for (const group of Object.values(wallet.groups)) {
+          if (group.accounts.includes(accountId)) {
+            return group.id;
+          }
+        }
+      }
+
+      return undefined;
+    },
+);
+
+/**
+ * Selector to get internal accounts by group ID.
+ * This selector retrieves all internal accounts associated with a specific account group ID.
+ *
+ * @param state - The Redux root state
+ * @param groupId - The ID of the account group to retrieve internal accounts for
+ * @returns Array of internal accounts for the specified group ID
+ */
+export const selectInternalAccountsByGroupId = createDeepEqualSelector(
+  [selectAccountTreeControllerState, selectInternalAccountsById],
+  (accountTree, internalAccounts) =>
+    (groupId: AccountGroupId): InternalAccount[] => {
+      const [walletId] = groupId.split('/') as [AccountWalletId];
+      const wallet = accountTree?.accountTree?.wallets[walletId];
+      if (!wallet) {
+        return [];
+      }
+
+      const group = wallet.groups[groupId];
+      if (!group || group.accounts.length === 0) {
+        return [];
+      }
+
+      return group.accounts
+        .map((accountId) => internalAccounts[accountId])
+        .filter((account): account is InternalAccount => account !== undefined);
+    },
+);
+
+/**
+ * Selector to get a list of internal accounts spread by scopes for a specific group ID.
+ *
+ * @param state - The Redux root state
+ * @param groupId - The ID of the account group to retrieve internal accounts for
+ * @returns Array of objects containing account, scope, and network name for each internal account in the specified group
+ */
+export const selectInternalAccountListSpreadByScopesByGroupId =
+  createDeepEqualSelector(
+    [selectInternalAccountsByGroupId, selectNetworkConfigurationsByCaipChainId],
+    (internalAccounts, networkConfigurations) => {
+      // Pre-compute Ethereum network IDs once
+      const ethereumNetworkIds = Object.values(networkConfigurations)
+        // @ts-expect-error - the chain id should be hex for NetworkConfiguration
+        .filter(
+          ({ caipChainId, chainId }) =>
+            caipChainId.startsWith('eip155:') &&
+            !TEST_NETWORK_IDS.includes(chainId),
+        )
+        .map(({ caipChainId }) => caipChainId);
+
+      return (groupId: AccountGroupId) => {
+        const accounts = internalAccounts(groupId);
+
+        return accounts.flatMap((account) => {
+          // Determine scopes based on account type
+          const scopes =
+            account.type === EthAccountType.Eoa
+              ? ethereumNetworkIds
+              : account.scopes || [];
+          // Filter out testnets and map each scope to an account-scope object
+          return filterTestnets(
+            scopes as CaipChainId[],
+            networkConfigurations,
+          ).map((scope: CaipChainId) => ({
+            account,
+            scope,
+            networkName:
+              networkConfigurations[scope]?.name || 'Unknown Network',
+          }));
+        });
+      };
+    },
   );
