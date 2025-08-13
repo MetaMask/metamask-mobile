@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../../locales/i18n';
+import Logger from '../../../../../../util/Logger';
 import {
   hexToBN,
   isDecimal,
@@ -46,6 +47,7 @@ export const validateAmountFn = ({
     try {
       weiValue = toWei(amount);
     } catch (error) {
+      Logger.log(error);
       return strings('send.invalid_value');
     }
     weiBalance = hexToBN(account?.balance ?? '0');

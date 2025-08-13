@@ -18,7 +18,6 @@ export const validateAmountFn = ({
   if (!isDecimal(amount) || Number(amount) < 0) {
     return strings('send.invalid_value');
   }
-  // todo: check if parse float can possibly create issue
   if (parseFloat(amount) > parseFloat(asset.balance)) {
     return strings('send.insufficient_funds');
   }
