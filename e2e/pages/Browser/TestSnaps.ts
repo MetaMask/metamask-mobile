@@ -198,6 +198,14 @@ class TestSnaps {
     await Gestures.waitAndTap(this.footerButton);
   }
 
+  async dismissAlert() {
+    // Matches the native WebView alert on each platform
+    const button = Matchers.getElementByText(
+      device.getPlatform() === 'ios' ? 'Ok' : 'OK',
+    );
+    await Gestures.tap(button);
+  }
+
   async getOptionValueByText(
     webElement: IndexableWebElement,
     text: string,

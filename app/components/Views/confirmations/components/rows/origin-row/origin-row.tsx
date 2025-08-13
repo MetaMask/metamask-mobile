@@ -1,13 +1,12 @@
-import { Hex } from '@metamask/utils';
 import React from 'react';
 
 import { ConfirmationRowComponentIDs } from '../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { strings } from '../../../../../../../locales/i18n';
 import { useSignatureRequest } from '../../../hooks/signatures/useSignatureRequest';
-import { useTransactionBatchesMetadata } from '../../../hooks/transactions/useTransactionBatchesMetadata';
-import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import useApprovalRequest from '../../../hooks/useApprovalRequest';
-import { getSIWEDetails } from '../../../utils/signature';
+import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
+import { useApprovalInfo } from '../../../hooks/useApprovalInfo';
+import { isDappOrigin } from '../../../utils/origin';
 import InfoRow from '../../UI/info-row';
 import AlertRow from '../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
@@ -15,35 +14,18 @@ import InfoSection from '../../UI/info-row/info-section';
 import Address from '../../UI/info-row/info-value/address';
 import DisplayURL from '../../UI/info-row/info-value/display-url';
 
-const InfoRowOrigin = ({
-  isSignatureRequest,
-}: {
-  isSignatureRequest: boolean;
-}) => {
+const OriginRow = () => {
+  const { approvalRequest } = useApprovalRequest();
   const signatureRequest = useSignatureRequest();
   const transactionMetadata = useTransactionMetadataRequest();
-  const transactionBatchesMetadata = useTransactionBatchesMetadata();
-  const { approvalRequest } = useApprovalRequest();
-  let chainId: Hex | undefined;
-  let fromAddress: string | undefined;
-  let isSIWEMessage: boolean | undefined;
-  let url: string | undefined;
-  if (isSignatureRequest) {
-    if (!signatureRequest || !approvalRequest) return null;
+  const { chainId, fromAddress, isSIWEMessage, url } = useApprovalInfo() ?? {};
 
-    chainId = signatureRequest?.chainId;
-    isSIWEMessage = getSIWEDetails(signatureRequest).isSIWEMessage;
-    fromAddress = signatureRequest?.messageParams?.from;
-    url = approvalRequest?.requestData?.meta?.url;
-  } else if (transactionMetadata) {
-    chainId = transactionMetadata?.chainId;
-    fromAddress = transactionMetadata?.txParams?.from;
-    url = transactionMetadata?.origin;
-  } else if (transactionBatchesMetadata) {
-    chainId = transactionBatchesMetadata?.chainId;
-    fromAddress = transactionBatchesMetadata?.from;
-    url = transactionBatchesMetadata?.origin;
-  } else {
+  if (!approvalRequest) {
+    return null;
+  }
+
+  const isDappTransaction = isDappOrigin(url);
+  if (transactionMetadata && !isDappTransaction) {
     return null;
   }
 
@@ -53,23 +35,23 @@ const InfoRowOrigin = ({
         alertField={RowAlertKey.RequestFrom}
         label={strings('confirm.label.request_from')}
         tooltip={strings(
-          isSignatureRequest
+          signatureRequest
             ? 'confirm.personal_sign_tooltip'
             : 'confirm.transaction_tooltip',
         )}
       >
         <DisplayURL url={url ?? ''} />
       </AlertRow>
-      {isSignatureRequest && isSIWEMessage && (
+      {signatureRequest && isSIWEMessage && (
         <InfoRow
           label={strings('confirm.label.signing_in_with')}
           testID={ConfirmationRowComponentIDs.SIWE_SIGNING_ACCOUNT_INFO}
         >
-          <Address address={fromAddress} chainId={chainId} />
+          <Address address={fromAddress ?? ''} chainId={chainId ?? ''} />
         </InfoRow>
       )}
     </InfoSection>
   );
 };
 
-export default InfoRowOrigin;
+export default OriginRow;
