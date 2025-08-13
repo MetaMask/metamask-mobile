@@ -17,7 +17,7 @@ const SAMPLE_ACCOUNT_GROUP = {
 } as AccountGroupObject;
 
 const MultichainAccountRowMeta = {
-  title: 'Component Library / MultichainAccounts',
+  title: 'Component Library / MultichainAccounts/ AccountCell',
   component: AccountCell,
   argTypes: {
     accountGroup: {
