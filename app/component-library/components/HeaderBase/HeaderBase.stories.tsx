@@ -43,12 +43,12 @@ export const HeaderBase = {
         />
       }
     >
-      Super Long HeaderBase Title that may span 3 lines
+      Super long HeaderBase title that may span 3 lines
     </HeaderBaseComponent>
   ),
 };
 
-export const HeaderBaseDisplayVariant = {
+export const HeaderBaseVariantDisplay = {
   render: () => (
     <HeaderBaseComponent
       variant={HeaderBaseVariant.Display}
@@ -99,7 +99,7 @@ export const HeaderBaseCompactVariant = {
         />
       }
     >
-      Compact Variant - Center Aligned & Small Text
+      Compact variant - center aligned & small text
     </HeaderBaseComponent>
   ),
 };
@@ -107,7 +107,7 @@ export const HeaderBaseCompactVariant = {
 export const HeaderBaseDisplayVariantWithoutAccessories = {
   render: () => (
     <HeaderBaseComponent variant={HeaderBaseVariant.Display}>
-      Display Variant Without Accessories
+      Display variant without accessories
     </HeaderBaseComponent>
   ),
 };
@@ -115,7 +115,7 @@ export const HeaderBaseDisplayVariantWithoutAccessories = {
 export const HeaderBaseCompactVariantWithoutAccessories = {
   render: () => (
     <HeaderBaseComponent variant={HeaderBaseVariant.Compact}>
-      Compact Variant Without Accessories
+      Compact variant without accessories stretches full width of header
     </HeaderBaseComponent>
   ),
 };
