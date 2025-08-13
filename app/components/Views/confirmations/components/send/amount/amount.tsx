@@ -44,7 +44,7 @@ export const Amount = () => {
     getNativeValue,
   } = useCurrencyConversions();
   const { styles, theme } = useStyles(styleSheet, {
-    inputError: Boolean(amountError) ?? false,
+    inputError: Boolean(amountError),
     inputLength: amount.length,
   });
   const {

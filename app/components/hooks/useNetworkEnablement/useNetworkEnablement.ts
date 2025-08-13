@@ -51,6 +51,13 @@ export const useNetworkEnablement = () => {
     [networkEnablementController],
   );
 
+  const hasOneEnabledNetwork = useMemo(
+    () =>
+      Object.values(enabledNetworksForCurrentNamespace).filter(Boolean)
+        .length === 1,
+    [enabledNetworksForCurrentNamespace],
+  );
+
   const disableNetwork = useMemo(
     () => (chainId: CaipChainId) =>
       networkEnablementController.disableNetwork(chainId),
@@ -96,5 +103,6 @@ export const useNetworkEnablement = () => {
     disableNetwork,
     toggleNetwork,
     isNetworkEnabled,
+    hasOneEnabledNetwork,
   };
 };
