@@ -259,7 +259,7 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
     );
   });
 
-  it('should notify the connected account after permitting a previously unpermitted dapp', async () => {
+  it('should notify the dapp of the selected account after permitting a previously unpermitted dapp', async () => {
     await withFixtures(
       {
         dapps: [
