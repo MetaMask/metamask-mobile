@@ -240,6 +240,16 @@ describe('Balance', () => {
       if (selector.toString().includes('selectNetworkConfigurationByChainId')) {
         return { name: 'Ethereum Mainnet' };
       }
+      if (selector.toString().includes('selectPrivacyMode')) {
+        return false;
+      }
+      // Mock selectPricePercentChange1d directly in case the jest.mock isn't working
+      if (
+        selector === selectPricePercentChange1d ||
+        selector.toString().includes('selectPricePercentChange1d')
+      ) {
+        return mockSelectPricePercentChange1d();
+      }
 
       return undefined;
     });
@@ -251,25 +261,31 @@ describe('Balance', () => {
 
   it('should render correctly with main and secondary balance', () => {
     const wrapper = render(
-      <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
+      <Provider store={store}>
+        <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />
+      </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should render correctly without a secondary balance', () => {
     const wrapper = render(
-      <Balance
-        asset={mockDAI}
-        mainBalance="123"
-        secondaryBalance={undefined}
-      />,
+      <Provider store={store}>
+        <Balance
+          asset={mockDAI}
+          mainBalance="123"
+          secondaryBalance={undefined}
+        />
+      </Provider>,
     );
     expect(wrapper).toMatchSnapshot();
   });
 
   it('should fire navigation event for non native tokens', () => {
     const { getByTestId } = render(
-      <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />,
+      <Provider store={store}>
+        <Balance asset={mockDAI} mainBalance="123" secondaryBalance="456" />
+      </Provider>,
     );
     const assetElement = getByTestId('asset-DAI');
     fireEvent.press(assetElement);
@@ -302,7 +318,7 @@ describe('Balance', () => {
       // Mock the percentage selector to return a positive value
       mockSelectPricePercentChange1d.mockReturnValue(5.67);
 
-      const { getByText } = render(
+      const { getByTestId } = render(
         <Provider store={store}>
           <Balance
             asset={mockDAI}
@@ -312,14 +328,16 @@ describe('Balance', () => {
         </Provider>,
       );
 
-      expect(getByText('+5.67%')).toBeTruthy();
+      // Percentage is now displayed in AssetElement's secondary balance area
+      const percentageElement = getByTestId('secondary-balance-test-id');
+      expect(percentageElement.props.children).toBe('+5.67%');
     });
 
     it('should display negative percentage change in error color', () => {
       // Mock the percentage selector to return a negative value
       mockSelectPricePercentChange1d.mockReturnValue(-3.45);
 
-      const { getByText } = render(
+      const { getByTestId } = render(
         <Provider store={store}>
           <Balance
             asset={mockDAI}
@@ -329,14 +347,16 @@ describe('Balance', () => {
         </Provider>,
       );
 
-      expect(getByText('-3.45%')).toBeTruthy();
+      // Percentage is now displayed in AssetElement's secondary balance area
+      const percentageElement = getByTestId('secondary-balance-test-id');
+      expect(percentageElement.props.children).toBe('-3.45%');
     });
 
     it('should display zero percentage change in alternative color', () => {
       // Mock the percentage selector to return zero
       mockSelectPricePercentChange1d.mockReturnValue(0);
 
-      const { getByText } = render(
+      const { getByTestId } = render(
         <Provider store={store}>
           <Balance
             asset={mockDAI}
@@ -346,7 +366,9 @@ describe('Balance', () => {
         </Provider>,
       );
 
-      expect(getByText('+0.00%')).toBeTruthy();
+      // Percentage is now displayed in AssetElement's secondary balance area
+      const percentageElement = getByTestId('secondary-balance-test-id');
+      expect(percentageElement.props.children).toBe('+0.00%');
     });
 
     it('should not display percentage when no data is available', () => {

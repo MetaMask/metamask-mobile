@@ -194,6 +194,7 @@ exports[`Balance should render correctly with main and secondary balance 1`] = `
             "lineHeight": 22,
           }
         }
+        testID="token-amount-balance-test-id"
       >
         456
       </Text>

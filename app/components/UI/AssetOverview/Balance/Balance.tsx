@@ -10,6 +10,7 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './Balance.styles';
 import AssetElement from '../../AssetElement';
+import { TOKEN_AMOUNT_BALANCE_TEST_ID } from '../../AssetElement/index.constants';
 import { useSelector } from 'react-redux';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import {
@@ -223,6 +224,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
               style={styles.tokenAmount}
               isHidden={privacyMode}
               length={SensitiveTextLength.Short}
+              testID={TOKEN_AMOUNT_BALANCE_TEST_ID}
             >
               {secondaryBalance}
             </SensitiveText>
