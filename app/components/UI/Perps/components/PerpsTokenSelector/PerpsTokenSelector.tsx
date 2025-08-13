@@ -88,14 +88,15 @@ const PerpsTokenSelector: React.FC<PerpsTokenSelectorProps> = ({
   useEffect(() => {
     if (isVisible) {
       screenLoadStartRef.current = performance.now();
-      // Measure when tokens are actually displayed
-      // Since this is a simple list, measure immediately as there's no animation
-      const duration = performance.now() - screenLoadStartRef.current;
-      setMeasurement(
-        PerpsMeasurementName.FUNDING_SOURCE_TOKEN_LIST_LOADED,
-        duration,
-        'millisecond',
-      );
+      // Use requestAnimationFrame to measure after the modal renders
+      requestAnimationFrame(() => {
+        const duration = performance.now() - screenLoadStartRef.current;
+        setMeasurement(
+          PerpsMeasurementName.FUNDING_SOURCE_TOKEN_LIST_LOADED,
+          duration,
+          'millisecond',
+        );
+      });
     }
   }, [isVisible]);
 
