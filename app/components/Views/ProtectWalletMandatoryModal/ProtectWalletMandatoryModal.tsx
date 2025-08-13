@@ -28,6 +28,7 @@ import { isMultichainWalletSnap } from '../../../core/SnapKeyring/utils/snaps';
 import { SnapId } from '@metamask/snaps-sdk';
 import { areAddressesEqual } from '../../../util/address';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 const ProtectWalletMandatoryModal = () => {
   const [showProtectWalletModal, setShowProtectWalletModal] = useState(false);
@@ -47,6 +48,7 @@ const ProtectWalletMandatoryModal = () => {
 
   const passwordSet = useSelector(selectPasswordSet);
   const seedphraseBackedUp = useSelector(selectSeedphraseBackedUp);
+  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
 
   // Helper function to get keyring ID for any account (EVM or Solana)
   const getAccountKeyringId = useCallback(
@@ -125,6 +127,12 @@ const ProtectWalletMandatoryModal = () => {
   useEffect(() => {
     const route = findRouteNameFromNavigatorState(dangerouslyGetState().routes);
 
+    // Early exit for social login flow
+    if (isSocialLogin) {
+      setShowProtectWalletModal(false);
+      return;
+    }
+
     // Early exit for restricted routes (cheapest check)
     if (
       [
@@ -186,6 +194,7 @@ const ProtectWalletMandatoryModal = () => {
     selectedAccount,
     selectedAccountHdKeyringIndex,
     isPrimaryKeyringAccount,
+    isSocialLogin,
   ]);
 
   const onSecureWallet = () => {

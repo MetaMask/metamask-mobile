@@ -17,6 +17,7 @@ import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
+import { store } from '../../store';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -680,5 +681,62 @@ describe('Engine', () => {
       'SnapController:setClientActive',
       expect.anything(),
     );
+  });
+
+  it('hasFunds returns true when account has ERC-20 token balance with required state', () => {
+    const testAccountAddress = '0x1234567890123456789012345678901234567890';
+    const testAccountAddressLower = testAccountAddress.toLowerCase();
+    const chainIdDecimal = '1';
+    const tokenAddress = '0xA0b86a33E6441c8C673f4d34c8d49B99B75A8000';
+    const testAccountId = 'test-account-id';
+
+    const stateWithTokens = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          TokenBalancesController: {
+            tokenBalances: {
+              [testAccountAddressLower as Hex]: {
+                [chainIdDecimal]: {
+                  [tokenAddress]: '0x1BC16D674EC80000', // 2 tokens (18 decimals)
+                },
+              },
+            },
+          },
+          PreferencesController: {
+            selectedAddress: testAccountAddress,
+          },
+          NftController: {
+            allNfts: {},
+          },
+          AccountsController: {
+            internalAccounts: {
+              accounts: {
+                [testAccountId]: {
+                  id: testAccountId,
+                  address: testAccountAddress,
+                  type: 'eip155:eoa' as const,
+                },
+              },
+              selectedAccount: testAccountId,
+            },
+          },
+          MultichainBalancesController: {
+            balances: {},
+          },
+        },
+      },
+    };
+
+    (store.getState as jest.Mock).mockReturnValue(stateWithTokens);
+
+    const engine = Engine.init(
+      stateWithTokens.engine.backgroundState as unknown as EngineState,
+      backgroundState.KeyringController,
+      'test-engine-instance',
+    );
+
+    const hasFunds = engine.hasFunds(testAccountAddress);
+    expect(hasFunds).toBe(true);
   });
 });

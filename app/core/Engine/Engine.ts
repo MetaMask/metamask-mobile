@@ -98,6 +98,7 @@ import NotificationManager from '../NotificationManager';
 import Logger from '../../util/Logger';
 import { isZero } from '../../util/lodash';
 import { MetaMetricsEvents, MetaMetrics } from '../Analytics';
+import { isSolanaAccount } from '../Multichain/utils';
 
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { ExcludedSnapEndowments, ExcludedSnapPermissions } from '../Snaps';
@@ -2174,6 +2175,11 @@ export class Engine {
       const { tokenBalances } = backgroundState.TokenBalancesController;
       const { selectedAddress } = backgroundState.PreferencesController;
       const { allNfts } = backgroundState.NftController;
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      const multichainBalancesController =
+        backgroundState.MultichainBalancesController;
+      const multichainBalances = multichainBalancesController?.balances || {};
+      ///: END:ONLY_INCLUDE_IF
 
       // Use provided address, fallback to selected address, or check all
       const targetAddress = address || selectedAddress;
@@ -2245,15 +2251,74 @@ export class Engine {
         );
       }
 
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      // Check Solana account balances
+      let hasSolanaFunds = false;
+      if (multichainBalances && backgroundState.AccountsController) {
+        const { internalAccounts } = backgroundState.AccountsController;
+
+        if (targetAddress) {
+          // Check specific account
+          const targetAccount = Object.values(
+            internalAccounts?.accounts || {},
+          ).find(
+            (acc) => acc.address.toLowerCase() === targetAddress.toLowerCase(),
+          );
+
+          if (targetAccount && isSolanaAccount(targetAccount)) {
+            const accountBalances = multichainBalances[targetAccount.id];
+            if (accountBalances) {
+              // Check if any balance is greater than 0
+              hasSolanaFunds = Object.values(accountBalances).some(
+                (balance) => {
+                  const amount = parseFloat(balance?.amount || '0');
+                  return amount > 0;
+                },
+              );
+            }
+          }
+        } else {
+          // Check all Solana accounts
+          const allAccounts = Object.values(internalAccounts?.accounts || {});
+          for (const account of allAccounts) {
+            if (isSolanaAccount(account)) {
+              const accountBalances = multichainBalances[account.id];
+              if (accountBalances) {
+                const hasBalance = Object.values(accountBalances).some(
+                  (balance) => {
+                    const amount = parseFloat(balance?.amount || '0');
+                    return amount > 0;
+                  },
+                );
+                if (hasBalance) {
+                  hasSolanaFunds = true;
+                  break;
+                }
+              }
+            }
+          }
+        }
+      }
+      ///: END:ONLY_INCLUDE_IF
+
       // Account has funds if:
       // 1. Has fiat balance (ETH or token value) > 0,
       // 2. Has any ERC-20 token balances > 0,
       // 3. Has any NFTs
-      const hasFunds = totalFiatBalance > 0 || tokenFound || hasNfts;
+      // 4. Has any Solana token balances > 0
+      const hasFunds =
+        totalFiatBalance > 0 ||
+        tokenFound ||
+        hasNfts ||
+        ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+        hasSolanaFunds ||
+        ///: END:ONLY_INCLUDE_IF
+        false;
 
       return hasFunds;
     } catch (e) {
       Logger.log('Error while getting user funds', e);
+      return false;
     }
   };
 
