@@ -188,8 +188,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
-    () => !isLoadingPosition && !hasZeroBalance && !hasExistingPosition,
-    [isLoadingPosition, hasZeroBalance, hasExistingPosition],
+    () => !isLoadingPosition && !hasZeroBalance,
+    [isLoadingPosition, hasZeroBalance],
   );
 
   const { styles, theme } = useStyles(createStyles, { hasLongShortButtons });
@@ -270,7 +270,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           </Text>
         </View>
       </ScrollView>
-      {hasZeroBalance && !hasExistingPosition && !isLoadingPosition && (
+      {hasZeroBalance && !isLoadingPosition && (
         <View style={[styles.actionsContainer, styles.addFundsContainer]}>
           <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
             {strings('perps.market.add_funds_to_start_trading_perps')}
@@ -282,7 +282,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             label={strings('perps.market.add_funds')}
             onPress={handleAddFundsPress}
             style={styles.actionButton}
-            testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+            testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
             disabled={hasExistingPosition}
           />
         </View>

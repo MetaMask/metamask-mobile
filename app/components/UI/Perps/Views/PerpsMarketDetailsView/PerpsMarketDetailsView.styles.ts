@@ -99,6 +99,7 @@ export const createStyles = ({
     },
     addFundsContainer: {
       flexDirection: 'column',
+      alignItems: 'center',
     },
     riskDisclaimer: {
       paddingHorizontal: 16,
