@@ -74,6 +74,9 @@ const TabBarItemInner = ({
         flexStyle === 'flex' && 'flex-1',
       )}
       testID={props.testID}
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={props.label}
     >
       {renderContent()}
     </ButtonBase>
