@@ -12,7 +12,7 @@ import { IconName, IconColor } from '../Icons/Icon';
 
 // Internal dependencies.
 import { default as HeaderBaseComponent } from './HeaderBase';
-import { HeaderBaseAlign } from './HeaderBase.constants';
+import { HeaderBaseVariant } from './HeaderBase.types';
 
 const HeaderBaseStoryMeta = {
   title: 'Component Library / HeaderBase',
@@ -48,10 +48,10 @@ export const HeaderBase = {
   ),
 };
 
-export const HeaderBaseCenterAligned = {
+export const HeaderBaseDisplayVariant = {
   render: () => (
     <HeaderBaseComponent
-      align={HeaderBaseAlign.Center}
+      variant={HeaderBaseVariant.Display}
       startAccessory={
         <ButtonIcon
           iconColor={IconColor.Default}
@@ -71,15 +71,15 @@ export const HeaderBaseCenterAligned = {
         />
       }
     >
-      Center Aligned Title
+      Display Variant - Left Aligned & Large Text
     </HeaderBaseComponent>
   ),
 };
 
-export const HeaderBaseLeftAligned = {
+export const HeaderBaseCompactVariant = {
   render: () => (
     <HeaderBaseComponent
-      align={HeaderBaseAlign.Left}
+      variant={HeaderBaseVariant.Compact}
       startAccessory={
         <ButtonIcon
           iconColor={IconColor.Default}
@@ -99,23 +99,23 @@ export const HeaderBaseLeftAligned = {
         />
       }
     >
-      Left Aligned Title
+      Compact Variant - Center Aligned & Small Text
     </HeaderBaseComponent>
   ),
 };
 
-export const HeaderBaseLeftAlignedWithoutAccessories = {
+export const HeaderBaseDisplayVariantWithoutAccessories = {
   render: () => (
-    <HeaderBaseComponent align={HeaderBaseAlign.Left}>
-      Left Aligned Title Without Accessories
+    <HeaderBaseComponent variant={HeaderBaseVariant.Display}>
+      Display Variant Without Accessories
     </HeaderBaseComponent>
   ),
 };
 
-export const HeaderBaseCenterAlignedWithoutAccessories = {
+export const HeaderBaseCompactVariantWithoutAccessories = {
   render: () => (
-    <HeaderBaseComponent align={HeaderBaseAlign.Center}>
-      Center Aligned Title Without Accessories
+    <HeaderBaseComponent variant={HeaderBaseVariant.Compact}>
+      Compact Variant Without Accessories
     </HeaderBaseComponent>
   ),
 };
