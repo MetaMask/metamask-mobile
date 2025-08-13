@@ -186,6 +186,8 @@
     "import_title": "Your wallet is ready!",
     "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "import_description_social_login": "You can log in to your wallet anytime with your {{authConnection}} account and password.",
+    "import_description_social_login_2": "If you forget your password, you won’t be able to access your wallet.",
     "done": "Done",
     "create_hint": "Create a password hint",
     "hint_title": "Password hint",
@@ -1370,6 +1372,9 @@
     "import": "Import",
     "sort_by": "Sort by",
     "filter_by": "Filter by",
+    "networks": "Networks",
+    "default": "Default",
+    "custom": "Custom",
     "current_network": "Current network",
     "popular_networks": "Popular networks",
     "all_networks": "All Networks",
@@ -1713,7 +1718,9 @@
     "account_connect_create_initial_account": {
       "description": "A Solana account is required to connect to this site.",
       "button": "Create Solana account"
-    }
+    },
+    "no_accounts_found": "No accounts found",
+    "search_your_accounts": "Search your accounts"
   },
   "toast": {
     "connected_and_active": "connected and active.",
@@ -2290,6 +2297,7 @@
     "sell_button": "Withdraw",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
+    "deposit_button": "Deposit",
     "earn_button": "Earn",
     "perps_button": "Perpetuals",
     "add_collectible_button": "Add",
@@ -2912,6 +2920,7 @@
     "switch_network": "Switch to network",
     "switch": "Switch",
     "select_all": "Select all",
+    "deselect_all": "Deselect all",
     "new_network": "New network added",
     "network_name": "{{networkName}} Network",
     "network_added": " is now available in the network selector.",

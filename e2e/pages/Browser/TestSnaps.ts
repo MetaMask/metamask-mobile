@@ -76,6 +76,20 @@ class TestSnaps {
     }, options);
   }
 
+  async checkInstalledSnaps(
+    expectedMessage: string,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    return await this.checkResultSpan(
+      'installedSnapResultSpan',
+      expectedMessage,
+      options,
+    );
+  }
+
   async checkResultJson(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedJson: Json,
@@ -182,6 +196,14 @@ class TestSnaps {
 
   async tapFooterButton() {
     await Gestures.waitAndTap(this.footerButton);
+  }
+
+  async dismissAlert() {
+    // Matches the native WebView alert on each platform
+    const button = Matchers.getElementByText(
+      device.getPlatform() === 'ios' ? 'Ok' : 'OK',
+    );
+    await Gestures.tap(button);
   }
 
   async getOptionValueByText(
