@@ -5,8 +5,10 @@ import { StyleSheet, ViewStyle } from 'react-native';
 import { Theme } from '../../../util/theme/models';
 
 // Internal dependencies.
-import { HeaderBaseStyleSheetVars } from './HeaderBase.types';
-import { HeaderBaseAlign } from './HeaderBase.constants';
+import {
+  HeaderBaseStyleSheetVars,
+  HeaderBaseVariant,
+} from './HeaderBase.types';
 
 /**
  * Style sheet function for HeaderBase component.
@@ -21,14 +23,9 @@ const styleSheet = (params: {
   vars: HeaderBaseStyleSheetVars;
 }) => {
   const { vars, theme } = params;
-  const {
-    style,
-    startAccessorySize,
-    endAccessorySize,
-    align = HeaderBaseAlign.Center,
-  } = vars;
+  const { style, startAccessorySize, endAccessorySize, variant } = vars;
 
-  const isLeftAligned = align === HeaderBaseAlign.Left;
+  const isLeftAligned = variant === HeaderBaseVariant.Display;
 
   // Only calculate accessoryWidth for center alignment to ensure visual centering
   let accessoryWidth;
@@ -41,13 +38,13 @@ const styleSheet = (params: {
       {
         backgroundColor: theme.colors.background.default,
         flexDirection: 'row',
+        gap: 16,
       } as ViewStyle,
       style,
     ) as ViewStyle,
     titleWrapper: {
       flex: 1,
       alignItems: isLeftAligned ? 'flex-start' : 'center',
-      marginHorizontal: accessoryWidth ? 0 : 16,
     },
     title: {
       textAlign: isLeftAligned ? 'left' : 'center',
