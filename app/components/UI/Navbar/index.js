@@ -1038,7 +1038,7 @@ export function getWalletNavbarOptions(
     }
   }
 
-  const isFeatureFlagEnabled = true;
+  const isFeatureFlagEnabled = isRemoveGlobalNetworkSelectorEnabled();
 
   const handleCardPress = () => {
     trackEvent(
