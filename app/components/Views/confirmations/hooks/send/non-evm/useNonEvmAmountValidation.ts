@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 
+import { strings } from '../../../../../../../locales/i18n';
 import { isDecimal } from '../../../../../../util/number';
 import { AssetType } from '../../../types/token';
 import { useSendContext } from '../../../context/send-context';
@@ -12,16 +13,16 @@ export const validateAmountFn = ({
   asset?: AssetType;
 }) => {
   if (!asset || amount === undefined || amount === null || amount === '') {
-    return { invalidAmount: true };
+    return;
   }
   if (!isDecimal(amount) || Number(amount) < 0) {
-    return { invalidAmount: true };
+    return strings('send.invalid_value');
   }
   // todo: check if parse float can possibly create issue
   if (parseFloat(amount) > parseFloat(asset.balance)) {
-    return { insufficientBalance: true };
+    return strings('send.insufficient_funds');
   }
-  return {};
+  return;
 };
 
 export const useNonEvmAmountValidation = () => {

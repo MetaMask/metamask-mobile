@@ -20,9 +20,10 @@ const ADDITIONAL_BUTTONS = [
 export interface EditAmountKeyboardProps {
   onChange: (value: string) => void;
   onPercentagePress: (percentage: number) => void;
-  onDonePress: () => void;
+  onDonePress?: () => void;
   value: string;
   additionalButtons?: { value: number; label: string }[];
+  hideDoneButton?: boolean;
   showAdditionalKeyboard?: boolean;
   additionalRow?: ReactNode;
 }
@@ -33,6 +34,7 @@ export function EditAmountKeyboard({
   onPercentagePress,
   value,
   additionalButtons = ADDITIONAL_BUTTONS,
+  hideDoneButton = false,
   showAdditionalKeyboard = true,
   additionalRow,
 }: EditAmountKeyboardProps) {
@@ -65,12 +67,14 @@ export function EditAmountKeyboard({
               variant={ButtonVariants.Secondary}
             />
           ))}
-          <Button
-            label={strings('confirm.edit_amount_done')}
-            style={styles.percentageButton}
-            onPress={onDonePress}
-            variant={ButtonVariants.Secondary}
-          />
+          {!hideDoneButton && onDonePress && (
+            <Button
+              label={strings('confirm.edit_amount_done')}
+              style={styles.percentageButton}
+              onPress={onDonePress}
+              variant={ButtonVariants.Secondary}
+            />
+          )}
         </Box>
       )}
       <KeypadComponent

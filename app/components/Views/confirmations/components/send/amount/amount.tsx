@@ -34,7 +34,7 @@ export const Amount = () => {
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, updateValue } = useSendContext();
   const { balance } = useBalance();
-  const { insufficientBalance } = useAmountValidation();
+  const { amountError } = useAmountValidation();
   const [amount, updateAmount] = useState('');
   const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
   const {
@@ -44,7 +44,8 @@ export const Amount = () => {
     getNativeValue,
   } = useCurrencyConversions();
   const { styles, theme } = useStyles(styleSheet, {
-    inputError: insufficientBalance ?? false,
+    inputError: Boolean(amountError) ?? false,
+    inputLength: amount.length,
   });
   const {
     setAmountInputMethodManual,
@@ -115,9 +116,7 @@ export const Amount = () => {
             />
           </View>
           <Text
-            color={
-              insufficientBalance ? TextColor.Error : TextColor.Alternative
-            }
+            color={amountError ? TextColor.Error : TextColor.Alternative}
             style={styles.tokenSymbol}
             variant={TextVariant.DisplayLG}
           >
