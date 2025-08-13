@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { Store } from 'redux';
+import Engine from '../../../../../../core/Engine';
 
 import SendTo from './index';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
@@ -34,6 +35,20 @@ jest.mock('../../../../../../util/networks', () => ({
   ...jest.requireActual('../../../../../../util/networks'),
   isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
 }));
+
+jest.mock('../../../../../../actions/onboardNetwork', () => ({
+  onboardNetworkAction: jest.fn(),
+}));
+
+jest.mock('../../../../../../core/Engine', () => ({
+  context: {
+    NetworkEnablementController: {
+      state: { enabledNetworkMap: {} },
+    },
+  },
+}));
+
+jest.mocked(Engine);
 
 jest.mock('react-native', () => ({
   ...jest.requireActual('react-native'),
@@ -512,8 +527,15 @@ describe('SendTo Component', () => {
 
       // Should dispatch action to set contextual chain ID
       expect(testStore.dispatch).toHaveBeenCalledWith({
-        type: 'SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID',
-        chainId: globalChainId,
+        type: 'NEW_ASSET_TRANSACTION',
+        assetType: 'ETH',
+        selectedAsset: {
+          address: '',
+          isETH: true,
+          logo: '../images/eth-logo-new.png',
+          name: 'Ether',
+          symbol: 'ETH',
+        },
       });
     });
 
@@ -937,8 +959,15 @@ describe('SendTo Component', () => {
 
         // Should initialize contextual chain ID with global chain ID
         expect(testStore.dispatch).toHaveBeenCalledWith({
-          type: 'SET_TRANSACTION_SEND_FLOW_CONTEXTUAL_CHAIN_ID',
-          chainId: globalChainId,
+          assetType: 'ETH',
+          selectedAsset: {
+            address: '',
+            isETH: true,
+            logo: '../images/eth-logo-new.png',
+            name: 'Ether',
+            symbol: 'ETH',
+          },
+          type: 'NEW_ASSET_TRANSACTION',
         });
 
         // Reset mocks and test with feature flag disabled
