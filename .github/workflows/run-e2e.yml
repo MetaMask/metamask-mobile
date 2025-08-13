@@ -7,10 +7,6 @@ on:
   workflow_call:
   workflow_dispatch:
 
-permissions:
-  contents: write
-  id-token: write
-
 jobs:
   # Build Android APKs once for all Android tests
   build-android-apks:
