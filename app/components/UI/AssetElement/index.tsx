@@ -1,7 +1,10 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 import { TouchableOpacity, StyleSheet, Platform, View } from 'react-native';
-import { TextVariant } from '../../../component-library/components/Texts/Text';
+import {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import SkeletonText from '../Ramp/Aggregator/components/SkeletonText';
 import { TokenI } from '../Tokens/types';
 import generateTestId from '../../../../wdio/utils/generateTestId';
@@ -9,7 +12,7 @@ import { getAssetTestId } from '../../../../wdio/screen-objects/testIDs/Screens/
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../component-library/components/Texts/SensitiveText';
-import { fontStyles } from '../../../styles/common';
+
 import { useTheme } from '../../../util/theme';
 import { Colors } from '../../../util/theme/models';
 import {
@@ -28,7 +31,7 @@ interface AssetElementProps {
   balanceVariant?: TextVariant;
   secondaryBalance?: string;
   secondaryBalanceVariant?: TextVariant;
-  secondaryBalanceColor?: any;
+  secondaryBalanceColor?: TextColor;
   privacyMode?: boolean;
   disabled?: boolean;
 }
@@ -51,7 +54,9 @@ const createStyles = (colors: Colors) =>
     secondaryBalance: {
       color: colors.text.alternative,
       paddingHorizontal: 0,
-      ...fontStyles.normal,
+    },
+    secondaryBalanceCustomColor: {
+      paddingHorizontal: 0,
     },
   });
 
@@ -118,10 +123,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
             variant={TextVariant.BodySMMedium}
             style={
               secondaryBalanceColor
-                ? {
-                    paddingHorizontal: 0,
-                    ...fontStyles.normal,
-                  }
+                ? styles.secondaryBalanceCustomColor
                 : styles.secondaryBalance
             }
             color={secondaryBalanceColor}
