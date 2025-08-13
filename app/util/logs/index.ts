@@ -13,6 +13,38 @@ import { RootState } from '../../reducers';
 import Device from '../../util/device';
 import { MetaMetrics } from '../../core/Analytics';
 
+const getSanitizedSeedlessOnboardingControllerState = () => {
+  const { SeedlessOnboardingController } = Engine.context;
+  return {
+    userId: SeedlessOnboardingController.state.userId,
+    isSeedlessOnboardingUserAuthenticated:
+      SeedlessOnboardingController.state.isSeedlessOnboardingUserAuthenticated,
+    passwordOutdatedCache:
+      SeedlessOnboardingController.state.passwordOutdatedCache,
+
+    // Return Boolean for state availablity
+    vault: Boolean(SeedlessOnboardingController.state.vault),
+    vaultEncryptionKey: Boolean(
+      SeedlessOnboardingController.state.vaultEncryptionKey,
+    ),
+    vaultEncryptionSalt: Boolean(
+      SeedlessOnboardingController.state.vaultEncryptionSalt,
+    ),
+    encryptedSeedlessEncryptionKey: Boolean(
+      SeedlessOnboardingController.state.encryptedSeedlessEncryptionKey,
+    ),
+    encryptedKeyringEncryptionKey: Boolean(
+      SeedlessOnboardingController.state.encryptedKeyringEncryptionKey,
+    ),
+    metadataAccessToken: Boolean(
+      SeedlessOnboardingController.state.metadataAccessToken,
+    ),
+    accessToken: Boolean(SeedlessOnboardingController.state.accessToken),
+    refreshToken: Boolean(SeedlessOnboardingController.state.refreshToken),
+    revokeToken: Boolean(SeedlessOnboardingController.state.revokeToken),
+  };
+};
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, import/prefer-default-export
 export const generateStateLogs = (state: any, loggedIn = true): string => {
@@ -25,6 +57,7 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
   delete fullState.engine.backgroundState.PhishingController;
   delete fullState.engine.backgroundState.AssetsContractController;
   delete fullState.engine.backgroundState.DeFiPositionsController;
+  delete fullState.engine.backgroundState.SeedlessOnboardingController;
 
   // Remove Keyring controller data  so that encrypted vault is not included in logs
   delete fullState.engine.backgroundState.KeyringController;
@@ -44,6 +77,8 @@ export const generateStateLogs = (state: any, loggedIn = true): string => {
           keyrings: KeyringController.state.keyrings,
           isUnlocked: KeyringController.state.isUnlocked,
         },
+        SeedlessOnboardingController:
+          getSanitizedSeedlessOnboardingControllerState(),
       },
     },
   };
