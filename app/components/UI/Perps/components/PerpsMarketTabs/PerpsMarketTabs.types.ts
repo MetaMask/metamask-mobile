@@ -5,7 +5,7 @@ export interface TabViewProps {
   tabLabel: string;
 }
 
-export interface MarketDetailsTabsProps {
+export interface PerpsMarketTabsProps {
   marketStats: ReturnType<typeof usePerpsMarketStats>;
   position: Position | null;
   isLoadingPosition: boolean;

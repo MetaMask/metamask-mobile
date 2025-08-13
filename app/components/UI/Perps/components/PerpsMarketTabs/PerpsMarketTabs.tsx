@@ -12,7 +12,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../hooks/useStyles';
 import PerpsMarketStatisticsCard from '../PerpsMarketStatisticsCard';
 import PerpsPositionCard from '../PerpsPositionCard';
-import { MarketDetailsTabsProps } from './PerpsMarketTabs.types';
+import { PerpsMarketTabsProps } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
 import type { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
@@ -25,7 +25,7 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 
-const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
+const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   marketStats,
   position,
   isLoadingPosition,
@@ -298,4 +298,4 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
   );
 };
 
-export default MarketDetailsTabs;
+export default PerpsMarketTabs;

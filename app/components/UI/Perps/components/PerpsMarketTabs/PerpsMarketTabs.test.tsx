@@ -5,7 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsMarketTabsSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import type { Position, Order } from '../../controllers/types';
-import type { MarketDetailsTabsProps } from './PerpsMarketTabs.types';
+import type { PerpsMarketTabsProps } from './PerpsMarketTabs.types';
 
 // Mock hooks
 jest.mock('../../hooks/usePerpsMarketStats', () => ({
@@ -105,7 +105,7 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-const mockMarketStats: MarketDetailsTabsProps['marketStats'] = {
+const mockMarketStats: PerpsMarketTabsProps['marketStats'] = {
   currentPrice: 45000,
   priceChange24h: 1125,
   high24h: '$46,000.00',
@@ -161,7 +161,7 @@ const initialState = {
 };
 
 describe('PerpsMarketTabs', () => {
-  const defaultProps: MarketDetailsTabsProps = {
+  const defaultProps: PerpsMarketTabsProps = {
     marketStats: mockMarketStats,
     position: null,
     isLoadingPosition: false,
