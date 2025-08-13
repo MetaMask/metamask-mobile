@@ -327,3 +327,36 @@ export const PerpsOrderCardSelectorsIDs = {
   CANCEL_BUTTON: 'perps-order-card-cancel-button',
   EDIT_BUTTON: 'perps-order-card-edit-button',
 };
+
+// ========================================
+// PERPS MARKET TABS SELECTORS
+// ========================================
+
+export const PerpsMarketTabsSelectorsIDs = {
+  // Container
+  CONTAINER: 'perps-market-tabs-container',
+
+  // Tab bar and tabs
+  TAB_BAR: 'perps-market-tabs-tab-bar',
+  POSITION_TAB: 'perps-market-tabs-position-tab',
+  ORDERS_TAB: 'perps-market-tabs-orders-tab',
+  STATISTICS_TAB: 'perps-market-tabs-statistics-tab',
+
+  // Tab content areas
+  TAB_CONTENT: 'perps-market-tabs-tab-content',
+  POSITION_CONTENT: 'perps-market-tabs-position-content',
+  ORDERS_CONTENT: 'perps-market-tabs-orders-content',
+  STATISTICS_CONTENT: 'perps-market-tabs-statistics-content',
+
+  // Empty states
+  ORDERS_EMPTY_STATE: 'perps-market-tabs-orders-empty-state',
+  ORDERS_EMPTY_ICON: 'perps-market-tabs-orders-empty-icon',
+  ORDERS_EMPTY_TEXT: 'perps-market-tabs-orders-empty-text',
+
+  // Statistics-only view
+  STATISTICS_ONLY_TITLE: 'perps-market-tabs-statistics-only-title',
+
+  // Loading states
+  SKELETON_TAB_BAR: 'perps-market-tabs-skeleton-tab-bar',
+  SKELETON_CONTENT: 'perps-market-tabs-skeleton-content',
+};

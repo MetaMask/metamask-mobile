@@ -16,7 +16,10 @@ import { MarketDetailsTabsProps } from './PerpsMarketTabs.types';
 import styleSheet from './PerpsMarketTabs.styles';
 import type { PerpsTooltipContentKey } from '../PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import PerpsBottomSheetTooltip from '../PerpsBottomSheetTooltip';
-import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsMarketTabsSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import PerpsOrderCard from '../PerpsOrderCard';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
@@ -106,7 +109,10 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
     return (
       <>
         {/* Tab bar skeleton */}
-        <View style={styles.skeletonTabBar}>
+        <View
+          style={styles.skeletonTabBar}
+          testID={PerpsMarketTabsSelectorsIDs.SKELETON_TAB_BAR}
+        >
           <View style={styles.skeletonTab}>
             <Skeleton height={20} width={80} />
           </View>
@@ -118,7 +124,10 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
           </View>
         </View>
         {/* Content skeleton */}
-        <View style={styles.tabContent}>
+        <View
+          style={styles.tabContent}
+          testID={PerpsMarketTabsSelectorsIDs.SKELETON_CONTENT}
+        >
           <Skeleton height={200} style={styles.skeletonContent} />
         </View>
         {renderTooltipModal()}
@@ -134,6 +143,7 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
           variant={TextVariant.HeadingMD}
           color={TextColor.Default}
           style={styles.statisticsTitle}
+          testID={PerpsMarketTabsSelectorsIDs.STATISTICS_ONLY_TITLE}
         >
           {strings('perps.market.statistics')}
         </Text>
@@ -148,7 +158,7 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
   }
 
   const renderTabBar = () => (
-    <View style={styles.tabBar}>
+    <View style={styles.tabBar} testID={PerpsMarketTabsSelectorsIDs.TAB_BAR}>
       {tabs.map((tab) => {
         const isActive = activeTabId === tab.id;
         return (
@@ -157,6 +167,13 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
             style={[styles.tab]}
             onPress={() => handleTabChange(tab.id)}
             activeOpacity={0.7}
+            testID={
+              tab.id === 'position'
+                ? PerpsMarketTabsSelectorsIDs.POSITION_TAB
+                : tab.id === 'orders'
+                ? PerpsMarketTabsSelectorsIDs.ORDERS_TAB
+                : PerpsMarketTabsSelectorsIDs.STATISTICS_TAB
+            }
           >
             <Text
               variant={TextVariant.BodyMDBold}
@@ -176,7 +193,10 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
       case 'position':
         if (!position || isLoadingPosition) return null;
         return (
-          <View style={styles.tabContent}>
+          <View
+            style={styles.tabContent}
+            testID={PerpsMarketTabsSelectorsIDs.POSITION_CONTENT}
+          >
             <PerpsPositionCard
               key={`${position.coin}`}
               position={position}
@@ -189,7 +209,10 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
 
       case 'statistics':
         return (
-          <View style={styles.tabContent}>
+          <View
+            style={styles.tabContent}
+            testID={PerpsMarketTabsSelectorsIDs.STATISTICS_CONTENT}
+          >
             <PerpsMarketStatisticsCard
               marketStats={marketStats}
               onTooltipPress={handleTooltipPress}
@@ -199,19 +222,27 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
 
       case 'orders':
         return (
-          <View style={styles.tabContent}>
+          <View
+            style={styles.tabContent}
+            testID={PerpsMarketTabsSelectorsIDs.ORDERS_CONTENT}
+          >
             {unfilledOrders.length === 0 ? (
-              <View style={styles.emptyStateContainer}>
+              <View
+                style={styles.emptyStateContainer}
+                testID={PerpsMarketTabsSelectorsIDs.ORDERS_EMPTY_STATE}
+              >
                 <Icon
                   name={IconName.Book}
                   size={IconSize.Xl}
                   color={TextColor.Muted}
                   style={styles.emptyStateIcon}
+                  testID={PerpsMarketTabsSelectorsIDs.ORDERS_EMPTY_ICON}
                 />
                 <Text
                   variant={TextVariant.BodyMD}
                   color={TextColor.Muted}
                   style={styles.emptyStateText}
+                  testID={PerpsMarketTabsSelectorsIDs.ORDERS_EMPTY_TEXT}
                 >
                   {strings('perps.no_open_orders')}
                 </Text>
@@ -254,7 +285,10 @@ const MarketDetailsTabs: React.FC<MarketDetailsTabsProps> = ({
   };
 
   return (
-    <Animated.View style={{ opacity: fadeAnim }}>
+    <Animated.View
+      style={{ opacity: fadeAnim }}
+      testID={PerpsMarketTabsSelectorsIDs.CONTAINER}
+    >
       {renderTabBar()}
       {renderTabContent()}
       {renderTooltipModal()}
