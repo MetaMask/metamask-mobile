@@ -501,7 +501,8 @@
   },
   "send": {
     "available": "available",
-    "amount_insufficient": "Insufficient funds",
+    "invalid_value": "Invalid value",
+    "insufficient_funds": "Insufficient funds",
     "continue": "Continue",
     "title": "Send",
     "deeplink_failure": "Something went wrong. Please try again",

@@ -5891,12 +5891,12 @@
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.10.0"
 
-"@metamask/preinstalled-example-snap@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/preinstalled-example-snap/-/preinstalled-example-snap-0.6.0.tgz#eb5932f0d9df0e36e17b360bdcefa1d0ee92c467"
-  integrity sha512-4m+nxSjBAu7V8XqCos8fYFgBNdnXLgcbfUGDnDewPwRP6z1HgTJ46V/wEwYUEXdLT9uRWULzWeABMQVOJrRCbA==
+"@metamask/preinstalled-example-snap@^0.7.1":
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/@metamask/preinstalled-example-snap/-/preinstalled-example-snap-0.7.1.tgz#add0efccd62cbcb3402f18ab263a8f9ef389c73f"
+  integrity sha512-DZLlpp0ms5qd4DiJ6Adtpi+2QY6W9j8kIMQ4jwxurd3iGXJQny6CHSChwsQAf4WkxKObuhknNit5JQP/MmiTbA==
   dependencies:
-    "@metamask/snaps-sdk" "^9.1.0"
+    "@metamask/snaps-sdk" "^9.3.0"
 
 "@metamask/profile-sync-controller@^23.0.0":
   version "23.0.0"
@@ -6182,7 +6182,7 @@
     "@metamask/superstruct" "^3.2.1"
     "@metamask/utils" "^11.4.0"
 
-"@metamask/snaps-sdk@^9.0.0", "@metamask/snaps-sdk@^9.1.0", "@metamask/snaps-sdk@^9.3.0":
+"@metamask/snaps-sdk@^9.0.0", "@metamask/snaps-sdk@^9.3.0":
   version "9.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-9.3.0.tgz#5c3858a5a247bf8c25c444b4bc8ecd4cbbfbf875"
   integrity sha512-o/XxzQNl59HjsesNAAK1UqVNQmujloAxCNfIii/z4wLFNe7+sg7Swsw4My5jR6xRLgzSaSBwW3dczYdVTpA06g==
