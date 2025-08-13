@@ -33,19 +33,43 @@ jobs:
         with:
           filters: |
             android:
-              - 'android/**'
-              - '**/*.gradle*'
-              - '**/gradle-wrapper.properties'
-              - 'package.json'
-              - 'yarn.lock'
-              - 'scripts/**'
-              - 'app/**'
+              - 'android/**'                       # All Android project files
+              - 'android/app/build.gradle'         # Gradle build files
+              - 'android/gradlew'                  # Gradle wrapper
+              - 'android/settings.gradle'          # Gradle settings
+              - 'app/**/android/**'                # Android-specific app code
+              - 'core/**/android/**'               # Android-specific core modules
+              - 'app/configs/android/**'           # Android configs
+              - 'app/constants/android/**'         # Android constants
+              - 'app/components/**/android/**'     # Android UI components
+              - 'app/util/**/android/**'           # Android utilities
+              - 'package.json'                     # If native deps change
+              - 'yarn.lock'                        # Dependency changes
+              - 'babel.config.js'                  # Transpilation changes
+              - 'tsconfig.json'                    # TypeScript config
+              - 'metro.config.js' 
             ios:
-              - 'ios/**'
-              - 'package.json'
-              - 'yarn.lock'
-              - 'scripts/**'
-              - 'app/**'
+              - 'ios/**'                           # All iOS project files
+              - 'Podfile'                          # CocoaPods dependencies
+              - 'Podfile.lock'                     # Pod lockfile
+              - '**/*.xcodeproj/**'                # Xcode project files
+              - '**/*.xcworkspace/**'              # Xcode workspace
+              - 'app/**/ios/**'                    # iOS-specific app code
+              - 'core/**/ios/**'                   # iOS-specific core modules
+              - 'app/configs/ios/**'               # iOS configs
+              - 'app/constants/ios/**'             # iOS constants
+              - 'app/components/**/ios/**'         # iOS UI components
+              - 'app/util/**/ios/**'               # iOS utilities
+              - 'package.json'                     # If native deps change
+              - 'yarn.lock'                        # Dependency changes
+              - 'babel.config.js'                  # Transpilation changes
+              - 'tsconfig.json'                    # TypeScript config
+              - 'metro.config.js'                  # Metro bundler
+          exclude: |
+            - '**/*.md'                          # Docs don't trigger builds
+            - 'docs/**'                          # Documentation
+            - '.github/**'                       # Workflow changes (unless affecting builds)
+            - '**/*.yml'                         # Configs (exclude if not build-related)
 
       - name: Set any_changed output
         id: set-any
