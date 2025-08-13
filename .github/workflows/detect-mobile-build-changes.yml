@@ -65,11 +65,11 @@ jobs:
               - 'babel.config.js'                  # Transpilation changes
               - 'tsconfig.json'                    # TypeScript config
               - 'metro.config.js'                  # Metro bundler
-          exclude: |
-            - '**/*.md'                          # Docs don't trigger builds
-            - 'docs/**'                          # Documentation
-            - '.github/**'                       # Workflow changes (unless affecting builds)
-            - '**/*.yml'                         # Configs (exclude if not build-related)
+            exclude:
+                - '!**/*.md'                          # Docs don't trigger builds
+                - '!docs/**'                          # Documentation
+                - '!**/*.yml'                         # Configs (exclude if not build-related)
+                - '!.github/**'                       # Workflow changes (unless affecting builds)
 
       - name: Set any_changed output
         id: set-any
