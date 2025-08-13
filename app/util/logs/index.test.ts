@@ -360,4 +360,95 @@ describe('logs :: downloadStateLogs', () => {
     const jsonData = JSON.parse(decodedData);
     expect(jsonData).not.toHaveProperty('metaMetricsId');
   });
+
+  it('able to download when SeedlessController state is undefined', async () => {
+    (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
+    (getVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (getBuildNumber as jest.Mock).mockResolvedValue('100');
+    (Device.isIos as jest.Mock).mockReturnValue(false);
+
+    const mockStateInput = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          SeedlessOnboardingController: undefined,
+        },
+      },
+    });
+
+    await downloadStateLogs(mockStateInput, false);
+
+    expect(Share.open).toHaveBeenCalledWith({
+      subject: 'TestApp State logs -  v1.0.0 (100)',
+      title: 'TestApp State logs -  v1.0.0 (100)',
+      url: expect.stringContaining('data:text/plain;base64,'),
+    });
+  });
+
+  it('able to download when SeedlessController socialBackupsMetadata is null and nodeAuthTokens is undefined', async () => {
+    (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
+    (getVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (getBuildNumber as jest.Mock).mockResolvedValue('100');
+    (Device.isIos as jest.Mock).mockReturnValue(false);
+
+    const mockStateInput = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+
+          SeedlessOnboardingController: {
+            userId: 'userId',
+            isSeedlessOnboardingUserAuthenticated: true,
+            socialBackupsMetadata: null,
+            nodeAuthTokens: undefined,
+          },
+        },
+      },
+    });
+
+    await downloadStateLogs(mockStateInput, false);
+
+    expect(Share.open).toHaveBeenCalledWith({
+      subject: 'TestApp State logs -  v1.0.0 (100)',
+      title: 'TestApp State logs -  v1.0.0 (100)',
+      url: expect.stringContaining('data:text/plain;base64,'),
+    });
+  });
+
+  it('able to download when SeedlessController state data array is null', async () => {
+    (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
+    (getVersion as jest.Mock).mockResolvedValue('1.0.0');
+    (getBuildNumber as jest.Mock).mockResolvedValue('100');
+    (Device.isIos as jest.Mock).mockReturnValue(false);
+
+    const mockStateInput = merge({}, initialRootState, {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+
+          SeedlessOnboardingController: {
+            userId: 'userId',
+            isSeedlessOnboardingUserAuthenticated: true,
+            socialBackupsMetadata: [
+              {
+                type: 'google',
+                keyringId: 'keyring1',
+                hash: 'should not be in logs',
+              },
+              null,
+            ],
+            nodeAuthTokens: [{ nodeIndex: 1 }, { nodeIndex: 2 }, null],
+          },
+        },
+      },
+    });
+
+    await downloadStateLogs(mockStateInput, false);
+
+    expect(Share.open).toHaveBeenCalledWith({
+      subject: 'TestApp State logs -  v1.0.0 (100)',
+      title: 'TestApp State logs -  v1.0.0 (100)',
+      url: expect.stringContaining('data:text/plain;base64,'),
+    });
+  });
 });
