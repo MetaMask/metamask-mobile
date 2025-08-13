@@ -205,6 +205,7 @@ export const PerpsWithdrawViewSelectorsIDs = {
 
 export const PerpsMarketDetailsViewSelectorsIDs = {
   CONTAINER: 'perps-market-details-view',
+  SCROLL_VIEW: 'perps-market-details-scroll-view',
   LOADING: 'perps-market-details-loading',
   ERROR: 'perps-market-details-error',
   HEADER: 'perps-market-header',

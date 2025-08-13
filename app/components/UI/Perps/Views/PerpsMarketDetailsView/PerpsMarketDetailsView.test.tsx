@@ -53,15 +53,17 @@ jest.mock('../../providers/PerpsConnectionProvider', () => ({
   }),
 }));
 
+const mockRefreshOrders = jest.fn();
 jest.mock('../../hooks/usePerpsOpenOrders', () => ({
   usePerpsOpenOrders: () => ({
     orders: [],
-    refresh: jest.fn(),
+    refresh: mockRefreshOrders,
     isLoading: false,
     error: null,
   }),
 }));
 
+const mockRefreshMarketStats = jest.fn();
 jest.mock('../../hooks/usePerpsMarketStats', () => ({
   usePerpsMarketStats: () => ({
     currentPrice: '$45,000.00',
@@ -72,15 +74,26 @@ jest.mock('../../hooks/usePerpsMarketStats', () => ({
     openInterest: '$500M',
     fundingRate: '+0.01%',
     fundingCountdown: '5h 30m',
-    refresh: jest.fn(),
+    refresh: mockRefreshMarketStats,
   }),
 }));
 
+const mockRefreshCandleData = jest.fn();
 jest.mock('../../hooks/usePerpsPositionData', () => ({
   usePerpsPositionData: () => ({
-    candleData: [],
+    candleData: [
+      {
+        time: 1234567890,
+        open: 45000,
+        high: 45500,
+        low: 44500,
+        close: 45200,
+        volume: 1000,
+      },
+    ],
     isLoadingHistory: false,
     error: null,
+    refreshCandleData: mockRefreshCandleData,
   }),
 }));
 
@@ -121,6 +134,9 @@ describe('PerpsMarketDetailsView', () => {
   // Clean up mocks after each test
   afterEach(() => {
     jest.clearAllMocks();
+    mockRefreshCandleData.mockClear();
+    mockRefreshOrders.mockClear();
+    mockRefreshMarketStats.mockClear();
   });
 
   it('renders correctly', () => {
@@ -344,6 +360,171 @@ describe('PerpsMarketDetailsView', () => {
 
       // Does not show add funds message
       expect(queryByText('Add funds to start trading perps')).toBeNull();
+    });
+  });
+
+  describe('Pull-to-refresh functionality', () => {
+    it('triggers refresh function when RefreshControl is pulled', async () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Get the ScrollView component
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+
+      // Trigger the refresh
+      await refreshControl.props.onRefresh();
+
+      // Should refresh candle data by default
+      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
+    });
+
+    it('refreshes position data when position tab is active', async () => {
+      const mockRefreshPosition = jest.fn();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: false,
+        error: null,
+        existingPosition: null,
+        refreshPosition: mockRefreshPosition,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Get the ScrollView component
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+
+      // Trigger the refresh (position tab is active by default)
+      await refreshControl.props.onRefresh();
+
+      // Should refresh both candle data and position data
+      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
+      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls refresh functions for chart data and position by default', async () => {
+      const mockRefreshPosition = jest.fn();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: false,
+        error: null,
+        existingPosition: null,
+        refreshPosition: mockRefreshPosition,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Get the ScrollView component
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+
+      // Trigger the refresh
+      await refreshControl.props.onRefresh();
+
+      // Should refresh candle data and position data (default behavior)
+      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
+      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles refresh state correctly during refresh operation', async () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Get the ScrollView component
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+
+      // Initially not refreshing
+      expect(refreshControl.props.refreshing).toBe(false);
+
+      // Trigger the refresh
+      const refreshPromise = refreshControl.props.onRefresh();
+
+      // Wait for refresh to complete
+      await refreshPromise;
+
+      // Verify refresh functions were called
+      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles errors during refresh operation', async () => {
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+      const mockRefreshPosition = jest
+        .fn()
+        .mockRejectedValue(new Error('Refresh failed'));
+
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: false,
+        error: null,
+        existingPosition: null,
+        refreshPosition: mockRefreshPosition,
+      });
+
+      mockRefreshCandleData.mockRejectedValue(
+        new Error('Candle data refresh failed'),
+      );
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Get the ScrollView component
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+
+      // Trigger the refresh
+      await refreshControl.props.onRefresh();
+
+      // Should log error
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Failed to refresh'),
+        expect.any(Error),
+      );
+
+      consoleErrorSpy.mockRestore();
     });
   });
 });

@@ -238,6 +238,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
