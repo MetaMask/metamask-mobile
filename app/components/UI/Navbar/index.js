@@ -43,7 +43,9 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
-import HeaderBase from '../../../component-library/components/HeaderBase';
+import HeaderBase, {
+  HeaderBaseVariant,
+} from '../../../component-library/components/HeaderBase';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
@@ -1036,7 +1038,7 @@ export function getWalletNavbarOptions(
     }
   }
 
-  const isFeatureFlagEnabled = isRemoveGlobalNetworkSelectorEnabled();
+  const isFeatureFlagEnabled = true;
 
   const handleCardPress = () => {
     trackEvent(
@@ -1085,24 +1087,6 @@ export function getWalletNavbarOptions(
     </View>
   );
 
-  // Account picker component
-  const accountPicker = (
-    <PickerAccount
-      ref={accountActionsRef}
-      accountName={accountName}
-      onPress={() => {
-        trace({
-          name: TraceName.AccountList,
-          tags: getTraceTags(store.getState()),
-          op: TraceOperation.AccountList,
-        });
-        navigation.navigate(...createAccountSelectorNavDetails({}));
-      }}
-      testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-      hitSlop={innerStyles.touchAreaSlop}
-    />
-  );
-
   // Network picker component
   const networkPicker = (
     <PickerNetwork
@@ -1120,17 +1104,45 @@ export function getWalletNavbarOptions(
     header: () => (
       <HeaderBase
         includesTopInset
+        variant={
+          isFeatureFlagEnabled
+            ? HeaderBaseVariant.Display
+            : HeaderBaseVariant.Compact
+        }
         style={innerStyles.headerContainer}
         startAccessory={
-          <View style={innerStyles.startAccessoryContainer}>
-            {!isFeatureFlagEnabled ? networkPicker : accountPicker}
-          </View>
+          !isFeatureFlagEnabled && (
+            <View style={innerStyles.startAccessoryContainer}>
+              <PickerNetwork
+                onPress={onPressTitle}
+                label={networkName}
+                imageSource={networkImageSource}
+                testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+                hideNetworkName
+                hitSlop={innerStyles.touchAreaSlop}
+                style={innerStyles.networkPickerStyle}
+              />
+            </View>
+          )
         }
         endAccessory={
           <View style={innerStyles.endAccessoryContainer}>{actionButtons}</View>
         }
       >
-        {!isFeatureFlagEnabled ? accountPicker : null}
+        <PickerAccount
+          ref={accountActionsRef}
+          accountName={accountName}
+          onPress={() => {
+            trace({
+              name: TraceName.AccountList,
+              tags: getTraceTags(store.getState()),
+              op: TraceOperation.AccountList,
+            });
+            navigation.navigate(...createAccountSelectorNavDetails({}));
+          }}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+          hitSlop={innerStyles.touchAreaSlop}
+        />
       </HeaderBase>
     ),
   };
