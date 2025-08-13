@@ -4,11 +4,12 @@ import type { Position, OrderResult } from '../controllers/types';
 import { usePerpsTrading } from './usePerpsTrading';
 import { strings } from '../../../../../locales/i18n';
 import { handlePerpsError } from '../utils/perpsErrorHandler';
-import { useMetrics, MetaMetricsEvents } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../constants/eventNames';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
@@ -25,7 +26,7 @@ export const usePerpsClosePosition = (
   const { closePosition } = usePerpsTrading();
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { track } = usePerpsEventTracking();
   const { trackError } = usePerpsErrorTracking();
 
   const handleClosePosition = useCallback(
@@ -76,27 +77,20 @@ export const usePerpsClosePosition = (
 
           if (isPartiallyFilled) {
             // Track partially filled close event
-            trackEvent(
-              createEventBuilder(
-                MetaMetricsEvents.PERPS_POSITION_CLOSE_PARTIALLY_FILLED,
-              )
-                .addProperties({
-                  [PerpsEventProperties.TIMESTAMP]: Date.now(),
-                  [PerpsEventProperties.ASSET]: position.coin,
-                  [PerpsEventProperties.DIRECTION]:
-                    parseFloat(position.size) > 0
-                      ? PerpsEventValues.DIRECTION.LONG
-                      : PerpsEventValues.DIRECTION.SHORT,
-                  [PerpsEventProperties.OPEN_POSITION_SIZE]: positionSize,
-                  [PerpsEventProperties.ORDER_SIZE]: closeSize,
-                  [PerpsEventProperties.ORDER_TYPE]: orderType,
-                  'Amount filled': filledSize,
-                  'Remaining amount': closeSize - filledSize,
-                  [PerpsEventProperties.COMPLETION_DURATION]:
-                    performance.now() - closeStartTime,
-                })
-                .build(),
-            );
+            track(MetaMetricsEvents.PERPS_POSITION_CLOSE_PARTIALLY_FILLED, {
+              [PerpsEventProperties.ASSET]: position.coin,
+              [PerpsEventProperties.DIRECTION]:
+                parseFloat(position.size) > 0
+                  ? PerpsEventValues.DIRECTION.LONG
+                  : PerpsEventValues.DIRECTION.SHORT,
+              [PerpsEventProperties.OPEN_POSITION_SIZE]: positionSize,
+              [PerpsEventProperties.ORDER_SIZE]: closeSize,
+              [PerpsEventProperties.ORDER_TYPE]: orderType,
+              'Amount filled': filledSize,
+              'Remaining amount': closeSize - filledSize,
+              [PerpsEventProperties.COMPLETION_DURATION]:
+                performance.now() - closeStartTime,
+            });
           }
 
           // Measure close order confirmation toast
@@ -108,21 +102,16 @@ export const usePerpsClosePosition = (
           );
 
           // Track position close executed
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.PERPS_POSITION_CLOSE_EXECUTED)
-              .addProperties({
-                [PerpsEventProperties.TIMESTAMP]: Date.now(),
-                [PerpsEventProperties.ASSET]: position.coin,
-                [PerpsEventProperties.DIRECTION]:
-                  parseFloat(position.size) > 0
-                    ? PerpsEventValues.DIRECTION.LONG
-                    : PerpsEventValues.DIRECTION.SHORT,
-                [PerpsEventProperties.ORDER_TYPE]: orderType,
-                [PerpsEventProperties.COMPLETION_DURATION]:
-                  performance.now() - closeStartTime,
-              })
-              .build(),
-          );
+          track(MetaMetricsEvents.PERPS_POSITION_CLOSE_EXECUTED, {
+            [PerpsEventProperties.ASSET]: position.coin,
+            [PerpsEventProperties.DIRECTION]:
+              parseFloat(position.size) > 0
+                ? PerpsEventValues.DIRECTION.LONG
+                : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.ORDER_TYPE]: orderType,
+            [PerpsEventProperties.COMPLETION_DURATION]:
+              performance.now() - closeStartTime,
+          });
 
           // Call success callback
           options?.onSuccess?.(result);
@@ -157,15 +146,10 @@ export const usePerpsClosePosition = (
         });
 
         // Track position close failed (specific event required by specs)
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED)
-            .addProperties({
-              [PerpsEventProperties.TIMESTAMP]: Date.now(),
-              [PerpsEventProperties.ASSET]: position.coin,
-              [PerpsEventProperties.ERROR_MESSAGE]: closeError.message,
-            })
-            .build(),
-        );
+        track(MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED, {
+          [PerpsEventProperties.ASSET]: position.coin,
+          [PerpsEventProperties.ERROR_MESSAGE]: closeError.message,
+        });
 
         // Call error callback
         options?.onError?.(closeError);
@@ -175,7 +159,7 @@ export const usePerpsClosePosition = (
         setIsClosing(false);
       }
     },
-    [closePosition, options, trackEvent, createEventBuilder, trackError],
+    [closePosition, options, track, trackError],
   );
 
   return {

@@ -6,9 +6,10 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import performance from 'react-native-performance';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { setMeasurement } from '@sentry/react-native';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { PerpsEventProperties } from '../constants/eventNames';
 import { usePerpsErrorTracking } from './usePerpsErrorTracking';
+import { usePerpsEventTracking } from './usePerpsEventTracking';
 
 interface UsePerpsOrderExecutionParams {
   onSuccess?: (position?: Position) => void;
@@ -31,7 +32,7 @@ export function usePerpsOrderExecution(
 ): UsePerpsOrderExecutionReturn {
   const { onSuccess, onError } = params;
   const { placeOrder: controllerPlaceOrder, getPositions } = usePerpsTrading();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { track } = usePerpsEventTracking();
   const { trackError } = usePerpsErrorTracking();
 
   const [isPlacing, setIsPlacing] = useState(false);
@@ -78,24 +79,17 @@ export function usePerpsOrderExecution(
 
           if (isPartiallyFilled) {
             // Track partially filled event
-            trackEvent(
-              createEventBuilder(
-                MetaMetricsEvents.PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED,
-              )
-                .addProperties({
-                  [PerpsEventProperties.TIMESTAMP]: Date.now(),
-                  [PerpsEventProperties.ASSET]: orderParams.coin,
-                  [PerpsEventProperties.DIRECTION]: orderParams.isBuy
-                    ? 'Long'
-                    : 'Short',
-                  [PerpsEventProperties.LEVERAGE]: orderParams.leverage || 1,
-                  [PerpsEventProperties.ORDER_SIZE]: orderSize,
-                  [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
-                  'Amount filled': filledSize,
-                  'Remaining amount': orderSize - filledSize,
-                })
-                .build(),
-            );
+            track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_PARTIALLY_FILLED, {
+              [PerpsEventProperties.ASSET]: orderParams.coin,
+              [PerpsEventProperties.DIRECTION]: orderParams.isBuy
+                ? 'Long'
+                : 'Short',
+              [PerpsEventProperties.LEVERAGE]: orderParams.leverage || 1,
+              [PerpsEventProperties.ORDER_SIZE]: orderSize,
+              [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
+              'Amount filled': filledSize,
+              'Remaining amount': orderSize - filledSize,
+            });
           }
 
           // Track order confirmation timing
@@ -180,15 +174,7 @@ export function usePerpsOrderExecution(
         setIsPlacing(false);
       }
     },
-    [
-      controllerPlaceOrder,
-      getPositions,
-      onSuccess,
-      onError,
-      trackEvent,
-      createEventBuilder,
-      trackError,
-    ],
+    [controllerPlaceOrder, getPositions, onSuccess, onError, track, trackError],
   );
 
   return {
