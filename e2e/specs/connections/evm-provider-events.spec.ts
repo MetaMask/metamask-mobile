@@ -232,9 +232,7 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
         await Browser.navigateToTestDApp();
 
         const connectedChainIdBefore = await TestDApp.getConnectedChainId();
-        if (
-          connectedChainIdBefore !== '0x1'
-        ) {
+        if (connectedChainIdBefore !== '0x1') {
           throw new Error(
             'selected chainId did not match expected starting state',
           );
@@ -248,14 +246,14 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
 
         await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapNetworksPicker();
-        await Assertions.expectElementToBeVisible(NetworkListModal.networkScroll);
+        await Assertions.expectElementToBeVisible(
+          NetworkListModal.networkScroll,
+        );
         await NetworkListModal.changeNetworkTo('Localhost');
 
         const connectedChainIdAfter = await TestDApp.getConnectedChainId();
         if (connectedChainIdAfter !== '0x539') {
-          throw new Error(
-            'selected chainId did not match expected end state',
-          );
+          throw new Error('selected chainId did not match expected end state');
         }
       },
     );
