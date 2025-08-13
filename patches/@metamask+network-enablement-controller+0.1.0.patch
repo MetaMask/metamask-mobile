@@ -1,0 +1,60 @@
+diff --git a/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.cjs b/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.cjs
+index 1e96b7b..d8b587b 100644
+--- a/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.cjs
++++ b/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.cjs
+@@ -140,6 +140,19 @@ class NetworkEnablementController extends base_controller_1.BaseController {
+             s.enabledNetworkMap[namespace][storageKey] = false;
+         });
+     }
++    /**
++     * Checks if a network is enabled.
++     *
++     * @param chainId - The chain ID of the network to check. Can be either:
++     * - A Hex string (e.g., '0x1' for Ethereum mainnet) for EVM networks
++     * - A CAIP-2 chain ID (e.g., 'eip155:1' for Ethereum mainnet, 'solana:mainnet' for Solana)
++     * @returns True if the network is enabled, false otherwise
++     */
++    isNetworkEnabled(chainId) {
++        const derivedKeys = (0, utils_2.deriveKeys)(chainId);
++        const { namespace, storageKey } = derivedKeys;
++        return this.state.enabledNetworkMap[namespace]?.[storageKey] ?? false;
++    }
+ }
+ exports.NetworkEnablementController = NetworkEnablementController;
+ _NetworkEnablementController_instances = new WeakSet(), _NetworkEnablementController_ensureNamespaceBucket = function _NetworkEnablementController_ensureNamespaceBucket(state, ns) {
+diff --git a/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.d.cts b/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.d.cts
+index 7de5ce2..9126a1a 100644
+--- a/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.d.cts
++++ b/node_modules/@metamask/network-enablement-controller/dist/NetworkEnablementController.d.cts
+@@ -97,6 +97,15 @@ export declare class NetworkEnablementController extends BaseController<typeof c
+      * - A CAIP-2 chain ID (e.g., 'eip155:1' for Ethereum mainnet, 'solana:mainnet' for Solana)
+      */
+     disableNetwork(chainId: Hex | CaipChainId): void;
++    /**
++     * Checks if a network is enabled.
++     *
++     * @param chainId - The chain ID of the network to check. Can be either:
++     * - A Hex string (e.g., '0x1' for Ethereum mainnet) for EVM networks
++     * - A CAIP-2 chain ID (e.g., 'eip155:1' for Ethereum mainnet, 'solana:mainnet' for Solana)
++     * @returns True if the network is enabled, false otherwise
++     */
++    isNetworkEnabled(chainId: Hex | CaipChainId): boolean;
+ }
+ export {};
+ //# sourceMappingURL=NetworkEnablementController.d.cts.map
+\ No newline at end of file
+diff --git a/node_modules/@metamask/network-enablement-controller/dist/constants.cjs b/node_modules/@metamask/network-enablement-controller/dist/constants.cjs
+index d9dea09..394aca5 100644
+--- a/node_modules/@metamask/network-enablement-controller/dist/constants.cjs
++++ b/node_modules/@metamask/network-enablement-controller/dist/constants.cjs
+@@ -11,6 +11,8 @@ exports.POPULAR_NETWORKS = [
+     '0xa',
+     '0x89',
+     '0x531',
+-    '0x144', // zkSync Era (324)
++    '0x144',
++    '0x2a15c308d',
++    '0x3e7', // HyperEVM (999)
+ ];
+ //# sourceMappingURL=constants.cjs.map
+\ No newline at end of file
