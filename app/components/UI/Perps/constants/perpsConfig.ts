@@ -60,9 +60,9 @@ export const VALIDATION_THRESHOLDS = {
 export const PERFORMANCE_CONFIG = {
   // Price updates debounce delay (milliseconds)
   // Batches rapid WebSocket price updates to reduce re-renders
-  PRICE_UPDATE_DEBOUNCE_MS: 100,
+  PRICE_UPDATE_DEBOUNCE_MS: 1000,
 
   // Order validation debounce delay (milliseconds)
   // Prevents excessive validation calls during rapid form input changes
-  VALIDATION_DEBOUNCE_MS: 300,
+  VALIDATION_DEBOUNCE_MS: 1000,
 } as const;
