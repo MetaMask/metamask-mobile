@@ -1,3 +1,4 @@
+import Clipboard from '@react-native-clipboard/clipboard';
 import { useCallback } from 'react';
 
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
@@ -7,7 +8,6 @@ import {
 } from '../../../context/send-context/send-metrics-context';
 import { useSendContext } from '../../../context/send-context';
 import { useSendType } from '../useSendType';
-import Clipboard from '@react-native-clipboard/clipboard';
 
 export const useRecipientSelectionMetrics = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
