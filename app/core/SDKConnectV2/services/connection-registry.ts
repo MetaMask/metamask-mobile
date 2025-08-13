@@ -27,7 +27,6 @@ export class ConnectionRegistry {
    * @param url - The full deeplink URL that triggered the connection.
    */
   public handleConnectDeeplink(url: string): void {
-    // This log is the key success metric for Milestone 1.
     console.log(
       '[SDKConnectV2] ConnectionRegistry: handleConnectDeeplink successfully called with URL:',
       url,

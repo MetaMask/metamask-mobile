@@ -42,7 +42,7 @@ export function handleMetaMaskDeeplink({
   }
 
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`)) {
-    DevLogger.log(`DeeplinkManager:: Mobile Web Protocol deeplink detected. Routing to SDKConnectV2.`, url);
+    DevLogger.log(`DeeplinkManager:: Mobile Wallet Protocol deeplink detected. Routing to SDKConnectV2.`, url);
     SDKConnectV2.handleConnectDeeplink(url);
     return;
   }
@@ -74,7 +74,8 @@ export function handleMetaMaskDeeplink({
         const protocolVersion = parseInt(params.v ?? '1', 10);
 
         DevLogger.log(
-          `handleMetaMaskDeeplink:: deeplink_scheme typeof(protocolVersion)=${typeof protocolVersion} protocolVersion=${protocolVersion} v=${params.v
+          `handleMetaMaskDeeplink:: deeplink_scheme typeof(protocolVersion)=${typeof protocolVersion} protocolVersion=${protocolVersion} v=${
+            params.v
           }`,
         );
 
