@@ -10,14 +10,14 @@ import { emptySignatureControllerMock } from '../../../../__mocks__/controllers/
 import { useGasFeeEstimates } from '../../../../hooks/gas/useGasFeeEstimates';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { useTransactionPayToken } from '../../../../hooks/pay/useTransactionPayToken';
-import { usePerpsDepositData } from '../../hooks/usePerpsDepositData';
+import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 
 jest.mock('../../../../hooks/ui/useNavbar');
 jest.mock('../../../../../../UI/Bridge/hooks/useTokensWithBalance');
 jest.mock('../../../../hooks/gas/useGasFeeEstimates');
 jest.mock('../../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../../hooks/pay/useTransactionPayToken');
-jest.mock('../../hooks/usePerpsDepositData');
+jest.mock('../../hooks/usePerpsDepositView');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -36,7 +36,7 @@ describe('PerpsDeposit', () => {
   const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
   const useGasFeeEstimatesMock = jest.mocked(useGasFeeEstimates);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
-  const usePerpsDepositDataMock = jest.mocked(usePerpsDepositData);
+  const usePerpsDepositViewMock = jest.mocked(usePerpsDepositView);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -58,7 +58,7 @@ describe('PerpsDeposit', () => {
       setPayToken: noop,
     });
 
-    usePerpsDepositDataMock.mockReturnValue({
+    usePerpsDepositViewMock.mockReturnValue({
       isFullView: false,
     });
   });

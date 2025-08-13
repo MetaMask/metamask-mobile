@@ -6,6 +6,10 @@ import { HYPERLIQUID_ASSET_CONFIGS } from '../../../../../UI/Perps/constants/hyp
 import { Hex, parseCaipAssetId } from '@metamask/utils';
 import { useAsyncResult } from '../../../../../hooks/useAsyncResult';
 
+export const ARBITRUM_USDC_ADDRESS = parseCaipAssetId(
+  HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet,
+).assetReference.toLowerCase() as Hex;
+
 const USDC_SYMBOL = 'USDC';
 const USDC_DECIMALS = 6;
 
@@ -16,15 +20,11 @@ export function usePerpsDepositInit() {
     selectTokensByChainIdAndAddress(state, CHAIN_IDS.ARBITRUM),
   );
 
-  const tokenAddress = parseCaipAssetId(
-    HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet,
-  ).assetReference.toLowerCase() as Hex;
-
   const hasToken = Object.values(tokens).some(
-    (token) => token.address.toLowerCase() === tokenAddress,
+    (token) => token.address.toLowerCase() === ARBITRUM_USDC_ADDRESS,
   );
 
-  useAsyncResult(async () => {
+  const { error } = useAsyncResult(async () => {
     if (hasToken) {
       return;
     }
@@ -34,10 +34,14 @@ export function usePerpsDepositInit() {
     );
 
     await TokensController.addToken({
-      address: tokenAddress,
+      address: ARBITRUM_USDC_ADDRESS,
       symbol: USDC_SYMBOL,
       decimals: USDC_DECIMALS,
       networkClientId,
     });
-  }, [hasToken, tokenAddress]);
+  }, [hasToken]);
+
+  if (error) {
+    console.error('Error adding USDC token:', error);
+  }
 }

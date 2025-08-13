@@ -11,7 +11,7 @@ import {
 import { BigNumber } from 'bignumber.js';
 import { usePerpsDepositInit } from './usePerpsDepositInit';
 
-export function usePerpsDepositData({
+export function usePerpsDepositView({
   isKeyboardVisible,
 }: {
   isKeyboardVisible: boolean;

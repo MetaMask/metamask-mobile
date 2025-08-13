@@ -15,14 +15,14 @@ import AlertBanner from '../../../../components/alert-banner';
 import { Box } from '../../../../../../UI/Box/Box';
 import InfoRowDivider from '../../../../components/UI/info-row-divider';
 import { InfoRowDividerVariant } from '../../../../components/UI/info-row-divider/info-row-divider.styles';
-import { usePerpsDepositData } from '../../hooks/usePerpsDepositData';
+import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 
 const AMOUNT_PREFIX = '$';
 
 export function PerpsDeposit() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  const { isFullView } = usePerpsDepositData({
+  const { isFullView } = usePerpsDepositView({
     isKeyboardVisible,
   });
 
