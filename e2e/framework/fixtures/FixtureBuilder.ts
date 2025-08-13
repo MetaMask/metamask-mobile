@@ -501,6 +501,9 @@ class FixtureBuilder {
               events: {},
             },
             SnapController: {},
+            PerpsController: {
+              isFirstTimeUser: false,
+            },
           },
         },
         privacy: {
