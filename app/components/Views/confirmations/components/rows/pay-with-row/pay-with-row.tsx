@@ -1,18 +1,34 @@
 import React, { useCallback } from 'react';
-import InfoRow from '../../UI/info-row';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TokenPill } from '../../token-pill/';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
-import { strings } from '../../../../../../../locales/i18n';
 import { TouchableOpacity } from 'react-native';
 import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
 import { useTransactionRequiredFiat } from '../../../hooks/pay/useTransactionRequiredFiat';
+import { Box } from '../../../../../UI/Box/Box';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../../../UI/Box/box.types';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../../component-library/components/Texts/Text';
+import { useStyles } from '../../../../../hooks/useStyles';
+import styleSheet from './pay-with-row.styles';
 import AnimatedSpinner, {
   SpinnerSize,
 } from '../../../../../UI/AnimatedSpinner';
+import { BigNumber } from 'bignumber.js';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../../component-library/components/Icons/Icon';
 
 export function PayWithRow() {
+  const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const { payToken } = useTransactionPayToken();
   const { totalFiat } = useTransactionRequiredFiat();
@@ -25,19 +41,63 @@ export function PayWithRow() {
     });
   }, [navigation, totalFiat]);
 
+  if (!payToken) {
+    return (
+      <Box style={styles.spinner}>
+        <AnimatedSpinner size={SpinnerSize.SM} />
+      </Box>
+    );
+  }
+
+  const tokenBalance = new BigNumber(payToken.balance ?? '0').toFixed(2);
+
   return (
-    <InfoRow label={strings('confirm.label.pay_with')}>
-      <TouchableOpacity onPress={handleClick}>
-        {!payToken ? (
-          <AnimatedSpinner size={SpinnerSize.SM} />
-        ) : (
-          <TokenPill
-            address={payToken.address}
-            chainId={payToken.chainId}
-            showArrow
-          />
-        )}
-      </TouchableOpacity>
-    </InfoRow>
+    <TouchableOpacity onPress={handleClick}>
+      <Box
+        flexDirection={FlexDirection.Row}
+        justifyContent={JustifyContent.spaceBetween}
+        alignItems={AlignItems.center}
+        style={styles.container}
+      >
+        <Box flexDirection={FlexDirection.Row} gap={12}>
+          <TokenPill address={payToken.address} chainId={payToken.chainId} />
+          <Box flexDirection={FlexDirection.Column}>
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              gap={6}
+            >
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Default}
+              >
+                Pay with
+              </Text>
+              <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
+            </Box>
+            <Text
+              variant={TextVariant.BodySMMedium}
+              color={TextColor.Alternative}
+            >
+              {payToken.symbol}
+            </Text>
+          </Box>
+        </Box>
+        <Box
+          flexDirection={FlexDirection.Column}
+          alignItems={AlignItems.flexEnd}
+        >
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {payToken.balanceFiat}
+          </Text>
+          <Text
+            variant={TextVariant.BodySMMedium}
+            color={TextColor.Alternative}
+          >
+            {tokenBalance} {payToken.symbol}
+          </Text>
+        </Box>
+      </Box>
+    </TouchableOpacity>
   );
 }
