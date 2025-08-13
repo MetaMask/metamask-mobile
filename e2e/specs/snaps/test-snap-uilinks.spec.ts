@@ -35,8 +35,8 @@ describe(FlaskBuildTests('UI Links Snap Test'), () => {
         await TestSnaps.tapButton('sendConfirmationButton');
         await Assertions.expectTextDisplayed('Confirmation Dialog');
 
-        const link = Matchers.getElementByID('snaps-ui-link');
-        await Gestures.waitAndTap(link);
+        const link = Matchers.getElementByID('snaps-ui-link-icon');
+        await Gestures.tap(link);
 
         await Assertions.expectTextDisplayed('Empty page by MetaMask');
       },
