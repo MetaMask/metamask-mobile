@@ -46,6 +46,8 @@ import {
 } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { setTransactionSendFlowContextualChainId } from '../../../actions/sendFlow';
 import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
+import { toggleInfoNetworkModal } from '../../../actions/modals';
+import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 
 interface UseSwitchNetworksProps {
   domainIsConnectedDapp?: boolean;
@@ -155,13 +157,25 @@ export function useSwitchNetworks({
         });
         const { networkClientId } = rpcEndpoints[defaultRpcEndpointIndex];
         try {
+          // Cache Engine.context reference for better performance
+          const { NetworkEnablementController } = Engine.context;
+
           if (source === NETWORK_SELECTOR_SOURCES.SEND_FLOW) {
+            // Dispatch synchronous actions immediately
+            dispatch(onboardNetworkAction(chainId));
             dispatch(setTransactionSendFlowContextualChainId(chainId));
+
+            // Run async operations in parallel for better performance
+            await Promise.all([
+              MultichainNetworkController.setActiveNetwork(networkClientId),
+              NetworkEnablementController.enableNetwork(chainId),
+            ]);
           } else {
+            // Single async operation for non-send-flow sources
             await MultichainNetworkController.setActiveNetwork(networkClientId);
           }
         } catch (error) {
-          Logger.error(new Error(`Error in setActiveNetwork: ${error}`));
+          Logger.error(new Error(`Error in network operations: ${error}`));
         }
       }
 
@@ -225,8 +239,13 @@ export function useSwitchNetworks({
           ].networkClientId ?? type;
 
         if (source !== NETWORK_SELECTOR_SOURCES.SEND_FLOW) {
+          dispatch(onboardNetworkAction(networkConfiguration.chainId));
           setTokenNetworkFilter(networkConfiguration.chainId);
           await MultichainNetworkController.setActiveNetwork(clientId);
+          dispatch(toggleInfoNetworkModal(false));
+          await Engine.context.NetworkEnablementController.enableNetwork(
+            networkConfiguration.chainId,
+          );
         } else {
           dispatch(
             setTransactionSendFlowContextualChainId(

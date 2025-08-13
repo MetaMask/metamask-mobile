@@ -163,6 +163,7 @@ import { SmartAccountUpdateModal } from '../../Views/confirmations/components/sm
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
+import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1198,6 +1199,8 @@ const App: React.FC = () => {
                 },
               ],
             });
+
+            dispatch(onboardNetworkAction(network.chainId));
           } catch (error) {
             Logger.error(error as Error);
           }
