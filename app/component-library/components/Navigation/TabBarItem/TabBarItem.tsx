@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import { ButtonBase, Box } from '@metamask/design-system-react-native';
+import { ButtonAnimated, Box } from '@metamask/design-system-react-native';
 import {
   useTailwind,
   ThemeProvider,
@@ -67,7 +67,7 @@ const TabBarItemInner = ({
   };
 
   return (
-    <ButtonBase
+    <ButtonAnimated
       onPress={props.onPress}
       style={tw.style(
         'items-center justify-center bg-transparent px-2 py-1',
@@ -75,9 +75,11 @@ const TabBarItemInner = ({
       )}
       testID={props.testID}
       accessibilityLabel={props.label}
+      accessible
+      accessibilityRole="button"
     >
       {renderContent()}
-    </ButtonBase>
+    </ButtonAnimated>
   );
 };
 

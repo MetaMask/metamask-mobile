@@ -27,6 +27,7 @@ class TabBarComponent {
     await Gestures.waitAndTap(this.tabBarBrowserButton, {
       elemDescription: 'Tab Bar - Browser Button',
       checkStability: true, // Wait for ButtonAnimated animations to complete
+      delay: 200, // Extra delay to ensure animation completes (ButtonAnimated is 100ms)
     });
   }
 
@@ -34,6 +35,7 @@ class TabBarComponent {
     await Gestures.waitAndTap(this.tabBarWalletButton, {
       elemDescription: 'Tab Bar - Wallet Button',
       checkStability: true, // Wait for ButtonAnimated animations to complete
+      delay: 200, // Extra delay to ensure animation completes (ButtonAnimated is 100ms)
     });
   }
 
@@ -41,6 +43,7 @@ class TabBarComponent {
     await Gestures.waitAndTap(this.tabBarActionButton, {
       elemDescription: 'Tab Bar - Actions Button',
       checkStability: true, // Wait for ButtonAnimated animations to complete
+      delay: 200, // Extra delay to ensure animation completes (ButtonAnimated is 100ms)
     });
   }
 
@@ -48,6 +51,7 @@ class TabBarComponent {
     await Gestures.waitAndTap(this.tabBarSettingButton, {
       elemDescription: 'Tab Bar - Settings Button',
       checkStability: true, // Wait for ButtonAnimated animations to complete
+      delay: 200, // Extra delay to ensure animation completes (ButtonAnimated is 100ms)
     });
   }
 
@@ -55,6 +59,7 @@ class TabBarComponent {
     await Gestures.waitAndTap(this.tabBarActivityButton, {
       elemDescription: 'Tab Bar - Activity Button',
       checkStability: true, // Wait for ButtonAnimated animations to complete
+      delay: 200, // Extra delay to ensure animation completes (ButtonAnimated is 100ms)
     });
   }
 }
