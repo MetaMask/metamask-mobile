@@ -10,6 +10,8 @@ import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import parseOriginatorInfo from '../parseOriginatorInfo';
 import extractURLParams from './extractURLParams';
+import connectionRegistrySingleton from '../../SDKConnectV2/services/ConnectionRegistrySingleton';
+
 export function handleMetaMaskDeeplink({
   instance,
   handled,
@@ -26,6 +28,7 @@ export function handleMetaMaskDeeplink({
   url: string;
 }) {
   handled();
+  
   if (url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.ANDROID_SDK}`)) {
     DevLogger.log(
       `DeeplinkManager:: metamask launched via android sdk deeplink`,
@@ -35,6 +38,12 @@ export function handleMetaMaskDeeplink({
       .catch((err) => {
         Logger.error(err, 'DeepLinkManager failed to connect');
       });
+    return;
+  }
+
+  if (url.includes('v=2') && url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
+    DevLogger.log(`[DeeplinkManager] V2 protocol deeplink detected. Routing to ConnectionRegistry.`,url);
+    connectionRegistrySingleton.handleConnectDeeplink(url);
     return;
   }
 
