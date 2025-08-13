@@ -513,6 +513,145 @@ describe('PerpsTPSLBottomSheet', () => {
     });
   });
 
+  describe('Off Button Functionality', () => {
+    it('clears take profit values when take profit off button is pressed', () => {
+      // Arrange
+      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
+      tpslValidation.calculatePriceForPercentage.mockReturnValue('3150.00');
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      // First set some take profit values
+      const fivePercentButton = screen.getByText('+5%');
+      fireEvent.press(fivePercentButton);
+
+      // Get the take profit input to verify it has a value initially
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+      const takeProfitPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.profit_percent_placeholder',
+      )[0];
+
+      // Verify values are set before pressing off
+      expect(takeProfitPriceInput.props.value).toBe('$3150.00');
+      expect(takeProfitPercentInput.props.value).toBe('5');
+
+      // Get the take profit off button - there are two "Off" buttons, get all and find the first one
+      const offButtons = screen.getAllByText('perps.tpsl.off');
+      const takeProfitOffButton = offButtons[0]; // First "Off" button is for take profit
+
+      // Act
+      fireEvent.press(takeProfitOffButton);
+
+      // Assert
+      expect(takeProfitPriceInput.props.value).toBe('');
+      expect(takeProfitPercentInput.props.value).toBe('');
+    });
+
+    it('clears stop loss values when stop loss off button is pressed', () => {
+      // Arrange
+      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
+      tpslValidation.calculatePriceForPercentage.mockReturnValue('2850.00');
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      // First set some stop loss values
+      const fivePercentButton = screen.getByText('-5%');
+      fireEvent.press(fivePercentButton);
+
+      // Get the stop loss input to verify it has a value initially
+      const stopLossPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[1];
+      const stopLossPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.loss_percent_placeholder',
+      )[0];
+
+      // Verify values are set before pressing off
+      expect(stopLossPriceInput.props.value).toBe('$2850.00');
+      expect(stopLossPercentInput.props.value).toBe('5');
+
+      // Get the stop loss off button - there are two "Off" buttons, get all and find the second one
+      const offButtons = screen.getAllByText('perps.tpsl.off');
+      const stopLossOffButton = offButtons[1]; // Second "Off" button is for stop loss
+
+      // Act
+      fireEvent.press(stopLossOffButton);
+
+      // Assert
+      expect(stopLossPriceInput.props.value).toBe('');
+      expect(stopLossPercentInput.props.value).toBe('');
+    });
+
+    it('resets take profit state when off button is pressed after manual input', () => {
+      // Arrange
+      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
+      // Make the percentage calculation return a realistic value for 3200 price
+      tpslValidation.calculatePercentageForPrice.mockReturnValue('6.67');
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      // First manually enter take profit values
+      const takeProfitPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[0];
+      const takeProfitPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.profit_percent_placeholder',
+      )[0];
+
+      fireEvent.changeText(takeProfitPriceInput, '3200');
+
+      // After entering price, the component calculates percentage and updates display
+      // The price input will show the raw input until blur, percentage will show calculated value
+      expect(takeProfitPriceInput.props.value).toBe('3200');
+      expect(takeProfitPercentInput.props.value).toBe('6.67');
+
+      // Get the take profit off button
+      const offButtons = screen.getAllByText('perps.tpsl.off');
+      const takeProfitOffButton = offButtons[0];
+
+      // Act
+      fireEvent.press(takeProfitOffButton);
+
+      // Assert
+      expect(takeProfitPriceInput.props.value).toBe('');
+      expect(takeProfitPercentInput.props.value).toBe('');
+    });
+
+    it('resets stop loss state when off button is pressed after manual input', () => {
+      // Arrange
+      const tpslValidation = jest.requireMock('../../utils/tpslValidation');
+      // Make the percentage calculation return a realistic value for 2800 price
+      tpslValidation.calculatePercentageForPrice.mockReturnValue('6.67');
+
+      render(<PerpsTPSLBottomSheet {...defaultProps} />);
+
+      // First manually enter stop loss values
+      const stopLossPriceInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.trigger_price_placeholder',
+      )[1];
+      const stopLossPercentInput = screen.getAllByPlaceholderText(
+        'perps.tpsl.loss_percent_placeholder',
+      )[0];
+
+      fireEvent.changeText(stopLossPriceInput, '2800');
+
+      // After entering price, the component calculates percentage and updates display
+      expect(stopLossPriceInput.props.value).toBe('2800');
+      expect(stopLossPercentInput.props.value).toBe('6.67');
+
+      // Get the stop loss off button
+      const offButtons = screen.getAllByText('perps.tpsl.off');
+      const stopLossOffButton = offButtons[1];
+
+      // Act
+      fireEvent.press(stopLossOffButton);
+
+      // Assert
+      expect(stopLossPriceInput.props.value).toBe('');
+      expect(stopLossPercentInput.props.value).toBe('');
+    });
+  });
+
   describe('Validation and Error States', () => {
     it('shows error styling when take profit price is invalid', () => {
       // Arrange
