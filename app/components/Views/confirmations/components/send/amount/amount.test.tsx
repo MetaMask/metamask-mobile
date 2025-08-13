@@ -6,13 +6,21 @@ import { merge } from 'lodash';
 import renderWithProvider, {
   ProviderValues,
 } from '../../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../../constants/navigation/Routes';
 import {
   SOLANA_ASSET,
   TOKEN_ADDRESS_MOCK_1,
   evmSendStateMock,
 } from '../../../__mocks__/send.mock';
+// eslint-disable-next-line import/no-namespace
+import * as AmountSelectionMetrics from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { SendContextProvider } from '../../../context/send-context';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { Amount } from './amount';
+
+jest.mock('../../../hooks/send/useSendNavbar', () => ({
+  useSendNavbar: jest.fn(),
+}));
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -76,6 +84,14 @@ describe('Amount', () => {
     expect(getByTestId('send_amount')).toBeTruthy();
   });
 
+  it('calls useSendNavbar with correct currentRoute', () => {
+    renderComponent();
+
+    expect(useSendNavbar).toHaveBeenCalledWith({
+      currentRoute: Routes.SEND.AMOUNT,
+    });
+  });
+
   it('asset passed in nav params should be used if present', () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
@@ -137,6 +153,35 @@ describe('Amount', () => {
     fireEvent.press(getByTestId('fiat_toggle'));
     fireEvent.changeText(getByTestId('send_amount'), '7780');
     expect(getByText('ETH 2')).toBeTruthy();
+  });
+
+  it('calls metrics methods on changing fiat mode', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: TOKEN_ADDRESS_MOCK_1,
+          isNative: true,
+          chainId: '0x1',
+          symbol: 'ETH',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+    const mockSetAmountInputTypeFiat = jest.fn();
+    const mockSetAmountInputTypeToken = jest.fn();
+    jest
+      .spyOn(AmountSelectionMetrics, 'useAmountSelectionMetrics')
+      .mockReturnValue({
+        setAmountInputTypeFiat: mockSetAmountInputTypeFiat,
+        setAmountInputTypeToken: mockSetAmountInputTypeToken,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+
+    const { getByTestId } = renderComponent();
+    fireEvent.press(getByTestId('fiat_toggle'));
+    expect(mockSetAmountInputTypeToken).toHaveBeenCalled();
+    fireEvent.press(getByTestId('fiat_toggle'));
+    expect(mockSetAmountInputTypeFiat).toHaveBeenCalled();
   });
 
   it('display total balance correctly for native token', () => {
@@ -273,6 +318,36 @@ describe('Amount', () => {
     expect(getByText('ETH 0.99997')).toBeTruthy();
   });
 
+  it('pressing Max calls metrics function setAmountInputMethodPressedMax', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: {
+          name: 'Ethereum',
+          address: TOKEN_ADDRESS_MOCK_1,
+          isNative: true,
+          chainId: '0x1',
+          symbol: 'ETH',
+        },
+      },
+    } as RouteProp<ParamListBase, string>);
+    const mockSetAmountInputMethodPressedMax = jest.fn();
+    const mockSetAmountInputTypeToken = jest.fn();
+    jest
+      .spyOn(AmountSelectionMetrics, 'useAmountSelectionMetrics')
+      .mockReturnValue({
+        setAmountInputMethodPressedMax: mockSetAmountInputMethodPressedMax,
+        setAmountInputTypeToken: mockSetAmountInputTypeToken,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+
+    const { getByText, getByTestId } = renderComponent();
+    expect(getByTestId('send_amount').props.value).toBe('');
+    fireEvent.press(getByTestId('fiat_toggle'));
+    fireEvent.press(getByText('Max'));
+    expect(mockSetAmountInputTypeToken).toHaveBeenCalled();
+    expect(mockSetAmountInputMethodPressedMax).toHaveBeenCalled();
+  });
+
   it('continue button show error text in case of insufficient balance for erc20 token', async () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
@@ -327,5 +402,22 @@ describe('Amount', () => {
     fireEvent.press(getByText('Done'));
     fireEvent.press(getByText('Continue'));
     expect(mockNavigate).toHaveBeenCalled();
+  });
+
+  it('call metrics function captureAmountSelected when continue is pressed', () => {
+    const mockCaptureAmountSelected = jest.fn();
+    jest
+      .spyOn(AmountSelectionMetrics, 'useAmountSelectionMetrics')
+      .mockReturnValue({
+        captureAmountSelected: mockCaptureAmountSelected,
+        setAmountInputMethodManual: jest.fn(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+
+    const { getByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), '.01');
+    fireEvent.press(getByText('Done'));
+    fireEvent.press(getByText('Continue'));
+    expect(mockCaptureAmountSelected).toHaveBeenCalled();
   });
 });

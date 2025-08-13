@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+/* eslint-disable import/no-nodejs-modules */
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
 import _ from 'lodash';
@@ -70,6 +71,8 @@ const isUrlAllowed = (url) => {
   }
 };
 
+// Using shared port utilities from FixtureUtils
+
 /**
  * Starts the mock server and sets up mock events.
  *
@@ -81,7 +84,13 @@ export const startMockServer = async (events, port) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
 
-  await mockServer.start(port);
+  try {
+    await mockServer.start(port);
+  } catch (error) {
+    // If starting fails, log the error and throw it
+    logger.error(`Failed to start mock server on port ${port}: ${error}`);
+    throw new Error(`Failed to start mock server on port ${port}: ${error}`);
+  }
   console.log(`Mockttp server running at http://localhost:${port}`);
 
   await mockServer
@@ -217,6 +226,10 @@ export const startMockServer = async (events, port) => {
  * @param {import('mockttp').Mockttp} mockServer
  */
 export const stopMockServer = async (mockServer) => {
-  await mockServer.stop();
   console.log('Mock server shutting down');
+  try {
+    await mockServer.stop();
+  } catch (error) {
+    console.error('Error stopping mock server:', error);
+  }
 };

@@ -1,7 +1,6 @@
 import React from 'react';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import InfoRow from '../../UI/info-row';
-import InfoSection from '../../UI/info-row/info-section';
 import { useTransactionTotalFiat } from '../../../hooks/pay/useTransactionTotalFiat';
 import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -11,6 +10,7 @@ import { RootState } from '../../../../../../reducers';
 import AnimatedSpinner, {
   SpinnerSize,
 } from '../../../../../UI/AnimatedSpinner';
+import { View } from 'react-native';
 
 export function TotalRow() {
   const { id: transactionId } = useTransactionMetadataOrThrow();
@@ -21,7 +21,7 @@ export function TotalRow() {
   );
 
   return (
-    <InfoSection testID="total-row">
+    <View testID="total-row">
       <InfoRow label={strings('confirm.label.total')}>
         {isQuotesLoading ? (
           <AnimatedSpinner size={SpinnerSize.SM} />
@@ -29,6 +29,6 @@ export function TotalRow() {
           <Text>{totalFiat}</Text>
         )}
       </InfoRow>
-    </InfoSection>
+    </View>
   );
 }

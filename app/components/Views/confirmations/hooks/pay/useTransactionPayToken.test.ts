@@ -1,5 +1,4 @@
 import { ChainId } from '@metamask/controller-utils';
-import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTransactionPayToken } from './useTransactionPayToken';
 import { cloneDeep, merge } from 'lodash';
@@ -67,13 +66,9 @@ describe('useTransactionPayToken', () => {
     ] as unknown as BridgeToken[]);
   });
 
-  it('returns default token if no state', () => {
+  it('returns undefined if no state', () => {
     const { result } = runHook();
-
-    expect(result.current.payToken).toEqual({
-      address: EMPTY_ADDRESS,
-      chainId: ChainId.mainnet,
-    });
+    expect(result.current.payToken).toBeUndefined();
   });
 
   it('returns token from state', () => {

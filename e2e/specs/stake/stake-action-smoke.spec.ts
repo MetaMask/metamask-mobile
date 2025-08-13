@@ -27,7 +27,6 @@ import Assertions from '../../framework/Assertions';
 import StakeView from '../../pages/Stake/StakeView';
 import StakeConfirmView from '../../pages/Stake/StakeConfirmView';
 import SendView from '../../pages/Send/SendView';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import AmountView from '../../pages/Send/AmountView';
 import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
@@ -120,8 +119,7 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
   });
 
   it('should send ETH to new account', async (): Promise<void> => {
-    await TabBarComponent.tapActions();
-    await WalletActionsBottomSheet.tapSendButton();
+    await WalletView.tapWalletSendButton();
     await SendView.inputAddress(wallet.address);
     await SendView.tapNextButton();
     await AmountView.typeInTransactionAmount(AMOUNT_TO_SEND);

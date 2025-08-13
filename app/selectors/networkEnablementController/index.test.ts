@@ -115,32 +115,6 @@ describe('NetworkEnablementController Selectors', () => {
       });
     });
 
-    it('returns undefined when controller state is undefined', () => {
-      const stateWithoutController = {
-        engine: {
-          backgroundState: {},
-        },
-      } as unknown as RootState;
-
-      const result = selectEnabledNetworksByNamespace(stateWithoutController);
-
-      expect(result).toBeUndefined();
-    });
-
-    it('returns undefined when enabledNetworkMap is undefined', () => {
-      const stateWithoutMap = {
-        engine: {
-          backgroundState: {
-            NetworkEnablementController: {},
-          },
-        },
-      } as unknown as RootState;
-
-      const result = selectEnabledNetworksByNamespace(stateWithoutMap);
-
-      expect(result).toBeUndefined();
-    });
-
     it('returns empty object when enabledNetworkMap is empty', () => {
       const stateWithEmptyMap = {
         engine: {
