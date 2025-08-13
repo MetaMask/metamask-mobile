@@ -3,7 +3,7 @@ import { IConnectionStore } from '../types/connection-store';
 
 /**
  * Placeholder implementation of the IConnectionStore.
- * For Milestone 1, this class provides no-op implementations of the
+ * For now, this class provides no-op implementations of the
  * required storage methods to satisfy the dependency requirements
  * of the ConnectionRegistry.
  */

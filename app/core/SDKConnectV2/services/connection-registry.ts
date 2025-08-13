@@ -11,14 +11,14 @@ export class ConnectionRegistry {
   /**
    * The constructor for the ConnectionRegistry.
    *
-   * @param hostApplicationAdapter - An adapter that provides a bridge to the
+   * @param hostapp - An adapter that provides a bridge to the
    * host MetaMask Mobile application's UI and state management systems.
-   * @param connectionStore - An adapter for the persistence layer, used to
+   * @param store - An adapter for the persistence layer, used to
    * save and retrieve connection data.
    */
   constructor(
-    private readonly hostApplicationAdapter: IHostApplicationAdapter,
-    private readonly connectionStore: IConnectionStore,
+    private readonly hostapp: IHostApplicationAdapter,
+    private readonly store: IConnectionStore,
   ) { }
 
   /**
@@ -35,8 +35,8 @@ export class ConnectionRegistry {
 
     // In future, this method will be responsible for:
     // 1. Parsing the URL to extract the ConnectionRequest.
-    // 2. Calling the hostApplicationAdapter to show the connection approval UI.
+    // 2. Calling the hostapp to show the connection approval UI.
     // 3. Initiating the cryptographic handshake upon user approval.
-    // 4. Saving the resulting connection to the connectionStore.
+    // 4. Saving the resulting connection to the store.
   }
 }
