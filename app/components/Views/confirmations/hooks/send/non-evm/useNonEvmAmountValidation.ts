@@ -27,7 +27,6 @@ export const validateAmountFn = ({
   ) {
     return strings('send.insufficient_funds');
   }
-  return;
 };
 
 export const useNonEvmAmountValidation = () => {
