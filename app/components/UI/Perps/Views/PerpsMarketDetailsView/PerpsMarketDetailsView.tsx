@@ -45,7 +45,8 @@ import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import { setMeasurement } from '@sentry/react-native';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -64,7 +65,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market } = route.params || {};
   const { top } = useSafeAreaInsets();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { track } = usePerpsEventTracking();
 
   // Track screen load time
   const screenLoadStartRef = useRef<number>(performance.now());
@@ -117,19 +118,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       );
 
       // Track asset screen viewed event - only once
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.ASSET]: market.symbol,
-            [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED, {
+        [PerpsEventProperties.ASSET]: market.symbol,
+        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
+      });
 
       hasTrackedAssetView.current = true;
     }
-  }, [market, marketStats, isLoadingHistory, trackEvent, createEventBuilder]);
+  }, [market, marketStats, isLoadingHistory, track]);
 
   useEffect(() => {
     if (!isLoadingPosition && market) {
@@ -151,17 +147,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       setSelectedCandlePeriod(defaultPeriod);
 
       // Track chart time series change
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_CHART_TIME_SERIE_CHANGED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.ASSET]: market?.symbol || '',
-            [PerpsEventProperties.TIME_SERIE_SELECTED]: newDuration,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_CHART_TIME_SERIE_CHANGED, {
+        [PerpsEventProperties.ASSET]: market?.symbol || '',
+        [PerpsEventProperties.TIME_SERIE_SELECTED]: newDuration,
+      });
     },
-    [market, trackEvent, createEventBuilder],
+    [market, track],
   );
 
   const handleCandlePeriodChange = useCallback(
@@ -169,18 +160,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       setSelectedCandlePeriod(newPeriod);
 
       // Track chart interaction
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_CHART_INTERACTION)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.ASSET]: market?.symbol || '',
-            [PerpsEventProperties.INTERACTION_TYPE]: 'candle_period_change',
-            [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
+        [PerpsEventProperties.ASSET]: market?.symbol || '',
+        [PerpsEventProperties.INTERACTION_TYPE]: 'candle_period_change',
+        [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
+      });
     },
-    [market, trackEvent, createEventBuilder],
+    [market, track],
   );
 
   const handleGearPress = useCallback(() => {

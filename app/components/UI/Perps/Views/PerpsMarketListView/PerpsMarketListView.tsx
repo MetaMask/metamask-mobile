@@ -41,7 +41,8 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { setMeasurement } from '@sentry/react-native';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles, theme } = useStyles(styleSheet, {});
@@ -143,7 +144,7 @@ const PerpsMarketListView = ({
     }
   };
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { track } = usePerpsEventTracking();
 
   const handleRefresh = () => {
     if (activeTab === 'markets' && !isRefreshingMarkets) {
@@ -172,13 +173,7 @@ const PerpsMarketListView = ({
       setSearchQuery('');
     } else {
       // Track search bar clicked event
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_ASSET_SEARCH_BAR_CLICKED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_ASSET_SEARCH_BAR_CLICKED, {});
     }
   };
 
@@ -219,19 +214,14 @@ const PerpsMarketListView = ({
       !hasTrackedMarketsView.current
     ) {
       // Track event
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_MARKETS_VIEWED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.SOURCE]:
-              PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_MARKETS_VIEWED, {
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
+      });
 
       hasTrackedMarketsView.current = true;
     }
-  }, [markets, activeTab, trackEvent, createEventBuilder]);
+  }, [markets, activeTab, track]);
 
   // Load positions when positions tab is selected
   useEffect(() => {

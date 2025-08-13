@@ -32,7 +32,8 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import { setMeasurement } from '@sentry/react-native';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   isValidTakeProfitPrice,
   isValidStopLossPrice,
@@ -101,7 +102,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const [tpUsingPercentage, setTpUsingPercentage] = useState(false);
   const [slUsingPercentage, setSlUsingPercentage] = useState(false);
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { track } = usePerpsEventTracking();
 
   // Subscribe to real-time price only when visible and we have an asset
   const priceData = usePerpsPrices(isVisible && asset ? [asset] : []);
@@ -218,43 +219,32 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
     // Track stop loss and take profit set events
     if (parseStopLossPrice) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_STOP_LOSS_SET)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.ASSET]: asset,
-            [PerpsEventProperties.DIRECTION]:
-              actualDirection === 'long'
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.STOP_LOSS_PRICE]:
-              parseFloat(parseStopLossPrice),
-            [PerpsEventProperties.INPUT_METHOD]: slUsingPercentage
-              ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
-              : PerpsEventValues.INPUT_METHOD.MANUAL,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_STOP_LOSS_SET, {
+        [PerpsEventProperties.ASSET]: asset,
+        [PerpsEventProperties.DIRECTION]:
+          actualDirection === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(parseStopLossPrice),
+        [PerpsEventProperties.INPUT_METHOD]: slUsingPercentage
+          ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
+          : PerpsEventValues.INPUT_METHOD.MANUAL,
+      });
     }
 
     if (parseTakeProfitPrice) {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_TAKE_PROFIT_SET)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.ASSET]: asset,
-            [PerpsEventProperties.DIRECTION]:
-              actualDirection === 'long'
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.TAKE_PROFIT_PRICE]:
-              parseFloat(parseTakeProfitPrice),
-            [PerpsEventProperties.INPUT_METHOD]: tpUsingPercentage
-              ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
-              : PerpsEventValues.INPUT_METHOD.MANUAL,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_TAKE_PROFIT_SET, {
+        [PerpsEventProperties.ASSET]: asset,
+        [PerpsEventProperties.DIRECTION]:
+          actualDirection === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.TAKE_PROFIT_PRICE]:
+          parseFloat(parseTakeProfitPrice),
+        [PerpsEventProperties.INPUT_METHOD]: tpUsingPercentage
+          ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
+          : PerpsEventValues.INPUT_METHOD.MANUAL,
+      });
     }
 
     onConfirm(parseTakeProfitPrice, parseStopLossPrice);

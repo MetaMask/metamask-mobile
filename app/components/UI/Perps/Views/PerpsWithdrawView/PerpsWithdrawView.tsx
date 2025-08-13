@@ -34,7 +34,8 @@ import {
 import { useStyles } from '../../../../../component-library/hooks';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { getNetworkImageSource } from '../../../../../util/networks';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { Box } from '../../../../UI/Box/Box';
 import {
   MAX_INPUT_LENGTH,
@@ -86,7 +87,7 @@ const PerpsWithdrawView: React.FC = () => {
   const { withdraw } = usePerpsTrading();
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { track } = usePerpsEventTracking();
 
   // TODO: Get network names dynamically once we implement multiple protocol
   const sourceNetworkName = useMemo(() => 'Hyperliquid', []);
@@ -102,19 +103,14 @@ const PerpsWithdrawView: React.FC = () => {
       );
 
       // Track withdrawal input viewed
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.SOURCE]:
-              PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED, {
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.PERP_ASSET_SCREEN,
+      });
 
       hasTrackedWithdrawView.current = true;
     }
-  }, [trackEvent, createEventBuilder]);
+  }, [track]);
   const destNetworkName = useMemo(
     () => (isTestnet ? 'Arbitrum Sepolia' : 'Arbitrum'),
     [isTestnet],
@@ -207,16 +203,10 @@ const PerpsWithdrawView: React.FC = () => {
       setIsSubmittingTx(true);
 
       // Track withdrawal initiated
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_WITHDRAWAL_INITIATED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.WITHDRAWAL_AMOUNT]:
-              parseFloat(withdrawAmount),
-            [PerpsEventProperties.SOURCE_ASSET]: USDC_SYMBOL,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_WITHDRAWAL_INITIATED, {
+        [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(withdrawAmount),
+        [PerpsEventProperties.SOURCE_ASSET]: USDC_SYMBOL,
+      });
 
       // Show toast about withdrawal initiation
       toastRef?.current?.showToast({
@@ -271,17 +261,11 @@ const PerpsWithdrawView: React.FC = () => {
         );
 
         // Track withdrawal completed
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED)
-            .addProperties({
-              [PerpsEventProperties.TIMESTAMP]: Date.now(),
-              [PerpsEventProperties.WITHDRAWAL_AMOUNT]:
-                parseFloat(withdrawAmount),
-              [PerpsEventProperties.COMPLETION_DURATION]:
-                performance.now() - withdrawStartTime,
-            })
-            .build(),
-        );
+        track(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED, {
+          [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(withdrawAmount),
+          [PerpsEventProperties.COMPLETION_DURATION]:
+            performance.now() - withdrawStartTime,
+        });
 
         // Show success toast - funds will arrive within 5 minutes
         toastRef?.current?.showToast({
@@ -307,15 +291,9 @@ const PerpsWithdrawView: React.FC = () => {
         navigation.goBack();
       } else {
         // Track withdrawal failed
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED)
-            .addProperties({
-              [PerpsEventProperties.TIMESTAMP]: Date.now(),
-              [PerpsEventProperties.ERROR_MESSAGE]:
-                result.error || 'Unknown error',
-            })
-            .build(),
-        );
+        track(MetaMetricsEvents.PERPS_WITHDRAWAL_FAILED, {
+          [PerpsEventProperties.ERROR_MESSAGE]: result.error || 'Unknown error',
+        });
 
         // Show error toast - do NOT navigate back on error
         toastRef?.current?.showToast({
@@ -362,8 +340,7 @@ const PerpsWithdrawView: React.FC = () => {
     isTestnet,
     withdraw,
     navigation,
-    trackEvent,
-    createEventBuilder,
+    track,
   ]);
 
   // UI state calculations
