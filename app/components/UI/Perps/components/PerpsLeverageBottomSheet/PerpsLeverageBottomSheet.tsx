@@ -7,7 +7,6 @@ import React, {
   useEffect,
   memo,
 } from 'react';
-import performance from 'react-native-performance';
 import { View, TouchableOpacity } from 'react-native';
 import {
   Gesture,
@@ -50,8 +49,9 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { setMeasurement } from '@sentry/react-native';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
@@ -234,46 +234,38 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [tempLeverage, setTempLeverage] = useState(initialLeverage);
   const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
-  const { trackEvent, createEventBuilder } = useMetrics();
-  const screenLoadStartRef = useRef<number>(0);
+  const { track } = usePerpsEventTracking();
   const hasTrackedLeverageView = useRef(false);
+
+  // Track screen load performance
+  usePerpsScreenTracking({
+    screenName: PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
+    dependencies: [isVisible],
+  });
 
   useEffect(() => {
     if (isVisible) {
-      screenLoadStartRef.current = performance.now();
       bottomSheetRef.current?.onOpenBottomSheet();
-
-      // Measure and track leverage bottom sheet loaded - only once
-      if (!hasTrackedLeverageView.current) {
-        setTimeout(() => {
-          const duration = performance.now() - screenLoadStartRef.current;
-          setMeasurement(
-            PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
-            duration,
-            'millisecond',
-          );
-
-          // Track leverage screen viewed event
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED)
-              .addProperties({
-                [PerpsEventProperties.TIMESTAMP]: Date.now(),
-                [PerpsEventProperties.ASSET]: asset,
-                [PerpsEventProperties.DIRECTION]:
-                  direction === 'long'
-                    ? PerpsEventValues.DIRECTION.LONG
-                    : PerpsEventValues.DIRECTION.SHORT,
-              })
-              .build(),
-          );
-          hasTrackedLeverageView.current = true;
-        }, 300); // After animation completes
-      }
     } else {
-      // Reset the flag when the bottom sheet is closed
+      // Reset the flag and leverage when the bottom sheet is closed
       hasTrackedLeverageView.current = false;
+      setTempLeverage(initialLeverage);
     }
-  }, [isVisible, direction, asset, trackEvent, createEventBuilder]);
+  }, [isVisible, initialLeverage]);
+
+  // Track leverage screen viewed event - separate concern
+  useEffect(() => {
+    if (isVisible && !hasTrackedLeverageView.current) {
+      track(MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED, {
+        [PerpsEventProperties.ASSET]: asset,
+        [PerpsEventProperties.DIRECTION]:
+          direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+      });
+      hasTrackedLeverageView.current = true;
+    }
+  }, [isVisible, direction, asset, track]);
 
   const handleConfirm = () => {
     DevLogger.log(

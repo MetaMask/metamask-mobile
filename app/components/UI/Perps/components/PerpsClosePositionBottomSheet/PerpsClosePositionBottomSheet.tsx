@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import performance from 'react-native-performance';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -36,9 +35,9 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { setMeasurement } from '@sentry/react-native';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 
 interface PerpsClosePositionBottomSheetProps {
   isVisible: boolean;
@@ -59,10 +58,14 @@ const PerpsClosePositionBottomSheet: React.FC<
   const { colors } = theme;
   const styles = createStyles(theme);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const screenLoadStartRef = useRef<number>(0);
   const hasTrackedCloseView = useRef(false);
-  const { trackEvent, createEventBuilder } = useMetrics();
   const { track } = usePerpsEventTracking();
+
+  // Track screen load performance
+  usePerpsScreenTracking({
+    screenName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
+    dependencies: [isVisible],
+  });
 
   // State for order type tabs
   const [orderType, setOrderType] = useState<OrderType>('market');
@@ -140,53 +143,30 @@ const PerpsClosePositionBottomSheet: React.FC<
     isPartialClose,
   });
 
+  // Open bottom sheet when visible
   useEffect(() => {
     if (isVisible) {
-      screenLoadStartRef.current = performance.now();
       bottomSheetRef.current?.onOpenBottomSheet();
-
-      // Measure close screen loaded - only once
-      if (!hasTrackedCloseView.current) {
-        setTimeout(() => {
-          const duration = performance.now() - screenLoadStartRef.current;
-          setMeasurement(
-            PerpsMeasurementName.CLOSE_SCREEN_LOADED,
-            duration,
-            'millisecond',
-          );
-
-          // Track position close screen viewed
-          trackEvent(
-            createEventBuilder(
-              MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED,
-            )
-              .addProperties({
-                [PerpsEventProperties.TIMESTAMP]: Date.now(),
-                [PerpsEventProperties.ASSET]: position.coin,
-                [PerpsEventProperties.DIRECTION]: isLong
-                  ? PerpsEventValues.DIRECTION.LONG
-                  : PerpsEventValues.DIRECTION.SHORT,
-                [PerpsEventProperties.POSITION_SIZE]: absSize,
-                [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
-              })
-              .build(),
-          );
-          hasTrackedCloseView.current = true;
-        }, 300); // After animation
-      }
     } else {
       // Reset the flag when the bottom sheet is closed
       hasTrackedCloseView.current = false;
     }
-  }, [
-    isVisible,
-    position.coin,
-    isLong,
-    absSize,
-    pnl,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [isVisible]);
+
+  // Track position close screen viewed event - separate concern
+  useEffect(() => {
+    if (isVisible && !hasTrackedCloseView.current) {
+      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
+        [PerpsEventProperties.ASSET]: position.coin,
+        [PerpsEventProperties.DIRECTION]: isLong
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.POSITION_SIZE]: absSize,
+        [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
+      });
+      hasTrackedCloseView.current = true;
+    }
+  }, [isVisible, position.coin, isLong, absSize, pnl, track]);
 
   // Update close amount when percentage changes
   useEffect(() => {

@@ -13,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import performance from 'react-native-performance';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextVariant,
@@ -46,7 +45,7 @@ import {
 } from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { setMeasurement } from '@sentry/react-native';
+import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -59,8 +58,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   // Ref for FlashList to control scrolling
   const flashListRef = useRef(null);
-  // Track screen load time
-  const screenLoadStartRef = useRef<number>(performance.now());
+
+  // Track screen load performance
+  usePerpsScreenTracking({
+    screenName: PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED,
+    dependencies: [flatListData.length > 0],
+  });
 
   const { isConnected } = usePerpsConnection();
 
@@ -163,18 +166,6 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   useEffect(() => {
     setFlatListData(currentFlatListData);
   }, [allGroupedTransactions, activeFilter, currentFlatListData]);
-
-  // Track screen load when data is available
-  useEffect(() => {
-    if (flatListData.length > 0) {
-      const duration = performance.now() - screenLoadStartRef.current;
-      setMeasurement(
-        PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED,
-        duration,
-        'millisecond',
-      );
-    }
-  }, [flatListData.length]);
 
   // Note: Removed automatic scroll to top on tab change to allow switching tabs while scrolling
 

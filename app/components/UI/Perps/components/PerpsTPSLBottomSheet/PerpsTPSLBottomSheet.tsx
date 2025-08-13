@@ -138,17 +138,15 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   useEffect(() => {
     if (isVisible) {
       screenLoadStartRef.current = performance.now();
-      bottomSheetRef.current?.onOpenBottomSheet();
-
-      // Measure TP/SL bottom sheet loaded after animation
-      setTimeout(() => {
+      bottomSheetRef.current?.onOpenBottomSheet(() => {
+        // Measure TP/SL bottom sheet loaded when animation actually completes
         const duration = performance.now() - screenLoadStartRef.current;
         setMeasurement(
           PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED,
           duration,
           'millisecond',
         );
-      }, 300); // After animation completes
+      });
     }
   }, [isVisible]);
 
@@ -170,6 +168,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         setStopLossPercentage(percentage.toFixed(2));
       }
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible]); // Only run when visibility changes, not on price updates
 
@@ -204,6 +203,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         setStopLossPrice(formatPrice(price));
       }
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPrice, actualDirection]); // Update prices when current price changes
 
