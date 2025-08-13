@@ -12,6 +12,13 @@ import renderWithProvider, {
 } from '../../../../util/test/renderWithProvider';
 import { RootState } from '../../../../reducers';
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
 const createMockAccountGroup = (
   id: string,
   name: string,
