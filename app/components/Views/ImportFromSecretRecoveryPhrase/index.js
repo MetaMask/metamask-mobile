@@ -1150,6 +1150,7 @@ const ImportFromSecretRecoveryPhrase = ({
             <View style={styles.createPasswordCtaContainer}>
               {renderSwitch()}
               <Button
+                loading={loading}
                 width={ButtonWidthTypes.Full}
                 variant={ButtonVariants.Primary}
                 label={strings('import_from_seed.create_password_cta')}

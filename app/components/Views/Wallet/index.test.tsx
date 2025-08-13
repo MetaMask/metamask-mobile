@@ -139,6 +139,12 @@ jest.mock('../../../core/Engine', () => {
       TokensController: {
         addTokens: jest.fn(),
       },
+      NetworkEnablementController: {
+        setEnabledNetwork: jest.fn(),
+        setDisabledNetwork: jest.fn(),
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: jest.fn(),
+      },
     },
   };
 });
@@ -308,6 +314,17 @@ jest.mock('../../../util/address', () => ({
       },
     },
   }),
+}));
+
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
+}));
+
+jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
+  useNetworkSelection: jest.fn(() => ({
+    selectNetwork: jest.fn(),
+  })),
 }));
 
 // Better navigation mock pattern (from WalletActions.test.tsx)
@@ -842,6 +859,97 @@ describe('Wallet', () => {
       });
 
       jest.clearAllMocks();
+    });
+  });
+
+  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
+    const { isRemoveGlobalNetworkSelectorEnabled } = jest.requireMock(
+      '../../../util/networks',
+    );
+    const { useNetworkSelection } = jest.requireMock(
+      '../../../components/hooks/useNetworkSelection/useNetworkSelection',
+    );
+
+    // Common test configurations
+    const createMockSelectNetwork = () => jest.fn();
+
+    const createStateWithEnabledNetworks = (enabledNetworks: string[]) => ({
+      ...mockInitialState,
+      engine: {
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          NetworkEnablementController: {
+            ...mockInitialState.engine.backgroundState
+              .NetworkEnablementController,
+            enabledNetworkMap: {
+              eip155: enabledNetworks.reduce((acc, network) => {
+                acc[network] = true;
+                return acc;
+              }, {} as Record<string, boolean>),
+            },
+          },
+        },
+      },
+    });
+
+    const setupMocks = (
+      mockSelectNetwork: jest.Mock,
+      featureFlagEnabled: boolean,
+    ) => {
+      jest
+        .mocked(isRemoveGlobalNetworkSelectorEnabled)
+        .mockReturnValue(featureFlagEnabled);
+      jest.mocked(useNetworkSelection).mockReturnValue({
+        selectNetwork: mockSelectNetwork,
+      });
+    };
+
+    const renderWalletWithState = (state: unknown) => {
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback) => callback(state));
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('when feature flag is enabled', () => {
+      it('should call selectNetwork when no enabled EVM networks', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, true);
+
+        const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
+        renderWalletWithState(stateWithNoEnabledNetworks);
+
+        expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
+      });
+
+      it('should not call selectNetwork when there are enabled EVM networks', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, true);
+
+        const stateWithEnabledNetworks = createStateWithEnabledNetworks([
+          '0x1',
+          '0x5',
+        ]);
+        renderWalletWithState(stateWithEnabledNetworks);
+
+        expect(mockSelectNetwork).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when feature flag is disabled', () => {
+      it('should not call selectNetwork', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, false);
+
+        renderWalletWithState(mockInitialState);
+
+        expect(mockSelectNetwork).not.toHaveBeenCalled();
+      });
     });
   });
 });
