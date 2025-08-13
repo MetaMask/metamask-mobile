@@ -5,20 +5,20 @@ import { useTheme } from '../../../../../util/theme';
 import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import createStyles from '../../styles';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../component-library/components/Texts/SensitiveText';
 import Icon, {
   IconSize,
   IconName,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
+import AggregatedPortfolioChange from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPortfolioChange';
 import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
-import { balanceSelectors } from '@metamask/assets-controllers';
+import {
+  selectBalanceForAllWallets,
+  selectAggregatedBalanceByAccountGroup,
+  selectPortfolioChangeByAccountGroup,
+} from '../../../../../selectors/assets/balances';
 import { formatWithThreshold } from '../../../../../util/assets';
 import I18n from '../../../../../../locales/i18n';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
@@ -28,6 +28,11 @@ import { selectWalletByAccount } from '../../../../../selectors/multichainAccoun
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 
 export const PortfolioBalance = () => {
   const { PreferencesController } = Engine.context;
@@ -45,8 +50,7 @@ export const PortfolioBalance = () => {
     selectWalletByAccount(state)(selectedAccount?.id as string),
   );
 
-  const { selectBalanceForAllWallets } = balanceSelectors;
-  const assetsControllersBalance = useSelector(selectBalanceForAllWallets());
+  const assetsControllersBalance = useSelector(selectBalanceForAllWallets);
 
   // Try to resolve the correct group id by membership of the selected account
   // TODO(ASSETS-1125): Temporary resolver
@@ -82,7 +86,7 @@ export const PortfolioBalance = () => {
   const selectBalanceForResolvedGroup = useMemo(
     () =>
       resolvedGroupId
-        ? balanceSelectors.selectBalanceByAccountGroup(resolvedGroupId)
+        ? selectAggregatedBalanceByAccountGroup(resolvedGroupId)
         : null,
     [resolvedGroupId],
   );
@@ -91,6 +95,16 @@ export const PortfolioBalance = () => {
   );
 
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const selectChangeForResolvedGroup = useMemo(
+    () =>
+      resolvedGroupId
+        ? selectPortfolioChangeByAccountGroup(resolvedGroupId, '1d')
+        : null,
+    [resolvedGroupId],
+  );
+  const portfolioChange1d = useSelector((state: RootState) =>
+    selectChangeForResolvedGroup ? selectChangeForResolvedGroup(state) : null,
+  );
 
   const renderAggregatedPercentage = () => {
     if (
@@ -99,6 +113,19 @@ export const PortfolioBalance = () => {
       selectedAccountMultichainBalance?.totalFiatBalance === undefined
     ) {
       return null;
+    }
+
+    if (isMultichainState2Enabled && portfolioChange1d) {
+      return (
+        <AggregatedPortfolioChange
+          privacyMode={privacyMode}
+          amountChangeInUserCurrency={
+            portfolioChange1d.amountChangeInUserCurrency
+          }
+          percentChange={portfolioChange1d.percentChange}
+          userCurrency={portfolioChange1d.userCurrency}
+        />
+      );
     }
 
     if (!isEvmSelected) {
