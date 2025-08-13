@@ -226,7 +226,7 @@ jobs:
   report-e2e-smoke-tests:
     name: Report E2E Smoke Tests
     runs-on: ubuntu-latest
-    if: false
+    if: always()
     needs:
       - smoke-confirmations-ios
       - smoke-confirmations-android
