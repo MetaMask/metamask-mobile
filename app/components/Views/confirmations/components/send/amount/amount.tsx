@@ -35,7 +35,7 @@ export const Amount = () => {
   const { asset, updateValue } = useSendContext();
   const { balance } = useBalance();
   const { amountError } = useAmountValidation();
-  const [amount, updateAmount] = useState('');
+  const [amount, setAmount] = useState('');
   const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
   const {
     fiatCurrencySymbol,
@@ -67,15 +67,15 @@ export const Amount = () => {
 
   const updateToNewAmount = useCallback(
     (amt: string) => {
-      updateAmount(amt);
+      setAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
       setAmountInputMethodManual();
     },
     [
       fiatMode,
       getNativeValue,
+      setAmount,
       setAmountInputMethodManual,
-      updateAmount,
       updateValue,
     ],
   );
@@ -87,14 +87,14 @@ export const Amount = () => {
       setAmountInputTypeFiat();
     }
     setFiatMode(!fiatMode);
-    updateAmount('');
+    setAmount('');
     updateValue('');
   }, [
     fiatMode,
+    setAmount,
     setAmountInputTypeFiat,
     setAmountInputTypeToken,
     setFiatMode,
-    updateAmount,
     updateValue,
   ]);
 
@@ -142,7 +142,7 @@ export const Amount = () => {
       <AmountKeyboard
         amount={amount}
         fiatMode={fiatMode}
-        updateAmount={updateAmount}
+        updateAmount={setAmount}
       />
     </View>
   );

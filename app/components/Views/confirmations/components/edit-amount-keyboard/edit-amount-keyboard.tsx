@@ -37,7 +37,7 @@ export function EditAmountKeyboard({
   hideDoneButton = false,
   showAdditionalKeyboard = true,
   additionalRow,
-}: EditAmountKeyboardProps) {
+}: Readonly<EditAmountKeyboardProps>) {
   const { styles } = useStyles(styleSheet, {});
 
   const handleChange = useCallback(

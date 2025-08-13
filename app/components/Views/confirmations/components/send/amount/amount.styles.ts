@@ -7,7 +7,7 @@ import {
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
 
-// todo: changes these ranges once values are provided by design team
+// todo-changes these ranges once values are provided by design team
 const getFontSizeForInputLength = (inputLength: number) => {
   if (inputLength > 20) {
     return 10;
