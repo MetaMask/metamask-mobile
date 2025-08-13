@@ -20,6 +20,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { formatToFixedDecimals } from '../../../utils/send';
+import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
 import { useBalance } from '../../../hooks/send/useBalance';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
@@ -45,6 +46,11 @@ export const Amount = () => {
   const { styles, theme } = useStyles(styleSheet, {
     inputError: insufficientBalance ?? false,
   });
+  const {
+    setAmountInputMethodManual,
+    setAmountInputTypeFiat,
+    setAmountInputTypeToken,
+  } = useAmountSelectionMetrics();
   useRouteParams();
   useSendNavbar({ currentRoute: Routes.SEND.AMOUNT });
 
@@ -62,15 +68,34 @@ export const Amount = () => {
     (amt: string) => {
       updateAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
+      setAmountInputMethodManual();
     },
-    [fiatMode, getNativeValue, updateAmount, updateValue],
+    [
+      fiatMode,
+      getNativeValue,
+      setAmountInputMethodManual,
+      updateAmount,
+      updateValue,
+    ],
   );
 
   const toggleFiatMode = useCallback(() => {
+    if (!fiatMode) {
+      setAmountInputTypeToken();
+    } else {
+      setAmountInputTypeFiat();
+    }
     setFiatMode(!fiatMode);
     updateAmount('');
     updateValue('');
-  }, [fiatMode, setFiatMode, updateAmount, updateValue]);
+  }, [
+    fiatMode,
+    setAmountInputTypeFiat,
+    setAmountInputTypeToken,
+    setFiatMode,
+    updateAmount,
+    updateValue,
+  ]);
 
   const assetSymbol = asset?.ticker ?? asset?.symbol;
 

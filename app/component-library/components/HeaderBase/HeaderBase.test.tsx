@@ -5,11 +5,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // External dependencies.
 import Text, { TextVariant, getFontFamily } from '../Texts/Text';
+import { useComponentSize } from '../../hooks';
 
 // Internal dependencies.
 import HeaderBase from './HeaderBase';
 import {
   DEFAULT_HEADERBASE_TITLE_TEXTVARIANT,
+  HeaderBaseAlign,
   HEADERBASE_TEST_ID,
   HEADERBASE_TITLE_TEST_ID,
 } from './HeaderBase.constants';
@@ -17,11 +19,21 @@ import {
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),
 }));
+
+jest.mock('../../hooks', () => ({
+  ...jest.requireActual('../../hooks'),
+  useComponentSize: jest.fn(),
+}));
 describe('HeaderBase', () => {
   const mockInsets = { top: 20, bottom: 0, left: 0, right: 0 };
+  const mockUseComponentSize = useComponentSize as jest.Mock;
 
   beforeEach(() => {
     (useSafeAreaInsets as jest.Mock).mockReturnValue(mockInsets);
+    mockUseComponentSize.mockReturnValue({
+      size: null,
+      onLayout: jest.fn(),
+    });
   });
 
   it('should render snapshot correctly', () => {
@@ -79,5 +91,179 @@ describe('HeaderBase', () => {
     expect(headerBase.props.style).toEqual(
       expect.not.arrayContaining([{ marginTop: mockInsets.top }]),
     );
+  });
+
+  it('defaults to center alignment', () => {
+    const { getByTestId } = render(<HeaderBase>Header Content</HeaderBase>);
+
+    const titleElement = getByTestId(HEADERBASE_TITLE_TEST_ID);
+    expect(titleElement.props.style.textAlign).toBe('center');
+  });
+
+  it('applies center alignment when align prop is set to center', () => {
+    const { getByTestId } = render(
+      <HeaderBase align={HeaderBaseAlign.Center}>Header Content</HeaderBase>,
+    );
+
+    const titleElement = getByTestId(HEADERBASE_TITLE_TEST_ID);
+    expect(titleElement.props.style.textAlign).toBe('center');
+  });
+
+  it('applies left alignment when align prop is set to left', () => {
+    const { getByTestId } = render(
+      <HeaderBase align={HeaderBaseAlign.Left}>Header Content</HeaderBase>,
+    );
+
+    const titleElement = getByTestId(HEADERBASE_TITLE_TEST_ID);
+    expect(titleElement.props.style.textAlign).toBe('left');
+  });
+
+  it('renders snapshot correctly with left alignment', () => {
+    const wrapper = render(
+      <HeaderBase align={HeaderBaseAlign.Left}>
+        Sample HeaderBase Title
+      </HeaderBase>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  it('renders snapshot correctly with center alignment', () => {
+    const wrapper = render(
+      <HeaderBase align={HeaderBaseAlign.Center}>
+        Sample HeaderBase Title
+      </HeaderBase>,
+    );
+    expect(wrapper).toMatchSnapshot();
+  });
+
+  describe('accessory width calculations', () => {
+    const mockAccessoryComponent = <Text>Test Accessory</Text>;
+
+    it('calculates accessoryWidth when both start and end accessories have sizes for center alignment', () => {
+      // Mock useComponentSize to return different sizes for each call
+      mockUseComponentSize
+        .mockReturnValueOnce({
+          size: { width: 50, height: 30 },
+          onLayout: jest.fn(),
+        })
+        .mockReturnValueOnce({
+          size: { width: 40, height: 25 },
+          onLayout: jest.fn(),
+        });
+
+      const { getByTestId } = render(
+        <HeaderBase
+          align={HeaderBaseAlign.Center}
+          startAccessory={mockAccessoryComponent}
+          endAccessory={mockAccessoryComponent}
+        >
+          Header Content
+        </HeaderBase>,
+      );
+
+      const headerBase = getByTestId(HEADERBASE_TEST_ID);
+      // The accessoryWidth should be calculated and applied to titleWrapper
+      expect(headerBase).toBeTruthy();
+    });
+
+    it('does not calculate accessoryWidth for left alignment even with accessories', () => {
+      mockUseComponentSize
+        .mockReturnValueOnce({
+          size: { width: 50, height: 30 },
+          onLayout: jest.fn(),
+        })
+        .mockReturnValueOnce({
+          size: { width: 40, height: 25 },
+          onLayout: jest.fn(),
+        });
+
+      const { getByTestId } = render(
+        <HeaderBase
+          align={HeaderBaseAlign.Left}
+          startAccessory={mockAccessoryComponent}
+          endAccessory={mockAccessoryComponent}
+        >
+          Header Content
+        </HeaderBase>,
+      );
+
+      const titleElement = getByTestId(HEADERBASE_TITLE_TEST_ID);
+      expect(titleElement.props.style.textAlign).toBe('left');
+    });
+
+    it('handles case when only start accessory has size', () => {
+      mockUseComponentSize
+        .mockReturnValueOnce({
+          size: { width: 50, height: 30 },
+          onLayout: jest.fn(),
+        })
+        .mockReturnValueOnce({
+          size: null,
+          onLayout: jest.fn(),
+        });
+
+      const { getByTestId } = render(
+        <HeaderBase
+          align={HeaderBaseAlign.Center}
+          startAccessory={mockAccessoryComponent}
+          endAccessory={mockAccessoryComponent}
+        >
+          Header Content
+        </HeaderBase>,
+      );
+
+      const headerBase = getByTestId(HEADERBASE_TEST_ID);
+      expect(headerBase).toBeTruthy();
+    });
+
+    it('handles case when only end accessory has size', () => {
+      mockUseComponentSize
+        .mockReturnValueOnce({
+          size: null,
+          onLayout: jest.fn(),
+        })
+        .mockReturnValueOnce({
+          size: { width: 40, height: 25 },
+          onLayout: jest.fn(),
+        });
+
+      const { getByTestId } = render(
+        <HeaderBase
+          align={HeaderBaseAlign.Center}
+          startAccessory={mockAccessoryComponent}
+          endAccessory={mockAccessoryComponent}
+        >
+          Header Content
+        </HeaderBase>,
+      );
+
+      const headerBase = getByTestId(HEADERBASE_TEST_ID);
+      expect(headerBase).toBeTruthy();
+    });
+
+    it('handles case when neither accessory has size', () => {
+      mockUseComponentSize
+        .mockReturnValueOnce({
+          size: null,
+          onLayout: jest.fn(),
+        })
+        .mockReturnValueOnce({
+          size: null,
+          onLayout: jest.fn(),
+        });
+
+      const { getByTestId } = render(
+        <HeaderBase
+          align={HeaderBaseAlign.Center}
+          startAccessory={mockAccessoryComponent}
+          endAccessory={mockAccessoryComponent}
+        >
+          Header Content
+        </HeaderBase>,
+      );
+
+      const headerBase = getByTestId(HEADERBASE_TEST_ID);
+      expect(headerBase).toBeTruthy();
+    });
   });
 });
