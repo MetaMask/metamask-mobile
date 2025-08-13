@@ -64,6 +64,7 @@ interface UseSwitchNetworksReturn {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   onNonEvmNetworkChange: (chainId: CaipChainId) => Promise<void>;
   ///: END:ONLY_INCLUDE_IF
+  onEnableNetwork: (chainId: Hex) => Promise<void>;
 }
 
 /**
@@ -298,11 +299,18 @@ export function useSwitchNetworks({
   );
   ///: END:ONLY_INCLUDE_IF
 
+  const onEnableNetwork = useCallback(async (chainId: Hex) => {
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      await Engine.context.NetworkEnablementController.enableNetwork(chainId);
+    }
+  }, []);
+
   return {
     onSetRpcTarget,
     onNetworkChange,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     onNonEvmNetworkChange,
     ///: END:ONLY_INCLUDE_IF
+    onEnableNetwork,
   };
 }

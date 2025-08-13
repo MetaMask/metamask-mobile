@@ -59,6 +59,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     onNonEvmNetworkChange,
     ///: END:ONLY_INCLUDE_IF
+    onEnableNetwork,
   } = useSwitchNetworks({
     domainIsConnectedDapp,
     selectedChainId: selectedEvmChainId,
@@ -101,6 +102,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
 
         if (evmNetworkConfiguration) {
           await onSetRpcTarget(evmNetworkConfiguration);
+          await onEnableNetwork(evmNetworkConfiguration.chainId);
         }
 
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -137,6 +139,7 @@ export const BridgeSourceTokenSelector: React.FC = () => {
       onNonEvmNetworkChange,
       ///: END:ONLY_INCLUDE_IF
       evmNetworkConfigurations,
+      onEnableNetwork,
     ],
   );
 
