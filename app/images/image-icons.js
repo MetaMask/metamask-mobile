@@ -41,6 +41,7 @@ import OMNI_TOKEN from './omni-token.png';
 import FRAX from './frax.png';
 import XDC from './xdc.png';
 import AAVE from './aave-token-round.png';
+import TRON from './tron-logo.svg';
 
 export default {
   PALM,
@@ -64,6 +65,7 @@ export default {
   SOLANA,
   FOX_LOGO,
   BTC,
+  TRON,
   'BTC-TESTNET': BTC_TESTNET,
   'BTC-MUTINYNET': BTC_MUTINYNET,
   'BTC-SIGNET': BTC_SIGNET,
