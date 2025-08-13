@@ -47,10 +47,8 @@ describe('usePerpsOrderValidation', () => {
     });
   });
 
-  afterEach(async () => {
-    jest.runOnlyPendingTimers();
-    // Flush promises
-    await new Promise((resolve) => setImmediate(resolve));
+  afterEach(() => {
+    jest.clearAllTimers();
     jest.useRealTimers();
   });
 
@@ -74,7 +72,7 @@ describe('usePerpsOrderValidation', () => {
   };
 
   describe('protocol validation', () => {
-    it.skip('should pass when protocol validation passes', async () => {
+    it('should pass when protocol validation passes', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -88,7 +86,7 @@ describe('usePerpsOrderValidation', () => {
 
       // Advance timers to trigger debounced validation
       act(() => {
-        jest.advanceTimersByTime(300);
+        jest.advanceTimersByTime(1000);
       });
 
       await fastWaitFor(() => {
@@ -99,7 +97,7 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).toEqual([]);
     });
 
-    it.skip('should fail when protocol validation fails', async () => {
+    it('should fail when protocol validation fails', async () => {
       mockValidateOrder.mockResolvedValue({
         isValid: false,
         error: 'Minimum order size is $10.00',
@@ -116,7 +114,7 @@ describe('usePerpsOrderValidation', () => {
 
       // Advance timers to trigger debounced validation
       act(() => {
-        jest.advanceTimersByTime(300);
+        jest.advanceTimersByTime(1000);
       });
 
       await fastWaitFor(() => {
@@ -129,7 +127,7 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('existing position validation', () => {
-    it.skip('should fail when user has existing position', async () => {
+    it('should fail when user has existing position', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -140,7 +138,9 @@ describe('usePerpsOrderValidation', () => {
       );
 
       // Advance timers to trigger debounced validation
-      jest.advanceTimersByTime(300);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -152,7 +152,7 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('balance validation', () => {
-    it.skip('should fail when insufficient balance', async () => {
+    it('should fail when insufficient balance', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -164,7 +164,9 @@ describe('usePerpsOrderValidation', () => {
       );
 
       // Advance timers to trigger debounced validation
-      jest.advanceTimersByTime(300);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -178,7 +180,7 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('payment token validation', () => {
-    it.skip('should pass with HyperLiquid mainnet token', async () => {
+    it('should pass with HyperLiquid mainnet token', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -195,7 +197,9 @@ describe('usePerpsOrderValidation', () => {
       );
 
       // Advance timers to trigger debounced validation
-      jest.advanceTimersByTime(300);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -205,7 +209,7 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).toEqual([]);
     });
 
-    it.skip('should pass with HyperLiquid testnet token', async () => {
+    it('should pass with HyperLiquid testnet token', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -222,7 +226,9 @@ describe('usePerpsOrderValidation', () => {
       );
 
       // Advance timers to trigger debounced validation
-      jest.advanceTimersByTime(300);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -232,7 +238,7 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).toEqual([]);
     });
 
-    it.skip('should fail with non-HyperLiquid token', async () => {
+    it('should fail with non-HyperLiquid token', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -249,7 +255,9 @@ describe('usePerpsOrderValidation', () => {
       );
 
       // Advance timers to trigger debounced validation
-      jest.advanceTimersByTime(300);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -263,7 +271,7 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('leverage warnings', () => {
-    it.skip('should warn about high leverage', async () => {
+    it('should warn about high leverage', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -277,7 +285,9 @@ describe('usePerpsOrderValidation', () => {
       );
 
       // Advance timers to trigger debounced validation
-      jest.advanceTimersByTime(300);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -287,7 +297,7 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.warnings).toContain('High leverage warning');
     });
 
-    it.skip('should not warn about normal leverage', async () => {
+    it('should not warn about normal leverage', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -301,7 +311,9 @@ describe('usePerpsOrderValidation', () => {
       );
 
       // Advance timers to trigger debounced validation
-      jest.advanceTimersByTime(300);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -312,7 +324,7 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('limit order validation', () => {
-    it.skip('should require limit price for limit orders', async () => {
+    it('should require limit price for limit orders', async () => {
       // Protocol validation should catch missing limit price
       mockValidateOrder.mockResolvedValue({
         isValid: false,
@@ -331,7 +343,9 @@ describe('usePerpsOrderValidation', () => {
       );
 
       // Advance timers to trigger debounced validation
-      jest.advanceTimersByTime(300);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -341,7 +355,7 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.errors).toContain('Limit price required');
     });
 
-    it.skip('should pass with limit price for limit orders', async () => {
+    it('should pass with limit price for limit orders', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
@@ -356,7 +370,9 @@ describe('usePerpsOrderValidation', () => {
       );
 
       // Advance timers to trigger debounced validation
-      jest.advanceTimersByTime(300);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -368,7 +384,7 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('error handling', () => {
-    it.skip('should handle validation errors gracefully', async () => {
+    it('should handle validation errors gracefully', async () => {
       mockValidateOrder.mockRejectedValue(new Error('Network error'));
 
       const { result } = renderHook(() =>
@@ -376,7 +392,9 @@ describe('usePerpsOrderValidation', () => {
       );
 
       // Advance timers to trigger debounced validation
-      jest.advanceTimersByTime(300);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -388,7 +406,7 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('multiple errors', () => {
-    it.skip('should combine multiple validation errors', async () => {
+    it('should combine multiple validation errors', async () => {
       mockValidateOrder.mockResolvedValue({
         isValid: false,
         error: 'Order too small',
@@ -404,7 +422,9 @@ describe('usePerpsOrderValidation', () => {
       );
 
       // Advance timers to trigger debounced validation
-      jest.advanceTimersByTime(300);
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
