@@ -188,7 +188,7 @@ describe(SmokeWalletPlatform('EVM Provider Events'), () => {
     );
   });
 
-  it('notifies a permitted dapp of the new chain ID when the network changes.', async () => {
+  it('notifies a permitted dapp of the new chain ID when the network changes', async () => {
     await withFixtures(
       {
         dapps: [
