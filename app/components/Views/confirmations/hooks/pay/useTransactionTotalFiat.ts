@@ -1,9 +1,5 @@
 import { useSelector } from 'react-redux';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
-import { selectConversionRateByChainId } from '../../../../../selectors/currencyRateController';
-import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
-import { useTransactionMaxGasCost } from '../gas/useTransactionMaxGasCost';
 import { RootState } from '../../../../../reducers';
 import { selectTransactionBridgeQuotesById } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
@@ -11,27 +7,50 @@ import { BigNumber } from 'bignumber.js';
 import { createProjectLogger } from '@metamask/utils';
 import { useEffect } from 'react';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
+import { TransactionBridgeQuote } from '../../utils/bridge';
 
 const log = createProjectLogger('transaction-pay');
 
 export function useTransactionTotalFiat() {
-  const gasCost = useGasCost();
-  const quotesGasCost = useQuotesGasCost();
   const fiatFormatter = useFiatFormatter();
-  const { totalFiat: quotesCost } = useTransactionRequiredFiat();
+  const { values: requiredFiat } = useTransactionRequiredFiat();
+  const { id: transactionId } = useTransactionMetadataOrThrow();
 
-  const value = gasCost + quotesGasCost + quotesCost;
-  const formatted = fiatFormatter(new BigNumber(value));
+  const quotes = useSelector((state: RootState) =>
+    selectTransactionBridgeQuotesById(state, transactionId),
+  );
+
+  const quotesCost = (quotes ?? []).reduce(
+    (acc, quote) => acc.plus(getQuoteCostFiat(quote)),
+    new BigNumber(0),
+  );
+
+  const balancesToUse = requiredFiat.filter(
+    (token) =>
+      !quotes?.some(
+        (quote) =>
+          quote.quote.destAsset.address.toLowerCase() ===
+          token.address.toLowerCase(),
+      ),
+  );
+
+  const balanceCost = balancesToUse.reduce(
+    (acc, token) => acc.plus(new BigNumber(token.amountFiat)),
+    new BigNumber(0),
+  );
+
+  const total = quotesCost.plus(balanceCost);
+  const value = total.toString(10);
+  const formatted = fiatFormatter(total);
 
   useEffect(() => {
     log('Total fiat', {
-      gasCost,
-      quotesGasCost,
-      quotesCost,
-      value,
+      balanceCost: balanceCost.toString(10),
+      quotesCost: quotesCost.toString(10),
       formatted,
+      value,
     });
-  }, [gasCost, quotesGasCost, quotesCost, value, formatted]);
+  }, [balanceCost, quotesCost, formatted, value]);
 
   return {
     value,
@@ -39,40 +58,10 @@ export function useTransactionTotalFiat() {
   };
 }
 
-function useQuotesGasCost() {
-  const { id: transactionId } = useTransactionMetadataOrThrow();
+function getQuoteCostFiat(quote: TransactionBridgeQuote): BigNumber {
+  const gasCost = new BigNumber(quote.totalMaxNetworkFee.valueInCurrency ?? 0);
+  const cost = new BigNumber(quote.cost.valueInCurrency ?? 0);
+  const amount = new BigNumber(quote.adjustedReturn.valueInCurrency ?? 0);
 
-  const quotes = useSelector((state: RootState) =>
-    selectTransactionBridgeQuotesById(state, transactionId),
-  );
-
-  return (quotes ?? []).reduce((acc, quote) => {
-    const value = new BigNumber(quote.totalMaxNetworkFee.valueInCurrency ?? 0);
-    return acc + (value.isNaN() ? 0 : value.toNumber());
-  }, 0);
-}
-
-function useGasCost() {
-  const tokens = useTransactionRequiredTokens();
-  const { chainId } = useTransactionMetadataOrThrow();
-
-  const conversionRate = useSelector((state: RootState) =>
-    selectConversionRateByChainId(state, chainId),
-  );
-
-  const nativeToken = tokens.find(
-    (token) =>
-      token.address.toLowerCase() === NATIVE_TOKEN_ADDRESS.toLowerCase(),
-  );
-
-  const gasCost = useTransactionMaxGasCost() ?? '0x0';
-
-  if (nativeToken) {
-    return 0;
-  }
-
-  return new BigNumber(gasCost, 16)
-    .shiftedBy(-18)
-    .multipliedBy(new BigNumber(conversionRate ?? 1))
-    .toNumber();
+  return amount.plus(gasCost).plus(cost);
 }
