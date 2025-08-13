@@ -22,7 +22,6 @@ export const validateAmountFn = ({
   if (parseFloat(amount) > parseFloat(asset.balance)) {
     return strings('send.insufficient_funds');
   }
-  return;
 };
 
 export const useNonEvmAmountValidation = () => {

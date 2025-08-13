@@ -56,7 +56,6 @@ export const validateAmountFn = ({
   if (weiBalance.cmp(weiValue) === -1) {
     return strings('send.insufficient_funds');
   }
-  return;
 };
 
 export const useEvmAmountValidation = () => {
