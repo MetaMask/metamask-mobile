@@ -2,6 +2,7 @@ import Gestures from '../../helpers/Gestures';
 import Selectors from '../../helpers/Selectors';
 import { OnboardingSheetSelectorIDs } from '../../../e2e/selectors/Onboarding/OnboardingSheet.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import { expect as appwrightExpect } from 'appwright';
 
 class OnboardingSheet {
 
@@ -50,6 +51,10 @@ class OnboardingSheet {
     }
   }
 
+  async isVisible() {
+    const element = await this.importSeedButton;
+    await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+  }
 }
 
 export default new OnboardingSheet();

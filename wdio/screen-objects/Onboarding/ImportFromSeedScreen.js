@@ -51,12 +51,17 @@ class ImportFromSeedScreen {
    }
  
 
-  async isScreenTitleVisible() {
+  async isScreenTitleVisible(onboarding = true) {
     if (!this._device) {
       await expect(this.screenTitle).toBeDisplayed();
     } else {
-      const element = await this.screenTitle;
-      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+      if (onboarding) {
+        const element = await this.screenTitle;
+        await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+      } else {
+        const element = await AppwrightSelectors.getElementByText(this.device, 'Import Secret Recovery Phrase');
+        await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+      }
     }
   }
 

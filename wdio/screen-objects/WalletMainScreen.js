@@ -149,6 +149,17 @@ class WalletMainScreen {
     }
   }
 
+  async isTokenVisible(token) {
+    const isAndroid = await AppwrightSelectors.isAndroid(this._device);
+    if (isAndroid) {
+      const tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
+      await tokenName.isVisible();
+    } else {
+      const tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token);
+      await tokenName.isVisible();
+    }
+  }
+
   async tapIdenticon() {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);

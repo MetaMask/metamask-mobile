@@ -120,36 +120,53 @@ class CustomReporter {
         console.log(`\n✅ Performance report generated: ${reportPath}`);
         console.log(`✅ Performance metrics saved: ${jsonPath}`);
       }
-         // CSV Export
-         const scenarioGroups = {};
+         // CSV Export - Steps Performance Report
+    // CSV Export - One table per scenario with steps and times
+    const csvRows = [];
+    for (let i = 0; i < this.metrics.length; i++) {
+      const test = this.metrics[i];
+      
+      // Add scenario/test name as a header
+      csvRows.push(`Test: ${test.testName}`);
+      if (test.device) {
+        csvRows.push(`Device: ${test.device.name} - OS: ${test.device.osVersion}`);
+      }
+      csvRows.push(''); // Blank line for readability
+      
+      // Add column headers
+      csvRows.push('Step,Time (ms)');
+      
+      // Add each step (excluding testName and device)
+      Object.entries(test).forEach(([key, value]) => {
+        if (key !== 'testName' && key !== 'device') {
+          if (key === 'total') {
+            // Add a separator line before total
+            csvRows.push('---,---');
+            csvRows.push(`TOTAL TIME (s),${value}`);
+          } else {
+            // Regular step with time in ms
+            csvRows.push(`"${key}","${value}"`);
+          }
+        }
+      });
+      
+      // Add spacing between tables (3 blank lines to clearly separate tables)
+      if (i < this.metrics.length - 1) {
+        csvRows.push('');
+        csvRows.push('');
+        csvRows.push('');
+      }
+    }
 
-         for (const test of this.metrics) {
-           const scenario = test.testName;
-           if (!scenarioGroups[scenario]) scenarioGroups[scenario] = [];
-           scenarioGroups[scenario].push(test);
-         }
-         
-         const csvRows = [];
-         
-         for (const scenario of Object.keys(scenarioGroups)) {
-           const tests = scenarioGroups[scenario];
-           const metricKeys = Array.from(new Set(
-             tests.flatMap(test => Object.keys(test).filter(k => !baseKeys.map(key => key.replace(' ', '')).includes(k)))
-           ));
-           const headers = [...metricKeys];
-           csvRows.push(headers.join(','));
-           for (const test of tests) {
-             const row = [
-               ...metricKeys.map(k => test[k] !== undefined ? test[k] : '')
-             ];
-             csvRows.push(row.join(','));
-           }
-           csvRows.push(''); // Blank line between scenarios
-         }
-         
-         const csvPath = path.join(reportsDir, `performance-metrics-all-scenarios-${timestamp}.csv`);
-         fs.writeFileSync(csvPath, csvRows.join('\n'));
-         console.log(`✅ Grouped CSV performance metrics saved: ${csvPath}`);
+    // Add generation timestamp at the end
+    csvRows.push('');
+    csvRows.push('');
+    csvRows.push(`Generated: ${new Date().toLocaleString()}`);
+
+    // Write to single CSV file
+    const csvPath = path.join(reportsDir, `performance-report-${testName}-${timestamp}.csv`);
+    fs.writeFileSync(csvPath, csvRows.join('\n'));
+    console.log(`✅ Performance CSV report saved: ${csvPath}`);
     } catch (error) {
       console.error('Error generating performance report:', error);
     }

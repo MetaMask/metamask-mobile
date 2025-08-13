@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 dotenv.config({ path: '.e2e.env' });
 import { defineConfig, Platform } from 'appwright';
 export default defineConfig({
-  testMatch: '**/tests/sendEthereum.spec.js',
+  testMatch: '**/tests/performance/*.spec.js',
   reporter: [
     // The default HTML reporter from Appwright
     ['html', { open: 'never', outputFolder: './test-reports/appwright-report' }],

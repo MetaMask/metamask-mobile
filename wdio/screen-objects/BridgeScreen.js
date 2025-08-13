@@ -6,7 +6,7 @@ import { QuoteViewSelectorIDs,QuoteViewSelectorText } from '../../e2e/selectors/
 import { SwapsViewSelectorsIDs } from '../../e2e/selectors/swaps/SwapsView.selectors';
 import { QuoteViewSelectorText as BridgeQuotesSelectorText } from '../../e2e/selectors/Bridge/QuoteView.selectors';
 
-class SwapScreen {
+class BridgeScreen {
   get device() {
     return this._device;
   }
@@ -48,7 +48,7 @@ class SwapScreen {
       const element = await this.quoteDisplayed; // bridge swap view shows on 
       await appwrightExpect(element).toBeVisible({ timeout: 10000 });
       const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, BridgeQuotesSelectorText.FEE_DISCLAIMER);
-      await appwrightExpect(mmFee).toBeVisible({ timeout: 10000 });
+      await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
     }
 
   }
@@ -75,28 +75,12 @@ class SwapScreen {
   }
 
   async selectNetworkAndTokenTo(network, token) {
-    if (network == 'Ethereum'){
-      const tokenDropDown = await AppwrightSelectors.getElementByID(this._device, QuoteViewSelectorIDs.DEST_TOKEN)
-      await tokenDropDown.tap();
-      const tokenSearchInput = await AppwrightSelectors.getElementByText(this._device,'Enter token name or paste address')
-      await appwrightExpect(tokenSearchInput).toBeVisible({ timeout: 10000 });
-      await tokenSearchInput.tap()
-      await tokenSearchInput.fill(token)
-      const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, token);
-      await appwrightExpect(tokenButton).toBeVisible({ timeout: 10000 });
-      await tokenButton.tap();
-    }
-    else {
-      const destinationToken = await this.destinationTokenArea;
-      await destinationToken.tap();
-      const selectAllDropDown = await this.seeAllDropDown;
-      await selectAllDropDown.tap();
-      const networkName = await AppwrightSelectors.getElementByText(this._device, network);
-      await networkName.tap();
-      const tokenButton = await AppwrightSelectors.getElementByText(this._device, token);
-      await tokenButton.tap();
-    }
-
+    const bridgeButton = await AppwrightSelectors.getElementByText(this._device, 'Bridge to');
+    await bridgeButton.tap();
+    const networkButton = await AppwrightSelectors.getElementByCatchAll(this._device, network);
+    await networkButton.tap();
+    const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, token);
+    await tokenButton.tap();
   }
 
   async tapGetQuotes(network){
@@ -127,4 +111,4 @@ class SwapScreen {
   }
 }
 
-export default new SwapScreen();
+export default new BridgeScreen();

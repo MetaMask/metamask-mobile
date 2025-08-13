@@ -12,6 +12,14 @@ class TokenOverviewScreen {
     this._device = device;
   }
 
+  get todaysChange() {
+    if (!this._device) {
+      return Selectors.getElementByPlatform(TokenOverviewSelectorsIDs.TODAYS_CHANGE);
+    } else {
+      return AppwrightSelectors.getElementByText(this._device, '%) Today');
+    }
+  }
+
   get tokenAssetOverview() {
     if (!this._device) {
       return Selectors.getElementByPlatform(TokenOverviewSelectorsIDs.CONTAINER);
@@ -29,9 +37,19 @@ class TokenOverviewScreen {
       const element = await this.tokenAssetOverview;
       await element.waitForDisplayed();
     } else {
-      console.log('Aqui llega', await this.tokenAssetOverview);
       const element = await this.tokenAssetOverview;
       expectAppwright(element).toBeVisible();
+    }
+  }
+
+  async isTodaysChangeVisible() {
+    if (!this._device) {
+      const element = await this.todaysChange;
+      await element.waitForDisplayed();
+    } else {
+      const element = await this.todaysChange;
+      expectAppwright(element).toBeVisible({ timeout: 10000 });
+      await new Promise(resolve => setTimeout(resolve, 500));
     }
   }
 

@@ -4,6 +4,7 @@ import Gestures from '../../helpers/Gestures';
 import { ChoosePasswordSelectorsIDs } from '../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
 import { CONFIRM_PASSWORD_INPUT_FIRST_FIELD, CREATE_PASSWORD_INPUT_FIRST_FIELD } from '../testIDs/Screens/WalletSetupScreen.testIds';
+import { expect as appwrightExpect } from 'appwright';
 
 class CreatePasswordScreen {
   get device() {
@@ -106,6 +107,11 @@ class CreatePasswordScreen {
       const element = await this.submitButton;
       await element.tap();
     }
+  }
+
+  async isVisible() {
+    const element = await this.newPasswordInput;
+    await appwrightExpect(element).toBeVisible({ timeout: 10000 });
   }
 }
 

@@ -4,7 +4,7 @@ import {
   AccountListBottomSheetSelectorsIDs,
 } from '../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
-import { expect } from 'appwright';
+import { expect, ScrollDirection } from 'appwright';
 
 class AccountListComponent {
   get device() {
@@ -55,8 +55,21 @@ class AccountListComponent {
   }
 
   async tapOnAccountByName(name) {
-    const account = await AppwrightSelectors.getElementByText(this.device, name);
+    let account = await AppwrightSelectors.getElementByText(this.device, name);
+    await AppwrightSelectors.scrollIntoView(this.device, account);
     await account.tap();
+    /*
+    console.log('account ->', account);
+    try {
+      await account.tap();
+    } catch (error) {
+      console.log('Error tapping on account ->', error);
+      await this.device.pause(10000000);
+      await this.device.scroll();
+      account = await AppwrightSelectors.getElementByText(this.device, name);
+
+      await account.tap();
+    }*/
   }
 }
 

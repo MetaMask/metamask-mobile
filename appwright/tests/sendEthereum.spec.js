@@ -1,4 +1,4 @@
-import { test, expect } from 'appwright';
+import { test } from 'appwright';
 
 import TimerHelper from '../utils/TimersHelper.js';
 import { PerformanceTracker } from '../reporters/PerformanceTracker.js';

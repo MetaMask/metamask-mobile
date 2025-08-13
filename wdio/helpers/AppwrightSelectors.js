@@ -10,8 +10,6 @@ export default class AppwrightSelectors {
 
   static async getElementByText(device, text) {
     return await device.getByText(text);
-
-
   }
 
   // This is a catch-all xpath selector that works on both platforms. Needed to identify deeply nested elements
@@ -29,10 +27,50 @@ export default class AppwrightSelectors {
     }
   }
   static async isIOS(device) {
-    return device.webDriverClient.capabilities.platformName === 'iOS';
+    return device.webDriverClient.capabilities.platformName === 'iOS' || await device.webDriverClient.capabilities.platformName === 'ios';
   }
 
   static async isAndroid(device) {
     return device.webDriverClient.capabilities.platformName === 'android' || await device.webDriverClient.capabilities.platformName === 'Android';
+  }
+
+  static async scrollIntoView(device, element) {
+    for (let i = 0; i < 5; i++) {
+      try {
+        const isVisible = await element.isVisible({ timeout: 2000 });
+        
+        if (isVisible) {
+          return element;
+        }
+      } catch (error) {
+        // Element not found or not visible, continue scrolling
+      }
+      const driver = device.webDriverClient;
+      // Perform a scroll action
+      if (await AppwrightSelectors.isAndroid(device)) {
+        // For Android, use a swipe gesture
+        console.log('Entra en Android', driver);
+        //await driver.tap({ x: 500, y: 1500 });
+        await driver.executeScript("mobile: swipeGesture", [
+          {
+            left: 100,
+            top: 500,
+            width: 200,
+            height: 1000,
+            direction: "up",
+            percent: 0.75
+          }
+        ]);
+      } else {
+        // For iOS
+        await driver.scroll();
+      }
+      
+      // Wait a bit for the scroll to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    throw new Error(`Element not found after ${maxAttempts} scroll attempts`);
+  
   }
 }

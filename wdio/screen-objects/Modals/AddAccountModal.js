@@ -2,6 +2,7 @@ import Selectors from '../../helpers/Selectors';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import { expect as appwrightExpect } from 'appwright';
 
 class AddAccountModal {
   get device() {
@@ -97,6 +98,11 @@ class AddAccountModal {
       const element = await this.createEthereumAccountButton;
       await element.tap();
     }
+  }
+
+  async isVisible() {
+    const element = await this.importSrpButton;
+    await appwrightExpect(element).toBeVisible({ timeout: 10000 });
   }
 }
 

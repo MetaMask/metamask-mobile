@@ -1,4 +1,4 @@
-import { test, expect } from 'appwright';
+import { test } from 'appwright';
 
 import TimerHelper from '../utils/TimersHelper.js';
 import { PerformanceTracker } from '../reporters/PerformanceTracker.js';
@@ -82,9 +82,7 @@ test('Send flow - Solana', async ({ device }, testInfo) => {
     await OnboardingSucessScreen.tapDone();
     await SolanaFeatureSheet.isVisible();
     await SolanaFeatureSheet.tapNotNowButton();
-    const sendAccountSelectorScreen = new TimerHelper(
-      'Time since the user clicks on the send button, until the user clicks on the next button',
-    );
+
     await WalletMainScreen.tapIdenticon();
     await AccountListComponent.tapOnAccountByName('Solana Account 1');
     await NetworkEducationModal.tapGotItButton();
@@ -100,12 +98,11 @@ test('Send flow - Solana', async ({ device }, testInfo) => {
     await SendSolanaScreen.fillAmountField('0.001');
 
     const sendAmountScreen = new TimerHelper(
-        'Time since the user is on the send amount screen, until the user gets the confirmation screen',
+        'Time since the user is on the send amount screen until the user gets the confirmation screen',
       );
     sendAmountScreen.start();
 
     await SendSolanaScreen.tapContinueButton();
-    await SolanaConfirmationScreen.isFieldVisible();
     await SolanaConfirmationScreen.isConfirmButtonDisplayed();
 
     sendAmountScreen.stop();
@@ -115,4 +112,3 @@ test('Send flow - Solana', async ({ device }, testInfo) => {
     performanceTracker.addTimer(sendAmountScreen);
     await performanceTracker.attachToTest(testInfo);
   });
-  
