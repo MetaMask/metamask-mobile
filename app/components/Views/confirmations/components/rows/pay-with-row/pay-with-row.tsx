@@ -26,6 +26,8 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { formatAmount } from '../../../../../UI/SimulationDetails/formatAmount';
+import I18n from '../../../../../../../locales/i18n';
 
 export function PayWithRow() {
   const { styles } = useStyles(styleSheet, {});
@@ -49,7 +51,10 @@ export function PayWithRow() {
     );
   }
 
-  const tokenBalance = new BigNumber(payToken.balance ?? '0').toFixed(2);
+  const tokenBalance = formatAmount(
+    I18n.locale,
+    new BigNumber(payToken.balance ?? '0'),
+  );
 
   return (
     <TouchableOpacity onPress={handleClick}>
