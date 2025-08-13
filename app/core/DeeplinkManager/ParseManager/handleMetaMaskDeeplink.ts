@@ -42,7 +42,7 @@ export function handleMetaMaskDeeplink({
   }
 
   if (url.includes('v=2') && url.startsWith(`${PREFIXES.METAMASK}${ACTIONS.CONNECT}`)) {
-    DevLogger.log(`[DeeplinkManager] V2 protocol deeplink detected. Routing to ConnectionRegistry.`, url);
+    DevLogger.log(`[DeeplinkManager] V2 protocol deeplink detected. Routing to SDKConnectV2.`, url);
     SDKConnectV2.handleConnectDeeplink(url);
     return;
   }
