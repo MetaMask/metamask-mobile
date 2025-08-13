@@ -214,7 +214,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     const getUserAuthPreferences = async () => {
       if (isSeedlessPasswordOutdated) {
         setError(strings('login.seedless_password_outdated'));
-        // async reset biometric stored password
+        // password outdated, reset biometric password and choice
         await Authentication.resetPassword();
       }
 
@@ -656,8 +656,11 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     downloadStateLogs(fullState, false);
   };
 
+  // for rehydration and when global password is outdated
+  // hide biometric button
   const shouldHideBiometricAccessoryButton = !(
     !oauthLoginSuccess &&
+    !isSeedlessPasswordOutdated &&
     biometryChoice &&
     biometryType &&
     hasBiometricCredentials &&
