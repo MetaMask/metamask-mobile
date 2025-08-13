@@ -831,9 +831,12 @@ class Amount extends PureComponent {
         ? effectiveNetworkClientId
         : globalNetworkClientId;
 
-      const transactionType = isNativeToken(selectedAsset)
-        ? TransactionType.simpleSend
-        : TransactionType.tokenMethodTransfer;
+      let transactionType;
+      if (isNativeToken(selectedAsset)) {
+        transactionType = TransactionType.simpleSend;
+      } else if (!selectedAsset.tokenId) {
+        transactionType = TransactionType.tokenMethodTransfer;
+      }
 
       await addTransaction(transactionParams, {
         origin: MMM_ORIGIN,

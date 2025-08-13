@@ -1873,6 +1873,7 @@ describe('Amount', () => {
           {
             origin: 'metamask',
             networkClientId: contextualNetworkClientId,
+            type: TransactionType.simpleSend,
           },
         );
       });
@@ -2084,6 +2085,7 @@ describe('Amount', () => {
           {
             origin: 'metamask',
             networkClientId: globalNetworkClientId,
+            type: TransactionType.simpleSend,
           },
         );
       });
