@@ -114,7 +114,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await Browser.tapBackToSafetyButton();
       await Assertions.expectElementToNotHaveText(
         Browser.urlInputBoxID,
-        getHostFromURL(ExternalSites.PHISHING_SITE_INSIDE_IFRAME),
+        getOriginFromURL(ExternalSites.PHISHING_SITE_INSIDE_IFRAME),
         {
           description: 'URL input box does not have the phishing site',
         },
@@ -221,7 +221,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await Browser.navigateToURL(ExternalSites.WEBSITE_WITH_REDIRECT);
       await Assertions.expectElementToHaveText(
         Browser.urlInputBoxID,
-        getHostFromURL(ExternalSites.WEBSITE_WITH_REDIRECT),
+        getOriginFromURL(ExternalSites.WEBSITE_WITH_REDIRECT),
         {
           description:
             'URL input box has the correct text from the initial website',
@@ -230,7 +230,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await RedirectWebsite.tapRedirectButton();
       await Assertions.expectElementToHaveText(
         Browser.urlInputBoxID,
-        getHostFromURL(ExternalSites.PORTFOLIO),
+        getOriginFromURL(ExternalSites.PORTFOLIO),
         {
           description:
             'URL input box has the correct text from the redirected website',
