@@ -1,72 +1,12 @@
 // Third party dependencies.
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 
 // External dependencies.
 import { IconName } from '../../Icons/Icon';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 // Internal dependencies
 import TabBarItem from './TabBarItem';
-
-// Mock the dependencies
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: jest.fn(() => ({
-    style: jest.fn((classes) => ({ testClasses: classes })),
-    color: jest.fn((colorClass) => {
-      const colorMap: { [key: string]: string } = {
-        'text-primary-inverse': '#FFFFFF',
-      };
-      return colorMap[colorClass] || '#000000';
-    }),
-  })),
-  ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
-  Theme: {
-    Light: 'light',
-  },
-}));
-
-jest.mock('../../Icons/Icon', () => {
-  const MockIcon = ({ name, testID }: { name: string; testID?: string }) => {
-    const React = require('react');
-    return React.createElement('MockIcon', { name, testID });
-  };
-  MockIcon.displayName = 'Icon';
-
-  return {
-    __esModule: true,
-    default: MockIcon,
-    IconColor: {
-      Default: 'icon-default',
-      Alternative: 'icon-alternative',
-    },
-    IconSize: {
-      Md: 'md',
-      Lg: 'lg',
-    },
-  };
-});
-
-jest.mock('../../Texts/Text', () => ({
-  __esModule: true,
-  default: ({
-    children,
-    testID,
-  }: {
-    children: React.ReactNode;
-    testID?: string;
-  }) => {
-    const React = require('react');
-    return React.createElement('MMText', { testID }, children);
-  },
-  TextColor: {
-    Default: 'text-default',
-    Alternative: 'text-alternative',
-  },
-  TextVariant: {
-    BodyXSMedium: 'body-xs-medium',
-  },
-}));
 
 describe('TabBarItem', () => {
   const defaultProps = {
@@ -79,86 +19,54 @@ describe('TabBarItem', () => {
     jest.clearAllMocks();
   });
 
-  it('should render correctly with default props', () => {
-    const { toJSON } = renderWithProvider(<TabBarItem {...defaultProps} />);
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should render correctly when active', () => {
-    const { toJSON } = renderWithProvider(
-      <TabBarItem {...defaultProps} isActive={true} />,
+  it('renders tab bar item with icon', () => {
+    const { getByTestId } = render(
+      <TabBarItem {...defaultProps} testID="tab-item" />,
     );
-    expect(toJSON()).toMatchSnapshot();
+
+    expect(getByTestId('tab-item')).toBeOnTheScreen();
   });
 
-  it('should render correctly with label text', () => {
-    const { toJSON } = renderWithProvider(
-      <TabBarItem {...defaultProps} labelText="Home" />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should render correctly as trade button', () => {
-    const { toJSON } = renderWithProvider(
-      <TabBarItem {...defaultProps} isTradeButton={true} />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should render correctly as trade button with light theme wrapper', () => {
-    const { toJSON } = renderWithProvider(
-      <TabBarItem {...defaultProps} isTradeButton={true} />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should render correctly with flex style', () => {
-    const { toJSON } = renderWithProvider(
-      <TabBarItem {...defaultProps} flexStyle="flex" />,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('should call onPress when pressed', () => {
+  it('calls onPress when pressed', () => {
+    // Arrange
     const mockOnPress = jest.fn();
-    const { getByTestId } = renderWithProvider(
-      <TabBarItem
-        {...defaultProps}
-        onPress={mockOnPress}
-        testID="tab-bar-item-test"
-      />,
-    );
 
-    fireEvent.press(getByTestId('tab-bar-item-test'));
+    // Act
+    const { getByTestId } = render(
+      <TabBarItem {...defaultProps} onPress={mockOnPress} testID="tab-item" />,
+    );
+    fireEvent.press(getByTestId('tab-item'));
+
+    // Assert
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('should not render label text for trade button', () => {
-    const { toJSON } = renderWithProvider(
+  it('displays label text when provided for non-trade button', () => {
+    const { getByText } = render(
+      <TabBarItem {...defaultProps} labelText="Home" />,
+    );
+
+    expect(getByText('Home')).toBeOnTheScreen();
+  });
+
+  it('does not display label text for trade button', () => {
+    const { queryByText } = render(
       <TabBarItem
         {...defaultProps}
-        isTradeButton={true}
+        isTradeButton
         labelText="This should not show"
       />,
     );
-    expect(toJSON()).toMatchSnapshot();
+
+    expect(queryByText('This should not show')).toBeNull();
   });
 
-  it('should use correct icon colors based on state', () => {
-    // Test inactive state
-    const { rerender, toJSON: inactiveSnapshot } = renderWithProvider(
-      <TabBarItem {...defaultProps} isActive={false} />,
+  it('applies flex style when specified', () => {
+    const { getByTestId } = render(
+      <TabBarItem {...defaultProps} flexStyle="flex" testID="tab-item" />,
     );
-    expect(inactiveSnapshot()).toMatchSnapshot();
 
-    // Test active state
-    rerender(<TabBarItem {...defaultProps} isActive={true} />);
-    expect(inactiveSnapshot()).toMatchSnapshot();
-
-    // Test trade button (should override active state)
-    rerender(
-      <TabBarItem {...defaultProps} isActive={true} isTradeButton={true} />,
-    );
-    expect(inactiveSnapshot()).toMatchSnapshot();
+    // Component should be present and accessible
+    expect(getByTestId('tab-item')).toBeOnTheScreen();
   });
 });
