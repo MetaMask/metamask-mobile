@@ -1,41 +1,104 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TabBar renders correctly 1`] = `
-[
+<View
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderTopColor": "#b7bbc866",
+      "borderTopWidth": 1,
+      "flexDirection": "row",
+      "paddingBottom": 0,
+      "paddingHorizontal": 16,
+      "paddingTop": 12,
+      "shadowColor": "#3f434a66",
+      "shadowOffset": {
+        "height": 4,
+        "width": 0,
+      },
+      "shadowOpacity": 1,
+      "shadowRadius": 8,
+    }
+  }
+>
   <View
     style={
-      {
-        "backgroundColor": "#ffffff",
-        "flexBasis": 1,
-        "shadowColor": "#3f434a66",
-        "shadowOffset": {
-          "height": 4,
-          "width": 0,
+      [
+        {
+          "transform": [
+            {
+              "scale": 1,
+            },
+          ],
         },
-        "shadowOpacity": 1,
-        "shadowRadius": 8,
-      }
-    }
-  />,
-  <View
-    style={
-      {
-        "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "flexDirection": "row",
-        "height": 48,
-        "marginBottom": 0,
-        "paddingHorizontal": 16,
-      }
-    }
-  >
-    <TouchableOpacity
-      onPress={[Function]}
-      style={
         {
           "alignItems": "center",
-          "flex": 1,
+          "justifyContent": "center",
+        },
+      ]
+    }
+  >
+    <View
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
         }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#3c4d9d0f",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "width": "auto",
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+            "paddingBottom": 4,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+            "paddingTop": 4,
+          },
+        ]
       }
       testID="tab-bar-item-Wallet"
     >
@@ -43,113 +106,197 @@ exports[`TabBar renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 20,
-            "height": 40,
+            "bottom": 0,
+            "display": "flex",
             "justifyContent": "center",
-            "overflow": "hidden",
-            "width": 40,
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
           }
         }
+        testID="spinner-container"
       >
-        <SvgMock
-          color="#4459ff"
-          fill="currentColor"
-          height={24}
-          name="Wallet"
+        <View
           style={
-            {
-              "height": 24,
-              "width": 24,
-            }
+            [
+              {
+                "alignItems": "center",
+                "columnGap": 8,
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
           }
-          width={24}
-        />
+          testID="spinner"
+        >
+          <View
+            style={
+              [
+                {
+                  "transform": [
+                    {
+                      "rotate": "0deg",
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="spinner-animated-view"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Loading"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
+              }
+              testID="spinner-icon"
+            />
+          </View>
+        </View>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
-      style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-        }
-      }
-      testID="tab-bar-item-Activity"
-    >
       <View
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 20,
-            "height": 40,
+            "columnGap": 8,
+            "flexDirection": "row",
             "justifyContent": "center",
-            "overflow": "hidden",
-            "width": 40,
+            "opacity": 1,
           }
         }
+        testID="content-container"
       >
-        <SvgMock
-          color="#b7bbc8"
-          fill="currentColor"
-          height={24}
-          name="Activity"
+        <View
           style={
-            {
-              "height": 24,
-              "width": 24,
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+              },
+            ]
           }
-          width={24}
-        />
+        >
+          <SvgMock
+            color="#121314"
+            fill="currentColor"
+            height={24}
+            name="Home"
+            style={
+              {
+                "height": 24,
+                "width": 24,
+              }
+            }
+            width={24}
+          />
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Medium",
+                "fontSize": 12,
+                "letterSpacing": 0.25,
+                "lineHeight": 20,
+                "marginTop": 4,
+              }
+            }
+          >
+            Home
+          </Text>
+        </View>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
-      style={
+    </View>
+  </View>
+  <View
+    style={
+      [
+        {
+          "transform": [
+            {
+              "scale": 1,
+            },
+          ],
+        },
         {
           "alignItems": "center",
-          "flex": 1,
+          "justifyContent": "center",
+        },
+      ]
+    }
+  >
+    <View
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
         }
       }
-      testID="tab-bar-item-Actions"
-    >
-      <View
-        style={
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
           {
             "alignItems": "center",
-            "backgroundColor": "#4459ff",
-            "borderRadius": 16,
-            "height": 32,
+            "backgroundColor": "#3c4d9d0f",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
             "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
             "overflow": "hidden",
-            "width": 32,
-          }
-        }
-      >
-        <SvgMock
-          color="#ffffff"
-          fill="currentColor"
-          height={20}
-          name="SwapVertical"
-          style={
-            {
-              "height": 20,
-              "width": 20,
-            }
-          }
-          width={20}
-        />
-      </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
-      style={
-        {
-          "alignItems": "center",
-          "flex": 1,
-        }
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "width": "auto",
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+            "paddingBottom": 4,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+            "paddingTop": 4,
+          },
+        ]
       }
       testID="tab-bar-item-Browser"
     >
@@ -157,37 +304,579 @@ exports[`TabBar renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 20,
-            "height": 40,
+            "bottom": 0,
+            "display": "flex",
             "justifyContent": "center",
-            "overflow": "hidden",
-            "width": 40,
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
           }
         }
+        testID="spinner-container"
       >
-        <SvgMock
-          color="#b7bbc8"
-          fill="currentColor"
-          height={24}
-          name="Explore"
+        <View
           style={
-            {
-              "height": 24,
-              "width": 24,
-            }
+            [
+              {
+                "alignItems": "center",
+                "columnGap": 8,
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
           }
-          width={24}
-        />
+          testID="spinner"
+        >
+          <View
+            style={
+              [
+                {
+                  "transform": [
+                    {
+                      "rotate": "0deg",
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="spinner-animated-view"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Loading"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
+              }
+              testID="spinner-icon"
+            />
+          </View>
+        </View>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
-      style={
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "opacity": 1,
+          }
+        }
+        testID="content-container"
+      >
+        <View
+          style={
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+              },
+            ]
+          }
+        >
+          <SvgMock
+            color="#686e7d"
+            fill="currentColor"
+            height={24}
+            name="Explore"
+            style={
+              {
+                "height": 24,
+                "width": 24,
+              }
+            }
+            width={24}
+          />
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Medium",
+                "fontSize": 12,
+                "letterSpacing": 0.25,
+                "lineHeight": 20,
+                "marginTop": 4,
+              }
+            }
+          >
+            Browser
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      [
+        {
+          "transform": [
+            {
+              "scale": 1,
+            },
+          ],
+        },
         {
           "alignItems": "center",
-          "flex": 1,
+          "justifyContent": "center",
+        },
+      ]
+    }
+  >
+    <View
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
         }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#3c4d9d0f",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "width": "auto",
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "justifyContent": "center",
+            "paddingBottom": 4,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+            "paddingTop": 4,
+          },
+        ]
+      }
+      testID="tab-bar-item-Actions"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "bottom": 0,
+            "display": "flex",
+            "justifyContent": "center",
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+        testID="spinner-container"
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "columnGap": 8,
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
+          }
+          testID="spinner"
+        >
+          <View
+            style={
+              [
+                {
+                  "transform": [
+                    {
+                      "rotate": "0deg",
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="spinner-animated-view"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Loading"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
+              }
+              testID="spinner-icon"
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "opacity": 1,
+          }
+        }
+        testID="content-container"
+      >
+        <View
+          style={
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "backgroundColor": "#4459ff",
+                "borderRadius": 9999,
+                "height": 45,
+                "justifyContent": "center",
+                "width": 45,
+              },
+            ]
+          }
+        >
+          <SvgMock
+            color="#ffffff"
+            fill="currentColor"
+            height={20}
+            name="SwapVertical"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      [
+        {
+          "transform": [
+            {
+              "scale": 1,
+            },
+          ],
+        },
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+        },
+      ]
+    }
+  >
+    <View
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#3c4d9d0f",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "width": "auto",
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+            "paddingBottom": 4,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+            "paddingTop": 4,
+          },
+        ]
+      }
+      testID="tab-bar-item-Activity"
+    >
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "bottom": 0,
+            "display": "flex",
+            "justifyContent": "center",
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
+          }
+        }
+        testID="spinner-container"
+      >
+        <View
+          style={
+            [
+              {
+                "alignItems": "center",
+                "columnGap": 8,
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
+          }
+          testID="spinner"
+        >
+          <View
+            style={
+              [
+                {
+                  "transform": [
+                    {
+                      "rotate": "0deg",
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="spinner-animated-view"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Loading"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
+              }
+              testID="spinner-icon"
+            />
+          </View>
+        </View>
+      </View>
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "opacity": 1,
+          }
+        }
+        testID="content-container"
+      >
+        <View
+          style={
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+              },
+            ]
+          }
+        >
+          <SvgMock
+            color="#686e7d"
+            fill="currentColor"
+            height={24}
+            name="Activity"
+            style={
+              {
+                "height": 24,
+                "width": 24,
+              }
+            }
+            width={24}
+          />
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Medium",
+                "fontSize": 12,
+                "letterSpacing": 0.25,
+                "lineHeight": 20,
+                "marginTop": 4,
+              }
+            }
+          >
+            Activity
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+  <View
+    style={
+      [
+        {
+          "transform": [
+            {
+              "scale": 1,
+            },
+          ],
+        },
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+        },
+      ]
+    }
+  >
+    <View
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": undefined,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "backgroundColor": "#3c4d9d0f",
+            "borderRadius": 12,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+            "width": "auto",
+          },
+          {
+            "alignItems": "center",
+            "backgroundColor": "transparent",
+            "flexBasis": "0%",
+            "flexGrow": 1,
+            "flexShrink": 1,
+            "justifyContent": "center",
+            "paddingBottom": 4,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+            "paddingTop": 4,
+          },
+        ]
       }
       testID="tab-bar-item-Setting"
     >
@@ -195,30 +884,119 @@ exports[`TabBar renders correctly 1`] = `
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 20,
-            "height": 40,
+            "bottom": 0,
+            "display": "flex",
             "justifyContent": "center",
-            "overflow": "hidden",
-            "width": 40,
+            "left": 0,
+            "opacity": 0,
+            "position": "absolute",
+            "right": 0,
+            "top": 0,
           }
         }
+        testID="spinner-container"
       >
-        <SvgMock
-          color="#b7bbc8"
-          fill="currentColor"
-          height={24}
-          name="Setting"
+        <View
           style={
-            {
-              "height": 24,
-              "width": 24,
-            }
+            [
+              {
+                "alignItems": "center",
+                "columnGap": 8,
+                "flexDirection": "row",
+              },
+              undefined,
+            ]
           }
-          width={24}
-        />
+          testID="spinner"
+        >
+          <View
+            style={
+              [
+                {
+                  "transform": [
+                    {
+                      "rotate": "0deg",
+                    },
+                  ],
+                },
+              ]
+            }
+            testID="spinner-animated-view"
+          >
+            <SvgMock
+              fill="currentColor"
+              name="Loading"
+              style={
+                [
+                  {
+                    "color": "#121314",
+                    "height": 20,
+                    "width": 20,
+                  },
+                  undefined,
+                ]
+              }
+              testID="spinner-icon"
+            />
+          </View>
+        </View>
       </View>
-    </TouchableOpacity>
-  </View>,
-]
+      <View
+        style={
+          {
+            "alignItems": "center",
+            "columnGap": 8,
+            "flexDirection": "row",
+            "justifyContent": "center",
+            "opacity": 1,
+          }
+        }
+        testID="content-container"
+      >
+        <View
+          style={
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+              },
+            ]
+          }
+        >
+          <SvgMock
+            color="#686e7d"
+            fill="currentColor"
+            height={24}
+            name="Setting"
+            style={
+              {
+                "height": 24,
+                "width": 24,
+              }
+            }
+            width={24}
+          />
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Medium",
+                "fontSize": 12,
+                "letterSpacing": 0.25,
+                "lineHeight": 20,
+                "marginTop": 4,
+              }
+            }
+          >
+            Settings
+          </Text>
+        </View>
+      </View>
+    </View>
+  </View>
+</View>
 `;
