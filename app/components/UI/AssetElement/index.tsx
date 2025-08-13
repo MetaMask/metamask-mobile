@@ -28,6 +28,7 @@ interface AssetElementProps {
   balanceVariant?: TextVariant;
   secondaryBalance?: string;
   secondaryBalanceVariant?: TextVariant;
+  secondaryBalanceColor?: any;
   privacyMode?: boolean;
   disabled?: boolean;
 }
@@ -61,6 +62,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
   children,
   balance,
   secondaryBalance,
+  secondaryBalanceColor,
   asset,
   onPress,
   onLongPress,
@@ -114,7 +116,15 @@ const AssetElement: React.FC<AssetElementProps> = ({
         {secondaryBalance ? (
           <SensitiveText
             variant={TextVariant.BodySMMedium}
-            style={styles.secondaryBalance}
+            style={
+              secondaryBalanceColor
+                ? {
+                    paddingHorizontal: 0,
+                    ...fontStyles.normal,
+                  }
+                : styles.secondaryBalance
+            }
+            color={secondaryBalanceColor}
             isHidden={privacyMode}
             length={SensitiveTextLength.Short}
             testID={SECONDARY_BALANCE_TEST_ID}
