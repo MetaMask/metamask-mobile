@@ -37,7 +37,10 @@ const config = {
   snapshotSerializers: ['enzyme-to-json/serializer'],
   // This is an environment variable that can be used to execute logic only in development
   collectCoverage: process.env.NODE_ENV !== 'production',
-  collectCoverageFrom: ['<rootDir>/app/**/*.{js,ts,tsx,jsx}'],
+  collectCoverageFrom: [
+    '<rootDir>/app/**/*.{js,ts,tsx,jsx}',
+    '!<rootDir>/app/**/*.stories.tsx',
+  ],
   coveragePathIgnorePatterns: [
     '__mocks__/',
     '<rootDir>/app/util/test/',

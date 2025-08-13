@@ -224,16 +224,16 @@ android {
         keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
       mainBeta {
-        storeFile file('../keystores/release.keystore')
-        storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
-        keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
-        keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+        storeFile file('../keystores/rc.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
       mainRc {
-        storeFile file('../keystores/release.keystore')
-        storePassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PASSWORD")
-        keyAlias System.getenv("BITRISEIO_ANDROID_KEYSTORE_ALIAS")
-        keyPassword System.getenv("BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD")
+        storeFile file('../keystores/rc.keystore')
+        storePassword System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD")
+        keyAlias System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS")
+        keyPassword System.getenv("BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD")
       }
       mainTest {
         storeFile file('../keystores/internalRelease.keystore')
