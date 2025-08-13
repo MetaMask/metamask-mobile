@@ -14,6 +14,7 @@ import { strings } from '../../../../locales/i18n';
 import ReviewManager from '../../../core/ReviewManager';
 import { createStyles } from './styles';
 import { useTheme } from '../../../util/theme';
+import { useSupportConsent } from '../../hooks/useSupportConsent';
 
 interface HelpOption {
   label: string;
@@ -59,14 +60,19 @@ const ReviewModal = () => {
     setShowHelpOptions(true);
   };
 
-  const openUrl = useCallback(
-    async (url: string) => {
+  const goToBrowserUrl = useCallback(
+    async (url: string, title: string) => {
       navigation.navigate('Webview', {
         screen: 'SimpleWebview',
-        params: { url },
+        params: { url, title },
       });
     },
     [navigation],
+  );
+
+  const { openSupportWebPage } = useSupportConsent(
+    goToBrowserUrl,
+    strings('review_prompt.help_description_2'),
   );
 
   const renderReviewContent = () => (
@@ -111,7 +117,7 @@ const ReviewModal = () => {
         <Text style={styles.description}>
           {strings('review_prompt.help_description_1')}
           <Text
-            onPress={() => openUrl(AppConstants.REVIEW_PROMPT.SUPPORT)}
+            onPress={openSupportWebPage}
             style={styles.contactLabel}
             suppressHighlighting
           >
@@ -121,7 +127,7 @@ const ReviewModal = () => {
         </Text>
         {helpOptions.map(({ label, link }, index) => {
           const key = `help-${index}`;
-          const onPress = () => openUrl(link);
+          const onPress = () => goToBrowserUrl(link, label);
           return (
             <TouchableOpacity key={key} onPress={onPress}>
               <Text style={[styles.optionLabel, styles.helpOption]}>
