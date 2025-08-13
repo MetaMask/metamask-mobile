@@ -32,9 +32,35 @@ describe('useTokenRatesPolling', () => {
           multichainNetworkConfigurationsByChainId: {},
         },
         NetworkController: {
+          selectedNetworkClientId: 'selectedNetworkClientId',
           networkConfigurationsByChainId: {
-            '0x1': {},
-            '0x89': {},
+            '0x1': {
+              chainId: '0x1',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+            },
+            '0x89': {
+              chainId: '0x89',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId2',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+            },
+            '0x5': {
+              chainId: '0x5',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId3',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+            },
           },
         },
         PreferencesController: {
@@ -108,6 +134,7 @@ describe('useTokenRatesPolling', () => {
                     networkClientId: 'selectedNetworkClientId',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
             },
           },
@@ -187,12 +214,9 @@ describe('useTokenRatesPolling', () => {
       Engine.context.TokenRatesController,
     );
 
-    expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(2);
-    expect(mockedTokenRatesController.startPolling).toHaveBeenNthCalledWith(1, {
-      chainIds: ['0x1'],
-    });
-    expect(mockedTokenRatesController.startPolling).toHaveBeenNthCalledWith(2, {
-      chainIds: ['0x89'],
+    expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(1);
+    expect(mockedTokenRatesController.startPolling).toHaveBeenCalledWith({
+      chainIds: ['0x1', '0x89'],
     });
   });
 
@@ -213,7 +237,8 @@ describe('useTokenRatesPolling', () => {
 
       expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(1);
       expect(mockedTokenRatesController.startPolling).toHaveBeenCalledWith({
-        chainIds: ['0x1', '0x89', '0x5'],
+        // group poll popular networks, does not poll custom networks
+        chainIds: ['0x1', '0x89'],
       });
 
       unmount();
@@ -267,6 +292,7 @@ describe('useTokenRatesPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
                 '0x89': {
                   chainId: '0x89' as const,
@@ -275,6 +301,7 @@ describe('useTokenRatesPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
                 '0xa': {
                   chainId: '0xa' as const,
@@ -283,6 +310,7 @@ describe('useTokenRatesPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
               },
             },
@@ -346,15 +374,12 @@ describe('useTokenRatesPolling', () => {
         Engine.context.TokenRatesController,
       );
 
-      expect(mockedTokenRatesController.startPolling).toHaveBeenCalledTimes(1);
-      expect(mockedTokenRatesController.startPolling).toHaveBeenCalledWith({
-        chainIds: [],
-      });
+      expect(mockedTokenRatesController.startPolling).not.toHaveBeenCalled();
 
       unmount();
       expect(
         mockedTokenRatesController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(1);
+      ).not.toHaveBeenCalled();
     });
   });
 });

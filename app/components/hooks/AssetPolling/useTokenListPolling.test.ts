@@ -39,6 +39,7 @@ describe('useTokenListPolling', () => {
                   networkClientId: 'selectedNetworkClientId',
                 },
               ],
+              defaultRpcEndpointIndex: 0,
             },
             '0x89': {
               chainId: '0x89',
@@ -47,6 +48,7 @@ describe('useTokenListPolling', () => {
                   networkClientId: 'selectedNetworkClientId2',
                 },
               ],
+              defaultRpcEndpointIndex: 0,
             },
           },
         },
@@ -150,6 +152,7 @@ describe('useTokenListPolling', () => {
                     networkClientId: 'selectedNetworkClientId',
                   },
                 ],
+                defaultRpcEndpointIndex: 0,
               },
             },
           },
@@ -248,21 +251,19 @@ describe('useTokenListPolling', () => {
         Engine.context.TokenListController,
       );
 
-      expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(3);
+      // We only group poll popular networks, custom networks are not group polled
+      expect(mockedTokenListController.startPolling).toHaveBeenCalledTimes(2);
       expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
         chainId: '0x1',
       });
       expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
         chainId: '0x89',
       });
-      expect(mockedTokenListController.startPolling).toHaveBeenCalledWith({
-        chainId: '0x5',
-      });
 
       unmount();
       expect(
         mockedTokenListController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(3);
+      ).toHaveBeenCalledTimes(2);
     });
 
     it('should poll current chain when portfolio view is disabled', () => {
@@ -310,6 +311,7 @@ describe('useTokenListPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
                 '0x89': {
                   chainId: '0x89' as const,
@@ -318,6 +320,7 @@ describe('useTokenListPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
                 '0xa': {
                   chainId: '0xa' as const,
@@ -326,6 +329,7 @@ describe('useTokenListPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
               },
             },

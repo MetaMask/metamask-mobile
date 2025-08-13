@@ -53,6 +53,25 @@ describe('useTokenDetectionPolling', () => {
                   networkClientId: 'selectedNetworkClientId',
                 },
               ],
+              defaultRpcEndpointIndex: 0,
+            },
+            '0x89': {
+              chainId: '0x89',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId2',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
+            },
+            '0x5': {
+              chainId: '0x5',
+              rpcEndpoints: [
+                {
+                  networkClientId: 'selectedNetworkClientId2',
+                },
+              ],
+              defaultRpcEndpointIndex: 0,
             },
           },
         },
@@ -66,7 +85,6 @@ describe('useTokenDetectionPolling', () => {
             eip155: {
               '0x1': true,
               '0x89': true,
-              '0x5': true,
             },
           },
         },
@@ -186,6 +204,7 @@ describe('useTokenDetectionPolling', () => {
                         networkClientId: 'selectedNetworkClientId',
                       },
                     ],
+                    defaultRpcEndpointIndex: 0,
                   },
                 },
               },
@@ -236,6 +255,7 @@ describe('useTokenDetectionPolling', () => {
                         networkClientId: 'selectedNetworkClientId',
                       },
                     ],
+                    defaultRpcEndpointIndex: 0,
                   },
                   '0x89': {
                     chainId: '0x89',
@@ -244,6 +264,7 @@ describe('useTokenDetectionPolling', () => {
                         networkClientId: 'otherNetworkClientId',
                       },
                     ],
+                    defaultRpcEndpointIndex: 0,
                   },
                 },
               },
@@ -303,18 +324,12 @@ describe('useTokenDetectionPolling', () => {
       Engine.context.TokenDetectionController,
     );
 
-    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
-      1,
-    );
-    expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
-      chainIds: [selectedChainId],
-      address: undefined,
-    });
+    expect(mockedTokenDetectionController.startPolling).not.toHaveBeenCalled();
 
     unmount();
     expect(
       mockedTokenDetectionController.stopPollingByPollingToken,
-    ).toHaveBeenCalledTimes(1);
+    ).not.toHaveBeenCalled();
   });
 
   it('should poll only for current network if selected one is not popular', () => {
@@ -334,7 +349,7 @@ describe('useTokenDetectionPolling', () => {
                   selectedAccount: '1',
                   accounts: {
                     '1': {
-                      address: undefined,
+                      address: '0xAcconut1',
                     },
                   },
                 },
@@ -349,6 +364,7 @@ describe('useTokenDetectionPolling', () => {
                         networkClientId: 'selectedNetworkClientId',
                       },
                     ],
+                    defaultRpcEndpointIndex: 0,
                   },
                 },
               },
@@ -367,7 +383,7 @@ describe('useTokenDetectionPolling', () => {
     );
     expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
       chainIds: ['0x82750'],
-      address: undefined,
+      address: '0xAcconut1',
     });
 
     unmount();
@@ -425,8 +441,9 @@ describe('useTokenDetectionPolling', () => {
       expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
         1,
       );
+      // we will poll all popular evm networks, custom evm networks are not group polled
       expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
-        chainIds: ['0x1', '0x89', '0x5'],
+        chainIds: ['0x1', '0x89'],
         address: selectedAddress,
       });
 
@@ -488,6 +505,7 @@ describe('useTokenDetectionPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
                 '0x89': {
                   chainId: '0x89' as const,
@@ -496,6 +514,7 @@ describe('useTokenDetectionPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
                 '0xa': {
                   chainId: '0xa' as const,
@@ -504,6 +523,7 @@ describe('useTokenDetectionPolling', () => {
                       networkClientId: 'selectedNetworkClientId',
                     },
                   ],
+                  defaultRpcEndpointIndex: 0,
                 },
               },
             },
@@ -576,18 +596,14 @@ describe('useTokenDetectionPolling', () => {
         Engine.context.TokenDetectionController,
       );
 
-      expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledTimes(
-        1,
-      );
-      expect(mockedTokenDetectionController.startPolling).toHaveBeenCalledWith({
-        chainIds: [],
-        address: selectedAddress,
-      });
+      expect(
+        mockedTokenDetectionController.startPolling,
+      ).not.toHaveBeenCalled();
 
       unmount();
       expect(
         mockedTokenDetectionController.stopPollingByPollingToken,
-      ).toHaveBeenCalledTimes(1);
+      ).not.toHaveBeenCalled();
     });
   });
 });
