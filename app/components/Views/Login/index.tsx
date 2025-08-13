@@ -28,7 +28,7 @@ import {
 } from '../../../actions/onboarding';
 import setOnboardingWizardStepUtil from '../../../actions/wizard';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
-import { connect, useDispatch } from 'react-redux';
+import { connect, useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import {
   passcodeType,
@@ -114,6 +114,7 @@ import {
   SeedlessOnboardingControllerError,
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
+import { selectIsSeedlessPasswordOutdated } from '../../../selectors/seedlessOnboardingController';
 
 // In android, having {} will cause the styles to update state
 // using a constant will prevent this
@@ -166,6 +167,10 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
 
   const oauthLoginSuccess = route?.params?.oauthLoginSuccess ?? false;
 
+  const isSeedlessPasswordOutdated = useSelector(
+    selectIsSeedlessPasswordOutdated,
+  );
+
   const track = (
     event: IMetaMetricsEvent,
     properties: Record<string, string | boolean | number>,
@@ -207,6 +212,12 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
     const getUserAuthPreferences = async () => {
+      if (isSeedlessPasswordOutdated) {
+        setError(strings('login.seedless_password_outdated'));
+        // async reset biometric stored password
+        await Authentication.resetPassword();
+      }
+
       const authData = await Authentication.getType();
 
       //Setup UI to handle Biometric
@@ -245,7 +256,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isSeedlessPasswordOutdated]);
 
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
