@@ -20,6 +20,8 @@ import type {
   SwitchProviderResult,
   ToggleTestnetResult,
 } from '../types';
+import { PolymarketProvider } from '../providers/PolymarketProvider';
+import Engine from '../../../../core/Engine';
 
 /**
  * Error codes for PredictController
@@ -107,13 +109,13 @@ export interface PredictControllerEvents {
  */
 export type PredictControllerActions =
   | {
-    type: 'PredictController:getState';
-    handler: () => PredictControllerState;
-  }
+      type: 'PredictController:getState';
+      handler: () => PredictControllerState;
+    }
   | {
-    type: 'PredictController:placeOrder';
-    handler: PredictController['placeOrder'];
-  };
+      type: 'PredictController:placeOrder';
+      handler: PredictController['placeOrder'];
+    };
 
 /**
  * External actions the PredictController can call
@@ -269,12 +271,15 @@ export class PredictController extends BaseController<
         existingProviders.map((provider) => provider.disconnect()),
       );
     }
+    const { KeyringController } = Engine.context;
     this.providers.clear();
-    // TODO: Uncomment when polymarket provider is ready
-    // this.providers.set(
-    //   'polymarket',
-    //   new PolymarketProvider({ isTestnet: this.state.isTestnet, signer }),
-    // );
+    this.providers.set(
+      'polymarket',
+      new PolymarketProvider({
+        isTestnet: this.state.isTestnet,
+        signTypedMessage: KeyringController.signTypedMessage,
+      }),
+    );
 
     // Future providers can be added here with their own authentication patterns:
     // - Some might use API keys: new BinanceProvider({ apiKey, apiSecret })
