@@ -7,15 +7,12 @@ exports[`Carousel render an expected snapshot 1`] = `
       {
         "display": "flex",
       },
-      [
-        {
-          "alignSelf": "center",
-          "height": 84,
-          "overflow": "visible",
-          "width": 728,
-        },
-        undefined,
-      ],
+      {
+        "alignSelf": "center",
+        "height": 84,
+        "overflow": "visible",
+        "width": 728,
+      },
     ]
   }
 >
