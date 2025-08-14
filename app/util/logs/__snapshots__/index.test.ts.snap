@@ -446,11 +446,11 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "remoteFeatureFlags": {},
       },
       "SeedlessOnboardingController": {
-        "accessToken": false,
-        "encryptedKeyringEncryptionKey": false,
-        "encryptedSeedlessEncryptionKey": false,
+        "accessToken": true,
+        "encryptedKeyringEncryptionKey": true,
+        "encryptedSeedlessEncryptionKey": true,
         "isSeedlessOnboardingUserAuthenticated": true,
-        "metadataAccessToken": false,
+        "metadataAccessToken": true,
         "nodeAuthTokens": [
           {
             "nodeIndex": 1,
@@ -460,8 +460,8 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           },
           {},
         ],
-        "refreshToken": false,
-        "revokeToken": false,
+        "refreshToken": true,
+        "revokeToken": true,
         "socialBackupsMetadata": [
           {
             "keyringId": "keyring1",
@@ -470,9 +470,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           {},
         ],
         "userId": "userId",
-        "vault": false,
-        "vaultEncryptionKey": false,
-        "vaultEncryptionSalt": false,
+        "vault": true,
+        "vaultEncryptionKey": true,
+        "vaultEncryptionSalt": true,
       },
       "SelectedNetworkController": {
         "domains": {},
