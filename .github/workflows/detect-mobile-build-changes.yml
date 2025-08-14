@@ -89,6 +89,8 @@ jobs:
 
       - name: Summary
         run: |
-          echo "Android changed: ${{ steps.filter.outputs.android }}" >> "${GITHUB_STEP_SUMMARY}"
-          echo "iOS changed: ${{ steps.filter.outputs.ios }}" >> "${GITHUB_STEP_SUMMARY}"
-          echo "Any changed (iOS and Android): ${{ steps.set-any.outputs.any_changed }}" >> "${GITHUB_STEP_SUMMARY}"
+          {
+            echo "Android changed: ${{ steps.filter.outputs.android }}"
+            echo "iOS changed: ${{ steps.filter.outputs.ios }}"
+            echo "Any changed (iOS and Android): ${{ steps.set-any.outputs.any_changed }}"
+          } >> "${GITHUB_STEP_SUMMARY}"
