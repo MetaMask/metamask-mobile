@@ -278,8 +278,15 @@ const WalletTokensTabView = React.memo(
           onChangeTab={onChangeTab}
         >
           <Tokens {...tokensTabProps} key={tokensTabProps.key} />
-          {isPerpsEnabled && <PerpsTabView {...perpsTabProps} />}
-          {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
+          {isPerpsEnabled && (
+            <PerpsTabView {...perpsTabProps} key={perpsTabProps.key} />
+          )}
+          {defiEnabled && (
+            <DeFiPositionsList
+              {...defiPositionsTabProps}
+              key={defiPositionsTabProps.key}
+            />
+          )}
           {collectiblesEnabled && (
             <CollectibleContracts
               {...collectibleContractsTabProps}
