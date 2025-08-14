@@ -109,8 +109,6 @@ jest.mock('../../../selectors/tokenBalancesController', () => ({
 
 jest.mock('../../../reducers/swaps', () => ({
   ...jest.requireActual('../../../reducers/swaps'),
-  swapsLivenessSelector: jest.fn().mockReturnValue(true),
-  swapsLivenessMultichainSelector: jest.fn().mockReturnValue(true),
   swapsTokensWithBalanceSelector: jest.fn().mockReturnValue([]),
   swapsControllerAndUserTokens: jest.fn().mockReturnValue([]),
 }));
