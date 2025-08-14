@@ -24,10 +24,6 @@ export const useSendActions = () => {
       }
 
       const toAddress = recipientAddress || to;
-      if (!toAddress) {
-        console.warn('No recipient address provided');
-        return;
-      }
 
       if (isEvmSendType) {
         await submitEvmTransaction({

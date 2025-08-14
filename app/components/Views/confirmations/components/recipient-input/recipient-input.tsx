@@ -68,7 +68,8 @@ export const RecipientInput = forwardRef<
         }, 100);
       }
     } catch (error) {
-      console.error('Failed to paste from clipboard:', error);
+      // Might consider showing an alert here if pasting fails
+      // for now just ignore it
     }
   }, [setAddressInput, textInputRef]);
 
