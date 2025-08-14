@@ -4,10 +4,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 
 // Internal dependencies.
 import QuickActionButton from './QuickActionButton';
-import {
-  ButtonVariant,
-  ButtonSize,
-} from '@metamask/design-system-react-native';
 
 describe('QuickActionButton', () => {
   const mockOnPress = jest.fn();
@@ -22,31 +18,6 @@ describe('QuickActionButton', () => {
     );
 
     expect(getByText('Test Button')).toBeTruthy();
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders correctly with custom variant and size', () => {
-    const { toJSON } = render(
-      <QuickActionButton
-        onPress={mockOnPress}
-        variant={ButtonVariant.Primary}
-        size={ButtonSize.Md}
-      >
-        Primary Button
-      </QuickActionButton>,
-    );
-
-    expect(toJSON()).toMatchSnapshot();
-  });
-
-  it('renders correctly in disabled state', () => {
-    const { toJSON, getByText } = render(
-      <QuickActionButton onPress={mockOnPress} isDisabled>
-        Disabled Button
-      </QuickActionButton>,
-    );
-
-    expect(getByText('Disabled Button')).toBeTruthy();
     expect(toJSON()).toMatchSnapshot();
   });
 

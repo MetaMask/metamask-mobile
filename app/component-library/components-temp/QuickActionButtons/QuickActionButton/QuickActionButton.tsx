@@ -21,8 +21,8 @@ const QuickActionButton: React.FC<QuickActionButtonProps> = ({
   <Button
     size={ButtonSize.Lg}
     isFullWidth
+    variant={ButtonVariant.Secondary}
     {...props}
-    variant={ButtonVariant.Secondary} // TODO: have to put after spreading props because it's a required prop and putting it before we get a type error will be fixed in next release of MMDS
     twClassName={`px-2 min-w-0 ${props.twClassName || ''}`}
   >
     {children}
