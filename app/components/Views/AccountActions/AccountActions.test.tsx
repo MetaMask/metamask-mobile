@@ -51,32 +51,36 @@ jest.mock('../../../reducers/swaps', () => ({
   swapsControllerAndUserTokensMultichain: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../selectors/networkController', () => ({
-  selectProviderConfig: jest.fn(() => ({
-    type: 'rpc',
-    rpcUrl: 'https://custom-rpc.com',
-    chainId: '0x1',
-    ticker: 'ETH',
-    nickname: 'Custom Network',
-  })),
-  selectNetworkConfigurations: jest.fn(() => ({
-    'custom-network-id': {
+jest.mock('../../../selectors/networkController', () => {
+  const actual = jest.requireActual('../../../selectors/networkController');
+  return {
+    ...actual,
+    selectProviderConfig: jest.fn(() => ({
+      type: 'rpc',
       rpcUrl: 'https://custom-rpc.com',
       chainId: '0x1',
       ticker: 'ETH',
-      blockExplorerUrl: 'https://custom-explorer.com',
-    },
-  })),
-  selectChainId: jest.fn(() => '0x1'),
-  selectEvmChainId: jest.fn(() => 1),
-  selectSelectedInternalAccountAddress: jest.fn(
-    () => '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
-  ),
-  selectSelectedNetworkClientId: jest.fn(() => 'mainnet'),
-  selectNetworkClientId: jest.fn(() => 'mainnet'),
-  selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
-  selectRpcUrl: jest.fn(() => 'https://mainnet.infura.io/v3/123'),
-}));
+      nickname: 'Custom Network',
+    })),
+    selectNetworkConfigurations: jest.fn(() => ({
+      'custom-network-id': {
+        rpcUrl: 'https://custom-rpc.com',
+        chainId: '0x1',
+        ticker: 'ETH',
+        blockExplorerUrl: 'https://custom-explorer.com',
+      },
+    })),
+    selectChainId: jest.fn(() => '0x1'),
+    selectEvmChainId: jest.fn(() => 1),
+    selectSelectedInternalAccountAddress: jest.fn(
+      () => '0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756',
+    ),
+    selectSelectedNetworkClientId: jest.fn(() => 'mainnet'),
+    selectNetworkClientId: jest.fn(() => 'mainnet'),
+    selectEvmNetworkConfigurationsByChainId: jest.fn(() => ({})),
+    selectRpcUrl: jest.fn(() => 'https://mainnet.infura.io/v3/123'),
+  };
+});
 
 // Import the mocked selectors
 import {
