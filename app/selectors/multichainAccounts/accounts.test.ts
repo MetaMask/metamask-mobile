@@ -1024,12 +1024,15 @@ describe('accounts selectors', () => {
         {
           accountTree: {
             wallets: {
-              [WALLET_ID_1]: {
-                id: WALLET_ID_1,
+              [ENTROPY_WALLET_ID]: {
+                id: ENTROPY_WALLET_ID,
                 metadata: { name: 'Wallet 1' },
                 groups: {
-                  [ACCOUNT_GROUP_ID_1]: {
-                    accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
+                  [ENTROPY_GROUP_ID]: {
+                    accounts: [
+                      ENTROPY_EVM_ACCOUNT_ID,
+                      ENTROPY_SOLANA_ACCOUNT_ID,
+                    ],
                   },
                 },
               },
@@ -1037,13 +1040,13 @@ describe('accounts selectors', () => {
           },
         },
         {
-          [ACCOUNT_ID_1]: mockEvmAccount,
-          [ACCOUNT_ID_2]: mockSolanaAccount,
+          [ENTROPY_EVM_ACCOUNT_ID]: mockEvmAccount,
+          [ENTROPY_SOLANA_ACCOUNT_ID]: mockSolanaAccount,
         },
       );
 
       const selector = selectInternalAccountsByGroupId(mockState);
-      const result = selector(ACCOUNT_GROUP_ID_1);
+      const result = selector(ENTROPY_GROUP_ID);
       expect(result).toEqual([mockEvmAccount, mockSolanaAccount]);
     });
   });
@@ -1054,12 +1057,15 @@ describe('accounts selectors', () => {
         {
           accountTree: {
             wallets: {
-              [WALLET_ID_1]: {
-                id: WALLET_ID_1,
+              [ENTROPY_WALLET_ID]: {
+                id: ENTROPY_WALLET_ID,
                 metadata: { name: 'Wallet 1' },
                 groups: {
-                  [ACCOUNT_GROUP_ID_1]: {
-                    accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
+                  [ENTROPY_GROUP_ID]: {
+                    accounts: [
+                      ENTROPY_EVM_ACCOUNT_ID,
+                      ENTROPY_SOLANA_ACCOUNT_ID,
+                    ],
                   },
                 },
               },
@@ -1067,14 +1073,14 @@ describe('accounts selectors', () => {
           },
         },
         {
-          [ACCOUNT_ID_1]: mockEvmAccount,
-          [ACCOUNT_ID_2]: mockSolanaAccount,
+          [ENTROPY_EVM_ACCOUNT_ID]: mockEvmAccount,
+          [ENTROPY_SOLANA_ACCOUNT_ID]: mockSolanaAccount,
         },
       );
 
       const result =
         selectInternalAccountListSpreadByScopesByGroupId(mockState)(
-          ACCOUNT_GROUP_ID_1,
+          ENTROPY_GROUP_ID,
         );
       expect(result).toEqual([
         {
