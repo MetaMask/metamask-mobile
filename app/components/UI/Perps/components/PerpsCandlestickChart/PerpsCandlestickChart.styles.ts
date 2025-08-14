@@ -103,5 +103,13 @@ export const styleSheet = (params: { theme: Theme }) => {
       minWidth: 80,
       textAlign: 'center',
     },
+    candleCountPreview: {
+      fontWeight: '600',
+      // Add subtle animation or highlighting for preview state
+    },
+    chartGesturing: {
+      opacity: 0.8,
+      // Subtle visual feedback during pinch gesture
+    },
   });
 };

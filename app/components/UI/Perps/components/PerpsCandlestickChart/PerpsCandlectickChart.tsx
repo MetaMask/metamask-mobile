@@ -1,5 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  useRef,
+} from 'react';
 import { View, Dimensions, Pressable } from 'react-native';
+import {
+  PinchGestureHandler,
+  State,
+  PinchGestureHandlerEventPayload,
+  HandlerStateChangeEvent,
+  PinchGestureHandlerGestureEvent,
+} from 'react-native-gesture-handler';
 import { CandlestickChart } from 'react-native-wagmi-charts';
 import { styleSheet } from './PerpsCandlestickChart.styles';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -75,6 +88,82 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
   const canZoomIn = candleCount > MIN_CANDLES;
   const canZoomOut = candleCount < MAX_CANDLES;
+
+  // Pinch-to-zoom state
+  const [isGesturing, setIsGesturing] = useState(false);
+  const [gestureScale, setGestureScale] = useState(1);
+  const baseCandleCount = useRef(candleCount);
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Scale-to-candle-count mapping
+  const scaleToCandles = useCallback(
+    (scale: number, currentCandles: number) => {
+      // Invert scale: pinch in (scale < 1) = zoom in = fewer candles
+      // pinch out (scale > 1) = zoom out = more candles
+      const factor = 1 / scale;
+      const newCandles = Math.round(currentCandles * factor);
+      return Math.max(MIN_CANDLES, Math.min(MAX_CANDLES, newCandles));
+    },
+    [],
+  );
+
+  // Preview candle count during gesture
+  const previewCandleCount = useMemo(() => {
+    if (isGesturing) {
+      return scaleToCandles(gestureScale, baseCandleCount.current);
+    }
+    return candleCount;
+  }, [isGesturing, gestureScale, candleCount, scaleToCandles]);
+
+  // Pinch gesture handlers
+  const handlePinchGesture = useCallback(
+    (event: PinchGestureHandlerGestureEvent) => {
+      const { scale } = event.nativeEvent;
+      setGestureScale(scale);
+    },
+    [],
+  );
+
+  const handlePinchStateChange = useCallback(
+    (event: HandlerStateChangeEvent<PinchGestureHandlerEventPayload>) => {
+      const { state, scale } = event.nativeEvent;
+
+      switch (state) {
+        case State.BEGAN:
+          setIsGesturing(true);
+          baseCandleCount.current = candleCount;
+          // Clear any existing debounce
+          if (debounceTimeout.current) {
+            clearTimeout(debounceTimeout.current);
+          }
+          break;
+
+        case State.END:
+        case State.CANCELLED:
+          setIsGesturing(false);
+          setGestureScale(1);
+
+          // Debounce the zoom change to prevent excessive API calls
+          const newCandleCount = scaleToCandles(scale, baseCandleCount.current);
+          if (newCandleCount !== candleCount) {
+            debounceTimeout.current = setTimeout(() => {
+              onZoomChange?.(newCandleCount);
+            }, 150); // 150ms debounce
+          }
+          break;
+      }
+    },
+    [candleCount, scaleToCandles, onZoomChange],
+  );
+
+  // Cleanup debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeout.current) {
+        clearTimeout(debounceTimeout.current);
+      }
+    };
+  }, []);
 
   // Get candlestick colors from centralized configuration
   // This allows for easy customization and potential user settings integration
@@ -225,23 +314,33 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       />
       <View style={styles.chartContainer}>
         {/* Chart with Custom Grid Lines */}
-        <View style={styles.relativeContainer}>
-          {/* Main Candlestick Chart */}
-          <CandlestickChart
-            height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
-            width={chartWidth - 65}
-            style={styles.chartWithPadding}
+        <PinchGestureHandler
+          onGestureEvent={handlePinchGesture}
+          onHandlerStateChange={handlePinchStateChange}
+        >
+          <View
+            style={[
+              styles.relativeContainer,
+              isGesturing && styles.chartGesturing,
+            ]}
           >
-            {/* Candlestick Data */}
-            <CandlestickChart.Candles
-              positiveColor={candlestickColors.positive} // Green for positive candles
-              negativeColor={candlestickColors.negative} // Red for negative candles
-              testID={PerpsCandlestickChartSelectorsIDs.CANDLES}
-            />
-            {/* Tooltip for price display */}
-            <View testID={PerpsCandlestickChartSelectorsIDs.TOOLTIP} />
-          </CandlestickChart>
-        </View>
+            {/* Main Candlestick Chart */}
+            <CandlestickChart
+              height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
+              width={chartWidth - 65}
+              style={styles.chartWithPadding}
+            >
+              {/* Candlestick Data */}
+              <CandlestickChart.Candles
+                positiveColor={candlestickColors.positive} // Green for positive candles
+                negativeColor={candlestickColors.negative} // Red for negative candles
+                testID={PerpsCandlestickChartSelectorsIDs.CANDLES}
+              />
+              {/* Tooltip for price display */}
+              <View testID={PerpsCandlestickChartSelectorsIDs.TOOLTIP} />
+            </CandlestickChart>
+          </View>
+        </PinchGestureHandler>
 
         {/* X-Axis Time Labels */}
         <CandlestickChartXAxis
@@ -270,10 +369,14 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
           <Text
             variant={TextVariant.BodyXS}
-            color={TextColor.Muted}
-            style={styles.candleCountText}
+            color={isGesturing ? TextColor.Primary : TextColor.Muted}
+            style={[
+              styles.candleCountText,
+              isGesturing && styles.candleCountPreview,
+            ]}
           >
-            {candleCount} candles
+            {previewCandleCount} candles
+            {isGesturing && ' (preview)'}
           </Text>
 
           <Pressable
