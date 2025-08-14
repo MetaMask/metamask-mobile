@@ -6,6 +6,66 @@ import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/W
 import { PortfolioBalance } from '.';
 import Engine from '../../../../../core/Engine';
 import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
+import {
+  FORMATTED_VALUE_PRICE_TEST_ID,
+  FORMATTED_PERCENTAGE_TEST_ID,
+} from '../../../Assets/BalanceChange/constants';
+
+// Force feature flag ON and mock balance selectors for aggregated path
+jest.mock(
+  '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    __esModule: true,
+    selectMultichainAccountsState2Enabled: () => true,
+  }),
+);
+
+jest.mock('../../../../../selectors/assets/balances', () => ({
+  __esModule: true,
+  selectBalanceForAllWallets: () => ({
+    userCurrency: 'usd',
+    wallets: {
+      'wallet-1': {
+        totalBalanceInUserCurrency: 100,
+        groups: {
+          'wallet-1/group-1': {
+            walletId: 'wallet-1',
+            groupId: 'wallet-1/group-1',
+            totalBalanceInUserCurrency: 100,
+            userCurrency: 'usd',
+          },
+        },
+      },
+    },
+  }),
+  selectAggregatedBalanceByAccountGroup: () => () => ({
+    walletId: 'wallet-1',
+    groupId: 'wallet-1/group-1',
+    totalBalanceInUserCurrency: 100,
+    userCurrency: 'usd',
+  }),
+  selectPortfolioChangeByAccountGroup: () => () => ({
+    amountChangeInUserCurrency: 10,
+    percentChange: 1,
+    userCurrency: 'usd',
+  }),
+}));
+
+// Do not mock AccountGroupBalanceChange; assert by its inner test IDs
+
+// Ensure wallet/group resolution works for the test's selected account
+jest.mock(
+  '../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    __esModule: true,
+    selectWalletByAccount: () => (_accountId: string) => ({
+      id: 'wallet-1',
+      groups: {
+        'wallet-1/group-1': { accounts: ['acc-1'] },
+      },
+    }),
+  }),
+);
 
 const { PreferencesController } = Engine.context;
 
@@ -141,7 +201,6 @@ const initialState = {
   },
 };
 
-// TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderPortfolioBalance = (state: any = {}) =>
   renderWithProvider(<PortfolioBalance />, { state });
@@ -243,5 +302,50 @@ describe('PortfolioBalance', () => {
     const eyeSlashIcon = getByTestId(EYE_SLASH_ICON_TEST_ID);
     expect(eyeSlashIcon).toBeDefined();
     expect(eyeSlashIcon.props.name).toBe('EyeSlash');
+  });
+
+  describe('Feature flagged aggregated percentage', () => {
+    it('renders AccountGroupBalanceChange when flag is ON and change exists', () => {
+      // Arrange: minimal state, selected account and wallet scaffold
+      const state = {
+        ...initialState,
+        engine: {
+          backgroundState: {
+            ...initialState.engine.backgroundState,
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  'acc-1': { id: 'acc-1', address: '0xabc' },
+                },
+                selectedAccount: 'acc-1',
+              },
+            },
+            AccountTreeController: {
+              accountTree: {
+                wallets: {
+                  'wallet-1': { id: 'wallet-1', groups: {} },
+                },
+                selectedAccountGroup: 'wallet-1/group-1',
+              },
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                multichainAccountsState2: { enabled: true },
+              },
+            },
+          },
+        },
+      } as const;
+
+      // Act
+      const { getByTestId } = renderPortfolioBalance(state);
+      // Assert by inner test IDs rendered by AccountGroupBalanceChange
+      const amountEl = getByTestId(FORMATTED_VALUE_PRICE_TEST_ID);
+      const percentEl = getByTestId(FORMATTED_PERCENTAGE_TEST_ID);
+      expect(String(amountEl.props.children)).toContain('+');
+      expect(String(amountEl.props.children)).toMatch(/\$/);
+      expect(String(amountEl.props.children)).toMatch(/10/);
+      expect(percentEl.props.children).toBe('(+1.00%)');
+    });
   });
 });
