@@ -99,7 +99,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
                 .build(),
             );
             break;
-          case Routes.BROWSER_VIEW:
+          case Routes.BROWSER.VIEW:
             navigation.navigate(Routes.BROWSER.HOME, {
               screen: Routes.BROWSER.VIEW,
             });

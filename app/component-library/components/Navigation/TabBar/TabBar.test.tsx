@@ -135,7 +135,7 @@ describe('TabBar', () => {
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Browser}`));
     expect(navigation.navigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
-      screen: Routes.BROWSER_VIEW,
+      screen: Routes.BROWSER.VIEW,
     });
 
     fireEvent.press(getByTestId(`tab-bar-item-${TabBarIconKey.Actions}`));
