@@ -135,6 +135,7 @@ describe('PerpsTransactionsView', () => {
       subscribeToPositions: jest.fn(),
       subscribeToOrderFills: jest.fn(),
       deposit: jest.fn(),
+      depositWithConfirmation: jest.fn(),
       getDepositRoutes: jest.fn(),
       resetDepositState: jest.fn(),
       withdraw: jest.fn(),

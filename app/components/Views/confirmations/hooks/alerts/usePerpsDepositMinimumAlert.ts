@@ -9,10 +9,10 @@ import { strings } from '../../../../../../locales/i18n';
 export const MINIMUM_DEPOSIT_USD = 10;
 
 export function usePerpsDepositMinimumAlert(): Alert[] {
-  const { usdValue } = useTokenAmount();
+  const { amountUnformatted } = useTokenAmount();
 
   const underMinimum =
-    new BigNumber(usdValue ?? '0').isLessThan(MINIMUM_DEPOSIT_USD) &&
+    new BigNumber(amountUnformatted ?? '0').isLessThan(MINIMUM_DEPOSIT_USD) &&
     process.env.MM_CONFIRMATION_INTENTS === 'true';
 
   return useMemo(() => {
