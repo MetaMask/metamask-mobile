@@ -107,6 +107,30 @@ jest.mock('../../hooks', () => ({
     isLoading: false,
     error: null,
   })),
+  usePerpsMarkets: jest.fn(() => ({
+    markets: [
+      {
+        name: 'ETH',
+        symbol: 'ETH-USD',
+        priceDecimals: 2,
+        sizeDecimals: 4,
+        maxLeverage: 50,
+        minSize: 0.01,
+        sizeIncrement: 0.01,
+      },
+      {
+        name: 'BTC',
+        symbol: 'BTC-USD',
+        priceDecimals: 2,
+        sizeDecimals: 6,
+        maxLeverage: 50,
+        minSize: 0.001,
+        sizeIncrement: 0.001,
+      },
+    ],
+    isLoading: false,
+    error: null,
+  })),
 }));
 
 // Mock Redux selectors

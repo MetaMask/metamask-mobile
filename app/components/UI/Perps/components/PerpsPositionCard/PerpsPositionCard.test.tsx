@@ -35,7 +35,17 @@ jest.mock('../../hooks', () => ({
     loadPositions: jest.fn().mockResolvedValue(undefined),
   }),
   usePerpsMarkets: jest.fn().mockReturnValue({
-    markets: [{ name: 'ETH' }],
+    markets: [
+      {
+        name: 'ETH',
+        symbol: 'ETH',
+        priceDecimals: 2,
+        sizeDecimals: 4,
+        maxLeverage: 50,
+        minSize: 0.01,
+        sizeIncrement: 0.01,
+      },
+    ],
     error: null,
     isLoading: false,
   }),
@@ -508,7 +518,17 @@ describe('PerpsPositionCard', () => {
       // Arrange
       const { usePerpsMarkets } = jest.requireMock('../../hooks');
       usePerpsMarkets.mockReturnValue({
-        markets: [{ name: 'ETH' }],
+        markets: [
+          {
+            name: 'ETH',
+            symbol: 'ETH',
+            priceDecimals: 2,
+            sizeDecimals: 4,
+            maxLeverage: 50,
+            minSize: 0.01,
+            sizeIncrement: 0.01,
+          },
+        ],
         error: null,
         isLoading: true, // Set loading to true
       });
@@ -525,7 +545,17 @@ describe('PerpsPositionCard', () => {
       // Arrange
       const { usePerpsMarkets } = jest.requireMock('../../hooks');
       usePerpsMarkets.mockReturnValue({
-        markets: [{ name: 'ETH' }],
+        markets: [
+          {
+            name: 'ETH',
+            symbol: 'ETH',
+            priceDecimals: 2,
+            sizeDecimals: 4,
+            maxLeverage: 50,
+            minSize: 0.01,
+            sizeIncrement: 0.01,
+          },
+        ],
         error: 'Failed to fetch markets',
         isLoading: false,
       });
