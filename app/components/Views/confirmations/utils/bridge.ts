@@ -130,6 +130,14 @@ function getActiveQuote(
 async function getGasFeeEstimates(chainId: Hex) {
   const { GasFeeController, NetworkController } = Engine.context;
 
+  const existingState =
+    GasFeeController.state?.gasFeeEstimatesByChainId?.[chainId]
+      ?.gasFeeEstimates;
+
+  if (existingState) {
+    return existingState as GasFeeEstimates;
+  }
+
   const networkClientId =
     NetworkController.findNetworkClientIdByChainId(chainId);
 
