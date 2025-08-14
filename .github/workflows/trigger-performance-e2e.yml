@@ -17,7 +17,7 @@ on:
       test_suite:
         description: 'Test suite to run (e.g., **/tests/*.spec.js for all tests)'
         required: false
-        default: '**/tests/*.spec.js'
+        default: '**/tests/performance/*.spec.js'
         type: string
 permissions:
   contents: read

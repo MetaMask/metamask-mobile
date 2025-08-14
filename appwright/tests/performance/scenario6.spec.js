@@ -22,7 +22,9 @@ import SwapScreen from '../../../wdio/screen-objects/SwapScreen.js';
 import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
 import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
 
-test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({ device }, testInfo) => {
+test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
+  device,
+}, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -49,7 +51,7 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({ device }, testIn
   const swapLoadTimer = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
   );
-  swapLoadTimer.start(); 
+  swapLoadTimer.start();
   // await TabBarModal.tapActionButton();
   await WalletActionModal.tapSwapButton();
   swapLoadTimer.stop();
@@ -57,7 +59,7 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({ device }, testIn
     'Time since the user enters the amount until the quote is displayed',
   );
   await SwapScreen.selectNetworkAndTokenTo('Ethereum', 'USDC');
-  await SwapScreen.enterSourceTokenAmount('.000000001');
+  await SwapScreen.enterSourceTokenAmount('1');
   await SwapScreen.tapGetQuotes('Ethereum');
   swapTimer.start();
   await SwapScreen.isQuoteDisplayed('Ethereum');
