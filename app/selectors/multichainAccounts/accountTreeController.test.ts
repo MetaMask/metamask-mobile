@@ -5,6 +5,13 @@ import {
   selectAccountGroups,
   selectAccountGroupsByWallet,
   selectSelectedAccountGroup,
+  selectAccountTreeControllerState,
+  selectWalletsMap,
+  selectAccountToWalletMap,
+  selectAccountToGroupMap,
+  selectMultichainAccountGroups,
+  selectNonMultichainAccountGroups,
+  selectAccountGroupById,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
 
@@ -19,7 +26,13 @@ const WALLET_ID_B = 'keyring:wallet-b' as const;
 const ACCOUNT_ID_1 = 'entropy:1/1';
 const ACCOUNT_ID_2 = 'entropy:2/1';
 const ACCOUNT_ID_3 = 'entropy:3/1';
+const ACCOUNT_ID_4 = 'keyring:4/1';
+const ACCOUNT_ID_5 = 'keyring:5/1';
 const ACCOUNT_ID_NONEXISTENT = 'nonexistent-account';
+
+const GROUP_ID_1 = 'keyring:wallet1/1' as const;
+const GROUP_ID_2 = 'entropy:wallet1/2' as const;
+const GROUP_ID_NONEXISTENT = 'keyring:nonexistent/1' as const;
 
 // Helper functions to reduce duplication
 const createMockWallet = (
@@ -644,6 +657,470 @@ describe('AccountTreeController Selectors', () => {
 
       const result = selectSelectedAccountGroup(mockState);
       expect(result).toEqual({ accounts: [ACCOUNT_ID_1] });
+    });
+  });
+
+  describe('selectAccountTreeControllerState', () => {
+    it('returns AccountTreeController state from root state', () => {
+      const mockAccountTreeState = {
+        accountTree: {
+          wallets: { [WALLET_ID_1]: mockWallet1 },
+        },
+      };
+      const mockState = createMockState(mockAccountTreeState);
+
+      const result = selectAccountTreeControllerState(mockState);
+      expect(result).toEqual(mockAccountTreeState);
+    });
+
+    it('returns undefined when AccountTreeController is not present', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {},
+        },
+      } as unknown as RootState;
+
+      const result = selectAccountTreeControllerState(mockState);
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('selectWalletsMap', () => {
+    it('returns wallets map when accountTree exists', () => {
+      const walletsMap = {
+        [WALLET_ID_1]: mockWallet1,
+        [WALLET_ID_2]: mockWallet2,
+      };
+      const mockState = createMockState({
+        accountTree: { wallets: walletsMap },
+      });
+
+      const result = selectWalletsMap(mockState);
+      expect(result).toEqual(walletsMap);
+    });
+
+    it('returns null when accountTree is undefined', () => {
+      const mockState = createMockState(undefined);
+      const result = selectWalletsMap(mockState);
+      expect(result).toBeNull();
+    });
+
+    it('returns null when wallets is undefined', () => {
+      const mockState = createMockState({ accountTree: {} });
+      const result = selectWalletsMap(mockState);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectAccountToWalletMap', () => {
+    it('creates reverse mapping from account ID to wallet ID', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: {
+                'keyring:1/ethereum': {
+                  accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
+                },
+                'snap:solana/mainnet': { accounts: [ACCOUNT_ID_3] },
+              },
+            },
+            [WALLET_ID_2]: {
+              ...mockWallet2,
+              groups: {
+                'keyring:2/ethereum': { accounts: [ACCOUNT_ID_4] },
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectAccountToWalletMap(mockState);
+      expect(result).toEqual({
+        [ACCOUNT_ID_1]: WALLET_ID_1,
+        [ACCOUNT_ID_2]: WALLET_ID_1,
+        [ACCOUNT_ID_3]: WALLET_ID_1,
+        [ACCOUNT_ID_4]: WALLET_ID_2,
+      });
+    });
+
+    it('returns empty object when no wallets exist', () => {
+      const mockState = createMockState({ accountTree: { wallets: {} } });
+      const result = selectAccountToWalletMap(mockState);
+      expect(result).toEqual({});
+    });
+
+    it('returns empty object when accountTree is undefined', () => {
+      const mockState = createMockState(undefined);
+      const result = selectAccountToWalletMap(mockState);
+      expect(result).toEqual({});
+    });
+
+    it('handles wallets with empty groups', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_EMPTY]: {
+              id: WALLET_ID_EMPTY,
+              metadata: { name: 'Empty Wallet' },
+              groups: {},
+            },
+          },
+        },
+      });
+
+      const result = selectAccountToWalletMap(mockState);
+      expect(result).toEqual({});
+    });
+
+    it('handles groups with empty accounts arrays', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: {
+                'keyring:1/ethereum': { accounts: [] },
+                'snap:solana/mainnet': { accounts: [ACCOUNT_ID_1] },
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectAccountToWalletMap(mockState);
+      expect(result).toEqual({
+        [ACCOUNT_ID_1]: WALLET_ID_1,
+      });
+    });
+  });
+
+  describe('selectAccountToGroupMap', () => {
+    it('creates reverse mapping from account ID to group object', () => {
+      const ethereumGroup = { accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2] };
+      const solanaGroup = { accounts: [ACCOUNT_ID_3] };
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: {
+                'keyring:1/ethereum': ethereumGroup,
+                'snap:solana/mainnet': solanaGroup,
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectAccountToGroupMap(mockState);
+      expect(result).toEqual({
+        [ACCOUNT_ID_1]: ethereumGroup,
+        [ACCOUNT_ID_2]: ethereumGroup,
+        [ACCOUNT_ID_3]: solanaGroup,
+      });
+    });
+
+    it('returns empty object when no wallets exist', () => {
+      const mockState = createMockState({ accountTree: { wallets: {} } });
+      const result = selectAccountToGroupMap(mockState);
+      expect(result).toEqual({});
+    });
+
+    it('returns empty object when accountTree is undefined', () => {
+      const mockState = createMockState(undefined);
+      const result = selectAccountToGroupMap(mockState);
+      expect(result).toEqual({});
+    });
+
+    it('handles multiple wallets correctly', () => {
+      const group1 = { accounts: [ACCOUNT_ID_1] };
+      const group2 = { accounts: [ACCOUNT_ID_2] };
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: { 'keyring:1/ethereum': group1 },
+            },
+            [WALLET_ID_2]: {
+              ...mockWallet2,
+              groups: { 'keyring:2/ethereum': group2 },
+            },
+          },
+        },
+      });
+
+      const result = selectAccountToGroupMap(mockState);
+      expect(result).toEqual({
+        [ACCOUNT_ID_1]: group1,
+        [ACCOUNT_ID_2]: group2,
+      });
+    });
+  });
+
+  describe('selectMultichainAccountGroups', () => {
+    it('filters account groups that start with entropy prefix', () => {
+      const entropyGroup = {
+        id: 'entropy:wallet1/ethereum',
+        accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
+      };
+      const keyringGroup = {
+        id: 'keyring:wallet1/ethereum',
+        accounts: [ACCOUNT_ID_4],
+      };
+      const snapGroup = {
+        id: 'snap:wallet1/solana',
+        accounts: [ACCOUNT_ID_5],
+      };
+
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: {
+                [entropyGroup.id]: entropyGroup,
+                [keyringGroup.id]: keyringGroup,
+                [snapGroup.id]: snapGroup,
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectMultichainAccountGroups(mockState);
+      expect(result).toEqual([entropyGroup]);
+    });
+
+    it('returns empty array when no entropy groups exist', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: {
+                'keyring:1/ethereum': { accounts: [ACCOUNT_ID_1] },
+                'snap:solana/mainnet': { accounts: [ACCOUNT_ID_2] },
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectMultichainAccountGroups(mockState);
+      expect(result).toEqual([]);
+    });
+
+    it('returns empty array when no wallets exist', () => {
+      const mockState = createMockState({ accountTree: { wallets: {} } });
+      const result = selectMultichainAccountGroups(mockState);
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getNonMultichainAccountGroups', () => {
+    it('filters account groups that do not start with entropy prefix', () => {
+      const entropyGroup = {
+        id: 'entropy:wallet1/ethereum',
+        accounts: [ACCOUNT_ID_1],
+      };
+      const keyringGroup = {
+        id: 'keyring:wallet1/ethereum',
+        accounts: [ACCOUNT_ID_2],
+      };
+      const snapGroup = {
+        id: 'snap:wallet1/solana',
+        accounts: [ACCOUNT_ID_3],
+      };
+
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: {
+                [entropyGroup.id]: entropyGroup,
+                [keyringGroup.id]: keyringGroup,
+                [snapGroup.id]: snapGroup,
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectNonMultichainAccountGroups(mockState);
+      expect(result).toEqual([keyringGroup, snapGroup]);
+    });
+
+    it('returns empty array when only entropy groups exist', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: {
+                'entropy:1/ethereum': { accounts: [ACCOUNT_ID_1] },
+                'entropy:2/solana': { accounts: [ACCOUNT_ID_2] },
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectNonMultichainAccountGroups(mockState);
+      expect(result).toEqual([]);
+    });
+
+    it('returns all groups when no entropy groups exist', () => {
+      const keyringGroup = {
+        id: 'keyring:wallet1/ethereum',
+        accounts: [ACCOUNT_ID_1],
+      };
+      const snapGroup = {
+        id: 'snap:wallet1/solana',
+        accounts: [ACCOUNT_ID_2],
+      };
+
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: {
+                [keyringGroup.id]: keyringGroup,
+                [snapGroup.id]: snapGroup,
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectNonMultichainAccountGroups(mockState);
+      expect(result).toEqual([keyringGroup, snapGroup]);
+    });
+  });
+
+  describe('selectAccountGroupById', () => {
+    it('returns account group when found by ID', () => {
+      const targetGroup = {
+        id: GROUP_ID_1,
+        accounts: [ACCOUNT_ID_1, ACCOUNT_ID_2],
+        type: 'keyring',
+        metadata: { name: 'Ethereum Group' },
+      };
+
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: {
+                [GROUP_ID_1]: targetGroup,
+                [GROUP_ID_2]: {
+                  id: GROUP_ID_2,
+                  accounts: [ACCOUNT_ID_3],
+                  type: 'entropy',
+                  metadata: { name: 'Entropy Group' },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectAccountGroupById(mockState, GROUP_ID_1);
+      expect(result).toEqual(targetGroup);
+    });
+
+    it('returns undefined when account group is not found', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: {
+                [GROUP_ID_1]: {
+                  id: GROUP_ID_1,
+                  accounts: [ACCOUNT_ID_1],
+                  type: 'keyring',
+                  metadata: { name: 'Ethereum Group' },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectAccountGroupById(mockState, GROUP_ID_NONEXISTENT);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when wallet is not found', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {},
+        },
+      });
+
+      const result = selectAccountGroupById(mockState, GROUP_ID_1);
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined when accountTree is undefined', () => {
+      const mockState = createMockState(undefined);
+      const result = selectAccountGroupById(mockState, GROUP_ID_1);
+      expect(result).toBeUndefined();
+    });
+
+    it('handles malformed group ID gracefully', () => {
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [WALLET_ID_1]: {
+              ...mockWallet1,
+              groups: {},
+            },
+          },
+        },
+      });
+
+      const malformedGroupId = 'keyring:invalid-group-id' as Parameters<
+        typeof selectAccountGroupById
+      >[1];
+      const result = selectAccountGroupById(mockState, malformedGroupId);
+      expect(result).toBeUndefined();
+    });
+
+    it('correctly extracts wallet ID from group ID and finds group', () => {
+      const groupId = 'keyring:test-wallet/ethereum' as Parameters<
+        typeof selectAccountGroupById
+      >[1];
+      const walletId = 'keyring:test-wallet' as const;
+      const targetGroup = {
+        id: groupId,
+        accounts: [ACCOUNT_ID_1],
+        type: 'keyring',
+        metadata: { name: 'Test Group' },
+      };
+
+      const mockState = createMockState({
+        accountTree: {
+          wallets: {
+            [walletId]: {
+              id: walletId,
+              metadata: { name: 'Test Wallet' },
+              groups: {
+                [groupId]: targetGroup,
+              },
+            },
+          },
+        },
+      });
+
+      const result = selectAccountGroupById(mockState, groupId);
+      expect(result).toEqual(targetGroup);
     });
   });
 });

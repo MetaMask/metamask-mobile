@@ -188,3 +188,22 @@ export const selectInternalAccountByAccountGroupAndScope =
           scope,
         ),
   );
+
+/**
+ * Get a group by its ID from the account tree.
+ *
+ * @param wallets - The wallets object from the account tree.
+ * @param groupId - The ID of the group to get.
+ * @returns The group object, or null if not found.
+ */
+export const selectAccountGroupByGroupId = (
+  wallets: AccountTreeControllerState['accountTree']['wallets'],
+  groupId: AccountGroupId,
+) => {
+  for (const wallet of Object.values(wallets)) {
+    if (wallet.groups[groupId]) {
+      return wallet.groups[groupId];
+    }
+  }
+  return null;
+};
