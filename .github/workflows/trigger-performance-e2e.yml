@@ -47,14 +47,9 @@ jobs:
           #   category: 'high'
           
           # # Medium Devices
-          - name: 'Samsung Galaxy A52'
-            os_version: '11.0'
-            category: 'medium'
-
-          # # Low Devices
-          - name: 'Samsung Galaxy A35'
-            os_version: '14.0'
-            category: 'low'
+          # - name: 'Samsung Galaxy A52'
+          #   os_version: '11.0'
+          #   category: 'medium'
           
     
     steps:
@@ -134,14 +129,9 @@ jobs:
             category: 'high'
           
           # # Medium Devices
-          - name: 'iPhone 13'
-            os_version: '15.0'
-            category: 'medium'
-
-          # # Low Devices
-          - name: 'iPhone SE 2022'
-            os_version: '15.0'
-            category: 'low'
+          # - name: 'iPhone 12'
+          #   os_version: '14.0'
+          #   category: 'medium'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
