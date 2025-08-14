@@ -1,11 +1,4 @@
-import React, {
-  useCallback,
-  useState,
-  useRef,
-  useMemo,
-  forwardRef,
-  useImperativeHandle,
-} from 'react';
+import React, { useCallback, useState, useRef, useMemo } from 'react';
 import { TextInput } from 'react-native';
 import {
   Box,
@@ -21,42 +14,22 @@ import TextField from '../../../../../component-library/components/Form/TextFiel
 import { TextFieldSize } from '../../../../../component-library/components/Form/TextField/TextField.types';
 import ClipboardManager from '../../../../../core/ClipboardManager';
 
-export interface RecipientInputRef {
-  focus: () => void;
-  clear: () => void;
-  getValue: () => string;
-}
-
 export interface RecipientInputProps {
-  inputRef?: React.RefObject<TextInput>;
   onChangeText: (text: string) => void;
   value?: string;
 }
 
-export const RecipientInput = forwardRef<
-  RecipientInputRef,
-  RecipientInputProps
->(({ value: externalValue, onChangeText, inputRef: externalInputRef }, ref) => {
+export const RecipientInput = ({
+  value: externalValue,
+  onChangeText,
+}: RecipientInputProps) => {
   const [internalValue, setInternalValue] = useState('');
   const internalInputRef = useRef<TextInput>(null);
 
   const addressInput =
     externalValue !== undefined ? externalValue : internalValue;
   const setAddressInput = onChangeText || setInternalValue;
-  const textInputRef = externalInputRef || internalInputRef;
-
-  useImperativeHandle(ref, () => ({
-    focus: () => {
-      textInputRef.current?.focus();
-    },
-    clear: () => {
-      setAddressInput('');
-      setTimeout(() => {
-        textInputRef.current?.focus();
-      }, 100);
-    },
-    getValue: () => addressInput,
-  }));
+  const textInputRef = internalInputRef;
 
   const handlePaste = useCallback(async () => {
     try {
@@ -128,4 +101,4 @@ export const RecipientInput = forwardRef<
       />
     </Box>
   );
-});
+};

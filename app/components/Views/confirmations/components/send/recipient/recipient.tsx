@@ -1,11 +1,6 @@
-import React, { useCallback, useState, useRef } from 'react';
+import React, { useCallback, useState } from 'react';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
-import {
-  Platform,
-  TextInput,
-  KeyboardAvoidingView,
-  SafeAreaView,
-} from 'react-native';
+import { Platform, KeyboardAvoidingView, SafeAreaView } from 'react-native';
 import {
   Box,
   Button,
@@ -33,7 +28,6 @@ export const Recipient = () => {
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
-  const textInputRef = useRef<TextInput>(null);
   const styles = styleSheet();
   useSendNavbar({ currentRoute: Routes.SEND.RECIPIENT });
   const { toAddressError } = useToAddressValidation(addressInput);
@@ -63,11 +57,7 @@ export const Recipient = () => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <Box twClassName="flex-1">
-          <RecipientInput
-            value={addressInput}
-            onChangeText={setAddressInput}
-            inputRef={textInputRef}
-          />
+          <RecipientInput value={addressInput} onChangeText={setAddressInput} />
           <Box twClassName="flex-1">
             {addressInput.length === 0 && (
               <ScrollableTabView renderTabBar={() => <TabBar />}>
