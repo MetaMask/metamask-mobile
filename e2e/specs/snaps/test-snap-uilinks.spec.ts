@@ -4,8 +4,7 @@ import TestSnaps from '../../pages/Browser/TestSnaps';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import { FlaskBuildTests } from '../../tags';
 import { loginToApp } from '../../viewHelper';
-import { Assertions, Gestures, Matchers } from '../../framework';
-import { emptyHtmlPage } from '../../api-mocking/mock-responses/empty-page-mock';
+import { Assertions, Matchers } from '../../framework';
 
 jest.setTimeout(150_000);
 
@@ -15,15 +14,6 @@ describe(FlaskBuildTests('UI Links Snap Test'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [
-            {
-              urlEndpoint: 'https://snaps.metamask.io/',
-              responseCode: 200,
-              response: emptyHtmlPage,
-            },
-          ],
-        },
       },
       async () => {
         await loginToApp();
@@ -36,9 +26,11 @@ describe(FlaskBuildTests('UI Links Snap Test'), () => {
         await Assertions.expectTextDisplayed('Confirmation Dialog');
 
         const link = Matchers.getElementByID('snaps-ui-link-icon');
-        await Gestures.tap(link);
+        await Assertions.expectElementToBeVisible(link);
 
-        await Assertions.expectTextDisplayed('Empty page by MetaMask');
+        // Today there's no way to assert that the link opened the device browser. Instead we just test that
+        // the link is displayed.
+        // TODO: Assert that the browser has been opened and that the correct page has been displayed
       },
     );
   });
