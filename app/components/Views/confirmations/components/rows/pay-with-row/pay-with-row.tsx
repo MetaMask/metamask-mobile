@@ -27,7 +27,7 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { formatAmount } from '../../../../../UI/SimulationDetails/formatAmount';
-import I18n from '../../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../../locales/i18n';
 
 export function PayWithRow() {
   const { styles } = useStyles(styleSheet, {});
@@ -76,7 +76,7 @@ export function PayWithRow() {
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Default}
               >
-                Pay with
+                {strings('confirm.label.pay_with')}
               </Text>
               <Icon name={IconName.ArrowDown} size={IconSize.Sm} />
             </Box>
