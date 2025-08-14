@@ -93,11 +93,12 @@ const CardHome = () => {
   const cardholderAddresses = useSelector(selectCardholderAccounts);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
 
-  // Handle network change first
+  // Handle network and account changes
   useFocusEffect(
     useCallback(() => {
-      if (selectedChainId !== LINEA_CHAIN_ID) {
-        (async () => {
+      const handleNetworkAndAccountChanges = async () => {
+        // Handle network change first
+        if (selectedChainId !== LINEA_CHAIN_ID) {
           const networkClientId =
             NetworkController.findNetworkClientIdByChainId(LINEA_CHAIN_ID);
 
@@ -110,21 +111,14 @@ const CardHome = () => {
               err instanceof Error ? err : new Error(String(err));
             Logger.error(mappedError, 'CardHome::Error setting active network');
             setError(true);
-          } finally {
             setIsLoadingNetworkChange(false);
+            return;
           }
-        })();
-      } else {
-        setIsLoadingNetworkChange(false);
-      }
-    }, [NetworkController, selectedChainId]),
-  );
+        }
 
-  // Handle account change after network is correct
-  useFocusEffect(
-    useCallback(() => {
-      // Only run account change if we're on the correct network and not loading
-      if (selectedChainId === LINEA_CHAIN_ID && !isLoadingNetworkChange) {
+        setIsLoadingNetworkChange(false);
+
+        // Handle account change after network is correct
         if (
           selectedAccount?.address.toLowerCase() !==
           cardholderAddresses?.[0]?.toLowerCase()
@@ -139,13 +133,15 @@ const CardHome = () => {
             AccountsController.setSelectedAccount(account.id);
           }
         }
-      }
+      };
+
+      handleNetworkAndAccountChanges();
     }, [
+      NetworkController,
       AccountsController,
-      cardholderAddresses,
-      selectedAccount,
       selectedChainId,
-      isLoadingNetworkChange,
+      selectedAccount,
+      cardholderAddresses,
     ]),
   );
 

@@ -7,24 +7,31 @@ import {
   selectAppServicesReady,
   selectUserLoggedIn,
 } from '../../../../reducers/user';
-import { selectInternalAccountsWithCaipAccountId } from '../../../../selectors/accountsController';
+import { selectInternalAccountsByScope } from '../../../../selectors/accountsController';
 import Logger from '../../../../util/Logger';
 import { isEthAccount } from '../../../../core/Multichain/utils';
+import { RootState } from '../../../../reducers';
 
 /**
  * Hook that automatically checks for cardholder accounts when conditions are met
  */
 export const useCardholderCheck = () => {
+  const lineaScope = 'eip155:59144';
   const dispatch = useThunkDispatch();
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const appServicesReady = useSelector(selectAppServicesReady);
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
-  const accounts = useSelector(selectInternalAccountsWithCaipAccountId);
+  const internalAccounts = useSelector((state: RootState) =>
+    selectInternalAccountsByScope(state, lineaScope),
+  );
 
   const checkCardholderAccounts = useCallback(() => {
-    const caipAccountIds = accounts
+    const caipAccountIds = internalAccounts
       ?.filter((account) => isEthAccount(account))
-      .map((account) => account.caipAccountId);
+      .map(
+        (account) =>
+          `eip155:0:${account.address}` as `${string}:${string}:${string}`,
+      );
 
     if (!caipAccountIds?.length) {
       return;
@@ -36,14 +43,14 @@ export const useCardholderCheck = () => {
         cardFeatureFlag,
       }),
     );
-  }, [cardFeatureFlag, dispatch, accounts]);
+  }, [cardFeatureFlag, dispatch, internalAccounts]);
 
   useEffect(() => {
     if (
       userLoggedIn &&
       appServicesReady &&
       cardFeatureFlag &&
-      accounts?.length
+      internalAccounts?.length
     ) {
       try {
         checkCardholderAccounts();
@@ -59,6 +66,6 @@ export const useCardholderCheck = () => {
     appServicesReady,
     cardFeatureFlag,
     checkCardholderAccounts,
-    accounts,
+    internalAccounts,
   ]);
 };
