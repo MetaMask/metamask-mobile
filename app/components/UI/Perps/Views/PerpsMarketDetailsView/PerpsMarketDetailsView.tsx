@@ -108,7 +108,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Check if user has an existing position for this market
   const {
-    hasPosition: hasExistingPosition,
     isLoading: isLoadingPosition,
     existingPosition,
     refreshPosition,
@@ -309,7 +308,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             onPress={handleAddFundsPress}
             style={styles.actionButton}
             testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
-            disabled={hasExistingPosition}
           />
         </View>
       )}

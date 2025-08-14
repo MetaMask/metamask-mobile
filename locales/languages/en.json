@@ -1046,7 +1046,8 @@
       "stop_loss_short": "Stop loss when price increases by",
       "trigger_price_placeholder": "Trigger price",
       "profit_percent_placeholder": "Profit",
-      "loss_percent_placeholder": "Loss"
+      "loss_percent_placeholder": "Loss",
+      "usd_label": "($)"
     },
     "token_selector": {
       "no_tokens": "No tokens available"

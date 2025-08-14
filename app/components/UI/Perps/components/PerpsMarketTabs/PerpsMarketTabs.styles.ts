@@ -16,9 +16,6 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       alignItems: 'center',
       position: 'relative',
     },
-    activeTab: {
-      // Active tab indicator
-    },
     activeTabIndicator: {
       position: 'absolute',
       bottom: 0,
@@ -27,12 +24,10 @@ const styleSheet = ({ theme }: { theme: Theme }) =>
       height: 2,
       backgroundColor: theme.colors.text.default,
     },
-
     // Tab content styles
     tabContent: {
       paddingTop: 16,
     },
-
     // ... existing styles ...
     tabContainer: {
       paddingTop: 18,

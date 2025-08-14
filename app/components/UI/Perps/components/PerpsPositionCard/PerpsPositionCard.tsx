@@ -111,7 +111,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   const { markets, error, isLoading } = usePerpsMarkets();
 
   const marketData = useMemo(
-    () => markets.find((market) => market.name === position.coin),
+    () => markets.find((market) => market.symbol === position.coin),
     [markets, position.coin],
   );
 

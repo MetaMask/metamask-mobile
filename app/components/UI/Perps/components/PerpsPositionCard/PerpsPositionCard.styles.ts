@@ -10,7 +10,6 @@ const styleSheet = (params: { theme: Theme }) => {
     container: {
       backgroundColor: colors.background.section,
       borderRadius: 12,
-      // padding: 16,
       marginVertical: 6,
     },
     // Container styles for different states
