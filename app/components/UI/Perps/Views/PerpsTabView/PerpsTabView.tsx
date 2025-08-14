@@ -241,6 +241,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               onPress={handleAddFunds}
               style={styles.actionButton}
               startIconName={IconName.Add}
+              testID="perps-add-funds-button"
             />
             <Button
               variant={ButtonVariants.Secondary}
@@ -250,6 +251,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               onPress={handleWithdrawFunds}
               style={styles.actionButton}
               startIconName={IconName.Minus}
+              testID="perps-withdraw-button"
             />
           </View>
         </BottomSheet>
