@@ -14,7 +14,6 @@ import {
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
-import Device from '../../../../util/device';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../util/networks';
@@ -147,22 +146,13 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
     [state, renderTabBarItem],
   );
 
-  const shadowStyle = !Device.isAndroid()
-    ? {
-        shadowColor: tw.color('overlay-default'),
-        shadowOpacity: 1,
-        shadowOffset: { height: 4, width: 0 },
-        shadowRadius: 8,
-      }
-    : {};
-
   return (
     <View ref={tabBarRef}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         twClassName="w-full px-4 pt-3 bg-default border-t border-muted"
-        style={[tw.style(`pb-[${bottomInset}px]`), shadowStyle]}
+        style={[tw.style(`pb-[${bottomInset}px]`)]}
       >
         {renderTabBarItems()}
         {renderOnboardingWizard()}
