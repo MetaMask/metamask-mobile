@@ -50,6 +50,7 @@ export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsOrders } from './usePerpsOrders';
+export { usePerpsOpenOrders } from './usePerpsOpenOrders';
 export { usePerpsFunding } from './usePerpsFunding';
 
 // Block explorer hook

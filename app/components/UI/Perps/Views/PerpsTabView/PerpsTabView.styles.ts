@@ -26,7 +26,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: 8,
     },
     sectionTitle: {
       paddingTop: 8,
