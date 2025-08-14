@@ -114,10 +114,8 @@ const AddFundsBottomSheet: React.FC<AddFundsBottomSheetProps> = ({
   const options = [
     {
       label: strings('card.add_funds_bottomsheet.deposit'),
-      description: strings('card.add_funds_bottomsheet.deposit_description', {
-        symbol: priorityToken?.symbol,
-      }),
-      icon: IconName.Add,
+      description: strings('card.add_funds_bottomsheet.deposit_description'),
+      icon: IconName.Bank,
       onPress: openDeposit,
       testID: CardHomeSelectors.ADD_FUNDS_BOTTOM_SHEET_DEPOSIT_OPTION,
       enabled:
