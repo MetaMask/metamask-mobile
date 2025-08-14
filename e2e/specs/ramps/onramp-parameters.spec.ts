@@ -19,6 +19,7 @@ import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
+import Matchers from '../../framework/Matchers';
 
 let mockServer: Mockttp;
 let mockServerPort: number;
@@ -103,8 +104,8 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
           : /^(?:Google|Revolut)\s+Pay$/i;
       await BuildQuoteView.tapPaymentMethodDropdown(paymentMethod);
       await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
-      await Assertions.checkIfValueIsDefined(
-        !(await BuildQuoteView.getPaymentMethodDropdownText(paymentMethod)),
+      await Assertions.expectElementToNotBeVisible(
+        Matchers.getElementByText(paymentMethod),
       );
       await Assertions.expectTextDisplayed('Debit or Credit');
     });
