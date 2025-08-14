@@ -72,7 +72,7 @@ describe('TabBar', () => {
     '2': {
       options: {
         tabBarIconKey: TabBarIconKey.Browser,
-        rootScreenName: Routes.BROWSER_VIEW,
+        rootScreenName: Routes.BROWSER.VIEW,
       },
     },
     '3': {
