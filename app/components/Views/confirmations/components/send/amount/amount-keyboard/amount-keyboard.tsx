@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback } from 'react';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
@@ -20,6 +20,7 @@ import { styleSheet } from './amount-keyboard.styles';
 const ADDITIONAL_KAYBOARD_BUTTONS = [
   { value: 25, label: '25%' },
   { value: 50, label: '50%' },
+  { value: 75, label: '75%' },
 ];
 
 const ADDITIONAL_KAYBOARD_BUTTONS_INCLUDING_MAX = [
@@ -39,12 +40,11 @@ export const AmountKeyboard = ({
   const { getFiatValue, getNativeValue } = useCurrencyConversions();
   const { gotToSendScreen } = useSendScreenNavigation();
   const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
-  const { invalidAmount, insufficientBalance } = useAmountValidation();
+  const { amountError } = useAmountValidation();
   const { updateValue } = useSendContext();
   const { styles } = useStyles(styleSheet, {
-    continueDisabled: Boolean(invalidAmount || insufficientBalance),
+    continueDisabled: Boolean(amountError),
   });
-  const [showAdditionalKeyboard, setShowAdditionalKeyboard] = useState(true);
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
     useAmountSelectionMetrics();
 
@@ -82,10 +82,6 @@ export const AmountKeyboard = ({
     gotToSendScreen(Routes.SEND.RECIPIENT);
   }, [captureAmountSelected, gotToSendScreen]);
 
-  const onDonePress = useCallback(() => {
-    setShowAdditionalKeyboard(false);
-  }, [setShowAdditionalKeyboard]);
-
   return (
     <EditAmountKeyboard
       additionalButtons={
@@ -94,26 +90,22 @@ export const AmountKeyboard = ({
           : ADDITIONAL_KAYBOARD_BUTTONS
       }
       additionalRow={
-        showAdditionalKeyboard ? undefined : (
+        amount.length > 0 ? (
           <Button
-            disabled={invalidAmount || insufficientBalance}
-            label={
-              insufficientBalance
-                ? strings('send.amount_insufficient')
-                : strings('send.continue')
-            }
+            disabled={Boolean(amountError)}
+            label={amountError ?? strings('send.continue')}
             onPress={goToNextPage}
             size={ButtonSize.Lg}
             style={styles.continueButton}
             variant={ButtonVariants.Primary}
             width={ButtonWidthTypes.Full}
           />
-        )
+        ) : undefined
       }
+      hideDoneButton
       onChange={updateToNewAmount}
-      onDonePress={onDonePress}
       onPercentagePress={updateToPercentageAmount}
-      showAdditionalKeyboard={showAdditionalKeyboard}
+      showAdditionalKeyboard={amount.length < 1}
       value={amount}
     />
   );
