@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef, useMemo } from 'react';
+import React, { useCallback, useState, useRef } from 'react';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import {
   Platform,
@@ -8,79 +8,46 @@ import {
 } from 'react-native';
 import {
   Box,
-  Text,
   Button,
   ButtonVariant,
   ButtonBaseSize,
-  TextColor,
 } from '@metamask/design-system-react-native';
 
+import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import TabBar from '../../../../../../component-library/components-temp/TabBar/TabBar';
-import TextField from '../../../../../../component-library/components/Form/TextField';
-import { TextFieldSize } from '../../../../../../component-library/components/Form/TextField/TextField.types';
-import ClipboardManager from '../../../../../../core/ClipboardManager';
 import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
-import { AccountList } from '../../account-list';
-import { ContactList } from '../../contact-list';
+import { useSendContext } from '../../../context/send-context/send-context';
+import { useAccounts } from '../../../hooks/send/useAccounts';
+import { useContacts } from '../../../hooks/send/useContacts';
+import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
+import { RecipientList } from '../../recipient-list/recipient-list';
+import { RecipientInput } from '../../recipient-input';
+import { RecipientType } from '../../UI/recipient';
 import { styleSheet } from './recipient.styles';
 
 export const Recipient = () => {
   const [addressInput, setAddressInput] = useState('');
+  const { updateTo } = useSendContext();
+  const accounts = useAccounts();
+  const contacts = useContacts();
   const textInputRef = useRef<TextInput>(null);
   const styles = styleSheet();
   useSendNavbar({ currentRoute: Routes.SEND.RECIPIENT });
-
-  const handlePaste = useCallback(async () => {
-    try {
-      const clipboardText = await ClipboardManager.getString();
-      if (clipboardText) {
-        setAddressInput(clipboardText.trim());
-        // Keep focus after pasting
-        setTimeout(() => {
-          textInputRef.current?.focus();
-        }, 100);
-      }
-    } catch (error) {
-      console.error('Failed to paste from clipboard:', error);
-    }
-  }, []);
+  const { toAddressError } = useToAddressValidation(addressInput);
 
   const handleReview = useCallback(() => {
-    // console.log('Review address:', addressInput);
-  }, []);
+    updateTo(addressInput);
+    // Submission
+  }, [addressInput, updateTo]);
 
-  const handleClearInput = useCallback(() => {
-    setAddressInput('');
-    setTimeout(() => {
-      textInputRef.current?.focus();
-    }, 100);
-  }, []);
-
-  const renderEndAccessory = useMemo(() => {
-    if (addressInput.length > 0) {
-      return (
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonBaseSize.Sm}
-          twClassName="-mr-2"
-          onPress={handleClearInput}
-        >
-          Clear
-        </Button>
-      );
-    }
-    return (
-      <Button
-        variant={ButtonVariant.Secondary}
-        size={ButtonBaseSize.Sm}
-        twClassName="-mr-2"
-        onPress={handlePaste}
-      >
-        Paste
-      </Button>
-    );
-  }, [addressInput.length, handleClearInput, handlePaste]);
+  const onRecipientSelected = useCallback(
+    (recipient: RecipientType) => {
+      updateTo(recipient.address);
+      // Submission
+    },
+    [updateTo],
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -90,39 +57,34 @@ export const Recipient = () => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <Box twClassName="flex-1">
-          <Box twClassName="w-full px-4 py-2">
-            <TextField
-              autoCorrect={false}
-              ref={textInputRef}
-              value={addressInput}
-              onChangeText={setAddressInput}
-              spellCheck={false}
-              autoComplete="off"
-              autoCapitalize="none"
-              placeholder="Enter address to send to"
-              size={TextFieldSize.Lg}
-              endAccessory={renderEndAccessory}
-              startAccessory={<Text color={TextColor.TextAlternative}>To</Text>}
-              autoFocus={false}
-            />
-          </Box>
-
+          <RecipientInput
+            value={addressInput}
+            onChangeText={setAddressInput}
+            inputRef={textInputRef}
+          />
           <Box twClassName="flex-1">
             {addressInput.length === 0 && (
               <ScrollableTabView renderTabBar={() => <TabBar />}>
                 <Box
                   key="your-accounts"
-                  {...{ tabLabel: 'Accounts' }}
+                  {...{ tabLabel: strings('send.accounts') }}
                   twClassName="flex-1"
                 >
-                  <AccountList />
+                  <RecipientList
+                    data={accounts}
+                    onRecipientSelected={onRecipientSelected}
+                  />
                 </Box>
                 <Box
                   key="contacts"
-                  {...{ tabLabel: 'Contacts' }}
+                  {...{ tabLabel: strings('send.contacts') }}
                   twClassName="flex-1"
                 >
-                  <ContactList />
+                  <RecipientList
+                    data={contacts}
+                    onRecipientSelected={onRecipientSelected}
+                    emptyMessage={strings('send.no_contacts_found')}
+                  />
                 </Box>
               </ScrollableTabView>
             )}
@@ -135,8 +97,10 @@ export const Recipient = () => {
                 size={ButtonBaseSize.Lg}
                 onPress={handleReview}
                 twClassName="w-full"
+                isDanger={Boolean(toAddressError)}
+                disabled={Boolean(toAddressError)}
               >
-                Review
+                {strings('send.review')}
               </Button>
             </Box>
           )}

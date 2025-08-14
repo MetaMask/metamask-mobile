@@ -22,12 +22,14 @@ export interface RecipientType {
 
 interface RecipientProps {
   recipient: RecipientType;
+  isSelected?: boolean;
   accountAvatarType: AvatarAccountType;
   onPress?: (recipient: RecipientType) => void;
 }
 
 export function Recipient({
   recipient,
+  isSelected,
   accountAvatarType,
   onPress,
 }: RecipientProps) {
@@ -42,7 +44,7 @@ export function Recipient({
       style={({ pressed }) =>
         tw.style(
           'w-full flex-row items-center justify-between py-2 px-4',
-          pressed ? 'bg-pressed' : 'bg-transparent',
+          pressed || isSelected ? 'bg-pressed' : 'bg-transparent',
         )
       }
       onPress={handlePress}
