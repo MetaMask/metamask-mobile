@@ -40,9 +40,10 @@ import Engine from '../../../core/Engine/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 import { capitalize } from 'lodash';
+import { onboardNetworkAction } from '../../../actions/onboardNetwork';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -274,6 +275,7 @@ export const OnboardingSuccess = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const params = route.params as { successFlow: ONBOARDING_SUCCESS_FLOW };
+  const dispatch = useDispatch();
 
   const successFlow = params?.successFlow;
 
@@ -334,6 +336,7 @@ export const OnboardingSuccess = () => {
           if (networkClientId) {
             networkClientIds.push(networkClientId);
           }
+          dispatch(onboardNetworkAction(network.chainId));
         } catch (error) {
           Logger.error(
             error as Error,
@@ -418,7 +421,7 @@ export const OnboardingSuccess = () => {
     addNetworks().catch((error) => {
       Logger.error(error, 'Error adding networks');
     });
-  }, []);
+  }, [dispatch]);
 
   return (
     <OnboardingSuccessComponent
