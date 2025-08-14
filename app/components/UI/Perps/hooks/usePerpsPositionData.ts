@@ -61,17 +61,23 @@ export const usePerpsPositionData = ({
   );
 
   const fetchHistoricalCandles = useCallback(async () => {
-    const candleCount =
+    const baseCandleCount =
       customCandleCount ??
       calculateCandleCount(selectedDuration, selectedInterval);
+
+    // Fetch 3x the display amount to support panning through historical data
+    // This allows users to scroll back through 2x worth of historical candles
+    const fetchCandleCount = Math.min(750, baseCandleCount * 3); // Cap at 750 for performance
     DevLogger.log(
-      `Fetching ${candleCount} candles for ${selectedDuration} duration with ${selectedInterval} period`,
+      `Fetching ${fetchCandleCount} candles (${baseCandleCount} display + ${
+        fetchCandleCount - baseCandleCount
+      } for panning) for ${selectedDuration} duration with ${selectedInterval} period`,
     );
     const historicalData =
       await Engine.context.PerpsController.fetchHistoricalCandles(
         coin,
         selectedInterval,
-        candleCount,
+        fetchCandleCount,
       );
     return historicalData;
   }, [coin, selectedDuration, selectedInterval, customCandleCount]);

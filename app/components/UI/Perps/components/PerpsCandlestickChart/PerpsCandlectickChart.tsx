@@ -8,10 +8,14 @@ import React, {
 import { View, Dimensions, Pressable } from 'react-native';
 import {
   PinchGestureHandler,
+  PanGestureHandler,
   State,
   PinchGestureHandlerEventPayload,
+  PanGestureHandlerEventPayload,
   HandlerStateChangeEvent,
   PinchGestureHandlerGestureEvent,
+  PanGestureHandlerGestureEvent,
+  Directions,
 } from 'react-native-gesture-handler';
 import { CandlestickChart } from 'react-native-wagmi-charts';
 import { styleSheet } from './PerpsCandlestickChart.styles';
@@ -78,11 +82,13 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   // Zoom functions
   const handleZoomIn = useCallback(() => {
     const newCandleCount = Math.max(MIN_CANDLES, candleCount - ZOOM_STEP);
+    setPanOffset(0); // Reset pan when zooming
     onZoomChange?.(newCandleCount);
   }, [candleCount, onZoomChange]);
 
   const handleZoomOut = useCallback(() => {
     const newCandleCount = Math.min(MAX_CANDLES, candleCount + ZOOM_STEP);
+    setPanOffset(0); // Reset pan when zooming
     onZoomChange?.(newCandleCount);
   }, [candleCount, onZoomChange]);
 
@@ -94,6 +100,13 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const [gestureScale, setGestureScale] = useState(1);
   const baseCandleCount = useRef(candleCount);
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Pan gesture state for horizontal scrolling
+  const [isPanning, setIsPanning] = useState(false);
+  const [panOffset, setPanOffset] = useState(0); // Offset in number of candles
+  const [cumulativePanX, setCumulativePanX] = useState(0);
+  const basePanOffset = useRef(0); // Base offset when gesture starts
+  const maxPanOffset = useRef(0); // Maximum offset based on available historical data
 
   // Scale-to-candle-count mapping
   const scaleToCandles = useCallback(
@@ -146,6 +159,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           // Debounce the zoom change to prevent excessive API calls
           const newCandleCount = scaleToCandles(scale, baseCandleCount.current);
           if (newCandleCount !== candleCount) {
+            setPanOffset(0); // Reset pan when pinch-zooming
             debounceTimeout.current = setTimeout(() => {
               onZoomChange?.(newCandleCount);
             }, 150); // 150ms debounce
@@ -154,6 +168,93 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       }
     },
     [candleCount, scaleToCandles, onZoomChange],
+  );
+
+  // Pan gesture handlers for horizontal scrolling
+  const handlePanGesture = useCallback(
+    (event: PanGestureHandlerGestureEvent) => {
+      const { translationX } = event.nativeEvent;
+
+      // Convert horizontal pixel movement to candle offset
+      // CORRECTED DIRECTION: positive translationX (pan right) = want historical data (positive offset)
+      const pixelsPerCandle = 15; // Make more sensitive
+      const gestureDelta = Math.round(translationX / pixelsPerCandle); // REMOVED negative sign
+
+      // Calculate new offset from base + gesture delta
+      const newOffset = Math.max(
+        0,
+        Math.min(maxPanOffset.current, basePanOffset.current + gestureDelta),
+      );
+
+      // FORCE DEBUG: Always log pan attempts
+      console.log('🔥 PAN GESTURE ACTIVE:', {
+        translationX, // positive = pan right = want historical data
+        pixelsPerCandle,
+        gestureDelta, // should be POSITIVE when translationX is positive
+        basePanOffset: basePanOffset.current,
+        currentPanOffset: panOffset,
+        newOffset, // should INCREASE when panning right
+        maxPanOffset: maxPanOffset.current,
+        'should change': newOffset !== panOffset,
+        direction: translationX > 0 ? 'RIGHT→historical' : 'LEFT→newer',
+      });
+
+      // Try immediate state update to see if this is the issue
+      if (newOffset !== panOffset) {
+        console.log('🚀 CALLING setPanOffset from', panOffset, 'to', newOffset);
+        setPanOffset(newOffset);
+      }
+    },
+    [panOffset], // Add panOffset as dependency to see current value
+  );
+
+  const handlePanStateChange = useCallback(
+    (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
+      const { state, translationX } = event.nativeEvent;
+
+      console.log('🎯 PAN STATE CHANGE:', {
+        state,
+        translationX,
+        currentPanOffset: panOffset,
+      });
+
+      switch (state) {
+        case State.BEGAN:
+          console.log('📍 PAN BEGAN - setting base to:', panOffset);
+          setIsPanning(true);
+          basePanOffset.current = panOffset;
+          setCumulativePanX(0);
+          break;
+
+        case State.END:
+        case State.CANCELLED:
+          console.log('🏁 PAN ENDED/CANCELLED');
+          setIsPanning(false);
+
+          // Calculate final offset
+          const pixelsPerCandle = 15;
+          const gestureDelta = Math.round(translationX / pixelsPerCandle); // REMOVED negative sign
+          const finalOffset = Math.max(
+            0,
+            Math.min(
+              maxPanOffset.current,
+              basePanOffset.current + gestureDelta,
+            ),
+          );
+
+          console.log('🔚 FINAL PAN OFFSET:', {
+            gestureDelta,
+            basePanOffset: basePanOffset.current,
+            finalOffset,
+            'will change': finalOffset !== panOffset,
+          });
+
+          setPanOffset(finalOffset);
+          setCumulativePanX(0);
+          break;
+      }
+    },
+    [panOffset],
   );
 
   // Cleanup debounce timeout on unmount
@@ -173,26 +274,11 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     [theme.colors],
   );
 
-  // Transform data to wagmi-charts format with validation
-  const transformedData = useMemo(() => {
+  // Transform all data to wagmi-charts format with validation
+  const allTransformedData = useMemo(() => {
     if (!candleData?.candles || candleData.candles.length === 0) {
       return [];
     }
-
-    // Debug: Log candle data including any live candles
-    const latestCandle = candleData.candles[candleData.candles.length - 1];
-    const now = Date.now();
-    const isLiveCandle =
-      latestCandle && latestCandle.time > now - 60 * 60 * 1000; // Within last hour
-
-    console.log('Chart candle data:', {
-      totalCandles: candleData.candles.length,
-      latestCandle,
-      isLiveCandle,
-      latestCandleTime: latestCandle
-        ? new Date(latestCandle.time).toLocaleString()
-        : null,
-    });
 
     return candleData.candles
       .map((candle) => {
@@ -217,6 +303,82 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       .filter((candle): candle is NonNullable<typeof candle> => candle !== null) // Remove invalid candles
       .sort((a, b) => a.timestamp - b.timestamp); // Sort chronologically - critical for correct display
   }, [candleData]);
+
+  // Update max pan offset based on available data
+  useEffect(() => {
+    if (allTransformedData.length > 0) {
+      const currentCandleCount = previewCandleCount;
+      const newMaxPanOffset = Math.max(
+        0,
+        allTransformedData.length - currentCandleCount,
+      );
+      maxPanOffset.current = newMaxPanOffset;
+
+      // Debug: Log max pan offset calculation
+      console.log('Max pan offset updated:', {
+        totalData: allTransformedData.length,
+        displayCandles: currentCandleCount,
+        maxPanOffset: newMaxPanOffset,
+      });
+
+      // Reset pan offset if it exceeds new maximum
+      setPanOffset((current) => Math.min(current, maxPanOffset.current));
+    }
+  }, [allTransformedData.length, previewCandleCount]);
+
+  // Apply panning window to show subset of data
+  const transformedData = useMemo(() => {
+    if (allTransformedData.length === 0) {
+      return [];
+    }
+
+    const currentCandleCount = previewCandleCount;
+    const totalCandles = allTransformedData.length;
+
+    // Calculate window bounds
+    // Pan offset of 0 = most recent data
+    // Higher pan offset = older data
+    const endIndex = totalCandles - panOffset;
+    const startIndex = Math.max(0, endIndex - currentCandleCount);
+
+    const windowedData = allTransformedData.slice(startIndex, endIndex);
+
+    // Debug: Log panning state
+    const latestCandle = allTransformedData[totalCandles - 1];
+    const now = Date.now();
+    const isLiveCandle =
+      latestCandle && latestCandle.timestamp > now - 60 * 60 * 1000;
+
+    console.log('Chart panning data:', {
+      totalCandles,
+      displayCandles: windowedData.length,
+      panOffset,
+      maxPanOffset: maxPanOffset.current,
+      startIndex,
+      endIndex,
+      isLiveCandle: isLiveCandle && panOffset === 0, // Only live if showing most recent
+      allDataRange:
+        allTransformedData.length > 0
+          ? {
+              first: new Date(allTransformedData[0].timestamp).toLocaleString(),
+              last: new Date(
+                allTransformedData[allTransformedData.length - 1].timestamp,
+              ).toLocaleString(),
+            }
+          : null,
+      windowedDataRange:
+        windowedData.length > 0
+          ? {
+              first: new Date(windowedData[0].timestamp).toLocaleString(),
+              last: new Date(
+                windowedData[windowedData.length - 1].timestamp,
+              ).toLocaleString(),
+            }
+          : null,
+    });
+
+    return windowedData;
+  }, [allTransformedData, panOffset, previewCandleCount]);
 
   // Track when data has been initially loaded
   useEffect(() => {
@@ -318,28 +480,35 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           onGestureEvent={handlePinchGesture}
           onHandlerStateChange={handlePinchStateChange}
         >
-          <View
-            style={[
-              styles.relativeContainer,
-              isGesturing && styles.chartGesturing,
-            ]}
+          <PanGestureHandler
+            onGestureEvent={handlePanGesture}
+            onHandlerStateChange={handlePanStateChange}
+            activeOffsetX={[-5, 5]}
+            shouldCancelWhenOutside={false}
           >
-            {/* Main Candlestick Chart */}
-            <CandlestickChart
-              height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
-              width={chartWidth - 65}
-              style={styles.chartWithPadding}
+            <View
+              style={[
+                styles.relativeContainer,
+                (isGesturing || isPanning) && styles.chartGesturing,
+              ]}
             >
-              {/* Candlestick Data */}
-              <CandlestickChart.Candles
-                positiveColor={candlestickColors.positive} // Green for positive candles
-                negativeColor={candlestickColors.negative} // Red for negative candles
-                testID={PerpsCandlestickChartSelectorsIDs.CANDLES}
-              />
-              {/* Tooltip for price display */}
-              <View testID={PerpsCandlestickChartSelectorsIDs.TOOLTIP} />
-            </CandlestickChart>
-          </View>
+              {/* Main Candlestick Chart */}
+              <CandlestickChart
+                height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
+                width={chartWidth - 65}
+                style={styles.chartWithPadding}
+              >
+                {/* Candlestick Data */}
+                <CandlestickChart.Candles
+                  positiveColor={candlestickColors.positive} // Green for positive candles
+                  negativeColor={candlestickColors.negative} // Red for negative candles
+                  testID={PerpsCandlestickChartSelectorsIDs.CANDLES}
+                />
+                {/* Tooltip for price display */}
+                <View testID={PerpsCandlestickChartSelectorsIDs.TOOLTIP} />
+              </CandlestickChart>
+            </View>
+          </PanGestureHandler>
         </PinchGestureHandler>
 
         {/* X-Axis Time Labels */}
@@ -369,14 +538,21 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
           <Text
             variant={TextVariant.BodyXS}
-            color={isGesturing ? TextColor.Primary : TextColor.Muted}
+            color={
+              isGesturing
+                ? TextColor.Primary
+                : isPanning
+                ? TextColor.Warning
+                : TextColor.Muted
+            }
             style={[
               styles.candleCountText,
-              isGesturing && styles.candleCountPreview,
+              (isGesturing || isPanning) && styles.candleCountPreview,
             ]}
           >
             {previewCandleCount} candles
             {isGesturing && ' (preview)'}
+            {isPanning && ` (panning)`}
           </Text>
 
           <Pressable
@@ -391,6 +567,63 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
               +
             </Text>
           </Pressable>
+        </View>
+
+        {/* Pan Reset Button - Show when panned away from live data */}
+        {panOffset > 0 && (
+          <View style={styles.panResetContainer}>
+            <Pressable
+              style={styles.panResetButton}
+              onPress={() => setPanOffset(0)}
+            >
+              <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
+                ↻ Return to Live
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* DEBUG: Manual pan test buttons */}
+        <View style={styles.panResetContainer}>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Pressable
+              style={styles.panResetButton}
+              onPress={() => {
+                const newOffset = Math.max(0, panOffset - 5);
+                console.log(
+                  '🧪 MANUAL PAN TO NEWER/LIVE:',
+                  panOffset,
+                  '->',
+                  newOffset,
+                );
+                setPanOffset(newOffset);
+              }}
+            >
+              <Text variant={TextVariant.BodyXS} color={TextColor.Primary}>
+                ← Back to Live (newer)
+              </Text>
+            </Pressable>
+            <Pressable
+              style={styles.panResetButton}
+              onPress={() => {
+                const newOffset = Math.min(maxPanOffset.current, panOffset + 5);
+                console.log(
+                  '🧪 MANUAL PAN TO HISTORICAL:',
+                  panOffset,
+                  '->',
+                  newOffset,
+                );
+                setPanOffset(newOffset);
+              }}
+            >
+              <Text variant={TextVariant.BodyXS} color={TextColor.Primary}>
+                Historical →
+              </Text>
+            </Pressable>
+          </View>
+          <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+            panOffset: {panOffset} / {maxPanOffset.current}
+          </Text>
         </View>
 
         {/* Time Duration Selector */}

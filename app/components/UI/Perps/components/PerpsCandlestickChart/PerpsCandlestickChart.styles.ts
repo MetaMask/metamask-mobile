@@ -109,7 +109,20 @@ export const styleSheet = (params: { theme: Theme }) => {
     },
     chartGesturing: {
       opacity: 0.8,
-      // Subtle visual feedback during pinch gesture
+      // Subtle visual feedback during pinch/pan gestures
+    },
+    // Pan reset button styles
+    panResetContainer: {
+      alignItems: 'center',
+      marginVertical: 8,
+    },
+    panResetButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 16,
+      backgroundColor: colors.background.alternative,
+      borderWidth: 1,
+      borderColor: colors.primary.default,
     },
   });
 };
