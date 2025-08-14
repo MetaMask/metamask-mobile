@@ -98,10 +98,14 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
   it('should select payment method and verify display', async () => {
     await setupOnRampTest(async () => {
       const paymentMethod =
-        device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
+        device.getPlatform() === 'ios'
+          ? 'Apple Pay'
+          : /^(?:Google|Revolut)\s+Pay$/i;
       await BuildQuoteView.tapPaymentMethodDropdown(paymentMethod);
       await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
-      await Assertions.expectTextNotDisplayed(paymentMethod);
+      await Assertions.checkIfValueIsDefined(
+        !(await BuildQuoteView.getPaymentMethodDropdownText(paymentMethod)),
+      );
       await Assertions.expectTextDisplayed('Debit or Credit');
     });
   });

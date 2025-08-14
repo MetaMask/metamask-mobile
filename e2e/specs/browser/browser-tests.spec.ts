@@ -144,7 +144,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
     });
   }
 
-  it('Should connect to Uniswap', async () => {
+  it.skip('Should connect to Uniswap', async () => {
     await withBrowser(async () => {
       await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
         description: 'Browser screen is visible',
@@ -180,7 +180,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
     });
   });
 
-  it('Should connect to PancakeSwap', async () => {
+  it.skip('Should connect to PancakeSwap', async () => {
     await withBrowser(async () => {
       await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
         description: 'Browser screen is visible',

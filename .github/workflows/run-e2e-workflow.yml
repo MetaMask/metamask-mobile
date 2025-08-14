@@ -184,6 +184,8 @@ jobs:
           echo "Removing APKs from artifacts..."
           # Remove APKs, but ignore coverage folders and ios-bundle
           find artifacts/ \( -type d \( -name "coverage-*" -o -name "ios-bundle" \) -prune \) -o -type f -name "*app-*" -delete 2>/dev/null || true
+          # Also remove artifact directories that contain APK/AAB files (download-artifact creates directories)
+          find artifacts/ \( -type d \( -name "coverage-*" -o -name "ios-bundle" \) -prune \) -o -type d -name "*app-*" -exec rm -rf {} + 2>/dev/null || true
         continue-on-error: true
 
       - name: Upload screenshots

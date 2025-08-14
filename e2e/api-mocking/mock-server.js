@@ -191,6 +191,12 @@ export const startMockServer = async (events, port) => {
         const errorMessage = `Request going to live server: ${updatedUrl}`;
         logger.warn(errorMessage);
         global.liveServerRequest = new Error(errorMessage);
+      } else if (ALLOWLISTED_URLS.includes(updatedUrl)) {
+        // Explicit debug to help with debugging in CI
+        console.warn(`Allowed URL: ${updatedUrl}`);
+        if (method === 'POST') {
+          console.warn(`Request Body: ${await request.body.getText()}`);
+        }
       }
 
       return handleDirectFetch(
