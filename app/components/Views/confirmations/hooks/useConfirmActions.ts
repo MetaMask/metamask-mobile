@@ -17,6 +17,7 @@ import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
 import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
+import { TransactionType } from '@metamask/transaction-controller';
 
 export const useConfirmActions = () => {
   const {
@@ -32,7 +33,13 @@ export const useConfirmActions = () => {
   } = useQRHardwareContext();
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
-  const { chainId, id: transactionId } = useTransactionMetadataRequest() ?? {};
+
+  const {
+    chainId,
+    id: transactionId,
+    type,
+  } = useTransactionMetadataRequest() ?? {};
+
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
     selectShouldUseSmartTransaction(state, chainId),
   );
@@ -86,7 +93,9 @@ export const useConfirmActions = () => {
       handleErrors: false,
     });
 
-    if (isFullScreenConfirmation) {
+    if (isFullScreenConfirmation && type === TransactionType.perpsDeposit) {
+      navigation.navigate(Routes.WALLET_VIEW);
+    } else if (isFullScreenConfirmation) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -114,6 +123,7 @@ export const useConfirmActions = () => {
     openLedgerSignModal,
     setScannerVisible,
     waitForResult,
+    type,
   ]);
 
   return { onConfirm, onReject };
