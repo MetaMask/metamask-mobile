@@ -143,7 +143,8 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await DownloadFile.verifySuccessStateVisible();
     });
   }
-
+  
+  //Skipped due to changes on Uniswap website that requires the test to be fixed
   it.skip('Should connect to Uniswap', async () => {
     await withBrowser(async () => {
       await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
@@ -179,7 +180,8 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
       await OpenseaWebsite.tapNotificationButton();
     });
   });
-
+  
+  // Skipped flaky test as pancake swap sometimes takes too long to load the website
   it.skip('Should connect to PancakeSwap', async () => {
     await withBrowser(async () => {
       await Assertions.expectElementToBeVisible(Browser.browserScreenID, {

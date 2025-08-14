@@ -1,2 +1,2 @@
 export { default } from './HeaderBase';
-export { HeaderBaseAlign } from './HeaderBase.constants';
+export { HeaderBaseVariant } from './HeaderBase.types';
