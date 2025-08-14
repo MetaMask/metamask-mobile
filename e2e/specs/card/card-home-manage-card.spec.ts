@@ -20,7 +20,7 @@ const cardApiMocks = getCardholderApiMocks([
 describe(SmokeCard('CardHome - Manage Card'), () => {
   const eventsToCheck: EventPayload[] = [];
   const cardholderApiWithSegmentMock = {
-    ...cardApiMocks,
+    GET: [...(cardApiMocks.GET ?? []), mockEvents.GET.cardFeatureFlag],
     POST: [mockEvents.POST.segmentTrack],
   };
 

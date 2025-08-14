@@ -77,6 +77,7 @@ jobs:
           setup-simulator: ${{ inputs.platform == 'ios' }}
           android-avd-name: emulator
           configure-keystores: false
+          sd-card-size: 8192
 
       - name: Build Detox framework cache (iOS)
         if: ${{ inputs.platform == 'ios' }}
@@ -181,7 +182,8 @@ jobs:
         if: failure()
         run: |
           echo "Removing APKs from artifacts..."
-          find artifacts/ -name "*app-*" -delete 2>/dev/null || true
+          # Remove APKs, but ignore coverage folders and ios-bundle
+          find artifacts/ -type d \( -name "coverage-*" -o -name "ios-bundle" \) -prune -false -o -name "*app-*" -delete 2>/dev/null || true
         continue-on-error: true
 
       - name: Upload screenshots

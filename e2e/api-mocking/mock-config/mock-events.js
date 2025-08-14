@@ -239,6 +239,21 @@ export const mockEvents = {
       ],
       responseCode: 200,
     },
+    cardFeatureFlag: {
+      urlEndpoint:
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          cardFeature: {
+            constants: {
+              accountsApiUrl: 'https://accounts.api.cx.metamask.io',
+            },
+            chains: { 'eip155:59144': { enabled: true } },
+          },
+        },
+      ],
+      responseCode: 200,
+    },
   },
 
   /**
