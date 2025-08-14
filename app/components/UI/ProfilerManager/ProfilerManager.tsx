@@ -11,13 +11,14 @@ import {
   IconName,
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
+import { isRc } from '../../../util/test/utils';
 
 interface ProfilerManagerProps {
   enabled?: boolean;
 }
 
 const ProfilerManager: React.FC<ProfilerManagerProps> = ({
-  enabled = process.env.METAMASK_ENVIRONMENT === 'rc',
+  enabled = isRc,
 }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
