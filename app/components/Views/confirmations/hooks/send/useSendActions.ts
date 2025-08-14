@@ -9,11 +9,13 @@ import {
 } from '../../utils/send';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
+import { useSendExitMetrics } from './metrics/useSendExitMetrics';
 
 export const useSendActions = () => {
   const { asset, chainId, fromAccount, from, to, value } = useSendContext();
   const navigation = useNavigation();
   const { isEvmSendType } = useSendType();
+  const { captureSendExit } = useSendExitMetrics();
 
   const handleSubmitPress = useCallback(async () => {
     if (!chainId || !asset) {
@@ -41,8 +43,9 @@ export const useSendActions = () => {
   }, [asset, chainId, navigation, fromAccount, from, isEvmSendType, to, value]);
 
   const handleCancelPress = useCallback(() => {
+    captureSendExit();
     navigation.navigate(Routes.WALLET_VIEW);
-  }, [navigation]);
+  }, [captureSendExit, navigation]);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();

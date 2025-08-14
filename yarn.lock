@@ -2767,15 +2767,7 @@
     temp-dir "~2.0.0"
     unique-string "~2.0.0"
 
-"@expo/json-file@^9.0.2":
-  version "9.1.4"
-  resolved "https://registry.yarnpkg.com/@expo/json-file/-/json-file-9.1.4.tgz#e719d092c08afb3234643f9285e57c6a24989327"
-  integrity sha512-7Bv86X27fPERGhw8aJEZvRcH9sk+9BenDnEmrI3ZpywKodYSBgc8lX9Y32faNVQ/p0YbDK9zdJ0BfAKNAOyi0A==
-  dependencies:
-    "@babel/code-frame" "~7.10.4"
-    json5 "^2.2.3"
-
-"@expo/json-file@^9.1.5":
+"@expo/json-file@^9.0.2", "@expo/json-file@^9.1.5":
   version "9.1.5"
   resolved "https://registry.yarnpkg.com/@expo/json-file/-/json-file-9.1.5.tgz#7d7b2dc4990dc2c2de69a571191aba984b7fb7ed"
   integrity sha512-prWBhLUlmcQtvN6Y7BpW2k9zXGd3ySa3R6rAguMJkp1z22nunLN64KYTUWfijFlprFoxm9r2VNnGkcbndAlgKA==
@@ -4902,12 +4894,12 @@
     "@metamask/utils" "^11.0.1"
     immer "^9.0.6"
 
-"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1":
-  version "8.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.0.1.tgz#5ac066e101dcc2ea187900ce7c0b08b13c573fff"
-  integrity sha512-Yzf4Eipl7TIcS6PpDf+Fbb8Z1zMUEB0boMWJG0Jo2XhRM8Azb3yA1k5tashgEaacbl9Qs6HgGOe0P3eKzPzoJw==
+"@metamask/base-controller@^8.0.0", "@metamask/base-controller@^8.0.1", "@metamask/base-controller@^8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.1.0.tgz#dd8746f8ec95fb564251c284f84e9264427816f1"
+  integrity sha512-pwWHTBntzPE6yBMH9qiXMaslQW2kS7Izw1g+4D8QhGIxNWBt1nz1uavTGcSBUFgO3eMDKe2QPU04xgThqCPv+g==
   dependencies:
-    "@metamask/utils" "^11.2.0"
+    "@metamask/utils" "^11.4.2"
     immer "^9.0.6"
 
 "@metamask/bitcoin-wallet-snap@^0.18.0":
@@ -5881,12 +5873,12 @@
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.10.0"
 
-"@metamask/preinstalled-example-snap@^0.6.0":
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/@metamask/preinstalled-example-snap/-/preinstalled-example-snap-0.6.0.tgz#eb5932f0d9df0e36e17b360bdcefa1d0ee92c467"
-  integrity sha512-4m+nxSjBAu7V8XqCos8fYFgBNdnXLgcbfUGDnDewPwRP6z1HgTJ46V/wEwYUEXdLT9uRWULzWeABMQVOJrRCbA==
+"@metamask/preinstalled-example-snap@^0.7.1":
+  version "0.7.1"
+  resolved "https://registry.yarnpkg.com/@metamask/preinstalled-example-snap/-/preinstalled-example-snap-0.7.1.tgz#add0efccd62cbcb3402f18ab263a8f9ef389c73f"
+  integrity sha512-DZLlpp0ms5qd4DiJ6Adtpi+2QY6W9j8kIMQ4jwxurd3iGXJQny6CHSChwsQAf4WkxKObuhknNit5JQP/MmiTbA==
   dependencies:
-    "@metamask/snaps-sdk" "^9.1.0"
+    "@metamask/snaps-sdk" "^9.3.0"
 
 "@metamask/profile-sync-controller@^23.0.0":
   version "23.0.0"
@@ -6169,7 +6161,7 @@
     "@metamask/superstruct" "^3.2.1"
     "@metamask/utils" "^11.4.0"
 
-"@metamask/snaps-sdk@^9.0.0", "@metamask/snaps-sdk@^9.1.0", "@metamask/snaps-sdk@^9.3.0":
+"@metamask/snaps-sdk@^9.0.0", "@metamask/snaps-sdk@^9.3.0":
   version "9.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/snaps-sdk/-/snaps-sdk-9.3.0.tgz#5c3858a5a247bf8c25c444b4bc8ecd4cbbfbf875"
   integrity sha512-o/XxzQNl59HjsesNAAK1UqVNQmujloAxCNfIii/z4wLFNe7+sg7Swsw4My5jR6xRLgzSaSBwW3dczYdVTpA06g==
@@ -6340,10 +6332,10 @@
     "@toruslabs/http-helpers" "^8.1.1"
     bn.js "^5.2.1"
 
-"@metamask/transaction-controller@^59.0.0":
-  version "59.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-59.0.0.tgz#8ef3fd64d70e8cb29a2da301a695bdf9a1e7ff6f"
-  integrity sha512-1qVvnoRJ220Bak4pqQ83Kq0528Xkl5DReV/WiZOWWN1Fna8lT1SJJX9bDVCYw2hAbzCmESSiZkSgvsYLKCOXrQ==
+"@metamask/transaction-controller@^59.2.0":
+  version "59.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-59.2.0.tgz#81b02318a3c4bf76eb06aa6ace833d4821ff3deb"
+  integrity sha512-b47gBy7v+Xp8PDM09uOR/dincsE0/sYjMVRxk1z+agcTtyXp8GvcqSTnkAlLWP1rLlAMxrj3FJu+QJaCXAR6bA==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
     "@ethereumjs/tx" "^5.4.0"
@@ -6352,7 +6344,7 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@ethersproject/wallet" "^5.7.0"
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.1.0"
     "@metamask/controller-utils" "^11.11.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"

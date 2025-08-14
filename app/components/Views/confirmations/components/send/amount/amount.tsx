@@ -20,6 +20,7 @@ import Routes from '../../../../../../constants/navigation/Routes';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { formatToFixedDecimals } from '../../../utils/send';
+import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
 import { useBalance } from '../../../hooks/send/useBalance';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
@@ -33,8 +34,8 @@ export const Amount = () => {
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, updateValue } = useSendContext();
   const { balance } = useBalance();
-  const { insufficientBalance } = useAmountValidation();
-  const [amount, updateAmount] = useState('');
+  const { amountError } = useAmountValidation();
+  const [amount, setAmount] = useState('');
   const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
   const {
     fiatCurrencySymbol,
@@ -43,8 +44,14 @@ export const Amount = () => {
     getNativeValue,
   } = useCurrencyConversions();
   const { styles, theme } = useStyles(styleSheet, {
-    inputError: insufficientBalance ?? false,
+    inputError: Boolean(amountError),
+    inputLength: amount.length,
   });
+  const {
+    setAmountInputMethodManual,
+    setAmountInputTypeFiat,
+    setAmountInputTypeToken,
+  } = useAmountSelectionMetrics();
   useRouteParams();
   useSendNavbar({ currentRoute: Routes.SEND.AMOUNT });
 
@@ -60,17 +67,36 @@ export const Amount = () => {
 
   const updateToNewAmount = useCallback(
     (amt: string) => {
-      updateAmount(amt);
+      setAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
+      setAmountInputMethodManual();
     },
-    [fiatMode, getNativeValue, updateAmount, updateValue],
+    [
+      fiatMode,
+      getNativeValue,
+      setAmount,
+      setAmountInputMethodManual,
+      updateValue,
+    ],
   );
 
   const toggleFiatMode = useCallback(() => {
+    if (!fiatMode) {
+      setAmountInputTypeToken();
+    } else {
+      setAmountInputTypeFiat();
+    }
     setFiatMode(!fiatMode);
-    updateAmount('');
+    setAmount('');
     updateValue('');
-  }, [fiatMode, setFiatMode, updateAmount, updateValue]);
+  }, [
+    fiatMode,
+    setAmount,
+    setAmountInputTypeFiat,
+    setAmountInputTypeToken,
+    setFiatMode,
+    updateValue,
+  ]);
 
   const assetSymbol = asset?.ticker ?? asset?.symbol;
 
@@ -90,9 +116,7 @@ export const Amount = () => {
             />
           </View>
           <Text
-            color={
-              insufficientBalance ? TextColor.Error : TextColor.Alternative
-            }
+            color={amountError ? TextColor.Error : TextColor.Alternative}
             style={styles.tokenSymbol}
             variant={TextVariant.DisplayLG}
           >
@@ -118,7 +142,7 @@ export const Amount = () => {
       <AmountKeyboard
         amount={amount}
         fiatMode={fiatMode}
-        updateAmount={updateAmount}
+        updateAmount={setAmount}
       />
     </View>
   );

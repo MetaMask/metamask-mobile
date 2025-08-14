@@ -1,8 +1,11 @@
 // Third party dependencies.
 import { ViewProps } from 'react-native';
 
-// Internal dependencies.
-import { HeaderBaseAlign } from './HeaderBase.constants';
+// Enums
+export enum HeaderBaseVariant {
+  Display = 'display',
+  Compact = 'compact',
+}
 
 /**
  * HeaderBase component props.
@@ -27,10 +30,20 @@ export interface HeaderBaseProps extends ViewProps {
    */
   includesTopInset?: boolean;
   /**
-   * Optional prop to set the alignment of the header title.
-   * @default: HeaderBaseAlign.Center
+   * Optional prop to set the variant of the header (controls alignment and text size).
+   * Display: left aligned with HeadingLG text.
+   * Compact: center aligned with HeadingSM text.
+   * @default HeaderBaseVariant.Compact
    */
-  align?: HeaderBaseAlign;
+  variant?: HeaderBaseVariant;
+  /**
+   * Optional props to pass to the start accessory wrapper View.
+   */
+  startAccessoryWrapperProps?: ViewProps;
+  /**
+   * Optional props to pass to the end accessory wrapper View.
+   */
+  endAccessoryWrapperProps?: ViewProps;
 }
 
 /**
@@ -38,7 +51,7 @@ export interface HeaderBaseProps extends ViewProps {
  */
 export type HeaderBaseStyleSheetVars = Pick<
   HeaderBaseProps,
-  'style' | 'align'
+  'style' | 'variant'
 > & {
   startAccessorySize: { width: number; height: number } | null;
   endAccessorySize: { width: number; height: number } | null;
