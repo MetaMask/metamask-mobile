@@ -42,9 +42,7 @@ describe('TabBarItem', () => {
   });
 
   it('displays label text when provided for non-trade button', () => {
-    const { getByText } = render(
-      <TabBarItem {...defaultProps} label="Home" />,
-    );
+    const { getByText } = render(<TabBarItem {...defaultProps} label="Home" />);
 
     expect(getByText('Home')).toBeOnTheScreen();
   });
