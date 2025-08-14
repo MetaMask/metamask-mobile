@@ -1,5 +1,6 @@
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import {
+  ETHEREUM_ADDRESS,
   evmSendStateMock,
   TOKEN_ADDRESS_MOCK_1,
 } from '../../../__mocks__/send.mock';
@@ -69,6 +70,7 @@ describe('getPercentageValueFn', () => {
           asset: {
             isNative: true,
             chainId: '0x1',
+            address: ETHEREUM_ADDRESS,
           },
         }) as unknown as GetPercentageValueArgs,
       ),
@@ -79,6 +81,7 @@ describe('getPercentageValueFn', () => {
           asset: {
             isNative: true,
             chainId: '0x1',
+            address: ETHEREUM_ADDRESS,
           },
           percentage: 25,
         }) as unknown as GetPercentageValueArgs,

@@ -1,9 +1,8 @@
 import { useTransactionPayTokenAmounts } from './useTransactionPayTokenAmounts';
 import { useAsyncResult } from '../../../../hooks/useAsyncResult';
 import { BridgeQuoteRequest, getBridgeQuotes } from '../../utils/bridge';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useTransactionPayToken } from './useTransactionPayToken';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useDispatch } from 'react-redux';
 import {
   setTransactionBridgeQuotes,
@@ -11,12 +10,20 @@ import {
 } from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { Hex, createProjectLogger } from '@metamask/utils';
+import { useDeepMemo } from '../useDeepMemo';
+import { useAlerts } from '../../context/alert-system-context';
+import { AlertKeys } from '../../constants/alerts';
 
 const log = createProjectLogger('transaction-pay');
 
 export function useTransactionBridgeQuotes() {
   const dispatch = useDispatch();
   const transactionMeta = useTransactionMetadataOrThrow();
+  const { alerts } = useAlerts();
+
+  const hasBlockingAlert = alerts.some(
+    (a) => a.isBlocking && a.key !== AlertKeys.NoPayTokenQuotes,
+  );
 
   const {
     chainId: targetChainId,
@@ -24,40 +31,47 @@ export function useTransactionBridgeQuotes() {
     txParams: { from },
   } = transactionMeta;
 
-  const {
-    payToken: { address: sourceTokenAddress, chainId: sourceChainId },
-  } = useTransactionPayToken();
+  const { payToken } = useTransactionPayToken() ?? {};
+
+  const { address: sourceTokenAddress, chainId: sourceChainId } =
+    payToken ?? {};
 
   const { amounts: sourceAmounts } = useTransactionPayTokenAmounts();
-  const requiredTokens = useTransactionRequiredTokens();
 
-  const requests: (BridgeQuoteRequest | undefined)[] = useMemo(
-    () =>
-      sourceAmounts?.map((sourceAmount, index) => {
-        const { address: targetTokenAddress } = requiredTokens[index] || {};
-        const { amountRaw: sourceTokenAmount } = sourceAmount;
+  const requests: BridgeQuoteRequest[] = useDeepMemo(() => {
+    if (
+      !sourceTokenAddress ||
+      !sourceChainId ||
+      !sourceAmounts ||
+      hasBlockingAlert
+    ) {
+      return [];
+    }
 
-        return {
-          from: from as Hex,
-          sourceChainId,
-          sourceTokenAddress,
-          sourceTokenAmount,
-          targetChainId,
-          targetTokenAddress,
-        };
-      }) ?? [],
-    [
-      from,
-      requiredTokens,
-      sourceAmounts,
-      sourceChainId,
-      sourceTokenAddress,
-      targetChainId,
-    ],
-  );
+    return sourceAmounts.map((sourceAmount, index) => {
+      const { address: targetTokenAddress } = sourceAmounts[index] || {};
+      const { amountRaw: sourceTokenAmount } = sourceAmount;
+
+      return {
+        from: from as Hex,
+        sourceChainId,
+        sourceTokenAddress,
+        sourceTokenAmount,
+        targetChainId,
+        targetTokenAddress,
+      };
+    });
+  }, [
+    from,
+    hasBlockingAlert,
+    sourceAmounts,
+    sourceChainId,
+    sourceTokenAddress,
+    targetChainId,
+  ]);
 
   const { pending: loading, value: quotes } = useAsyncResult(async () => {
-    if (requests.some((request) => !request)) {
+    if (!requests.length || requests.some((request) => !request)) {
       return [];
     }
 

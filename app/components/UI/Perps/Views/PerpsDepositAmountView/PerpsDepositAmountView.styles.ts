@@ -99,9 +99,6 @@ const createStyles = ({ theme }: { theme: Theme }) => {
       flex: 1,
       height: 40,
     },
-    keypad: {
-      paddingHorizontal: 0,
-    },
     actionButton: {
       width: '100%',
     },

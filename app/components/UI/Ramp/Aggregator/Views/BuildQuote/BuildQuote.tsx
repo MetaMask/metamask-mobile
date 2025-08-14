@@ -1036,6 +1036,7 @@ const BuildQuote = () => {
           amounts={quickAmounts}
         />
         <Keypad
+          style={styles.keypad}
           value={amount}
           onChange={handleKeypadChange}
           currency={
