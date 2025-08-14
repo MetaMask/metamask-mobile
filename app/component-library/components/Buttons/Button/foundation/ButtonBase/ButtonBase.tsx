@@ -110,9 +110,15 @@ const ButtonBase = ({
       ? TouchableOpacity
       : RNTouchableOpacity;
 
-  // Handle disabled state properly in test environment
+  // Handle disabled state properly in all environments
+  // For custom TouchableOpacity (Android), pass original onPress and let it handle disabled state internally
+  // For standard TouchableOpacity, apply conditional logic to prevent disabled interaction
   const conditionalOnPress =
-    process.env.NODE_ENV === 'test' && isDisabled ? undefined : onPress;
+    TouchableComponent === TouchableOpacity
+      ? onPress
+      : isDisabled
+      ? undefined
+      : onPress;
 
   return (
     <TouchableComponent
