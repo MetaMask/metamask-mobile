@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { TokenPill } from '../../token-pill/';
+import { TokenIcon } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { TouchableOpacity } from 'react-native';
 import { useTransactionBridgeQuotes } from '../../../hooks/pay/useTransactionBridgeQuotes';
@@ -65,7 +65,7 @@ export function PayWithRow() {
         style={styles.container}
       >
         <Box flexDirection={FlexDirection.Row} gap={12}>
-          <TokenPill address={payToken.address} chainId={payToken.chainId} />
+          <TokenIcon address={payToken.address} chainId={payToken.chainId} />
           <Box flexDirection={FlexDirection.Column}>
             <Box
               flexDirection={FlexDirection.Row}
