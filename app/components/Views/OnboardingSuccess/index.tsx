@@ -39,6 +39,10 @@ import Logger from '../../../util/Logger';
 import Engine from '../../../core/Engine/Engine';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
+import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import { useSelector } from 'react-redux';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { capitalize } from 'lodash';
 
 export const ResetNavigationToHome = CommonActions.reset({
   index: 0,
@@ -58,6 +62,12 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
+
+  const isSocialLogin =
+    authConnection === AuthConnection.Google ||
+    authConnection === AuthConnection.Apple;
 
   useLayoutEffect(() => {
     navigation.setOptions(
@@ -168,18 +178,39 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
             </View>
             <View style={styles.descriptionWrapper}>
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                {strings('onboarding_success.import_description')}
+                {isSocialLogin
+                  ? strings(
+                      'onboarding_success.import_description_social_login',
+                      {
+                        authConnection: capitalize(authConnection) || '',
+                      },
+                    )
+                  : strings('onboarding_success.import_description')}
               </Text>
-              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {isSocialLogin ? (
                 <Text
-                  color={TextColor.Primary}
-                  onPress={handleLink}
-                  testID={OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID}
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
                 >
-                  {strings('onboarding_success.learn_how')}{' '}
+                  {strings(
+                    'onboarding_success.import_description_social_login_2',
+                  )}
                 </Text>
-                {strings('onboarding_success.import_description2')}
-              </Text>
+              ) : (
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Alternative}
+                >
+                  <Text
+                    color={TextColor.Primary}
+                    onPress={handleLink}
+                    testID={OnboardingSuccessSelectorIDs.LEARN_MORE_LINK_ID}
+                  >
+                    {strings('onboarding_success.learn_how')}{' '}
+                  </Text>
+                  {strings('onboarding_success.import_description2')}
+                </Text>
+              )}
             </View>
           </>
         );

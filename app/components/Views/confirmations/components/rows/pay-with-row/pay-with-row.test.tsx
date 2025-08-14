@@ -5,7 +5,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent } from '@testing-library/react-native';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { Text as MockText } from 'react-native';
+import { Text as MockText, View as MockView } from 'react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { useTransactionRequiredFiat } from '../../../hooks/pay/useTransactionRequiredFiat';
@@ -23,6 +23,12 @@ jest.mock('../../token-pill/', () => ({
   TokenPill: (props: TokenPillProps) => (
     <MockText>{`${props.address} ${props.chainId}`}</MockText>
   ),
+}));
+
+jest.mock('../../../../../UI/AnimatedSpinner', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../../UI/AnimatedSpinner'),
+  default: () => <MockView testID="pay-with-spinner">{`Spinner`}</MockView>,
 }));
 
 const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
@@ -97,5 +103,19 @@ describe('PayWithRow', () => {
     expect(navigateMock).toHaveBeenCalledWith(expect.any(String), {
       minimumFiatBalance: TOTAL_FIAT_MOCK,
     });
+  });
+
+  it('renders spinner when no pay token selected', () => {
+    jest.mocked(useTransactionPayToken).mockReturnValue({
+      payToken: undefined,
+      balanceFiat: undefined,
+      balanceHuman: undefined,
+      decimals: undefined,
+      setPayToken: jest.fn(),
+    });
+
+    const { getByTestId } = render();
+
+    expect(getByTestId('pay-with-spinner')).toBeDefined();
   });
 });

@@ -120,6 +120,7 @@ describe('useNetworkSelection', () => {
       disableNetwork: mockDisableNetwork,
       toggleNetwork: mockToggleNetwork,
       isNetworkEnabled: jest.fn(),
+      hasOneEnabledNetwork: false,
     });
 
     mockUseSelector.mockReturnValue(mockPopularNetworkConfigurations);
@@ -219,6 +220,7 @@ describe('useNetworkSelection', () => {
         disableNetwork: mockDisableNetwork,
         toggleNetwork: mockToggleNetwork,
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       const { result } = renderHook(() =>
@@ -268,6 +270,7 @@ describe('useNetworkSelection', () => {
         disableNetwork: mockDisableNetwork,
         toggleNetwork: mockToggleNetwork,
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       const { result } = renderHook(() =>
@@ -453,6 +456,7 @@ describe('useNetworkSelection', () => {
         disableNetwork: mockDisableNetwork,
         toggleNetwork: mockToggleNetwork,
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       const { result } = renderHook(() =>
@@ -488,6 +492,7 @@ describe('useNetworkSelection', () => {
         disableNetwork: mockDisableNetwork,
         toggleNetwork: mockToggleNetwork,
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       const { result } = renderHook(() =>
@@ -514,6 +519,7 @@ describe('useNetworkSelection', () => {
         disableNetwork: mockDisableNetwork,
         toggleNetwork: mockToggleNetwork,
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       const { result } = renderHook(() =>
@@ -540,6 +546,7 @@ describe('useNetworkSelection', () => {
         disableNetwork: mockDisableNetwork,
         toggleNetwork: mockToggleNetwork,
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: false,
       });
 
       const { result } = renderHook(() =>
