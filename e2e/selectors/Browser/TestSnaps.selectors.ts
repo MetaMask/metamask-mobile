@@ -16,6 +16,7 @@ export const TestSnapViewSelectorWebIDS = {
   connectGetPreferencesButton: 'connectpreferences',
   connectJsonRpcButton: 'connectjson-rpc',
   connectLifeCycleButton: 'connectlifecycle-hooks',
+  connectImageButton: 'connectimages',
   connectManageStateButton: 'connectmanage-state',
   connectNetworkAccessButton: 'connectnetwork-access',
   connectEthereumProviderButton: 'connectethereum-provider',
@@ -51,12 +52,19 @@ export const TestSnapViewSelectorWebIDS = {
   sendUnencryptedStateButton: 'sendUnencryptedState',
   startWebSocket: 'startWebSocket',
   stopWebSocket: 'stopWebSocket',
+  showSVGImage: 'showSVGImage',
+  showPNGImage: 'showPNGImage',
+  showPreinstalledDialogButton: 'showPreinstalledDialog',
   getWebSocketState: 'getWebSocketState',
   getChainIdButton: 'sendEthprovider',
   getAccountsButton: 'sendEthproviderAccounts',
   personalSignButton: 'signPersonalSignMessage',
   sendWasmMessageButton: 'sendWasmMessage',
   signTypedDataButton: 'signTypedDataButton',
+  trackErrorButton: 'trackError',
+  trackEventButton: 'trackEvent',
+  startTraceButton: 'start-trace',
+  endTraceButton: 'end-trace',
 };
 
 export const TestSnapInputSelectorWebIDS = {

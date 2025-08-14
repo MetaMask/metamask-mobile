@@ -435,6 +435,7 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -458,7 +459,6 @@ exports[`IncompatibleAccountTokenModal renders the modal with the correct title 
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >

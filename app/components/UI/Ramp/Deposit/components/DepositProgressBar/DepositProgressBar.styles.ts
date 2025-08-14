@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       justifyContent: 'center',
       width: '100%',
-      paddingVertical: 12,
+      paddingBottom: 12,
     },
     step: {
       height: 4,
