@@ -57,7 +57,7 @@ describe('EditAmount', () => {
     } as unknown as AlertsContextParams);
 
     useTransactionPayTokenMock.mockReturnValue({
-      balanceFiat: '0',
+      payToken: { balanceFiat: '0' },
     } as ReturnType<typeof useTransactionPayToken>);
   });
 
@@ -123,7 +123,7 @@ describe('EditAmount', () => {
 
   it('updates token amount if percentage button pressed', async () => {
     useTransactionPayTokenMock.mockReturnValue({
-      balanceFiat: '1200.50',
+      payToken: { balanceFiat: '1200.50' },
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { getByTestId, getByText } = render();
@@ -144,7 +144,7 @@ describe('EditAmount', () => {
 
   it('does nothing if percentage button pressed with no pay token selected', async () => {
     useTransactionPayTokenMock.mockReturnValue({
-      balanceFiat: undefined,
+      payToken: undefined,
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { getByTestId, getByText } = render();
