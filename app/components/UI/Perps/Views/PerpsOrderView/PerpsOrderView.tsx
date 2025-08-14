@@ -54,7 +54,6 @@ import type {
   PerpsNavigationParamList,
 } from '../../controllers/types';
 import {
-  useHasExistingPosition,
   usePerpsAccount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
@@ -211,12 +210,6 @@ const PerpsOrderViewContent: React.FC = () => {
 
   const paymentTokens = usePerpsPaymentTokens();
 
-  // Check if user has an existing position for this asset
-  const { hasPosition: hasExistingPosition } = useHasExistingPosition({
-    asset: orderForm.asset,
-    loadOnMount: true,
-  });
-
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
@@ -323,7 +316,6 @@ const PerpsOrderViewContent: React.FC = () => {
     availableBalance,
     marginRequired,
     selectedPaymentToken,
-    hasExistingPosition,
   });
 
   // Handlers

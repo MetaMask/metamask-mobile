@@ -944,8 +944,7 @@
         "invalid_stop_loss": "Stop loss must be {{direction}} current price for {{positionType}} positions",
         "liquidation_warning": "Position is close to liquidation price",
         "limit_price_required": "Please set a limit price for limit orders",
-        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment",
-        "existing_position": "You already have an open {{asset}} position. Close it before opening a new one."
+        "only_hyperliquid_usdc": "Only USDC on Hyperliquid is currently supported for payment"
       },
       "error": {
         "placement_failed": "Order placement failed",
