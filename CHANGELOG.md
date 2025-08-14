@@ -9,8 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.53.0]
 
-### Uncategorized
-
 ### Added
 
 - feat: move quote validation to on fetch ([#17757](https://github.com/MetaMask/metamask-mobile/pull/17757))
