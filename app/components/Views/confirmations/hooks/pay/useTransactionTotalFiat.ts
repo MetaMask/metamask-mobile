@@ -8,13 +8,16 @@ import { createProjectLogger } from '@metamask/utils';
 import { useEffect } from 'react';
 import useFiatFormatter from '../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { TransactionBridgeQuote } from '../../utils/bridge';
+import { useFeeCalculations } from '../gas/useFeeCalculations';
 
 const log = createProjectLogger('transaction-pay');
 
 export function useTransactionTotalFiat() {
   const fiatFormatter = useFiatFormatter();
   const { values: requiredFiat } = useTransactionRequiredFiat();
-  const { id: transactionId } = useTransactionMetadataOrThrow();
+  const transactionMeta = useTransactionMetadataOrThrow();
+  const { id: transactionId } = transactionMeta;
+  const { estimatedFeeFiatPrecise } = useFeeCalculations(transactionMeta);
 
   const quotes = useSelector((state: RootState) =>
     selectTransactionBridgeQuotesById(state, transactionId),
@@ -39,9 +42,22 @@ export function useTransactionTotalFiat() {
     new BigNumber(0),
   );
 
+  const quoteGasCost =
+    quotes?.reduce(
+      (acc, quote) =>
+        acc.plus(new BigNumber(quote.totalMaxNetworkFee.valueInCurrency ?? 0)),
+      new BigNumber(0),
+    ) ?? new BigNumber(0);
+
   const total = quotesCost.plus(balanceCost);
   const value = total.toString(10);
   const formatted = fiatFormatter(total);
+
+  const totalGas = quoteGasCost.plus(
+    new BigNumber(estimatedFeeFiatPrecise ?? 0),
+  );
+
+  const totalGasFormatted = fiatFormatter(totalGas);
 
   useEffect(() => {
     log('Total fiat', {
@@ -55,6 +71,7 @@ export function useTransactionTotalFiat() {
   return {
     value,
     formatted,
+    totalGasFormatted,
   };
 }
 
