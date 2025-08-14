@@ -57,6 +57,10 @@ export class EngineService {
    */
   start = async () => {
     const reduxState = ReduxService.store.getState();
+    console.log('reduxState>>>>', reduxState);
+    await new Promise((resolve) => {
+      setTimeout(resolve, 5000);
+    });
     const persistedState = await ControllerStorage.getKey();
     trace({
       name: TraceName.EngineInitialization,
@@ -65,6 +69,7 @@ export class EngineService {
       tags: getTraceTags(reduxState),
     });
     const state = persistedState?.backgroundState ?? {};
+    console.log('Engine state >>>>> ', state);
     const Engine = UntypedEngine;
     try {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {

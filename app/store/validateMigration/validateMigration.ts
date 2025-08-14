@@ -21,8 +21,10 @@ export function validatePostMigrationState(state: RootState): void {
   Logger.log('Migration validation started');
   const allErrors = checks.flatMap((check) => check(state));
 
+  console.log('Migration validation completed');
   // If there are any errors, log them
   if (allErrors.length > 0) {
+    console.log('Migration errors found:', allErrors);
     Logger.error(new Error('Migration validation errors'), {
       message: `State validation found these issues: ${allErrors.join(', ')}`,
     });

@@ -26,6 +26,7 @@ import SolanaNewFeatureSheet from './pages/wallet/SolanaNewFeatureSheet';
 import OnboardingSheet from './pages/Onboarding/OnboardingSheet';
 import Matchers from './utils/Matchers';
 import { BrowserViewSelectorsIDs } from './selectors/Browser/BrowserView.selectors';
+import { BASE_DEFAULTS } from './framework';
 
 const LOCALHOST_URL = `http://localhost:${getGanachePort()}/`;
 const validAccount = Accounts.getValidAccount();
@@ -384,14 +385,17 @@ export const switchToSepoliaNetwork = async () => {
  * @returns {Promise<void>} A promise that resolves when the login process is complete.
  * @throws {Error} Throws an error if the login view container or password input is not visible.
  */
-export const loginToApp = async (password?: string) => {
+export const loginToApp = async (password?: string, timeout = BASE_DEFAULTS.timeout) => {
   const PASSWORD = password ?? '123123123';
   await Assertions.expectElementToBeVisible(LoginView.container, {
+    timeout,
     description: 'Login View container should be visible',
   });
   await Assertions.expectElementToBeVisible(LoginView.passwordInput, {
+    timeout,
     description: 'Login View password input should be visible',
   });
+  await new Promise((resolve) => setTimeout(resolve, 5000));
   await LoginView.enterPassword(PASSWORD);
 };
 

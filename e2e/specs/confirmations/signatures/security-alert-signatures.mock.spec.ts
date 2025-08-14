@@ -24,7 +24,7 @@ describe(SmokeConfirmations('Security Alert API - Signature'), () => {
     .build();
 
   const navigateToTestDAppAndTapTypedSignButton = async () => {
-    await loginToApp();
+    await loginToApp(undefined, 60000);
     await TabBarComponent.tapBrowser();
     await Browser.navigateToTestDApp();
     await TestDApp.tapTypedSignButton();

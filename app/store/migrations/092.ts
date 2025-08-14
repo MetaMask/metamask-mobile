@@ -18,13 +18,15 @@ import { CONTROLLER_LIST } from '../persistConfig/constants';
  * @returns The updated state with engine data cleared from redux-persist.
  */
 export default async function migrate(state: unknown) {
+  console.log('> Migration 92: Starting migration');
   if (!ensureValidState(state, 92)) {
+    console.log('> Migration 92: Invalid state, skipping migration');
     return state;
   }
 
   try {
     const { engine } = state;
-
+    console.log('> Migration 92: Found engine state >>>>>> ', engine);
     if (
       hasProperty(engine, 'backgroundState') &&
       isObject(engine.backgroundState) &&

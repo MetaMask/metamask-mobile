@@ -124,6 +124,10 @@ class FixtureBuilder {
   withDefaultFixture() {
     this.fixture = {
       state: {
+        _persist: {
+          rehydrated: true,
+          version: 90,
+        },
         legalNotices: {
           newPrivacyPolicyToastClickedOrClosed: true,
           newPrivacyPolicyToastShownDate: Date.now(),

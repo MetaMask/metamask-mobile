@@ -10,6 +10,7 @@ import { UserState } from '../../reducers/user';
 import Engine, { EngineContext } from '../../core/Engine';
 import { getPersistentState } from '../getPersistentState/getPersistentState';
 import { CONTROLLER_LIST } from './constants';
+import StorageWrapper from '../storage-wrapper';
 
 const TIMEOUT = 40000;
 const STORAGE_THROTTLE_DELAY = 200;
@@ -17,6 +18,8 @@ const STORAGE_THROTTLE_DELAY = 200;
 export const ControllerStorage = {
   async getItem(key: string) {
     try {
+      console.log('Using controller storage >>>>', version);
+      console.log('FilesystemStorage.getItem >>>>', key);
       const res = await FilesystemStorage.getItem(key);
       if (res) {
         // Using new storage system
@@ -29,6 +32,8 @@ export const ControllerStorage = {
     }
   },
   async setItem(key: string, value: string) {
+    console.log('Using controller storage >>>>', version);
+    console.log('Using controller storage > setItem >>>>', version, key);
     try {
       return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
@@ -55,6 +60,7 @@ export const ControllerStorage = {
           const key = `persist:${controllerName}`;
           try {
             const data = await FilesystemStorage.getItem(key);
+            console.log('ControllerStorage.getKey data >>>>', data);
             if (data) {
               // Parse the JSON data
               const parsedData = JSON.parse(data);
@@ -75,6 +81,8 @@ export const ControllerStorage = {
 
               const { _persist, ...controllerState } = parsedData;
 
+              console.log('ControllerStorage.getKey controllerState >>>>', _persist, controllerState);
+
               backgroundState[controllerName] = controllerState;
             }
           } catch (error) {
@@ -86,6 +94,7 @@ export const ControllerStorage = {
         }),
       );
 
+      console.log('ControllerStorage.getKey backgroundState >>>>', backgroundState);
       return { backgroundState };
     } catch (error) {
       Logger.error(error as Error, {
@@ -98,6 +107,7 @@ export const ControllerStorage = {
 
 const MigratedStorage = {
   async getItem(key: string) {
+    console.log('Using migrated storage >>>>', version);
     try {
       const res = await FilesystemStorage.getItem(key);
       if (res) {
@@ -112,7 +122,7 @@ const MigratedStorage = {
 
     // Using old storage system, should only happen once
     try {
-      const res = await AsyncStorage.getItem(key);
+      const res = await StorageWrapper.getItem(key);
       if (res) {
         // Using old storage system
         return res;
@@ -124,6 +134,7 @@ const MigratedStorage = {
   },
   async setItem(key: string, value: string) {
     try {
+      console.log('>>>>>>  migration setItem', key, value)
       return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
       Logger.error(error as Error, {
@@ -234,8 +245,9 @@ const persistConfig = {
   transforms: [persistUserTransform, persistOnboardingTransform],
   stateReconciler: autoMergeLevel2, // see "Merge Process" section for details.
   migrate: createMigrate(migrations, {
-    debug: false,
+    debug: true,
   }),
+  debug: true,
   timeout: TIMEOUT,
   throttle: STORAGE_THROTTLE_DELAY,
   writeFailHandler: (error: Error) =>

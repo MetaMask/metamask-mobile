@@ -42,6 +42,7 @@ const createStoreAndPersistor = async () => {
 
   const middlewares = [sagaMiddleware, thunk];
 
+  console.log('Creating store with initial state store index >>>>>>', initialState);
   store = configureStore({
     reducer: pReducer,
     middleware: middlewares,
@@ -68,6 +69,7 @@ const createStoreAndPersistor = async () => {
 
     const currentState = store.getState();
 
+    console.log('>>>>> current state', currentState)
     // This sets the basic functionality value from the persisted state when the app is restarted
     store.dispatch(
       toggleBasicFunctionality(currentState.settings.basicFunctionalityEnabled),
