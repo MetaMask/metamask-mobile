@@ -1,12 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`HeaderBase renders snapshot correctly with center alignment 1`] = `
+exports[`HeaderBase should render snapshot correctly with Compact variant 1`] = `
 <View
   style={
     [
       {
         "backgroundColor": "#ffffff",
         "flexDirection": "row",
+        "gap": 16,
       },
       false,
     ]
@@ -16,20 +17,8 @@ exports[`HeaderBase renders snapshot correctly with center alignment 1`] = `
   <View
     style={
       {
-        "width": undefined,
-      }
-    }
-  >
-    <View
-      onLayout={[MockFunction]}
-    />
-  </View>
-  <View
-    style={
-      {
         "alignItems": "center",
         "flex": 1,
-        "marginHorizontal": 16,
       }
     }
   >
@@ -50,27 +39,17 @@ exports[`HeaderBase renders snapshot correctly with center alignment 1`] = `
       Sample HeaderBase Title
     </Text>
   </View>
-  <View
-    style={
-      {
-        "width": undefined,
-      }
-    }
-  >
-    <View
-      onLayout={[MockFunction]}
-    />
-  </View>
 </View>
 `;
 
-exports[`HeaderBase renders snapshot correctly with left alignment 1`] = `
+exports[`HeaderBase variant functionality renders snapshot correctly with Compact variant 1`] = `
 <View
   style={
     [
       {
         "backgroundColor": "#ffffff",
         "flexDirection": "row",
+        "gap": 16,
       },
       false,
     ]
@@ -80,20 +59,50 @@ exports[`HeaderBase renders snapshot correctly with left alignment 1`] = `
   <View
     style={
       {
-        "width": undefined,
+        "alignItems": "center",
+        "flex": 1,
       }
     }
   >
-    <View
-      onLayout={[MockFunction]}
-    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Bold",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "textAlign": "center",
+        }
+      }
+      testID="header-title"
+    >
+      Compact Variant Header
+    </Text>
   </View>
+</View>
+`;
+
+exports[`HeaderBase variant functionality renders snapshot correctly with Display variant 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "gap": 16,
+      },
+      false,
+    ]
+  }
+  testID="header"
+>
   <View
     style={
       {
         "alignItems": "flex-start",
         "flex": 1,
-        "marginHorizontal": 16,
       }
     }
   >
@@ -103,91 +112,16 @@ exports[`HeaderBase renders snapshot correctly with left alignment 1`] = `
         {
           "color": "#121314",
           "fontFamily": "Geist Bold",
-          "fontSize": 16,
+          "fontSize": 24,
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 32,
           "textAlign": "left",
         }
       }
       testID="header-title"
     >
-      Sample HeaderBase Title
+      Display Variant Header
     </Text>
-  </View>
-  <View
-    style={
-      {
-        "width": undefined,
-      }
-    }
-  >
-    <View
-      onLayout={[MockFunction]}
-    />
-  </View>
-</View>
-`;
-
-exports[`HeaderBase should render snapshot correctly 1`] = `
-<View
-  style={
-    [
-      {
-        "backgroundColor": "#ffffff",
-        "flexDirection": "row",
-      },
-      false,
-    ]
-  }
-  testID="header"
->
-  <View
-    style={
-      {
-        "width": undefined,
-      }
-    }
-  >
-    <View
-      onLayout={[MockFunction]}
-    />
-  </View>
-  <View
-    style={
-      {
-        "alignItems": "center",
-        "flex": 1,
-        "marginHorizontal": 16,
-      }
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        {
-          "color": "#121314",
-          "fontFamily": "Geist Bold",
-          "fontSize": 16,
-          "letterSpacing": 0,
-          "lineHeight": 24,
-          "textAlign": "center",
-        }
-      }
-      testID="header-title"
-    >
-      Sample HeaderBase Title
-    </Text>
-  </View>
-  <View
-    style={
-      {
-        "width": undefined,
-      }
-    }
-  >
-    <View
-      onLayout={[MockFunction]}
-    />
   </View>
 </View>
 `;
