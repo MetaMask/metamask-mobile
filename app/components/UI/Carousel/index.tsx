@@ -12,7 +12,7 @@ import { CarouselProps, CarouselSlide, NavigationAction } from './types';
 import { dismissBanner } from '../../../reducers/banners';
 import {
   Box,
-  Text as DSText,
+  Text,
   TextVariant,
   TextColor,
   BoxFlexDirection,
@@ -247,21 +247,21 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
           twClassName="w-full h-full"
         >
           <Box twClassName="flex-1 justify-center py-3">
-            <DSText
+            <Text
               variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               testID={`carousel-slide-${slide.id}-title`}
               numberOfLines={1}
             >
               {slide.title}
-            </DSText>
-            <DSText
+            </Text>
+            <Text
               variant={TextVariant.BodyXs}
               color={TextColor.TextAlternative}
               numberOfLines={1}
             >
               {slide.description}
-            </DSText>
+            </Text>
           </Box>
           <Box
             style={tw.style('overflow-hidden justify-center items-center', {
@@ -345,17 +345,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
 
   return (
     <Box
-      style={
-        [
-          {
-            width: BANNER_WIDTH + PEEK_WIDTH * 2,
-            alignSelf: 'center',
-            height: CAROUSEL_HEIGHT + DOTS_HEIGHT,
-            overflow: 'visible',
-          },
-          style,
-        ] as const
-      }
+      style={tw.style(
+        'self-center overflow-visible',
+        {
+          width: BANNER_WIDTH + PEEK_WIDTH * 2,
+          height: CAROUSEL_HEIGHT + DOTS_HEIGHT,
+        },
+        style,
+      )}
     >
       <Box style={tw.style('overflow-visible', { height: CAROUSEL_HEIGHT })}>
         <FlatList
