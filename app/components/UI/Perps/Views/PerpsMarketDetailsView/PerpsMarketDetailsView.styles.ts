@@ -1,23 +1,42 @@
 import { StyleSheet } from 'react-native';
 import type { Theme } from '../../../../../util/theme/models';
 
-export const createStyles = ({
-  theme,
-  vars,
-}: {
-  theme: Theme;
-  vars: { hasLongShortButtons: boolean };
-}) =>
+/**
+ * Enterprise-grade layout styles with clear separation of concerns
+ * Architecture: Fixed Header + Flex Content + Fixed Actions Footer
+ */
+export const createStyles = ({ theme }: { theme: Theme }) =>
   StyleSheet.create({
-    container: {
+    // Main container - fills entire screen
+    mainContainer: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
     },
-    innerContainer: {
+
+    // Fixed header section
+    headerSection: {
+      // Header height is determined by PerpsMarketHeader component
+    },
+
+    // Scrollable content container - takes remaining space
+    scrollableContentContainer: {
       flex: 1,
     },
-    scrollContent: {
-      paddingBottom: vars.hasLongShortButtons ? 75 : 16,
+
+    // Main content scroll view
+    mainContentScrollView: {
+      flex: 1,
+    },
+
+    // Content padding for proper spacing
+    scrollViewContent: {
+      paddingBottom: 16, // Consistent bottom padding
+    },
+
+    // Legacy container style for backward compatibility
+    container: {
+      flex: 1,
+      backgroundColor: theme.colors.background.default,
     },
     header: {
       flexDirection: 'row',
@@ -62,18 +81,25 @@ export const createStyles = ({
       paddingTop: 0,
       marginTop: 16,
     },
-    actionsContainer: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
+    // Fixed actions footer - positioned at bottom of screen
+    actionsFooter: {
       backgroundColor: theme.colors.background.default,
-      paddingHorizontal: 16,
-      paddingVertical: 16,
-      paddingBottom: 32,
       borderTopWidth: 1,
       borderTopColor: theme.colors.border.muted,
+      paddingHorizontal: 16,
+      paddingTop: 16,
+      paddingBottom: 32, // Extra padding for safe area
+    },
+
+    // Action buttons container
+    actionsContainer: {
       flexDirection: 'row',
+      gap: 12,
+    },
+
+    // Single action container (for add funds)
+    singleActionContainer: {
+      alignItems: 'center',
       gap: 12,
     },
     actionButton: {
@@ -97,10 +123,6 @@ export const createStyles = ({
     },
     positionWarningText: {
       textAlign: 'center',
-    },
-    addFundsContainer: {
-      flexDirection: 'column',
-      alignItems: 'center',
     },
     riskDisclaimer: {
       paddingHorizontal: 16,

@@ -24,6 +24,7 @@ import PerpsOpenOrderCard from '../PerpsOpenOrderCard';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Order } from '../../controllers/types';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   marketStats,
@@ -87,6 +88,20 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
   const handleTooltipClose = useCallback(() => {
     setSelectedTooltip(null);
+  }, []);
+
+  const handleOrderCancel = useCallback(async (orderToCancel: Order) => {
+    try {
+      DevLogger.log('Canceling order:', orderToCancel.orderId);
+      const controller = Engine.context.PerpsController;
+      await controller.cancelOrder({
+        orderId: orderToCancel.orderId,
+        coin: orderToCancel.symbol,
+      });
+      DevLogger.log('Order cancellation request sent');
+    } catch (error) {
+      DevLogger.log('Failed to cancel order:', error);
+    }
   }, []);
 
   const renderTooltipModal = useCallback(() => {
@@ -258,22 +273,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
                     expanded
                     showIcon
                     disabled
-                    onCancel={async (orderToCancel) => {
-                      try {
-                        DevLogger.log(
-                          'Canceling order:',
-                          orderToCancel.orderId,
-                        );
-                        const controller = Engine.context.PerpsController;
-                        await controller.cancelOrder({
-                          orderId: orderToCancel.orderId,
-                          coin: orderToCancel.symbol,
-                        });
-                        DevLogger.log('Order cancellation request sent');
-                      } catch (error) {
-                        DevLogger.log('Failed to cancel order:', error);
-                      }
-                    }}
+                    onCancel={handleOrderCancel}
                   />
                 ))}
               </>
