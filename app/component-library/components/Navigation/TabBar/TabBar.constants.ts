@@ -13,4 +13,4 @@ export const ICON_BY_TAB_BAR_ICON_KEY: IconByTabBarIconKey = {
   [TabBarIconKey.Setting]: IconName.Setting,
 };
 
-export const TAB_BAR_HEIGHT = 60;
+export const TAB_BAR_HEIGHT = 54; // 22px text line height + 20px icon height + 12px padding top
