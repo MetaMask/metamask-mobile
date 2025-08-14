@@ -528,18 +528,18 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                             data={
                               [
                                 {
-                                  "description": "Convert cash to USDC on Linea",
+                                  "description": "Low-cost card or bank transfer",
                                   "enabled": true,
-                                  "icon": "Add",
-                                  "label": "Deposit",
+                                  "icon": "Bank",
+                                  "label": "Fund with cash",
                                   "onPress": [Function],
                                   "testID": "add-funds-bottom-sheet-deposit-option",
                                 },
                                 {
-                                  "description": "Exchange tokens into USDC on Linea",
+                                  "description": "Swap tokens into USDC on Linea",
                                   "enabled": true,
                                   "icon": "SwapHorizontal",
-                                  "label": "Swap",
+                                  "label": "Fund with crypto",
                                   "onPress": [Function],
                                   "testID": "add-funds-bottom-sheet-swap-option",
                                 },
@@ -616,7 +616,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                         >
                                           <SvgMock
                                             fill="currentColor"
-                                            name="Add"
+                                            name="Bank"
                                             style={
                                               [
                                                 {
@@ -660,7 +660,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                           }
                                           testID="label"
                                         >
-                                          Deposit
+                                          Fund with cash
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -674,7 +674,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                             }
                                           }
                                         >
-                                          Convert cash to USDC on Linea
+                                          Low-cost card or bank transfer
                                         </Text>
                                       </View>
                                     </View>
@@ -773,7 +773,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                           }
                                           testID="label"
                                         >
-                                          Swap
+                                          Fund with crypto
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -787,7 +787,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                             }
                                           }
                                         >
-                                          Exchange tokens into USDC on Linea
+                                          Swap tokens into USDC on Linea
                                         </Text>
                                       </View>
                                     </View>
@@ -1339,18 +1339,18 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                             data={
                               [
                                 {
-                                  "description": "Convert cash to USDC on Linea",
+                                  "description": "Low-cost card or bank transfer",
                                   "enabled": false,
-                                  "icon": "Add",
-                                  "label": "Deposit",
+                                  "icon": "Bank",
+                                  "label": "Fund with cash",
                                   "onPress": [Function],
                                   "testID": "add-funds-bottom-sheet-deposit-option",
                                 },
                                 {
-                                  "description": "Exchange tokens into USDC on Linea",
+                                  "description": "Swap tokens into USDC on Linea",
                                   "enabled": false,
                                   "icon": "SwapHorizontal",
-                                  "label": "Swap",
+                                  "label": "Fund with crypto",
                                   "onPress": [Function],
                                   "testID": "add-funds-bottom-sheet-swap-option",
                                 },
@@ -1934,18 +1934,18 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                             data={
                               [
                                 {
-                                  "description": "Convert cash to USDC on Linea",
+                                  "description": "Low-cost card or bank transfer",
                                   "enabled": true,
-                                  "icon": "Add",
-                                  "label": "Deposit",
+                                  "icon": "Bank",
+                                  "label": "Fund with cash",
                                   "onPress": [Function],
                                   "testID": "add-funds-bottom-sheet-deposit-option",
                                 },
                                 {
-                                  "description": "Exchange tokens into USDC on Linea",
+                                  "description": "Swap tokens into USDC on Linea",
                                   "enabled": false,
                                   "icon": "SwapHorizontal",
-                                  "label": "Swap",
+                                  "label": "Fund with crypto",
                                   "onPress": [Function],
                                   "testID": "add-funds-bottom-sheet-swap-option",
                                 },
@@ -2022,7 +2022,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                         >
                                           <SvgMock
                                             fill="currentColor"
-                                            name="Add"
+                                            name="Bank"
                                             style={
                                               [
                                                 {
@@ -2066,7 +2066,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                           }
                                           testID="label"
                                         >
-                                          Deposit
+                                          Fund with cash
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -2080,7 +2080,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                             }
                                           }
                                         >
-                                          Convert cash to USDC on Linea
+                                          Low-cost card or bank transfer
                                         </Text>
                                       </View>
                                     </View>
@@ -2637,18 +2637,18 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                             data={
                               [
                                 {
-                                  "description": "Convert cash to USDC on Linea",
+                                  "description": "Low-cost card or bank transfer",
                                   "enabled": false,
-                                  "icon": "Add",
-                                  "label": "Deposit",
+                                  "icon": "Bank",
+                                  "label": "Fund with cash",
                                   "onPress": [Function],
                                   "testID": "add-funds-bottom-sheet-deposit-option",
                                 },
                                 {
-                                  "description": "Exchange tokens into USDC on Linea",
+                                  "description": "Swap tokens into USDC on Linea",
                                   "enabled": true,
                                   "icon": "SwapHorizontal",
-                                  "label": "Swap",
+                                  "label": "Fund with crypto",
                                   "onPress": [Function],
                                   "testID": "add-funds-bottom-sheet-swap-option",
                                 },
@@ -2774,7 +2774,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                           }
                                           testID="label"
                                         >
-                                          Swap
+                                          Fund with crypto
                                         </Text>
                                         <Text
                                           accessibilityRole="text"
@@ -2788,7 +2788,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                             }
                                           }
                                         >
-                                          Exchange tokens into USDC on Linea
+                                          Swap tokens into USDC on Linea
                                         </Text>
                                       </View>
                                     </View>

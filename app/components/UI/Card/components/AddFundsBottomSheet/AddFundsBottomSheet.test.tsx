@@ -187,10 +187,10 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} />
     ));
 
-    expect(getByText('Deposit')).toBeTruthy();
-    expect(getByText('Swap')).toBeTruthy();
-    expect(getByText('Convert cash to USDC on Linea')).toBeTruthy();
-    expect(getByText('Exchange tokens into USDC on Linea')).toBeTruthy();
+    expect(getByText('Fund with cash')).toBeTruthy();
+    expect(getByText('Fund with crypto')).toBeTruthy();
+    expect(getByText('Low-cost card or bank transfer')).toBeTruthy();
+    expect(getByText('Swap tokens into USDC on Linea')).toBeTruthy();
   });
 
   it('handles deposit option press correctly', () => {
@@ -198,7 +198,7 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} />
     ));
 
-    fireEvent.press(getByText('Deposit'));
+    fireEvent.press(getByText('Fund with cash'));
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
@@ -217,7 +217,7 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} />
     ));
 
-    fireEvent.press(getByText('Swap'));
+    fireEvent.press(getByText('Fund with crypto'));
 
     expect(mockOpenSwaps).toHaveBeenCalledWith({
       chainId: '0xe708',
@@ -231,7 +231,7 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} priorityToken={undefined} />
     ));
 
-    fireEvent.press(getByText('Swap'));
+    fireEvent.press(getByText('Fund with crypto'));
 
     expect(mockOpenSwaps).not.toHaveBeenCalled();
   });
@@ -246,8 +246,8 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} priorityToken={usdtToken} />
     ));
 
-    expect(getByText('Convert cash to USDT on Linea')).toBeTruthy();
-    expect(getByText('Exchange tokens into USDT on Linea')).toBeTruthy();
+    expect(getByText('Low-cost card or bank transfer')).toBeTruthy();
+    expect(getByText('Swap tokens into USDT on Linea')).toBeTruthy();
   });
 
   it('renders both options for USDT token', () => {
@@ -261,8 +261,8 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} priorityToken={usdtToken} />
     ));
 
-    expect(getByText('Deposit')).toBeTruthy();
-    expect(getByText('Swap')).toBeTruthy();
+    expect(getByText('Fund with cash')).toBeTruthy();
+    expect(getByText('Fund with crypto')).toBeTruthy();
   });
 
   it('renders both options for USDC token', () => {
@@ -270,8 +270,8 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} />
     ));
 
-    expect(getByText('Deposit')).toBeTruthy();
-    expect(getByText('Swap')).toBeTruthy();
+    expect(getByText('Fund with cash')).toBeTruthy();
+    expect(getByText('Fund with crypto')).toBeTruthy();
   });
 
   it('renders both options for other tokens like ETH', () => {
@@ -286,10 +286,10 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} priorityToken={ethToken} />
     ));
 
-    expect(getByText('Deposit')).toBeTruthy();
-    expect(getByText('Swap')).toBeTruthy();
-    expect(getByText('Convert cash to ETH on Linea')).toBeTruthy();
-    expect(getByText('Exchange tokens into ETH on Linea')).toBeTruthy();
+    expect(getByText('Fund with cash')).toBeTruthy();
+    expect(getByText('Fund with crypto')).toBeTruthy();
+    expect(getByText('Low-cost card or bank transfer')).toBeTruthy();
+    expect(getByText('Swap tokens into ETH on Linea')).toBeTruthy();
   });
 
   it('navigates to deposit route when deposit callback is executed', () => {
@@ -297,7 +297,7 @@ describe('AddFundsBottomSheet', () => {
       <AddFundsBottomSheet {...defaultProps} />
     ));
 
-    fireEvent.press(getByText('Deposit'));
+    fireEvent.press(getByText('Fund with cash'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ID);
   });
