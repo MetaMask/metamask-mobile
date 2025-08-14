@@ -8,6 +8,7 @@ import styleSheet from './pay-token-balance.styles';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { strings } from '../../../../../../locales/i18n';
+import AnimatedSpinner, { SpinnerSize } from '../../../../UI/AnimatedSpinner';
 
 export function PayTokenBalance() {
   const { styles } = useStyles(styleSheet, {});
@@ -22,16 +23,17 @@ export function PayTokenBalance() {
       t.chainId === chainId,
   );
 
-  if (!token) {
-    return null;
-  }
+  const isLoading = !token || token.balanceFiat === 'tokenBalanceLoading';
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text} color={TextColor.Alternative}>
-        {strings('confirm.available_balance')}
-        {token.balanceFiat}
-      </Text>
+      {isLoading && <AnimatedSpinner size={SpinnerSize.SM} />}
+      {!isLoading && (
+        <Text style={styles.text} color={TextColor.Alternative}>
+          {strings('confirm.available_balance')}
+          {token.balanceFiat}
+        </Text>
+      )}
     </View>
   );
 }

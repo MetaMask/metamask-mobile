@@ -436,6 +436,7 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -459,7 +460,6 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -1247,6 +1247,7 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -1270,7 +1271,6 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -1842,6 +1842,7 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -1865,7 +1866,6 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -2545,6 +2545,7 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -2568,7 +2569,6 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -3248,6 +3248,7 @@ exports[`AddFundsBottomSheet renders with only swap option when token is not USD
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -3271,7 +3272,6 @@ exports[`AddFundsBottomSheet renders with only swap option when token is not USD
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
