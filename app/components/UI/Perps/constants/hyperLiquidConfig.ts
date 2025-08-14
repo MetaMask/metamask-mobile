@@ -107,6 +107,7 @@ const BUILDER_FEE_MAX_FEE_DECIMAL = 0.001;
 // Builder fee configuration
 export const BUILDER_FEE_CONFIG = {
   // Test wallet address for builder fees, currently staking test wallet
+  // FIXME: use official testnetBuilder as soon as available
   testnetBuilder: '0x316BDE155acd07609872a56Bc32CcfB0B13201fA' as Hex,
   // Production builder wallet
   mainnetBuilder: '0xe95a5e31904e005066614247d309e00d8ad753aa' as Hex,
@@ -123,6 +124,7 @@ export const REFERRAL_CONFIG = {
   // Production referral code METAMASK
   mainnetCode: 'METAMASK',
   // Development/testnet referral code
+  // FIXME: use official testnetCode as soon as available
   testnetCode: 'MSO',
 };
 

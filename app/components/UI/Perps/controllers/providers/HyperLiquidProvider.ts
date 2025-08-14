@@ -2066,16 +2066,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       if (userAddress.toLowerCase() === referrerAddress.toLowerCase()) {
         // if the user is the builder, we don't need to set a referral code
-        console.error('User is the referrer - skipping', {
-          network,
-          referrerAddress,
-          userAddress,
-        });
-        DevLogger.log('User is the referrer - skipping', {
-          network,
-          referrerAddress,
-          userAddress,
-        });
         return;
       }
 
@@ -2129,7 +2119,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const stage = referral.referrerState?.stage;
 
       if (stage === 'ready') {
-        const onFile = referral.referrerState?.data.code;
+        const onFile = referral.referrerState?.data?.code || '';
         if (onFile.toUpperCase() !== code.toUpperCase()) {
           throw new Error(
             `Ready for referrals but there is a config code mismatch ${onFile} vs ${code}`,

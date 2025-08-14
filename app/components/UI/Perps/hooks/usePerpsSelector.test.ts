@@ -199,7 +199,7 @@ describe('usePerpsSelector', () => {
     } as PerpsControllerState;
 
     const memoizedSelector = (state: PerpsControllerState | undefined) =>
-      state?.isFirstTimeUser ?? false;
+      state?.isFirstTimeUser.mainnet ?? false;
 
     mockUseSelector.mockImplementation((selectorFn) => {
       // Simulate Redux selector behavior
@@ -220,5 +220,6 @@ describe('usePerpsSelector', () => {
 
     // Assert
     expect(firstResult).toBe(secondResult);
+    expect(firstResult).toBe(true);
   });
 });
