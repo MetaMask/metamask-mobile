@@ -31,7 +31,7 @@ jest.mock('../../../Swaps/utils', () => ({
 jest.mock('../../../../hooks/useMetrics', () => ({
   useMetrics: jest.fn(),
   MetaMetricsEvents: {
-    CARD_ADD_FUNDS_SWAPS_CLICKED: 'card_add_funds_swaps_clicked',
+    CARD_ADD_FUNDS_DEPOSIT_CLICKED: 'card_add_funds_deposit_clicked',
     RAMPS_BUTTON_CLICKED: 'ramps_button_clicked',
   },
 }));
@@ -153,18 +153,6 @@ describe('AddFundsBottomSheet', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders with only swap option when token is not USDC and matches snapshot', () => {
-    const nonUSDCToken = {
-      ...mockPriorityToken,
-      symbol: 'ETH',
-    };
-
-    const { toJSON } = renderWithProvider(() => (
-      <AddFundsBottomSheet {...defaultProps} priorityToken={nonUSDCToken} />
-    ));
-    expect(toJSON()).toMatchSnapshot();
-  });
-
   it('renders with only deposit option when swaps are not allowed and matches snapshot', () => {
     (isSwapsAllowed as jest.Mock).mockReturnValue(false);
 
@@ -213,6 +201,9 @@ describe('AddFundsBottomSheet', () => {
     fireEvent.press(getByText('Deposit'));
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
+    );
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
     );
     expect(mockTrackEvent).toHaveBeenCalled();
@@ -246,15 +237,58 @@ describe('AddFundsBottomSheet', () => {
   });
 
   it('renders correct descriptions for different tokens', () => {
+    const usdtToken = {
+      ...mockPriorityToken,
+      symbol: 'USDT',
+    };
+
+    const { getByText } = renderWithProvider(() => (
+      <AddFundsBottomSheet {...defaultProps} priorityToken={usdtToken} />
+    ));
+
+    expect(getByText('Convert cash to USDT on Linea')).toBeTruthy();
+    expect(getByText('Exchange tokens into USDT on Linea')).toBeTruthy();
+  });
+
+  it('renders both options for USDT token', () => {
+    const usdtToken = {
+      ...mockPriorityToken,
+      symbol: 'USDT',
+      name: 'Tether USD',
+    };
+
+    const { getByText } = renderWithProvider(() => (
+      <AddFundsBottomSheet {...defaultProps} priorityToken={usdtToken} />
+    ));
+
+    expect(getByText('Deposit')).toBeTruthy();
+    expect(getByText('Swap')).toBeTruthy();
+  });
+
+  it('renders both options for USDC token', () => {
+    const { getByText } = renderWithProvider(() => (
+      <AddFundsBottomSheet {...defaultProps} />
+    ));
+
+    expect(getByText('Deposit')).toBeTruthy();
+    expect(getByText('Swap')).toBeTruthy();
+  });
+
+  it('renders both options for other tokens like ETH', () => {
     const ethToken = {
       ...mockPriorityToken,
       symbol: 'ETH',
+      name: 'Ethereum',
+      decimals: 18,
     };
 
     const { getByText } = renderWithProvider(() => (
       <AddFundsBottomSheet {...defaultProps} priorityToken={ethToken} />
     ));
 
+    expect(getByText('Deposit')).toBeTruthy();
+    expect(getByText('Swap')).toBeTruthy();
+    expect(getByText('Convert cash to ETH on Linea')).toBeTruthy();
     expect(getByText('Exchange tokens into ETH on Linea')).toBeTruthy();
   });
 
