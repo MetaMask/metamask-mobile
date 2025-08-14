@@ -70,6 +70,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
+  const [candleCount, setCandleCount] = useState<number>(45); // Default zoom level: 45 candles
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
@@ -78,6 +79,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     coin: market?.symbol || '',
     selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
+    candleCount, // Number of candles to fetch for zoom functionality
   });
 
   const handleDurationChange = useCallback((newDuration: TimeDuration) => {
@@ -93,6 +95,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const handleGearPress = useCallback(() => {
     setIsCandlePeriodBottomSheetVisible(true);
+  }, []);
+
+  const handleZoomChange = useCallback((newCandleCount: number) => {
+    setCandleCount(newCandleCount);
   }, []);
 
   const handleBackPress = () => {
@@ -160,8 +166,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             isLoading={isLoadingHistory}
             height={350}
             selectedDuration={selectedDuration}
+            candleCount={candleCount}
             onDurationChange={handleDurationChange}
             onGearPress={handleGearPress}
+            onZoomChange={handleZoomChange}
           />
         </View>
 

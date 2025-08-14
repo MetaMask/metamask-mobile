@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Dimensions } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, Dimensions, Pressable } from 'react-native';
 import { CandlestickChart } from 'react-native-wagmi-charts';
 import { styleSheet } from './PerpsCandlestickChart.styles';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -32,9 +32,11 @@ interface CandlestickChartComponentProps {
   height?: number;
   selectedDuration?: TimeDuration;
   tpslLines?: TPSLLines;
+  candleCount?: number; // Current zoom level (number of candles to display)
 
   onDurationChange?: (duration: TimeDuration) => void;
   onGearPress?: () => void;
+  onZoomChange?: (candleCount: number) => void; // Callback when zoom changes
 }
 
 const screenWidth = Dimensions.get('window').width;
@@ -46,12 +48,33 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   height = PERPS_CHART_CONFIG.DEFAULT_HEIGHT,
   selectedDuration = TimeDuration.ONE_DAY,
   tpslLines,
+  candleCount = 45, // Default zoom level: 45 candles
   onDurationChange,
   onGearPress,
+  onZoomChange,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const [showTPSLLines, setShowTPSLLines] = useState(false);
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
+
+  // Zoom constants
+  const MIN_CANDLES = 10;
+  const MAX_CANDLES = 250;
+  const ZOOM_STEP = 15; // How many candles to add/remove per zoom action
+
+  // Zoom functions
+  const handleZoomIn = useCallback(() => {
+    const newCandleCount = Math.max(MIN_CANDLES, candleCount - ZOOM_STEP);
+    onZoomChange?.(newCandleCount);
+  }, [candleCount, onZoomChange]);
+
+  const handleZoomOut = useCallback(() => {
+    const newCandleCount = Math.min(MAX_CANDLES, candleCount + ZOOM_STEP);
+    onZoomChange?.(newCandleCount);
+  }, [candleCount, onZoomChange]);
+
+  const canZoomIn = candleCount > MIN_CANDLES;
+  const canZoomOut = candleCount < MAX_CANDLES;
 
   // Get candlestick colors from centralized configuration
   // This allows for easy customization and potential user settings integration
@@ -226,6 +249,46 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           chartWidth={chartWidth}
           testID={PerpsChartAdditionalSelectorsIDs.CANDLESTICK_X_AXIS}
         />
+
+        {/* Zoom Controls */}
+        <View style={styles.zoomControls}>
+          <Pressable
+            style={[
+              styles.zoomButton,
+              !canZoomOut && styles.zoomButtonDisabled,
+            ]}
+            onPress={handleZoomOut}
+            disabled={!canZoomOut}
+          >
+            <Text
+              variant={TextVariant.BodySM}
+              color={canZoomOut ? TextColor.Default : TextColor.Muted}
+            >
+              -
+            </Text>
+          </Pressable>
+
+          <Text
+            variant={TextVariant.BodyXS}
+            color={TextColor.Muted}
+            style={styles.candleCountText}
+          >
+            {candleCount} candles
+          </Text>
+
+          <Pressable
+            style={[styles.zoomButton, !canZoomIn && styles.zoomButtonDisabled]}
+            onPress={handleZoomIn}
+            disabled={!canZoomIn}
+          >
+            <Text
+              variant={TextVariant.BodySM}
+              color={canZoomIn ? TextColor.Default : TextColor.Muted}
+            >
+              +
+            </Text>
+          </Pressable>
+        </View>
 
         {/* Time Duration Selector */}
         <PerpsTimeDurationSelector

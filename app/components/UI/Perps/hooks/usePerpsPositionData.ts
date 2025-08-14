@@ -13,12 +13,14 @@ interface UsePerpsPositionDataProps {
   coin: string;
   selectedDuration: TimeDuration;
   selectedInterval: CandlePeriod;
+  candleCount?: number; // Optional custom candle count for zoom functionality
 }
 
 export const usePerpsPositionData = ({
   coin,
   selectedDuration,
   selectedInterval,
+  candleCount: customCandleCount,
 }: UsePerpsPositionDataProps) => {
   const [candleData, setCandleData] = useState<CandleData | null>(null);
   const [priceData, setPriceData] = useState<PriceUpdate | null>(null);
@@ -59,10 +61,9 @@ export const usePerpsPositionData = ({
   );
 
   const fetchHistoricalCandles = useCallback(async () => {
-    const candleCount = calculateCandleCount(
-      selectedDuration,
-      selectedInterval,
-    );
+    const candleCount =
+      customCandleCount ??
+      calculateCandleCount(selectedDuration, selectedInterval);
     DevLogger.log(
       `Fetching ${candleCount} candles for ${selectedDuration} duration with ${selectedInterval} period`,
     );
@@ -73,7 +74,7 @@ export const usePerpsPositionData = ({
         candleCount,
       );
     return historicalData;
-  }, [coin, selectedDuration, selectedInterval]);
+  }, [coin, selectedDuration, selectedInterval, customCandleCount]);
 
   const subscribeToPriceUpdates = useCallback(() => {
     try {

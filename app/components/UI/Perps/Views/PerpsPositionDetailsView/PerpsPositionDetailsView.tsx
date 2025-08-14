@@ -59,6 +59,7 @@ const PerpsPositionDetailsView: React.FC = () => {
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
   ] = useState(false);
+  const [candleCount, setCandleCount] = useState<number>(45); // Default zoom level: 45 candles
   const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Navigate back to refresh the position
@@ -75,6 +76,7 @@ const PerpsPositionDetailsView: React.FC = () => {
     coin: position?.coin || '',
     selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
+    candleCount, // Number of candles to fetch for zoom functionality
   });
 
   const handleDurationChange = useCallback((newDuration: TimeDuration) => {
@@ -86,6 +88,10 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const handleCandlePeriodChange = useCallback((newPeriod: CandlePeriod) => {
     setSelectedCandlePeriod(newPeriod);
+  }, []);
+
+  const handleZoomChange = useCallback((newCandleCount: number) => {
+    setCandleCount(newCandleCount);
   }, []);
 
   const handleGearPress = useCallback(() => {
@@ -145,6 +151,7 @@ const PerpsPositionDetailsView: React.FC = () => {
             isLoading={isLoadingHistory}
             height={350}
             selectedDuration={selectedDuration}
+            candleCount={candleCount}
             tpslLines={{
               takeProfitPrice: position.takeProfitPrice,
               stopLossPrice: position.stopLossPrice,
@@ -154,6 +161,7 @@ const PerpsPositionDetailsView: React.FC = () => {
             }}
             onDurationChange={handleDurationChange}
             onGearPress={handleGearPress}
+            onZoomChange={handleZoomChange}
           />
         </View>
 

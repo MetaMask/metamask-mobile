@@ -77,5 +77,31 @@ export const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.border.muted,
       opacity: PERPS_CHART_CONFIG.GRID_LINE_OPACITY.MINOR,
     },
+    // Zoom controls styles
+    zoomControls: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginVertical: 8,
+      gap: 16,
+    },
+    zoomButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: colors.background.alternative,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    zoomButtonDisabled: {
+      opacity: 0.5,
+      backgroundColor: colors.background.muted,
+    },
+    candleCountText: {
+      minWidth: 80,
+      textAlign: 'center',
+    },
   });
 };
