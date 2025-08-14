@@ -10,6 +10,7 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
         {
           "backgroundColor": "#ffffff",
           "flexDirection": "row",
+          "gap": 16,
           "padding": 16,
         },
         false,
@@ -20,20 +21,8 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
     <View
       style={
         {
-          "width": undefined,
-        }
-      }
-    >
-      <View
-        onLayout={[Function]}
-      />
-    </View>
-    <View
-      style={
-        {
           "alignItems": "center",
           "flex": 1,
-          "marginHorizontal": 16,
         }
       }
     >
@@ -51,17 +40,6 @@ exports[`NetworkVerificationInfo renders correctly 1`] = `
       >
         Add Test Chain
       </Text>
-    </View>
-    <View
-      style={
-        {
-          "width": undefined,
-        }
-      }
-    >
-      <View
-        onLayout={[Function]}
-      />
     </View>
   </View>
   <RCTScrollView
@@ -536,6 +514,7 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
         {
           "backgroundColor": "#ffffff",
           "flexDirection": "row",
+          "gap": 16,
           "padding": 16,
         },
         false,
@@ -546,20 +525,8 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
     <View
       style={
         {
-          "width": undefined,
-        }
-      }
-    >
-      <View
-        onLayout={[Function]}
-      />
-    </View>
-    <View
-      style={
-        {
           "alignItems": "center",
           "flex": 1,
-          "marginHorizontal": 16,
         }
       }
     >
@@ -577,17 +544,6 @@ exports[`NetworkVerificationInfo renders updated details when isNetworkRpcUpdate
       >
         Update Test Chain
       </Text>
-    </View>
-    <View
-      style={
-        {
-          "width": undefined,
-        }
-      }
-    >
-      <View
-        onLayout={[Function]}
-      />
     </View>
   </View>
   <RCTScrollView

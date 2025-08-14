@@ -5,12 +5,6 @@ import { useTheme } from '../../../../../util/theme';
 import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import createStyles from '../../styles';
-import Icon, {
-  IconSize,
-  IconName,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
-import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
 import AccountGroupBalanceChange from '../../../Assets/BalanceChange/AccountGroupBalanceChange';
 import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
@@ -169,8 +163,11 @@ export const PortfolioBalance = () => {
   return (
     <View style={styles.portfolioBalance}>
       <View>
-        <View>
-          {selectedDisplay ? (
+        {selectedAccountMultichainBalance?.displayBalance ? (
+          <TouchableOpacity
+            onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
+            testID="balance-container"
+          >
             <View style={styles.balanceContainer}>
               <SensitiveText
                 isHidden={privacyMode}
@@ -180,29 +177,15 @@ export const PortfolioBalance = () => {
               >
                 {selectedDisplay}
               </SensitiveText>
-              <TouchableOpacity
-                onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
-                testID="balance-container"
-              >
-                <Icon
-                  style={styles.privacyIcon}
-                  name={privacyMode ? IconName.EyeSlash : IconName.Eye}
-                  size={IconSize.Md}
-                  color={IconColor.Default}
-                  testID={
-                    privacyMode ? EYE_SLASH_ICON_TEST_ID : EYE_ICON_TEST_ID
-                  }
-                />
-              </TouchableOpacity>
             </View>
-          ) : (
-            <View style={styles.loaderWrapper}>
-              <Loader />
-            </View>
-          )}
 
-          {renderAggregatedPercentage()}
-        </View>
+            {renderAggregatedPercentage()}
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.loaderWrapper}>
+            <Loader />
+          </View>
+        )}
       </View>
     </View>
   );
