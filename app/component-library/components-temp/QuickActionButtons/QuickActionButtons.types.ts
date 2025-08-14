@@ -30,11 +30,3 @@ export interface QuickActionButtonsProps extends BoxProps {
    */
   spacerProps?: BoxProps;
 }
-
-/**
- * Style sheet input parameters
- */
-export interface QuickActionButtonsStyleSheetVars {
-  style?: BoxProps['style'];
-  buttonsPerRow: number;
-}
