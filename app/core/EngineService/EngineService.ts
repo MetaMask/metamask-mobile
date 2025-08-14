@@ -13,6 +13,7 @@ import {
   NO_VAULT_IN_BACKUP_ERROR,
   VAULT_CREATION_ERROR,
 } from '../../constants/error';
+import { isTest } from '../../util/test/utils';
 import { getTraceTags } from '../../util/sentry/tags';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import getUIStartupSpan from '../Performance/UIStartup';
@@ -64,8 +65,9 @@ export class EngineService {
       parentContext: getUIStartupSpan(),
       tags: getTraceTags(reduxState),
     });
-    const state =
-      persistedState?.backgroundState ?? reduxState?.engine?.backgroundState;
+    const state = isTest
+      ? reduxState.engine.backgroundState
+      : persistedState?.backgroundState ?? {};
     const Engine = UntypedEngine;
     try {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
