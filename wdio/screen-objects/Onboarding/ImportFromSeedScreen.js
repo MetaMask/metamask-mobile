@@ -99,6 +99,7 @@ class ImportFromSeedScreen {
         await Gestures.waitAndTap(this.continueButton);
       } else {
         const element = await this.continueButton;
+        await AppwrightSelectors.hideKeyboard(this.device);
         await element.tap();
       }
     } else {

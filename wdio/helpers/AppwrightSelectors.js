@@ -34,6 +34,10 @@ export default class AppwrightSelectors {
     return device.webDriverClient.capabilities.platformName === 'android' || await device.webDriverClient.capabilities.platformName === 'Android';
   }
 
+  static async hideKeyboard(device) {
+    await device.webDriverClient.hideKeyboard();
+  }
+
   static async scrollIntoView(device, element) {
     for (let i = 0; i < 5; i++) {
       try {
