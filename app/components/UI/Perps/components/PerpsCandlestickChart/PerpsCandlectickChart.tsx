@@ -67,6 +67,21 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       return [];
     }
 
+    // Debug: Log candle data including any live candles
+    const latestCandle = candleData.candles[candleData.candles.length - 1];
+    const now = Date.now();
+    const isLiveCandle =
+      latestCandle && latestCandle.time > now - 60 * 60 * 1000; // Within last hour
+
+    console.log('Chart candle data:', {
+      totalCandles: candleData.candles.length,
+      latestCandle,
+      isLiveCandle,
+      latestCandleTime: latestCandle
+        ? new Date(latestCandle.time).toLocaleString()
+        : null,
+    });
+
     return candleData.candles
       .map((candle) => {
         const open = parseFloat(candle.open);
@@ -87,9 +102,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
         return { timestamp: candle.time, open, high, low, close };
       })
-      .filter(
-        (candle): candle is NonNullable<typeof candle> => candle !== null,
-      ); // Remove invalid candles
+      .filter((candle): candle is NonNullable<typeof candle> => candle !== null) // Remove invalid candles
+      .sort((a, b) => a.timestamp - b.timestamp); // Sort chronologically - critical for correct display
   }, [candleData]);
 
   // Track when data has been initially loaded
