@@ -901,8 +901,14 @@ describe('AccountTreeController Selectors', () => {
             [WALLET_ID_1]: {
               ...mockWallet1,
               groups: {
-                'keyring:1/ethereum': { accounts: [ACCOUNT_ID_1] },
-                'snap:solana/mainnet': { accounts: [ACCOUNT_ID_2] },
+                'keyring:1/ethereum': {
+                  accounts: [ACCOUNT_ID_1],
+                  id: 'keyring:1/ethereum',
+                },
+                'snap:solana/mainnet': {
+                  accounts: [ACCOUNT_ID_2],
+                  id: 'snap:solana/mainnet',
+                },
               },
             },
           },
@@ -961,8 +967,14 @@ describe('AccountTreeController Selectors', () => {
             [WALLET_ID_1]: {
               ...mockWallet1,
               groups: {
-                'entropy:1/ethereum': { accounts: [ACCOUNT_ID_1] },
-                'entropy:2/solana': { accounts: [ACCOUNT_ID_2] },
+                'entropy:1/ethereum': {
+                  accounts: [ACCOUNT_ID_1],
+                  id: 'entropy:1/ethereum',
+                },
+                'entropy:2/solana': {
+                  accounts: [ACCOUNT_ID_2],
+                  id: 'entropy:2/solana',
+                },
               },
             },
           },
