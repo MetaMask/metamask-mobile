@@ -10,7 +10,11 @@ import {
   NativeRampsSdk,
   NativeTransakAccessToken,
 } from '@consensys/native-ramps-sdk';
-import { DepositRegion } from '../constants';
+import { DepositRegion ,
+  DEBIT_CREDIT_PAYMENT_METHOD,
+  USDC_TOKEN,
+  USD_CURRENCY,
+} from '../constants';
 
 jest.mock('./useDepositSdkMethod');
 jest.mock('../sdk');
@@ -60,6 +64,12 @@ describe('useKycPolling', () => {
         isoCode: 'US',
       } as DepositRegion,
       setSelectedRegion: jest.fn(),
+      paymentMethod: DEBIT_CREDIT_PAYMENT_METHOD,
+      setPaymentMethod: jest.fn(),
+      cryptoCurrency: USDC_TOKEN,
+      setCryptoCurrency: jest.fn(),
+      fiatCurrency: USD_CURRENCY,
+      setFiatCurrency: jest.fn(),
     });
   });
 
