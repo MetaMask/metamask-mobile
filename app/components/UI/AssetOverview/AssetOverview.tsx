@@ -52,10 +52,7 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  getDecimalChainId,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { TokenI } from '../Tokens/types';
@@ -227,11 +224,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           networkConfiguration.defaultRpcEndpointIndex
         ]?.networkClientId;
 
-      if (!isRemoveGlobalNetworkSelectorEnabled) {
-        await MultichainNetworkController.setActiveNetwork(
-          networkClientId as string,
-        );
-      }
+      await MultichainNetworkController.setActiveNetwork(
+        networkClientId as string,
+      );
     }
 
     if ((asset.isETH || asset.isNative) && ticker) {
