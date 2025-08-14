@@ -16,7 +16,9 @@ import { useSendContext } from '../../../context/send-context/send-context';
 import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
+import { useRecipientSelectionMetrics } from '../../../hooks/send/metrics/useRecipientSelectionMetrics';
 import { useSendActions } from '../../../hooks/send/useSendActions';
+import { RecipientInputMethod } from '../../../context/send-context/send-metrics-context';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientInput } from '../../recipient-input';
 import { RecipientType } from '../../UI/recipient';
@@ -28,6 +30,8 @@ export const Recipient = () => {
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
+  const { captureRecipientSelected, setRecipientInputMethod } =
+    useRecipientSelectionMetrics();
   const styles = styleSheet();
   useSendNavbar({ currentRoute: Routes.SEND.RECIPIENT });
   const { toAddressError } = useToAddressValidation(addressInput);
@@ -38,15 +42,36 @@ export const Recipient = () => {
     }
     updateTo(addressInput);
     handleSubmitPress(addressInput);
-  }, [addressInput, toAddressError, updateTo, handleSubmitPress]);
+    setRecipientInputMethod(RecipientInputMethod.Manual);
+    captureRecipientSelected();
+  }, [
+    addressInput,
+    toAddressError,
+    updateTo,
+    handleSubmitPress,
+    captureRecipientSelected,
+    setRecipientInputMethod,
+  ]);
 
   const onRecipientSelected = useCallback(
-    (recipient: RecipientType) => {
-      const to = recipient.address;
-      updateTo(to);
-      handleSubmitPress(to);
-    },
-    [updateTo, handleSubmitPress],
+    (
+        recipientType:
+          | typeof RecipientInputMethod.SelectAccount
+          | typeof RecipientInputMethod.SelectContact,
+      ) =>
+      (recipient: RecipientType) => {
+        const to = recipient.address;
+        updateTo(to);
+        setRecipientInputMethod(recipientType);
+        captureRecipientSelected();
+        handleSubmitPress(to);
+      },
+    [
+      updateTo,
+      handleSubmitPress,
+      captureRecipientSelected,
+      setRecipientInputMethod,
+    ],
   );
 
   return (
@@ -68,7 +93,9 @@ export const Recipient = () => {
                 >
                   <RecipientList
                     data={accounts}
-                    onRecipientSelected={onRecipientSelected}
+                    onRecipientSelected={onRecipientSelected(
+                      RecipientInputMethod.SelectAccount,
+                    )}
                   />
                 </Box>
                 <Box
@@ -78,7 +105,9 @@ export const Recipient = () => {
                 >
                   <RecipientList
                     data={contacts}
-                    onRecipientSelected={onRecipientSelected}
+                    onRecipientSelected={onRecipientSelected(
+                      RecipientInputMethod.SelectContact,
+                    )}
                     emptyMessage={strings('send.no_contacts_found')}
                   />
                 </Box>
