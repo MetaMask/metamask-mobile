@@ -263,7 +263,7 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
   createDeepEqualSelector(
     [selectInternalAccountsByGroupId, selectNetworkConfigurationsByCaipChainId],
     (internalAccounts, networkConfigurations) => {
-      // Pre-compute Ethereum network IDs once
+      // Pre-compute Ethereum network IDs once and filter out non-EVM networks and testnets
       const ethereumNetworkIds = Object.values(networkConfigurations)
         // @ts-expect-error - the chain id should be hex for NetworkConfiguration
         .filter(
@@ -273,6 +273,9 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
         )
         .map(({ caipChainId }) => caipChainId);
 
+      // The complexity should be O(len_accounts * len_scopes), the performance for Ethereum EOA
+      // accounts will depend on the number of networks available in the NetworkController.
+      // And for Ethereum SCA and non-EVM accounts, it will depend on the length of scopes property.
       return (groupId: AccountGroupId) => {
         const accounts = internalAccounts(groupId);
 
@@ -282,7 +285,7 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
             account.type === EthAccountType.Eoa
               ? ethereumNetworkIds
               : account.scopes || [];
-          // Filter out testnets and map each scope to an account-scope object
+          // Filter out testnets from scopes and map each scope to an account-scope object
           return filterTestnets(
             scopes as CaipChainId[],
             networkConfigurations,

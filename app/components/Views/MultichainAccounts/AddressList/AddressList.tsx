@@ -1,16 +1,12 @@
 import React, { useCallback } from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { AccountGroupId } from '@metamask/account-api';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
-import { type CaipChainId } from '@metamask/utils';
-import { type InternalAccount } from '@metamask/keyring-internal-api';
 
 import { useStyles } from '../../../hooks/useStyles';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
-
 import HeaderBase from '../../../../component-library/components/HeaderBase';
 import { TextVariant } from '../../../../component-library/components/Texts/Text';
 import Icon, {
@@ -21,16 +17,14 @@ import ButtonLink from '../../../../component-library/components/Buttons/Button/
 import MultichainAddressRow from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 
 import styleSheet from './styles';
+import type { Props as AddressListProps, AddressItem } from './types';
 
-interface AddressListProps {
-  route: {
-    params: {
-      groupId: AccountGroupId;
-      title: string;
-    };
-  };
-}
-
+/**
+ * AddressList component displays a list of addresses spread by scopes.
+ *
+ * @param props - Component properties.
+ * @returns {JSX.Element} The rendered component.
+ */
 export const AddressList = (props: AddressListProps) => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
@@ -44,15 +38,7 @@ export const AddressList = (props: AddressListProps) => {
     selectInternalAccountsSpreadByScopes(groupId);
 
   const renderAddressItem = useCallback(
-    ({
-      item,
-    }: {
-      item: {
-        scope: CaipChainId;
-        networkName: string;
-        account: InternalAccount;
-      };
-    }) => (
+    ({ item }: { item: AddressItem }) => (
       <MultichainAddressRow
         chainId={item.scope}
         networkName={item.networkName}
