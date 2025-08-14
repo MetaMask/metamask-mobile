@@ -42,14 +42,14 @@ jobs:
           - name: 'Samsung Galaxy S23 Ultra'
             os_version: '13.0'
             category: 'high'
-          # - name: 'Google Pixel 8 Pro'
-          #   os_version: '14.0'
-          #   category: 'high'
-          
-          # # Medium Devices
-          # - name: 'Samsung Galaxy A52'
-          #   os_version: '11.0'
-          #   category: 'medium'
+         # - name: 'Google Pixel 8 Pro'
+         #   os_version: '14.0'
+         #   category: 'high'
+
+         # # Medium Devices
+         # - name: 'Samsung Galaxy A52'
+         #   os_version: '11.0'
+         #   category: 'medium'
           
     
     steps:
