@@ -101,7 +101,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
     setPanOffset(0); // Reset pan when zooming
     setVisualPanX(0); // Reset visual transform
-    setBaselineVisibleData([]); // Clear Y-axis baseline
     setGestureScale(1); // Reset any lingering gesture scale
     onZoomChange?.(newCandleCount);
   }, [candleCount, onZoomChange]);
@@ -110,13 +109,28 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     const newCandleCount = Math.min(MAX_CANDLES, candleCount + ZOOM_STEP);
     setPanOffset(0); // Reset pan when zooming
     setVisualPanX(0); // Reset visual transform
-    setBaselineVisibleData([]); // Clear Y-axis baseline
     setGestureScale(1); // Reset any lingering gesture scale
     onZoomChange?.(newCandleCount);
   }, [candleCount, onZoomChange]);
 
   const canZoomIn = candleCount > MIN_CANDLES;
   const canZoomOut = candleCount < MAX_CANDLES;
+
+  // Pan functions for button controls
+  const handlePanLeft = useCallback(() => {
+    const newOffset = Math.min(maxPanOffset.current, panOffset + 1);
+    setPanOffset(newOffset);
+    setVisualPanX(0); // Reset visual transform
+  }, [panOffset]);
+
+  const handlePanRight = useCallback(() => {
+    const newOffset = Math.max(0, panOffset - 1);
+    setPanOffset(newOffset);
+    setVisualPanX(0); // Reset visual transform
+  }, [panOffset]);
+
+  const canPanLeft = panOffset < maxPanOffset.current;
+  const canPanRight = panOffset > 0;
 
   // Scale-to-candle-count mapping with 5-candle increments
   const scaleToCandles = useCallback(
@@ -207,11 +221,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       // Apply immediate visual transform for smooth gesture feedback on X-axis pan
       // Don't update actual data during gesture - just visual movement
       setVisualPanX(translationX);
-
-      // Debug: Show gesture movement
-      if (Math.abs(translationX) % 50 < 2) {
-        // Log every ~50px to reduce noise
-      }
     },
     [], // Include previewCandleCount for debug logging
   );
@@ -232,8 +241,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           setIsPanning(false); // This will remove buffer and return chart to normal width
 
           // Convert final gesture distance to candle offset
-          const pixelsPerStep = 40; // Require significant gesture for step
-          const candlesPerStep = 3; // Move in 3-candle increments
+          const pixelsPerStep = 30; // Require less gesture distance for more responsive panning
+          const candlesPerStep = 1; // Move in 1-candle increments for precise navigation
           const steps = Math.round(translationX / pixelsPerStep);
           const gestureDelta = steps * candlesPerStep;
 
@@ -334,39 +343,37 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       : 0;
     const extendedCandleCount = currentCandleCount + bufferCandles;
 
-    // Calculate data window
-    const endIndex = totalCandles - panOffset;
-    const startIndex = Math.max(0, endIndex - extendedCandleCount);
+    // Calculate data window - consistent size, shifted window for historical view
+    const endIndex = totalCandles - panOffset; // Shift the end of the window back by panOffset
+    const startIndex = Math.max(0, endIndex - extendedCandleCount); // Maintain consistent window size
 
     const extendedData = allTransformedData.slice(startIndex, endIndex);
 
     return extendedData;
   }, [allTransformedData, panOffset, previewCandleCount, isPanning]);
 
-  // Calculate chart width - account for live candle space + buffer when panning
+  // Calculate chart width - simpler logic for live vs historical data
   const extendedChartWidth = useMemo(() => {
     if (extendedTransformedData.length === 0) return chartWidth - 65;
 
-    const currentCandleCount = previewCandleCount;
-    const actualExtendedCandleCount = extendedTransformedData.length;
     const normalChartWidth = chartWidth - 65;
+    const actualDataCount = extendedTransformedData.length;
+    const currentCandleCount = previewCandleCount;
+    const isShowingLiveData = panOffset === 0;
 
-    // Always account for live candle space + Y-axis clearance
-    const candlesWithLiveSpace = currentCandleCount + 2; // Extra 1 full candle width for Y-axis clearance
+    // Simple width calculation - live candle always included in dataset
+    const baseWidthMultiplier = actualDataCount / currentCandleCount;
+    const baseWidth = normalChartWidth * baseWidthMultiplier;
 
-    // No buffer case - normal width plus space for live candle + Y-axis
-    if (actualExtendedCandleCount <= currentCandleCount) {
-      const liveSpaceWidth =
-        normalChartWidth * (candlesWithLiveSpace / currentCandleCount);
-      return liveSpaceWidth;
-    }
-
-    // Extended width with buffer data (already includes live candle space)
-    const widthMultiplier = actualExtendedCandleCount / currentCandleCount;
-    const calculatedWidth = normalChartWidth * widthMultiplier;
-
-    return calculatedWidth;
-  }, [previewCandleCount, extendedTransformedData.length]);
+    // Additional space for Y-axis clearance
+    const liveCandleSpaceWidth = normalChartWidth * (2 / currentCandleCount); // Space for 2 extra candles
+    return baseWidth + liveCandleSpaceWidth;
+  }, [
+    previewCandleCount,
+    extendedTransformedData.length,
+    panOffset,
+    chartWidth,
+  ]);
 
   // Calculate base positioning - account for live candle space and buffer
   const baseChartTransform = useMemo(() => {
@@ -379,11 +386,18 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       actualExtendedCandleCount - currentCandleCount,
     );
 
-    // No buffer case - position to account for live candle space + Y-axis clearance
+    // No buffer case - positioning based on live vs historical data
     if (actualBufferCandles === 0) {
-      // Larger offset to ensure live candle fully clears the Y-axis
-      const liveCandleSpaceOffset = -(extendedChartWidth * 0.167); // 16.7% offset (1/6) for generous Y-axis clearance
-      return liveCandleSpaceOffset;
+      const isShowingLiveData = panOffset === 0;
+      if (isShowingLiveData) {
+        // Live data: offset to ensure live candle fully clears the Y-axis
+        const liveCandleSpaceOffset = -(extendedChartWidth * 0.167); // 16.7% offset (1/6) for generous Y-axis clearance
+        return liveCandleSpaceOffset;
+      } else {
+        // Historical data: same positioning as live data since data slicing handles the historical window
+        const liveCandleSpaceOffset = -(extendedChartWidth * 0.167); // Same Y-axis clearance as live data
+        return liveCandleSpaceOffset;
+      }
     }
 
     // With buffer = offset to show current candles in viewport, live candle space included
@@ -392,7 +406,13 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     const baseOffset = -bufferWidth;
 
     return baseOffset;
-  }, [previewCandleCount, extendedTransformedData.length, extendedChartWidth]);
+  }, [
+    previewCandleCount,
+    extendedTransformedData.length,
+    extendedChartWidth,
+    chartWidth,
+    panOffset,
+  ]);
 
   // Current visible data for Y-axis scaling (rightmost portion of extended data)
   const visibleTransformedData = useMemo(() => {
@@ -407,30 +427,23 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return visibleData;
   }, [extendedTransformedData, previewCandleCount]);
 
-  // Y-axis scaling data - use baseline during panning to keep Y-axis fixed
-  const yAxisScalingData = useMemo(() => {
-    if (isPanning && baselineVisibleData.length > 0) {
-      return baselineVisibleData;
-    }
+  // Y-axis scaling data - use extended data for stable scaling during panning
+  const yAxisScalingData = useMemo(
+    () =>
+      // Use the entire extended dataset for Y-axis scaling to prevent candles from jumping
+      // This keeps the Y-axis range stable during panning and zooming
+      extendedTransformedData.length > 0
+        ? extendedTransformedData
+        : visibleTransformedData,
+    [extendedTransformedData, visibleTransformedData],
+  );
 
-    return visibleTransformedData;
-  }, [isPanning, baselineVisibleData, visibleTransformedData]);
-
-  // Capture baseline when panning starts
+  // Clear baseline when panning stops (simplified since we now use extendedTransformedData for Y-axis)
   useEffect(() => {
-    if (
-      isPanning &&
-      visibleTransformedData.length > 0 &&
-      baselineVisibleData.length === 0
-    ) {
-      setBaselineVisibleData([...visibleTransformedData]); // Create copy
-    }
-
-    // Clear baseline when panning stops
     if (!isPanning && baselineVisibleData.length > 0) {
       setBaselineVisibleData([]);
     }
-  }, [isPanning, visibleTransformedData, baselineVisibleData.length]);
+  }, [isPanning, baselineVisibleData.length]);
 
   // Track when data has been initially loaded
   useEffect(() => {
@@ -540,8 +553,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
                   width: extendedChartWidth,
                   transform: [
                     {
-                      translateX:
-                        baseChartTransform + (isPanning ? visualPanX : 0),
+                      translateX: baseChartTransform + visualPanX,
                     },
                   ],
                 },
@@ -550,7 +562,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
             >
               {/* Main Candlestick Chart - Extended width for historical buffer */}
               <CandlestickChart
-                key={`no-anim-${extendedTransformedData.length}-${panOffset}`} // Force re-render to skip animations when debounced
+                key={`no-anim-${previewCandleCount}`} // Stable key since live candle always included
                 height={height - PERPS_CHART_CONFIG.PADDING.VERTICAL} // Account for labels and padding
                 width={extendedChartWidth}
                 style={styles.chartWithPadding}
@@ -646,6 +658,49 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
               color={canZoomIn ? TextColor.Default : TextColor.Muted}
             >
               +
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* Pan Controls */}
+        <View style={styles.zoomControls}>
+          <Pressable
+            style={[
+              styles.zoomButton,
+              !canPanLeft && styles.zoomButtonDisabled,
+            ]}
+            onPress={handlePanLeft}
+            disabled={!canPanLeft}
+          >
+            <Text
+              variant={TextVariant.BodySM}
+              color={canPanLeft ? TextColor.Default : TextColor.Muted}
+            >
+              ←
+            </Text>
+          </Pressable>
+
+          <Text
+            variant={TextVariant.BodyXS}
+            color={panOffset > 0 ? TextColor.Warning : TextColor.Muted}
+            style={styles.candleCountText}
+          >
+            {panOffset > 0 ? `${panOffset} candles back` : 'Live data'}
+          </Text>
+
+          <Pressable
+            style={[
+              styles.zoomButton,
+              !canPanRight && styles.zoomButtonDisabled,
+            ]}
+            onPress={handlePanRight}
+            disabled={!canPanRight}
+          >
+            <Text
+              variant={TextVariant.BodySM}
+              color={canPanRight ? TextColor.Default : TextColor.Muted}
+            >
+              →
             </Text>
           </Pressable>
         </View>
