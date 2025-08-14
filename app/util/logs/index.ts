@@ -17,7 +17,6 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
   const { SeedlessOnboardingController } = Engine.context;
   const {
     userId,
-    socialLoginEmail,
     authConnection,
     isSeedlessOnboardingUserAuthenticated,
     passwordOutdatedCache,
@@ -39,7 +38,6 @@ const getSanitizedSeedlessOnboardingControllerState = () => {
 
   return {
     userId,
-    socialLoginEmail,
     authConnection,
     authConnectionId,
     isSeedlessOnboardingUserAuthenticated,
