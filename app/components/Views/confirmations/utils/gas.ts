@@ -109,6 +109,7 @@ export function getFeesFromHex({
   return {
     currentCurrencyFee,
     nativeCurrencyFee,
+    preciseCurrentCurrencyFee,
     preciseNativeCurrencyFee,
     preciseNativeFeeInHex: add0x(hexFee),
   };
@@ -134,6 +135,7 @@ export function calculateGasEstimate({
   getFeesFromHexFn: (hexFee: string) => {
     currentCurrencyFee: string | null;
     nativeCurrencyFee: string | null;
+    preciseCurrentCurrencyFee: string | null;
     preciseNativeCurrencyFee: string | null;
     preciseNativeFeeInHex: string | null;
   };
