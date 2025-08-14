@@ -53,6 +53,7 @@ let mockGetOrder = jest.fn().mockResolvedValue({
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
+const mockReset = jest.fn();
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
@@ -137,6 +138,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     dispatch: mockDispatch,
+    reset: mockReset,
   }),
 }));
 
@@ -236,10 +238,14 @@ describe('useDepositRouting', () => {
       expect(mockCreateReservation).toHaveBeenCalledWith(mockQuote, '0x123');
       expect(mockCreateOrder).toHaveBeenCalledWith({ id: 'reservation-id' });
 
-      verifyPopToBuildQuoteCalled();
-      expect(mockNavigate).toHaveBeenCalledWith('BankDetails', {
-        orderId: 'order-id',
-        shouldUpdate: false,
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: 'BankDetails',
+            params: { orderId: 'order-id', shouldUpdate: false },
+          },
+        ],
       });
     });
 
@@ -887,7 +893,8 @@ describe('useDepositRouting', () => {
           payment_method_id: 'credit_debit_card',
           country: 'US',
           chain_id: 'eip155:1',
-          currency_destination: '0x123',
+          currency_destination:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           currency_source: 'USD',
         },
       );

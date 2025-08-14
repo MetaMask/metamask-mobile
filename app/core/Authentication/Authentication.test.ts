@@ -52,11 +52,6 @@ jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn(),
 }));
 
-// Mock the Vault module
-jest.mock('../Vault', () => ({
-  recreateVaultWithNewPassword: jest.fn(),
-}));
-
 // Mock the accountsController selector
 jest.mock('../../selectors/accountsController', () => ({
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
@@ -1117,6 +1112,8 @@ describe('Authentication', () => {
         checkIsPasswordOutdated: jest.fn(),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
       Engine.context.KeyringController = {
+        setLocked: jest.fn(),
+        isUnlocked: jest.fn().mockResolvedValue(true),
         addNewKeyring: jest.fn(),
         createNewVaultAndRestore: jest.fn(),
         withKeyring: jest
@@ -1149,8 +1146,9 @@ describe('Authentication', () => {
           type: SecretType.Mnemonic,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
@@ -1162,13 +1160,12 @@ describe('Authentication', () => {
         mockSeedPhrase1,
         expect.any(Object),
       );
-      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
-        mockAuthData,
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1202,8 +1199,9 @@ describe('Authentication', () => {
         getState: jest.fn(() => mockStateLocal),
       } as unknown as ReduxStore);
 
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       (
         Engine.context.KeyringController.addNewKeyring as jest.Mock
@@ -1220,9 +1218,8 @@ describe('Authentication', () => {
         mockSeedPhrase1,
         expect.any(Object),
       );
-      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
-        mockAuthData,
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
@@ -1239,7 +1236,7 @@ describe('Authentication', () => {
         keyringId: 'new-keyring-id',
         type: 'mnemonic',
       });
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1257,8 +1254,9 @@ describe('Authentication', () => {
           type: SecretType.PrivateKey,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       const importAccountFromPrivateKeySpy = jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
@@ -1269,9 +1267,8 @@ describe('Authentication', () => {
       expect(
         Engine.context.SeedlessOnboardingController.fetchAllSecretData,
       ).toHaveBeenCalledWith(mockPassword);
-      expect(newWalletAndRestoreSpy).toHaveBeenCalledWith(
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalledWith(
         mockPassword,
-        mockAuthData,
         uint8ArrayToMnemonic(mockSeedPhrase1, []),
         false,
       );
@@ -1282,7 +1279,7 @@ describe('Authentication', () => {
           shouldSelectAccount: false,
         },
       );
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1301,14 +1298,15 @@ describe('Authentication', () => {
         },
       ]);
       const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
       expect(newWalletAndRestoreSpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(expect.any(Error), 'unknown');
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1326,8 +1324,10 @@ describe('Authentication', () => {
           type: SecretType.PrivateKey,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       const importError = new Error('Import failed');
       const importAccountFromPrivateKeySpy = jest
@@ -1336,10 +1336,10 @@ describe('Authentication', () => {
 
       await Authentication.userEntryAuth(mockPassword, mockAuthData);
 
-      expect(newWalletAndRestoreSpy).toHaveBeenCalled();
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
       expect(importAccountFromPrivateKeySpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(importError);
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn and passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn and passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1378,8 +1378,9 @@ describe('Authentication', () => {
           type: SecretType.Mnemonic,
         },
       ]);
-      const newWalletAndRestoreSpy = jest
-        .spyOn(Authentication, 'newWalletAndRestore')
+      const newWalletVaultAndRestoreSpy = jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
         .mockResolvedValueOnce(undefined);
       const error = new Error('Keyring add failed');
       (
@@ -1408,12 +1409,12 @@ describe('Authentication', () => {
       expect(
         Engine.context.KeyringController.addNewKeyring,
       ).toHaveBeenCalledTimes(1);
-      expect(newWalletAndRestoreSpy).toHaveBeenCalled();
+      expect(newWalletVaultAndRestoreSpy).toHaveBeenCalled();
       expect(
         Engine.context.SeedlessOnboardingController.updateBackupMetadataState,
       ).not.toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(error);
-      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(2); // logIn, passwordSet
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(3); // logIn, passwordSet, setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
     });
 
@@ -1447,9 +1448,7 @@ describe('Authentication', () => {
     const mockSelectedAddress = '0x1234567890abcdef';
 
     let Engine: typeof import('../Engine').default;
-    let recreateVaultWithNewPassword: jest.MockedFunction<
-      typeof import('../Vault').recreateVaultWithNewPassword
-    >;
+
     let selectSelectedInternalAccountFormattedAddress: jest.MockedFunction<
       typeof import('../../selectors/accountsController').selectSelectedInternalAccountFormattedAddress
     >;
@@ -1487,8 +1486,7 @@ describe('Authentication', () => {
 
     beforeEach(() => {
       Engine = jest.requireMock('../Engine');
-      recreateVaultWithNewPassword =
-        jest.requireMock('../Vault').recreateVaultWithNewPassword;
+
       selectSelectedInternalAccountFormattedAddress = jest.requireMock(
         '../../selectors/accountsController',
       ).selectSelectedInternalAccountFormattedAddress;
@@ -1521,7 +1519,6 @@ describe('Authentication', () => {
 
     afterEach(() => {
       jest.clearAllMocks();
-      recreateVaultWithNewPassword.mockReset();
       selectSelectedInternalAccountFormattedAddress.mockReset();
     });
 
@@ -1828,9 +1825,7 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
 
       await expect(
-        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword, {
-          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-        }),
+        Authentication.syncPasswordAndUnlockWallet(mockGlobalPassword),
       ).rejects.toThrow('change password failed');
 
       expect(Authentication.lockApp).toHaveBeenCalledWith({ locked: true });
