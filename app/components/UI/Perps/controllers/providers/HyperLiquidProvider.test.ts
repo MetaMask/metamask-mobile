@@ -18,6 +18,7 @@ import {
   validateBalance,
 } from '../../utils/hyperLiquidValidation';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { REFERRAL_CONFIG } from '../../constants/hyperLiquidConfig';
 
 // Mock dependencies
 jest.mock('../../services/HyperLiquidClientService');
@@ -2872,7 +2873,7 @@ describe('HyperLiquidProvider', () => {
         referral: jest.fn().mockResolvedValue({
           referrerState: {
             stage: 'ready',
-            data: { code: 'METAMASK' },
+            data: { code: REFERRAL_CONFIG.mainnetCode },
           },
           referredBy: null, // User has no referral set
         }),
@@ -2956,7 +2957,7 @@ describe('HyperLiquidProvider', () => {
         referral: jest.fn().mockResolvedValue({
           referrerState: {
             stage: 'ready',
-            data: { code: 'METAMASK' },
+            data: { code: REFERRAL_CONFIG.mainnetCode },
           },
           referredBy: null, // User has no referral set
         }),
@@ -3046,7 +3047,7 @@ describe('HyperLiquidProvider', () => {
         referral: jest.fn().mockResolvedValue({
           referrerState: {
             stage: 'ready',
-            data: { code: 'METAMASK' },
+            data: { code: REFERRAL_CONFIG.mainnetCode },
           },
           referredBy: null, // User has no referral set
         }),
@@ -3156,7 +3157,7 @@ describe('HyperLiquidProvider', () => {
         referral: jest.fn().mockResolvedValue({
           referrerState: {
             stage: 'ready',
-            data: { code: 'METAMASK' },
+            data: { code: REFERRAL_CONFIG.mainnetCode },
           },
           referredBy: null, // User has no referral set
         }),
@@ -3235,7 +3236,7 @@ describe('HyperLiquidProvider', () => {
         referral: jest.fn().mockResolvedValue({
           referrerState: {
             stage: 'ready',
-            data: { code: 'METAMASK' },
+            data: { code: REFERRAL_CONFIG.mainnetCode },
           },
           referredBy: null, // User has no referral set
         }),
@@ -3314,7 +3315,7 @@ describe('HyperLiquidProvider', () => {
         referral: jest.fn().mockResolvedValue({
           referrerState: {
             stage: 'not_ready',
-            data: { code: 'METAMASK' },
+            data: { code: REFERRAL_CONFIG.mainnetCode },
           },
           referredBy: null,
         }),
@@ -3380,7 +3381,7 @@ describe('HyperLiquidProvider', () => {
         referral: jest.fn().mockResolvedValue({
           referrerState: {
             stage: 'ready',
-            data: { code: 'METAMASK' },
+            data: { code: REFERRAL_CONFIG.mainnetCode },
           },
           referredBy: { code: 'EXISTING_REFERRAL' }, // User already has referral
         }),

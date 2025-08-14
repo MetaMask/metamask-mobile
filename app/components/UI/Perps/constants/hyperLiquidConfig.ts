@@ -121,8 +121,8 @@ export const BUILDER_FEE_CONFIG = {
 
 // Referral code configuration
 export const REFERRAL_CONFIG = {
-  // Production referral code METAMASK
-  mainnetCode: 'METAMASK',
+  // Production referral code
+  mainnetCode: 'MMCSI',
   // Development/testnet referral code
   // FIXME: use official testnetCode as soon as available
   testnetCode: 'MSO',
