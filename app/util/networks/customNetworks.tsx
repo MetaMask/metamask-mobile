@@ -303,6 +303,8 @@ export const NETWORK_CHAIN_ID: {
   readonly ABSTRACT: '0xab5';
   readonly OMNI: '0xa6';
   readonly XRPLEVM: '0x15f900';
+  readonly HYDRA: '0x1188';
+  readonly HYDRA_TESTNET: '0x228C';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -328,6 +330,8 @@ export const NETWORK_CHAIN_ID: {
   ABSTRACT: '0xab5',
   OMNI: '0xa6',
   XRPLEVM: '0x15f900',
+  HYDRA: '0x1188',
+  HYDRA_TESTNET: '0x228C',
   ...CHAIN_IDS,
 };
 
@@ -358,4 +362,6 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.ABSTRACT]: require('../../images/abstract.png'),
   [NETWORK_CHAIN_ID.OMNI]: require('../../images/omni.png'),
   [NETWORK_CHAIN_ID.XRPLEVM]: require('../../images/xrplevm.png'),
+  [NETWORK_CHAIN_ID.HYDRA]: require('../../images/hydra.svg'),
+  [NETWORK_CHAIN_ID.HYDRA_TESTNET]: require('../../images/hydra.svg'),
 };
