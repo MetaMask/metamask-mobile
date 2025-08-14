@@ -14,7 +14,7 @@ export default class AppwrightSelectors {
 
   // This is a catch-all xpath selector that works on both platforms. Needed to identify deeply nested elements
   static async getElementByCatchAll(device, identifier) {
-    const isAndroid = await AppwrightSelectors.isAndroid(device);
+    const isAndroid = AppwrightSelectors.isAndroid(device);
     
     if (isAndroid) {
       // Android: resource-id, text, content-desc (exact match for resource-id, contains for text/desc)
@@ -26,16 +26,16 @@ export default class AppwrightSelectors {
       return await AppwrightSelectors.getElementByXpath(device, xpath);
     }
   }
-  static async isIOS(device) {
-    return device.webDriverClient.capabilities.platformName === 'iOS' || await device.webDriverClient.capabilities.platformName === 'ios';
+  static isIOS(device) {
+    return device.webDriverClient.capabilities.platformName === 'iOS' || device.webDriverClient.capabilities.platformName === 'ios';
   }
 
-  static async isAndroid(device) {
-    return device.webDriverClient.capabilities.platformName === 'android' || await device.webDriverClient.capabilities.platformName === 'Android';
+  static isAndroid(device) {
+    return device.webDriverClient.capabilities.platformName === 'android' || device.webDriverClient.capabilities.platformName === 'Android';
   }
 
   static async hideKeyboard(device) {
-    if (await AppwrightSelectors.isAndroid(device)) await device.webDriverClient.hideKeyboard(); // only needed for Android
+    if (AppwrightSelectors.isAndroid(device)) await device.webDriverClient.hideKeyboard(); // only needed for Android
   }
 
   static async scrollIntoView(device, element) {
@@ -51,9 +51,8 @@ export default class AppwrightSelectors {
       }
       const driver = device.webDriverClient;
       // Perform a scroll action
-      if (await AppwrightSelectors.isAndroid(device)) {
+      if (AppwrightSelectors.isAndroid(device)) {
         // For Android, use a swipe gesture
-        console.log('Entra en Android', driver);
         //await driver.tap({ x: 500, y: 1500 });
         await driver.executeScript("mobile: swipeGesture", [
           {

@@ -58,7 +58,7 @@ class BridgeScreen {
     const digits = this.splitAmountIntoDigits(amount);
     console.log('Amount digits:', digits);
     digits.forEach(async digit => {
-      if ( await AppwrightSelectors.isAndroid(this._device)) {
+      if (AppwrightSelectors.isAndroid(this._device)) {
         if (digit != '.') {
           const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//android.widget.Button[@content-desc='${digit}']`);
           await numberKey.tap();

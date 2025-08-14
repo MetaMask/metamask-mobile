@@ -28,7 +28,9 @@ import NetworkEducationModal from '../../../wdio/screen-objects/Modals/NetworkEd
 import SolanaConfirmationScreen from '../../../wdio/screen-objects/SolanaConfirmationScreen.js';
 import NetworksScreen from '../../../wdio/screen-objects/NetworksScreen.js';
 
-test('Send flow - Ethereum', async ({ device }, testInfo) => {
+test('Send flow - Ethereum, SRP 1 + SRP 2 + SRP 3', async ({
+  device,
+}, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -59,7 +61,9 @@ test('Send flow - Ethereum', async ({ device }, testInfo) => {
   await WalletActionModal.tapSendButton();
   await SendScreen.isVisible();
   timer1.stop();
-  await SendScreen.typeAddressInSendAddressField('0x8aBB895C61706f33060cDb40e7a2b496C3CA1Dcf');
+  await SendScreen.typeAddressInSendAddressField(
+    '0x8aBB895C61706f33060cDb40e7a2b496C3CA1Dcf',
+  );
   const timer2 = new TimerHelper(
     'Time since the user clicks on next button, until the user is in the send amount screen',
   );
@@ -86,7 +90,9 @@ test('Send flow - Ethereum', async ({ device }, testInfo) => {
   await performanceTracker.attachToTest(testInfo);
 });
 
-test('Send flow - Solana', async ({ device }, testInfo) => {
+test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
+  device,
+}, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -111,7 +117,10 @@ test('Send flow - Solana', async ({ device }, testInfo) => {
   SolanaConfirmationScreen.device = device;
   NetworksScreen.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_1);
+  await importSRPFlow(device, process.env.TEST_SRP_2);
+  await importSRPFlow(device, process.env.TEST_SRP_3);
+
   await WalletMainScreen.tapNetworkNavBar();
   await NetworksScreen.tapOnNetwork('Solana');
   await NetworkEducationModal.tapGotItButton();
@@ -124,13 +133,15 @@ test('Send flow - Solana', async ({ device }, testInfo) => {
   await SendSolanaScreen.isAddressFieldVisible();
   timer1.stop();
 
-  await SendSolanaScreen.fillAddressField('3xTPAZxmpwd8GrNEKApaTw6VH4jqJ31WFXUvQzgwhR7c');
+  await SendSolanaScreen.fillAddressField(
+    '3xTPAZxmpwd8GrNEKApaTw6VH4jqJ31WFXUvQzgwhR7c',
+  );
   await SendSolanaScreen.fillAmountField('0.001');
 
   const timer2 = new TimerHelper(
-      'Time since the user is on the send amount screen until the user gets the confirmation screen',
-    );
-    timer2.start();
+    'Time since the user is on the send amount screen until the user gets the confirmation screen',
+  );
+  timer2.start();
 
   await SendSolanaScreen.tapContinueButton();
   await SolanaConfirmationScreen.isConfirmButtonDisplayed();

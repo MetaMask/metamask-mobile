@@ -24,11 +24,17 @@ class SendSolanaScreen {
   }
 
   get addressField() {
-    return AppwrightSelectors.getElementByID(this._device, 'send-to-snap-ui-input');
+    if (AppwrightSelectors.isAndroid(this._device)) {
+      return AppwrightSelectors.getElementByID(this._device, 'send-to-snap-ui-input');
+    }
+    return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');
   }
 
   get amountField() {
-    return AppwrightSelectors.getElementByID(this._device, 'send-amount-input-snap-ui-input');
+    if (AppwrightSelectors.isAndroid(this._device)) {
+      return AppwrightSelectors.getElementByID(this._device, 'send-amount-input-snap-ui-input');
+    }
+    return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[2]');
   }
 
   get continueButton() {
