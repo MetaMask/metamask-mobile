@@ -173,6 +173,8 @@ import {
   selectPerpsGtmOnboardingModalEnabledFlag,
 } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
+import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectCarouselBannersFlag } from '../../UI/Carousel/selectors/featureFlags';
@@ -246,6 +248,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => isPerpsFlagEnabled && isEvmSelected,
     [isPerpsFlagEnabled, isEvmSelected],
   );
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const {
     navigation,
@@ -276,6 +279,15 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     () => ({
       key: 'perps-tab',
       tabLabel: strings('wallet.perps'),
+      navigation,
+    }),
+    [navigation],
+  );
+
+  const predictTabProps = useMemo(
+    () => ({
+      key: 'predict-tab',
+      tabLabel: strings('wallet.predict'),
       navigation,
     }),
     [navigation],
@@ -376,6 +388,19 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       );
     }
 
+    if (isPredictEnabled) {
+      tabs.push(
+        <PredictTabView
+          {...predictTabProps}
+          key={predictTabProps.key}
+          isVisible={isPredictTabVisible}
+          onVisibilityChange={(callback) => {
+            predictVisibilityCallback.current = callback;
+          }}
+        />,
+      );
+    }
+
     if (defiEnabled) {
       tabs.push(
         <DeFiPositionsList
@@ -400,6 +425,8 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
     isPerpsEnabled,
     perpsTabProps,
     isPerpsTabVisible,
+    isPredictEnabled,
+    predictTabProps,
     defiEnabled,
     defiPositionsTabProps,
     collectiblesEnabled,

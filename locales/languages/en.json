@@ -1512,6 +1512,16 @@
     "points_error": "We can't load points right now",
     "points_error_content": "Don't worry, you're still earning points. They'll show up in your account soon, or you can check the Rewards tab later."
   },
+  "predict": {
+    "title": "MetaMask Predict",
+    "market_list": "Market List",
+    "market_details": "Market Details",
+    "view_available_markets": "View available markets",
+    "sell_position": "Sell Position",
+    "cash_out": "Cash Out",
+    "buy_yes": "Buy Yes",
+    "buy_no": "Buy No"
+  },
   "receive": {
     "title": "Receive"
   },
@@ -1581,6 +1591,7 @@
     "collectibles": "NFTs",
     "defi": "DeFi",
     "perps": "Perps",
+    "predict": "Predict",
     "transactions": "TRANSACTIONS",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
@@ -2548,6 +2559,7 @@
     "deposit_button": "Deposit",
     "earn_button": "Earn",
     "perps_button": "Perps",
+    "predict_button": "Prediction",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
@@ -2581,6 +2593,7 @@
     "receive_description": "Receive crypto",
     "earn_description": "Earn rewards on your tokens",
     "perps_description": "Trade perp contracts",
+    "predict_description": "Predict the future",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",
@@ -2934,7 +2947,7 @@
     },
     "ipfs_gateway_off_title": "IPFS gateway is off",
     "ipfs_gateway_off_content": "To see this site, turn on IPFS gateway in Privacy and Security Settings."
-    },
+  },
   "backup_alert": {
     "title": "Protect your wallet",
     "left_button": "Remind me later",
@@ -5421,7 +5434,6 @@
     "google_login_no_credential_title": "Google login failed",
     "google_login_no_credential_description": "We couldn’t find a Google account associated with this login. Try again with a different login method.",
     "google_login_no_credential_button": "Try again",
-
     "oauth_error_title": "Login failed",
     "oauth_error_description": "An error occurred while logging in.\nTry again and if the issue continues, contact MetaMask Support.",
     "oauth_error_button": "Try again",
@@ -5529,7 +5541,7 @@
       "back_up": "Back up",
       "remove_account": "Remove account"
     },
-    "address_list" : {
+    "address_list": {
       "addresses": "Addresses",
       "receiving_address": "Receiving address",
       "copied": "Address copied"
@@ -5705,6 +5717,7 @@
 
     "referral_stats_earned_from_referrals": "Earned from referrals",
     "referral_stats_referrals": "Referrals",
+
     "loading_activity": "Loading activity...",
     "error_loading_activity": "Error loading activity",
     "activity_empty_title": "No recent activity.",
