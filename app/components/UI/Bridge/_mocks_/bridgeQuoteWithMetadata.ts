@@ -1,10 +1,17 @@
+import { QuoteMetadata, QuoteResponse } from '@metamask/bridge-controller';
 import mockQuotes from './mock-quotes-sol-sol.json';
 
-export const mockQuoteWithMetadata = {
-  ...mockQuotes[0],
+const mockQuote = mockQuotes[0] as unknown as QuoteResponse;
+
+export const mockQuoteWithMetadata: QuoteResponse & QuoteMetadata = {
+  ...mockQuote,
   adjustedReturn: { usd: null, valueInCurrency: null },
   cost: { usd: null, valueInCurrency: null },
-  gasFee: { amount: '0', usd: null, valueInCurrency: null },
+  gasFee: {
+    effective: { amount: '0', usd: null, valueInCurrency: null },
+    max: { amount: '0', usd: null, valueInCurrency: null },
+    total: { amount: '0', usd: null, valueInCurrency: null },
+  },
   sentAmount: { amount: '0.5', usd: null, valueInCurrency: null },
   swapRate: '114.112442',
   toTokenAmount: {
