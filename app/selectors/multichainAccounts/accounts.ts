@@ -142,9 +142,9 @@ const filterTestnets = (
   scopes.filter((scope) => {
     const network = networksData[scope];
     // TODO: Improve network data types on core module
-    // @ts-expect-error - The typing here is not consistent because of NetworkConfiguration and MultichainNetworkConfiguration types
     return (
       network &&
+      // @ts-expect-error - The typing here is not consistent because of NetworkConfiguration and MultichainNetworkConfiguration types
       (!network.isTestnet || !TEST_NETWORK_IDS.includes(network.chainId))
     );
   });
@@ -265,10 +265,10 @@ export const selectInternalAccountListSpreadByScopesByGroupId =
     (internalAccounts, networkConfigurations) => {
       // Pre-compute Ethereum network IDs once and filter out non-EVM networks and testnets
       const ethereumNetworkIds = Object.values(networkConfigurations)
-        // @ts-expect-error - the chain id should be hex for NetworkConfiguration
         .filter(
           ({ caipChainId, chainId }) =>
             caipChainId.startsWith('eip155:') &&
+            // @ts-expect-error - the chain id should be hex for NetworkConfiguration
             !TEST_NETWORK_IDS.includes(chainId),
         )
         .map(({ caipChainId }) => caipChainId);
