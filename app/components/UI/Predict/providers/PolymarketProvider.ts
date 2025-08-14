@@ -2,8 +2,14 @@ import type {
   SignTypedDataVersion,
   TypedMessageParams,
 } from '@metamask/keyring-controller';
-import { IPredictProvider } from '../types';
-import { Market, Order, OrderParams, OrderResult, Position } from '../types';
+import {
+  IPredictProvider,
+  Market,
+  Order,
+  OrderParams,
+  OrderResult,
+  Position,
+} from '../types';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
