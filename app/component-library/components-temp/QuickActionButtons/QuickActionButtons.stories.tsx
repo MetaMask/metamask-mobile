@@ -15,7 +15,7 @@ import QuickActionButtons, { QuickActionButton } from './QuickActionButtons';
 import Keypad from '../../../components/Base/Keypad';
 
 const QuickActionButtonsMeta = {
-  title: 'Components Temp / QuickActionButtons',
+  title: 'Components Temp / QuickActionButtons / QuickActionButtons',
   component: QuickActionButtons,
   argTypes: {
     buttonsPerRow: {
