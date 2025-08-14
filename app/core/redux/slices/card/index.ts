@@ -59,8 +59,6 @@ export const selectCardholderAccounts = createSelector(
   (card) => card.cardholderAccounts,
 );
 
-// const selectSelectedInternalAccount = (state: RootState) =>
-//   selectSelectedInternalAccountFormattedAddress(state);
 const selectedAccount = (rootState: RootState) =>
   selectSelectedInternalAccountByScope(rootState)('eip155:59144');
 
