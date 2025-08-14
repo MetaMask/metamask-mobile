@@ -45,7 +45,7 @@ describe('TotalRow', () => {
     jest.clearAllMocks();
 
     useTransactionTotalFiatMock.mockReturnValue({
-      value: 123.456,
+      value: '123.456',
       formatted: TOTAL_FIAT_MOCK,
     });
   });

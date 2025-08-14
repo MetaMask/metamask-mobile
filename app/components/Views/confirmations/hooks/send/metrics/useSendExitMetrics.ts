@@ -4,10 +4,10 @@ import { useRoute } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
 import { useSendContext } from '../../../context/send-context';
+import { useSendMetricsContext } from '../../../context/send-context/send-metrics-context';
 import { useAmountValidation } from '../useAmountValidation';
 import { useSendType } from '../useSendType';
 import { useToAddressValidation } from '../useToAddressValidation';
-import { useSendMetricsContext } from '../../../context/send-context/send-metrics-context';
 
 export const useSendExitMetrics = () => {
   const route = useRoute();
@@ -15,19 +15,18 @@ export const useSendExitMetrics = () => {
   const { accountType } = useSendMetricsContext();
   const { isEvmSendType } = useSendType();
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { invalidAmount, insufficientBalance } = useAmountValidation();
+  const { amountError } = useAmountValidation();
   const { toAddressError } = useToAddressValidation();
 
   const alertDisplayed = useMemo(() => {
     if (route.name === Routes.SEND.AMOUNT) {
-      if (insufficientBalance) return 'insufficient_funds';
-      if (invalidAmount) return 'invalid_amount_value';
+      return amountError;
     }
     if (route.name === Routes.SEND.RECIPIENT) {
       return toAddressError;
     }
     return '';
-  }, [invalidAmount, insufficientBalance, route.name, toAddressError]);
+  }, [amountError, route.name, toAddressError]);
 
   const captureSendExit = useCallback(
     () =>
