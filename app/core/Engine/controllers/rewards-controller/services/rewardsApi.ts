@@ -1,6 +1,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import AppConstants from '../../../../AppConstants';
-import { getRewardsToken } from '../utils/RewardsTokenVault';
+import { getSubscriptionToken } from '../utils/MultiSubscriptionTokenVault';
+import Engine from '../../../Engine';
+import Logger from '../../../../../util/Logger';
 import type {
   GenerateChallengeDto,
   ChallengeResponseDto,
@@ -8,7 +10,6 @@ import type {
   DevOnlyLoginDto,
   SubscriptionDto,
   JoinSubscriptionDto,
-  AccountLifeTimeSpendDto,
   SeasonDto,
   SeasonStatusDto,
   PointsEventDto,
@@ -26,7 +27,6 @@ export const rewardsApi = createApi({
   tagTypes: [
     'Subscription',
     'PointsEvents',
-    'AccountLifetimeSpend',
     'TokenPrices',
     'Season',
     'SeasonStatus',
@@ -35,13 +35,29 @@ export const rewardsApi = createApi({
   ],
   baseQuery: fetchBaseQuery({
     baseUrl: AppConstants.REWARDS_API_URL,
+    credentials: 'omit',
     prepareHeaders: async (headers) => {
       headers.set('Content-Type', 'application/json');
-
       // Add Bearer token for authenticated requests
-      const tokenResult = await getRewardsToken();
-      if (tokenResult.success && tokenResult.token) {
-        headers.set('Authorization', `Bearer ${tokenResult.token}`);
+      try {
+        const rewardsController = Engine.context.RewardsController;
+        const selectedAccount =
+          Engine.context.AccountsController.getSelectedAccount();
+
+        if (selectedAccount && rewardsController) {
+          const subscriptionId = rewardsController.getSubscriptionIdForAccount(
+            selectedAccount.address,
+          );
+          if (subscriptionId) {
+            const tokenResult = await getSubscriptionToken(subscriptionId);
+            if (tokenResult.success && tokenResult.token) {
+              headers.set('rewards-api-key', `${tokenResult.token}`);
+            }
+          }
+        }
+      } catch (error) {
+        // Silently fail if we can't get the token - the request will proceed without auth
+        Logger.log('Failed to get subscription token for API request:', error);
       }
 
       return headers;
@@ -70,7 +86,6 @@ export const rewardsApi = createApi({
       invalidatesTags: [
         'Subscription',
         'PointsEvents',
-        'AccountLifetimeSpend',
         'SeasonStatus',
         'RewardsStatus',
       ],
@@ -83,7 +98,6 @@ export const rewardsApi = createApi({
       invalidatesTags: [
         'Subscription',
         'PointsEvents',
-        'AccountLifetimeSpend',
         'SeasonStatus',
         'RewardsStatus',
       ],
@@ -97,7 +111,6 @@ export const rewardsApi = createApi({
       invalidatesTags: [
         'Subscription',
         'PointsEvents',
-        'AccountLifetimeSpend',
         'SeasonStatus',
         'RewardsStatus',
       ],
@@ -108,19 +121,13 @@ export const rewardsApi = createApi({
       query: () => '/subscriptions',
       providesTags: ['Subscription'],
     }),
-    joinSubscription: builder.mutation<void, JoinSubscriptionDto>({
+    joinSubscription: builder.mutation<SubscriptionDto, JoinSubscriptionDto>({
       query: (body) => ({
         url: '/subscriptions/join',
         method: 'POST',
         body,
       }),
       invalidatesTags: ['Subscription'],
-    }),
-
-    // Account lifetime spend endpoints
-    getAccountLifetimeSpend: builder.query<AccountLifeTimeSpendDto, string>({
-      query: (address) => `/account-lifetime-spend/${address}`,
-      providesTags: ['AccountLifetimeSpend'],
     }),
 
     // Token prices endpoint (external API)
@@ -215,7 +222,6 @@ export const {
   useDevOnlyLoginMutation,
   useGetSubscriptionQuery,
   useJoinSubscriptionMutation,
-  useGetAccountLifetimeSpendQuery,
   useGetTokenPricesQuery,
   useGetSeasonQuery,
   useGetSeasonStatusQuery,

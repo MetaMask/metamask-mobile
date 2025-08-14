@@ -16,11 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import Identicon from '../../UI/Identicon';
 import { renderShortAddress } from '../../../util/address';
-import {
-  useRewardsAuth,
-  REWARDS_SIGNUP_PREFIX,
-} from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsAuth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useRewardsAuth } from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsAuth';
 import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors: Colors) =>
@@ -115,8 +111,6 @@ const RewardsTerms: React.FC = () => {
     if (!address) return;
 
     try {
-      // Mark that user has seen terms
-      await AsyncStorage.setItem(`${REWARDS_SIGNUP_PREFIX}-${address}`, 'true');
       // Proceed with login - onLoginSuccess callback will handle navigation
       await login();
     } catch (error) {

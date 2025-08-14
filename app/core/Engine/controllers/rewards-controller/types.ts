@@ -84,11 +84,6 @@ export interface CursorPaginatedResultsDto<T> {
   total_results?: number;
 }
 
-export interface AccountLifeTimeSpendDto {
-  tier: string;
-  pointsMultiplier: number;
-}
-
 export interface SeasonTierDto {
   id: string;
   type: string;
@@ -178,9 +173,9 @@ export enum RewardClaimStatus {
  */
 export interface SilentAuthState {
   lastAuthenticatedAccount: string | null;
-  subscriptionAccounts: string[];
+  accountToSubscription: Record<string, string>; // account address -> subscriptionId
   lastAuthTime: number;
-  [key: string]: string | string[] | number | null;
+  [key: string]: string | string[] | number | null | Record<string, string>;
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

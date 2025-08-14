@@ -6,9 +6,9 @@ import type {
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
-  storeRewardsToken,
-  resetRewardsToken,
-} from './utils/RewardsTokenVault';
+  storeSubscriptionToken,
+  resetAllSubscriptionTokens,
+} from './utils/MultiSubscriptionTokenVault';
 import AppConstants from '../../../AppConstants';
 import ReduxService from '../../../redux';
 import { rewardsApi } from './services/rewardsApi';
@@ -20,8 +20,7 @@ export type { RewardsControllerMessenger };
 const controllerName = 'RewardsController';
 
 // Silent authentication constants
-const GRACE_PERIOD_MS = 5 * 60 * 1000; // 5 minutes
-const SUBSCRIPTION_CACHE_DURATION_MS = 30 * 60 * 1000; // 30 minutes
+const GRACE_PERIOD_MS = 1000; // 30 minutes
 
 /**
  * State metadata for the RewardsController
@@ -30,7 +29,7 @@ const metadata = {
   devOnlyLoginAddress: { persist: true, anonymous: false },
   lastUpdated: { persist: true, anonymous: false },
   silentAuth: {
-    persist: false,
+    persist: true,
     anonymous: false,
   },
 };
@@ -40,7 +39,7 @@ const metadata = {
  */
 const getDefaultSilentAuthState = (): SilentAuthState => ({
   lastAuthenticatedAccount: null,
-  subscriptionAccounts: [],
+  accountToSubscription: {},
   lastAuthTime: 0,
 });
 
@@ -159,6 +158,16 @@ export class RewardsController extends BaseController<
    */
   async #handleAuthenticationTrigger(reason?: string): Promise<void> {
     Logger.log('RewardsController: handleAuthenticationTrigger', reason);
+    Logger.log('RewardsController: Clearing cache');
+    // Clear global cache
+    ReduxService.store.dispatch(
+      rewardsApi.util.invalidateTags([
+        'Subscription',
+        'PointsEvents',
+        'SeasonStatus',
+        'RewardsStatus',
+      ]),
+    );
 
     try {
       const selectedAccount = this.messagingSystem.call(
@@ -190,12 +199,11 @@ export class RewardsController extends BaseController<
       return true;
     }
 
-    // Skip if account is in cached subscription and cache is still valid
-    if (
-      silentAuth.subscriptionAccounts.includes(address) &&
-      timeSinceLastAuth < SUBSCRIPTION_CACHE_DURATION_MS
-    ) {
-      return true;
+    // Skip if this account already has a valid subscription
+    const subscriptionId =
+      silentAuth.accountToSubscription[address.toLowerCase()];
+    if (subscriptionId && timeSinceLastAuth < GRACE_PERIOD_MS) {
+      return true; // Account belongs to a known subscription, skip auth
     }
 
     return false;
@@ -271,33 +279,25 @@ export class RewardsController extends BaseController<
 
       const loginResponse: LoginResponseDto = await response.json();
 
-      // Store the access token
-      await storeRewardsToken(loginResponse.sessionId);
-
       // Update state with successful authentication
-      const subscriptionAccounts =
-        loginResponse.subscription?.accounts?.map(
-          (account: { address: string }) => account.address,
-        ) || [];
+      const subscription = loginResponse.subscription;
+
+      // Store the session token for this subscription
+      await storeSubscriptionToken(subscription.id, loginResponse.sessionId);
 
       this.update((state) => {
-        state.silentAuth = {
-          lastAuthenticatedAccount: address,
-          subscriptionAccounts,
-          lastAuthTime: Date.now(),
-        };
-      });
+        const currentTime = Date.now();
 
-      // Invalidate RTK Query cache tags after successful silent login
-      ReduxService.store.dispatch(
-        rewardsApi.util.invalidateTags([
-          'Subscription',
-          'PointsEvents',
-          'AccountLifetimeSpend',
-          'SeasonStatus',
-          'RewardsStatus',
-        ]),
-      );
+        // Update account to subscription mapping for all accounts in this subscription
+        (subscription?.accounts || []).forEach((accountAddress) => {
+          state.silentAuth.accountToSubscription[
+            accountAddress.address.toLowerCase()
+          ] = subscription.id;
+        });
+
+        state.silentAuth.lastAuthenticatedAccount = address;
+        state.silentAuth.lastAuthTime = currentTime;
+      });
     } catch (error: unknown) {
       Logger.log('RewardsController: Silent auth error:', error);
       // Handle 401 (not opted in) or other errors silently
@@ -308,28 +308,17 @@ export class RewardsController extends BaseController<
         (error as { status: number }).status === 401
       ) {
         Logger.log(
-          'RewardsController: Account not opted in (401), clearing token',
+          'RewardsController: Account not opted in (401), clearing tokens',
         );
-        // Account not opted in - clear any existing token
-        await resetRewardsToken();
-        this.update((state) => {
-          state.silentAuth = {
-            lastAuthenticatedAccount: null,
-            subscriptionAccounts: [],
-            lastAuthTime: Date.now(),
-          };
-        });
 
-        // Clear cached data for the account
-        ReduxService.store.dispatch(
-          rewardsApi.util.invalidateTags([
-            'Subscription',
-            'PointsEvents',
-            'AccountLifetimeSpend',
-            'SeasonStatus',
-            'RewardsStatus',
-          ]),
-        );
+        // Update state so that we remember this account is not opted in
+        this.update((state) => {
+          // Remove this account from any existing subscription mappings
+          delete state.silentAuth.accountToSubscription[address.toLowerCase()];
+
+          state.silentAuth.lastAuthenticatedAccount = address;
+          state.silentAuth.lastAuthTime = Date.now();
+        });
       }
       // For other errors, we don't update the state to allow retries
     } finally {
@@ -345,11 +334,21 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Reset silent authentication state
+   * Reset silent authentication state and clear all tokens
    */
-  resetSilentAuthState(): void {
+  async resetSilentAuthState(): Promise<void> {
+    await resetAllSubscriptionTokens();
     this.update((state) => {
       state.silentAuth = getDefaultSilentAuthState();
     });
+  }
+
+  /**
+   * Get the subscription ID for a given account address
+   */
+  getSubscriptionIdForAccount(address: string): string | null {
+    return (
+      this.state.silentAuth.accountToSubscription[address.toLowerCase()] || null
+    );
   }
 }

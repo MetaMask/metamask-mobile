@@ -7,7 +7,6 @@ export {
   useDevOnlyLoginMutation,
   useGetSubscriptionQuery,
   useJoinSubscriptionMutation,
-  useGetAccountLifetimeSpendQuery,
   useGetTokenPricesQuery,
   useGetSeasonQuery,
   useGetSeasonStatusQuery,
