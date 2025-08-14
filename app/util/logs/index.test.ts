@@ -13,6 +13,8 @@ import initialRootState, {
 } from '../../util/test/initial-root-state';
 import { merge } from 'lodash';
 import MetaMetrics from '../../core/Analytics/MetaMetrics';
+import Engine from '../../core/Engine';
+import { SecretType } from '@metamask/seedless-onboarding-controller';
 
 jest.mock('react-native-fs', () => ({
   DocumentDirectoryPath: '/mock/path',
@@ -47,29 +49,7 @@ jest.mock('../../core/Engine', () => ({
       },
     },
     SeedlessOnboardingController: {
-      state: {
-        userId: 'userId',
-        isSeedlessOnboardingUserAuthenticated: true,
-        socialBackupsMetadata: [
-          {
-            type: 'google',
-            keyringId: 'keyring1',
-            hash: 'should not be in logs',
-          },
-          null,
-        ],
-        nodeAuthTokens: [{ nodeIndex: 1 }, { nodeIndex: 2 }, null],
-
-        vault: 'should be in boolean',
-        vaultEncryptionKey: 'should be in boolean',
-        vaultEncryptionSalt: 'should be in boolean',
-        encryptedSeedlessEncryptionKey: 'should be in boolean',
-        encryptedKeyringEncryptionKey: 'should be in boolean',
-        metadataAccessToken: 'should be in boolean',
-        accessToken: 'should be in boolean',
-        refreshToken: 'should be in boolean',
-        revokeToken: 'should be in boolean',
-      },
+      state: {},
     },
   },
 }));
@@ -396,70 +376,126 @@ describe('logs :: downloadStateLogs', () => {
     });
   });
 
-  it('able to download when SeedlessController socialBackupsMetadata is null and nodeAuthTokens is undefined', async () => {
-    (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
-    (getVersion as jest.Mock).mockResolvedValue('1.0.0');
-    (getBuildNumber as jest.Mock).mockResolvedValue('100');
-    (Device.isIos as jest.Mock).mockReturnValue(false);
-
-    const mockStateInput = merge({}, initialRootState, {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-
-          SeedlessOnboardingController: {
-            userId: 'userId',
-            isSeedlessOnboardingUserAuthenticated: true,
-            socialBackupsMetadata: null,
-            nodeAuthTokens: undefined,
+  describe('Sanitized SeedlessController State', () => {
+    it('Able to download when SeedlessController state is empty', () => {
+      const mockStateInput = {
+        appVersion: '1',
+        buildNumber: '123',
+        metaMetricsId: '6D796265-7374-4953-6D65-74616D61736B',
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              vault: 'vault mock',
+            },
           },
         },
-      },
+      };
+      const logs = generateStateLogs(mockStateInput);
+
+      const logsObj = JSON.parse(logs);
+      const {
+        vault,
+        vaultEncryptionKey,
+        vaultEncryptionSalt,
+        encryptedSeedlessEncryptionKey,
+        encryptedKeyringEncryptionKey,
+        metadataAccessToken,
+        accessToken,
+        refreshToken,
+        revokeToken,
+      } = logsObj.engine.backgroundState.SeedlessOnboardingController;
+
+      expect(vault).toBe(false);
+      expect(vaultEncryptionKey).toBe(false);
+      expect(vaultEncryptionSalt).toBe(false);
+      expect(encryptedSeedlessEncryptionKey).toBe(false);
+      expect(encryptedKeyringEncryptionKey).toBe(false);
+      expect(metadataAccessToken).toBe(false);
+      expect(accessToken).toBe(false);
+      expect(refreshToken).toBe(false);
+      expect(revokeToken).toBe(false);
+
+      expect(JSON.parse(logs)).toMatchSnapshot();
     });
 
-    await downloadStateLogs(mockStateInput, false);
+    it('Sanitized SeedlessController sensitive data', () => {
+      Engine.context.SeedlessOnboardingController.state = {
+        userId: 'userId',
+        isSeedlessOnboardingUserAuthenticated: true,
+        socialBackupsMetadata: [
+          {
+            type: SecretType.Mnemonic,
+            keyringId: 'keyring1',
+            hash: 'should not be in logs',
+          },
+          // @ts-expect-error - the test case is to test the input being not the expected
+          null,
+        ],
+        nodeAuthTokens: [
+          { nodeIndex: 1, authToken: 'authToken', nodePubKey: 'nodePubKey' },
+          { nodeIndex: 2, authToken: 'authToken', nodePubKey: 'nodePubKey' },
+          // @ts-expect-error - the test case is to test the input being not the expected
+          null,
+        ],
 
-    expect(Share.open).toHaveBeenCalledWith({
-      subject: 'TestApp State logs -  v1.0.0 (100)',
-      title: 'TestApp State logs -  v1.0.0 (100)',
-      url: expect.stringContaining('data:text/plain;base64,'),
-    });
-  });
+        vault: 'should be in boolean',
+        vaultEncryptionKey: 'should be in boolean',
+        vaultEncryptionSalt: 'should be in boolean',
+        encryptedSeedlessEncryptionKey: 'should be in boolean',
+        encryptedKeyringEncryptionKey: 'should be in boolean',
+        metadataAccessToken: 'should be in boolean',
+        accessToken: 'should be in boolean',
+        refreshToken: 'should be in boolean',
+        revokeToken: 'should be in boolean',
+      };
 
-  it('able to download when SeedlessController state data array is null', async () => {
-    (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
-    (getVersion as jest.Mock).mockResolvedValue('1.0.0');
-    (getBuildNumber as jest.Mock).mockResolvedValue('100');
-    (Device.isIos as jest.Mock).mockReturnValue(false);
-
-    const mockStateInput = merge({}, initialRootState, {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-
-          SeedlessOnboardingController: {
-            userId: 'userId',
-            isSeedlessOnboardingUserAuthenticated: true,
-            socialBackupsMetadata: [
-              {
-                type: 'google',
-                keyringId: 'keyring1',
-                hash: 'should not be in logs',
-              },
-              null,
-            ],
-            nodeAuthTokens: [{ nodeIndex: 1 }, { nodeIndex: 2 }, null],
+      const mockStateInput = {
+        appVersion: '1',
+        buildNumber: '123',
+        metaMetricsId: '6D796265-7374-4953-6D65-74616D61736B',
+        engine: {
+          backgroundState: {
+            ...backgroundState,
+            KeyringController: {
+              vault: 'vault mock',
+            },
           },
         },
-      },
-    });
+      };
+      const logs = generateStateLogs(mockStateInput);
 
-    await downloadStateLogs(mockStateInput, false);
+      const logsObj = JSON.parse(logs);
+      const {
+        vault,
+        vaultEncryptionKey,
+        vaultEncryptionSalt,
+        encryptedSeedlessEncryptionKey,
+        encryptedKeyringEncryptionKey,
+        metadataAccessToken,
+        accessToken,
+        refreshToken,
+        revokeToken,
+        nodeAuthTokens,
+        socialBackupsMetadata,
+      } = logsObj.engine.backgroundState.SeedlessOnboardingController;
 
-    expect(Share.open).toHaveBeenCalledWith({
-      subject: 'TestApp State logs -  v1.0.0 (100)',
-      title: 'TestApp State logs -  v1.0.0 (100)',
-      url: expect.stringContaining('data:text/plain;base64,'),
+      expect(nodeAuthTokens[0].nodeIndex).toBe(1);
+      expect(nodeAuthTokens[0].authToken).toBe(undefined);
+
+      expect(socialBackupsMetadata[0].keyringId).toBe('keyring1');
+      expect(socialBackupsMetadata[0].hash).toBe(undefined);
+      expect(vault).toBe(true);
+      expect(vaultEncryptionKey).toBe(true);
+      expect(vaultEncryptionSalt).toBe(true);
+      expect(encryptedSeedlessEncryptionKey).toBe(true);
+      expect(encryptedKeyringEncryptionKey).toBe(true);
+      expect(metadataAccessToken).toBe(true);
+      expect(accessToken).toBe(true);
+      expect(refreshToken).toBe(true);
+      expect(revokeToken).toBe(true);
+
+      expect(JSON.parse(logs)).toMatchSnapshot();
     });
   });
 });
