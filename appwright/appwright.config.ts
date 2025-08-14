@@ -22,7 +22,7 @@ export default defineConfig({
         device: {
           provider: 'emulator', // or 'local-device' or 'browserstack'
           name: 'Samsung Galaxy S24 Ultra', // this can changed
-          osVersion: '14.0', // this can changed
+          osVersion: '14', // this can changed
         },
         buildPath: '/Users/javi/Downloads/app-qa-release.apk', // Path to your .apk file
       },

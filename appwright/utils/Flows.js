@@ -13,7 +13,7 @@ import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessSc
 import SolanaFeatureSheet from '../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
-const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED === 'false';
+const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED === 'true';
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -40,10 +40,7 @@ export async function onboardingFlowImportSRP(device, srp) {
   }
   await ImportFromSeedScreen.isScreenTitleVisible();
 
-  await ImportFromSeedScreen.typeSecretRecoveryPhrase(
-    process.env.TEST_SRP_1,
-    true,
-  );
+  await ImportFromSeedScreen.typeSecretRecoveryPhrase(srp, true);
   await ImportFromSeedScreen.tapImportScreenTitleToDismissKeyboard();
 
   await ImportFromSeedScreen.tapContinueButton();
