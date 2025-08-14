@@ -4,6 +4,7 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
+import Routes from '../../../../../constants/navigation/Routes';
 import React, {
   useCallback,
   useContext,
@@ -57,6 +58,7 @@ import {
   usePerpsAccount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
+  usePerpsMarkets,
   usePerpsOrderExecution,
   usePerpsOrderFees,
   usePerpsOrderValidation,
@@ -134,6 +136,15 @@ const PerpsOrderViewContent: React.FC = () => {
     error: marketDataError,
   } = usePerpsMarketData(orderForm.asset);
 
+  // Markets data for navigation
+  const { markets } = usePerpsMarkets();
+
+  // Find formatted market data for navigation
+  const navigationMarketData = useMemo(
+    () => markets.find((market) => market.symbol === orderForm.asset),
+    [markets, orderForm.asset],
+  );
+
   // Order execution using new hook
   const { placeOrder: executeOrder, isPlacing: isPlacingOrder } =
     usePerpsOrderExecution({
@@ -156,7 +167,12 @@ const PerpsOrderViewContent: React.FC = () => {
           hasNoTimeout: false,
         });
 
-        navigation.goBack();
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.MARKET_DETAILS,
+          params: {
+            market: navigationMarketData,
+          },
+        });
       },
       onError: (error) => {
         toastRef?.current?.showToast({
