@@ -58,7 +58,6 @@ export function Recipient({
             size={AvatarSize.Md}
           />
         </Box>
-
         <Box twClassName="ml-4 h-12 justify-center">
           <Text
             variant={TextVariant.BodyMd}
@@ -69,7 +68,6 @@ export function Recipient({
           </Text>
         </Box>
       </Box>
-
       {recipient.fiatValue && (
         <Box twClassName="h-12 justify-center items-end">
           <Text

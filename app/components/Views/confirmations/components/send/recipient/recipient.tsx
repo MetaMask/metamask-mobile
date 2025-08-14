@@ -95,7 +95,6 @@ export const Recipient = () => {
               </ScrollableTabView>
             )}
           </Box>
-
           {addressInput.length > 0 && (
             <Box twClassName="px-4 py-4">
               <Button
