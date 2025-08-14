@@ -3,10 +3,7 @@ import {
   BridgeTokenSelectorBase,
   SkeletonItem,
 } from '../../../../../UI/Bridge/components/BridgeTokenSelectorBase';
-import {
-  BridgeSourceNetworksBar,
-  MAX_NETWORK_ICONS,
-} from '../../../../../UI/Bridge/components/BridgeSourceNetworksBar';
+import { BridgeSourceNetworksBar } from '../../../../../UI/Bridge/components/BridgeSourceNetworksBar';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectNetworkConfigurations } from '../../../../../../selectors/networkController';
@@ -95,9 +92,9 @@ export function PayWithModal() {
 
   const networksToShow = useMemo(
     () =>
-      sortedSourceNetworks
-        .filter(({ chainId }) => selectedSourceChainIds.includes(chainId))
-        .filter((_, i) => i < MAX_NETWORK_ICONS),
+      sortedSourceNetworks.filter(({ chainId }) =>
+        selectedSourceChainIds.includes(chainId),
+      ),
     [selectedSourceChainIds, sortedSourceNetworks],
   );
 

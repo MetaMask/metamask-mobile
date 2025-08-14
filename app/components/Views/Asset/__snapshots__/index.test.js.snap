@@ -281,6 +281,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -388,7 +389,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -2128,6 +2128,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -2235,7 +2236,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -3975,6 +3975,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -4082,7 +4083,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -5861,6 +5861,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -5968,7 +5969,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -7708,6 +7708,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -7815,7 +7816,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -9555,6 +9555,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -9662,7 +9663,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -11441,6 +11441,7 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -11548,7 +11549,6 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -11971,6 +11971,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -12078,7 +12079,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -13818,6 +13818,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -13925,7 +13926,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -15665,6 +15665,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -15772,7 +15773,6 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >

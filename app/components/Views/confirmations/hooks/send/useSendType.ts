@@ -8,11 +8,11 @@ export const useSendType = () => {
   const { asset } = useSendContext();
   const isEvmSendType = useMemo(
     () => (asset?.address ? isEvmAddress(asset.address) : undefined),
-    [asset],
+    [asset?.address],
   );
   const isSolanaSendType = useMemo(
     () => (asset?.chainId ? isSolanaChainId(asset.chainId) : undefined),
-    [asset],
+    [asset?.chainId],
   );
   const assetIsNative = asset ? asset.isNative : undefined;
 
