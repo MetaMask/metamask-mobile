@@ -53,11 +53,13 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           );
         }
 
+        await device.disableSynchronization();
         await importWalletWithRecoveryPhrase({
           seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
           password: IDENTITY_TEAM_PASSWORD,
           optInToMetrics: true,
         });
+        await device.enableSynchronization();
 
         const events = await getEventsPayloads(mockServer, [
           onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
