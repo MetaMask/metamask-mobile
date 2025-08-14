@@ -75,6 +75,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 
 interface AssetOverviewProps {
@@ -195,7 +196,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const onSend = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // Try non-EVM first, if handled, return early
-    const wasHandledAsNonEvm = await sendNonEvmAsset();
+    const wasHandledAsNonEvm = await sendNonEvmAsset(
+      InitSendLocation.AssetOverview,
+    );
     if (wasHandledAsNonEvm) {
       return;
     }
@@ -231,7 +234,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    navigateToSendPage(asset);
+    navigateToSendPage(InitSendLocation.AssetOverview, asset);
   };
 
   const onBuy = () => {

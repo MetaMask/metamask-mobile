@@ -396,6 +396,7 @@
     "remoteFeatureFlags": {}
   },
   "SeedlessOnboardingController": {
+    "isSeedlessOnboardingUserAuthenticated": false,
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
