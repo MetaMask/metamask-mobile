@@ -10,10 +10,12 @@ import { SOLANA_ASSET } from '../__mocks__/send.mock';
 import { InitSendLocation } from '../constants/send';
 import {
   formatToFixedDecimals,
+  fromBNWithDecimals,
   handleSendPageNavigation,
   prepareEVMTransaction,
   submitEvmTransaction,
   submitNonEvmTransaction,
+  toBNWithDecimals,
 } from './send';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -139,5 +141,35 @@ describe('formatToFixedDecimals', () => {
   it('formats value with passed number of decimals', () => {
     expect(formatToFixedDecimals('1', 4)).toEqual('1.0000');
     expect(formatToFixedDecimals('1.01010101', 4)).toEqual('1.0101');
+  });
+});
+
+describe('toBNWithDecimals', () => {
+  it('converts value to bignumber correctly', () => {
+    expect(toBNWithDecimals('1.20', 5).toString()).toEqual('120000');
+  });
+  it('converts value to bignumber correctly', () => {
+    expect(toBNWithDecimals('.1', 5).toString()).toEqual('10000');
+  });
+  it('converts value to bignumber correctly', () => {
+    expect(toBNWithDecimals('0', 5).toString()).toEqual('0');
+  });
+});
+
+describe('fromBNWithDecimals', () => {
+  it('converts bignumber to string correctly', () => {
+    expect(
+      fromBNWithDecimals(toBNWithDecimals('1.20', 5), 5).toString(),
+    ).toEqual('1.2');
+  });
+  it('converts value to bignumber correctly', () => {
+    expect(fromBNWithDecimals(toBNWithDecimals('.1', 5), 5).toString()).toEqual(
+      '0.1',
+    );
+  });
+  it('converts value to bignumber correctly', () => {
+    expect(fromBNWithDecimals(toBNWithDecimals('0', 5), 5).toString()).toEqual(
+      '0',
+    );
   });
 });

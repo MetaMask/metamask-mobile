@@ -159,6 +159,9 @@ describe('PerpsTabView', () => {
 
     mockUsePerpsTrading.mockReturnValue({
       getAccountState: jest.fn(),
+      depositWithConfirmation: jest.fn().mockResolvedValue({
+        result: Promise.resolve(),
+      }),
     });
 
     mockUsePerpsFirstTimeUser.mockReturnValue({
@@ -422,7 +425,7 @@ describe('PerpsTabView', () => {
       expect(screen.queryByTestId('bottom-sheet')).not.toBeOnTheScreen();
     });
 
-    it('should navigate to deposit when add funds is pressed', () => {
+    it('should trigger deposit when add funds is pressed', async () => {
       render(<PerpsTabView />);
 
       // Open bottom sheet
@@ -432,12 +435,14 @@ describe('PerpsTabView', () => {
 
       // Press add funds button
       const addFundsButton = screen.getByText(strings('perps.add_funds'));
-      act(() => {
+      await act(() => {
         fireEvent.press(addFundsButton);
       });
 
+      expect(mockUsePerpsTrading().depositWithConfirmation).toHaveBeenCalled();
+
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.DEPOSIT,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
 
       // Bottom sheet should be closed
