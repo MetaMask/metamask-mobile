@@ -1,5 +1,245 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Asset Fund Button Visibility should hide fund button when neither deposit nor ramp are supported 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens when deposit is supported 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset Fund Button Visibility should show fund button for non-ETH tokens when ramp is supported 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset Fund Button Visibility should show fund button when both deposit and ramp are supported 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset Fund Button Visibility should show fund button when only deposit is supported 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
+exports[`Asset Fund Button Visibility should show fund button when only ramp is supported (ETH) 1`] = `
+<View
+  style={
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      {
+        "backgroundColor": "#ffffff",
+        "flex": 1,
+      }
+    }
+  >
+    <View
+      style={
+        {
+          "alignItems": "center",
+          "justifyContent": "center",
+          "paddingBottom": 24,
+        }
+      }
+    >
+      <ActivityIndicator
+        size="small"
+        style={
+          {
+            "alignSelf": "center",
+          }
+        }
+      />
+    </View>
+  </View>
+  <View />
+</View>
+`;
+
 exports[`Asset Multichain Functionality should exclude mixed token/SOL transactions from native SOL view 1`] = `
 <View
   style={
@@ -41,6 +281,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -148,7 +389,6 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -960,7 +1200,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -974,7 +1214,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -997,7 +1237,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                   }
                                                 }
                                               >
-                                                Buy
+                                                Fund
                                               </Text>
                                             </View>
                                           </View>
@@ -1883,6 +2123,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -1990,7 +2231,6 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -2802,7 +3042,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -2816,7 +3056,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -2839,7 +3079,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                   }
                                                 }
                                               >
-                                                Buy
+                                                Fund
                                               </Text>
                                             </View>
                                           </View>
@@ -3725,6 +3965,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -3832,7 +4073,6 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -4644,7 +4884,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -4658,7 +4898,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -4681,7 +4921,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   }
                                                 }
                                               >
-                                                Buy
+                                                Fund
                                               </Text>
                                             </View>
                                           </View>
@@ -5606,6 +5846,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -5713,7 +5954,6 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -6525,7 +6765,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -6539,7 +6779,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -6562,7 +6802,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                   }
                                                 }
                                               >
-                                                Buy
+                                                Fund
                                               </Text>
                                             </View>
                                           </View>
@@ -7448,6 +7688,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -7555,7 +7796,6 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -8367,7 +8607,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -8381,7 +8621,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -8404,7 +8644,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                   }
                                                 }
                                               >
-                                                Buy
+                                                Fund
                                               </Text>
                                             </View>
                                           </View>
@@ -9290,6 +9530,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -9397,7 +9638,6 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -10209,7 +10449,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -10223,7 +10463,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -10246,7 +10486,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                   }
                                                 }
                                               >
-                                                Buy
+                                                Fund
                                               </Text>
                                             </View>
                                           </View>
@@ -11171,6 +11411,7 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -11278,7 +11519,6 @@ exports[`Asset Multichain Functionality should render EVM assets with Transactio
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -11701,6 +11941,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -11808,7 +12049,6 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -12620,7 +12860,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -12634,7 +12874,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -12657,7 +12897,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                   }
                                                 }
                                               >
-                                                Buy
+                                                Fund
                                               </Text>
                                             </View>
                                           </View>
@@ -13543,6 +13783,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -13650,7 +13891,6 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -14462,7 +14702,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 false,
                                               ]
                                             }
-                                            testID="token-buy-button"
+                                            testID="token-fund-button"
                                           >
                                             <View
                                               style={
@@ -14476,7 +14716,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                 color="#686e7d"
                                                 fill="currentColor"
                                                 height={20}
-                                                name="Add"
+                                                name="Money"
                                                 style={
                                                   {
                                                     "height": 20,
@@ -14499,7 +14739,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                   }
                                                 }
                                               >
-                                                Buy
+                                                Fund
                                               </Text>
                                             </View>
                                           </View>
@@ -15385,6 +15625,7 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
               {
                 "backgroundColor": "#ffffff",
                 "flexDirection": "row",
+                "gap": 16,
               },
               {
                 "marginTop": 0,
@@ -15492,7 +15733,6 @@ exports[`Asset Multichain Functionality should use EVM transactions for EVM acco
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >

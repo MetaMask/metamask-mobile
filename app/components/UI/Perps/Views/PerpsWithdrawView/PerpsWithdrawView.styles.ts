@@ -96,9 +96,6 @@ const createStyles = ({ theme }: { theme: Theme }) => {
     percentageButton: {
       flex: 1,
     },
-    keypad: {
-      paddingHorizontal: 16,
-    },
     errorText: {
       marginBottom: 16,
       textAlign: 'center',
