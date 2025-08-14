@@ -159,6 +159,10 @@ export const selectAccountGroups = createSelector(
   },
 );
 
+/**
+ * Get account groups filtered to only multichain accounts
+ * Multichain accounts have IDs that start with AccountWalletType.Entropy
+ */
 export const selectMultichainAccountGroups = createSelector(
   [selectAccountGroups],
   (accountGroups: readonly AccountGroupObject[]) =>
@@ -167,6 +171,10 @@ export const selectMultichainAccountGroups = createSelector(
     ),
 );
 
+/**
+ * Get account groups filtered to only non-multichain accounts
+ * Non-multichain accounts have IDs that do not start with AccountWalletType.Entropy
+ */
 export const selectNonMultichainAccountGroups = createSelector(
   [selectAccountGroups],
   (accountGroups: readonly AccountGroupObject[]) =>
