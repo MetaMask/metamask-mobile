@@ -68,7 +68,10 @@ import { getDepositNavbarOptions } from '../../../../Navbar';
 import Logger from '../../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
-import { selectNetworkConfigurations , selectChainId } from '../../../../../../selectors/networkController';
+import {
+  selectNetworkConfigurations,
+  selectChainId,
+} from '../../../../../../selectors/networkController';
 import {
   createNavigationDetails,
   useParams,
@@ -185,7 +188,11 @@ const BuildQuote = () => {
   ]);
 
   useEffect(() => {
-    if (cryptoCurrency.assetId && cryptoCurrency.chainId) {
+    if (
+      cryptoCurrency.assetId &&
+      cryptoCurrency.chainId &&
+      supportedTokens.length > 0
+    ) {
       const isTokenSupported = supportedTokens.some(
         (token) => token.assetId === cryptoCurrency.assetId,
       );
@@ -221,6 +228,7 @@ const BuildQuote = () => {
       }
 
       if (
+        supportedTokens.length > 0 &&
         !supportedTokens.some(
           (token) => token.assetId === cryptoCurrency.assetId,
         )
