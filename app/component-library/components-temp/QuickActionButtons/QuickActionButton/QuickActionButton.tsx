@@ -16,15 +16,13 @@ import { QuickActionButtonProps } from './QuickActionButton.types';
  */
 const QuickActionButton: React.FC<QuickActionButtonProps> = ({
   children,
-  variant = ButtonVariant.Secondary,
-  size = ButtonSize.Lg,
   ...props
 }) => (
   <Button
-    variant={variant}
-    size={size}
+    size={ButtonSize.Lg}
     isFullWidth
     {...props}
+    variant={ButtonVariant.Secondary} // TODO: have to put after spreading props because it's a required prop and putting it before we get a type error will be fixed in next release of MMDS
     twClassName={`px-2 min-w-0 ${props.twClassName || ''}`}
   >
     {children}
