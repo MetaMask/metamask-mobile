@@ -16,6 +16,7 @@ import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
+import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
 
 export const useConfirmActions = () => {
   const {
@@ -31,9 +32,9 @@ export const useConfirmActions = () => {
   } = useQRHardwareContext();
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
-  const transactionMetadata = useTransactionMetadataRequest();
+  const { chainId, id: transactionId } = useTransactionMetadataRequest() ?? {};
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
-    selectShouldUseSmartTransaction(state, transactionMetadata?.chainId),
+    selectShouldUseSmartTransaction(state, chainId),
   );
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const dispatch = useDispatch();
@@ -41,6 +42,13 @@ export const useConfirmActions = () => {
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
   const isTransactionReq =
     approvalType && approvalType === ApprovalType.Transaction;
+
+  const quotes = useSelector((state: RootState) =>
+    selectTransactionBridgeQuotesById(state, transactionId ?? ''),
+  );
+
+  const waitForResult =
+    isSignatureReq || (!shouldUseSmartTransaction && !quotes?.length);
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false) => {
@@ -73,7 +81,7 @@ export const useConfirmActions = () => {
       return;
     }
     await onRequestConfirm({
-      waitForResult: isSignatureReq || !shouldUseSmartTransaction,
+      waitForResult,
       deleteAfterResult: true,
       handleErrors: false,
     });
@@ -105,7 +113,7 @@ export const useConfirmActions = () => {
     onRequestConfirm,
     openLedgerSignModal,
     setScannerVisible,
-    shouldUseSmartTransaction,
+    waitForResult,
   ]);
 
   return { onConfirm, onReject };

@@ -34,8 +34,8 @@ export const Amount = () => {
   const primaryCurrency = useSelector(selectPrimaryCurrency);
   const { asset, updateValue } = useSendContext();
   const { balance } = useBalance();
-  const { insufficientBalance } = useAmountValidation();
-  const [amount, updateAmount] = useState('');
+  const { amountError } = useAmountValidation();
+  const [amount, setAmount] = useState('');
   const [fiatMode, setFiatMode] = useState(primaryCurrency === 'Fiat');
   const {
     fiatCurrencySymbol,
@@ -44,7 +44,8 @@ export const Amount = () => {
     getNativeValue,
   } = useCurrencyConversions();
   const { styles, theme } = useStyles(styleSheet, {
-    inputError: insufficientBalance ?? false,
+    inputError: Boolean(amountError),
+    inputLength: amount.length,
   });
   const {
     setAmountInputMethodManual,
@@ -66,15 +67,15 @@ export const Amount = () => {
 
   const updateToNewAmount = useCallback(
     (amt: string) => {
-      updateAmount(amt);
+      setAmount(amt);
       updateValue(fiatMode ? getNativeValue(amt) : amt);
       setAmountInputMethodManual();
     },
     [
       fiatMode,
       getNativeValue,
+      setAmount,
       setAmountInputMethodManual,
-      updateAmount,
       updateValue,
     ],
   );
@@ -86,14 +87,14 @@ export const Amount = () => {
       setAmountInputTypeFiat();
     }
     setFiatMode(!fiatMode);
-    updateAmount('');
+    setAmount('');
     updateValue('');
   }, [
     fiatMode,
+    setAmount,
     setAmountInputTypeFiat,
     setAmountInputTypeToken,
     setFiatMode,
-    updateAmount,
     updateValue,
   ]);
 
@@ -115,9 +116,7 @@ export const Amount = () => {
             />
           </View>
           <Text
-            color={
-              insufficientBalance ? TextColor.Error : TextColor.Alternative
-            }
+            color={amountError ? TextColor.Error : TextColor.Alternative}
             style={styles.tokenSymbol}
             variant={TextVariant.DisplayLG}
           >
@@ -143,7 +142,7 @@ export const Amount = () => {
       <AmountKeyboard
         amount={amount}
         fiatMode={fiatMode}
-        updateAmount={updateAmount}
+        updateAmount={setAmount}
       />
     </View>
   );
