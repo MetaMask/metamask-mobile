@@ -564,7 +564,7 @@ exports[`EnterEmail Component render matches snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -1387,7 +1387,7 @@ exports[`EnterEmail Component renders error message snapshot when API call fails
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -2224,7 +2224,7 @@ exports[`EnterEmail Component renders loading state snapshot 1`] = `
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }
@@ -3047,7 +3047,7 @@ exports[`EnterEmail Component renders validation error snapshot invalid email 1`
                                   "alignItems": "center",
                                   "flexDirection": "row",
                                   "justifyContent": "center",
-                                  "paddingVertical": 12,
+                                  "paddingBottom": 12,
                                   "width": "100%",
                                 }
                               }

@@ -1,3 +1,4 @@
+import BN from 'bnjs4';
 import { BNToHex, toHex } from '@metamask/controller-utils';
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -14,18 +15,31 @@ import { toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
 export const isSendRedesignEnabled = () =>
   process.env.MM_SEND_REDESIGN_ENABLED === 'true';
+
+const captureSendStartedEvent = (location: string) => {
+  const { trackEvent } = MetaMetrics.getInstance();
+  trackEvent(
+    MetricsEventBuilder.createEventBuilder(MetaMetricsEvents.SEND_STARTED)
+      .addProperties({ location })
+      .build(),
+  );
+};
 
 export const handleSendPageNavigation = (
   navigate: <RouteName extends string>(
     screenName: RouteName,
     params?: object,
   ) => void,
+  location: string,
   asset?: AssetType | Nft,
 ) => {
   if (isSendRedesignEnabled()) {
+    captureSendStartedEvent(location);
     const screen = asset ? Routes.SEND.AMOUNT : Routes.SEND.ASSET;
     navigate(Routes.SEND.DEFAULT, {
       screen,
@@ -120,3 +134,30 @@ export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
   }
   return '0';
 }
+
+export const toBNWithDecimals = (input: string, decimals: number) => {
+  const neg = String(input).trim().startsWith('-');
+  const result = String(input).replace(/^-/, '').split('.');
+  const intPart = result[0];
+  let fracPart = result[1] ?? '';
+
+  if (fracPart.length > decimals) {
+    fracPart = fracPart.slice(0, decimals);
+  }
+
+  fracPart = fracPart.padEnd(decimals, '0');
+
+  const bn = new BN(intPart || '0')
+    .mul(new BN(10).pow(new BN(decimals)))
+    .add(new BN(fracPart || '0'));
+
+  return neg ? bn.neg() : bn;
+};
+
+export const fromBNWithDecimals = (bnValue: BN, decimals: number) => {
+  const base = new BN(10).pow(new BN(decimals));
+  const intPart = bnValue.div(base).toString();
+  const fracPart = bnValue.mod(base).toString().padStart(decimals, '0');
+  const trimmedFrac = fracPart.replace(/0+$/, '');
+  return trimmedFrac ? `${intPart}.${trimmedFrac}` : intPart;
+};
