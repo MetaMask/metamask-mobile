@@ -1,9 +1,6 @@
 name: Post Merge Validation
 
-on:
-  push:
-    branches:
-      - ci-post-merge-tracker
+on: 
   schedule:
     - cron: '0 7 * * *'
 
