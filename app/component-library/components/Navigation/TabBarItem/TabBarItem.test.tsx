@@ -43,7 +43,7 @@ describe('TabBarItem', () => {
 
   it('displays label text when provided for non-trade button', () => {
     const { getByText } = render(
-      <TabBarItem {...defaultProps} labelText="Home" />,
+      <TabBarItem {...defaultProps} label="Home" />,
     );
 
     expect(getByText('Home')).toBeOnTheScreen();
@@ -54,16 +54,16 @@ describe('TabBarItem', () => {
       <TabBarItem
         {...defaultProps}
         isTradeButton
-        labelText="This should not show"
+        label="This should not show"
       />,
     );
 
     expect(queryByText('This should not show')).toBeNull();
   });
 
-  it('applies flex style when specified', () => {
+  it('renders correctly as trade button', () => {
     const { getByTestId } = render(
-      <TabBarItem {...defaultProps} flexStyle="flex" testID="tab-item" />,
+      <TabBarItem {...defaultProps} isTradeButton testID="tab-item" />,
     );
 
     // Component should be present and accessible

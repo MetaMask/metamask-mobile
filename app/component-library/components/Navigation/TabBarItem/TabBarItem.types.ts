@@ -1,13 +1,11 @@
-// Third party dependencies.
-import { TouchableOpacityProps } from 'react-native';
-
 // External dependencies.
+import { ButtonAnimatedProps } from '@metamask/design-system-react-native';
 import { IconName } from '../../Icons/Icon';
 
 /**
  * TabBarItem component props.
  */
-export interface TabBarItemProps extends TouchableOpacityProps {
+export interface TabBarItemProps extends ButtonAnimatedProps {
   /**
    * Label of the tab item.
    */
@@ -28,17 +26,4 @@ export interface TabBarItemProps extends TouchableOpacityProps {
    * Whether this is a trade button (renders with special styling).
    */
   isTradeButton?: boolean;
-  /**
-   * Optional label text to display below the icon (non-trade buttons only).
-   */
-  labelText?: string;
-  /**
-   * Flex style for layout control.
-   */
-  flexStyle?: 'flex' | 'none';
 }
-
-/**
- * Style sheet input parameters.
- */
-export type TabBarItemStyleSheetVars = Pick<TabBarItemProps, 'style'>;

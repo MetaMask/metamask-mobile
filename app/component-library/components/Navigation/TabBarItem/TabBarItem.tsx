@@ -4,7 +4,7 @@
 import React from 'react';
 
 // External dependencies.
-import { ButtonAnimated, Box } from '@metamask/design-system-react-native';
+import { ButtonAnimated } from '@metamask/design-system-react-native';
 import {
   useTailwind,
   ThemeProvider,
@@ -21,8 +21,7 @@ const TabBarItemInner = ({
   iconName,
   isActive = false,
   isTradeButton = false,
-  labelText,
-  flexStyle = 'none',
+  label,
   ...props
 }: TabBarItemProps) => {
   const tw = useTailwind(); // Gets theme from ThemeProvider context
@@ -35,50 +34,42 @@ const TabBarItemInner = ({
     return isActive ? IconColor.Default : IconColor.Alternative;
   };
 
-  const renderContent = () => {
-    if (isTradeButton) {
-      return (
-        <Box
-          style={tw.style(
-            'h-[45px] w-[45px] items-center justify-center rounded-full bg-primary-default',
-          )}
-        >
-          <Icon name={iconName} size={IconSize.Md} color={getIconColor()} />
-        </Box>
-      );
-    }
-
-    // For non-trade buttons, render icon with optional label
-    return (
-      <Box style={tw.style('items-center')}>
-        <Icon name={iconName} size={IconSize.Lg} color={getIconColor()} />
-        {labelText && (
-          <MMText
-            variant={TextVariant.BodyXSMedium}
-            color={isActive ? TextColor.Default : TextColor.Alternative}
-            style={tw.style('mt-1')}
-            numberOfLines={1}
-          >
-            {labelText}
-          </MMText>
-        )}
-      </Box>
-    );
-  };
-
-  return (
+  return isTradeButton ? (
     <ButtonAnimated
-      onPress={props.onPress}
-      style={tw.style(
-        'items-center justify-center bg-transparent px-2 py-1',
-        flexStyle === 'flex' && 'flex-1',
-      )}
+      style={({ pressed }) =>
+        tw.style(
+          'h-[45px] w-[45px] items-center justify-center rounded-full bg-primary-default px-2 py-1',
+          pressed && 'bg-primary-default-pressed',
+        )
+      }
       testID={props.testID}
-      accessibilityLabel={props.label}
+      accessibilityLabel={label}
       accessible
       accessibilityRole="button"
+      {...props}
     >
-      {renderContent()}
+      <Icon name={iconName} size={IconSize.Md} color={getIconColor()} />
+    </ButtonAnimated>
+  ) : (
+    <ButtonAnimated
+      style={tw.style('items-center justify-center bg-transparent px-2 py-1')}
+      testID={props.testID}
+      accessibilityLabel={label}
+      accessible
+      accessibilityRole="button"
+      {...props}
+    >
+      <Icon name={iconName} size={IconSize.Lg} color={getIconColor()} />
+      {!isTradeButton && label && (
+        <MMText
+          variant={TextVariant.BodyXSMedium}
+          color={isActive ? TextColor.Default : TextColor.Alternative}
+          style={tw.style('mt-1')}
+          numberOfLines={1}
+        >
+          {label}
+        </MMText>
+      )}
     </ButtonAnimated>
   );
 };

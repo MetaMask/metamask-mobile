@@ -7,8 +7,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 // External dependencies.
 import TabBarItem from '../TabBarItem';
-import { useStyles } from '../../../hooks';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+} from '@metamask/design-system-react-native';
 import Routes from '../../../../constants/navigation/Routes';
+import Device from '../../../../util/device';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../util/networks';
@@ -17,7 +23,6 @@ import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
 import { TabBarProps } from './TabBar.types';
-import styleSheet from './TabBar.styles';
 import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
 import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
 import { selectChainId } from '../../../../selectors/networkController';
@@ -25,9 +30,9 @@ import { selectChainId } from '../../../../selectors/networkController';
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
   const { trackEvent, createEventBuilder } = useMetrics();
   const { bottom: bottomInset } = useSafeAreaInsets();
-  const { styles } = useStyles(styleSheet, { bottomInset });
   const chainId = useSelector(selectChainId);
   const tabBarRef = useRef(null);
+  const tw = useTailwind();
   /**
    * Current onboarding wizard step
    */
@@ -64,7 +69,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
     (route: { name: string; key: string }, index: number) => {
       const { options } = descriptors[route.key];
       const tabBarIconKey = options.tabBarIconKey;
-      const label = options.tabBarLabel as string;
       //TODO: use another option on add it to the prop interface
       const callback = options.callback;
       const rootScreenName = options.rootScreenName;
@@ -114,17 +118,16 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const isWalletAction = rootScreenName === Routes.MODAL.WALLET_ACTIONS;
 
       return (
-        <TabBarItem
-          key={key}
-          label={label}
-          iconName={icon}
-          onPress={onPress}
-          isActive={isSelected}
-          isTradeButton={isWalletAction}
-          labelText={!isWalletAction ? labelText : undefined}
-          testID={key}
-          flexStyle={isWalletAction ? 'none' : 'flex'}
-        />
+        <View key={key} style={tw.style('flex-1')}>
+          <TabBarItem
+            label={labelText}
+            iconName={icon}
+            onPress={onPress}
+            isActive={isSelected}
+            isTradeButton={isWalletAction}
+            testID={key}
+          />
+        </View>
       );
     },
     [
@@ -135,6 +138,7 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       trackEvent,
       createEventBuilder,
       getTabLabel,
+      tw,
     ],
   );
 
@@ -143,10 +147,26 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
     [state, renderTabBarItem],
   );
 
+  const shadowStyle = !Device.isAndroid()
+    ? {
+        shadowColor: tw.color('overlay-default'),
+        shadowOpacity: 1,
+        shadowOffset: { height: 4, width: 0 },
+        shadowRadius: 8,
+      }
+    : {};
+
   return (
-    <View style={styles.base} ref={tabBarRef}>
-      {renderTabBarItems()}
-      {renderOnboardingWizard()}
+    <View ref={tabBarRef}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
+        twClassName="w-full px-4 pt-3 bg-default border-t border-muted"
+        style={[tw.style(`pb-[${bottomInset}px]`), shadowStyle]}
+      >
+        {renderTabBarItems()}
+        {renderOnboardingWizard()}
+      </Box>
     </View>
   );
 };
