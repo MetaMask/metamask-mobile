@@ -82,6 +82,7 @@ exports[`MainActionButton should render correctly 1`] = `
       />
       <Text
         accessibilityRole="text"
+        numberOfLines={1}
         style={
           {
             "color": "#121314",
