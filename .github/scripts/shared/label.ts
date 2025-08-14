@@ -64,7 +64,7 @@ export function craftRegressionLabel(regressionStage: RegressionStage | undefine
 
     case RegressionStage.DevelopmentMain:
       return {
-        name: `regression-develop`,
+        name: `regression-main`,
         color: '5319E7', // violet
         description: `Regression bug that was found on main branch, but not yet present in production`,
       };
@@ -94,7 +94,7 @@ export function craftRegressionLabel(regressionStage: RegressionStage | undefine
       return {
         name: `regression-*`,
         color: 'EDEDED', // grey
-        description: `TODO: Unknown regression stage. Please replace with correct regression label: 'regression-develop', 'regression-RC-x.y.z', or 'regression-prod-x.y.z' label, where 'x.y.z' is the number of the release where bug was found.`,
+        description: `TODO: Unknown regression stage. Please replace with correct regression label: 'regression-main', 'regression-RC-x.y.z', or 'regression-prod-x.y.z' label, where 'x.y.z' is the number of the release where bug was found.`,
       };
   }
 }
