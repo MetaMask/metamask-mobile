@@ -1,3 +1,10 @@
+# This workflow is used to detect changes in the Android and iOS projects.
+# It can be used to determine if the build should be triggered for the Android and iOS projects.
+# Outputs:
+# - android_changed: Whether Android-impacting files changed
+# - ios_changed: Whether iOS-impacting files changed
+# - any_changed: Whether either platform requires a build
+
 name: Detect Mobile Build Changes
 
 on:
