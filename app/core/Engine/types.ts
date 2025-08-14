@@ -89,6 +89,12 @@ import {
   NetworkState,
 } from '@metamask/network-controller';
 import {
+  NetworkEnablementController,
+  NetworkEnablementControllerActions,
+  NetworkEnablementControllerEvents,
+  NetworkEnablementControllerState,
+} from '@metamask/network-enablement-controller';
+import {
   PhishingController,
   PhishingControllerActions,
   PhishingControllerEvents,
@@ -344,6 +350,7 @@ type GlobalActions =
   | GasFeeControllerActions
   | KeyringControllerActions
   | NetworkControllerActions
+  | NetworkEnablementControllerActions
   | PermissionControllerActions
   | SignatureControllerActions
   | LoggingControllerActions
@@ -401,6 +408,7 @@ type GlobalEvents =
   | GasFeeControllerEvents
   | KeyringControllerEvents
   | NetworkControllerEvents
+  | NetworkEnablementControllerEvents
   | PermissionControllerEvents
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   | SnapsGlobalEvents
@@ -475,6 +483,7 @@ export type Controllers = {
   KeyringController: KeyringController;
   LoggingController: LoggingController;
   NetworkController: NetworkController;
+  NetworkEnablementController: NetworkEnablementController;
   NftController: NftController;
   NftDetectionController: NftDetectionController;
   // TODO: Fix permission types
@@ -547,6 +556,7 @@ export type EngineState = {
   CurrencyRateController: CurrencyRateState;
   KeyringController: KeyringControllerState;
   NetworkController: NetworkState;
+  NetworkEnablementController: NetworkEnablementControllerState;
   PreferencesController: PreferencesState;
   RemoteFeatureFlagController: RemoteFeatureFlagControllerState;
   PhishingController: PhishingControllerState;
@@ -650,7 +660,10 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'TransactionController'
-  | 'PerpsController';
+  | 'PerpsController'
+  | 'BridgeController'
+  | 'BridgeStatusController'
+  | 'NetworkEnablementController';
 
 /**
  * Callback that returns a controller messenger for a specific controller.

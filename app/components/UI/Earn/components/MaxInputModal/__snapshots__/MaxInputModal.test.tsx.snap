@@ -385,8 +385,8 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -442,6 +442,7 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                   {
                                     "backgroundColor": "#ffffff",
                                     "flexDirection": "row",
+                                    "gap": 16,
                                     "padding": 16,
                                   },
                                   false,
@@ -465,7 +466,6 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "flex": 1,
-                                    "marginHorizontal": 16,
                                   }
                                 }
                               >

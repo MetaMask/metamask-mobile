@@ -10,6 +10,7 @@ export const TOKEN_ADDRESS_MOCK_1 =
   '0x935E73EDb9fF52E23BaC7F7e043A1ecD06d05477' as Hex;
 export const ACCOUNT_ADDRESS_MOCK_2 =
   '14grJpemFaf88c8tiVb77W7TYg2W3ir6pfkKz3YjhhZ5';
+export const ETHEREUM_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 export const SOLANA_ASSET = {
   address: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
@@ -24,7 +25,7 @@ export const SOLANA_ASSET = {
   isNative: true,
   logo: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg',
   name: 'Ethereum',
-  symbol: 'ETH',
+  symbol: 'SOL',
 };
 
 export const evmSendStateMock = {
@@ -54,6 +55,7 @@ export const evmSendStateMock = {
           [ACCOUNT_ADDRESS_MOCK_1]: {
             ['0x1' as Hex]: {
               [TOKEN_ADDRESS_MOCK_1]: '0x5' as Hex,
+              [ETHEREUM_ADDRESS]: '0x5' as Hex,
             },
           },
         },
@@ -71,6 +73,9 @@ export const evmSendStateMock = {
         marketData: {
           ['0x1' as Hex]: {
             [TOKEN_ADDRESS_MOCK_1]: {
+              price: 3890,
+            },
+            [ETHEREUM_ADDRESS]: {
               price: 3890,
             },
           },
