@@ -574,8 +574,6 @@ const EvmAccountSelectorList = ({
     }
   }, [accounts, accountListRef, selectedAddresses, isAutoScrollEnabled]);
 
-  console.log('OGP - flattenedData', JSON.stringify(flattenedData, null, 2));
-
   return (
     <View style={styles.listContainer}>
       <FlashList

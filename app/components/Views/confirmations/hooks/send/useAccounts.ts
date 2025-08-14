@@ -11,19 +11,14 @@ import {
   type AccountGroupObject,
 } from '@metamask/account-tree-controller';
 import { type InternalAccount } from '@metamask/keyring-internal-api';
+import { type RecipientType } from '../../components/UI/recipient';
 
-export interface Wallet {
-  name: string;
-  id: string;
-  accounts: Account[];
-}
-
-interface Account {
+export interface Account {
   accountGroupName: string;
   account: InternalAccount;
 }
 
-export const useWallets = (): (Wallet | null)[] => {
+export const useAccounts = (): RecipientType[] => {
   const multichainWallets = useSelector(selectMultichainWallets);
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const { isEvmSendType, isSolanaSendType } = useSendType();
@@ -47,16 +42,18 @@ export const useWallets = (): (Wallet | null)[] => {
   const processAccountGroup = useMemo(
     () => (accountGroup: AccountGroupObject) => {
       const compatibleAccounts = accountGroup.accounts
-        .filter(isAccountCompatible)
+        .filter((accountId: string) => isAccountCompatible(accountId))
         .map((accountId: string) => internalAccountsById[accountId]);
 
       if (compatibleAccounts.length === 0) return null;
 
       return {
-        accountGroupName: accountGroup.metadata.name,
+        name: accountGroup.metadata.name,
         // We expect a single account in the account group as we already filtered out the incompatible accounts by blockchain type
         // There might be some edge cases for BTC as there are two accounts in the account group
-        account: compatibleAccounts[0],
+        address: compatibleAccounts[0].address,
+        //Temporary fiat value
+        fiatValue: '$1,000.00',
       };
     },
     [isAccountCompatible, internalAccountsById],
@@ -67,7 +64,7 @@ export const useWallets = (): (Wallet | null)[] => {
       const accountGroups: AccountGroupObject[] = Object.values(wallet.groups);
       const accounts = accountGroups
         .map(processAccountGroup)
-        .filter((account): account is Account => account !== null);
+        .filter((recipient): recipient is NonNullable<typeof recipient> => recipient !== null);
 
       if (accounts.length === 0) return null;
 
@@ -80,10 +77,12 @@ export const useWallets = (): (Wallet | null)[] => {
     [processAccountGroup],
   );
 
-  const recipients = useMemo(
-    () => multichainWallets.map(processWallet),
+  const accounts = useMemo(
+    () => multichainWallets
+      .map(processWallet)
+      .flatMap(wallet => wallet?.accounts ?? []),
     [multichainWallets, processWallet],
   );
 
-  return recipients;
+  return accounts;
 };
