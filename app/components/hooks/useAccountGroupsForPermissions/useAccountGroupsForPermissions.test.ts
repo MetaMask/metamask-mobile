@@ -156,7 +156,7 @@ const createStateWithOverrides = (stateOverrides = {}) =>
     },
   } as any);
 
-describe('useAccountGroupPermissions', () => {
+describe('useAccountGroupForPermissions', () => {
   describe('when no existing permissions', () => {
     it('should return empty connected account groups with available supported groups', () => {
       const emptyPermission = createEmptyPermission();
