@@ -41,9 +41,9 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
   });
 
   const atomicGasFee =
-    quote?.gasFee.amount && !gasIncluded
+    quote?.gasFee.effective && !gasIncluded
       ? ethers.utils.parseUnits(
-          quote.gasFee.amount,
+          quote.gasFee.effective.amount,
           sourceChainNativeAsset?.decimals,
         )
       : null;

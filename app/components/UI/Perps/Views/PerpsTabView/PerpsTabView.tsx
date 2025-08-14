@@ -38,7 +38,7 @@ interface PerpsTabViewProps {}
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { getAccountState } = usePerpsTrading();
+  const { getAccountState, depositWithConfirmation } = usePerpsTrading();
   const { isConnected, isInitialized } = usePerpsConnection();
 
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
@@ -77,12 +77,16 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     setIsBottomSheetVisible(false);
   }, []);
 
-  const handleAddFunds = useCallback(() => {
+  const handleAddFunds = useCallback(async () => {
     setIsBottomSheetVisible(false);
+    const { result: depositResult } = await depositWithConfirmation();
+
     navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.DEPOSIT,
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     });
-  }, [navigation]);
+
+    await depositResult;
+  }, [depositWithConfirmation, navigation]);
 
   const handleWithdrawFunds = useCallback(() => {
     setIsBottomSheetVisible(false);

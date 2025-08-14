@@ -11,6 +11,7 @@ import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
+import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 
 const Stack = createStackNavigator();
@@ -120,6 +121,11 @@ const PerpsScreenStack = () => (
           },
           animationEnabled: false,
         }}
+      />
+
+      <Stack.Screen
+        name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
+        component={Confirm}
       />
     </Stack.Navigator>
   </PerpsConnectionProvider>
