@@ -64,7 +64,26 @@ jest.mock('../../providers/PerpsConnectionProvider', () => ({
 const mockRefreshOrders = jest.fn();
 jest.mock('../../hooks/usePerpsOpenOrders', () => ({
   usePerpsOpenOrders: () => ({
-    orders: [],
+    orders: [
+      {
+        id: 'order1',
+        orderId: 'order1',
+        symbol: 'BTC',
+        side: 'buy',
+        size: '0.1',
+        originalSize: '0.1',
+        price: '45000',
+        status: 'open',
+        timestamp: Date.now(), // Add proper timestamp
+        lastUpdated: Date.now(),
+        orderType: 'limit',
+        filledSize: '0',
+        remainingSize: '0.1',
+        detailedOrderType: 'Limit Order',
+        isTrigger: false,
+        reduceOnly: false,
+      },
+    ],
     refresh: mockRefreshOrders,
     isLoading: false,
     error: null,
@@ -175,6 +194,11 @@ describe('PerpsMarketDetailsView', () => {
       },
     );
 
+    // Switch to statistics tab first
+    const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
+    fireEvent.press(statisticsTab);
+
+    // Now look for statistics elements
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.STATISTICS_HIGH_24H),
     ).toBeTruthy();
@@ -225,6 +249,10 @@ describe('PerpsMarketDetailsView', () => {
       },
     );
 
+    // Switch to statistics tab first
+    const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
+    fireEvent.press(statisticsTab);
+
     const openInterestInfoIcon = getByTestId(
       PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
     );
@@ -246,6 +274,10 @@ describe('PerpsMarketDetailsView', () => {
         state: initialState,
       },
     );
+
+    // Switch to statistics tab first
+    const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
+    fireEvent.press(statisticsTab);
 
     const fundingRateInfoIcon = getByTestId(
       PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON,
@@ -428,6 +460,85 @@ describe('PerpsMarketDetailsView', () => {
       // Should refresh both candle data and position data
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
       expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
+    });
+
+    it('refreshes orders data when orders tab is active', async () => {
+      const mockRefreshPosition = jest.fn();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: false,
+        error: null,
+        existingPosition: null,
+        refreshPosition: mockRefreshPosition,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Switch to orders tab
+      const ordersTab = getByTestId('perps-market-tabs-orders-tab');
+      fireEvent.press(ordersTab);
+
+      // Get the ScrollView component
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+
+      // Trigger the refresh
+      await refreshControl.props.onRefresh();
+
+      // Should refresh candle data and orders data
+      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
+      expect(mockRefreshOrders).toHaveBeenCalledTimes(1);
+      // Should not refresh position data when orders tab is active
+      expect(mockRefreshPosition).not.toHaveBeenCalled();
+    });
+
+    it('refreshes statistics data when statistics tab is active', async () => {
+      const mockRefreshPosition = jest.fn();
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: false,
+        error: null,
+        existingPosition: null,
+        refreshPosition: mockRefreshPosition,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      // Switch to statistics tab
+      const statisticsTab = getByTestId('perps-market-tabs-statistics-tab');
+      fireEvent.press(statisticsTab);
+
+      // Get the ScrollView component
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+
+      // Trigger the refresh
+      await refreshControl.props.onRefresh();
+
+      // Should refresh candle data, market stats, and position data
+      expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
+      expect(mockRefreshMarketStats).toHaveBeenCalledTimes(1);
+      expect(mockRefreshPosition).toHaveBeenCalledTimes(1);
+      // Should not refresh orders data when statistics tab is active
+      expect(mockRefreshOrders).not.toHaveBeenCalled();
     });
 
     it('calls refresh functions for chart data and position by default', async () => {
