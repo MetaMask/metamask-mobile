@@ -43,7 +43,6 @@ export function useSendNavbar({ currentRoute }: { currentRoute: string }) {
         size={ButtonIconSize.Lg}
         iconName={IconName.ArrowLeft}
         onPress={handleBackPress}
-        twClassName="ml-4"
         testID="send-navbar-back-button"
       />
     ),
@@ -56,7 +55,7 @@ export function useSendNavbar({ currentRoute }: { currentRoute: string }) {
         size={ButtonIconSize.Lg}
         iconName={IconName.Close}
         onPress={handleCancelPress}
-        twClassName="mx-4"
+        twClassName="ml-4"
         testID="send-navbar-close-button"
       />
     ),

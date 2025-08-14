@@ -1,33 +1,18 @@
 import React, { useCallback, useMemo } from 'react';
 import { FlashList } from '@shopify/flash-list';
-import {
-  Box,
-  Text,
-  TextVariant,
-  AvatarToken,
-  FontWeight,
-  TextColor,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
+import { useSelector, shallowEqual } from 'react-redux';
 
-import Cell, {
-  CellVariant,
-} from '../../../../../component-library/components/Cells/Cell';
-import { useStyles } from '../../../../../component-library/hooks';
-import { type Wallet } from '../../hooks/send/useWallets';
-import styleSheet from './recipient-list.styles';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../reducers';
-import { shallowEqual } from 'react-redux';
 import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { RootState } from '../../../../../reducers';
+import { type Wallet } from '../../hooks/send/useWallets';
+import { Recipient } from '../UI/recipient';
 
 interface RecipientListProps {
   wallets: (Wallet | null)[];
 }
 
 export function RecipientList({ wallets }: RecipientListProps) {
-  const { styles } = useStyles(styleSheet, {});
-
   const accountAvatarType = useSelector(
     (state: RootState) =>
       state.settings.useBlockieIcon
@@ -38,14 +23,6 @@ export function RecipientList({ wallets }: RecipientListProps) {
 
   const flattenedData = useMemo(() => {
     return wallets.reduce((acc: any, wallet: any) => {
-      // Add wallet entry
-      acc.push({
-        type: 'wallet',
-        name: wallet.name,
-        id: wallet.id,
-      });
-
-      // Add account entries
       wallet.accounts.forEach((accountGroup: any) => {
         acc.push({
           type: 'account',
@@ -59,39 +36,22 @@ export function RecipientList({ wallets }: RecipientListProps) {
     }, []);
   }, [wallets]);
 
-  const renderItem = useCallback(({ item }: { item: any }) => {
-    if (item.type === 'wallet') {
-      return (
-        <Text
-          variant={TextVariant.HeadingSm}
-          color={TextColor.TextDefault}
-          twClassName="mt-4"
-          fontWeight={FontWeight.Medium}
-        >
-          {item.name}
-        </Text>
-      );
-    }
+  const handleRecipientPress = useCallback((recipient: any) => {
+    console.log('Selected recipient:', recipient);
+  }, []);
 
+  const renderItem = useCallback(({ item }: { item: any }) => {
     if (item.type === 'account') {
       return (
-        <Cell
-          variant={CellVariant.Select}
-          title={item.accountGroupName}
-          avatarProps={{
-            variant: AvatarVariant.Account as const,
-            type: accountAvatarType,
-            accountAddress: item.address,
-          }}
-          style={{
-            alignItems: 'center',
-          }}
+        <Recipient
+          recipient={item}
+          accountAvatarType={accountAvatarType}
+          onPress={handleRecipientPress}
         />
       );
     }
-
     return null;
-  }, []);
+  }, [accountAvatarType, handleRecipientPress]);
 
   const keyExtractor = useCallback((item: any) => `${item.id}`, []);
 
@@ -103,7 +63,6 @@ export function RecipientList({ wallets }: RecipientListProps) {
         keyExtractor={keyExtractor}
         removeClippedSubviews
         renderItem={renderItem}
-        contentContainerStyle={styles.flashListContainer}
       />
     </Box>
   );
