@@ -54,12 +54,17 @@ export const TestSnapViewSelectorWebIDS = {
   stopWebSocket: 'stopWebSocket',
   showSVGImage: 'showSVGImage',
   showPNGImage: 'showPNGImage',
+  showPreinstalledDialogButton: 'showPreinstalledDialog',
   getWebSocketState: 'getWebSocketState',
   getChainIdButton: 'sendEthprovider',
   getAccountsButton: 'sendEthproviderAccounts',
   personalSignButton: 'signPersonalSignMessage',
   sendWasmMessageButton: 'sendWasmMessage',
   signTypedDataButton: 'signTypedDataButton',
+  trackErrorButton: 'trackError',
+  trackEventButton: 'trackEvent',
+  startTraceButton: 'start-trace',
+  endTraceButton: 'end-trace',
 };
 
 export const TestSnapInputSelectorWebIDS = {
