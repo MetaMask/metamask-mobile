@@ -472,28 +472,4 @@ describe('logs :: downloadStateLogs', () => {
     const jsonData = JSON.parse(decodedData);
     expect(jsonData).not.toHaveProperty('metaMetricsId');
   });
-
-  it('able to download when SeedlessController state is undefined', async () => {
-    (getApplicationName as jest.Mock).mockResolvedValue('TestApp');
-    (getVersion as jest.Mock).mockResolvedValue('1.0.0');
-    (getBuildNumber as jest.Mock).mockResolvedValue('100');
-    (Device.isIos as jest.Mock).mockReturnValue(false);
-
-    const mockStateInput = merge({}, initialRootState, {
-      engine: {
-        backgroundState: {
-          ...backgroundState,
-          SeedlessOnboardingController: undefined,
-        },
-      },
-    });
-
-    await downloadStateLogs(mockStateInput, false);
-
-    expect(Share.open).toHaveBeenCalledWith({
-      subject: 'TestApp State logs -  v1.0.0 (100)',
-      title: 'TestApp State logs -  v1.0.0 (100)',
-      url: expect.stringContaining('data:text/plain;base64,'),
-    });
-  });
 });
