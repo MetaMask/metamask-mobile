@@ -1,20 +1,13 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { AccountGroupType } from '@metamask/account-api';
-
 import AccountListCell from './AccountListCell';
+import { createMockAccountGroup } from '../../test-utils';
 
-const mockAccountGroup: AccountGroupObject = {
-  id: 'keyring:test-group/ethereum' as const,
-  type: AccountGroupType.SingleAccount,
-  accounts: ['account-1'] as [string],
-  metadata: {
-    name: 'Test Account',
-    pinned: false,
-    hidden: false,
-  },
-};
+const mockAccountGroup = createMockAccountGroup(
+  'keyring:test-group/ethereum',
+  'Test Account',
+  ['account-1'],
+);
 
 describe('AccountListCell', () => {
   it('renders correctly with account data', () => {

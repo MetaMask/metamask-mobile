@@ -159,7 +159,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
 
   // Use state hooks
   const cachedAccountState = usePerpsAccount();
-  const { getAccountState } = usePerpsTrading();
+  const { getAccountState, depositWithConfirmation } = usePerpsTrading();
   const { toggleTestnet } = usePerpsNetworkConfig();
   const currentNetwork = usePerpsNetwork();
 
@@ -281,8 +281,14 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     });
   };
 
-  const handleDepositNavigation = () => {
-    navigation.navigate(Routes.PERPS.DEPOSIT);
+  const handleDepositNavigation = async () => {
+    const { result: depositResult } = await depositWithConfirmation();
+
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    });
+
+    await depositResult;
   };
 
   const handleWithdrawNavigation = () => {
