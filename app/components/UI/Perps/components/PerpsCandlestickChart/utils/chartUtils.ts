@@ -13,10 +13,20 @@ export interface ChartDataPoint {
 
 /**
  * Helper function to format price for y-axis labels
- * Rounds to whole number and adds commas for thousands
+ * Uses adaptive precision based on price magnitude for better distinctiveness
  */
-export const formatPriceForAxis = (price: number): string =>
-  Math.round(price).toLocaleString('en-US');
+export const formatPriceForAxis = (price: number): string => {
+  // For very large numbers (>= 10000), round to whole numbers
+  if (Math.abs(price) >= 10000) {
+    return Math.round(price).toLocaleString('en-US');
+  }
+
+  // For smaller numbers or when we need more precision, show 2 decimal places
+  return price.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
 
 /**
  * Month names for date formatting

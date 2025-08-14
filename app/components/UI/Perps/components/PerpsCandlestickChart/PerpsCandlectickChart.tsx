@@ -597,6 +597,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
               <CandlestickChartXAxis
                 transformedData={yAxisScalingData}
                 chartWidth={fullChartWidth} // Use full width to match chart
+                labelCount={4} // Explicit label count for better visibility
                 testID={PerpsChartAdditionalSelectorsIDs.CANDLESTICK_X_AXIS}
               />
             </View>

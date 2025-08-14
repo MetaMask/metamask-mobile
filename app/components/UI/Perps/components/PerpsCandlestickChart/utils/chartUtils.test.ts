@@ -47,14 +47,15 @@ describe('chartUtils', () => {
       expect(formatPriceForAxis(1234567)).toBe('1,234,567');
     });
 
-    it('rounds decimal numbers to whole numbers', () => {
+    it('rounds decimal numbers to whole numbers for large prices', () => {
       expect(formatPriceForAxis(45000.7)).toBe('45,001');
       expect(formatPriceForAxis(45000.3)).toBe('45,000');
     });
 
-    it('handles small numbers', () => {
-      expect(formatPriceForAxis(123)).toBe('123');
-      expect(formatPriceForAxis(0)).toBe('0');
+    it('shows decimal places for small numbers', () => {
+      expect(formatPriceForAxis(123)).toBe('123.00');
+      expect(formatPriceForAxis(0)).toBe('0.00');
+      expect(formatPriceForAxis(123.456)).toBe('123.46');
     });
   });
 
