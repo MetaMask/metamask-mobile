@@ -175,7 +175,7 @@ export const selectMultichainAccountGroups = createSelector(
  * Get account groups filtered to only non-multichain accounts
  * Non-multichain accounts have IDs that do not start with AccountWalletType.Entropy
  */
-export const selectNonMultichainAccountGroups = createSelector(
+export const selectSingleAccountGroups = createSelector(
   [selectAccountGroups],
   (accountGroups: readonly AccountGroupObject[]) =>
     accountGroups.filter(

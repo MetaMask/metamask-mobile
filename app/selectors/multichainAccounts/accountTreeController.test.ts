@@ -10,7 +10,7 @@ import {
   selectAccountToWalletMap,
   selectAccountToGroupMap,
   selectMultichainAccountGroups,
-  selectNonMultichainAccountGroups,
+  selectSingleAccountGroups,
   selectAccountGroupById,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
@@ -926,7 +926,7 @@ describe('AccountTreeController Selectors', () => {
     });
   });
 
-  describe('getNonMultichainAccountGroups', () => {
+  describe('selectSingleAccountGroups', () => {
     it('filters account groups that do not start with entropy prefix', () => {
       const entropyGroup = {
         id: 'entropy:wallet1/ethereum',
@@ -956,7 +956,7 @@ describe('AccountTreeController Selectors', () => {
         },
       });
 
-      const result = selectNonMultichainAccountGroups(mockState);
+      const result = selectSingleAccountGroups(mockState);
       expect(result).toEqual([keyringGroup, snapGroup]);
     });
 
@@ -981,7 +981,7 @@ describe('AccountTreeController Selectors', () => {
         },
       });
 
-      const result = selectNonMultichainAccountGroups(mockState);
+      const result = selectSingleAccountGroups(mockState);
       expect(result).toEqual([]);
     });
 
@@ -1009,7 +1009,7 @@ describe('AccountTreeController Selectors', () => {
         },
       });
 
-      const result = selectNonMultichainAccountGroups(mockState);
+      const result = selectSingleAccountGroups(mockState);
       expect(result).toEqual([keyringGroup, snapGroup]);
     });
   });
