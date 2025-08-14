@@ -17,30 +17,39 @@ export const useSendActions = () => {
   const { isEvmSendType } = useSendType();
   const { captureSendExit } = useSendExitMetrics();
 
-  const handleSubmitPress = useCallback(async () => {
-    if (!chainId || !asset) {
-      return;
-    }
+  const handleSubmitPress = useCallback(
+    async (recipientAddress?: string) => {
+      if (!chainId || !asset) {
+        return;
+      }
 
-    if (isEvmSendType) {
-      await submitEvmTransaction({
-        asset,
-        chainId: chainId as Hex,
-        from: from as Hex,
-        to: to as Hex,
-        value: value as string,
-      });
-    } else {
-      await submitNonEvmTransaction({
-        asset,
-        fromAccount,
-      });
-    }
+      const toAddress = recipientAddress || to;
+      if (!toAddress) {
+        console.warn('No recipient address provided');
+        return;
+      }
 
-    navigation.navigate(
-      Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    );
-  }, [asset, chainId, navigation, fromAccount, from, isEvmSendType, to, value]);
+      if (isEvmSendType) {
+        await submitEvmTransaction({
+          asset,
+          chainId: chainId as Hex,
+          from: from as Hex,
+          to: toAddress as Hex,
+          value: value as string,
+        });
+      } else {
+        await submitNonEvmTransaction({
+          asset,
+          fromAccount,
+        });
+      }
+
+      navigation.navigate(
+        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      );
+    },
+    [asset, chainId, navigation, fromAccount, from, isEvmSendType, to, value],
+  );
 
   const handleCancelPress = useCallback(() => {
     captureSendExit();

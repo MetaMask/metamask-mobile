@@ -28,37 +28,23 @@ export interface RecipientInputRef {
 }
 
 export interface RecipientInputProps {
-  /**
-   * Current value of the address input
-   */
-  value?: string;
-
-  /**
-   * Callback when the input value changes
-   */
-  onChangeText: (text: string) => void;
-
-  /**
-   * Custom ref for the text input
-   */
   inputRef?: React.RefObject<TextInput>;
+  onChangeText: (text: string) => void;
+  value?: string;
 }
 
 export const RecipientInput = forwardRef<
   RecipientInputRef,
   RecipientInputProps
 >(({ value: externalValue, onChangeText, inputRef: externalInputRef }, ref) => {
-  // Internal state for when no external value is provided
   const [internalValue, setInternalValue] = useState('');
   const internalInputRef = useRef<TextInput>(null);
 
-  // Use external value if provided, otherwise use internal state
   const addressInput =
     externalValue !== undefined ? externalValue : internalValue;
   const setAddressInput = onChangeText || setInternalValue;
   const textInputRef = externalInputRef || internalInputRef;
 
-  // Expose methods through ref
   useImperativeHandle(ref, () => ({
     focus: () => {
       textInputRef.current?.focus();
@@ -77,7 +63,6 @@ export const RecipientInput = forwardRef<
       const clipboardText = await ClipboardManager.getString();
       if (clipboardText) {
         setAddressInput(clipboardText.trim());
-        // Keep focus after pasting
         setTimeout(() => {
           textInputRef.current?.focus();
         }, 100);

@@ -7,20 +7,9 @@ import { useSendContext } from '../../context/send-context/send-context';
 import { Recipient, type RecipientType } from '../UI/recipient';
 
 interface RecipientListProps {
-  /**
-   * Array of recipients to display (accounts or contacts)
-   */
   data: RecipientType[];
-
-  /**
-   * Callback when a recipient is selected
-   */
-  onRecipientSelected: (recipient: RecipientType) => void;
-
-  /**
-   * Optional message to show when the list is empty
-   */
   emptyMessage?: string;
+  onRecipientSelected: (recipient: RecipientType) => void;
 }
 
 export function RecipientList({
@@ -48,7 +37,6 @@ export function RecipientList({
     [],
   );
 
-  // Show empty state if data is empty and emptyMessage is provided
   if (data.length === 0 && emptyMessage) {
     return (
       <Box twClassName="flex-1 justify-center items-center p-4">

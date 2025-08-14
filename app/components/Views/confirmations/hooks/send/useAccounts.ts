@@ -1,22 +1,16 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { isEvmAccountType } from '@metamask/keyring-api';
-
-import { selectMultichainWallets } from '../../../../../selectors/multichainAccounts/wallets';
-import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-import { isSolanaAccount } from '../../../../../core/Multichain/utils';
-import { useSendType } from './useSendType';
 import {
   type AccountWalletObject,
   type AccountGroupObject,
 } from '@metamask/account-tree-controller';
-import { type InternalAccount } from '@metamask/keyring-internal-api';
-import { type RecipientType } from '../../components/UI/recipient';
 
-export interface Account {
-  accountGroupName: string;
-  account: InternalAccount;
-}
+import { selectMultichainWallets } from '../../../../../selectors/multichainAccounts/wallets';
+import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
+import { isSolanaAccount } from '../../../../../core/Multichain/utils';
+import { type RecipientType } from '../../components/UI/recipient';
+import { useSendType } from './useSendType';
 
 export const useAccounts = (): RecipientType[] => {
   const multichainWallets = useSelector(selectMultichainWallets);
@@ -48,7 +42,7 @@ export const useAccounts = (): RecipientType[] => {
       if (compatibleAccounts.length === 0) return null;
 
       return {
-        name: accountGroup.metadata.name,
+        name: compatibleAccounts[0].metadata.name,
         // We expect a single account in the account group as we already filtered out the incompatible accounts by blockchain type
         // There might be some edge cases for BTC as there are two accounts in the account group
         address: compatibleAccounts[0].address,
@@ -64,7 +58,10 @@ export const useAccounts = (): RecipientType[] => {
       const accountGroups: AccountGroupObject[] = Object.values(wallet.groups);
       const accounts = accountGroups
         .map(processAccountGroup)
-        .filter((recipient): recipient is NonNullable<typeof recipient> => recipient !== null);
+        .filter(
+          (recipient): recipient is NonNullable<typeof recipient> =>
+            recipient !== null,
+        );
 
       if (accounts.length === 0) return null;
 
@@ -78,9 +75,10 @@ export const useAccounts = (): RecipientType[] => {
   );
 
   const accounts = useMemo(
-    () => multichainWallets
-      .map(processWallet)
-      .flatMap(wallet => wallet?.accounts ?? []),
+    () =>
+      multichainWallets
+        .map(processWallet)
+        .flatMap((wallet) => wallet?.accounts ?? []),
     [multichainWallets, processWallet],
   );
 

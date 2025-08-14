@@ -21,6 +21,7 @@ import { useSendContext } from '../../../context/send-context/send-context';
 import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
+import { useSendActions } from '../../../hooks/send/useSendActions';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientInput } from '../../recipient-input';
 import { RecipientType } from '../../UI/recipient';
@@ -29,6 +30,7 @@ import { styleSheet } from './recipient.styles';
 export const Recipient = () => {
   const [addressInput, setAddressInput] = useState('');
   const { updateTo } = useSendContext();
+  const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
   const textInputRef = useRef<TextInput>(null);
@@ -37,16 +39,20 @@ export const Recipient = () => {
   const { toAddressError } = useToAddressValidation(addressInput);
 
   const handleReview = useCallback(() => {
+    if (toAddressError) {
+      return;
+    }
     updateTo(addressInput);
-    // Submission
-  }, [addressInput, updateTo]);
+    handleSubmitPress(addressInput);
+  }, [addressInput, toAddressError, updateTo, handleSubmitPress]);
 
   const onRecipientSelected = useCallback(
     (recipient: RecipientType) => {
-      updateTo(recipient.address);
-      // Submission
+      const to = recipient.address;
+      updateTo(to);
+      handleSubmitPress(to);
     },
-    [updateTo],
+    [updateTo, handleSubmitPress],
   );
 
   return (
