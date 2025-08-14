@@ -54,6 +54,10 @@ const mockPriorityToken = {
 
 const mockCurrentAddress = '0x789';
 
+const mockSelectedInternalAccount = {
+  address: mockCurrentAddress,
+};
+
 // Mock hooks
 const mockFetchPriorityToken = jest.fn().mockResolvedValue(mockPriorityToken);
 const mockNavigateToCardPage = jest.fn();
@@ -351,12 +355,8 @@ describe('CardHome Component', () => {
       if (selector === selectCardholderAccounts) {
         return [mockCurrentAddress];
       }
-      if (
-        selector
-          .toString()
-          .includes('selectSelectedInternalAccountFormattedAddress')
-      ) {
-        return mockCurrentAddress;
+      if (selector.toString().includes('selectSelectedInternalAccount')) {
+        return mockSelectedInternalAccount;
       }
       if (selector.toString().includes('selectChainId')) {
         return '0xe708'; // Linea chain ID - fallback for string matching
@@ -403,12 +403,8 @@ describe('CardHome Component', () => {
       if (selector === selectCardholderAccounts) {
         return [mockCurrentAddress];
       }
-      if (
-        selector
-          .toString()
-          .includes('selectSelectedInternalAccountFormattedAddress')
-      ) {
-        return mockCurrentAddress;
+      if (selector.toString().includes('selectSelectedInternalAccount')) {
+        return mockSelectedInternalAccount;
       }
       if (selector.toString().includes('selectChainId')) {
         return '0xe708'; // Linea chain ID - fallback
@@ -726,6 +722,9 @@ describe('CardHome Component', () => {
       }
       if (selector.toString().includes('selectCardholderAccounts')) {
         return [mockCurrentAddress];
+      }
+      if (selector.toString().includes('selectSelectedInternalAccount')) {
+        return mockSelectedInternalAccount;
       }
       if (selector.toString().includes('selectEvmTokens')) {
         return [mockPriorityToken];

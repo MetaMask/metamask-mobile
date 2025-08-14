@@ -120,7 +120,7 @@ const CardHome = () => {
 
         // Handle account change after network is correct
         if (
-          selectedAccount?.address.toLowerCase() !==
+          selectedAccount?.address?.toLowerCase() !==
           cardholderAddresses?.[0]?.toLowerCase()
         ) {
           const account = AccountsController.getAccountByAddress(

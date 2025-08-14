@@ -2,10 +2,7 @@ import { getCardholder } from './getCardholder';
 import { CardSDK } from '../sdk/CardSDK';
 import Logger from '../../../../util/Logger';
 import { CardFeatureFlag } from '../../../../selectors/featureFlagController/card';
-import {
-  isValidHexAddress,
-  safeToChecksumAddress,
-} from '../../../../util/address';
+import { isValidHexAddress } from '../../../../util/address';
 import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 // Mock dependencies
@@ -21,8 +18,6 @@ const mockedLogger = Logger as jest.Mocked<typeof Logger>;
 const mockedIsValidHexAddress = isValidHexAddress as jest.MockedFunction<
   typeof isValidHexAddress
 >;
-const mockedSafeToChecksumAddress =
-  safeToChecksumAddress as jest.MockedFunction<typeof safeToChecksumAddress>;
 
 describe('getCardholder', () => {
   const mockCardFeatureFlag: CardFeatureFlag = {
@@ -69,9 +64,6 @@ describe('getCardholder', () => {
 
     // Mock address utilities
     mockedIsValidHexAddress.mockReturnValue(true);
-    mockedSafeToChecksumAddress.mockImplementation(
-      (address) => address as `0x${string}`,
-    );
   });
 
   describe('successful scenarios', () => {
@@ -288,7 +280,6 @@ describe('getCardholder', () => {
         '0x2222222222222222222222222222222222222222',
         '0x3333333333333333333333333333333333333333',
       ]);
-      expect(mockedSafeToChecksumAddress).toHaveBeenCalledTimes(3);
     });
 
     it('should handle invalid CAIP-10 format and log errors', async () => {
