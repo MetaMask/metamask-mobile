@@ -2,6 +2,8 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ImageSourcePropType } from 'react-native';
 
+// eslint-disable-next-line import/no-namespace
+import * as AssetSelectionMetrics from '../../hooks/send/metrics/useAssetSelectionMetrics';
 import { TokenList } from './token-list';
 import { AssetType } from '../../types/token';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -126,6 +128,22 @@ describe('TokenList', () => {
     });
 
     expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
+  });
+
+  it('calls required metrics function when token is pressed', () => {
+    const mockCaptureAssetSelected = jest.fn();
+    jest
+      .spyOn(AssetSelectionMetrics, 'useAssetSelectionMetrics')
+      .mockReturnValue({
+        captureAssetSelected: mockCaptureAssetSelected,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+
+    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
+
+    fireEvent.press(getByTestId('token-ETH'));
+
+    expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[0], '0');
   });
 
   it('calls updateAsset and gotToSendScreen when second token is pressed', () => {

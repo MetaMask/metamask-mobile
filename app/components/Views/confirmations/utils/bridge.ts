@@ -8,6 +8,7 @@ import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { GasFeeEstimates, GasFeeState } from '@metamask/gas-fee-controller';
 
 export type TransactionBridgeQuote = QuoteResponse & QuoteMetadata;
 
@@ -29,17 +30,25 @@ export async function getBridgeQuotes(
 ): Promise<TransactionBridgeQuote[] | undefined> {
   log('Fetching bridge quotes', requests);
 
+  if (!requests?.length) {
+    return [];
+  }
+
   try {
     const allQuotes: TransactionBridgeQuote[] = [];
 
-    for (const request of requests) {
-      const quotes = await getSingleBridgeQuotes(request);
+    const gasFeeEstimates = await getGasFeeEstimates(requests[0].sourceChainId);
 
-      if (!quotes) {
+    log('Fetched gas fee estimates', gasFeeEstimates);
+
+    for (const request of requests) {
+      const quote = await getSingleBridgeQuotes(request, gasFeeEstimates);
+
+      if (!quote) {
         return undefined;
       }
 
-      allQuotes.push(quotes);
+      allQuotes.push(quote);
     }
 
     log('Fetched bridge quotes', allQuotes);
@@ -47,12 +56,13 @@ export async function getBridgeQuotes(
     return allQuotes;
   } catch (error) {
     log('Error fetching bridge quotes', error);
-    return [];
+    return undefined;
   }
 }
 
 async function getSingleBridgeQuotes(
   request: BridgeQuoteRequest,
+  gasFeeEstimates: GasFeeEstimates,
 ): Promise<TransactionBridgeQuote | undefined> {
   const {
     from,
@@ -67,7 +77,10 @@ async function getSingleBridgeQuotes(
 
   BridgeController.resetState();
 
-  const activeQuotePromise = waitForQuoteOrTimeout(targetTokenAddress);
+  const activeQuotePromise = waitForQuoteOrTimeout(
+    targetTokenAddress,
+    gasFeeEstimates,
+  );
 
   await BridgeController.updateBridgeQuoteRequestParams(
     {
@@ -99,12 +112,18 @@ async function getSingleBridgeQuotes(
 
 function waitForQuoteOrTimeout(
   targetTokenAddress: Hex,
+  gasFeeEstimates: GasFeeEstimates,
 ): Promise<TransactionBridgeQuote | undefined> {
   return new Promise<TransactionBridgeQuote>((resolve, reject) => {
     const handler = Engine.controllerMessenger.subscribeOnceIf(
       'BridgeController:stateChange',
       (controllerState) => {
-        resolve(getActiveQuote(controllerState) as TransactionBridgeQuote);
+        resolve(
+          getActiveQuote(
+            controllerState,
+            gasFeeEstimates,
+          ) as TransactionBridgeQuote,
+        );
       },
       (controllerState) => {
         const activeQuote = getActiveQuote(controllerState);
@@ -132,6 +151,7 @@ function waitForQuoteOrTimeout(
 
 function getActiveQuote(
   controllerState: BridgeControllerState,
+  gasFeeEstimates?: GasFeeEstimates,
 ): TransactionBridgeQuote | undefined {
   const fullState = store.getState();
 
@@ -142,11 +162,32 @@ function getActiveQuote(
       backgroundState: {
         ...fullState?.engine?.backgroundState,
         BridgeController: controllerState,
+        ...(gasFeeEstimates
+          ? {
+              GasFeeController: {
+                ...fullState?.engine?.backgroundState?.GasFeeController,
+                gasFeeEstimates,
+              } as GasFeeState,
+            }
+          : {}),
       },
     },
   };
 
   return selectBridgeQuotes(state).recommendedQuote ?? undefined;
+}
+
+async function getGasFeeEstimates(chainId: Hex) {
+  const { GasFeeController, NetworkController } = Engine.context;
+
+  const networkClientId =
+    NetworkController.findNetworkClientIdByChainId(chainId);
+
+  const state = await GasFeeController.fetchGasFeeEstimates({
+    networkClientId,
+  });
+
+  return state.gasFeeEstimates as GasFeeEstimates;
 }
 
 function isSmartTransactionsEnabled(chainId: Hex): boolean {

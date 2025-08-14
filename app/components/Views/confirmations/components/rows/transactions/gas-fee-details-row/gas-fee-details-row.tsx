@@ -32,7 +32,9 @@ const EstimationInfo = ({
   fiatOnly,
 }: {
   hideFiatForTestnet: boolean;
-  feeCalculations: ReturnType<typeof useFeeCalculations>;
+  feeCalculations:
+    | ReturnType<typeof useFeeCalculations>
+    | ReturnType<typeof useFeeCalculationsTransactionBatch>;
   fiatOnly: boolean;
 }) => {
   const { styles } = useStyles(styleSheet, {});
@@ -154,8 +156,9 @@ const RenderEstimationInfo = ({
 
 const GasFeesDetailsRow = ({
   disableUpdate = false,
-  hideSpeed = false,
   fiatOnly = false,
+  hideSpeed = false,
+  noSection = false,
 }) => {
   const [gasModalVisible, setGasModalVisible] = useState(false);
   const { styles } = useStyles(styleSheet, {});
@@ -176,9 +179,11 @@ const GasFeesDetailsRow = ({
     });
   };
 
+  const Container = noSection ? View : InfoSection;
+
   return (
     <>
-      <InfoSection testID={ConfirmationRowComponentIDs.GAS_FEES_DETAILS}>
+      <Container testID={ConfirmationRowComponentIDs.GAS_FEES_DETAILS}>
         <AlertRow
           alertField={RowAlertKey.EstimatedFee}
           label={strings('transactions.network_fee')}
@@ -209,7 +214,7 @@ const GasFeesDetailsRow = ({
             <GasSpeed />
           </AlertRow>
         )}
-      </InfoSection>
+      </Container>
       {gasModalVisible && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />
       )}

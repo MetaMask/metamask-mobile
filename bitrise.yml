@@ -323,6 +323,8 @@ stages:
       - run_tag_flask_build_tests_android: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_card_ios: {}
+      - run_tag_smoke_card_android: {}
   run_single_e2e_ios_android_stage:
     workflows:
       - run_single_ios_e2e_test: {}
@@ -348,6 +350,8 @@ stages:
       - run_tag_smoke_accounts_android: {}
       # - run_tag_smoke_performance_ios: {}
       - run_tag_smoke_performance_android: {}
+      - run_tag_smoke_card_ios: {}
+      - run_tag_smoke_card_android: {}
   run_smoke_e2e_performance_ios_android_stage:
     workflows:
       # - run_tag_smoke_performance_ios: {}
@@ -385,6 +389,8 @@ stages:
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
       - run_tag_smoke_accounts_android: {}
+      - run_tag_smoke_card_ios: {}
+      - run_tag_smoke_card_android: {}
 
   report_results_stage:
     workflows:
@@ -1094,6 +1100,20 @@ workflows:
         machine_type_id: elite-xl
     envs:
       - TEST_SUITE_TAG: 'SmokeAccounts'
+    after_run:
+      - android_e2e_test
+  run_tag_smoke_card_ios:
+    envs:
+      - TEST_SUITE_TAG: 'SmokeCard'
+    after_run:
+      - ios_e2e_test
+  run_tag_smoke_card_android:
+    meta:
+      bitrise.io:
+        stack: linux-docker-android-22.04
+        machine_type_id: elite-xl
+    envs:
+      - TEST_SUITE_TAG: 'SmokeCard'
     after_run:
       - android_e2e_test
   android_e2e_build:
@@ -2401,8 +2421,8 @@ workflows:
       - YARN_COMMAND: 'build:android:main:beta'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/rc.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
@@ -2416,8 +2436,8 @@ workflows:
       - YARN_COMMAND: 'build:android:main:rc'
       - NAME: $VERSION_NAME
       - NUMBER: $VERSION_NUMBER
-      - KEYSTORE_FILE_PATH: $BITRISEIO_ANDROID_KEYSTORE_URL
-      - KEYSTORE_PATH: 'android/keystores/release.keystore'
+      - KEYSTORE_FILE_PATH: $BITRISEIO_MAIN_RC_KEYSTORE_URL
+      - KEYSTORE_PATH: 'android/keystores/rc.keystore'
       - APP_NAME: 'prod'
       - OUTPUT_PATH: 'prodRelease'
     after_run:
