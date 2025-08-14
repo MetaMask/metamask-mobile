@@ -21,8 +21,7 @@ describe(SmokeCard('CardHome - Manage Card'), () => {
   const eventsToCheck: EventPayload[] = [];
   const cardholderApiWithSegmentMock = {
     ...cardApiMocks,
-    GET: [...(cardApiMocks.GET ?? []), mockEvents.GET.cardFeatureFlag],
-    POST: [...(cardApiMocks.POST ?? []), mockEvents.POST.segmentTrack],
+    POST: [mockEvents.POST.segmentTrack],
   };
 
   const setupCardTest = async (testFunction: () => Promise<void>) => {
