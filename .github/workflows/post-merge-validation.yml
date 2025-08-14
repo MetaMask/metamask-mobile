@@ -8,7 +8,7 @@ on:
     - cron: '0 7 * * *'
 
 jobs:
-  post-merge-validation-tracker1:
+  post-merge-validation-tracker:
     uses: MetaMask/github-tools/.github/workflows/post-merge-validation.yml@ci-slack-reminder
     with:
       repo: ${{ github.repository }}
