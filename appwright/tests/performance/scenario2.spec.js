@@ -14,8 +14,12 @@ import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccoun
 import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 
-const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED === 'false';
-
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED
+  ? process.env.SEEDLESS_ONBOARDING_ENABLED
+  : true;
+const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED
+  ? process.env.SOLANA_MODAL_ENABLE
+  : false;
 test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   device,
 }, testInfo) => {

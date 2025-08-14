@@ -11,9 +11,12 @@ import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePas
 import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
 import SolanaFeatureSheet from '../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
-const SEEDLESS_ONBOARDING_ENABLED =
-  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
-const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED === 'true';
+const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED
+  ? process.env.SEEDLESS_ONBOARDING_ENABLED
+  : true;
+const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED
+  ? process.env.SOLANA_MODAL_ENABLE
+  : false;
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
