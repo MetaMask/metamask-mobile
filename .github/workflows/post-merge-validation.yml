@@ -6,7 +6,7 @@ on:
 
 jobs:
   post-merge-validation-tracker:
-    uses: MetaMask/github-tools/.github/workflows/post-merge-validation.yml@ci-slack-reminder
+    uses: MetaMask/github-tools/.github/workflows/post-merge-validation.yml@main
     with:
       repo: ${{ github.repository }}
       start_hour_utc: 7
