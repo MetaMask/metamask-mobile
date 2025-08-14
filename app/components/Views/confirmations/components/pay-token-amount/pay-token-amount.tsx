@@ -3,7 +3,7 @@ import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { View } from 'react-native';
 import Text from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from './token-amount-native.styles';
+import styleSheet from './pay-token-amount.styles';
 import Icon, {
   IconName,
   IconSize,
@@ -16,29 +16,35 @@ import I18n from '../../../../../../locales/i18n';
 import { useTokenFiatRates } from '../../hooks/tokens/useTokenFiatRates';
 import { Hex } from 'viem';
 
-export function TokenAmountNative() {
+export function PayTokenAmount() {
   const { styles } = useStyles(styleSheet, {});
   const { amountUnformatted } = useTokenAmount();
   const { asset } = useTokenAsset();
   const { payToken } = useTransactionPayToken();
 
   const fiatRequests = useMemo(
-    () => [
-      {
-        chainId: payToken?.chainId as Hex,
-        address: payToken?.address as Hex,
-      },
-      {
-        chainId: asset?.chainId as Hex,
-        address: asset?.address as Hex,
-      },
-    ],
+    () =>
+      payToken && asset
+        ? [
+            {
+              chainId: payToken.chainId,
+              address: payToken.address,
+            },
+            {
+              chainId: asset.chainId as Hex,
+              address: asset.address as Hex,
+            },
+          ]
+        : [],
     [asset, payToken],
   );
 
   const fiatRates = useTokenFiatRates(fiatRequests);
-  const payTokenFiatRate = fiatRates[0] ?? 1;
-  const assetFiatRate = fiatRates[1] ?? 1;
+
+  const payTokenFiatRate = fiatRates[0];
+  const assetFiatRate = fiatRates[1];
+
+  if (!payTokenFiatRate || !assetFiatRate) return null;
 
   const assetToPayTokenRate = new BigNumber(assetFiatRate).dividedBy(
     payTokenFiatRate,
@@ -51,7 +57,7 @@ export function TokenAmountNative() {
   const formattedAmount = formatAmount(I18n.locale, payTokenAmount);
 
   return (
-    <View style={styles.container}>
+    <View testID="pay-token-amount" style={styles.container}>
       <Text>
         {formattedAmount} {payToken?.symbol}
       </Text>
