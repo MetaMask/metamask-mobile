@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { toHex } from '@metamask/controller-utils';
@@ -8,12 +8,10 @@ import {
   useLoginMutation,
   useLogoutMutation,
 } from '../services';
-import { useRewardsSubscription } from './useRewardsSubscription';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { handleRewardsErrorMessage } from '../../../../../util/rewards';
+import { getSubscriptionToken } from '../utils/MultiSubscriptionTokenVault';
 import Engine from '../../../../Engine';
-
-export const REWARDS_SIGNUP_PREFIX = 'metaMaskRewardsSignup';
 
 export const useRewardsAuth = ({
   onLoginSuccess,
@@ -23,6 +21,8 @@ export const useRewardsAuth = ({
   const address = useSelector(selectSelectedInternalAccountAddress);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [loginLoading, setLoginLoading] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
   const [generateChallenge] = useGenerateChallengeMutation();
   const [login] = useLoginMutation();
@@ -55,7 +55,6 @@ export const useRewardsAuth = ({
         });
 
       await login({ challengeId: challengeResponse.id, signature });
-      await AsyncStorage.setItem(`${REWARDS_SIGNUP_PREFIX}-${address}`, 'true');
       onLoginSuccess?.();
     } catch (error) {
       setLoginError(handleRewardsErrorMessage(error));
@@ -72,14 +71,42 @@ export const useRewardsAuth = ({
 
   const clearLoginError = useCallback(() => setLoginError(null), []);
 
-  const { isLoading: subscriptionIsLoading, isSuccess: subscriptionIsSuccess } =
-    useRewardsSubscription();
+  // Check if we have a valid subscription token for current account
+  useEffect(() => {
+    const checkAuthState = async () => {
+      if (!address) {
+        setIsAuthenticated(false);
+        setIsAuthenticating(false);
+        return;
+      }
+
+      setIsAuthenticating(true);
+      try {
+        const rewardsController = Engine.context.RewardsController;
+        const subscriptionId =
+          rewardsController.getSubscriptionIdForAccount(address);
+
+        if (subscriptionId) {
+          const tokenResult = await getSubscriptionToken(subscriptionId);
+          setIsAuthenticated(tokenResult.success && !!tokenResult.token);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch {
+        setIsAuthenticated(false);
+      } finally {
+        setIsAuthenticating(false);
+      }
+    };
+
+    checkAuthState();
+  }, [address]); // Re-check when account or subscription changes
 
   return {
     login: handleLogin,
     logout: handleLogout,
-    isLoggedIn: subscriptionIsSuccess,
-    isLoading: loginLoading || logoutResult.isLoading || subscriptionIsLoading,
+    isLoggedIn: isAuthenticated,
+    isLoading: loginLoading || logoutResult.isLoading || isAuthenticating,
     loginError,
     clearLoginError,
   };

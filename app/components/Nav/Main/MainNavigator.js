@@ -50,6 +50,8 @@ import ActivityView from '../../Views/ActivityView';
 import RewardsView from '../../Views/RewardsView';
 import RewardsTerms from '../../Views/RewardsView/RewardsTerms';
 import RewardsDashboard from '../../Views/RewardsView/RewardsDashboard';
+import { RewardsAuthProvider } from '../../../core/Engine/controllers/rewards-controller/RewardsAuthProvider';
+import RewardsNavigator from '../../Views/RewardsView/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -250,23 +252,9 @@ const RewardsHome = () => {
   }
 
   return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name={Routes.REWARDS_VIEW}
-        component={RewardsView}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={Routes.REWARDS_TERMS}
-        component={RewardsTerms}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={Routes.REWARDS_DASHBOARD}
-        component={RewardsDashboard}
-        options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
+    <RewardsAuthProvider>
+      <RewardsNavigator />
+    </RewardsAuthProvider>
   );
 };
 

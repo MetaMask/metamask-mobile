@@ -9,8 +9,6 @@ import type { Colors } from '../../../util/theme/models';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { getNavigationOptionsTitle } from '../../UI/Navbar';
 import { strings } from '../../../../locales/i18n';
-import { useRewardsAuth } from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsAuth';
-import Routes from '../../../constants/navigation/Routes';
 import TabBar from '../../../component-library/components-temp/TabBar';
 import SummaryTab from './tabs/SummaryTab';
 import RewardsTab from './tabs/RewardsTab';
@@ -43,14 +41,6 @@ const RewardsDashboard: React.FC = () => {
   const navigation = useNavigation();
   const { colors, typography } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { isLoggedIn } = useRewardsAuth();
-
-  // Redirect to main rewards view if not logged in
-  useEffect(() => {
-    if (!isLoggedIn) {
-      navigation.navigate(Routes.REWARDS_VIEW);
-    }
-  }, [isLoggedIn, navigation]);
 
   // Set navigation title
   useEffect(() => {
