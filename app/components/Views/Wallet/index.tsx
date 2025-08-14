@@ -158,6 +158,7 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { setIsConnectionRemoved } from '../../../actions/user';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
 
@@ -385,7 +386,9 @@ const Wallet = ({
     try {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Try non-EVM first, if handled, return early
-      const wasHandledAsNonEvm = await sendNonEvmAsset();
+      const wasHandledAsNonEvm = await sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
       if (wasHandledAsNonEvm) {
         return;
       }
@@ -405,14 +408,14 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigateToSendPage();
+      navigateToSendPage(InitSendLocation.HomePage);
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigateToSendPage();
+      navigateToSendPage(InitSendLocation.HomePage);
     }
   }, [
     nativeCurrency,
