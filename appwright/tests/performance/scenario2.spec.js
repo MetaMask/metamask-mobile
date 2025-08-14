@@ -14,7 +14,9 @@ import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccoun
 import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 
-test('Onboarding new wallet', async ({
+const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED === 'false';
+
+test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   device,
 }, testInfo) => {
   const screen1Timer = new TimerHelper(
@@ -95,10 +97,12 @@ test('Onboarding new wallet', async ({
   timer7.stop();
   timer8.start();
   await OnboardingSucessScreen.tapDone();
-  await SolanaFeatureSheet.isVisible();
+  if (SOLANA_MODAL_ENABLED) {
+    await SolanaFeatureSheet.isVisible();
+    await SolanaFeatureSheet.tapNotNowButton();
+  }
   timer8.stop();
   timer9.start();
-  await SolanaFeatureSheet.tapNotNowButton();
   await WalletMainScreen.isTokenVisible('Ethereum');
   timer9.stop();
   const performanceTracker = new PerformanceTracker();

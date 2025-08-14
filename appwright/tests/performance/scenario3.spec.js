@@ -16,7 +16,9 @@ import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
 
-test('Onboarding Import SRP with +50 accounts ,SRP 3', async ({
+const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED === 'false';
+
+test('Onboarding Import SRP with +50 accounts, SRP 1 + SRP 2 + SRP 3', async ({
   device,
 }, testInfo) => {
   const screen1Timer = new TimerHelper(
@@ -36,7 +38,7 @@ test('Onboarding Import SRP with +50 accounts ,SRP 3', async ({
   WalletMainScreen.device = device;
   ImportFromSeedScreen.device = device;
   CreatePasswordScreen.device = device;
-  
+
   const timer1 = new TimerHelper(
     'Time since the user clicks on "Get Started" button until the Term of Use screen is visible',
   );
@@ -74,7 +76,7 @@ test('Onboarding Import SRP with +50 accounts ,SRP 3', async ({
   timer1.stop();
   await TermOfUseScreen.tapAgreeCheckBox();
   await TermOfUseScreen.tapScrollEndButton();
-  
+
   timer2.start();
   await TermOfUseScreen.tapAcceptButton();
   await OnboardingScreen.isScreenTitleVisible();
@@ -116,11 +118,12 @@ test('Onboarding Import SRP with +50 accounts ,SRP 3', async ({
 
   timer8.start();
   await OnboardingSucessScreen.tapDone();
-  await SolanaFeatureSheet.isVisible();
+  if (SOLANA_MODAL_ENABLED) {
+    await SolanaFeatureSheet.isVisible();
+    await SolanaFeatureSheet.tapNotNowButton();
+  }
   timer8.stop();
-
   timer9.start();
-  await SolanaFeatureSheet.tapNotNowButton();
   await WalletMainScreen.isTokenVisible('Ethereum');
   timer9.stop();
 
