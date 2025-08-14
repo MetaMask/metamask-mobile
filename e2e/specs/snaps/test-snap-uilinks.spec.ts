@@ -9,7 +9,7 @@ import { Assertions, Matchers } from '../../framework';
 jest.setTimeout(150_000);
 
 describe(FlaskBuildTests('UI Links Snap Test'), () => {
-  it('opens a link in the browser', async () => {
+  it('displays a link in the UI', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
