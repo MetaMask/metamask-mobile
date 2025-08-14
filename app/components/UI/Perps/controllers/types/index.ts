@@ -389,8 +389,8 @@ export interface Order {
   filledSize: string; // Amount filled
   remainingSize: string; // Amount remaining
   status: 'open' | 'filled' | 'canceled' | 'rejected' | 'triggered' | 'queued'; // Normalized status
-  timestamp: number | null; // Order timestamp
-  lastUpdated: number | null; // Last status update timestamp
+  timestamp: number; // Order timestamp
+  lastUpdated: number; // Last status update timestamp
   // TODO: Consider creating separate type for OpenOrders (UI Orders) potentially if optional properties muddy up the original Order type
   takeProfitPrice?: string; // Take profit price (if set)
   stopLossPrice?: string; // Stop loss price (if set)

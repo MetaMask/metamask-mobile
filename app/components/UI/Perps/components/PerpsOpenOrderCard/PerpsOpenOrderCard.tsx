@@ -156,11 +156,9 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                 </View>
               )}
           </View>
-          {order.timestamp && (
-            <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
-              {formatTransactionDate(order.timestamp)}
-            </Text>
-          )}
+          <Text variant={TextVariant.BodySMMedium} color={TextColor.Muted}>
+            {formatTransactionDate(order.timestamp)}
+          </Text>
         </View>
 
         <View style={styles.headerRight}>
