@@ -1272,6 +1272,16 @@
       "got_it": "Got it"
     }
   },
+  "predict": {
+    "title": "MetaMask Predict",
+    "market_list": "Market List",
+    "market_details": "Market Details",
+    "view_available_markets": "View available markets",
+    "sell_position": "Sell Position",
+    "cash_out": "Cash Out",
+    "buy_yes": "Buy Yes",
+    "buy_no": "Buy No"
+  },
   "receive": {
     "title": "Receive"
   },
@@ -1341,6 +1351,7 @@
     "collectibles": "NFTs",
     "defi": "DeFi",
     "perps": "Perpetuals",
+    "predict": "Predict",
     "transactions": "TRANSACTIONS",
     "no_collectibles": "Don’t see your NFT?",
     "no_available_tokens": "Don't see your token?",
@@ -2298,6 +2309,7 @@
     "deposit_button": "Deposit",
     "earn_button": "Earn",
     "perps_button": "Perpetuals",
+    "predict_button": "Prediction",
     "add_collectible_button": "Add",
     "info": "Info",
     "swap": "Swap",
@@ -2331,6 +2343,7 @@
     "receive_description": "Receive crypto",
     "earn_description": "Earn rewards on your tokens",
     "perps_description": "Trade perpetual contracts",
+    "predict_description": "Predict the future",
     "chart_time_period": {
       "1d": "Today",
       "7d": "Past 7 days",

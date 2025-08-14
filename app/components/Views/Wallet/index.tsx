@@ -143,7 +143,9 @@ import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
+import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
+import PredictTabView from '../../UI/Predict/views/PredictTabView';
 import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
 import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
 import {
@@ -215,6 +217,7 @@ const WalletTokensTabView = React.memo(
     collectiblesEnabled: boolean;
   }) => {
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+    const isPredictEnabled = useSelector(selectPredictEnabledFlag);
     const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
 
     const theme = useTheme();
@@ -252,6 +255,15 @@ const WalletTokensTabView = React.memo(
       [navigation],
     );
 
+    const predictTabProps = useMemo(
+      () => ({
+        key: 'predict-tab',
+        tabLabel: strings('wallet.predict'),
+        navigation,
+      }),
+      [navigation],
+    );
+
     const defiPositionsTabProps = useMemo(
       () => ({
         key: 'defi-tab',
@@ -278,6 +290,7 @@ const WalletTokensTabView = React.memo(
         >
           <Tokens {...tokensTabProps} />
           {isPerpsEnabled && <PerpsTabView {...perpsTabProps} />}
+          {isPredictEnabled && <PredictTabView {...predictTabProps} />}
           {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
           {collectiblesEnabled && (
             <CollectibleContracts {...collectibleContractsTabProps} />

@@ -102,6 +102,11 @@ import {
   PerpsModalStack,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
+import {
+  PredictMarketList,
+  PredictMarketDetails,
+  selectPredictEnabledFlag,
+} from '../../UI/Predict';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
@@ -800,6 +805,8 @@ const SetPasswordFlow = () => (
 const MainNavigator = () => {
   // Get feature flag state for conditional Perps screen registration
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  // Get feature flag state for conditional Predict screen registration
+  const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   return (
     <Stack.Navigator
@@ -923,6 +930,26 @@ const MainNavigator = () => {
             component={PerpsFundingTransactionView}
             options={{
               title: 'Funding Transaction',
+              headerShown: true,
+            }}
+          />
+        </>
+      )}
+      {isPredictEnabled && (
+        <>
+          <Stack.Screen
+            name={Routes.PREDICT.MARKET_LIST}
+            component={PredictMarketList}
+            options={{
+              title: 'Market List',
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PREDICT.MARKET_DETAILS}
+            component={PredictMarketDetails}
+            options={{
+              title: 'Market Detail',
               headerShown: true,
             }}
           />
