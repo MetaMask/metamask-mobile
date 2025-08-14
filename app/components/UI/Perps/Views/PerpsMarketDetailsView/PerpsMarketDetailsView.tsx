@@ -233,7 +233,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
       {/* Fixed Header Section */}
-      <View style={styles.headerSection}>
+      <View>
         <PerpsMarketHeader
           market={market}
           currentPrice={marketStats.currentPrice}

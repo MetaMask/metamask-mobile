@@ -13,11 +13,6 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       backgroundColor: theme.colors.background.default,
     },
 
-    // Fixed header section
-    headerSection: {
-      // Header height is determined by PerpsMarketHeader component
-    },
-
     // Scrollable content container - takes remaining space
     scrollableContentContainer: {
       flex: 1,
@@ -33,45 +28,10 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       paddingBottom: 16, // Consistent bottom padding
     },
 
-    // Legacy container style for backward compatibility
+    // Container for error state
     container: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
-    },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border.muted,
-    },
-    headerLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-    },
-    assetInfo: {
-      gap: 4,
-    },
-    assetRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    assetName: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.text.default,
-    },
-    priceInfo: {
-      alignItems: 'flex-end',
-    },
-    price: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: theme.colors.text.default,
     },
     section: {
       paddingVertical: 8,
@@ -116,13 +76,6 @@ export const createStyles = ({ theme }: { theme: Theme }) =>
       justifyContent: 'center',
       alignItems: 'center',
       padding: 24,
-    },
-    positionWarning: {
-      marginBottom: 12,
-      paddingHorizontal: 16,
-    },
-    positionWarningText: {
-      textAlign: 'center',
     },
     riskDisclaimer: {
       paddingHorizontal: 16,
