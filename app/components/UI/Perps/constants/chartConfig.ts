@@ -108,7 +108,7 @@ export const DURATION_CANDLE_PERIODS = {
       { label: '5min', value: CandlePeriod.FIVE_MINUTES }, // 12 candles
       { label: '15min', value: CandlePeriod.FIFTEEN_MINUTES }, // 4 candles
     ],
-    default: CandlePeriod.THREE_MINUTES, // Good detail for 1 hour view
+    default: CandlePeriod.ONE_MINUTE, // 1-minute candles for development/testing
   },
   [TimeDuration.ONE_DAY]: {
     periods: [

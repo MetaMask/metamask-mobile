@@ -57,11 +57,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { top } = useSafeAreaInsets();
 
   const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
-    TimeDuration.ONE_DAY,
+    TimeDuration.ONE_HOUR,
   );
   const [selectedCandlePeriod, setSelectedCandlePeriod] =
     useState<CandlePeriod>(() =>
-      getDefaultCandlePeriodForDuration(TimeDuration.ONE_DAY),
+      getDefaultCandlePeriodForDuration(TimeDuration.ONE_HOUR),
     );
   const [
     isCandlePeriodBottomSheetVisible,

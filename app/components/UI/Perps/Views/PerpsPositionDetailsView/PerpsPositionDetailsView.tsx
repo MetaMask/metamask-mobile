@@ -47,11 +47,11 @@ const PerpsPositionDetailsView: React.FC = () => {
   const { position } = route.params || {};
 
   const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
-    TimeDuration.ONE_DAY,
+    TimeDuration.ONE_HOUR,
   );
   const [selectedCandlePeriod, setSelectedCandlePeriod] =
     useState<CandlePeriod>(() =>
-      getDefaultCandlePeriodForDuration(TimeDuration.ONE_DAY),
+      getDefaultCandlePeriodForDuration(TimeDuration.ONE_HOUR),
     );
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
