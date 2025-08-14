@@ -4855,10 +4855,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^73.0.2":
-  version "73.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-73.0.2.tgz#a42ecee48f2c136a6d1b08694488294e756b2063"
-  integrity sha512-pPtbxv3MAckMFDfIcc9eKZwL2tdS8k2yK3bddCP5x217f3e34Jc6bLdN5bcgd2F951WJRbg4bO6L9FDALzS80g==
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@73.1.0-preview-343f3d69":
+  version "73.1.0-preview-343f3d69"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/assets-controllers/-/assets-controllers-73.1.0-preview-343f3d69.tgz#b3d8404c0b8572d5808de266f98597f4e72b6e40"
+  integrity sha512-v786w+NEqO1w1ufh5TQ8QRnt43ZG0d3Fh7hKaiqct8UuWEp3Q8j2JI8aPX1hGcM62z0CaLijas1L4dWqOnHXrQ==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4867,11 +4867,11 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.3"
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.1.0"
     "@metamask/contract-metadata" "^2.4.0"
     "@metamask/controller-utils" "^11.11.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/keyring-api" "^19.0.0"
+    "@metamask/keyring-api" "^20.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/rpc-errors" "^7.0.2"
@@ -4886,6 +4886,7 @@
     immer "^9.0.6"
     lodash "^4.17.21"
     multiformats "^13.1.0"
+    reselect "^5.1.1"
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
@@ -4926,9 +4927,9 @@
   integrity sha512-5HeXKrsTOBowdK/5KJ6tmHRkv7IekUG9oIczNZwRnGxqGIzmRRPnxVEaWawOuRCxlkNO3qZT9KCkxFtCL+tXbw==
 
 "@metamask/bridge-controller@^37.1.0":
-  version "37.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-37.1.0.tgz#2aa5577dfd0cb73e8bb345f0a54acbacea189893"
-  integrity sha512-zI9rRVLjUROjHeyNSfqcovtlj7c3MZrgs2xlFDF0x1r475BEnEi5AX7XnXMMvrDo3QSXa317WR4ocKQalWZAGg==
+  version "37.2.0"
+  resolved "https://registry.yarnpkg.com/@metamask/bridge-controller/-/bridge-controller-37.2.0.tgz#cb2e2d3b1b68045a6a8024b827c608e4c81812cb"
+  integrity sha512-o55IHjSa5JRlRXML1qPHx1T55fy86ULuUvoh8zozAdD+3CtQNNXJuMeQWfV7bZfjdHhs2x7+a+CUC/2F6KChIw==
   dependencies:
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
@@ -4938,7 +4939,7 @@
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.11.0"
     "@metamask/gas-fee-controller" "^24.0.0"
-    "@metamask/keyring-api" "^19.0.0"
+    "@metamask/keyring-api" "^20.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/multichain-network-controller" "^0.11.0"
     "@metamask/polling-controller" "^14.0.0"
@@ -5629,14 +5630,14 @@
     lodash "^4.17.21"
 
 "@metamask/multichain-network-controller@^0.11.0":
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.11.0.tgz#ec7ae24fcb8602bd916e860a2e212696fc63f986"
-  integrity sha512-cz3+w2uvzNwxhmm2SnfG9SBG+GQknx/X/qOOZXGbwg3Cs6Nh/5fCgD+RXIreKrlmfOcb7xFQ+208NZpJpuVYAA==
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/@metamask/multichain-network-controller/-/multichain-network-controller-0.11.1.tgz#8430d6f26fba35327c2e8334be8794b4de4e944b"
+  integrity sha512-Fs7kopreXYEmYTaWcUb+ITUIN3bv4d1sDOpF+cS6eoE4/P74MkX6pZL7hdQXGTTqGxMGnwHvtGkqvbKftYwSLg==
   dependencies:
     "@metamask/base-controller" "^8.0.1"
     "@metamask/controller-utils" "^11.11.0"
-    "@metamask/keyring-api" "^19.0.0"
-    "@metamask/keyring-internal-api" "^7.0.0"
+    "@metamask/keyring-api" "^20.0.0"
+    "@metamask/keyring-internal-api" "^8.0.0"
     "@metamask/superstruct" "^3.1.0"
     "@metamask/utils" "^11.4.2"
     "@solana/addresses" "^2.0.0"
