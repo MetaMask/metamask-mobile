@@ -52,10 +52,7 @@ import Routes from '../../../constants/navigation/Routes';
 import TokenDetails from './TokenDetails';
 import { RootState } from '../../../reducers';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import {
-  getDecimalChainId,
-  isRemoveGlobalNetworkSelectorEnabled,
-} from '../../../util/networks';
+import { getDecimalChainId } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
 import { TokenI } from '../Tokens/types';
@@ -78,6 +75,7 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 
 interface AssetOverviewProps {
@@ -198,7 +196,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const onSend = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // Try non-EVM first, if handled, return early
-    const wasHandledAsNonEvm = await sendNonEvmAsset();
+    const wasHandledAsNonEvm = await sendNonEvmAsset(
+      InitSendLocation.AssetOverview,
+    );
     if (wasHandledAsNonEvm) {
       return;
     }
@@ -224,11 +224,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
           networkConfiguration.defaultRpcEndpointIndex
         ]?.networkClientId;
 
-      if (!isRemoveGlobalNetworkSelectorEnabled) {
-        await MultichainNetworkController.setActiveNetwork(
-          networkClientId as string,
-        );
-      }
+      await MultichainNetworkController.setActiveNetwork(
+        networkClientId as string,
+      );
     }
 
     if ((asset.isETH || asset.isNative) && ticker) {
@@ -236,7 +234,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    navigateToSendPage(asset);
+    navigateToSendPage(InitSendLocation.AssetOverview, asset);
   };
 
   const onBuy = () => {
