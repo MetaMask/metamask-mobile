@@ -64,7 +64,8 @@ export class EngineService {
       parentContext: getUIStartupSpan(),
       tags: getTraceTags(reduxState),
     });
-    const state = persistedState?.backgroundState ?? {};
+    const state =
+      persistedState?.backgroundState ?? reduxState?.engine?.backgroundState;
     const Engine = UntypedEngine;
     try {
       Logger.log(`${LOG_TAG}: Initializing Engine:`, {
