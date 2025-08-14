@@ -83,7 +83,11 @@ class SwapScreen {
       await appwrightExpect(tokenSearchInput).toBeVisible({ timeout: 10000 });
       await tokenSearchInput.tap()
       await tokenSearchInput.fill(token)
-      const tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, token);
+      let tokenButton;
+      if (AppwrightSelectors.isAndroid(this._device))
+        tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, token);
+      else
+        tokenButton = await AppwrightSelectors.getElementByXpath(this._device, `(//XCUIElementTypeStaticText[@name="${token}"])[2]`);
       await appwrightExpect(tokenButton).toBeVisible({ timeout: 10000 });
       await tokenButton.tap();
     }
