@@ -8,6 +8,7 @@ import renderWithProvider, {
 } from '../../../../../../util/test/renderWithProvider';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
+  ETHEREUM_ADDRESS,
   SOLANA_ASSET,
   TOKEN_ADDRESS_MOCK_1,
   evmSendStateMock,
@@ -306,7 +307,7 @@ describe('Amount', () => {
         asset: {
           isNative: true,
           chainId: '0x1',
-          address: TOKEN_ADDRESS_MOCK_1,
+          address: ETHEREUM_ADDRESS,
           ticker: 'ETH',
         },
       },
@@ -325,7 +326,7 @@ describe('Amount', () => {
       params: {
         asset: {
           name: 'Ethereum',
-          address: TOKEN_ADDRESS_MOCK_1,
+          address: ETHEREUM_ADDRESS,
           isNative: true,
           chainId: '0x1',
           symbol: 'ETH',
