@@ -1,8 +1,8 @@
 import React from 'react';
 import { Hex } from '@metamask/utils';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
-import TokenIcon from '../../../../UI/Swaps/components/TokenIcon';
-import styleSheet from './token-pill.styles';
+import SwapsTokenIcon from '../../../../UI/Swaps/components/TokenIcon';
+import styleSheet from './token-icon.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import BadgeWrapper, {
   BadgePosition,
@@ -12,12 +12,12 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 
-export interface TokenPillProps {
+export interface TokenIconProps {
   address: Hex;
   chainId: Hex;
 }
 
-export const TokenPill: React.FC<TokenPillProps> = ({ address, chainId }) => {
+export const TokenIcon: React.FC<TokenIconProps> = ({ address, chainId }) => {
   const { styles } = useStyles(styleSheet, {});
   const tokens = useTokensWithBalance({ chainIds: [chainId] });
 
@@ -37,6 +37,7 @@ export const TokenPill: React.FC<TokenPillProps> = ({ address, chainId }) => {
 
   return (
     <BadgeWrapper
+      style={styles.container}
       badgePosition={BadgePosition.BottomRight}
       badgeElement={
         <Badge
@@ -44,10 +45,9 @@ export const TokenPill: React.FC<TokenPillProps> = ({ address, chainId }) => {
           imageSource={networkImageSource}
         />
       }
-      style={styles.networkIcon}
     >
-      <TokenIcon
-        testID="token-pill-icon"
+      <SwapsTokenIcon
+        testID="token-icon"
         icon={token?.image}
         symbol={token?.symbol}
         style={styles.tokenIcon}
