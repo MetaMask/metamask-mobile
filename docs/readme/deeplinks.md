@@ -1,6 +1,6 @@
 # Deeplinks
 
-The mobile app supports current supports two types of deeplinks for each platform:
+The mobile app supports two types of deeplinks for each platform:
 
 - iOS
   - [Universal Links](#universal-links--app-links)
