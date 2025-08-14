@@ -24,43 +24,43 @@ class TabBarComponent {
   }
 
   async tapBrowser(): Promise<void> {
+    await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarBrowserButton, {
       elemDescription: 'Tab Bar - Browser Button',
-      checkStability: true, // Wait for ButtonAnimated animations to complete
-      delay: 200, // Extra delay to ensure animation completes (ButtonAnimated is 100ms)
     });
+    await device.enableSynchronization();
   }
 
   async tapWallet(): Promise<void> {
+    await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarWalletButton, {
       elemDescription: 'Tab Bar - Wallet Button',
-      checkStability: true, // Wait for ButtonAnimated animations to complete
-      delay: 200, // Extra delay to ensure animation completes (ButtonAnimated is 100ms)
     });
+    await device.enableSynchronization();
   }
 
   async tapActions(): Promise<void> {
+    await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarActionButton, {
       elemDescription: 'Tab Bar - Actions Button',
-      checkStability: true, // Wait for ButtonAnimated animations to complete
-      delay: 200, // Extra delay to ensure animation completes (ButtonAnimated is 100ms)
     });
+    await device.enableSynchronization();
   }
 
   async tapSettings(): Promise<void> {
+    await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarSettingButton, {
       elemDescription: 'Tab Bar - Settings Button',
-      checkStability: true, // Wait for ButtonAnimated animations to complete
-      delay: 200, // Extra delay to ensure animation completes (ButtonAnimated is 100ms)
     });
+    await device.enableSynchronization();
   }
 
   async tapActivity(): Promise<void> {
+    await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarActivityButton, {
       elemDescription: 'Tab Bar - Activity Button',
-      checkStability: true, // Wait for ButtonAnimated animations to complete
-      delay: 200, // Extra delay to ensure animation completes (ButtonAnimated is 100ms)
     });
+    await device.enableSynchronization();
   }
 }
 

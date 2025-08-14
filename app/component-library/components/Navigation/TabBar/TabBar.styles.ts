@@ -34,6 +34,7 @@ const styleSheet = (params: { vars: TabBarStyleSheetVars; theme: Theme }) => {
     base: {
       flexDirection: 'row',
       alignItems: 'center',
+      width: '100%',
       paddingHorizontal: 16,
       paddingTop: 12,
       paddingBottom: bottomInset,
