@@ -69,7 +69,8 @@ class BridgeScreen {
         }
       }
       else {
-      // comprobar para iOS
+        const numberKey = await AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${digit}"]`);
+        await numberKey.tap();
       }
     });
   }
