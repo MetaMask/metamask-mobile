@@ -113,8 +113,11 @@ export type PerpsControllerState = {
   // Eligibility (Geo-Blocking)
   isEligible: boolean;
 
-  // Tutorial/First time user tracking
-  isFirstTimeUser: boolean;
+  // Tutorial/First time user tracking (per network)
+  isFirstTimeUser: {
+    testnet: boolean;
+    mainnet: boolean;
+  };
 
   // Error handling
   lastError: string | null;
@@ -139,7 +142,10 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   lastError: null,
   lastUpdateTimestamp: 0,
   isEligible: false,
-  isFirstTimeUser: true,
+  isFirstTimeUser: {
+    testnet: true,
+    mainnet: true,
+  },
 });
 
 /**
@@ -1537,16 +1543,27 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Check if user is first-time for the current network
+   */
+  isFirstTimeUserOnCurrentNetwork(): boolean {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+    return this.state.isFirstTimeUser[currentNetwork];
+  }
+
+  /**
    * Mark that the user has completed the tutorial/onboarding
    * This prevents the tutorial from showing again
    */
   markTutorialCompleted(): void {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+
     DevLogger.log('PerpsController: Marking tutorial as completed', {
       timestamp: new Date().toISOString(),
+      network: currentNetwork,
     });
 
     this.update((state) => {
-      state.isFirstTimeUser = false;
+      state.isFirstTimeUser[currentNetwork] = false;
     });
   }
 }
