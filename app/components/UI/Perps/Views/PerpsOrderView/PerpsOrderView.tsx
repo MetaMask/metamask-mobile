@@ -163,7 +163,12 @@ const PerpsOrderViewContent: React.FC = () => {
           ],
           iconName: IconName.CheckBold,
           iconColor: IconColor.Success,
-          hasNoTimeout: false,
+          hasNoTimeout: true,
+          closeButtonOptions: {
+            label: strings('perps.order.error.dismiss'),
+            variant: ButtonVariants.Secondary,
+            onPress: () => toastRef?.current?.closeToast(),
+          },
         });
 
         navigation.navigate(Routes.PERPS.ROOT, {

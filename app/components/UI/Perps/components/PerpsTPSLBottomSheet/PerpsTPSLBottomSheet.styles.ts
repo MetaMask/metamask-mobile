@@ -86,11 +86,12 @@ export const createStyles = (colors: Theme['colors']) =>
       borderRadius: 8,
       alignItems: 'center',
       borderWidth: 1,
+      borderColor: colors.border.muted,
     },
     percentageButtonOff: {
       backgroundColor: colors.background.pressed,
       borderWidth: 1,
-      borderColor: colors.border.default,
+      borderColor: colors.border.muted,
     },
     percentageButtonActiveTP: {
       borderWidth: 1,

@@ -611,7 +611,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 }}
               />
               <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-                ($)
+                {strings('perps.tpsl.usd_label')}
               </Text>
             </View>
 

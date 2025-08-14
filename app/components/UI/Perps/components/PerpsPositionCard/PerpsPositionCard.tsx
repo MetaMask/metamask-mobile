@@ -45,7 +45,6 @@ import PerpsClosePositionBottomSheet from '../PerpsClosePositionBottomSheet';
 
 interface PerpsPositionCardProps {
   position: Position;
-  disabled?: boolean;
   expanded?: boolean;
   showIcon?: boolean;
   rightAccessory?: React.ReactNode;
@@ -55,7 +54,6 @@ interface PerpsPositionCardProps {
 
 const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   position,
-  disabled = false,
   expanded = true, // Default to expanded for backward compatibility
   showIcon = false, // Default to not showing icon
   rightAccessory,
@@ -160,7 +158,6 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         // There's not functional reason for the card to be clickable when expanded
         onPress={expanded ? undefined : handleCardPress}
         testID="PerpsPositionCard"
-        disabled={disabled || expanded}
         activeOpacity={expanded ? 1 : 0.2}
       >
         {/* Header - Always shown */}
@@ -333,8 +330,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               width={ButtonWidthTypes.Auto}
               label={strings('perps.position.card.edit_tpsl')}
               onPress={handleEditTPSL}
-              disabled={disabled}
-              style={[styles.footerButton, styles.footerButtonExpanded]}
+              style={styles.footerButton}
               testID={PerpsPositionCardSelectorsIDs.EDIT_BUTTON}
             />
             <Button
@@ -343,8 +339,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
               width={ButtonWidthTypes.Auto}
               label={strings('perps.position.card.close_position')}
               onPress={handleClosePress}
-              disabled={disabled}
-              style={[styles.footerButton, styles.footerButtonExpanded]}
+              style={styles.footerButton}
               testID={PerpsPositionCardSelectorsIDs.CLOSE_BUTTON}
             />
           </View>
