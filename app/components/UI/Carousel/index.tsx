@@ -7,6 +7,7 @@ import { CarouselProps, CarouselSlide, NavigationAction } from './types';
 import { dismissBanner } from '../../../reducers/banners';
 import Text, {
   TextVariant,
+  TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
@@ -219,6 +220,24 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
         onPressOut={() => setPressedSlideId(null)}
       >
         <View style={styles.slideContent}>
+          <View style={styles.textContainer}>
+            <View style={styles.textWrapper}>
+              <Text
+                variant={TextVariant.BodySMMedium}
+                testID={`carousel-slide-${slide.id}-title`}
+                numberOfLines={1}
+              >
+                {slide.title}
+              </Text>
+              <Text
+                variant={TextVariant.BodyXS}
+                color={TextColor.Alternative}
+                numberOfLines={1}
+              >
+                {slide.description}
+              </Text>
+            </View>
+          </View>
           <View style={styles.imageContainer}>
             <Image
               source={
@@ -229,20 +248,6 @@ const CarouselComponent: FC<CarouselProps> = ({ style }) => {
               style={styles.bannerImage}
               resizeMode="contain"
             />
-          </View>
-          <View style={styles.textContainer}>
-            <View style={styles.textWrapper}>
-              <Text
-                variant={TextVariant.BodyMD}
-                style={styles.title}
-                testID={`carousel-slide-${slide.id}-title`}
-              >
-                {slide.title}
-              </Text>
-              <Text variant={TextVariant.BodySM} style={styles.description}>
-                {slide.description}
-              </Text>
-            </View>
           </View>
           {!slide.undismissable && (
             <ButtonIcon

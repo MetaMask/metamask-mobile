@@ -9,11 +9,11 @@ import { CarouselStyleSheetVars } from './types';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const BANNER_WIDTH = SCREEN_WIDTH - 32;
-const CAROUSEL_HEIGHT = 59;
+const CAROUSEL_HEIGHT = 66;
 const DOTS_HEIGHT = 18;
 const PEEK_WIDTH = 5;
-export const IMAGE_WIDTH = 60;
-export const IMAGE_HEIGHT = 59;
+export const IMAGE_WIDTH = 66;
+export const IMAGE_HEIGHT = 66;
 
 export const styleSheet = (params: {
   theme: Theme;
@@ -47,6 +47,9 @@ export const styleSheet = (params: {
       marginHorizontal: PEEK_WIDTH,
       position: 'relative',
       overflow: 'hidden',
+      paddingLeft: 16,
+      paddingVertical: 12,
+      paddingRight: 4,
     },
     slideContainerPressed: {
       backgroundColor: colors.background.mutedPressed,
@@ -63,6 +66,7 @@ export const styleSheet = (params: {
       overflow: 'hidden',
       justifyContent: 'center',
       alignItems: 'center',
+      marginRight: 4,
     },
     textContainer: {
       flex: 1,
@@ -74,22 +78,9 @@ export const styleSheet = (params: {
       flexDirection: 'column',
       gap: 0,
     },
-    title: {
-      color: colors.text.default,
-      fontSize: 12,
-      fontWeight: '500',
-      marginLeft: 14,
-    },
-    description: {
-      color: colors.text.default,
-      fontSize: 10.4,
-      marginLeft: 14,
-      marginTop: -4,
-    },
     closeButton: {
       alignSelf: 'flex-start',
-      marginTop: 4,
-      marginRight: 4,
+      marginTop: -8,
     },
     progressContainer: {
       flexDirection: 'row',
