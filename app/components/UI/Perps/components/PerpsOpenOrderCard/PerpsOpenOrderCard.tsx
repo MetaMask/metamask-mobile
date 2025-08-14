@@ -112,7 +112,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
     <TouchableOpacity
       style={expanded ? styles.expandedContainer : styles.collapsedContainer}
       testID={PerpsOpenOrderCardSelectorsIDs.CARD}
-      disabled={disabled}
+      disabled={expanded}
     >
       {/* Header - Always shown */}
       <View style={[styles.header, expanded && styles.headerExpanded]}>

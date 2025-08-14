@@ -272,7 +272,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
                     order={order}
                     expanded
                     showIcon
-                    disabled
                     onCancel={handleOrderCancel}
                   />
                 ))}

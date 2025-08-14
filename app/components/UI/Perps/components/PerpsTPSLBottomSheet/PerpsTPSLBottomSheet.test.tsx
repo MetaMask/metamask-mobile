@@ -67,6 +67,7 @@ jest.mock('../../utils/tpslValidation', () => ({
   getStopLossErrorDirection: jest.fn(),
   calculatePriceForPercentage: jest.fn(),
   calculatePercentageForPrice: jest.fn(),
+  hasTPSLValuesChanged: jest.fn(),
 }));
 
 // Mock strings
@@ -252,6 +253,7 @@ describe('PerpsTPSLBottomSheet', () => {
     tpslValidation.getStopLossErrorDirection.mockReturnValue('below');
     tpslValidation.calculatePriceForPercentage.mockReturnValue('3150.00');
     tpslValidation.calculatePercentageForPrice.mockReturnValue('5.00');
+    tpslValidation.hasTPSLValuesChanged.mockReturnValue(true);
   });
 
   describe('Component Rendering', () => {

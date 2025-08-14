@@ -33,6 +33,7 @@ import {
   getStopLossErrorDirection,
   calculatePriceForPercentage,
   calculatePercentageForPrice,
+  hasTPSLValuesChanged,
 } from '../../utils/tpslValidation';
 
 // Quick percentage buttons constants
@@ -377,12 +378,18 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
-      disabled:
+      isDisabled:
         isUpdating ||
         !validateTPSLPrices(takeProfitPrice, stopLossPrice, {
           currentPrice,
           direction: actualDirection,
-        }),
+        }) ||
+        !hasTPSLValuesChanged(
+          takeProfitPrice,
+          stopLossPrice,
+          initialTakeProfitPrice,
+          initialStopLossPrice,
+        ),
       loading: isUpdating,
     },
   ];

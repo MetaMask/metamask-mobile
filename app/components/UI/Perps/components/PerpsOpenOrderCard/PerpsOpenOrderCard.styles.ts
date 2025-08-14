@@ -91,7 +91,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     footerButtonExpanded: {
-      backgroundColor: colors.background.default, // Darker uniform button background
+      borderColor: colors.border.default,
     },
     fillBadge: {
       backgroundColor: colors.background.default,

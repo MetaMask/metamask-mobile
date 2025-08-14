@@ -324,7 +324,6 @@ const PerpsOrderViewContent: React.FC = () => {
   });
 
   // Handlers
-
   const handleAmountPress = () => {
     setIsInputFocused(true);
   };
@@ -705,11 +704,7 @@ const PerpsOrderViewContent: React.FC = () => {
               { asset: orderForm.asset },
             )}
             onPress={handlePlaceOrder}
-            disabled={
-              !orderValidation.isValid ||
-              isPlacingOrder ||
-              orderValidation.isValidating
-            }
+            isDisabled={!orderValidation.isValid || isPlacingOrder}
             loading={isPlacingOrder}
           />
         </View>

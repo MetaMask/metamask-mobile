@@ -16,7 +16,6 @@ import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard
 // TODO: Consider renaming to PerpsMarketStatisticsCard since it isn't tied to a specific view anymore
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
-// TODO: Consider getting marketStats internally instead of prop drilling
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   marketStats,
   onTooltipPress,
