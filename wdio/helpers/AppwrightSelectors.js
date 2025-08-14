@@ -35,7 +35,7 @@ export default class AppwrightSelectors {
   }
 
   static async hideKeyboard(device) {
-    await device.webDriverClient.hideKeyboard();
+    if (await AppwrightSelectors.isAndroid(device)) await device.webDriverClient.hideKeyboard(); // only needed for Android
   }
 
   static async scrollIntoView(device, element) {

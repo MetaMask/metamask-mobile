@@ -1,5 +1,4 @@
 name: Performance E2E Test Manual WorkFlow
-
 on:
   workflow_dispatch:
     inputs:
@@ -20,11 +19,9 @@ on:
         required: false
         default: '**/tests/*.spec.js'
         type: string
-
 permissions:
   contents: read
   id-token: write
-
 env:
   BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
   BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
@@ -32,7 +29,6 @@ env:
   TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
   TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
   TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
-
 jobs:
   # Sequential Android Tests on Multiple Devices
   android-tests:
@@ -68,7 +64,6 @@ jobs:
       
       - name: Install dependencies
         run: yarn setup
-
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -76,7 +71,6 @@ jobs:
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
           build-name: ${{ github.repository }}-${{ github.ref_name }}-android-${{ matrix.device.name }}-${{ matrix.device.os_version }}-${{ github.run_number }}
           project-name: ${{ github.repository }}
-
       - name: Setup BrowserStack Local
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -117,10 +111,10 @@ jobs:
         with:
           name: android-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
-            test-reports/appwright-report/
-            appwright-report/
+            appwright/test-reports/appwright-report/
+            appwright/reporters/reports
+          if-no-files-found: ignore
           retention-days: 7
-
   # Sequential iOS Tests on Multiple Devices
   ios-tests:
     name: iOS Tests
@@ -138,7 +132,6 @@ jobs:
           # - name: 'iPhone 12'
           #   os_version: '14.0'
           #   category: 'medium'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -151,7 +144,6 @@ jobs:
       
       - name: Install dependencies
         run: yarn setup
-
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -159,7 +151,6 @@ jobs:
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
           build-name: ${{ github.repository }}-${{ github.ref_name }}-ios-${{ matrix.device.name }}-${{ matrix.device.os_version }}-${{ github.run_number }}
           project-name: ${{ github.repository }}
-
       - name: Setup BrowserStack Local
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -202,10 +193,10 @@ jobs:
         with:
           name: ios-test-results-${{ matrix.device.name }}-${{ matrix.device.os_version }}
           path: |
-            test-reports/appwright-report/
-            appwright-report/
+            appwright/test-reports/appwright-report/
+            appwright/reporters/reports
+          if-no-files-found: ignore
           retention-days: 7
-
   # Results Gathering Job
   gather-results:
     name: Gather Test Results
@@ -217,7 +208,18 @@ jobs:
       - name: Download All Test Results
         uses: actions/download-artifact@v4
         with:
-          path: test-results/
+          path: appwright/test-reports/
+      
+      - name: Upload Combined Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-reports
+          path: |
+            appwright/test-reports/appwright-report/
+            appwright/reporters/reports
+          if-no-files-found: ignore
+          retention-days: 14
     
       - name: Check Test Results
         run: |
