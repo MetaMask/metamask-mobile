@@ -1,5 +1,5 @@
 import { CaipAccountId } from '@metamask/utils';
-import { TestSpecificMock } from '../../framework/types';
+import { MockApiEndpoint } from '../../framework/types';
 
 /**
  * Mock responses for cardholder API calls
@@ -13,7 +13,7 @@ import { TestSpecificMock } from '../../framework/types';
 export const getCardholderApiMocks = (
   caipAccountAddresses: CaipAccountId[],
   cardholderAddresses?: CaipAccountId[],
-): TestSpecificMock => {
+): MockApiEndpoint => {
   const url = new URL('v1/metadata', 'https://accounts.api.cx.metamask.io');
   url.searchParams.set(
     'accountIds',
@@ -22,14 +22,10 @@ export const getCardholderApiMocks = (
   url.searchParams.set('label', 'card_user');
 
   return {
-    GET: [
-      {
-        urlEndpoint: url.toString(),
-        response: {
-          is: cardholderAddresses || caipAccountAddresses,
-        },
-        responseCode: 200,
-      },
-    ],
+    urlEndpoint: url.toString(),
+    response: {
+      is: cardholderAddresses || caipAccountAddresses,
+    },
+    responseCode: 200,
   };
 };
