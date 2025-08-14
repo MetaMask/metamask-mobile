@@ -1,5 +1,8 @@
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
+import Routes from '../../../../../constants/navigation/Routes';
 import { evmSendStateMock } from '../../__mocks__/send.mock';
+// eslint-disable-next-line import/no-namespace
+import * as SendExitMetrics from './metrics/useSendExitMetrics';
 import { useSendActions } from './useSendActions';
 
 const mockGoBack = jest.fn();
@@ -16,6 +19,7 @@ jest.mock('@react-navigation/native', () => ({
         chainId: '0x1',
       },
     },
+    name: 'send_route',
   }),
 }));
 
@@ -33,12 +37,34 @@ describe('useSendActions', () => {
     expect(result.current.handleCancelPress).toBeDefined();
   });
 
-  it('call navigation.goBack when cancelSend is invoked', () => {
+  it('calls navigation.goBack when handleBackPress is invoked', () => {
+    const { result } = renderHookWithProvider(
+      () => useSendActions(),
+      mockState,
+    );
+    result.current.handleBackPress();
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('calls navigation.navigate with WALLET_VIEW when handleCancelPress is invoked', () => {
     const { result } = renderHookWithProvider(
       () => useSendActions(),
       mockState,
     );
     result.current.handleCancelPress();
-    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET_VIEW);
+  });
+
+  it('capture metrics when handleCancelPress is invoked', () => {
+    const mockCaptureSendExit = jest.fn();
+    jest
+      .spyOn(SendExitMetrics, 'useSendExitMetrics')
+      .mockReturnValue({ captureSendExit: mockCaptureSendExit });
+    const { result } = renderHookWithProvider(
+      () => useSendActions(),
+      mockState,
+    );
+    result.current.handleCancelPress();
+    expect(mockCaptureSendExit).toHaveBeenCalled();
   });
 });

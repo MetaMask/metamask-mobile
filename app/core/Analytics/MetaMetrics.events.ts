@@ -93,6 +93,10 @@ enum EVENT_NAME {
   NETWORK_REQUEST_REJECTED = 'Network Request Rejected',
   NETWORK_SELECTOR = 'Network Menu Opened',
 
+  // Asset Filter
+  ASSET_FILTER_SELECTED = 'Default Asset Filter Selected',
+  ASSET_FILTER_CUSTOM_SELECTED = 'Custom Asset Filter Selected',
+
   // Send transaction
   SEND_TRANSACTION_STARTED = 'Send Transaction Started',
   SEND_TRANSACTION_COMPLETED = 'Send Transaction Completed',
@@ -292,6 +296,7 @@ enum EVENT_NAME {
   WALLET_VIEW = 'Wallet View',
   RECEIVE_OPTIONS = 'Receive Options',
   SEND_FLOW = 'Send Flow',
+  SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
 
   // Swaps
@@ -514,6 +519,14 @@ enum EVENT_NAME {
 
   // What's New Link Clicked
   WHATS_NEW_LINK_CLICKED = "What's New Link Clicked",
+
+  // Card
+  CARD_VIEWED = 'Card Viewed',
+  CARD_HOME_CLICKED = 'Card Home Clicked',
+  CARD_ADD_FUNDS_CLICKED = 'Card Add Funds Clicked',
+  CARD_ADD_FUNDS_SWAPS_CLICKED = 'Card Add Funds Swaps Clicked',
+  CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
+  CARD_ADVANCED_CARD_MANAGEMENT_CLICKED = 'Card Advanced Card Management Clicked',
 }
 
 enum ACTIONS {
@@ -536,6 +549,8 @@ enum ACTIONS {
   RECEIVE_OPTIONS = 'Receive Options',
   // Send Flow
   SEND_FLOW = 'Send Flow',
+  // Re-designed send
+  SEND = 'Send',
   // Dapp Interactions
   APPROVE_REQUEST = 'Approve Request',
   // Swaps
@@ -1277,6 +1292,25 @@ const events = {
   DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED: generateOpt(
     EVENT_NAME.DEEP_LINK_MODAL_PRIVATE_DONT_REMIND_ME_AGAIN_CHECKBOX_UNCHECKED,
   ),
+
+  // Asset Filter
+  ASSET_FILTER_SELECTED: generateOpt(EVENT_NAME.ASSET_FILTER_SELECTED),
+  ASSET_FILTER_CUSTOM_SELECTED: generateOpt(
+    EVENT_NAME.ASSET_FILTER_CUSTOM_SELECTED,
+  ),
+  // Card
+  CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
+  CARD_HOME_CLICKED: generateOpt(EVENT_NAME.CARD_HOME_CLICKED),
+  CARD_ADD_FUNDS_CLICKED: generateOpt(EVENT_NAME.CARD_ADD_FUNDS_CLICKED),
+  CARD_ADD_FUNDS_SWAPS_CLICKED: generateOpt(
+    EVENT_NAME.CARD_ADD_FUNDS_SWAPS_CLICKED,
+  ),
+  CARD_ADD_FUNDS_DEPOSIT_CLICKED: generateOpt(
+    EVENT_NAME.CARD_ADD_FUNDS_DEPOSIT_CLICKED,
+  ),
+  CARD_ADVANCED_CARD_MANAGEMENT_CLICKED: generateOpt(
+    EVENT_NAME.CARD_ADVANCED_CARD_MANAGEMENT_CLICKED,
+  ),
 };
 
 /**
@@ -1330,6 +1364,12 @@ enum DESCRIPTION {
   RECEIVE_OPTIONS_SHARE_ADDRESS = 'Share address',
   RECEIVE_OPTIONS_QR_CODE = 'QR Code',
   RECEIVE_OPTIONS_PAYMENT_REQUEST = 'Payment Request',
+  // Re-designed send
+  SEND_STARTED = 'Send flow started',
+  SEND_ASSET_SELECTED = 'Send asset selected',
+  SEND_AMOUNT_SELECTED = 'Send amount selected',
+  SEND_RECIPIENT_SELECTED = 'Send recipient selected',
+  SEND_EXIT = 'Send flow exitted',
   // Send flow
   SEND_FLOW_ADDS_RECIPIENT = `Adds recipient address 'Send to'`,
   SEND_FLOW_ADDS_AMOUNT = `Adds Amount`,
@@ -1543,7 +1583,28 @@ const legacyMetaMetricsEvents = {
     ACTIONS.RECEIVE_OPTIONS,
     DESCRIPTION.RECEIVE_OPTIONS_PAYMENT_REQUEST,
   ),
-  // Send flow
+  // Re-designed send
+  SEND_STARTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_STARTED,
+  ),
+  SEND_ASSET_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_ASSET_SELECTED,
+  ),
+  SEND_AMOUNT_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_AMOUNT_SELECTED,
+  ),
+  SEND_RECIPIENT_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_RECIPIENT_SELECTED,
+  ),
+  SEND_EXIT: generateOpt(EVENT_NAME.SEND, ACTIONS.SEND, DESCRIPTION.SEND_EXIT), // Send flow
   SEND_FLOW_ADDS_RECIPIENT: generateOpt(
     EVENT_NAME.SEND_FLOW,
     ACTIONS.SEND_FLOW,

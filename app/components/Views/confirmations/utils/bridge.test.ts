@@ -9,6 +9,7 @@ import { ExtendedControllerMessenger } from '../../../../core/ExtendedController
 import { BridgeQuoteRequest, getBridgeQuotes } from './bridge';
 import { selectBridgeQuotes } from '../../../../core/redux/slices/bridge';
 import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTransactionsController';
+import { GasFeeController } from '@metamask/gas-fee-controller';
 
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/redux/slices/bridge');
@@ -54,6 +55,7 @@ describe('Confirmations Bridge Utils', () => {
   const engineMock = jest.mocked(Engine);
   let messengerMock: ExtendedControllerMessenger<never, BridgeControllerEvents>;
   let bridgeControllerMock: jest.Mocked<BridgeController>;
+  let gasFeeControllerMock: jest.Mocked<GasFeeController>;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -65,8 +67,13 @@ describe('Confirmations Bridge Utils', () => {
       updateBridgeQuoteRequestParams: jest.fn().mockResolvedValue({}),
     } as unknown as jest.Mocked<BridgeController>;
 
+    gasFeeControllerMock = {
+      fetchGasFeeEstimates: jest.fn(),
+    } as unknown as jest.Mocked<GasFeeController>;
+
     engineMock.controllerMessenger = messengerMock as never;
     engineMock.context.BridgeController = bridgeControllerMock as never;
+    engineMock.context.GasFeeController = gasFeeControllerMock as never;
 
     selectBridgeQuotesMock.mockImplementation(
       (state) =>
@@ -100,6 +107,23 @@ describe('Confirmations Bridge Utils', () => {
         return Promise.resolve();
       });
 
+    gasFeeControllerMock.fetchGasFeeEstimates.mockResolvedValue({
+      gasFeeEstimates: {
+        low: {
+          gasLimit: '21000',
+          gasPrice: '1000000000',
+        },
+        medium: {
+          gasLimit: '21000',
+          gasPrice: '2000000000',
+        },
+        high: {
+          gasLimit: '21000',
+          gasPrice: '3000000000',
+        },
+      },
+    } as never);
+
     selectShouldUseSmartTransactionMock.mockReturnValue(false);
   });
 
@@ -115,7 +139,7 @@ describe('Confirmations Bridge Utils', () => {
       expect(quotes).toStrictEqual([QUOTE_1_MOCK, QUOTE_2_MOCK]);
     });
 
-    it('returns empty array if quotes not found after timeout', async () => {
+    it('returns undefined if quotes not found after timeout', async () => {
       bridgeControllerMock.updateBridgeQuoteRequestParams.mockReset();
 
       const quotesPromise = getBridgeQuotes([
@@ -127,10 +151,10 @@ describe('Confirmations Bridge Utils', () => {
 
       const quotes = await quotesPromise;
 
-      expect(quotes).toStrictEqual([]);
+      expect(quotes).toBeUndefined();
     });
 
-    it('returns empty array if quotes do not match request', async () => {
+    it('returns undefined if quotes do not match request', async () => {
       bridgeControllerMock.updateBridgeQuoteRequestParams.mockReset();
       bridgeControllerMock.updateBridgeQuoteRequestParams
         .mockImplementationOnce(() => {
@@ -165,7 +189,7 @@ describe('Confirmations Bridge Utils', () => {
 
       const quotes = await quotesPromise;
 
-      expect(quotes).toStrictEqual([]);
+      expect(quotes).toBeUndefined();
     });
 
     it('updates bridge request parameters', async () => {

@@ -55,6 +55,10 @@
     },
     "insufficient_pay_token_balance": {
       "message": "Insufficient funds. Select different token."
+    },
+    "no_pay_token_quotes": {
+      "title": "We couldn't find any quotes.",
+      "message": "Change the amount or select a different token for payment."
     }
   },
   "blockaid_banner": {
@@ -182,6 +186,8 @@
     "import_title": "Your wallet is ready!",
     "import_description": "If you lose your Secret Recovery Phrase, you won’t be able to use your wallet.",
     "import_description2": "you can keep this phrase safe so you never lose access to your money.",
+    "import_description_social_login": "You can log in to your wallet anytime with your {{authConnection}} account and password.",
+    "import_description_social_login_2": "If you forget your password, you won’t be able to access your wallet.",
     "done": "Done",
     "create_hint": "Create a password hint",
     "hint_title": "Password hint",
@@ -495,7 +501,8 @@
   },
   "send": {
     "available": "available",
-    "amount_insufficient": "Insufficient funds",
+    "invalid_value": "Invalid value",
+    "insufficient_funds": "Insufficient funds",
     "continue": "Continue",
     "title": "Send",
     "deeplink_failure": "Something went wrong. Please try again",
@@ -647,11 +654,11 @@
       "title": "Enter your basic info",
       "continue": "Continue",
       "subtitle": "Next, we need some basic information about you.",
-      "first_name": "First Name",
-      "last_name": "Last Name",
-      "phone_number": "Phone Number",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "phone_number": "Phone number",
       "date_of_birth": "Date of birth",
-      "social_security_number": "Social Security Number",
+      "social_security_number": "Social security number (SSN)",
       "enter_phone_number": "Enter phone number",
       "select_region": "Select region",
       "first_name_required": "First name is required",
@@ -662,7 +669,8 @@
       "mobile_number_invalid": "Please enter a valid phone number",
       "dob_required": "Date of birth is required",
       "dob_invalid": "Please enter a valid date of birth",
-      "ssn_required": "Social security number is required"
+      "ssn_required": "Social security number is required",
+      "unexpected_error": "An unexpected error occurred. Please try again."
     },
     "enter_address": {
       "navbar_title": "Verify your identity",
@@ -1090,6 +1098,9 @@
         "error_title": "Error Loading Positions",
         "empty_title": "No Open Positions",
         "empty_description": "You don't have any open positions yet.\nStart trading to see your positions here.",
+        "first_time_title": "Perps",
+        "first_time_description": "Predict price moves with up to 40x leverage.",
+        "start_trading": "Start trading",
         "open_positions": "Open Positions",
         "position_count": "{{count}} position",
         "position_count_plural": "{{count}} positions"
@@ -1231,6 +1242,38 @@
         "no_transactions": "No {{type}} transactions yet",
         "history_will_appear": "Your trading history will appear here"
       }
+    },
+    "tutorial": {
+      "continue": "Continue",
+      "skip": "Skip",
+      "add_funds": "Add funds",
+      "what_are_perps": {
+        "title": "What are perps?",
+        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it.",
+        "subtitle": "Here's how it works."
+      },
+      "go_long_or_short": {
+        "title": "Go long or short on a token",
+        "description": "Pick a token to long or short, then set your margin.",
+        "subtitle": "Go long to profit if the price goes up. Go short to profit if the price goes down."
+      },
+      "choose_leverage": {
+        "title": "Choose your leverage",
+        "description": "Leverage amplifies both gains and losses. With 10x leverage, a 1% price move = 10% gain or loss on your margin."
+      },
+      "watch_liquidation": {
+        "title": "Watch out for liquidation",
+        "description": "You'll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
+      },
+      "close_anytime": {
+        "title": "Close any time",
+        "description": "Exit whenever you want. You'll get back your margin, plus profits or minus losses."
+      },
+      "ready_to_trade": {
+        "title": "Ready to trade?",
+        "description": "Fund your perps account with any token and make your first trade in seconds."
+      },
+      "got_it": "Got it"
     }
   },
   "receive": {
@@ -1331,6 +1374,9 @@
     "import": "Import",
     "sort_by": "Sort by",
     "filter_by": "Filter by",
+    "networks": "Networks",
+    "default": "Default",
+    "custom": "Custom",
     "current_network": "Current network",
     "popular_networks": "Popular networks",
     "all_networks": "All Networks",
@@ -1674,7 +1720,10 @@
     "account_connect_create_initial_account": {
       "description": "A Solana account is required to connect to this site.",
       "button": "Create Solana account"
-    }
+    },
+    "no_accounts_found": "No accounts found",
+    "no_accounts_found_for_search": "No accounts found matching your search",
+    "search_your_accounts": "Search your accounts"
   },
   "toast": {
     "connected_and_active": "connected and active.",
@@ -2235,13 +2284,23 @@
     "change_password": "Change password",
     "password_hint": "Password hint"
   },
+  "fund_actionmenu": {
+    "deposit": "Deposit",
+    "deposit_description": "Low-fee bank or card transfer",
+    "buy": "Buy",
+    "buy_description": "Good for buying a specific token",
+    "sell": "Withdraw",
+    "sell_description": "Sell crypto for cash"
+  },
   "asset_overview": {
     "send_button": "Send",
     "buy_button": "Buy",
+    "fund_button": "Fund",
     "token_marketplace": "Token marketplace",
-    "sell_button": "Sell",
+    "sell_button": "Withdraw",
     "receive_button": "Receive",
     "portfolio_button": "Portfolio",
+    "deposit_button": "Deposit",
     "earn_button": "Earn",
     "perps_button": "Perpetuals",
     "add_collectible_button": "Add",
@@ -2268,7 +2327,7 @@
     "troubleshooting_missing": "troubleshooting missing balances",
     "for_help": "for help.",
     "troubleshoot": "Troubleshoot",
-    "deposit_description": "Low-cost card or bank transfer",
+    "deposit_description": "Low-fee bank or card transfer",
     "buy_description": "Good for buying a specific token",
     "sell_description": "Sell crypto for cash",
     "swap_description": "Exchange between tokens",
@@ -2864,6 +2923,7 @@
     "switch_network": "Switch to network",
     "switch": "Switch",
     "select_all": "Select all",
+    "deselect_all": "Deselect all",
     "new_network": "New network added",
     "network_name": "{{networkName}} Network",
     "network_added": " is now available in the network selector.",
@@ -5001,6 +5061,7 @@
     "receive_at": "Receive at",
     "error_banner_description": "This trade route isn't available right now. Try changing the amount, network, or token and we'll find the best option.",
     "insufficient_funds": "Insufficient funds",
+    "insufficient_gas": "Insufficient gas",
     "select_amount": "Select amount",
     "bridge_to": "Bridge to",
     "swap_to": "Swap to",
@@ -5220,6 +5281,27 @@
     "back_button": "Back",
     "continue_button": "Continue"
   },
+  "card": {
+    "card": "MetaMask Card",
+    "add_funds_bottomsheet": {
+      "deposit": "Deposit",
+      "deposit_description": "Convert cash to {{symbol}} on Linea",
+      "swap": "Swap",
+      "swap_description": "Exchange tokens into {{symbol}} on Linea",
+      "select_method": "Select method"
+    },
+    "card_home": {
+      "error_title": "Can’t fetch data",
+      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
+      "try_again": "Try again",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "add_funds": "Add funds",
+      "manage_card_options": {
+        "manage_card": "Manage card",
+        "advanced_card_management_description": "See transactions, freeze card, and more"
+      }
+    }
+  },
   "onboarding_error_fallback": {
     "title": "An error occurred",
     "description": "Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.",
@@ -5238,20 +5320,6 @@
     "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
     "tryAgain": "Try again",
     "close": "Close"
-  },
-  "card": {
-    "card": "MetaMask Card",
-    "card_home": {
-      "error_title": "Can’t fetch data",
-      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
-      "try_again": "Try again",
-      "limited_spending_warning": "Full balance may not be available. Adjust your spending limit in {{manageCard}}",
-      "add_funds": "Add funds",
-      "manage_card_options": {
-        "manage_card": "Manage card",
-        "advanced_card_management_description": "See transactions, freeze card, and more"
-      }
-    }
   },
   "time": {
     "minutes_format": "{{count}} minute",

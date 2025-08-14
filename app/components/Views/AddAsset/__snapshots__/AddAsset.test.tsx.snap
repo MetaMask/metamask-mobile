@@ -444,7 +444,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                     }
                   }
                 >
-                  Ethereum Main Network
+                  Ethereum Mainnet
                 </Text>
               </TouchableOpacity>
               <View
@@ -473,7 +473,7 @@ exports[`AddAsset component renders token view correctly 1`] = `
                   <Image
                     onError={[Function]}
                     resizeMode="contain"
-                    source={1}
+                    source="ethereum"
                     style={
                       {
                         "height": 24,

@@ -1,6 +1,7 @@
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
@@ -56,8 +57,8 @@ describe(SmokeTrade('Off-Ramp'), () => {
       async () => {
         await loginToApp();
         await TabBarComponent.tapWallet();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSellButton();
+        await WalletView.tapWalletFundButton();
+        await FundActionMenu.tapSellButton();
         await SellGetStartedView.tapGetStartedButton();
         await Assertions.expectElementToBeVisible(
           BuildQuoteView.amountToSellLabel,
@@ -66,8 +67,8 @@ describe(SmokeTrade('Off-Ramp'), () => {
           BuildQuoteView.getQuotesButton,
         );
         await BuildQuoteView.tapCancelButton();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSellButton();
+        await WalletView.tapWalletFundButton();
+        await FundActionMenu.tapSellButton();
         await BuildQuoteView.enterAmount('2');
         await BuildQuoteView.tapGetQuotesButton();
         await Assertions.expectElementToBeVisible(QuotesView.quotes);
