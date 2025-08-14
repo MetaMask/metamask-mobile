@@ -57,7 +57,7 @@ const experimentalFeatureSet = new Set([...mainFeatureSet, 'experimental']);
  * @returns {Set<string>} The set of features to be included in the build.
  */
 function getBuildTypeFeatures() {
-  const buildType = process.env.METAMASK_BUILD_TYPE ?? 'main';
+  const buildType = 'main';
   const envType = process.env.METAMASK_ENVIRONMENT ?? 'production';
   switch (buildType) {
     // TODO: Remove uppercase QA once we've consolidated build types
