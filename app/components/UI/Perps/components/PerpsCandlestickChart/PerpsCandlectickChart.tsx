@@ -18,6 +18,7 @@ import {
   PanGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
 import { CandlestickChart } from 'react-native-wagmi-charts';
+import { Line, Rect } from 'react-native-svg';
 import { styleSheet } from './PerpsCandlestickChart.styles';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
@@ -421,14 +422,23 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   }, [chartTransformedData, previewCandleCount, panOffset]);
 
   // Y-axis scaling data - use visible data for proper scaling
-  const yAxisScalingData = useMemo(
-    () =>
-      // Use visible data for Y-axis scaling to show appropriate price range
-      visibleTransformedData.length > 0
-        ? visibleTransformedData
-        : chartTransformedData,
-    [visibleTransformedData, chartTransformedData],
-  );
+  const yAxisScalingData = useMemo(() => {
+    const shouldUseVisible = visibleTransformedData.length > 0;
+    const scalingData = shouldUseVisible
+      ? visibleTransformedData
+      : chartTransformedData;
+
+    // Debug: Uncomment for Y-axis scaling troubleshooting
+    // console.log('📊 Y-Axis Scaling Debug:', {
+    //   totalCandles: chartTransformedData.length,
+    //   visibleCandles: visibleTransformedData.length,
+    //   previewCandleCount,
+    //   panOffset,
+    //   usingVisibleData: shouldUseVisible,
+    // });
+
+    return scalingData;
+  }, [visibleTransformedData, chartTransformedData]);
 
   // Clear baseline when panning stops
   useEffect(() => {
@@ -455,6 +465,133 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     }
     setShowTPSLLines(false);
   }, [tpslLines, isLoading, yAxisScalingData.length]);
+
+  // Custom candle rect renderer for proper zoom Y-axis scaling
+  const renderCustomCandle = useCallback(
+    ({
+      x,
+      y,
+      width,
+      height: rectHeight,
+      fill,
+      useAnimations: _useAnimations,
+      candle,
+    }: {
+      x: any;
+      y: any;
+      width: any;
+      height: any;
+      fill: any;
+      useAnimations: boolean;
+      candle: any;
+    }) => {
+      // If we have visible data for scaling, recalculate Y position based on visible range
+      if (visibleTransformedData.length > 0) {
+        const visiblePrices = visibleTransformedData.flatMap((d) => [
+          d.low,
+          d.high,
+          d.open,
+          d.close,
+        ]);
+        const visibleMin = Math.min(...visiblePrices);
+        const visibleMax = Math.max(...visiblePrices);
+        const visibleRange = visibleMax - visibleMin;
+
+        if (visibleRange > 0) {
+          // Calculate chart height available for candles
+          const chartHeight = height - PERPS_CHART_CONFIG.PADDING.VERTICAL;
+
+          // Remap candle Y position to visible range
+          const candleHigh = Math.max(candle.open, candle.close);
+          const candleLow = Math.min(candle.open, candle.close);
+
+          // Calculate new Y positions scaled to visible range
+          const topY = ((visibleMax - candleHigh) / visibleRange) * chartHeight;
+          const bottomY =
+            ((visibleMax - candleLow) / visibleRange) * chartHeight;
+          const newHeight = Math.max(1, bottomY - topY); // Ensure minimum height
+
+          return (
+            <Rect x={x} y={topY} width={width} height={newHeight} fill={fill} />
+          );
+        }
+      }
+
+      // Fallback to default rendering
+      return <Rect x={x} y={y} width={width} height={rectHeight} fill={fill} />;
+    },
+    [visibleTransformedData, height],
+  );
+
+  // Custom candle wick renderer for proper zoom Y-axis scaling
+  const renderCustomWick = useCallback(
+    ({
+      x1,
+      x2,
+      y1,
+      y2,
+      stroke,
+      strokeWidth,
+      useAnimations: _useAnimations,
+      candle,
+    }: {
+      x1: any;
+      x2: any;
+      y1: any;
+      y2: any;
+      stroke: any;
+      strokeWidth: any;
+      useAnimations: boolean;
+      candle: any;
+    }) => {
+      // If we have visible data for scaling, recalculate Y positions based on visible range
+      if (visibleTransformedData.length > 0) {
+        const visiblePrices = visibleTransformedData.flatMap((d) => [
+          d.low,
+          d.high,
+          d.open,
+          d.close,
+        ]);
+        const visibleMin = Math.min(...visiblePrices);
+        const visibleMax = Math.max(...visiblePrices);
+        const visibleRange = visibleMax - visibleMin;
+
+        if (visibleRange > 0) {
+          // Calculate chart height available for candles
+          const chartHeight = height - PERPS_CHART_CONFIG.PADDING.VERTICAL;
+
+          // Calculate new Y positions for high and low scaled to visible range
+          const highY =
+            ((visibleMax - candle.high) / visibleRange) * chartHeight;
+          const lowY = ((visibleMax - candle.low) / visibleRange) * chartHeight;
+
+          return (
+            <Line
+              x1={x1}
+              x2={x2}
+              y1={highY}
+              y2={lowY}
+              stroke={stroke}
+              strokeWidth={strokeWidth}
+            />
+          );
+        }
+      }
+
+      // Fallback to default rendering
+      return (
+        <Line
+          x1={x1}
+          x2={x2}
+          y1={y1}
+          y2={y2}
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+        />
+      );
+    },
+    [visibleTransformedData, height],
+  );
 
   // Only show skeleton on initial load, not on interval changes.
   if (isLoading && !hasInitiallyLoaded) {
@@ -563,6 +700,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
                 <CandlestickChart.Candles
                   positiveColor={candlestickColors.positive} // Green for positive candles
                   negativeColor={candlestickColors.negative} // Red for negative candles
+                  renderRect={renderCustomCandle} // Custom candle body scaling for zoom
+                  renderLine={renderCustomWick} // Custom wick scaling for zoom
                   testID={PerpsCandlestickChartSelectorsIDs.CANDLES}
                 />
                 {/* Tooltip for price display */}
