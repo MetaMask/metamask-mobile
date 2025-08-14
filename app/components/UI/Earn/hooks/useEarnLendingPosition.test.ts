@@ -23,10 +23,15 @@ jest.mock('../../../../core/Engine', () => ({
     },
   },
 }));
-jest.mock('../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccount: jest.fn(),
-  selectSelectedInternalAccountAddress: jest.fn(),
-}));
+
+jest.mock('../../../../selectors/accountsController', () => {
+  const actual = jest.requireActual('../../../../selectors/accountsController');
+  return {
+    ...actual,
+    selectSelectedInternalAccount: jest.fn(),
+    selectSelectedInternalAccountAddress: jest.fn(),
+  };
+});
 
 jest.mock('../../../../selectors/earnController/earn', () => ({
   earnSelectors: {
