@@ -77,7 +77,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   // Zoom constants
   const MIN_CANDLES = 10;
   const MAX_CANDLES = 250;
-  const ZOOM_STEP = 5; // How many candles to add/remove per zoom action
+  const ZOOM_STEP = 1; // How many candles to add/remove per zoom action
 
   // Pinch-to-zoom state
   const [isGesturing, setIsGesturing] = useState(false);
