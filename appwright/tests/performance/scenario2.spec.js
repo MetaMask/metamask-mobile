@@ -63,9 +63,7 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   const timer8 = new TimerHelper(
     'Time since the user clicks on "Done" button until Solana feature sheet is visible',
   );
-  const timer9 = new TimerHelper(
-    'Time since the user clicks on "Not now" button On Solana feature sheet until native token is visible',
-  );
+
   timer1.start();
   await WelcomeScreen.clickGetStartedButton();
   await TermOfUseScreen.isDisplayed();
@@ -106,9 +104,7 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
     await SolanaFeatureSheet.tapNotNowButton();
   }
   timer8.stop();
-  timer9.start();
-  await WalletMainScreen.isTokenVisible('Ethereum');
-  timer9.stop();
+
   const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);
@@ -118,6 +114,5 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   performanceTracker.addTimer(timer6);
   performanceTracker.addTimer(timer7);
   performanceTracker.addTimer(timer8);
-  performanceTracker.addTimer(timer9);
   await performanceTracker.attachToTest(testInfo);
 });

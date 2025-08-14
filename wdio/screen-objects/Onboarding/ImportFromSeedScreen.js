@@ -29,7 +29,11 @@ class ImportFromSeedScreen {
         ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByID(this._device, ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID);
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByID(this._device, ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID);
+      } else {
+        return AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield"]');
+      }
     }
   }
 
@@ -43,8 +47,14 @@ class ImportFromSeedScreen {
 
 
   async inputOfIndex(srpIndex, onboarding = true) {
-    if (onboarding)
-      return `import-from-seed-screen-seed-phrase-input-id_${String(srpIndex)}`;
+    if (onboarding) {
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return `import-from-seed-screen-seed-phrase-input-id_${String(srpIndex)}`;
+      } else {
+        return `//XCUIElementTypeOther[@name="textfield" and @label="${String(srpIndex)}."]`;
+        
+      }
+    }
     else {
       return `srp-input-word-${String(srpIndex)}`;
     }
@@ -76,12 +86,21 @@ class ImportFromSeedScreen {
         const form = await this.seedPhraseInput
         await form.fill(`${firstWord} `);
         for (let i = 1; i < phraseArray.length - 1; i++) {
-          const wordElement = await this.inputOfIndex(i);
-          const input = await AppwrightSelectors.getElementByID(this.device, wordElement);
+          let index = i;  
+          if (AppwrightSelectors.isIOS(this._device)) { // SRP fields on iOS starts from 1
+            index = i + 1;
+          }
+          
+          const wordElement = await this.inputOfIndex(index);
+          let input;
+          if (AppwrightSelectors.isAndroid(this._device))
+            input = await AppwrightSelectors.getElementByID(this.device, wordElement);
+          else
+            input = await AppwrightSelectors.getElementByXpath(this.device, wordElement);
           await input.fill(`${phraseArray[i]} `);
         }
-        const wordElement = await this.inputOfIndex(phraseArray.length - 1);
-        const lastInput = await AppwrightSelectors.getElementByID(this.device, wordElement);
+        const wordElement = await this.inputOfIndex(AppwrightSelectors.isAndroid(this._device) ? phraseArray.length - 1 : phraseArray.length);
+        const lastInput = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this.device, wordElement) : await AppwrightSelectors.getElementByXpath(this.device, wordElement);
         await lastInput.fill(lastWord);
       } else {
         for (let i = 1; i <= phraseArray.length; i++) {
