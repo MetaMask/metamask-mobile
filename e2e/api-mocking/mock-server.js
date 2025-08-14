@@ -186,6 +186,16 @@ export const startMockServer = async (events, port) => {
           ? urlEndpoint.replace('localhost', '127.0.0.1')
           : urlEndpoint;
 
+      // Read the body ONCE for POST requests to avoid stream exhaustion
+      let requestBodyText;
+      if (method === 'POST') {
+        try {
+          requestBodyText = await request.body.getText();
+        } catch (e) {
+          requestBodyText = undefined;
+        }
+      }
+
       // Check if the URL is in the allowed list
       if (!isUrlAllowed(updatedUrl)) {
         const errorMessage = `Request going to live server: ${updatedUrl}`;
@@ -195,7 +205,7 @@ export const startMockServer = async (events, port) => {
         // Explicit debug to help with debugging in CI
         console.warn(`Allowed URL: ${updatedUrl}`);
         if (method === 'POST') {
-          console.warn(`Request Body: ${await request.body.getText()}`);
+          console.warn(`Request Body: ${requestBodyText}`);
         }
       }
 
@@ -203,7 +213,7 @@ export const startMockServer = async (events, port) => {
         updatedUrl,
         method,
         request.headers,
-        method === 'POST' ? await request.body.getText() : undefined,
+        method === 'POST' ? requestBodyText : undefined,
       );
     });
 
