@@ -104,6 +104,12 @@ import SrpInput from '../SrpInput';
 
 const checkValidSeedWord = (text) => wordlist.includes(text);
 
+// Custom masking function to replace characters with dots (avoids iOS ellipsis)
+const maskText = (text) => {
+  if (!text) return '';
+  return '••••';
+};
+
 /**
  * View where users can set restore their account
  * using a secret recovery phrase (SRP)
@@ -218,7 +224,9 @@ const ImportFromSecretRecoveryPhrase = ({
           }
 
           setSeedPhrase(newSeedPhrase);
-          setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
+          setTimeout(() => {
+            setNextSeedPhraseInputFocusedIndex(index + splitArray.length);
+          }, 0);
           return;
         }
 
@@ -253,9 +261,12 @@ const ImportFromSecretRecoveryPhrase = ({
 
       if (updatedTrimmedText.length > 1) {
         // no focus on any input
-        setSeedPhraseInputFocusedIndex(null);
-        setNextSeedPhraseInputFocusedIndex(null);
-        Keyboard.dismiss();
+        setTimeout(() => {
+          setSeedPhraseInputFocusedIndex(null);
+          setNextSeedPhraseInputFocusedIndex(null);
+          seedPhraseInputRefs.current.get(0)?.blur();
+          Keyboard.dismiss();
+        }, 100);
       }
     },
     [handleSeedPhraseChangeAtIndex, setSeedPhrase],
@@ -728,6 +739,7 @@ const ImportFromSecretRecoveryPhrase = ({
         }));
       }
       setSeedPhraseInputFocusedIndex(index);
+      setNextSeedPhraseInputFocusedIndex(index);
     },
     [seedPhrase, seedPhraseInputFocusedIndex],
   );
@@ -753,6 +765,10 @@ const ImportFromSecretRecoveryPhrase = ({
         }, 0);
       }
     }
+  };
+
+  const handleEnterKeyPress = (index) => {
+    handleSeedPhraseChangeAtIndex(`${seedPhrase[index]} `, index);
   };
 
   return (
@@ -830,16 +846,31 @@ const ImportFromSecretRecoveryPhrase = ({
                               </Text>
                             )
                           }
-                          value={isFirstInput ? seedPhrase?.[0] || '' : item}
-                          secureTextEntry={!canShowSeedPhraseWord(index)}
+                          value={
+                            isFirstInput
+                              ? seedPhrase?.[0] || ''
+                              : canShowSeedPhraseWord(index)
+                              ? item
+                              : maskText(item)
+                          }
                           onFocus={(e) => {
                             handleOnFocus(index);
                           }}
-                          onChangeText={(text) =>
+                          onInputFocus={() => {
+                            setNextSeedPhraseInputFocusedIndex(index);
+                          }}
+                          onChangeText={(text) => {
+                            // Don't process masked text input
+                            if (!isFirstInput && text.includes('•')) {
+                              return;
+                            }
                             isFirstInput
                               ? handleSeedPhraseChange(text)
-                              : handleSeedPhraseChangeAtIndex(text, index)
-                          }
+                              : handleSeedPhraseChangeAtIndex(text, index);
+                          }}
+                          onSubmitEditing={() => {
+                            handleEnterKeyPress(index);
+                          }}
                           placeholder={
                             isFirstInput
                               ? strings('import_from_seed.srp_placeholder')
@@ -861,7 +892,11 @@ const ImportFromSecretRecoveryPhrase = ({
                                     styles.seedPhraseInputItemLast,
                                 ]
                           }
-                          inputStyle={isFirstInput ? styles.textAreaInput : ''}
+                          inputStyle={
+                            isFirstInput
+                              ? styles.textAreaInput
+                              : styles.inputItem
+                          }
                           submitBehavior="submit"
                           autoComplete="off"
                           textAlignVertical={isFirstInput ? 'top' : 'center'}
@@ -879,9 +914,8 @@ const ImportFromSecretRecoveryPhrase = ({
                           textContentType="oneTimeCode"
                           spellCheck={false}
                           autoFocus={
-                            isFirstInput
-                              ? true
-                              : index === nextSeedPhraseInputFocusedIndex
+                            isFirstInput ||
+                            index === nextSeedPhraseInputFocusedIndex
                           }
                           multiline={isFirstInput}
                           onKeyPress={(e) => handleKeyPress(e, index)}
@@ -1108,6 +1142,7 @@ const ImportFromSecretRecoveryPhrase = ({
             <View style={styles.createPasswordCtaContainer}>
               {renderSwitch()}
               <Button
+                loading={loading}
                 width={ButtonWidthTypes.Full}
                 variant={ButtonVariants.Primary}
                 label={strings('import_from_seed.create_password_cta')}

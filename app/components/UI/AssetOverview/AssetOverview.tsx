@@ -75,11 +75,12 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { calculateAssetPrice } from './utils/calculateAssetPrice';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { InitSendLocation } from '../../Views/confirmations/constants/send';
 import { useSendNavigation } from '../../Views/confirmations/hooks/useSendNavigation';
 
 interface AssetOverviewProps {
   asset: TokenI;
-  displayBuyButton?: boolean;
+  displayFundButton?: boolean;
   displaySwapsButton?: boolean;
   displayBridgeButton?: boolean;
   swapsIsLive?: boolean;
@@ -88,7 +89,7 @@ interface AssetOverviewProps {
 
 const AssetOverview: React.FC<AssetOverviewProps> = ({
   asset,
-  displayBuyButton,
+  displayFundButton,
   displaySwapsButton,
   displayBridgeButton,
   swapsIsLive,
@@ -144,7 +145,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
-    token: {
+    sourceToken: {
       ...asset,
       address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: asset.chainId as Hex,
@@ -195,7 +196,9 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const onSend = async () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // Try non-EVM first, if handled, return early
-    const wasHandledAsNonEvm = await sendNonEvmAsset();
+    const wasHandledAsNonEvm = await sendNonEvmAsset(
+      InitSendLocation.AssetOverview,
+    );
     if (wasHandledAsNonEvm) {
       return;
     }
@@ -231,7 +234,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
     } else {
       dispatch(newAssetTransaction(asset));
     }
-    navigateToSendPage(asset);
+    navigateToSendPage(InitSendLocation.AssetOverview, asset);
   };
 
   const onBuy = () => {
@@ -415,7 +418,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             {renderChartNavigationButton()}
           </View>
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
+            displayFundButton={displayFundButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
             swapsIsLive={swapsIsLive}
@@ -424,6 +427,10 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
             onBuy={onBuy}
             onReceive={onReceive}
             onSend={onSend}
+            asset={{
+              address: asset.address,
+              chainId,
+            }}
           />
           <Balance
             asset={asset}

@@ -1,19 +1,29 @@
 /* eslint-disable react-native/no-inline-styles */
 /* eslint-disable react/display-name */
 // Third party dependencies.
-import React, { useRef } from 'react';
-import { View } from 'react-native';
+import React, { useState } from 'react';
 
 // External dependencies.
-import Text, { TextVariant } from '../../Texts/Text';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  Text,
+  Button,
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 
 // Internal dependencies.
-import { default as BottomSheetComponent } from './BottomSheet';
+import { default as BottomSheet } from './BottomSheet';
 import { BottomSheetProps, BottomSheetRef } from './BottomSheet.types';
+import BottomSheetHeader from '../BottomSheetHeader';
+import BottomSheetFooter from '../BottomSheetFooter';
+import { ButtonVariants } from '../../Buttons/Button';
 
 const BottomSheetMeta = {
-  title: 'Component Library / BottomSheets',
-  component: BottomSheetComponent,
+  title: 'Component Library / BottomSheets / BottomSheet',
+  component: BottomSheet,
   argTypes: {
     isInteractable: {
       control: { type: 'boolean' },
@@ -23,26 +33,66 @@ const BottomSheetMeta = {
 };
 export default BottomSheetMeta;
 
-export const BottomSheet = {
-  render: (
+export const Default = {
+  render: function Render(
     args: JSX.IntrinsicAttributes &
       BottomSheetProps &
       React.RefAttributes<BottomSheetRef>,
-  ) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    const bottomSheetRef = useRef<BottomSheetRef | null>(null);
+  ) {
+    const [isVisible, setIsVisible] = useState(false);
+
+    const openBottomSheet = () => setIsVisible(true);
+    const closeBottomSheet = () => setIsVisible(false);
     return (
-      <BottomSheetComponent ref={bottomSheetRef} {...args}>
-        <View
-          style={{
-            height: 300,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+      <>
+        <Button
+          variant={ButtonVariant.Primary}
+          onPress={openBottomSheet}
+          twClassName="mb-4"
         >
-          <Text variant={TextVariant.BodySM}>{'Wrapped Content'}</Text>
-        </View>
-      </BottomSheetComponent>
+          Open BottomSheet
+        </Button>
+        {isVisible && (
+          <BottomSheet
+            {...args}
+            onClose={closeBottomSheet}
+            shouldNavigateBack={false}
+          >
+            <BottomSheetHeader
+              onClose={closeBottomSheet}
+              onBack={closeBottomSheet}
+            >
+              BottomSheetHeader
+            </BottomSheetHeader>
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              twClassName="h-20"
+            >
+              <Text>
+                BottomSheetContent: Lorem ipsum dolor sit amet, consectetur
+                adipiscing elit.
+              </Text>
+            </Box>
+            <BottomSheetFooter
+              buttonPropsArray={[
+                {
+                  label: 'Cancel',
+                  variant: ButtonVariants.Secondary,
+                  onPress: closeBottomSheet,
+                },
+                {
+                  label: 'Confirm',
+                  variant: ButtonVariants.Primary,
+                  onPress: closeBottomSheet,
+                },
+              ]}
+            />
+            {/* TODO: This is a hack to make the bottom sheet visible */}
+            <Box twClassName="h-35" />
+          </BottomSheet>
+        )}
+      </>
     );
   },
 };

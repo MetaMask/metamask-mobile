@@ -4,9 +4,16 @@ import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithB
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { PayTokenBalance } from './pay-token-balance';
+import { View as MockView } from 'react-native';
 
 jest.mock('../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../../UI/Bridge/hooks/useTokensWithBalance');
+
+jest.mock('../../../../UI/AnimatedSpinner', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../../../UI/AnimatedSpinner'),
+  default: () => <MockView testID="pay-token-spinner">{`Spinner`}</MockView>,
+}));
 
 const TOKEN_ADDRESS_MOCK = '0xabcd1234abcd1234abcd1234abcd1234abcd1234';
 const CHAIN_ID_MOCK = '0x123';
@@ -20,6 +27,7 @@ describe('PayTokenBalance', () => {
     jest.resetAllMocks();
 
     useTransactionPayTokenMock.mockReturnValue({
+      balanceFiat: BALANCE_FIAT_MOCK,
       balanceHuman: '1.23',
       decimals: 4,
       payToken: {
@@ -40,6 +48,22 @@ describe('PayTokenBalance', () => {
 
   it('renders pay token balance', () => {
     const { getByText } = render(<PayTokenBalance />);
-    expect(getByText(`Available: ${BALANCE_FIAT_MOCK}`)).toBeTruthy();
+    expect(getByText(`Available: ${BALANCE_FIAT_MOCK}`)).toBeDefined();
+  });
+
+  it('renders spinner if no pay token selected', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { getByTestId } = render(<PayTokenBalance />);
+    expect(getByTestId('pay-token-spinner')).toBeDefined();
+  });
+
+  it('renders spinner if token not found', () => {
+    useTokensWithBalanceMock.mockReturnValue([]);
+
+    const { getByTestId } = render(<PayTokenBalance />);
+    expect(getByTestId('pay-token-spinner')).toBeDefined();
   });
 });

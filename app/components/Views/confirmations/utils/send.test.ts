@@ -7,6 +7,7 @@ import * as TransactionUtils from '../../../../util/transaction-controller';
 import * as SendMultichainTransactionUtils from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { AssetType } from '../types/token';
 import { SOLANA_ASSET } from '../__mocks__/send.mock';
+import { InitSendLocation } from '../constants/send';
 import {
   formatToFixedDecimals,
   handleSendPageNavigation,
@@ -26,7 +27,9 @@ jest.mock('../../../../core/Engine', () => ({
 describe('handleSendPageNavigation', () => {
   it('navigates to send page', () => {
     const mockNavigate = jest.fn();
-    handleSendPageNavigation(mockNavigate, { name: 'ETHEREUM' } as AssetType);
+    handleSendPageNavigation(mockNavigate, InitSendLocation.WalletActions, {
+      name: 'ETHEREUM',
+    } as AssetType);
     expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
   });
 });

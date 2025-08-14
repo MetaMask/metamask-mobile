@@ -109,6 +109,9 @@ export type PerpsControllerState = {
   // Eligibility (Geo-Blocking)
   isEligible: boolean;
 
+  // Tutorial/First time user tracking
+  isFirstTimeUser: boolean;
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -132,6 +135,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   lastError: null,
   lastUpdateTimestamp: 0,
   isEligible: false,
+  isFirstTimeUser: true,
 });
 
 /**
@@ -152,6 +156,7 @@ const metadata = {
   lastError: { persist: false, anonymous: false },
   lastUpdateTimestamp: { persist: false, anonymous: false },
   isEligible: { persist: false, anonymous: false },
+  isFirstTimeUser: { persist: true, anonymous: false },
 };
 
 /**
@@ -237,6 +242,10 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:calculateFees';
       handler: PerpsController['calculateFees'];
+    }
+  | {
+      type: 'PerpsController:markTutorialCompleted';
+      handler: PerpsController['markTutorialCompleted'];
     };
 
 /**
@@ -1478,5 +1487,19 @@ export class PerpsController extends BaseController<
   getBlockExplorerUrl(address?: string): string {
     const provider = this.getActiveProvider();
     return provider.getBlockExplorerUrl(address);
+  }
+
+  /**
+   * Mark that the user has completed the tutorial/onboarding
+   * This prevents the tutorial from showing again
+   */
+  markTutorialCompleted(): void {
+    DevLogger.log('PerpsController: Marking tutorial as completed', {
+      timestamp: new Date().toISOString(),
+    });
+
+    this.update((state) => {
+      state.isFirstTimeUser = false;
+    });
   }
 }

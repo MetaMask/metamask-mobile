@@ -1,6 +1,6 @@
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
@@ -38,8 +38,8 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
     },
     async () => {
       await loginToApp();
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapBuyButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await testFn();
     },
@@ -74,8 +74,8 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
       await BuildQuoteView.tapCancelButton();
 
       // Should not show the Get Started screen again
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapBuyButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapBuyButton();
       await Assertions.expectElementToBeVisible(
         BuildQuoteView.amountToBuyLabel,
       );
