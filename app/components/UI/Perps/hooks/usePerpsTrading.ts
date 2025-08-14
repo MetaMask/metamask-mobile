@@ -113,6 +113,13 @@ export function usePerpsTrading() {
     [],
   );
 
+  const depositWithConfirmation = useCallback(async (): Promise<{
+    result: Promise<string>;
+  }> => {
+    const controller = Engine.context.PerpsController;
+    return controller.depositWithConfirmation();
+  }, []);
+
   const getDepositRoutes = useCallback((): AssetRoute[] => {
     const controller = Engine.context.PerpsController;
     return controller.getDepositRoutes();
@@ -233,6 +240,7 @@ export function usePerpsTrading() {
     subscribeToPositions,
     subscribeToOrderFills,
     deposit,
+    depositWithConfirmation,
     getDepositRoutes,
     resetDepositState,
     withdraw,
