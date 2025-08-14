@@ -15,6 +15,7 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import MultichainAddressRow from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
+import { AddressListIds } from '../../../../../e2e/selectors/MultichainAccounts/AddressList.selectors';
 
 import styleSheet from './styles';
 import type { Props as AddressListProps, AddressItem } from './types';
@@ -54,7 +55,7 @@ export const AddressList = (props: AddressListProps) => {
         style={styles.header}
         startAccessory={
           <ButtonLink
-            // testID={}
+            testID={AddressListIds.GO_BACK}
             labelTextVariant={TextVariant.BodyMDMedium}
             label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
             onPress={() => navigation.goBack()}
