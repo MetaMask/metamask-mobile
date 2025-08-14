@@ -5196,8 +5196,13 @@
       "header_title": "Account Details",
       "account_name": "Account Name",
       "account_address": "Account Address",
+      "networks": "Networks",
       "wallet": "Wallet",
       "private_key": "Private key"
+    },
+    "address_list" : {
+      "addresses": "Addresses",
+      "receiving_address": "Receiving address"
     },
     "accounts_list": {
       "details": "Details"
