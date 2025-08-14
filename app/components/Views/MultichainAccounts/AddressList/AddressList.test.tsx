@@ -1,5 +1,5 @@
 import React from 'react';
-import { AccountGroupId } from '@metamask/account-api';
+import { AccountGroupId, AccountWalletId } from '@metamask/account-api';
 import { SolAccountType, EthScope, SolScope } from '@metamask/keyring-api';
 
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
@@ -17,8 +17,8 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const WALLET_ID = 'entropy:wallet-id-1';
-const ACCOUNT_GROUP_ID = `${WALLET_ID}/1`;
+const ACCOUNT_WALLET_ID = 'entropy:wallet-id-1' as AccountWalletId;
+const ACCOUNT_GROUP_ID = `${ACCOUNT_WALLET_ID}/1` as AccountGroupId;
 
 const mockEthEoaAccount = {
   ...createMockInternalAccount(
@@ -61,8 +61,8 @@ const renderWithAddressList = (accountGroupId: AccountGroupId) => {
   const mockAccountTreeControllerState = {
     accountTree: {
       wallets: {
-        [WALLET_ID]: {
-          id: WALLET_ID,
+        [ACCOUNT_WALLET_ID]: {
+          id: ACCOUNT_WALLET_ID,
           metadata: { name: 'Mock Wallet' },
           groups: {
             [ACCOUNT_GROUP_ID]: {
