@@ -255,56 +255,28 @@ class SendFlow extends PureComponent {
 
     // Initialize contextual chain ID with global chain ID
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      // Cache Engine.context references for better performance
       const {
         NetworkEnablementController,
         NetworkController,
         MultichainNetworkController,
       } = Engine.context;
-      const allEnabledNetworks =
-        NetworkEnablementController.state.enabledNetworkMap;
-      const { namespace } = parseCaipChainId(
-        formatChainIdToCaip(globalChainId),
-      );
 
-      // Cache namespace networks to avoid repeated object access
-      const namespaceNetworks = allEnabledNetworks?.[namespace];
+      const contextualChainId =
+        MultichainNetworkController.getChainId(globalChainId);
 
-      if (namespaceNetworks) {
-        // Use for...in loop for better performance than Object.keys().find()
-        let firstEnabledNetwork = null;
-        for (const key in namespaceNetworks) {
-          if (namespaceNetworks[key]) {
-            firstEnabledNetwork = key;
-            break;
-          }
-        }
+      const networkClientId =
+        NetworkController.findNetworkClientIdByChainId(contextualChainId);
 
-        if (firstEnabledNetwork) {
-          try {
-            // Get networkClientId immediately (synchronous operation)
-            const networkClientId =
-              NetworkController.findNetworkClientIdByChainId(
-                firstEnabledNetwork,
-              );
+      // Run async operations in parallel for better performance
+      await Promise.all([
+        NetworkEnablementController.enableNetwork(contextualChainId),
+        MultichainNetworkController.setActiveNetwork(networkClientId),
+      ]);
 
-            // Dispatch Redux action immediately (synchronous)
-            onboardNetwork(firstEnabledNetwork);
+      // Dispatch Redux action immediately (synchronous)
+      onboardNetwork(contextualChainId);
 
-            // Run async operations in parallel for better performance
-            await Promise.all([
-              NetworkEnablementController.enableNetwork(firstEnabledNetwork),
-              MultichainNetworkController.setActiveNetwork(networkClientId),
-            ]);
-
-            // Only set context chain ID if we have a valid network
-            setTransactionContextualChainId(firstEnabledNetwork);
-          } catch (error) {
-            // Handle potential errors gracefully
-            console.warn('Failed to set active network:', error);
-          }
-        }
-      }
+      setTransactionContextualChainId(contextualChainId);
     }
   };
 
