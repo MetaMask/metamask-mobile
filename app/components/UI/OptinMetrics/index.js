@@ -201,6 +201,7 @@ class OptinMetrics extends PureComponent {
 
   componentDidMount() {
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
+    this.props.setDataCollectionForMarketing(false);
   }
 
   componentDidUpdate(_, prevState) {
