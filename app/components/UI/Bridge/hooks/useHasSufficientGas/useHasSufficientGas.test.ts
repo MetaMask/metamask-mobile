@@ -24,7 +24,7 @@ describe('useHasSufficientGas', () => {
           srcChainId: '0x1',
         },
         gasFee: {
-          amount: '0.001',
+          effective: { amount: '0.001' },
         },
       } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -47,7 +47,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              amount: '0.001', // 0.001 ETH
+              effective: { amount: '0.001' }, // 0.001 ETH
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -73,7 +73,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              amount: '0.01', // 0.01 ETH
+              effective: { amount: '0.01' }, // 0.01 ETH
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -99,7 +99,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              amount: '0.001',
+              effective: { amount: '0.001' },
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -121,7 +121,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              amount: undefined,
+              effective: undefined,
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -146,7 +146,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: '0x1',
             },
             gasFee: {
-              amount: '0.001',
+              effective: { amount: '0.001' },
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -173,7 +173,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             },
             gasFee: {
-              amount: '0.001', // 0.001 SOL
+              effective: { amount: '0.001' }, // 0.001 SOL
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
@@ -199,7 +199,7 @@ describe('useHasSufficientGas', () => {
               srcChainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
             },
             gasFee: {
-              amount: '0.01', // 0.01 SOL
+              effective: { amount: '0.01' }, // 0.01 SOL
             },
           } as unknown as ReturnType<typeof useBridgeQuoteData>['activeQuote'];
 
