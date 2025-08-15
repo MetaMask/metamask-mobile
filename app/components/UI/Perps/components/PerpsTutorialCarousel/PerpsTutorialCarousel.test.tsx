@@ -57,13 +57,17 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),
 }));
 
-// Mock usePerpsFirstTimeUser hook
+// Mock hooks
 const mockMarkTutorialCompleted = jest.fn();
 const mockTrack = jest.fn();
+const mockDepositWithConfirmation = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../hooks', () => ({
   usePerpsFirstTimeUser: () => ({
     markTutorialCompleted: mockMarkTutorialCompleted,
+  }),
+  usePerpsTrading: () => ({
+    depositWithConfirmation: mockDepositWithConfirmation,
   }),
 }));
 
@@ -122,6 +126,7 @@ describe('PerpsTutorialCarousel', () => {
     jest.clearAllMocks();
     mockMarkTutorialCompleted.mockClear();
     mockTrack.mockClear();
+    mockDepositWithConfirmation.mockClear();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSafeAreaInsets as jest.Mock).mockReturnValue({ top: 0, bottom: 0 });
   });
@@ -198,6 +203,7 @@ describe('PerpsTutorialCarousel', () => {
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
+      expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
     it('should go back when pressing Skip on first screen', () => {
@@ -209,6 +215,7 @@ describe('PerpsTutorialCarousel', () => {
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
       expect(mockMarkTutorialCompleted).not.toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
 
     it('should mark tutorial as completed and go back when pressing Skip on last screen', async () => {
@@ -239,9 +246,10 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.got_it')));
       });
 
-      // Should mark tutorial as completed and go back
+      // Should mark tutorial as completed and go back, but NOT initialize deposit
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
       expect(mockNavigation.goBack).toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
 
     it('should mark tutorial as completed when finishing tutorial', async () => {
@@ -262,8 +270,9 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.add_funds')));
       });
 
-      // Should mark tutorial as completed
+      // Should mark tutorial as completed and initialize deposit
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
     it('should navigate to add funds screen when on last screen', async () => {
@@ -284,10 +293,11 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.add_funds')));
       });
 
-      // Should navigate to add funds screen
+      // Should navigate to add funds screen and initialize deposit
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
+      expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
   });
 });

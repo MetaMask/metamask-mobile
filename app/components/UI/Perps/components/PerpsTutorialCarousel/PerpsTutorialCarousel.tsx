@@ -26,7 +26,7 @@ import {
   PerpsEventValues,
 } from '../../constants/eventNames';
 import type { PerpsNavigationParamList } from '../../controllers/types';
-import { usePerpsFirstTimeUser } from '../../hooks';
+import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
@@ -96,6 +96,7 @@ const PerpsTutorialCarousel: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
+  const { depositWithConfirmation } = usePerpsTrading();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
   const scrollableTabViewRef = useRef<
@@ -153,9 +154,15 @@ const PerpsTutorialCarousel: React.FC = () => {
 
       // Mark tutorial as completed
       markTutorialCompleted();
-      // Navigate to add funds screen
+
+      // Navigate immediately to confirmations screen for instant UI response
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+
+      // Initialize deposit in the background without blocking
+      depositWithConfirmation().catch((error) => {
+        console.error('Failed to initialize deposit:', error);
       });
     } else {
       // Go to next screen using the ref
@@ -172,7 +179,14 @@ const PerpsTutorialCarousel: React.FC = () => {
         hasTrackedStarted.current = true;
       }
     }
-  }, [isLastScreen, markTutorialCompleted, navigation, currentTab, track]);
+  }, [
+    isLastScreen,
+    markTutorialCompleted,
+    navigation,
+    currentTab,
+    track,
+    depositWithConfirmation,
+  ]);
 
   const handleSkip = useCallback(() => {
     if (isLastScreen) {
