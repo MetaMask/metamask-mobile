@@ -200,8 +200,14 @@ class OptinMetrics extends PureComponent {
       });
 
   componentDidMount() {
+    if (
+      !this.props.metrics.isEnabled() &&
+      this.props.setDataCollectionForMarketing
+    ) {
+      this.props.setDataCollectionForMarketing(false);
+    }
+
     BackHandler.addEventListener('hardwareBackPress', this.handleBackPress);
-    this.props.setDataCollectionForMarketing(false);
   }
 
   componentDidUpdate(_, prevState) {
@@ -223,8 +229,13 @@ class OptinMetrics extends PureComponent {
     }
   }
 
-  componentWillUnmount() {
+  async componentWillUnmount() {
     BackHandler.removeEventListener('hardwareBackPress', this.handleBackPress);
+    // // eslint-disable-next-line no-console
+    // console.log('componentWillUnmount', this.props.metrics.isEnabled());
+    // if (!this.props.metrics.isEnabled()) {
+    //   this.props.setDataCollectionForMarketing(false);
+    // }
   }
 
   /**
