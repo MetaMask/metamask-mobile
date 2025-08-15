@@ -4,8 +4,8 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
-import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { SafeAreaView, ScrollView, View, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -13,11 +13,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -41,15 +36,21 @@ import {
 } from '../../constants/chartConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
-import PerpsBottomSheetTooltip, {
-  PerpsTooltipContentKey,
-} from '../../components/PerpsBottomSheetTooltip';
+import { useSelector } from 'react-redux';
+import { selectPerpsProvider } from '../../selectors/perpsController';
+import { capitalize } from '../../../../../util/general';
+import {
+  useHasExistingPosition,
+  usePerpsAccount,
+  usePerpsConnection,
+  usePerpsOpenOrders,
+} from '../../hooks';
+import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
-  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
@@ -67,17 +68,52 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
   ] = useState(false);
+  const [activeTabId, setActiveTabId] = useState('position');
+  const [refreshing, setRefreshing] = useState(false);
 
-  const [selectedTooltip, setSelectedTooltip] =
-    useState<PerpsTooltipContentKey | null>(null);
+  const perpsProvider = useSelector(selectPerpsProvider);
+
+  const account = usePerpsAccount();
+
+  const { isConnected } = usePerpsConnection();
+
+  // Get currently open orders for this market
+  const { orders: ordersData, refresh: refreshOrders } = usePerpsOpenOrders({
+    skipInitialFetch: !isConnected,
+    enablePolling: true,
+    pollingInterval: 5000, // Poll every 5 seconds for real-time updates
+  });
+
+  // Filter orders for the current market
+  const openOrders = useMemo(() => {
+    if (!ordersData?.length || !market?.symbol) return [];
+    return ordersData.filter((order) => order.symbol === market.symbol);
+  }, [ordersData, market?.symbol]);
+
+  const hasZeroBalance = useMemo(
+    () => parseFloat(account?.availableBalance || '0') === 0,
+    [account?.availableBalance],
+  );
+
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
   // Get candlestick data
-  const { candleData, isLoadingHistory } = usePerpsPositionData({
-    coin: market?.symbol || '',
-    selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
-    selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
+  const { candleData, isLoadingHistory, priceData, refreshCandleData } =
+    usePerpsPositionData({
+      coin: market?.symbol || '',
+      selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
+      selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
+    });
+
+  // Check if user has an existing position for this market
+  const {
+    isLoading: isLoadingPosition,
+    existingPosition,
+    refreshPosition,
+  } = useHasExistingPosition({
+    asset: market?.symbol || '',
+    loadOnMount: true,
   });
 
   const handleDurationChange = useCallback((newDuration: TimeDuration) => {
@@ -94,6 +130,51 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleGearPress = useCallback(() => {
     setIsCandlePeriodBottomSheetVisible(true);
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+
+    try {
+      // Always refresh chart data regardless of active tab
+      if (candleData) {
+        await refreshCandleData();
+      }
+
+      switch (activeTabId) {
+        case 'position':
+          // Refresh position data
+          await refreshPosition();
+          break;
+
+        case 'orders':
+          // Refresh orders data
+          await refreshOrders();
+          break;
+
+        case 'statistics':
+          // Refresh market statistics (24h high/low from candle data)
+          await marketStats.refresh();
+          // Also refresh position as it affects some stats
+          await refreshPosition();
+          break;
+
+        default:
+          // Fallback: refresh position
+          await refreshPosition();
+      }
+    } catch (error) {
+      console.error(`Failed to refresh ${activeTabId} data:`, error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [
+    activeTabId,
+    refreshPosition,
+    refreshOrders,
+    marketStats,
+    candleData,
+    refreshCandleData,
+  ]);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -113,16 +194,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   };
 
-  const handleTooltipPress = useCallback(
-    (contentKey: PerpsTooltipContentKey) => {
-      setSelectedTooltip(contentKey);
-    },
-    [],
+  const handleAddFundsPress = () => {
+    navigation.navigate(Routes.PERPS.DEPOSIT);
+  };
+
+  // Determine if any action buttons will be visible
+  const hasLongShortButtons = useMemo(
+    () => !isLoadingPosition && !hasZeroBalance,
+    [isLoadingPosition, hasZeroBalance],
   );
 
-  const handleTooltipClose = useCallback(() => {
-    setSelectedTooltip(null);
-  }, []);
+  const hasAddFundsButton = useMemo(
+    () => hasZeroBalance && !isLoadingPosition,
+    [hasZeroBalance, isLoadingPosition],
+  );
+
+  // Simplified styles - no complex calculations needed
+  const { styles, theme } = useStyles(createStyles, {});
 
   if (!market) {
     return (
@@ -141,11 +229,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   return (
     <SafeAreaView
-      style={[styles.container, { marginTop: top }]}
+      style={[styles.mainContainer, { marginTop: top }]}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      <ScrollView style={styles.container}>
-        {/* Market Header */}
+      {/* Fixed Header Section */}
+      <View>
         <PerpsMarketHeader
           market={market}
           currentPrice={marketStats.currentPrice}
@@ -153,192 +241,118 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           onBackPress={handleBackPress}
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
-        {/* Chart */}
-        <View style={[styles.section, styles.chartSection]}>
-          <CandlestickChartComponent
-            candleData={candleData}
-            isLoading={isLoadingHistory}
-            height={350}
-            selectedDuration={selectedDuration}
-            onDurationChange={handleDurationChange}
-            onGearPress={handleGearPress}
-          />
-        </View>
-
-        {/* Statistics Section */}
-        <View style={styles.section}>
-          <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Default}
-            style={styles.statisticsTitle}
-          >
-            {strings('perps.market.statistics')}
-          </Text>
-
-          <View style={styles.statisticsGrid}>
-            {/* Row 1: 24hr High/Low */}
-            <View style={styles.statisticsRow}>
-              <View
-                style={styles.statisticsItem}
-                testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_HIGH_24H}
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.market.24hr_high')}
-                </Text>
-                <Text style={styles.statisticsValue} color={TextColor.Default}>
-                  {marketStats.high24h}
-                </Text>
-              </View>
-              <View
-                style={styles.statisticsItem}
-                testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_LOW_24H}
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.market.24hr_low')}
-                </Text>
-                <Text style={styles.statisticsValue} color={TextColor.Default}>
-                  {marketStats.low24h}
-                </Text>
-              </View>
-            </View>
-
-            {/* Row 2: Volume and Open Interest */}
-            <View style={styles.statisticsRow}>
-              <View
-                style={styles.statisticsItem}
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_VOLUME_24H
-                }
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.market.24h_volume')}
-                </Text>
-                <Text style={styles.statisticsValue} color={TextColor.Default}>
-                  {marketStats.volume24h}
-                </Text>
-              </View>
-              <View
-                style={styles.statisticsItem}
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_OPEN_INTEREST
-                }
-              >
-                <View style={styles.statisticsLabelContainer}>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('perps.market.open_interest')}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => handleTooltipPress('open_interest')}
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Sm}
-                      color={IconColor.Muted}
-                      testID={
-                        PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON
-                      }
-                    />
-                  </TouchableOpacity>
-                </View>
-                <Text style={styles.statisticsValue} color={TextColor.Default}>
-                  {marketStats.openInterest}
-                </Text>
-              </View>
-            </View>
-
-            {/* Row 3: Funding Rate and Countdown */}
-            <View style={styles.statisticsRow}>
-              <View
-                style={styles.statisticsItem}
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_RATE
-                }
-              >
-                <View style={styles.statisticsLabelContainer}>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
-                  >
-                    {strings('perps.market.funding_rate')}
-                  </Text>
-                  <TouchableOpacity
-                    onPress={() => handleTooltipPress('funding_rate')}
-                  >
-                    <Icon
-                      name={IconName.Info}
-                      size={IconSize.Sm}
-                      color={IconColor.Muted}
-                      testID={
-                        PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON
-                      }
-                    />
-                  </TouchableOpacity>
-                </View>
-                <Text
-                  style={styles.statisticsValue}
-                  color={
-                    parseFloat(marketStats.fundingRate) >= 0
-                      ? TextColor.Success
-                      : TextColor.Error
-                  }
-                >
-                  {marketStats.fundingRate}
-                </Text>
-              </View>
-              <View
-                style={styles.statisticsItem}
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_COUNTDOWN
-                }
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                >
-                  {strings('perps.market.countdown')}
-                </Text>
-                <Text style={styles.statisticsValue} color={TextColor.Default}>
-                  {marketStats.fundingCountdown}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-
-      {/* Action Buttons */}
-      <View style={styles.actionsContainer}>
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.market.long')}
-          onPress={handleLongPress}
-          style={[styles.actionButton, styles.longButton]}
-          testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-        />
-        <Button
-          variant={ButtonVariants.Primary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('perps.market.short')}
-          onPress={handleShortPress}
-          style={[styles.actionButton, styles.shortButton]}
-          testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-        />
       </View>
+
+      {/* Scrollable Content Container */}
+      <View style={styles.scrollableContentContainer}>
+        <ScrollView
+          style={styles.mainContentScrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+          testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme.colors.icon.default}
+              colors={[theme.colors.icon.default]} // Android
+            />
+          }
+        >
+          {/* Chart Section */}
+          <View style={[styles.section, styles.chartSection]}>
+            <CandlestickChartComponent
+              candleData={candleData}
+              isLoading={isLoadingHistory}
+              height={350}
+              selectedDuration={selectedDuration}
+              tpslLines={
+                existingPosition
+                  ? {
+                      takeProfitPrice: existingPosition.takeProfitPrice,
+                      stopLossPrice: existingPosition.stopLossPrice,
+                      entryPrice: existingPosition.entryPrice,
+                      liquidationPrice: existingPosition.liquidationPrice,
+                      currentPrice: marketStats.currentPrice?.toString(),
+                    }
+                  : undefined
+              }
+              onDurationChange={handleDurationChange}
+              onGearPress={handleGearPress}
+            />
+          </View>
+
+          {/* Market Tabs Section */}
+          <View style={styles.section}>
+            <PerpsMarketTabs
+              marketStats={marketStats}
+              position={existingPosition}
+              isLoadingPosition={isLoadingPosition}
+              unfilledOrders={openOrders}
+              onPositionUpdate={refreshPosition}
+              onActiveTabChange={setActiveTabId}
+              priceData={priceData}
+            />
+          </View>
+
+          {/* Risk Disclaimer Section */}
+          <View style={styles.section}>
+            <Text
+              style={styles.riskDisclaimer}
+              variant={TextVariant.BodyXS}
+              color={TextColor.Alternative}
+            >
+              {strings('perps.risk_disclaimer', {
+                provider: capitalize(perpsProvider),
+              })}
+            </Text>
+          </View>
+        </ScrollView>
+      </View>
+
+      {/* Fixed Actions Footer */}
+      {(hasAddFundsButton || hasLongShortButtons) && (
+        <View style={styles.actionsFooter}>
+          {hasAddFundsButton && (
+            <View style={styles.singleActionContainer}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {strings('perps.market.add_funds_to_start_trading_perps')}
+              </Text>
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.market.add_funds')}
+                onPress={handleAddFundsPress}
+                testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
+              />
+            </View>
+          )}
+
+          {hasLongShortButtons && (
+            <View style={styles.actionsContainer}>
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.market.long')}
+                onPress={handleLongPress}
+                style={[styles.actionButton, styles.longButton]}
+                testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+              />
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.market.short')}
+                onPress={handleShortPress}
+                style={[styles.actionButton, styles.shortButton]}
+                testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+              />
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Candle Period Bottom Sheet */}
       {isCandlePeriodBottomSheetVisible && (
@@ -349,15 +363,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           selectedDuration={selectedDuration}
           onPeriodChange={handleCandlePeriodChange}
           testID={PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET}
-        />
-      )}
-      {selectedTooltip && (
-        <PerpsBottomSheetTooltip
-          isVisible
-          onClose={handleTooltipClose}
-          contentKey={selectedTooltip}
-          testID={PerpsMarketDetailsViewSelectorsIDs.BOTTOM_SHEET_TOOLTIP}
-          key={selectedTooltip}
         />
       )}
     </SafeAreaView>
