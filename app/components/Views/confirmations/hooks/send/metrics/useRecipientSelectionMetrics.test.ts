@@ -13,6 +13,6 @@ describe('useRecipientSelectionMetrics', () => {
       mockState,
     );
     expect(result.current.captureRecipientSelected).toBeDefined();
-    expect(result.current.setRecipientInputMethodManual).toBeDefined();
+    expect(result.current.setRecipientInputMethod).toBeDefined();
   });
 });

@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { RefreshControl, ScrollView, View, Modal } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -11,9 +11,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
   IconColor,
   IconName,
@@ -172,11 +169,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     return (
       <>
         <View style={styles.sectionHeader}>
-          <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Alternative}
-            style={styles.sectionTitle}
-          >
+          <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
             {strings('perps.position.title')}
           </Text>
         </View>
@@ -187,14 +180,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               position={position}
               expanded={false}
               showIcon
-              isInPerpsNavContext={false}
-              rightAccessory={
-                <ButtonIcon
-                  iconName={IconName.Close}
-                  iconColor={IconColor.Alternative}
-                  size={ButtonIconSizes.Md}
-                />
-              }
             />
           ))}
         </View>
@@ -226,33 +211,39 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       )}
 
       {isBottomSheetVisible && (
-        <BottomSheet ref={bottomSheetRef} onClose={handleCloseBottomSheet}>
-          <BottomSheetHeader onClose={handleCloseBottomSheet}>
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('perps.manage_balance')}
-            </Text>
-          </BottomSheetHeader>
-          <View style={styles.bottomSheetContent}>
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.add_funds')}
-              onPress={handleAddFunds}
-              style={styles.actionButton}
-              startIconName={IconName.Add}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.withdraw')}
-              onPress={handleWithdrawFunds}
-              style={styles.actionButton}
-              startIconName={IconName.Minus}
-            />
-          </View>
-        </BottomSheet>
+        <Modal visible transparent animationType="fade">
+          <BottomSheet
+            ref={bottomSheetRef}
+            onClose={handleCloseBottomSheet}
+            shouldNavigateBack={false}
+          >
+            <BottomSheetHeader onClose={handleCloseBottomSheet}>
+              <Text variant={TextVariant.HeadingMD}>
+                {strings('perps.manage_balance')}
+              </Text>
+            </BottomSheetHeader>
+            <View style={styles.bottomSheetContent}>
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.add_funds')}
+                onPress={handleAddFunds}
+                style={styles.actionButton}
+                startIconName={IconName.Add}
+              />
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.withdraw')}
+                onPress={handleWithdrawFunds}
+                style={styles.actionButton}
+                startIconName={IconName.Minus}
+              />
+            </View>
+          </BottomSheet>
+        </Modal>
       )}
     </View>
   );

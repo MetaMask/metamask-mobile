@@ -391,6 +391,12 @@ export interface Order {
   status: 'open' | 'filled' | 'canceled' | 'rejected' | 'triggered' | 'queued'; // Normalized status
   timestamp: number; // Order timestamp
   lastUpdated: number; // Last status update timestamp
+  // TODO: Consider creating separate type for OpenOrders (UI Orders) potentially if optional properties muddy up the original Order type
+  takeProfitPrice?: string; // Take profit price (if set)
+  stopLossPrice?: string; // Stop loss price (if set)
+  detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
+  isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
+  reduceOnly?: boolean; // Whether this is a reduce-only order
 }
 
 export interface Funding {
@@ -447,6 +453,14 @@ export interface IPerpsProvider {
    * Example: Limit buy 1 ETH @ $48,000 → Order with status 'open' → 'filled' when executed
    */
   getOrders(params?: GetOrdersParams): Promise<Order[]>;
+
+  /**
+   * Currently active open orders (real-time status).
+   * Purpose: Show orders that are currently open/pending execution (not historical states).
+   * Different from getOrders() which returns complete historical order lifecycle.
+   * Example: Shows only orders that are actually open right now in the exchange.
+   */
+  getOpenOrders(params?: GetOrdersParams): Promise<Order[]>;
 
   /**
    * Historical funding payments - periodic costs/rewards for holding positions.
