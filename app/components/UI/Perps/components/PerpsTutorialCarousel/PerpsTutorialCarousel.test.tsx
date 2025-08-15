@@ -137,20 +137,25 @@ describe('PerpsTutorialCarousel', () => {
         PERPS_RIVE_ARTBOARD_NAMES.READY,
       ];
 
-      for (let i = 0; i < expectedArtboards.length; i++) {
-        render(<PerpsTutorialCarousel />);
+      // Render component once
+      render(<PerpsTutorialCarousel />);
 
-        // Navigate to screen i
-        for (let j = 0; j < i; j++) {
-          const continueButton = screen.getByText(
-            strings('perps.tutorial.continue'),
-          );
-          await act(async () => {
-            fireEvent.press(continueButton);
-          });
-        }
+      // Check first screen artboard
+      expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
+        expectedArtboards[0],
+      );
 
-        // Check that the correct artboard is rendered
+      // Navigate through each screen sequentially and verify artboards
+      for (let i = 1; i < expectedArtboards.length; i++) {
+        const continueButton = screen.getByText(
+          strings('perps.tutorial.continue'),
+        );
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
+
+        // Check that the correct artboard is rendered for current screen
         expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
         expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
           expectedArtboards[i],
