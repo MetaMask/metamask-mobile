@@ -61,6 +61,7 @@ import { useOpenSwaps } from '../../hooks/useOpenSwaps';
 import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
 import { SUPPORTED_BOTTOMSHEET_TOKENS_SYMBOLS } from '../../constants';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../../selectors/multichainAccounts/accountTreeController';
 
 /**
  * CardHome Component
@@ -74,10 +75,14 @@ import { selectSelectedInternalAccount } from '../../../../../selectors/accounts
  * @returns JSX element representing the card home screen
  */
 const CardHome = () => {
-  const { PreferencesController, NetworkController, AccountsController } =
-    Engine.context;
+  const {
+    PreferencesController,
+    NetworkController,
+    AccountsController,
+    AccountTreeController,
+  } = Engine.context;
   const [error, setError] = useState<boolean>(false);
-  const [isLoadingNetworkChange, setIsLoadingNetworkChange] = useState(true);
+  const [isLoadingNetworkChange, setIsLoadingNetworkChange] = useState(false);
   const [openAddFundsBottomSheet, setOpenAddFundsBottomSheet] = useState(false);
   const [retries, setRetries] = useState(0);
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -92,12 +97,11 @@ const CardHome = () => {
   const selectedChainId = useSelector(selectChainId);
   const cardholderAddresses = useSelector(selectCardholderAccounts);
   const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const accountGroupMap = useSelector(selectAccountToGroupMap);
 
-  // Handle network and account changes
   useFocusEffect(
     useCallback(() => {
-      const handleNetworkAndAccountChanges = async () => {
-        // Handle network change first
+      const handleNetworkChange = async () => {
         if (selectedChainId !== LINEA_CHAIN_ID) {
           const networkClientId =
             NetworkController.findNetworkClientIdByChainId(LINEA_CHAIN_ID);
@@ -116,34 +120,43 @@ const CardHome = () => {
           }
         }
 
-        setIsLoadingNetworkChange(false);
-
-        // Handle account change after network is correct
         if (
-          selectedAccount?.address?.toLowerCase() !==
-          cardholderAddresses?.[0]?.toLowerCase()
+          !cardholderAddresses.find(
+            (address) =>
+              address.toLowerCase() === selectedAccount?.address?.toLowerCase(),
+          )
         ) {
-          const account = AccountsController.getAccountByAddress(
-            cardholderAddresses?.[0],
+          const cardholderAccount = AccountsController.getAccountByAddress(
+            cardholderAddresses[0],
           );
 
-          if (!account) {
+          if (!cardholderAccount) {
             setError(true);
-          } else {
-            AccountsController.setSelectedAccount(account.id);
+            return;
           }
+
+          const cardholderAccountGroup = accountGroupMap[cardholderAccount.id];
+
+          AccountTreeController.setSelectedAccountGroup(
+            cardholderAccountGroup.id,
+          );
         }
       };
 
-      handleNetworkAndAccountChanges();
+      handleNetworkChange();
     }, [
-      NetworkController,
+      AccountTreeController,
       AccountsController,
-      selectedChainId,
-      selectedAccount,
+      NetworkController,
+      accountGroupMap,
       cardholderAddresses,
+      selectedAccount,
+      selectedChainId,
     ]),
   );
+
+  Logger.log('selectedAccount', selectedAccount?.address);
+  Logger.log('selectedChainId', selectedChainId);
 
   const {
     priorityToken,
@@ -151,7 +164,7 @@ const CardHome = () => {
     isLoading: isLoadingPriorityToken,
     error: errorPriorityToken,
   } = useGetPriorityCardToken(
-    cardholderAddresses?.[0],
+    selectedAccount?.address,
     selectedChainId === LINEA_CHAIN_ID,
   );
   const { balanceFiat, mainBalance } = useAssetBalance(priorityToken);
