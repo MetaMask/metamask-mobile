@@ -75,7 +75,7 @@ const PerpsPositionDetailsView: React.FC = () => {
       navigation.goBack();
     },
   });
-  const { candleData, priceData, isLoadingHistory } = usePerpsPositionData({
+  const { candleData, priceData } = usePerpsPositionData({
     coin: position?.coin || '',
     selectedDuration: TimeDuration.ONE_HOUR, // Time duration (1hr, 1D, 1W, etc.) - hardcoded for TradingView
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
@@ -171,7 +171,6 @@ const PerpsPositionDetailsView: React.FC = () => {
           /> */}
           <TradingViewChart
             candleData={candleData}
-            isLoading={isLoadingHistory}
             height={350}
             tpslLines={{
               takeProfitPrice: position.takeProfitPrice || undefined,
@@ -181,7 +180,6 @@ const PerpsPositionDetailsView: React.FC = () => {
               currentPrice:
                 priceData?.price || position.entryPrice || undefined,
             }}
-            showSampleDataWhenEmpty={true} // Enable for debugging
             testID={PerpsPositionDetailsViewSelectorsIDs.TRADINGVIEW_CHART}
           />
         </View>

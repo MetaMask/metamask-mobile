@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator } from 'react-native';
+
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -25,7 +25,6 @@ export interface TPSLLines {
 
 interface TradingViewChartProps {
   candleData?: CandleData | null;
-  isLoading?: boolean;
   height?: number;
   tpslLines?: TPSLLines;
   onChartReady?: () => void;
@@ -35,7 +34,6 @@ interface TradingViewChartProps {
 
 const TradingViewChart: React.FC<TradingViewChartProps> = ({
   candleData,
-  isLoading = false,
   height = 350,
   tpslLines,
   onChartReady,
@@ -73,26 +71,10 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             position: relative;
             background: ${theme.colors.background.default}; /* 🎨 Theme background */
         }
-        
-        #loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            font-size: 16px;
-            z-index: 1000;
-        }
-        
-
     </style>
 </head>
 <body>
     <div id="container">
-        <div id="loading">📊 Loading TradingView...</div>
     </div>
 
     <script>
@@ -102,9 +84,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         window.chart = null;
         window.candlestickSeries = null;
         window.isInitialDataLoad = true; // Track if this is the first data load
-        
-
-
         
         // Step 1: Load TradingView library dynamically
         function loadTradingView() {
@@ -143,7 +122,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                         background: {
                             color: '${theme.colors.background.default}', // 🎨 Theme background
                         },
-                        textColor: '${theme.colors.text.default}', // 🎨 Theme text color
+                        textColor: '${theme.colors.text.muted}', // 🎨 Muted text for axes labels
                     },
                     grid: {
                         vertLines: { color: '${theme.colors.border.muted}' }, // 🎨 Theme grid
@@ -161,9 +140,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                         borderColor: 'transparent', // ✅ Remove left border (if visible)
                     }
                 });
-                
-                // Hide loading
-                document.getElementById('loading').style.display = 'none';
                 
                 // Notify React Native that chart is ready
                 if (window.ReactNativeWebView) {
@@ -260,7 +236,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     [
       theme.colors.background.default,
       theme.colors.border.muted,
-      theme.colors.text.default,
+      theme.colors.text.muted,
     ], // Theme values used in template
   );
 
@@ -436,21 +412,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
       testID={testID || TradingViewChartSelectorsIDs.CONTAINER}
     >
-      {isLoading && !isChartReady && (
-        <Box
-          twClassName="absolute inset-0 items-center justify-center bg-default z-10"
-          style={styles.loadingContainer}
-        >
-          <ActivityIndicator
-            size="large"
-            color={theme.colors.primary.default}
-          />
-          <Text variant={TextVariant.BodyMd} twClassName="mt-2">
-            Loading chart...
-          </Text>
-        </Box>
-      )}
-
       <WebView
         ref={webViewRef}
         source={{ html: htmlContent }}
