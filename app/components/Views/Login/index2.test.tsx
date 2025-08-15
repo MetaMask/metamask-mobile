@@ -866,12 +866,12 @@ describe('Login test suite 2', () => {
       };
       // mock redux service
       jest.spyOn(ReduxService, 'store', 'get').mockImplementation(() => ({
-          dispatch: jest.fn(),
-          subscribe: jest.fn(),
-          replaceReducer: jest.fn(),
-          [Symbol.observable]: jest.fn(),
-          getState: jest.fn().mockReturnValue(mockState),
-        }));
+        dispatch: jest.fn(),
+        subscribe: jest.fn(),
+        replaceReducer: jest.fn(),
+        [Symbol.observable]: jest.fn(),
+        getState: jest.fn().mockReturnValue(mockState),
+      }));
 
       // mock storage wrapper
       jest.spyOn(StorageWrapper, 'getItem').mockImplementation(async (key) => {
@@ -882,9 +882,9 @@ describe('Login test suite 2', () => {
       jest.spyOn(Authentication, 'resetPassword').mockResolvedValue();
 
       jest.spyOn(Authentication, 'getType').mockImplementation(async () => ({
-          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-        }));
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      }));
 
       renderWithProvider(<Login />, {
         // @ts-expect-error - mock state
@@ -943,9 +943,9 @@ describe('Login test suite 2', () => {
       jest.spyOn(Authentication, 'resetPassword').mockResolvedValue();
 
       jest.spyOn(Authentication, 'getType').mockImplementation(async () => ({
-          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
-          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
-        }));
+        currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+        availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+      }));
 
       renderWithProvider(<Login />, {
         // @ts-expect-error - mock state
