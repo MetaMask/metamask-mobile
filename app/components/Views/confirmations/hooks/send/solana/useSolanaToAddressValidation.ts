@@ -57,11 +57,12 @@ export const validateToAddress = (
 
 export const useSolanaToAddressValidation = () => {
   const internalAccounts = useSelector(selectInternalAccounts);
-  const { chainId, to } = useSendContext();
+  const { chainId } = useSendContext();
 
   const validateSolanaToAddress = useCallback(
-    () => validateToAddress(internalAccounts, to, chainId),
-    [chainId, internalAccounts, to],
+    (addressInputToValidate: string) =>
+      validateToAddress(internalAccounts, addressInputToValidate, chainId),
+    [chainId, internalAccounts],
   );
 
   return { validateSolanaToAddress };
