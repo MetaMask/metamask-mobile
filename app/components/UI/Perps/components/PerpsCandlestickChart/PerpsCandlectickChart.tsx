@@ -73,7 +73,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   height = PERPS_CHART_CONFIG.DEFAULT_HEIGHT,
   selectedDuration = TimeDuration.ONE_DAY,
   tpslLines,
-  candleCount = 45, // Default zoom level: 45 candles
+  candleCount = 60, // Default zoom level: 60 candles (1hr/1min period)
   onDurationChange,
   onGearPress,
   onZoomChange,
@@ -85,9 +85,9 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   // ✨ NEW: Display state for debug info (synced with reanimated values)
   const [displayScale, setDisplayScale] = useState(1);
 
-  // Zoom constants
+  // Zoom constants (optimized for 1hr/1min period)
   const MIN_CANDLES = 10;
-  const MAX_CANDLES = 250;
+  const MAX_CANDLES = 60; // Max 2 hours worth of 1min candles
   const ZOOM_STEP = 1; // How many candles to add/remove per zoom action
 
   // Pinch-to-zoom state
@@ -106,11 +106,13 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const basePanOffset = useRef(0); // Base offset when gesture starts
   const maxPanOffset = useRef(0); // Maximum offset based on available historical data
 
-  // ✨ NEW: Reanimated smooth transform values (replaces data manipulation)
-  const scale = useSharedValue(1);
-  const translateX = useSharedValue(0);
+  // ✨ NEW: Reanimated values for candle-level scaling (not container scaling)
+  const candleScaleX = useSharedValue(1); // Horizontal candle scaling (width/spacing)
+  const candleScaleY = useSharedValue(1); // Vertical candle scaling (height)
+  const baseCandleScaleX = useSharedValue(1);
+  const baseCandleScaleY = useSharedValue(1);
+  const translateX = useSharedValue(0); // Keep translation for panning
   const translateY = useSharedValue(0);
-  const baseScale = useSharedValue(1);
   const baseTranslateX = useSharedValue(0);
   const baseTranslateY = useSharedValue(0);
 
@@ -118,18 +120,123 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const pinchRef = useRef(null);
   const panRef = useRef(null);
 
-  // ✨ NEW: Reanimated zoom functions (smooth scale transforms)
+  // ✨ NEW: Custom candle rendering with reanimated scaling + horizontal spacing
+  const renderCustomCandle = useCallback(
+    ({
+      x,
+      y,
+      width,
+      height: rectHeight,
+      fill,
+      useAnimations: _useAnimations,
+      candle,
+    }: {
+      x: any;
+      y: any;
+      width: any;
+      height: any;
+      fill: any;
+      useAnimations: boolean;
+      candle: any;
+    }) => {
+      'worklet';
+      // Apply reanimated scaling to both width and horizontal position
+      const scaledWidth = width * candleScaleX.value;
+      const scaledHeight = rectHeight * candleScaleY.value;
+
+      // Scale horizontal position to create spacing - candles move farther apart as they grow
+      const chartCenter = (chartWidth - 65) / 2; // Get chart center (subtract Y-axis space)
+      const originalCandleCenter = x + width / 2; // Get original candle center (not left edge)
+      const distanceFromCenter = originalCandleCenter - chartCenter; // How far this candle center is from chart center
+      const scaledDistanceFromCenter = distanceFromCenter * candleScaleX.value; // Scale the distance
+      const scaledCandleCenter = chartCenter + scaledDistanceFromCenter; // New candle center position
+      const scaledX = scaledCandleCenter - scaledWidth / 2; // Convert center to left edge for Rect
+
+      const scaledY = y - (scaledHeight - rectHeight) / 2; // Keep vertically centered
+
+      return (
+        <Rect
+          x={scaledX}
+          y={scaledY}
+          width={scaledWidth}
+          height={scaledHeight}
+          fill={fill}
+        />
+      );
+    },
+    [candleScaleX, candleScaleY, chartWidth],
+  );
+
+  const renderCustomWick = useCallback(
+    ({
+      x1,
+      x2,
+      y1,
+      y2,
+      stroke,
+      strokeWidth,
+      useAnimations: _useAnimations,
+      candle,
+    }: {
+      x1: any;
+      x2: any;
+      y1: any;
+      y2: any;
+      stroke: any;
+      strokeWidth: any;
+      useAnimations: boolean;
+      candle: any;
+    }) => {
+      'worklet';
+      // Apply same horizontal scaling as candle bodies to keep wicks aligned
+      const originalWickCenter = (x1 + x2) / 2; // Get original wick center point
+
+      // Use IDENTICAL scaling logic as candle bodies for perfect alignment
+      const chartCenter = (chartWidth - 65) / 2; // Get chart center (subtract Y-axis space)
+      const distanceFromCenter = originalWickCenter - chartCenter; // How far wick center is from chart center
+      const scaledDistanceFromCenter = distanceFromCenter * candleScaleX.value; // Scale the distance
+      const scaledWickCenter = chartCenter + scaledDistanceFromCenter; // New wick center position
+
+      // Apply Y scaling to the wick length
+      const wickLength = Math.abs(y2 - y1);
+      const scaledWickLength = wickLength * candleScaleY.value;
+      const wickCenter = (y1 + y2) / 2;
+
+      const scaledY1 = wickCenter - scaledWickLength / 2;
+      const scaledY2 = wickCenter + scaledWickLength / 2;
+
+      return (
+        <Line
+          x1={scaledWickCenter}
+          x2={scaledWickCenter}
+          y1={scaledY1}
+          y2={scaledY2}
+          stroke={stroke}
+          strokeWidth={strokeWidth}
+        />
+      );
+    },
+    [candleScaleX, candleScaleY, chartWidth],
+  );
+
+  // ✨ NEW: Reanimated zoom functions (smooth candle scaling)
   const handleZoomIn = useCallback(() => {
-    const newScale = Math.min(5, scale.value * 1.2); // Zoom in = larger scale
-    scale.value = withSpring(newScale, { damping: 12, stiffness: 100 });
-    setDisplayScale(newScale);
-  }, [scale]);
+    const newScaleX = Math.min(5, candleScaleX.value * 1.2); // Zoom in = wider candles
+    const newScaleY = Math.min(3, candleScaleY.value * 1.1); // Zoom in = taller candles (less aggressive)
+
+    candleScaleX.value = withSpring(newScaleX, { damping: 12, stiffness: 100 });
+    candleScaleY.value = withSpring(newScaleY, { damping: 12, stiffness: 100 });
+    setDisplayScale(newScaleX); // Use X scale for debug display
+  }, [candleScaleX, candleScaleY]);
 
   const handleZoomOut = useCallback(() => {
-    const newScale = Math.max(0.5, scale.value / 1.2); // Zoom out = smaller scale
-    scale.value = withSpring(newScale, { damping: 12, stiffness: 100 });
-    setDisplayScale(newScale);
-  }, [scale]);
+    const newScaleX = Math.max(0.3, candleScaleX.value / 1.2); // Zoom out = narrower candles
+    const newScaleY = Math.max(0.5, candleScaleY.value / 1.1); // Zoom out = shorter candles
+
+    candleScaleX.value = withSpring(newScaleX, { damping: 12, stiffness: 100 });
+    candleScaleY.value = withSpring(newScaleY, { damping: 12, stiffness: 100 });
+    setDisplayScale(newScaleX); // Use X scale for debug display
+  }, [candleScaleX, candleScaleY]);
 
   const canZoomIn = true; // Always allow zoom in (scale up to 5x)
   const canZoomOut = true; // Always allow zoom out (scale down to 0.5x)
@@ -187,32 +294,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return candleCount;
   }, [isGesturing, gestureScale, candleCount, scaleToCandles]);
 
-  // ✨ NEW: Reanimated gesture handlers (smooth transforms without data manipulation)
-  const pinchGestureHandler =
-    useAnimatedGestureHandler<PinchGestureHandlerGestureEvent>({
-      onStart: () => {
-        'worklet';
-        baseScale.value = scale.value;
-      },
-      onActive: (event) => {
-        'worklet';
-        const gestureScale = event.scale ?? 1;
-        if (typeof gestureScale === 'number' && gestureScale > 0) {
-          const newScale = baseScale.value * gestureScale;
-          const clampedScale = Math.max(0.5, Math.min(5, newScale));
-          scale.value = clampedScale;
-          // Update display scale for debug info
-          runOnJS(setDisplayScale)(clampedScale);
-        }
-      },
-      onEnd: () => {
-        'worklet';
-        const finalScale = scale.value;
-        scale.value = withSpring(finalScale, { damping: 12, stiffness: 100 });
-        runOnJS(setDisplayScale)(finalScale);
-      },
-    });
-
+  // ✨ NEW: Simple pan gesture handler (no complex scaling constraints)
   const panGestureHandler =
     useAnimatedGestureHandler<PanGestureHandlerGestureEvent>({
       onStart: () => {
@@ -232,10 +314,9 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           const newTranslateX = baseTranslateX.value + gestureTranslationX;
           const newTranslateY = baseTranslateY.value + gestureTranslationY;
 
-          // Simplified constraints for smooth panning
-          // Allow reasonable panning range without complex calculations
-          const maxPanRange = 1000 * scale.value; // Scale-dependent panning range
-          const maxTranslateY = Math.max(100, (scale.value - 1) * 200);
+          // Simple constraints for smooth panning
+          const maxPanRange = 1000; // Fixed panning range since scaling is at candle level
+          const maxTranslateY = 200;
 
           translateX.value = Math.max(
             -maxPanRange,
@@ -262,11 +343,12 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
   // Reset transform function (will be updated with proper initial position later)
   const resetTransform = useCallback(() => {
-    scale.value = withSpring(1);
-    translateX.value = withSpring(0); // Will be updated when initialChartTransform is calculated
+    candleScaleX.value = withSpring(1);
+    candleScaleY.value = withSpring(1);
+    translateX.value = withSpring(initialChartTransform);
     translateY.value = withSpring(0);
     setDisplayScale(1);
-  }, [scale, translateX, translateY]);
+  }, [candleScaleX, candleScaleY, translateX, translateY]);
 
   // Cleanup debounce timeout on unmount
   useEffect(() => {
@@ -330,13 +412,16 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     }
   }, [allTransformedData.length, previewCandleCount]);
 
-  // Full dataset approach - always render all candles, use viewport for navigation
-  const chartTransformedData = useMemo(
-    () =>
-      // Return full dataset - no windowing
-      allTransformedData,
-    [allTransformedData],
-  );
+  // Limit to 60 candles for 1hr/1min period - render most recent candles
+  const chartTransformedData = useMemo(() => {
+    // For 1hr/1min period, limit to exactly 60 candles (most recent)
+    const maxCandles = 60;
+    if (allTransformedData.length <= maxCandles) {
+      return allTransformedData;
+    }
+    // Take the last 60 candles (most recent)
+    return allTransformedData.slice(-maxCandles);
+  }, [allTransformedData]);
 
   // ✨ NEW: Calculate chart width based on target candles to show, not entire dataset
   const fullChartWidth = useMemo(() => {
@@ -365,6 +450,17 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
     return centerOffset;
   }, [fullChartWidth, chartWidth]);
+
+  // ✨ NEW: Animated style for smooth translation only (scaling happens at candle level)
+  const animatedChartStyle = useAnimatedStyle(() => {
+    'worklet';
+    return {
+      transform: [
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+      ],
+    };
+  });
 
   // Set initial position when chart data changes
   useEffect(() => {
@@ -396,18 +492,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
     return visibleData;
   }, [chartTransformedData, previewCandleCount, panOffset]);
-
-  // ✨ NEW: Animated style for smooth transforms
-  const animatedChartStyle = useAnimatedStyle(() => {
-    'worklet';
-    return {
-      transform: [
-        { scale: scale.value },
-        { translateX: translateX.value },
-        { translateY: translateY.value },
-      ],
-    };
-  });
 
   // Y-axis scaling data - use visible data for proper scaling
   const yAxisScalingData = useMemo(() => {
@@ -455,131 +539,6 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   }, [tpslLines, isLoading, yAxisScalingData.length]);
 
   // Custom candle rect renderer for proper zoom Y-axis scaling
-  const renderCustomCandle = useCallback(
-    ({
-      x,
-      y,
-      width,
-      height: rectHeight,
-      fill,
-      useAnimations: _useAnimations,
-      candle,
-    }: {
-      x: any;
-      y: any;
-      width: any;
-      height: any;
-      fill: any;
-      useAnimations: boolean;
-      candle: any;
-    }) => {
-      // If we have visible data for scaling, recalculate Y position based on visible range
-      if (visibleTransformedData.length > 0) {
-        const visiblePrices = visibleTransformedData.flatMap((d) => [
-          d.low,
-          d.high,
-          d.open,
-          d.close,
-        ]);
-        const visibleMin = Math.min(...visiblePrices);
-        const visibleMax = Math.max(...visiblePrices);
-        const visibleRange = visibleMax - visibleMin;
-
-        if (visibleRange > 0) {
-          // Calculate chart height available for candles
-          const chartHeight = height - PERPS_CHART_CONFIG.PADDING.VERTICAL;
-
-          // Remap candle Y position to visible range
-          const candleHigh = Math.max(candle.open, candle.close);
-          const candleLow = Math.min(candle.open, candle.close);
-
-          // Calculate new Y positions scaled to visible range
-          const topY = ((visibleMax - candleHigh) / visibleRange) * chartHeight;
-          const bottomY =
-            ((visibleMax - candleLow) / visibleRange) * chartHeight;
-          const newHeight = Math.max(1, bottomY - topY); // Ensure minimum height
-
-          return (
-            <Rect x={x} y={topY} width={width} height={newHeight} fill={fill} />
-          );
-        }
-      }
-
-      // Fallback to default rendering
-      return <Rect x={x} y={y} width={width} height={rectHeight} fill={fill} />;
-    },
-    [visibleTransformedData, height],
-  );
-
-  // Custom candle wick renderer for proper zoom Y-axis scaling
-  const renderCustomWick = useCallback(
-    ({
-      x1,
-      x2,
-      y1,
-      y2,
-      stroke,
-      strokeWidth,
-      useAnimations: _useAnimations,
-      candle,
-    }: {
-      x1: any;
-      x2: any;
-      y1: any;
-      y2: any;
-      stroke: any;
-      strokeWidth: any;
-      useAnimations: boolean;
-      candle: any;
-    }) => {
-      // If we have visible data for scaling, recalculate Y positions based on visible range
-      if (visibleTransformedData.length > 0) {
-        const visiblePrices = visibleTransformedData.flatMap((d) => [
-          d.low,
-          d.high,
-          d.open,
-          d.close,
-        ]);
-        const visibleMin = Math.min(...visiblePrices);
-        const visibleMax = Math.max(...visiblePrices);
-        const visibleRange = visibleMax - visibleMin;
-
-        if (visibleRange > 0) {
-          // Calculate chart height available for candles
-          const chartHeight = height - PERPS_CHART_CONFIG.PADDING.VERTICAL;
-
-          // Calculate new Y positions for high and low scaled to visible range
-          const highY =
-            ((visibleMax - candle.high) / visibleRange) * chartHeight;
-          const lowY = ((visibleMax - candle.low) / visibleRange) * chartHeight;
-
-          return (
-            <Line
-              x1={x1}
-              x2={x2}
-              y1={highY}
-              y2={lowY}
-              stroke={stroke}
-              strokeWidth={strokeWidth}
-            />
-          );
-        }
-      }
-
-      // Fallback to default rendering
-      return (
-        <Line
-          x1={x1}
-          x2={x2}
-          y1={y1}
-          y2={y2}
-          stroke={stroke}
-          strokeWidth={strokeWidth}
-        />
-      );
-    },
-    [visibleTransformedData, height],
-  );
 
   // Only show skeleton on initial load, not on interval changes.
   if (isLoading && !hasInitiallyLoaded) {
@@ -680,10 +639,12 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
                 width={fullChartWidth}
                 style={styles.chartWithPadding}
               >
-                {/* Candlestick Data */}
+                {/* Candlestick Data with Custom Reanimated Scaling */}
                 <CandlestickChart.Candles
                   positiveColor={candlestickColors.positive} // Green for positive candles
                   negativeColor={candlestickColors.negative} // Red for negative candles
+                  renderRect={renderCustomCandle} // ✨ Custom candle body scaling
+                  renderLine={renderCustomWick} // ✨ Custom wick scaling
                   testID={PerpsCandlestickChartSelectorsIDs.CANDLES}
                 />
                 {/* Tooltip for price display */}
