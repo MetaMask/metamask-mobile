@@ -90,6 +90,7 @@ jobs:
           echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}" >> $GITHUB_ENV
           echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}" >> $GITHUB_ENV
           echo "BROWSERSTACK_ANDROID_APP_URL=${{ github.event.inputs.browserstack_app_url_android }}" >> $GITHUB_ENV
+          echo "BROWSERSTACK_BUILD_NAME=Android-Performance-CI-${{ github.ref_name }}" >> $GITHUB_ENV
           echo "TEST_PLATFORM=android" >> $GITHUB_ENV
           echo "TEST_SUITE=${{ github.event.inputs.test_suite }}" >> $GITHUB_ENV
       
@@ -170,6 +171,7 @@ jobs:
           echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}" >> $GITHUB_ENV
           echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}" >> $GITHUB_ENV
           echo "BROWSERSTACK_IOS_APP_URL=${{ github.event.inputs.browserstack_app_url_ios }}" >> $GITHUB_ENV
+          echo "BROWSERSTACK_BUILD_NAME=iOS-Performance-CI-${{ github.ref_name }}" >> $GITHUB_ENV
           echo "TEST_SUITE=${{ github.event.inputs.test_suite }}" >> $GITHUB_ENV
       
       - name: Run iOS Tests on ${{ matrix.device.name }}
