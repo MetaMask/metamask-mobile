@@ -1,4 +1,5 @@
 import React, { useMemo, useCallback } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -11,10 +12,9 @@ import {
 
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useSendContext } from '../../context/send-context/send-context';
 import { useSendActions } from './useSendActions';
-import { useNavigation } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
 
 export function useSendNavbar() {
   const { handleCancelPress } = useSendActions();

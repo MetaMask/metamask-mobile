@@ -31,10 +31,6 @@ export const useRecipientSelectionMetrics = () => {
     setRecipientInputMethod(RecipientInputMethod.SelectContact);
   }, [setRecipientInputMethod]);
 
-  const setRecipientInputMethodQRCodeScan = useCallback(() => {
-    setRecipientInputMethod(RecipientInputMethod.QRCodeScan);
-  }, [setRecipientInputMethod]);
-
   const captureRecipientSelected = useCallback(async () => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SEND_RECIPIENT_SELECTED)
@@ -61,6 +57,5 @@ export const useRecipientSelectionMetrics = () => {
     setRecipientInputMethodPasted,
     setRecipientInputMethodSelectAccount,
     setRecipientInputMethodSelectContact,
-    setRecipientInputMethodQRCodeScan,
   };
 };

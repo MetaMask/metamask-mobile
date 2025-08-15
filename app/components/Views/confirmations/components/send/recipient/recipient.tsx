@@ -39,7 +39,8 @@ export const Recipient = () => {
     setRecipientInputMethodSelectContact,
   } = useRecipientSelectionMetrics();
   const styles = styleSheet();
-  const { toAddressError } = useToAddressValidation(to || '');
+  const { toAddressError } = useToAddressValidation();
+  const isReviewButtonDisabled = Boolean(toAddressError);
 
   const handleReview = useCallback(() => {
     if (toAddressError) {
@@ -135,7 +136,9 @@ export const Recipient = () => {
                 isDanger={Boolean(toAddressError)}
                 disabled={Boolean(toAddressError)}
               >
-                {strings('send.review')}
+                {isReviewButtonDisabled
+                  ? toAddressError
+                  : strings('send.review')}
               </Button>
             </Box>
           )}

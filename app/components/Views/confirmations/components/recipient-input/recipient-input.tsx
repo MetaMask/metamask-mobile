@@ -25,10 +25,7 @@ export const RecipientInput = ({
 }) => {
   const { to, updateTo } = useSendContext();
   const inputRef = useRef<TextInput>(null);
-
-  const addressInput = to || '';
-
-  const { validateToAddress } = useToAddressValidation(addressInput);
+  const { validateToAddress } = useToAddressValidation();
   const { setRecipientInputMethodPasted, captureRecipientSelected } =
     useRecipientSelectionMetrics();
   const { handleSubmitPress } = useSendActions();
@@ -76,7 +73,7 @@ export const RecipientInput = ({
   );
 
   const renderEndAccessory = useMemo(() => {
-    if (addressInput.length > 0 && !isRecipientSelectedFromList) {
+    if (to && to.length > 0 && !isRecipientSelectedFromList) {
       return (
         <Button
           variant={ButtonVariant.Secondary}
@@ -98,19 +95,14 @@ export const RecipientInput = ({
         {strings('send.paste')}
       </Button>
     );
-  }, [
-    addressInput,
-    handleClearInput,
-    handlePaste,
-    isRecipientSelectedFromList,
-  ]);
+  }, [to, handleClearInput, handlePaste, isRecipientSelectedFromList]);
 
   return (
     <Box twClassName="w-full px-4 py-2">
       <TextField
         autoCorrect={false}
         ref={inputRef}
-        value={isRecipientSelectedFromList ? '' : addressInput}
+        value={isRecipientSelectedFromList ? '' : to}
         onChangeText={updateTo}
         spellCheck={false}
         autoComplete="off"
