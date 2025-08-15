@@ -586,5 +586,48 @@ describe('useNetworkEnablement', () => {
         mockNetworkEnablementController.disableNetwork,
       ).not.toHaveBeenCalled();
     });
+
+    it('handles toggleNetwork when current namespace is missing from enabledNetworksByNamespace', () => {
+      // Setup state where enabledNetworksByNamespace exists but current namespace is undefined
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectEnabledNetworksByNamespace) {
+          return {
+            solana: {
+              'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': true,
+            },
+            // Notice eip155 namespace is missing, but current chain is eip155
+          };
+        }
+        if (selector === selectChainId) {
+          return '0x1'; // EVM chain
+        }
+        if (selector === selectIsEvmNetworkSelected) {
+          return true;
+        }
+        return undefined;
+      });
+
+      (parseCaipChainId as jest.Mock).mockReturnValue({
+        namespace: 'eip155',
+        reference: '1',
+      });
+
+      (toEvmCaipChainId as jest.Mock).mockReturnValue('eip155:1');
+
+      const chainId = 'eip155:1' as CaipChainId;
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      // This should trigger the || {} fallback in Object.keys(enabledNetworksByNamespace[namespace] || {})
+      result.current.toggleNetwork(chainId);
+
+      // Since no networks are enabled in the current namespace (undefined), should enable
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).toHaveBeenCalledWith(chainId);
+
+      expect(
+        mockNetworkEnablementController.disableNetwork,
+      ).not.toHaveBeenCalled();
+    });
   });
 });

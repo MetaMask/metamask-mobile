@@ -335,7 +335,7 @@ const Main = (props) => {
       ) {
         selectNetwork(chainId);
       }
-      if (isRemoveGlobalNetworkSelectorEnabled()) {
+      if (!isRemoveGlobalNetworkSelectorEnabled()) {
         toastRef?.current?.showToast({
           variant: ToastVariants.Network,
           labelOptions: [
