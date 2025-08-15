@@ -387,187 +387,35 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     };
   }, [candleData]);
 
-  // Injected JavaScript approach - bypassing broken message bridge
-  const injectedJavaScript = useMemo(() => {
-    if (!isChartReady) return '';
-
-    let dataToInject: any[] = [];
-
-    if (candleData && candleData.candles && candleData.candles.length > 0) {
-      dataToInject = formatCandleData(candleData);
-      console.log(
-        'TradingViewChart: Preparing to inject real data:',
-        dataToInject.length,
-        'points',
-      );
-    } else if (showSampleDataWhenEmpty) {
-      dataToInject = [
-        { time: '2024-01-01', open: 2000, high: 2100, low: 1950, close: 2050 },
-        { time: '2024-01-02', open: 2050, high: 2150, low: 2000, close: 2120 },
-        { time: '2024-01-03', open: 2120, high: 2200, low: 2080, close: 2180 },
-        { time: '2024-01-04', open: 2180, high: 2250, low: 2150, close: 2200 },
-        { time: '2024-01-05', open: 2200, high: 2300, low: 2180, close: 2250 },
-      ];
-      console.log('TradingViewChart: Preparing to inject sample data');
-    }
-
-    if (dataToInject.length > 0) {
-      return `
-        console.log('TradingView INJECTION: Executing with', ${
-          dataToInject.length
-        }, 'data points');
-        
-        setTimeout(function() {
-          try {
-            console.log('TradingView INJECTION: Setting data directly');
-            
-            if (window.chart && window.LightweightCharts) {
-              console.log('TradingView INJECTION: Chart and LightweightCharts available');
-              
-              // Clear existing series
-              if (window.candlestickSeries) {
-                window.chart.removeSeries(window.candlestickSeries);
-              }
-              
-              // Create new series
-              window.candlestickSeries = window.chart.addCandlestickSeries({
-                upColor: '#26a69a',
-                downColor: '#ef5350',
-                borderVisible: false,
-                wickUpColor: '#26a69a',
-                wickDownColor: '#ef5350',
-              });
-              
-              // Set the data
-              window.candlestickSeries.setData(${JSON.stringify(dataToInject)});
-              window.chart.timeScale().fitContent();
-              
-              console.log('TradingView INJECTION: Data set successfully!');
-              
-              // Update debug info
-              if (window.updateDebugInfo) {
-                window.updateDebugInfo('Status: Ready ✓<br/>Chart: Active<br/>Data: ${
-                  dataToInject.length
-                } points (INJECTED)<br/>Method: Direct injection WORKS!');
-              }
-            } else {
-              console.log('TradingView INJECTION: Chart or LightweightCharts not available');
-              console.log('TradingView INJECTION: window.chart:', !!window.chart);
-              console.log('TradingView INJECTION: window.LightweightCharts:', !!window.LightweightCharts);
-            }
-          } catch (error) {
-            console.error('TradingView INJECTION: Error:', error);
-          }
-        }, 1000);
-        
-        true;
-      `;
-    }
-
-    return '';
-  }, [
-    isChartReady,
-    candleData,
-    showSampleDataWhenEmpty,
-    themeMode,
-    formatCandleData,
-  ]);
-
-  // Execute injected script when ready
-  useEffect(() => {
-    if (injectedJavaScript && webViewRef.current && isChartReady) {
-      console.log(
-        'TradingViewChart: Executing injected JavaScript to bypass broken message bridge',
-      );
-      webViewRef.current.injectJavaScript(injectedJavaScript);
-    }
-  }, [injectedJavaScript, isChartReady]);
-
   // Update chart data when props change - DISABLED due to broken message bridge
-  useEffect(() => {
-    if (
-      isChartReady &&
-      candleData &&
-      candleData.candles &&
-      candleData.candles.length > 0
-    ) {
-      //   console.log('UDPATE CHART');
-      //   const formattedData = formatCandleData(candleData);
-      //   const message = {
-      //     type: 'SET_CANDLESTICK_DATA',
-      //     data: formattedData,
-      //     theme: themeMode,
-      //     auxiliaryLines: tpslLines,
-      //   };
+  //   useEffect(() => {
+  //     if (
+  //       isChartReady &&
+  //       candleData &&
+  //       candleData.candles &&
+  //       candleData.candles.length > 0
+  //     ) {
+  //       const message = {
+  //         type: 'SET_CANDLESTICK_DATA',
+  //         data: candleData,
+  //         theme: themeMode,
+  //         auxiliaryLines: tpslLines,
+  //       };
 
-      //   // Send immediately - chart is ready
-      //   if (webViewRef.current) {
-      //     console.log(
-      //       'TradingViewChart: About to send message:',
-      //       JSON.stringify(message).substring(0, 100) + '...',
-      //     );
-      //     webViewRef.current.postMessage(JSON.stringify(message));
-      //     console.log('TradingViewChart: postMessage called successfully');
-      //   } else {
-      //     console.log('TradingViewChart: ERROR - webViewRef.current is null!');
-      //   }
-      // } else if (
-      //   isChartReady &&
-      //   showSampleDataWhenEmpty &&
-      //   (!candleData || !candleData.candles || candleData.candles.length === 0)
-      // ) {
-      //   console.log('TradingViewChart: Sending sample data');
-
-      //   const sampleData = [
-      //     { time: '2024-01-01', open: 2000, high: 2100, low: 1950, close: 2050 },
-      //     { time: '2024-01-02', open: 2050, high: 2150, low: 2000, close: 2120 },
-      //     { time: '2024-01-03', open: 2120, high: 2200, low: 2080, close: 2180 },
-      //     { time: '2024-01-04', open: 2180, high: 2250, low: 2150, close: 2200 },
-      //     { time: '2024-01-05', open: 2200, high: 2300, low: 2180, close: 2250 },
-      //   ];
-
-      //   const message = {
-      //     type: 'SET_CANDLESTICK_DATA',
-      //     data: sampleData,
-      //     theme: themeMode,
-      //     auxiliaryLines: tpslLines,
-      //   };
-
-      //   if (webViewRef.current) {
-      //     webViewRef.current.postMessage(JSON.stringify(message));
-      //     console.log('TradingViewChart: Sample data sent to WebView');
-      //   }
-      // }
-
-      const sampleData = [
-        { time: '2024-01-01', open: 2000, high: 2100, low: 1950, close: 2050 },
-        { time: '2024-01-02', open: 2050, high: 2150, low: 2000, close: 2120 },
-        { time: '2024-01-03', open: 2120, high: 2200, low: 2080, close: 2180 },
-        { time: '2024-01-04', open: 2180, high: 2250, low: 2150, close: 2200 },
-        { time: '2024-01-05', open: 2200, high: 2300, low: 2180, close: 2250 },
-      ];
-
-      const message = {
-        type: 'SET_CANDLESTICK_DATA',
-        data: sampleData,
-        theme: themeMode,
-        auxiliaryLines: tpslLines,
-      };
-
-      if (webViewRef.current) {
-        webViewRef.current.postMessage(JSON.stringify(message));
-        console.log('TradingViewChart: Sample data sent to WebView');
-      }
-    }
-  }, [
-    isChartReady,
-    candleDataVersion,
-    themeMode,
-    candleData,
-    showSampleDataWhenEmpty,
-    formatCandleData,
-    tpslLines,
-  ]); // Removed problematic dependencies
+  //       if (webViewRef.current) {
+  //         webViewRef.current.postMessage(JSON.stringify(message));
+  //         console.log('TradingViewChart: Sample data sent to WebView');
+  //       }
+  //     }
+  //   }, [
+  //     isChartReady,
+  //     candleDataVersion,
+  //     themeMode,
+  //     candleData,
+  //     showSampleDataWhenEmpty,
+  //     formatCandleData,
+  //     tpslLines,
+  //   ]); // Removed problematic dependencies
 
   // Update auxiliary lines when they change
   useEffect(() => {
@@ -632,7 +480,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         ref={webViewRef}
         source={{ html: htmlContent }}
         style={[styles.webView, { height, width: '100%' }]}
-        injectedJavaScript={injectedJavaScript}
+        // injectedJavaScript={injectedJavaScript}
         onMessage={handleWebViewMessage}
         onError={handleWebViewError}
         onHttpError={(syntheticEvent) => {
