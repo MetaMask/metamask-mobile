@@ -1,6 +1,7 @@
 import React from 'react';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+
 import AddressCopy from './AddressCopy';
-import type { AddressCopyProps } from './AddressCopy.types';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
@@ -13,7 +14,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const renderWithAddressCopy = (account: AddressCopyProps) =>
+const renderWithAddressCopy = (account: InternalAccount) =>
   renderWithProvider(<AddressCopy account={account} />);
 
 describe('AddressCopy', () => {
