@@ -77,7 +77,7 @@ jest.mock('react-native', () => {
 describe('PerpsTabControlBar', () => {
   // Helper function to get TouchableOpacity
   const getTouchableOpacity = () => {
-    const balanceText = screen.getByText('Hyperliquid USDC balance');
+    const balanceText = screen.getByText('Perp account balance');
     const touchableOpacity = balanceText.parent?.parent;
     if (!touchableOpacity) {
       throw new Error('TouchableOpacity not found');
@@ -165,12 +165,12 @@ describe('PerpsTabControlBar', () => {
     it('renders correctly with all elements', () => {
       render(<PerpsTabControlBar />);
 
-      expect(screen.getByText('Hyperliquid USDC balance')).toBeOnTheScreen();
+      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
       expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Initial balance
 
       // Find TouchableOpacity by its content
-      const touchableOpacity = screen.getByText('Hyperliquid USDC balance')
-        .parent?.parent;
+      const touchableOpacity = screen.getByText('Perp account balance').parent
+        ?.parent;
       expect(touchableOpacity).toBeTruthy();
     });
 
@@ -324,7 +324,7 @@ describe('PerpsTabControlBar', () => {
       });
 
       // Should still render without crashing
-      expect(screen.getByText('Hyperliquid USDC balance')).toBeOnTheScreen();
+      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
       expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Should show default value
     });
 
@@ -365,7 +365,7 @@ describe('PerpsTabControlBar', () => {
       render(<PerpsTabControlBar />);
 
       // Should still render without crashing
-      expect(screen.getByText('Hyperliquid USDC balance')).toBeOnTheScreen();
+      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
       expect(screen.getByText('$0.00')).toBeOnTheScreen();
     });
   });

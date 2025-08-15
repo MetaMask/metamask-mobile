@@ -21,7 +21,7 @@ export const getPercentageTextColor = (
   let percentageTextColor;
   if (!privacyMode) {
     if (percentageChangeCrossChains === 0) {
-      percentageTextColor = TextColor.Default;
+      percentageTextColor = TextColor.Alternative;
     } else if (percentageChangeCrossChains > 0) {
       percentageTextColor = TextColor.Success;
     } else {
