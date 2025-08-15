@@ -16,6 +16,6 @@ jobs:
         uses: op5dev/require-team-approval@dfd7b8b9a88bf82a955c103f7e19642b0411aecd
         with:
           team: release-team
-          token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
         env:
-          GH_TOKEN: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
