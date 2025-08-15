@@ -48,7 +48,6 @@ export const useFeeCalculations = (
 } => {
   const { chainId, gasLimitNoBuffer, layer1GasFee, networkClientId } =
     transactionMeta;
-
   const { nativeCurrency } = useSelector((state: RootState) =>
     selectNetworkConfigurationByChainId(state, chainId as Hex),
   );
@@ -56,7 +55,6 @@ export const useFeeCalculations = (
     selectConversionRateByChainId(state, chainId as Hex, true),
   );
   const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
-
   const { supportsEIP1559 } = useSupportsEIP1559(transactionMeta);
   const fiatFormatter = useFiatFormatter();
   const { maxFeePerGas, maxPriorityFeePerGas } =
