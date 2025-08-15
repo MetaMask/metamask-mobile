@@ -101,13 +101,12 @@ describe('usePerpsOrderValidation', () => {
   });
 
   describe('existing position validation', () => {
-    it('should fail when user has existing position', async () => {
+    it('should allow user to place order when has existing position', async () => {
       mockValidateOrder.mockResolvedValue({ isValid: true });
 
       const { result } = renderHook(() =>
         usePerpsOrderValidation({
           ...defaultParams,
-          hasExistingPosition: true,
         }),
       );
 
@@ -115,8 +114,8 @@ describe('usePerpsOrderValidation', () => {
         expect(result.current.isValidating).toBe(false);
       });
 
-      expect(result.current.isValid).toBe(false);
-      expect(result.current.errors).toContain('Existing position for BTC');
+      expect(result.current.isValid).toBe(true);
+      expect(result.current.errors).toEqual([]);
     });
   });
 
@@ -339,7 +338,6 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation({
           ...defaultParams,
-          hasExistingPosition: true,
           availableBalance: 5,
           marginRequired: '10.00',
         }),
@@ -350,9 +348,8 @@ describe('usePerpsOrderValidation', () => {
       });
 
       expect(result.current.isValid).toBe(false);
-      expect(result.current.errors).toHaveLength(3);
+      expect(result.current.errors).toHaveLength(2);
       expect(result.current.errors).toContain('Order too small');
-      expect(result.current.errors).toContain('Existing position for BTC');
       expect(result.current.errors).toContain(
         'Insufficient balance: need 10.00, have 5',
       );
