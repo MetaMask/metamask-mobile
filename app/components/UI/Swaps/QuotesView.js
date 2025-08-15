@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import Eth from '@metamask/ethjs-query';
+
 import {
   View,
   StyleSheet,
@@ -85,7 +86,7 @@ import {
   selectSwapsUsedGasEstimate,
   swapsTokensSelector,
 } from '../../../reducers/swaps';
-import { decGWEIToHexWEI, hexToDecimal } from '../../../util/conversions';
+import { decGWEIToHexWEI } from '../../../util/conversions';
 import FadeAnimationView from '../FadeAnimationView';
 import Logger from '../../../util/Logger';
 import { useTheme } from '../../../util/theme';
@@ -131,6 +132,7 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 import { getTradeTxTokenFee } from '../../../util/smart-transactions';
 import { useFiatConversionRates } from './utils/useFiatConversionRates';
 import { useGasTokenFiatAmount } from './utils/useGasTokenFiatAmount';
+import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 const LOG_PREFIX = 'Swaps';
 const POLLING_INTERVAL = 30000;
@@ -423,6 +425,7 @@ function SwapsQuotesView({
     slippage,
     tokens,
   } = useMemo(() => getQuotesNavigationsParams(route), [route]);
+  const { tryEnableEvmNetwork } = useNetworkEnablement();
 
   /* Get tokens from the tokens list */
   const sourceToken = [...swapsTokens, ...tokens].find((token) =>
@@ -1228,6 +1231,9 @@ function SwapsQuotesView({
       setIsHandlingSwap(false);
       navigation.dangerouslyGetParent()?.pop();
     }
+
+    // Enable the network if it's not enabled for the Network Manager
+    tryEnableEvmNetwork(chainId);
   }, [
     selectedQuote,
     selectedAddress,
@@ -1241,6 +1247,8 @@ function SwapsQuotesView({
     sourceToken.address,
     sourceToken.decimals,
     updateSwapsTransactions,
+    chainId,
+    tryEnableEvmNetwork,
   ]);
 
   const onEditQuoteTransactionsGas = useCallback(() => {

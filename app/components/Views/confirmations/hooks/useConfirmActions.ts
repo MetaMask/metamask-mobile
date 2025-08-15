@@ -18,6 +18,7 @@ import { useTransactionMetadataRequest } from './transactions/useTransactionMeta
 import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
 import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
+import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 export const useConfirmActions = () => {
   const {
@@ -44,6 +45,7 @@ export const useConfirmActions = () => {
     selectShouldUseSmartTransaction(state, chainId),
   );
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const { tryEnableEvmNetwork } = useNetworkEnablement();
   const dispatch = useDispatch();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
@@ -110,6 +112,9 @@ export const useConfirmActions = () => {
       // Replace/remove this once we have redesigned send flow
       dispatch(resetTransaction());
     }
+
+    // Auto-enable network if needed
+    tryEnableEvmNetwork(chainId);
   }, [
     captureSignatureMetrics,
     dispatch,
@@ -124,6 +129,8 @@ export const useConfirmActions = () => {
     setScannerVisible,
     waitForResult,
     type,
+    chainId,
+    tryEnableEvmNetwork,
   ]);
 
   return { onConfirm, onReject };

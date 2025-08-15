@@ -16,6 +16,8 @@ import * as LedgerContext from '../context/ledger-context/ledger-context';
 import * as SmartTransactionsSelector from '../../../../selectors/smartTransactionsController';
 // eslint-disable-next-line import/no-namespace
 import * as TransactionActions from '../../../../actions/transaction';
+// eslint-disable-next-line import/no-namespace
+import * as NetworkEnablementHook from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useConfirmActions } from './useConfirmActions';
 import { cloneDeep } from 'lodash';
 import { RootState } from '../../../../reducers';
@@ -301,5 +303,110 @@ describe('useConfirmAction', () => {
       expect.any(Object),
       expect.objectContaining({ waitForResult: false }),
     );
+  });
+
+  it('enables network when global network selector is enabled and network is not enabled', async () => {
+    const mockTryEnableEvmNetwork = jest.fn();
+
+    jest.spyOn(NetworkEnablementHook, 'useNetworkEnablement').mockReturnValue({
+      tryEnableEvmNetwork: mockTryEnableEvmNetwork,
+      namespace: 'eip155',
+      enabledNetworksByNamespace: {},
+      enabledNetworksForCurrentNamespace: {},
+      networkEnablementController: {
+        enableNetwork: jest.fn(),
+        disableNetwork: jest.fn(),
+      } as unknown as ReturnType<
+        typeof NetworkEnablementHook.useNetworkEnablement
+      >['networkEnablementController'],
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      toggleNetwork: jest.fn(),
+      isNetworkEnabled: jest.fn(),
+      hasOneEnabledNetwork: false,
+    });
+
+    const state = cloneDeep(
+      stakingDepositConfirmationState,
+    ) as unknown as RootState;
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state,
+    });
+
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
+  });
+
+  it('does not enable network when global network selector is disabled', async () => {
+    const mockTryEnableEvmNetwork = jest.fn();
+
+    jest.spyOn(NetworkEnablementHook, 'useNetworkEnablement').mockReturnValue({
+      tryEnableEvmNetwork: mockTryEnableEvmNetwork,
+      namespace: 'eip155',
+      enabledNetworksByNamespace: {},
+      enabledNetworksForCurrentNamespace: {},
+      networkEnablementController: {
+        enableNetwork: jest.fn(),
+        disableNetwork: jest.fn(),
+      } as unknown as ReturnType<
+        typeof NetworkEnablementHook.useNetworkEnablement
+      >['networkEnablementController'],
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      toggleNetwork: jest.fn(),
+      isNetworkEnabled: jest.fn(),
+      hasOneEnabledNetwork: false,
+    });
+
+    const state = cloneDeep(
+      stakingDepositConfirmationState,
+    ) as unknown as RootState;
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state,
+    });
+
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
+  });
+
+  it('does not enable network when network is already enabled', async () => {
+    const mockTryEnableEvmNetwork = jest.fn();
+
+    jest.spyOn(NetworkEnablementHook, 'useNetworkEnablement').mockReturnValue({
+      tryEnableEvmNetwork: mockTryEnableEvmNetwork,
+      namespace: 'eip155',
+      enabledNetworksByNamespace: {},
+      enabledNetworksForCurrentNamespace: {},
+      networkEnablementController: {
+        enableNetwork: jest.fn(),
+        disableNetwork: jest.fn(),
+      } as unknown as ReturnType<
+        typeof NetworkEnablementHook.useNetworkEnablement
+      >['networkEnablementController'],
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      toggleNetwork: jest.fn(),
+      isNetworkEnabled: jest.fn(),
+      hasOneEnabledNetwork: false,
+    });
+
+    const state = cloneDeep(
+      stakingDepositConfirmationState,
+    ) as unknown as RootState;
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state,
+    });
+
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
   });
 });
