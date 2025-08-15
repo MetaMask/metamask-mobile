@@ -83,6 +83,7 @@ export function DepositKeyboard({
           ))}
         {hasInput && (
           <Button
+            testID="deposit-keyboard-done-button"
             label={strings('confirm.edit_amount_done')}
             style={styles.percentageButton}
             onPress={onDonePress}
