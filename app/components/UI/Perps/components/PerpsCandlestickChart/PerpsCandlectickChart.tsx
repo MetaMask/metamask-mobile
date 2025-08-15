@@ -175,6 +175,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       <CandlestickChartGridLines
         transformedData={transformedData}
         height={height}
+        chartWidth={chartWidth}
         testID={PerpsChartAdditionalSelectorsIDs.CHART_GRID}
       />
       {/* TP/SL Lines - Render first so they're behind everything */}

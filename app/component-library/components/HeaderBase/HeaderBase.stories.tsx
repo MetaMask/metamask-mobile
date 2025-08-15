@@ -12,7 +12,7 @@ import { IconName, IconColor } from '../Icons/Icon';
 
 // Internal dependencies.
 import { default as HeaderBaseComponent } from './HeaderBase';
-import { HeaderBaseAlign } from './HeaderBase.constants';
+import { HeaderBaseVariant } from './HeaderBase.types';
 
 const HeaderBaseStoryMeta = {
   title: 'Component Library / HeaderBase',
@@ -43,15 +43,15 @@ export const HeaderBase = {
         />
       }
     >
-      Super Long HeaderBase Title that may span 3 lines
+      Super long HeaderBase title that may span 3 lines
     </HeaderBaseComponent>
   ),
 };
 
-export const HeaderBaseCenterAligned = {
+export const HeaderBaseVariantDisplay = {
   render: () => (
     <HeaderBaseComponent
-      align={HeaderBaseAlign.Center}
+      variant={HeaderBaseVariant.Display}
       startAccessory={
         <ButtonIcon
           iconColor={IconColor.Default}
@@ -71,15 +71,15 @@ export const HeaderBaseCenterAligned = {
         />
       }
     >
-      Center Aligned Title
+      Display Variant - Left Aligned & Large Text
     </HeaderBaseComponent>
   ),
 };
 
-export const HeaderBaseLeftAligned = {
+export const HeaderBaseCompactVariant = {
   render: () => (
     <HeaderBaseComponent
-      align={HeaderBaseAlign.Left}
+      variant={HeaderBaseVariant.Compact}
       startAccessory={
         <ButtonIcon
           iconColor={IconColor.Default}
@@ -99,23 +99,23 @@ export const HeaderBaseLeftAligned = {
         />
       }
     >
-      Left Aligned Title
+      Compact variant - center aligned & small text
     </HeaderBaseComponent>
   ),
 };
 
-export const HeaderBaseLeftAlignedWithoutAccessories = {
+export const HeaderBaseDisplayVariantWithoutAccessories = {
   render: () => (
-    <HeaderBaseComponent align={HeaderBaseAlign.Left}>
-      Left Aligned Title Without Accessories
+    <HeaderBaseComponent variant={HeaderBaseVariant.Display}>
+      Display variant without accessories
     </HeaderBaseComponent>
   ),
 };
 
-export const HeaderBaseCenterAlignedWithoutAccessories = {
+export const HeaderBaseCompactVariantWithoutAccessories = {
   render: () => (
-    <HeaderBaseComponent align={HeaderBaseAlign.Center}>
-      Center Aligned Title Without Accessories
+    <HeaderBaseComponent variant={HeaderBaseVariant.Compact}>
+      Compact variant without accessories stretches full width of header
     </HeaderBaseComponent>
   ),
 };

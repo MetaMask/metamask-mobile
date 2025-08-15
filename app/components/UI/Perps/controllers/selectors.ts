@@ -7,4 +7,9 @@ import type { PerpsControllerState } from './PerpsController';
  */
 export const selectIsFirstTimeUser = (
   state: PerpsControllerState | undefined,
-): boolean => state?.isFirstTimeUser ?? true;
+): boolean => {
+  if (state?.isTestnet) {
+    return state?.isFirstTimeUser?.testnet ?? true;
+  }
+  return state?.isFirstTimeUser?.mainnet ?? true;
+};
