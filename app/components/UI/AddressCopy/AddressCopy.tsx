@@ -9,9 +9,7 @@ import {
   ButtonIcon,
   ButtonIconSize,
   IconName,
-  IconColor,
 } from '@metamask/design-system-react-native';
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import ClipboardManager from '../../../core/ClipboardManager';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
@@ -27,17 +25,6 @@ import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccou
 import styleSheet from './AddressCopy.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
-
-interface AddressCopyProps {
-  account: InternalAccount;
-  iconColor?: IconColor;
-  hitSlop?: {
-    top?: number;
-    bottom?: number;
-    left?: number;
-    right?: number;
-  };
-}
 
 const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
