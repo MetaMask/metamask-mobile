@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import { usePerpsTrading } from './usePerpsTrading';
+import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 import type { Position } from '../controllers/types';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
@@ -49,6 +50,7 @@ export function usePerpsPositions(
   } = options;
 
   const { getPositions } = usePerpsTrading();
+  const { isConnected, isInitialized } = usePerpsConnection();
 
   const [positions, setPositions] = useState<Position[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -58,6 +60,22 @@ export function usePerpsPositions(
   const loadPositions = useCallback(
     async (loadOptions?: { isRefresh?: boolean }) => {
       const { isRefresh = false } = loadOptions || {};
+
+      // Check if connection is initialized before attempting to load
+      if (!isConnected || !isInitialized) {
+        DevLogger.log(
+          'usePerpsPositions: Skipping load - connection not ready',
+          {
+            isConnected,
+            isInitialized,
+          },
+        );
+        // Keep loading state true if this is the initial load
+        if (!isRefresh) {
+          setIsLoading(true);
+        }
+        return;
+      }
 
       try {
         if (isRefresh) {
@@ -96,24 +114,24 @@ export function usePerpsPositions(
         setIsRefreshing(false);
       }
     },
-    [getPositions, onSuccess, onError],
+    [getPositions, onSuccess, onError, isConnected, isInitialized],
   );
 
-  // Load positions on mount if enabled
+  // Load positions when connection is ready and on mount if enabled
   useEffect(() => {
-    if (loadOnMount) {
+    if (loadOnMount && isConnected && isInitialized) {
       loadPositions();
     }
-  }, [loadOnMount, loadPositions]);
+  }, [loadOnMount, isConnected, isInitialized, loadPositions]);
 
   // Refresh positions when screen comes into focus if enabled
   useFocusEffect(
     useCallback(() => {
-      if (refreshOnFocus) {
+      if (refreshOnFocus && isConnected && isInitialized) {
         // Refresh positions data when returning to this screen
         loadPositions({ isRefresh: true }); // Use refresh mode to avoid showing loading spinner
       }
-    }, [refreshOnFocus, loadPositions]),
+    }, [refreshOnFocus, isConnected, isInitialized, loadPositions]),
   );
 
   return {

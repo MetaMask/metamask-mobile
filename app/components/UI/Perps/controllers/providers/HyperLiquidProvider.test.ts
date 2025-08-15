@@ -1,3 +1,17 @@
+import type { CaipAssetId, Hex } from '@metamask/utils';
+import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
+import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
+import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
+import { REFERRAL_CONFIG } from '../../constants/hyperLiquidConfig';
+import {
+  validateAssetSupport,
+  validateBalance,
+  validateCoinExists,
+  validateDepositParams,
+  validateOrderParams,
+  validateWithdrawalParams,
+} from '../../utils/hyperLiquidValidation';
 import {
   ClosePositionParams,
   DepositParams,
@@ -5,25 +19,16 @@ import {
   OrderParams,
 } from '../types';
 import { HyperLiquidProvider } from './HyperLiquidProvider';
-import type { CaipAssetId, Hex } from '@metamask/utils';
-import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
-import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
-import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
-import {
-  validateOrderParams,
-  validateWithdrawalParams,
-  validateDepositParams,
-  validateCoinExists,
-  validateAssetSupport,
-  validateBalance,
-} from '../../utils/hyperLiquidValidation';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
-import { REFERRAL_CONFIG } from '../../constants/hyperLiquidConfig';
 
 // Mock dependencies
 jest.mock('../../services/HyperLiquidClientService');
 jest.mock('../../services/HyperLiquidWalletService');
 jest.mock('../../services/HyperLiquidSubscriptionService');
+
+// Mock Sentry
+jest.mock('@sentry/react-native', () => ({
+  setMeasurement: jest.fn(),
+}));
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, params?: Record<string, unknown>) => {
     if (key === 'time.minutes_format' && params?.count) {
@@ -116,7 +121,7 @@ describe('HyperLiquidProvider', () => {
       getExchangeClient: jest.fn().mockReturnValue({
         order: jest.fn().mockResolvedValue({
           status: 'ok',
-          response: { data: { statuses: [{ resting: { oid: '123' } }] } },
+          response: { data: { statuses: [{ resting: { oid: 123 } }] } },
         }),
         modify: jest.fn().mockResolvedValue({
           status: 'ok',
@@ -385,6 +390,44 @@ describe('HyperLiquidProvider', () => {
       const result = await provider.placeOrder(orderParams);
 
       expect(result.success).toBe(true);
+    });
+
+    it('should track performance measurements when placing order', async () => {
+      const orderParams: OrderParams = {
+        coin: 'ETH',
+        isBuy: true,
+        size: '1.0',
+        orderType: 'market',
+        leverage: 10,
+        currentPrice: 3000, // ETH price for USD calculation
+      };
+
+      await provider.placeOrder(orderParams);
+    });
+
+    it('should calculate USD position size correctly for market orders', async () => {
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.5', // 0.5 BTC
+        orderType: 'market',
+        currentPrice: 45000, // BTC at $45,000
+      };
+
+      await provider.placeOrder(orderParams);
+    });
+
+    it('should calculate USD position size correctly for limit orders', async () => {
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.2', // 0.2 BTC
+        orderType: 'limit',
+        price: '44000', // Limit price at $44,000
+        currentPrice: 45000, // Current price (not used for USD calculation in limit orders)
+      };
+
+      await provider.placeOrder(orderParams);
     });
 
     it('should handle order placement errors', async () => {
