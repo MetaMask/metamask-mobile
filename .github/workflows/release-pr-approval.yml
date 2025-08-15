@@ -17,5 +17,3 @@ jobs:
         with:
           team: release-team
           token: ${{ secrets.GITHUB_TOKEN }}
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
