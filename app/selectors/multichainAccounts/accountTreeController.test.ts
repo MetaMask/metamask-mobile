@@ -13,8 +13,15 @@ import {
   selectSingleAccountGroups,
   selectAccountGroupById,
   selectSelectedAccountGroupId,
+  selectInternalAccountFromAccountGroup,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { AccountId } from '@metamask/accounts-controller';
+import { AccountGroupType } from '@metamask/account-api';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
+import { EthScope, SolScope } from '@metamask/keyring-api';
 
 const WALLET_ID_1 = 'keyring:wallet1' as const;
 const WALLET_ID_2 = 'keyring:wallet2' as const;
@@ -45,6 +52,18 @@ const createMockWallet = (
   metadata: { name },
   groups,
 });
+
+const createMockAccountGroup = (
+  id: string,
+  accounts: string[],
+  name: string = 'Test Group',
+): AccountGroupObject =>
+  ({
+    id: id as AccountGroupObject['id'],
+    type: AccountGroupType.SingleAccount,
+    accounts: accounts as [string, ...string[]],
+    metadata: { name },
+  } as unknown as AccountGroupObject);
 
 const createMockGroup = (accounts: string[]) => ({ accounts });
 
@@ -1172,6 +1191,221 @@ describe('AccountTreeController Selectors', () => {
 
       const result = selectSelectedAccountGroupId(mockState);
       expect(result).toBe('keyring:1/ethereum');
+    });
+  });
+
+  describe('selectInternalAccountFromAccountGroup', () => {
+    const mockInternalAccounts: Record<AccountId, InternalAccount> = {
+      account1: {
+        ...createMockInternalAccount(
+          '0x1234567890123456789012345678901234567890',
+          'Account 1',
+        ),
+        scopes: [EthScope.Eoa, 'eip155:137'],
+      },
+      account2: {
+        ...createMockInternalAccount(
+          '0x0987654321098765432109876543210987654321',
+          'Account 2',
+        ),
+        scopes: [EthScope.Eoa],
+      },
+      account3: {
+        ...createMockInternalAccount(
+          '0xabcdef1234567890abcdef1234567890abcdef12',
+          'Account 3',
+        ),
+        type: 'solana:data-account',
+        scopes: [SolScope.Mainnet],
+      },
+      account4: {
+        ...createMockInternalAccount(
+          '0xdeadbeef1234567890deadbeef1234567890dead',
+          'Account 4',
+        ),
+        scopes: ['eip155:137'],
+      },
+    };
+
+    it('returns null when group is null', () => {
+      const result = selectInternalAccountFromAccountGroup(
+        null,
+        EthScope.Eoa,
+        mockInternalAccounts,
+      );
+      expect(result).toBeNull();
+    });
+
+    it('returns null when group is undefined', () => {
+      const result = selectInternalAccountFromAccountGroup(
+        undefined as unknown as null,
+        EthScope.Eoa,
+        mockInternalAccounts,
+      );
+      expect(result).toBeNull();
+    });
+
+    it('returns null when group has no accounts', () => {
+      const emptyGroup = {
+        id: 'keyring:test-group/ethereum',
+        type: AccountGroupType.SingleAccount,
+        accounts: [],
+        metadata: { name: 'Test Group' },
+      } as unknown as AccountGroupObject;
+      const result = selectInternalAccountFromAccountGroup(
+        emptyGroup,
+        EthScope.Eoa,
+        mockInternalAccounts,
+      );
+      expect(result).toBeNull();
+    });
+
+    it('returns null when no account in group matches the CAIP chain ID', () => {
+      const group = createMockAccountGroup('keyring:test-group/ethereum', [
+        'account1',
+        'account2',
+      ]);
+      const result = selectInternalAccountFromAccountGroup(
+        group,
+        'eip155:999',
+        mockInternalAccounts,
+      );
+      expect(result).toBeNull();
+    });
+
+    it('returns the first account that matches the CAIP chain ID', () => {
+      const group = createMockAccountGroup('keyring:test-group/ethereum', [
+        'account1',
+        'account2',
+        'account3',
+      ]);
+      const result = selectInternalAccountFromAccountGroup(
+        group,
+        EthScope.Eoa,
+        mockInternalAccounts,
+      );
+      expect(result).toEqual(mockInternalAccounts.account1);
+    });
+
+    it('returns account with exact scope match for non-EVM chains', () => {
+      const group = createMockAccountGroup('keyring:test-group/ethereum', [
+        'account1',
+        'account3',
+      ]);
+      const result = selectInternalAccountFromAccountGroup(
+        group,
+        SolScope.Mainnet,
+        mockInternalAccounts,
+      );
+      expect(result).toEqual(mockInternalAccounts.account3);
+    });
+
+    it('returns null when account exists but has no scopes', () => {
+      const accountWithoutScopes = {
+        ...createMockInternalAccount(
+          '0x1234567890123456789012345678901234567890',
+          'Account 5',
+        ),
+        scopes: [],
+      };
+      const accountsWithEmptyScopes = {
+        ...mockInternalAccounts,
+        account5: accountWithoutScopes,
+      };
+      const group = createMockAccountGroup('keyring:test-group/ethereum', [
+        'account5',
+      ]);
+      const result = selectInternalAccountFromAccountGroup(
+        group,
+        EthScope.Eoa,
+        accountsWithEmptyScopes,
+      );
+      expect(result).toBeNull();
+    });
+
+    it('returns null when account in group does not exist in internal accounts', () => {
+      const group = createMockAccountGroup('keyring:test-group/ethereum', [
+        'nonexistent-account',
+      ]);
+      const result = selectInternalAccountFromAccountGroup(
+        group,
+        EthScope.Eoa,
+        mockInternalAccounts,
+      );
+      expect(result).toBeNull();
+    });
+
+    it('handles multiple accounts with different scopes correctly', () => {
+      const group = createMockAccountGroup('keyring:test-group/ethereum', [
+        'account1',
+        'account4',
+      ]);
+      const result = selectInternalAccountFromAccountGroup(
+        group,
+        'eip155:137',
+        mockInternalAccounts,
+      );
+      expect(result).toEqual(mockInternalAccounts.account1);
+    });
+
+    it('returns null for EVM scope when account only has non-EVM scopes', () => {
+      const group = createMockAccountGroup('keyring:test-group/ethereum', [
+        'account3',
+      ]);
+      const result = selectInternalAccountFromAccountGroup(
+        group,
+        EthScope.Eoa,
+        mockInternalAccounts,
+      );
+      expect(result).toBeNull();
+    });
+
+    it('returns null for non-EVM scope when account only has EVM scopes', () => {
+      const group = createMockAccountGroup('keyring:test-group/ethereum', [
+        'account1',
+      ]);
+      const result = selectInternalAccountFromAccountGroup(
+        group,
+        SolScope.Mainnet,
+        mockInternalAccounts,
+      );
+      expect(result).toBeNull();
+    });
+
+    it('handles group with single account that matches', () => {
+      const group = createMockAccountGroup('keyring:test-group/ethereum', [
+        'account2',
+      ]);
+      const result = selectInternalAccountFromAccountGroup(
+        group,
+        EthScope.Eoa,
+        mockInternalAccounts,
+      );
+      expect(result).toEqual(mockInternalAccounts.account2);
+    });
+
+    it('handles group with single account that does not match', () => {
+      const group = createMockAccountGroup('keyring:test-group/ethereum', [
+        'account2',
+      ]);
+      const result = selectInternalAccountFromAccountGroup(
+        group,
+        'eip155:137',
+        mockInternalAccounts,
+      );
+      expect(result).toBeNull();
+    });
+
+    it('returns null when internal accounts object is empty', () => {
+      const group = createMockAccountGroup('keyring:test-group/ethereum', [
+        'account1',
+      ]);
+      const result = selectInternalAccountFromAccountGroup(
+        group,
+        EthScope.Eoa,
+        {},
+      );
+      expect(result).toBeNull();
     });
   });
 });
