@@ -1,4 +1,10 @@
-import { Hex, Json, hexToNumber, isObject, isValidJson } from '@metamask/utils';
+import {
+  type Hex,
+  type Json,
+  hexToNumber,
+  isObject,
+  isValidJson,
+} from '@metamask/utils';
 import { shouldCreateRpcServiceEvents } from './utils';
 import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import Logger from '../../../../util/Logger';
