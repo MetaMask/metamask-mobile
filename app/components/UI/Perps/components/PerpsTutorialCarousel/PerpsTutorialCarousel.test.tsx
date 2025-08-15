@@ -10,7 +10,7 @@ import { strings } from '../../../../../../locales/i18n';
 
 // Mock .riv file to prevent Jest parsing binary data
 jest.mock(
-  '../../animations/perps-onboarding-carousel.riv',
+  '../../animations/perps-onboarding-carousel-v4.riv',
   () => 'mocked-riv-file',
 );
 
@@ -127,54 +127,9 @@ describe('PerpsTutorialCarousel', () => {
   });
 
   describe('Component Rendering', () => {
-    it('should render tutorial content for the first screen', () => {
-      render(<PerpsTutorialCarousel />);
-
-      expect(
-        screen.getByText(strings('perps.tutorial.what_are_perps.title')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.tutorial.what_are_perps.description')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.tutorial.what_are_perps.subtitle')),
-      ).toBeOnTheScreen();
-
-      // Button should say "Continue" for first screen
-      expect(
-        screen.getByText(strings('perps.tutorial.continue')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.tutorial.skip')),
-      ).toBeOnTheScreen();
-
-      // First screen should not have animation (no riveArtboardName)
-      expect(screen.queryByTestId('mock-rive-animation')).not.toBeOnTheScreen();
-    });
-
-    it('renders Rive animation on screens with artboard names', async () => {
-      render(<PerpsTutorialCarousel />);
-
-      // Navigate to second screen which has SHORT_LONG animation
-      const continueButton = screen.getByText(
-        strings('perps.tutorial.continue'),
-      );
-      await act(async () => {
-        fireEvent.press(continueButton);
-      });
-
-      // Should render Rive animation
-      expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
-      expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
-        PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
-      );
-    });
-
     it('renders correct artboard names for each tutorial screen', async () => {
-      render(<PerpsTutorialCarousel />);
-
       const expectedArtboards = [
-        null, // First screen has no animation
+        PERPS_RIVE_ARTBOARD_NAMES.INTRO,
         PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
         PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
         PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
@@ -182,8 +137,10 @@ describe('PerpsTutorialCarousel', () => {
         PERPS_RIVE_ARTBOARD_NAMES.READY,
       ];
 
-      for (let i = 1; i < expectedArtboards.length; i++) {
-        // Navigate to screen with animation
+      for (let i = 0; i < expectedArtboards.length; i++) {
+        render(<PerpsTutorialCarousel />);
+
+        // Navigate to screen i
         for (let j = 0; j < i; j++) {
           const continueButton = screen.getByText(
             strings('perps.tutorial.continue'),
@@ -194,19 +151,10 @@ describe('PerpsTutorialCarousel', () => {
         }
 
         // Check that the correct artboard is rendered
-        const artboardName = expectedArtboards[i];
-
-        if (artboardName) {
-          expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
-          expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
-            artboardName,
-          );
-        }
-
-        // Reset for next iteration
-        if (i < expectedArtboards.length - 1) {
-          render(<PerpsTutorialCarousel />);
-        }
+        expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
+        expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
+          expectedArtboards[i],
+        );
       }
     });
   });

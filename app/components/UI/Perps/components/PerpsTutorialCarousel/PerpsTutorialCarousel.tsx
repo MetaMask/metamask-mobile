@@ -30,23 +30,33 @@ import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
-const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel.riv');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs, @typescript-eslint/no-unused-vars
+const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel-v4.riv');
 
-export const PERPS_RIVE_ARTBOARD_NAMES = {
-  SHORT_LONG: 'Short_Long_v03',
-  LEVERAGE: 'Leverage_v03',
-  LIQUIDATION: 'Liquidation_v03',
-  CLOSE: 'Close_v03',
-  READY: 'Ready_v03',
-} as const;
+export enum PERPS_RIVE_ARTBOARD_NAMES {
+  INTRO = 'Intro_Perps_v03 2',
+  SHORT_LONG = 'Short_Long_v03',
+  LEVERAGE = 'Leverage_v03',
+  LIQUIDATION = 'Liquidation_v03',
+  CLOSE = 'Close_v03',
+  READY = 'Ready_v03',
+}
 
-const tutorialScreens = [
+export interface TutorialScreen {
+  id: string;
+  title: string;
+  description: string;
+  subtitle?: string;
+  riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES;
+}
+
+const tutorialScreens: TutorialScreen[] = [
   {
     id: 'what_are_perps',
     title: strings('perps.tutorial.what_are_perps.title'),
     description: strings('perps.tutorial.what_are_perps.description'),
     subtitle: strings('perps.tutorial.what_are_perps.subtitle'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.INTRO,
   },
   {
     id: 'go_long_or_short',
@@ -245,18 +255,16 @@ const PerpsTutorialCarousel: React.FC = () => {
                       {screen.subtitle}
                     </Text>
                   )}
-                  {screen?.riveArtboardName && (
-                    // Animation Container
-                    <View style={styles.animationContainer}>
-                      <Rive
-                        artboardName={screen.riveArtboardName}
-                        source={PerpsOnboardingAnimation}
-                        fit={Fit.Cover}
-                        alignment={Alignment.Center}
-                        autoplay
-                      />
-                    </View>
-                  )}
+                  {/* Animation Container */}
+                  <View style={styles.animationContainer}>
+                    <Rive
+                      artboardName={screen.riveArtboardName}
+                      source={PerpsOnboardingAnimation}
+                      fit={Fit.Cover}
+                      alignment={Alignment.Center}
+                      autoplay
+                    />
+                  </View>
                 </View>
               </View>
             ))}
