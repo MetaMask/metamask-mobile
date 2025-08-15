@@ -144,4 +144,54 @@ describe('usePerpsPositionData', () => {
 
     consoleErrorSpy.mockRestore();
   });
+
+  it('should handle refreshCandleData loading states correctly', async () => {
+    const { result } = renderHook(() =>
+      usePerpsPositionData({
+        coin: 'ETH',
+        selectedInterval: CandlePeriod.ONE_HOUR,
+        selectedDuration: TimeDuration.ONE_DAY,
+      }),
+    );
+
+    // Wait for initial data to load
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    // Initially not loading
+    expect(result.current.isLoadingHistory).toBe(false);
+
+    // Mock a delayed response to capture loading state
+    let resolvePromise: (value: typeof mockCandleData) => void;
+    mockFetchHistoricalCandles.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolvePromise = resolve;
+        }),
+    );
+
+    // Start refresh but don't await it yet
+    let refreshPromise: Promise<void>;
+    act(() => {
+      refreshPromise = result.current.refreshCandleData();
+    });
+
+    // Should be loading immediately after refresh starts
+    expect(result.current.isLoadingHistory).toBe(true);
+
+    // Resolve the promise to complete the refresh
+    act(() => {
+      resolvePromise(mockCandleData);
+    });
+
+    // Wait for refresh to complete
+    await act(async () => {
+      await refreshPromise;
+    });
+
+    // Should not be loading after refresh completes
+    expect(result.current.isLoadingHistory).toBe(false);
+    expect(mockFetchHistoricalCandles).toHaveBeenCalledTimes(2); // Initial + refresh
+  });
 });
