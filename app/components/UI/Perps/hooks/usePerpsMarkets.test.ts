@@ -94,7 +94,9 @@ const mockProvider = {
   getBlockExplorerUrl: jest.fn(),
   getOrderFills: jest.fn(),
   getOrders: jest.fn(),
+  getOpenOrders: jest.fn(),
   getFunding: jest.fn(),
+  getIsFirstTimeUser: jest.fn(),
 } as const;
 
 const mockPerpsController = Engine.context.PerpsController as jest.Mocked<

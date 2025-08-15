@@ -1,53 +1,60 @@
-import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { View, ScrollView, RefreshControl } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconName,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { RefreshControl, ScrollView, View, Modal } from 'react-native';
+import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
-  ButtonVariants,
   ButtonSize,
+  ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import styleSheet from './PerpsTabView.styles';
-import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
+import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
   usePerpsConnection,
+  usePerpsFirstTimeUser,
   usePerpsPositions,
   usePerpsTrading,
 } from '../../hooks';
-import { strings } from '../../../../../../locales/i18n';
+import styleSheet from './PerpsTabView.styles';
 
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
-  const { getAccountState } = usePerpsTrading();
+  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const { getAccountState, depositWithConfirmation } = usePerpsTrading();
   const { isConnected, isInitialized } = usePerpsConnection();
 
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const { positions, isLoading, isRefreshing, loadPositions } =
-    usePerpsPositions();
+  const {
+    positions,
+    isLoading: isPositionsLoading,
+    isRefreshing,
+    loadPositions,
+  } = usePerpsPositions();
+  const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
+  const isLoading = isPositionsLoading;
+  const firstTimeUserIconSize = 48 as unknown as IconSize;
   // Automatically load account state on mount and when network changes
   useEffect(() => {
     // Only load account state if we're connected and initialized
@@ -70,17 +77,28 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     setIsBottomSheetVisible(false);
   }, []);
 
-  const handleAddFunds = useCallback(() => {
+  const handleAddFunds = useCallback(async () => {
     setIsBottomSheetVisible(false);
+    const { result: depositResult } = await depositWithConfirmation();
+
     navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.DEPOSIT,
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     });
-  }, [navigation]);
+
+    await depositResult;
+  }, [depositWithConfirmation, navigation]);
 
   const handleWithdrawFunds = useCallback(() => {
     setIsBottomSheetVisible(false);
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.PERPS.WITHDRAW,
+    });
+  }, [navigation]);
+
+  const handleStartTrading = useCallback(() => {
+    // Navigate to tutorial carousel for first-time users
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.PERPS.TUTORIAL,
     });
   }, [navigation]);
 
@@ -95,7 +113,43 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       );
     }
 
+    if (isFirstTimeUser) {
+      return (
+        <View style={styles.firstTimeContainer}>
+          <Icon
+            name={IconName.Details}
+            color={IconColor.Muted}
+            size={firstTimeUserIconSize}
+            style={styles.firstTimeIcon}
+          />
+          <Text
+            variant={TextVariant.HeadingMD}
+            color={TextColor.Default}
+            style={styles.firstTimeTitle}
+          >
+            {strings('perps.position.list.first_time_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Muted}
+            style={styles.firstTimeDescription}
+          >
+            {strings('perps.position.list.first_time_description')}
+          </Text>
+          <Button
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            label={strings('perps.position.list.start_trading')}
+            onPress={handleStartTrading}
+            style={styles.startTradingButton}
+            width={ButtonWidthTypes.Full}
+          />
+        </View>
+      );
+    }
+
     if (positions.length === 0) {
+      // Regular empty state for returning users
       return (
         <View style={styles.emptyContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
@@ -115,11 +169,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     return (
       <>
         <View style={styles.sectionHeader}>
-          <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Alternative}
-            style={styles.sectionTitle}
-          >
+          <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
             {strings('perps.position.title')}
           </Text>
         </View>
@@ -130,14 +180,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               position={position}
               expanded={false}
               showIcon
-              isInPerpsNavContext={false}
-              rightAccessory={
-                <ButtonIcon
-                  iconName={IconName.Close}
-                  iconColor={IconColor.Alternative}
-                  size={ButtonIconSizes.Md}
-                />
-              }
             />
           ))}
         </View>
@@ -147,44 +189,61 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   return (
     <View style={styles.wrapper}>
-      <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
-      <ScrollView
-        style={styles.content}
-        refreshControl={
-          <RefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
-        }
-      >
-        <View style={styles.section}>{renderPositionsSection()}</View>
-      </ScrollView>
+      {isFirstTimeUser ? (
+        <View style={[styles.content, styles.firstTimeContent]}>
+          <View style={styles.section}>{renderPositionsSection()}</View>
+        </View>
+      ) : (
+        <>
+          <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
+          <ScrollView
+            style={styles.content}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+              />
+            }
+          >
+            <View style={styles.section}>{renderPositionsSection()}</View>
+          </ScrollView>
+        </>
+      )}
 
       {isBottomSheetVisible && (
-        <BottomSheet ref={bottomSheetRef} onClose={handleCloseBottomSheet}>
-          <BottomSheetHeader onClose={handleCloseBottomSheet}>
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('perps.manage_balance')}
-            </Text>
-          </BottomSheetHeader>
-          <View style={styles.bottomSheetContent}>
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.add_funds')}
-              onPress={handleAddFunds}
-              style={styles.actionButton}
-              startIconName={IconName.Add}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.withdraw')}
-              onPress={handleWithdrawFunds}
-              style={styles.actionButton}
-              startIconName={IconName.Minus}
-            />
-          </View>
-        </BottomSheet>
+        <Modal visible transparent animationType="fade">
+          <BottomSheet
+            ref={bottomSheetRef}
+            onClose={handleCloseBottomSheet}
+            shouldNavigateBack={false}
+          >
+            <BottomSheetHeader onClose={handleCloseBottomSheet}>
+              <Text variant={TextVariant.HeadingMD}>
+                {strings('perps.manage_balance')}
+              </Text>
+            </BottomSheetHeader>
+            <View style={styles.bottomSheetContent}>
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.add_funds')}
+                onPress={handleAddFunds}
+                style={styles.actionButton}
+                startIconName={IconName.Add}
+              />
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.withdraw')}
+                onPress={handleWithdrawFunds}
+                style={styles.actionButton}
+                startIconName={IconName.Minus}
+              />
+            </View>
+          </BottomSheet>
+        </Modal>
       )}
     </View>
   );

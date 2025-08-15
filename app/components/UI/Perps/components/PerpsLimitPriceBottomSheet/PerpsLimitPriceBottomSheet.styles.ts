@@ -68,11 +68,6 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     keypadContainer: {
       marginBottom: 16,
-      padding: 0,
-    },
-    keypad: {
-      paddingHorizontal: 0,
-      marginHorizontal: -5,
     },
     footerContainer: {
       paddingHorizontal: 16,

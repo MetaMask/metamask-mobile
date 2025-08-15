@@ -11,13 +11,20 @@ import { PayTokenBalance } from '../../../../components/pay-token-balance';
 import { BridgeTimeRow } from '../../../../components/rows/bridge-time-row';
 import { AlertMessage } from '../../../../components/alert-message';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
+import AlertBanner from '../../../../components/alert-banner';
+import { Box } from '../../../../../../UI/Box/Box';
+import InfoRowDivider from '../../../../components/UI/info-row-divider';
+import { InfoRowDividerVariant } from '../../../../components/UI/info-row-divider/info-row-divider.styles';
+import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 
 const AMOUNT_PREFIX = '$';
 
 export function PerpsDeposit() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  useNavbar(strings('confirm.title.perps_deposit'), false);
+  const { isFullView } = usePerpsDepositView({
+    isKeyboardVisible,
+  });
 
   const handleKeyboardShow = () => {
     setIsKeyboardVisible(true);
@@ -27,6 +34,8 @@ export function PerpsDeposit() {
     setIsKeyboardVisible(false);
   };
 
+  useNavbar(strings('confirm.title.perps_deposit'), false);
+
   return (
     <>
       <EditAmount
@@ -35,18 +44,24 @@ export function PerpsDeposit() {
         onKeyboardShow={handleKeyboardShow}
         onKeyboardHide={handleKeyboardHide}
       >
-        <PayTokenBalance />
-        <AlertMessage field={RowAlertKey.Amount} />
-        <TokenAmountNative />
+        <Box gap={16}>
+          {isKeyboardVisible && <PayTokenBalance />}
+          <AlertMessage field={RowAlertKey.Amount} />
+          <TokenAmountNative />
+        </Box>
+        {!isKeyboardVisible && (
+          <AlertBanner field={RowAlertKey.PayWith} inline />
+        )}
         <InfoSection>
           <PayWithRow />
-          {!isKeyboardVisible && <BridgeTimeRow />}
+          {isFullView && <BridgeTimeRow />}
         </InfoSection>
-        {!isKeyboardVisible && (
-          <>
-            <GasFeesDetailsRow disableUpdate hideSpeed fiatOnly />
+        {isFullView && (
+          <InfoSection>
+            <GasFeesDetailsRow disableUpdate hideSpeed fiatOnly noSection />
+            <InfoRowDivider variant={InfoRowDividerVariant.Large} />
             <TotalRow />
-          </>
+          </InfoSection>
         )}
       </EditAmount>
     </>

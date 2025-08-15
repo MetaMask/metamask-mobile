@@ -8,9 +8,10 @@ import WalletView from '../../pages/wallet/WalletView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import ImportAccountView from '../../pages/importAccount/ImportAccountView';
 import Assertions from '../../framework/Assertions';
-import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
+import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token
@@ -28,6 +29,13 @@ describe(
             .withImportedAccountKeyringController()
             .build(),
           restartDevice: true,
+          testSpecificMock: {
+            GET: [
+              mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(
+                false,
+              ),
+            ],
+          },
         },
         async () => {
           await loginToApp();
