@@ -46,6 +46,7 @@ const renderWithAddressList = (accountGroupId: AccountGroupId) => {
     params: {
       groupId: accountGroupId,
       title: 'Test Address List',
+      revealPrivateKey: false,
     },
   };
 
