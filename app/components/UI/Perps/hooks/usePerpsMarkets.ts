@@ -174,28 +174,37 @@ export const usePerpsMarkets = (
       if (livePrice) {
         // Create updated market with live price data
         // Note: PerpsMarketData uses formatted strings, so we need to format the live prices
+        const currentPrice = parseFloat(livePrice.price);
         const updatedMarket: PerpsMarketData = {
           ...market,
-          // Update price with live data (formatted)
-          price: `$${parseFloat(livePrice.price).toLocaleString()}`,
+          // Update price with live data (formatted with consistent precision)
+          // Match the original format: $50,000.00 (2 decimal places with commas)
+          price: `$${currentPrice.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`,
         };
 
         // Update 24h change percentage if available
         if (livePrice.percentChange24h) {
-          // Format as percentage with sign
           const changePercent = parseFloat(livePrice.percentChange24h);
+
+          // Format change24hPercent WITH percentage sign (as per type definition comment)
+          // This matches the format expected in PerpsMarketRowItem.test.tsx
           updatedMarket.change24hPercent = `${
             changePercent >= 0 ? '+' : ''
           }${changePercent.toFixed(2)}%`;
 
           // Calculate dollar change if we have both old and new price
           // This is approximate since we don't have the exact 24h ago price
-          const currentPrice = parseFloat(livePrice.price);
           const priceChange =
             (currentPrice * changePercent) / (100 + changePercent);
           updatedMarket.change24h = `${priceChange >= 0 ? '+' : ''}$${Math.abs(
             priceChange,
-          ).toLocaleString()}`;
+          ).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`;
         }
 
         // Update volume if available
