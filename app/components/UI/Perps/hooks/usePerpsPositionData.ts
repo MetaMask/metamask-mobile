@@ -87,9 +87,23 @@ export const usePerpsPositionData = ({
     };
   }, [subscribeToPriceUpdates]);
 
+  // Refresh function to reload candle data
+  const refreshCandleData = useCallback(async () => {
+    setIsLoadingHistory(true);
+    try {
+      const historicalData = await fetchHistoricalCandles();
+      setCandleData(historicalData);
+    } catch (err) {
+      console.error('Error refreshing candle data:', err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [fetchHistoricalCandles]);
+
   return {
     candleData,
     priceData,
     isLoadingHistory,
+    refreshCandleData,
   };
 };
