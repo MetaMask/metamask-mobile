@@ -706,7 +706,7 @@ export class PerpsController extends BaseController<
   }
 
   async depositWithConfirmation() {
-    const { AccountsController, NetworkController, TransactionController } =
+    const { AccountTreeController, NetworkController, TransactionController } =
       Engine.context;
 
     const provider = this.getActiveProvider();
@@ -719,8 +719,17 @@ export class PerpsController extends BaseController<
       amount: '0x0',
     });
 
-    const selectedAccount = AccountsController.getSelectedAccount();
-    const accountAddress = selectedAccount.address as Hex;
+    const accounts =
+      AccountTreeController.getAccountsFromSelectedAccountGroup();
+    const evmAccount = accounts.find((account) =>
+      account.type.startsWith('eip155:'),
+    );
+    if (!evmAccount) {
+      throw new Error(
+        'No EVM-compatible account found in selected account group',
+      );
+    }
+    const accountAddress = evmAccount.address as Hex;
 
     const parsedAsset = parseCaipAssetId(route.assetId);
     const assetChainId = toHex(parsedAsset.chainId.split(':')[1]);
@@ -801,10 +810,18 @@ export class PerpsController extends BaseController<
         return { success: false, error: validation.error };
       }
 
-      // Get current account
-      const { AccountsController } = Engine.context;
-      const selectedAccount = AccountsController.getSelectedAccount();
-      const accountAddress = selectedAccount.address as Hex;
+      // Get current account from selected account group
+      const accounts =
+        Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup();
+      const evmAccount = accounts.find((account) =>
+        account.type.startsWith('eip155:'),
+      );
+      if (!evmAccount) {
+        throw new Error(
+          'No EVM-compatible account found in selected account group',
+        );
+      }
+      const accountAddress = evmAccount.address as Hex;
 
       // Parse asset ID to get chain and token address
       const parsedAsset = parseCaipAssetId(params.assetId);

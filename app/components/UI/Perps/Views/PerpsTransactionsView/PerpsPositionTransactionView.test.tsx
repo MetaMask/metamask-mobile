@@ -2,7 +2,6 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import PerpsPositionTransactionView from './PerpsPositionTransactionView';
 import { usePerpsNetwork, usePerpsBlockExplorerUrl } from '../../hooks';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
@@ -47,11 +46,16 @@ jest.mock('../../../Navbar', () => ({
   getPerpsTransactionsDetailsNavbar: jest.fn(() => ({ title: 'Test Title' })),
 }));
 
-jest.mock('../../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccount: jest.fn(),
-  selectSelectedInternalAccountAddress: jest.fn(),
-  selectSelectedInternalAccountFormattedAddress: jest.fn(),
-  selectHasCreatedSolanaMainnetAccount: jest.fn(),
+// Mock the selector to return what useSelector can use
+const mockAccountData = {
+  address: '0x1234567890abcdef1234567890abcdef12345678',
+};
+
+// Create a mock selector function for useSelector
+const mockSelectorFunction = jest.fn(() => mockAccountData);
+
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => mockSelectorFunction),
 }));
 
 const mockTransaction = {
@@ -90,7 +94,7 @@ describe('PerpsPositionTransactionView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (selectSelectedInternalAccount as unknown as jest.Mock).mockReturnValue({
+    mockSelectorFunction.mockReturnValue({
       address: '0x1234567890abcdef1234567890abcdef12345678',
     });
     mockUsePerpsNetwork.mockReturnValue('mainnet');
@@ -334,9 +338,9 @@ describe('PerpsPositionTransactionView', () => {
   });
 
   it('should not navigate to block explorer when no selected account', () => {
-    (selectSelectedInternalAccount as unknown as jest.Mock).mockReturnValue(
-      null,
-    );
+    mockSelectorFunction.mockReturnValue({
+      address: '',
+    });
     const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
       state: mockInitialState,
     });

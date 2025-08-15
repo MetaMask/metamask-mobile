@@ -39,17 +39,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
     return key;
   }),
 }));
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    AccountsController: {
-      getSelectedAccount: jest.fn().mockReturnValue({
-        address: '0xdefaultaddress',
-        id: 'mock-account-id',
-        metadata: { name: 'Test Account' },
-      }),
-    },
-  },
-}));
+// Note: HyperLiquidProvider uses HyperLiquidWalletService which uses
+// selectSelectedInternalAccountByScope, so no Engine.context mocking needed
 jest.mock('../../utils/hyperLiquidValidation', () => ({
   validateOrderParams: jest.fn(),
   validateWithdrawalParams: jest.fn(),
