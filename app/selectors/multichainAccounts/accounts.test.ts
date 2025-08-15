@@ -4,11 +4,8 @@ import { DeepPartial } from 'redux';
 import { CaipChainId } from '@metamask/utils';
 import { AccountId } from '@metamask/accounts-controller';
 import { BtcAccountType, SolAccountType } from '@metamask/keyring-api';
-import { AccountGroupId, AccountWalletType } from '@metamask/account-api';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { RootState } from '../../reducers';
 
-type TestWallets = AccountTreeControllerState['accountTree']['wallets'];
 import {
   createMockInternalAccount,
   createMockSnapInternalAccount,
