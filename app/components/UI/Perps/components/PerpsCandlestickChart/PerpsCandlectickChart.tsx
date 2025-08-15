@@ -6,6 +6,13 @@ import React, {
   useRef,
 } from 'react';
 import { View, Dimensions, Pressable } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  useAnimatedGestureHandler,
+  runOnJS,
+} from 'react-native-reanimated';
 
 import {
   PinchGestureHandler,
@@ -75,6 +82,9 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const [showTPSLLines, setShowTPSLLines] = useState(false);
   const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
 
+  // ✨ NEW: Display state for debug info (synced with reanimated values)
+  const [displayScale, setDisplayScale] = useState(1);
+
   // Zoom constants
   const MIN_CANDLES = 10;
   const MAX_CANDLES = 250;
@@ -96,42 +106,57 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const basePanOffset = useRef(0); // Base offset when gesture starts
   const maxPanOffset = useRef(0); // Maximum offset based on available historical data
 
-  // Zoom functions
-  const handleZoomIn = useCallback(() => {
-    const newCandleCount = Math.max(MIN_CANDLES, candleCount - ZOOM_STEP);
+  // ✨ NEW: Reanimated smooth transform values (replaces data manipulation)
+  const scale = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const translateY = useSharedValue(0);
+  const baseScale = useSharedValue(1);
+  const baseTranslateX = useSharedValue(0);
+  const baseTranslateY = useSharedValue(0);
 
-    setPanOffset(0); // Reset pan when zooming
-    setVisualPanX(0); // Reset visual transform
-    setGestureScale(1); // Reset any lingering gesture scale
-    onZoomChange?.(newCandleCount);
-  }, [candleCount, onZoomChange]);
+  // Gesture handler refs for simultaneous handling
+  const pinchRef = useRef(null);
+  const panRef = useRef(null);
+
+  // ✨ NEW: Reanimated zoom functions (smooth scale transforms)
+  const handleZoomIn = useCallback(() => {
+    const newScale = Math.min(5, scale.value * 1.2); // Zoom in = larger scale
+    scale.value = withSpring(newScale, { damping: 12, stiffness: 100 });
+    setDisplayScale(newScale);
+  }, [scale]);
 
   const handleZoomOut = useCallback(() => {
-    const newCandleCount = Math.min(MAX_CANDLES, candleCount + ZOOM_STEP);
-    setPanOffset(0); // Reset pan when zooming
-    setVisualPanX(0); // Reset visual transform
-    setGestureScale(1); // Reset any lingering gesture scale
-    onZoomChange?.(newCandleCount);
-  }, [candleCount, onZoomChange]);
+    const newScale = Math.max(0.5, scale.value / 1.2); // Zoom out = smaller scale
+    scale.value = withSpring(newScale, { damping: 12, stiffness: 100 });
+    setDisplayScale(newScale);
+  }, [scale]);
 
-  const canZoomIn = candleCount > MIN_CANDLES;
-  const canZoomOut = candleCount < MAX_CANDLES;
+  const canZoomIn = true; // Always allow zoom in (scale up to 5x)
+  const canZoomOut = true; // Always allow zoom out (scale down to 0.5x)
 
-  // Pan functions for button controls
+  // ✨ NEW: Reanimated pan functions (smooth translation transforms)
   const handlePanLeft = useCallback(() => {
-    const newOffset = Math.min(maxPanOffset.current, panOffset + 1);
-    setPanOffset(newOffset);
-    setVisualPanX(0); // Reset visual transform
-  }, [panOffset]);
+    const panStep = 100; // Pixels to pan per button press
+    const newTranslateX = translateX.value - panStep; // Pan left = negative translation
+
+    translateX.value = withSpring(newTranslateX, {
+      damping: 12,
+      stiffness: 100,
+    });
+  }, [translateX]);
 
   const handlePanRight = useCallback(() => {
-    const newOffset = Math.max(0, panOffset - 1);
-    setPanOffset(newOffset);
-    setVisualPanX(0); // Reset visual transform
-  }, [panOffset]);
+    const panStep = 100; // Pixels to pan per button press
+    const newTranslateX = translateX.value + panStep; // Pan right = positive translation
 
-  const canPanLeft = panOffset < maxPanOffset.current;
-  const canPanRight = panOffset > 0;
+    translateX.value = withSpring(newTranslateX, {
+      damping: 12,
+      stiffness: 100,
+    });
+  }, [translateX]);
+
+  const canPanLeft = true; // Always allow pan (constraints handled in transform)
+  const canPanRight = true; // Always allow pan (constraints handled in transform)
 
   // Scale-to-candle-count mapping with 5-candle increments
   const scaleToCandles = useCallback(
@@ -162,110 +187,86 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     return candleCount;
   }, [isGesturing, gestureScale, candleCount, scaleToCandles]);
 
-  // Pinch gesture handlers
-  const handlePinchGesture = useCallback(
-    (event: PinchGestureHandlerGestureEvent) => {
-      const { scale } = event.nativeEvent;
-      setGestureScale(scale);
-    },
-    [],
-  );
-
-  const handlePinchStateChange = useCallback(
-    (event: HandlerStateChangeEvent<PinchGestureHandlerEventPayload>) => {
-      const { state, scale } = event.nativeEvent;
-
-      switch (state) {
-        case State.BEGAN:
-          setIsGesturing(true);
-          baseCandleCount.current = candleCount;
-          // Clear any existing debounce to handle rapid pinch gestures
-          if (debounceTimeout.current) {
-            clearTimeout(debounceTimeout.current);
-            setGestureScale(1); // Reset any stale gesture scale from previous interaction
-          }
-          break;
-
-        case State.END:
-        case State.CANCELLED: {
-          // Debounce the zoom change to prevent excessive API calls
-          const newCandleCount = scaleToCandles(scale, baseCandleCount.current);
-          if (newCandleCount !== candleCount) {
-            // Keep gestureScale applied until data actually changes to prevent visual snap-back
-            setPanOffset(0); // Reset pan when pinch-zooming
-            setVisualPanX(0); // Reset visual transform
-            setBaselineVisibleData([]); // Clear Y-axis baseline
-            // DON'T set isGesturing to false yet - keep applying gestureScale until data updates
-
-            debounceTimeout.current = setTimeout(() => {
-              setIsGesturing(false); // Reset gesturing state when data actually changes
-              setGestureScale(1); // Reset gestureScale when data actually changes
-              onZoomChange?.(newCandleCount);
-            }, 500); // 500ms debounce - reduces jank during "rage zooming"
-          } else {
-            // No zoom change needed, reset immediately
-            setIsGesturing(false);
-            setGestureScale(1);
-          }
-          break;
+  // ✨ NEW: Reanimated gesture handlers (smooth transforms without data manipulation)
+  const pinchGestureHandler =
+    useAnimatedGestureHandler<PinchGestureHandlerGestureEvent>({
+      onStart: () => {
+        'worklet';
+        baseScale.value = scale.value;
+      },
+      onActive: (event) => {
+        'worklet';
+        const gestureScale = event.scale ?? 1;
+        if (typeof gestureScale === 'number' && gestureScale > 0) {
+          const newScale = baseScale.value * gestureScale;
+          const clampedScale = Math.max(0.5, Math.min(5, newScale));
+          scale.value = clampedScale;
+          // Update display scale for debug info
+          runOnJS(setDisplayScale)(clampedScale);
         }
-      }
-    },
-    [candleCount, scaleToCandles, onZoomChange],
-  );
+      },
+      onEnd: () => {
+        'worklet';
+        const finalScale = scale.value;
+        scale.value = withSpring(finalScale, { damping: 12, stiffness: 100 });
+        runOnJS(setDisplayScale)(finalScale);
+      },
+    });
 
-  // Pan gesture handlers - CSS transform approach
-  const handlePanGesture = useCallback(
-    (event: PanGestureHandlerGestureEvent) => {
-      const { translationX } = event.nativeEvent;
+  const panGestureHandler =
+    useAnimatedGestureHandler<PanGestureHandlerGestureEvent>({
+      onStart: () => {
+        'worklet';
+        baseTranslateX.value = translateX.value;
+        baseTranslateY.value = translateY.value;
+      },
+      onActive: (event) => {
+        'worklet';
+        const gestureTranslationX = event.translationX ?? 0;
+        const gestureTranslationY = event.translationY ?? 0;
 
-      // Apply immediate visual transform for smooth gesture feedback on X-axis pan
-      // Don't update actual data during gesture - just visual movement
-      setVisualPanX(translationX);
-    },
-    [], // Include previewCandleCount for debug logging
-  );
+        if (
+          typeof gestureTranslationX === 'number' &&
+          typeof gestureTranslationY === 'number'
+        ) {
+          const newTranslateX = baseTranslateX.value + gestureTranslationX;
+          const newTranslateY = baseTranslateY.value + gestureTranslationY;
 
-  const handlePanStateChange = useCallback(
-    (event: HandlerStateChangeEvent<PanGestureHandlerEventPayload>) => {
-      const { state, translationX } = event.nativeEvent;
+          // Simplified constraints for smooth panning
+          // Allow reasonable panning range without complex calculations
+          const maxPanRange = 1000 * scale.value; // Scale-dependent panning range
+          const maxTranslateY = Math.max(100, (scale.value - 1) * 200);
 
-      switch (state) {
-        case State.BEGAN:
-          setIsPanning(true); // Track panning state for smooth transforms
-          basePanOffset.current = panOffset;
-          setVisualPanX(0); // Reset visual transform at start
-          break;
-
-        case State.END:
-        case State.CANCELLED: {
-          setIsPanning(false); // This will remove buffer and return chart to normal width
-
-          // Convert final gesture distance to candle offset
-          const pixelsPerStep = 30; // Require less gesture distance for more responsive panning
-          const candlesPerStep = 1; // Move in 1-candle increments for precise navigation
-          const steps = Math.round(translationX / pixelsPerStep);
-          const gestureDelta = steps * candlesPerStep;
-
-          const finalOffset = Math.max(
-            0,
-            Math.min(
-              maxPanOffset.current,
-              basePanOffset.current + gestureDelta,
-            ),
+          translateX.value = Math.max(
+            -maxPanRange,
+            Math.min(maxPanRange, newTranslateX),
           );
-
-          // Update actual chart data and reset visual transform
-          setPanOffset(finalOffset);
-          setVisualPanX(0); // Reset visual transform - chart shows new data at normal position
-
-          // Note: baselineVisibleData will be cleared by the useEffect when isPanning becomes false
-          break;
+          translateY.value = Math.max(
+            -maxTranslateY,
+            Math.min(maxTranslateY, newTranslateY),
+          );
         }
-      }
-    },
-    [panOffset],
-  );
+      },
+      onEnd: () => {
+        'worklet';
+        translateX.value = withSpring(translateX.value, {
+          damping: 12,
+          stiffness: 100,
+        });
+        translateY.value = withSpring(translateY.value, {
+          damping: 12,
+          stiffness: 100,
+        });
+      },
+    });
+
+  // Reset transform function (will be updated with proper initial position later)
+  const resetTransform = useCallback(() => {
+    scale.value = withSpring(1);
+    translateX.value = withSpring(0); // Will be updated when initialChartTransform is calculated
+    translateY.value = withSpring(0);
+    setDisplayScale(1);
+  }, [scale, translateX, translateY]);
 
   // Cleanup debounce timeout on unmount
   useEffect(() => {
@@ -337,71 +338,46 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     [allTransformedData],
   );
 
-  // Calculate chart width - full dataset approach
+  // ✨ NEW: Calculate chart width based on target candles to show, not entire dataset
   const fullChartWidth = useMemo(() => {
     if (chartTransformedData.length === 0) return chartWidth - 65;
 
-    const normalChartWidth = chartWidth - 65;
-    const totalDataCount = chartTransformedData.length;
+    const availableWidth = chartWidth - 65; // Account for Y-axis space
+    const totalCandles = chartTransformedData.length;
+    const targetCandlesToShow = Math.min(candleCount, totalCandles);
 
-    // Calculate width using fixed reasonable candle width (like professional trading platforms)
-    // Use candle width that would fit the desired preview count in viewport, then extend for full dataset
-    // For large datasets, use much smaller fixed candle width to avoid massive charts
-    const FIXED_CANDLE_WIDTH =
-      totalDataCount > 200 ? 3 : normalChartWidth / previewCandleCount;
-    const fullWidth = FIXED_CANDLE_WIDTH * totalDataCount;
+    // Make chart width accommodate the target candles comfortably
+    // Add 20% extra width for smooth panning without immediate edge hit
+    const chartWidthForTarget = availableWidth * 1.2;
 
-    // Debug logging (temporary for development)
-    // console.log('📏 Full Chart Width Debug:', {
-    //   totalDataCount,
-    //   previewCandleCount,
-    //   chartWidth,
-    //   normalChartWidth,
-    //   candleWidth: FIXED_CANDLE_WIDTH,
-    //   fullWidth,
-    // });
+    return chartWidthForTarget;
+  }, [chartTransformedData.length, candleCount, chartWidth]);
 
-    return fullWidth;
-  }, [chartTransformedData.length, previewCandleCount]);
-
-  // Calculate viewport transform - positions chart to show desired window
-  const viewportTransform = useMemo(() => {
+  // ✨ NEW: Simple initial positioning - chart is now right-sized!
+  const initialChartTransform = useMemo(() => {
     if (chartTransformedData.length === 0) return 0;
 
-    // Account for Y-axis space (chartWidth - 65)
+    const availableWidth = chartWidth - 65; // Account for Y-axis space
 
-    // Simple approach: position chart to show rightmost portion with panning offset
-    // When panOffset = 0, show the rightmost part of the chart (live candles)
-    // When panOffset > 0, shift left to show historical data
+    // Since fullChartWidth is now 1.2x availableWidth, center it slightly
+    // This gives a small negative offset to center the content
+    const centerOffset = -(fullChartWidth - availableWidth) / 2;
 
-    const totalCandles = chartTransformedData.length;
-    const candleWidth = fullChartWidth / totalCandles;
-    const offsetWidth = candleWidth * panOffset; // Width to shift left for historical data
+    return centerOffset;
+  }, [fullChartWidth, chartWidth]);
 
-    // Simplified positioning: move chart left to show rightmost candles, but not as far as before
-    // Since panning left once reveals candles, start closer to that position
-    const baseTransform = -(fullChartWidth * 0.38); // Show rightmost ~15% of chart
-
-    // Apply panning offset
-    const transform = baseTransform + offsetWidth;
-
-    // Debug logging for troubleshooting (temporary for development)
-    // if (totalCandles > 0) {
-    //   console.log('🎯 Viewport Transform Debug:', {
-    //     totalCandles,
-    //     previewCandleCount,
-    //     fullChartWidth,
-    //     viewportWidth,
-    //     candleWidth,
-    //     panOffset,
-    //     baseTransform,
-    //     offsetWidth,
-    //     finalTransform: transform,
-    //   });
-    // }
-
-    return transform;
-  }, [chartTransformedData.length, panOffset, fullChartWidth]);
+  // Set initial position when chart data changes
+  useEffect(() => {
+    if (chartTransformedData.length > 0) {
+      translateX.value = initialChartTransform;
+      baseTranslateX.value = initialChartTransform; // Also update base for gestures
+    }
+  }, [
+    chartTransformedData.length,
+    initialChartTransform,
+    translateX,
+    baseTranslateX,
+  ]);
 
   // Current visible data for Y-axis scaling (based on viewport window)
   const visibleTransformedData = useMemo(() => {
@@ -420,6 +396,18 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
     return visibleData;
   }, [chartTransformedData, previewCandleCount, panOffset]);
+
+  // ✨ NEW: Animated style for smooth transforms
+  const animatedChartStyle = useAnimatedStyle(() => {
+    'worklet';
+    return {
+      transform: [
+        { scale: scale.value },
+        { translateX: translateX.value },
+        { translateY: translateY.value },
+      ],
+    };
+  });
 
   // Y-axis scaling data - use visible data for proper scaling
   const yAxisScalingData = useMemo(() => {
@@ -669,24 +657,20 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         testID={PerpsChartAdditionalSelectorsIDs.CANDLESTICK_AUXILIARY_LINES}
       />
       <View style={styles.chartContainer}>
-        {/* Chart with Custom Grid Lines */}
-        <PinchGestureHandler
-          onGestureEvent={handlePinchGesture}
-          onHandlerStateChange={handlePinchStateChange}
-        >
-          <View style={styles.relativeContainer}>
-            {/* Extended Chart Container for Historical Buffer */}
-            <View
+        {/* ✨ NEW: Single Pan Gesture Handler (no nesting - eliminates reanimated warning) */}
+        <View style={styles.relativeContainer}>
+          <PanGestureHandler
+            ref={panRef}
+            onGestureEvent={panGestureHandler}
+            minPointers={1}
+            maxPointers={2}
+          >
+            <Animated.View
               style={[
                 {
                   width: fullChartWidth,
-                  transform: [
-                    {
-                      translateX: viewportTransform + visualPanX,
-                    },
-                  ],
                 },
-                (isGesturing || isPanning) && styles.chartGesturing,
+                animatedChartStyle, // ✨ NEW: Smooth reanimated transforms (includes initial positioning)!
               ]}
             >
               {/* Main Candlestick Chart - Extended width for historical buffer */}
@@ -700,47 +684,34 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
                 <CandlestickChart.Candles
                   positiveColor={candlestickColors.positive} // Green for positive candles
                   negativeColor={candlestickColors.negative} // Red for negative candles
-                  renderRect={renderCustomCandle} // Custom candle body scaling for zoom
-                  renderLine={renderCustomWick} // Custom wick scaling for zoom
                   testID={PerpsCandlestickChartSelectorsIDs.CANDLES}
                 />
                 {/* Tooltip for price display */}
                 <View testID={PerpsCandlestickChartSelectorsIDs.TOOLTIP} />
               </CandlestickChart>
-            </View>
-          </View>
-        </PinchGestureHandler>
-
-        {/* X-Axis Time Labels with Pan Gesture - Swipe left/right on time axis to navigate */}
-        <View style={{ overflow: 'hidden', width: chartWidth - 65 }}>
-          {' '}
-          {/* Clip X-axis to chart bounds */}
-          <PanGestureHandler
-            onGestureEvent={handlePanGesture}
-            onHandlerStateChange={handlePanStateChange}
-            activeOffsetX={[-10, 10]} // More sensitive since it's only on X-axis
-            shouldCancelWhenOutside={false}
-          >
-            <View
-              style={{
-                width: fullChartWidth, // Full width for proper label distribution
-                transform: [
-                  {
-                    translateX:
-                      viewportTransform + (isPanning ? visualPanX : 0),
-                  },
-                ],
-                marginLeft: 50, // Remove left offset to align with chart (matches paddingRight in X-axis styles)
-              }}
-            >
-              <CandlestickChartXAxis
-                transformedData={yAxisScalingData}
-                chartWidth={fullChartWidth} // Use full width to match chart
-                labelCount={4} // Explicit label count for better visibility
-                testID={PerpsChartAdditionalSelectorsIDs.CANDLESTICK_X_AXIS}
-              />
-            </View>
+            </Animated.View>
           </PanGestureHandler>
+        </View>
+
+        {/* X-Axis Time Labels - Uses same reanimated transform as chart */}
+        <View style={{ overflow: 'hidden', width: chartWidth - 65 }}>
+          {/* Clip X-axis to chart bounds */}
+          <Animated.View
+            style={[
+              {
+                width: fullChartWidth, // Full width for proper label distribution
+                marginLeft: 50, // Align with chart
+              },
+              animatedChartStyle, // ✨ NEW: Sync with chart transforms!
+            ]}
+          >
+            <CandlestickChartXAxis
+              transformedData={yAxisScalingData}
+              chartWidth={fullChartWidth} // Use full width to match chart
+              labelCount={4} // Explicit label count for better visibility
+              testID={PerpsChartAdditionalSelectorsIDs.CANDLESTICK_X_AXIS}
+            />
+          </Animated.View>
         </View>
 
         {/* Zoom Controls */}
@@ -763,21 +734,10 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
 
           <Text
             variant={TextVariant.BodyXS}
-            color={
-              isGesturing
-                ? TextColor.Primary
-                : isPanning
-                ? TextColor.Warning
-                : TextColor.Muted
-            }
-            style={[
-              styles.candleCountText,
-              (isGesturing || isPanning) && styles.candleCountPreview,
-            ]}
+            color={TextColor.Primary}
+            style={styles.candleCountText}
           >
-            {previewCandleCount} candles
-            {isGesturing && ' (preview)'}
-            {isPanning && ` (visual panning...)`}
+            ✨ Smooth Zoom: {(displayScale * 100).toFixed(0)}%
           </Text>
 
           <Pressable
@@ -856,34 +816,15 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
           </View>
         )}
 
-        {/* DEBUG: Manual pan test buttons */}
+        {/* ✨ NEW: Reset Zoom Button */}
         <View style={styles.panResetContainer}>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <Pressable
-              style={styles.panResetButton}
-              onPress={() => {
-                const newOffset = Math.max(0, panOffset - 5);
-                setPanOffset(newOffset);
-              }}
-            >
-              <Text variant={TextVariant.BodyXS} color={TextColor.Primary}>
-                ← Back to Live (newer)
-              </Text>
-            </Pressable>
-            <Pressable
-              style={styles.panResetButton}
-              onPress={() => {
-                const newOffset = Math.min(maxPanOffset.current, panOffset + 5);
-                setPanOffset(newOffset);
-              }}
-            >
-              <Text variant={TextVariant.BodyXS} color={TextColor.Primary}>
-                Historical →
-              </Text>
-            </Pressable>
-          </View>
+          <Pressable style={styles.panResetButton} onPress={resetTransform}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
+              ⚡ Reset Zoom & Pan
+            </Text>
+          </Pressable>
           <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-            panOffset: {panOffset} / {maxPanOffset.current}
+            Reanimated smooth transforms - no data manipulation!
           </Text>
         </View>
 
