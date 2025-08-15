@@ -5,6 +5,7 @@ export const LoginViewSelectors = {
   LOGIN_BUTTON_ID: 'log-in-button',
   TITLE_ID: 'login-title',
   REMEMBER_ME_SWITCH: 'login-with-remember-me-switch',
+  BIOMETRIC_SWITCH: 'login-with-biometric-switch',
   PASSWORD_INPUT: 'login-password-input',
   BIOMETRY_BUTTON: 'biometry-button',
   IOS_TOUCH_ID_ICON: 'ios-touch-id-icon',
