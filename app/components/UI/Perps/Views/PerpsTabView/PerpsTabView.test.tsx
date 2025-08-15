@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
+import { View } from 'react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { Position } from '../../controllers/types';
@@ -12,12 +13,37 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+// Mock PerpsConnectionProvider
+jest.mock('../../providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isInitialized: true,
+    isConnecting: false,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+  })),
+}));
+
 // Mock hooks
 jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
   usePerpsPositions: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsFirstTimeUser: jest.fn(),
+  usePerpsAccount: jest.fn(),
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
+  usePerpsPerformance: jest.fn(() => ({
+    startMeasure: jest.fn(),
+    endMeasure: jest.fn(),
+    measure: jest.fn(),
+    measureAsync: jest.fn(),
+  })),
 }));
 
 // Mock components
@@ -48,13 +74,13 @@ jest.mock('../../components/PerpsPositionCard', () => ({
     position: Position;
     rightAccessory?: React.ReactNode;
   }) => {
-    const { View, Text } = jest.requireActual('react-native');
+    const { View: RNView, Text } = jest.requireActual('react-native');
     return (
-      <View testID={`position-card-${position.coin}`}>
+      <RNView testID={`position-card-${position.coin}`}>
         <Text>{position.coin}</Text>
         <Text>{position.size}</Text>
         {rightAccessory}
-      </View>
+      </RNView>
     );
   },
 }));
@@ -62,23 +88,31 @@ jest.mock('../../components/PerpsPositionCard', () => ({
 // Mock BottomSheet components
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => ({
-    __esModule: true,
-    default: ({
-      children,
-      onClose,
-    }: {
-      children: React.ReactNode;
-      onClose: () => void;
-    }) => {
-      const { View } = jest.requireActual('react-native');
-      return (
-        <View testID="bottom-sheet" onTouchEnd={onClose}>
-          {children}
-        </View>
-      );
-    },
-  }),
+  () => {
+    const MockReact = jest.requireActual('react');
+    return {
+      __esModule: true,
+      default: MockReact.forwardRef(
+        (
+          {
+            children,
+            onClose,
+          }: {
+            children: React.ReactNode;
+            onClose: () => void;
+          },
+          ref: React.Ref<View>,
+        ) => {
+          const { View: RNView } = jest.requireActual('react-native');
+          return (
+            <RNView ref={ref} testID="bottom-sheet" onTouchEnd={onClose}>
+              {children}
+            </RNView>
+          );
+        },
+      ),
+    };
+  },
 );
 
 jest.mock(
@@ -92,15 +126,18 @@ jest.mock(
       children: React.ReactNode;
       onClose: () => void;
     }) => {
-      const { View, TouchableOpacity, Text } =
-        jest.requireActual('react-native');
+      const {
+        View: RNView,
+        TouchableOpacity,
+        Text,
+      } = jest.requireActual('react-native');
       return (
-        <View testID="bottom-sheet-header">
+        <RNView testID="bottom-sheet-header">
           {children}
           <TouchableOpacity testID="close-bottom-sheet" onPress={onClose}>
             <Text>Close</Text>
           </TouchableOpacity>
-        </View>
+        </RNView>
       );
     },
   }),
@@ -118,6 +155,7 @@ describe('PerpsTabView', () => {
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
+  const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
 
   const mockPosition: Position = {
     coin: 'ETH',
@@ -159,6 +197,9 @@ describe('PerpsTabView', () => {
 
     mockUsePerpsTrading.mockReturnValue({
       getAccountState: jest.fn(),
+      depositWithConfirmation: jest.fn().mockResolvedValue({
+        result: Promise.resolve(),
+      }),
     });
 
     mockUsePerpsFirstTimeUser.mockReturnValue({
@@ -167,6 +208,8 @@ describe('PerpsTabView', () => {
       error: null,
       refresh: jest.fn(),
     });
+
+    mockUsePerpsAccount.mockReturnValue(null);
   });
 
   describe('Component Rendering', () => {
@@ -422,7 +465,7 @@ describe('PerpsTabView', () => {
       expect(screen.queryByTestId('bottom-sheet')).not.toBeOnTheScreen();
     });
 
-    it('should navigate to deposit when add funds is pressed', () => {
+    it('should trigger deposit when add funds is pressed', async () => {
       render(<PerpsTabView />);
 
       // Open bottom sheet
@@ -432,12 +475,14 @@ describe('PerpsTabView', () => {
 
       // Press add funds button
       const addFundsButton = screen.getByText(strings('perps.add_funds'));
-      act(() => {
+      await act(() => {
         fireEvent.press(addFundsButton);
       });
 
+      expect(mockUsePerpsTrading().depositWithConfirmation).toHaveBeenCalled();
+
       expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.DEPOSIT,
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
 
       // Bottom sheet should be closed
@@ -662,24 +707,61 @@ describe('PerpsTabView', () => {
 // Tests for PerpsTabViewWithProvider wrapper component
 describe('PerpsTabViewWithProvider', () => {
   beforeEach(() => {
-    // Mock the PerpsConnectionProvider for wrapper tests
-    jest.doMock('../../providers/PerpsConnectionProvider', () => {
-      const ReactModule = jest.requireActual('react');
-      return {
-        PerpsConnectionProvider: ({
-          children,
-        }: {
-          children: React.ReactNode;
-        }) => {
-          const { View } = jest.requireActual('react-native');
-          // Simulate the async initialization without causing act warnings
-          ReactModule.useEffect(() => {
-            // No-op - provider is mocked
-          }, []);
-          return <View testID="perps-connection-provider">{children}</View>;
-        },
-      };
+    // Setup mocks for wrapped component tests
+    const mockUsePerpsConnection = jest.requireMock('../../hooks')
+      .usePerpsConnection as jest.Mock;
+    const mockUsePerpsPositions = jest.requireMock('../../hooks')
+      .usePerpsPositions as jest.Mock;
+    const mockUsePerpsTrading = jest.requireMock('../../hooks')
+      .usePerpsTrading as jest.Mock;
+    const mockUsePerpsFirstTimeUser = jest.requireMock('../../hooks')
+      .usePerpsFirstTimeUser as jest.Mock;
+    const mockUsePerpsAccount = jest.requireMock('../../hooks')
+      .usePerpsAccount as jest.Mock;
+
+    // Setup default hook returns for wrapper tests
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
     });
+
+    mockUsePerpsPositions.mockReturnValue({
+      positions: [],
+      isLoading: false,
+      isRefreshing: false,
+      loadPositions: jest.fn(),
+    });
+
+    mockUsePerpsTrading.mockReturnValue({
+      getAccountState: jest.fn(),
+      depositWithConfirmation: jest.fn().mockResolvedValue({
+        result: Promise.resolve(),
+      }),
+    });
+
+    mockUsePerpsFirstTimeUser.mockReturnValue({
+      isFirstTimeUser: false,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    mockUsePerpsAccount.mockReturnValue(null);
+
+    // Mock the PerpsConnectionProvider for wrapper tests
+    jest.doMock('../../providers/PerpsConnectionProvider', () => ({
+      PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+        children,
+      usePerpsConnection: () => ({
+        isConnected: true,
+        isInitialized: true,
+        isConnecting: false,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      }),
+    }));
   });
 
   describe('Component Rendering', () => {

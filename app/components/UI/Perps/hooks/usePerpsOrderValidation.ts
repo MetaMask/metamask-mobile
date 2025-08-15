@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import type { OrderParams } from '../controllers/types';
 import type { OrderFormState } from '../types';
@@ -7,7 +7,10 @@ import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
 } from '../constants/hyperLiquidConfig';
-import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
+import {
+  VALIDATION_THRESHOLDS,
+  PERFORMANCE_CONFIG,
+} from '../constants/perpsConfig';
 import type { PerpsToken } from '../components/PerpsTokenSelector';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
@@ -18,7 +21,6 @@ interface UsePerpsOrderValidationParams {
   availableBalance: number;
   marginRequired: string;
   selectedPaymentToken?: PerpsToken | null;
-  hasExistingPosition?: boolean;
 }
 
 interface ValidationResult {
@@ -42,7 +44,6 @@ export function usePerpsOrderValidation(
     availableBalance,
     marginRequired,
     selectedPaymentToken,
-    hasExistingPosition,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -54,8 +55,43 @@ export function usePerpsOrderValidation(
     isValidating: false, // Start with false to prevent initial flickering
   });
 
+  // Use ref to track debounce timer
+  const validationTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const performValidation = useCallback(async () => {
-    setValidation((prev) => ({ ...prev, isValidating: true }));
+    // Perform immediate UI validation for critical errors
+    const immediateErrors: string[] = [];
+
+    // Balance validation (immediate)
+    const requiredMargin = parseFloat(marginRequired);
+    if (requiredMargin > availableBalance) {
+      immediateErrors.push(
+        strings('perps.order.validation.insufficient_balance', {
+          required: marginRequired,
+          available: availableBalance.toString(),
+        }),
+      );
+    }
+
+    // Payment token validation (immediate)
+    const tokenChainId = selectedPaymentToken?.chainId;
+    if (
+      tokenChainId &&
+      tokenChainId !== HYPERLIQUID_MAINNET_CHAIN_ID &&
+      tokenChainId !== HYPERLIQUID_TESTNET_CHAIN_ID
+    ) {
+      immediateErrors.push(
+        strings('perps.order.validation.only_hyperliquid_usdc'),
+      );
+    }
+
+    // Update with immediate errors first
+    setValidation((prev) => ({
+      ...prev,
+      errors: immediateErrors,
+      isValid: immediateErrors.length === 0,
+      isValidating: true,
+    }));
 
     try {
       // Convert form state to OrderParams for protocol validation
@@ -80,45 +116,17 @@ export function usePerpsOrderValidation(
         protocolValidation,
       );
 
-      // Start with protocol validation results
-      const errors: string[] = protocolValidation.isValid
-        ? []
-        : protocolValidation.error
-        ? [protocolValidation.error]
-        : [];
+      // Merge immediate errors with protocol validation results
+      const errors: string[] = [...immediateErrors];
+      if (!protocolValidation.isValid && protocolValidation.error) {
+        // Only add protocol error if not already covered by immediate validation
+        const errorStr = protocolValidation.error;
+        if (!errors.some((e) => e.includes(errorStr))) {
+          errors.push(protocolValidation.error);
+        }
+      }
+
       const warnings: string[] = [];
-
-      // Add UI-specific validations
-
-      // Check for existing position
-      if (hasExistingPosition) {
-        errors.push(
-          strings('perps.order.validation.existing_position', {
-            asset: orderForm.asset,
-          }),
-        );
-      }
-
-      // Balance validation
-      const requiredMargin = parseFloat(marginRequired);
-      if (requiredMargin > availableBalance) {
-        errors.push(
-          strings('perps.order.validation.insufficient_balance', {
-            required: marginRequired,
-            available: availableBalance.toString(),
-          }),
-        );
-      }
-
-      // Payment token validation (UI-specific for HyperLiquid)
-      const tokenChainId = selectedPaymentToken?.chainId;
-      if (
-        tokenChainId &&
-        tokenChainId !== HYPERLIQUID_MAINNET_CHAIN_ID &&
-        tokenChainId !== HYPERLIQUID_TESTNET_CHAIN_ID
-      ) {
-        errors.push(strings('perps.order.validation.only_hyperliquid_usdc'));
-      }
 
       // High leverage warning
       if (orderForm.leverage > VALIDATION_THRESHOLDS.HIGH_LEVERAGE_WARNING) {
@@ -151,7 +159,6 @@ export function usePerpsOrderValidation(
     availableBalance,
     marginRequired,
     selectedPaymentToken?.chainId,
-    hasExistingPosition,
     validateOrder,
   ]);
 
@@ -167,7 +174,23 @@ export function usePerpsOrderValidation(
       return;
     }
 
-    performValidation();
+    // Clear existing timer
+    if (validationTimerRef.current) {
+      clearTimeout(validationTimerRef.current);
+    }
+
+    // Debounce validation to avoid excessive calls
+    validationTimerRef.current = setTimeout(() => {
+      performValidation();
+      validationTimerRef.current = null;
+    }, PERFORMANCE_CONFIG.VALIDATION_DEBOUNCE_MS);
+
+    // Cleanup
+    return () => {
+      if (validationTimerRef.current) {
+        clearTimeout(validationTimerRef.current);
+      }
+    };
   }, [performValidation, positionSize, assetPrice]);
 
   return validation;

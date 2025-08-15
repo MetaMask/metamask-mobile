@@ -1,130 +1,63 @@
+import { hasProperty, isObject } from '@metamask/utils';
 import { captureException } from '@sentry/react-native';
 import { ensureValidState } from './util';
-import { hasProperty, isObject } from '@metamask/utils';
-
-// Example MM SDK channel ID: 217e651d-6d18-49ef-b929-8773496c11df
-// Example WC channel ID: 901035548d5fae607be1f7ebff2aff0617b9d16fd0ad7b93e2e94647de06a07b
-// This seems naive, but probably covers majority of scenarios
-const isHostname = (value: string) =>
-  !value.startsWith('npm:') && (value === 'localhost' || value.includes('.'));
 
 /**
- * Migration to update hostname keyed PermissionController
- * and SelectedNetworkController entries to origin.
+ * Migration 095: Convert PerpsController isFirstTimeUser from boolean to object
  *
- * Note that this makes a best guess by assuming the dapp is served
- * via https on the default port. The worst case scenario is that this
- * is an incorrect assumption, forcing the user to re-establish permissions.
- * @param state - The current MetaMask mobile state.
- * @returns Migrated Redux state.
+ * This migration handles the breaking change where isFirstTimeUser was changed from
+ * a boolean to a per-network object format. This prevents runtime errors when
+ * accessing properties on the old boolean value.
+ *
+ * Changes:
+ * - Convert boolean isFirstTimeUser to { testnet: boolean, mainnet: boolean }
+ * - If user had completed tutorial (false), both networks are marked as completed
+ * - If user was first-time (true), both networks are marked as first-time
  */
-export default function migrate(state: unknown) {
-  const version = 95;
+export default function migrate(state: unknown): unknown {
+  const migrationVersion = 95;
 
-  // Ensure the state is valid for migration
-  if (!ensureValidState(state, version)) {
+  if (!ensureValidState(state, migrationVersion)) {
     return state;
   }
 
-  const { backgroundState } = state.engine;
+  try {
+    // Check if PerpsController exists in the background state
+    if (
+      hasProperty(state.engine, 'backgroundState') &&
+      isObject(state.engine.backgroundState) &&
+      hasProperty(state.engine.backgroundState, 'PerpsController') &&
+      isObject(state.engine.backgroundState.PerpsController) &&
+      hasProperty(
+        state.engine.backgroundState.PerpsController,
+        'isFirstTimeUser',
+      )
+    ) {
+      const perpsController = state.engine.backgroundState.PerpsController;
+      const isFirstTimeUser = perpsController.isFirstTimeUser;
 
-  if (
-    !hasProperty(backgroundState, 'PermissionController') ||
-    !isObject(backgroundState.PermissionController)
-  ) {
-    captureException(
-      new Error(
-        `Migration ${version}: typeof state.PermissionController is ${typeof backgroundState.PermissionController}`,
-      ),
-    );
-    return state;
-  }
-
-  const {
-    PermissionController: { subjects },
-  } = backgroundState;
-
-  if (!isObject(subjects)) {
-    captureException(
-      new Error(
-        `Migration ${version}: typeof state.PermissionController.subjects is ${typeof subjects}`,
-      ),
-    );
-    return state;
-  }
-
-  if (
-    !hasProperty(backgroundState, 'SelectedNetworkController') ||
-    !isObject(backgroundState.SelectedNetworkController)
-  ) {
-    captureException(
-      new Error(
-        `Migration ${version}: typeof state.SelectedNetworkController is ${typeof backgroundState.SelectedNetworkController}`,
-      ),
-    );
-    return state;
-  }
-
-  const {
-    SelectedNetworkController: { domains },
-  } = backgroundState;
-
-  if (!isObject(domains)) {
-    captureException(
-      new Error(
-        `Migration ${version}: typeof state.SelectedNetworkController.domains is ${typeof domains}`,
-      ),
-    );
-    return state;
-  }
-
-  const newSubjects: Record<string, unknown> = {};
-  for (const [origin, subject] of Object.entries(subjects)) {
-    if (!isHostname(origin) || !isObject(subject)) {
-      newSubjects[origin] = subject;
-      continue;
-    }
-
-    const { permissions } = subject;
-    if (!isObject(permissions)) {
-      newSubjects[origin] = subject;
-      continue;
-    }
-    const newOrigin = `https://${origin}`;
-
-    const newPermissions: Record<string, unknown> = {};
-
-    for (const [name, permission] of Object.entries(permissions)) {
-      if (!isObject(permission)) {
-        newPermissions[name] = permission;
-        continue;
+      // Only migrate if isFirstTimeUser is a boolean (old format)
+      if (typeof isFirstTimeUser === 'boolean') {
+        // Convert boolean to object format
+        // If user had completed tutorial (false), mark both networks as completed
+        // If user was first-time (true), mark both networks as first-time
+        perpsController.isFirstTimeUser = {
+          testnet: isFirstTimeUser,
+          mainnet: isFirstTimeUser,
+        };
       }
-
-      newPermissions[name] = {
-        ...permission,
-        invoker: newOrigin,
-      };
     }
 
-    newSubjects[newOrigin] = {
-      ...subject,
-      origin: newOrigin,
-      permissions: newPermissions,
-    };
+    return state;
+  } catch (error) {
+    captureException(
+      new Error(
+        `Migration ${migrationVersion}: Failed to convert PerpsController isFirstTimeUser: ${String(
+          error,
+        )}`,
+      ),
+    );
+    // Return the original state if migration fails to avoid breaking the app
+    return state;
   }
-  backgroundState.PermissionController.subjects = newSubjects;
-
-  const newDomains: Record<string, unknown> = {};
-  for (const [origin, networkClientId] of Object.entries(domains)) {
-    if (!isHostname(origin)) {
-      newDomains[origin] = networkClientId;
-      continue;
-    }
-
-    const newOrigin = `https://${origin}`;
-    newDomains[newOrigin] = networkClientId;
-  }
-  backgroundState.SelectedNetworkController.domains = newDomains;
-
-  return state;
 }

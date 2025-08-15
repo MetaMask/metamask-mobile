@@ -45,7 +45,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
 
   // Get real-time price data but memoize to prevent re-renders
-  const priceData = usePerpsPrices([asset], true); // Include order book for limit orders
+  const priceData = usePerpsPrices([asset], {
+    includeOrderBook: true, // Include order book for limit orders
+  });
   const currentPriceData = priceData[asset];
 
   // Store price data in state to control when it updates

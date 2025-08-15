@@ -177,7 +177,7 @@ describe('CandlestickChartComponent', () => {
       renderWithWrapper(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByText('1hr')).toBeOnTheScreen();
+      expect(screen.getByText('1HR')).toBeOnTheScreen();
       expect(screen.getByText('1D')).toBeOnTheScreen();
       expect(screen.getByText('1W')).toBeOnTheScreen();
     });
@@ -230,7 +230,7 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...props} />);
 
       // Assert
-      expect(screen.getByText('1hr')).toBeOnTheScreen();
+      expect(screen.getByText('1HR')).toBeOnTheScreen();
       expect(screen.getByText('1D')).toBeOnTheScreen();
       expect(screen.getByText('1W')).toBeOnTheScreen();
     });
@@ -304,7 +304,7 @@ describe('CandlestickChartComponent', () => {
       render(<CandlestickChartComponent {...propsWithoutDuration} />);
 
       // Assert
-      expect(screen.getByText('1hr')).toBeOnTheScreen();
+      expect(screen.getByText('1HR')).toBeOnTheScreen();
     });
 
     it('uses default isLoading when not provided', () => {
@@ -329,7 +329,7 @@ describe('CandlestickChartComponent', () => {
   describe('Duration Selector', () => {
     it('renders all available durations', () => {
       // Arrange
-      const expectedDurations = ['1hr', '1D', '1W', '1M', 'YTD', 'Max'];
+      const expectedDurations = ['1HR', '1D', '1W', '1M', 'YTD', 'Max'];
 
       // Act
       render(<CandlestickChartComponent {...defaultProps} />);
@@ -381,7 +381,7 @@ describe('CandlestickChartComponent', () => {
     });
 
     it.each([
-      ['1hr', '1hr'],
+      ['1HR', '1hr'],
       ['1D', '1d'],
       ['1W', '1w'],
       ['1M', '1m'],
