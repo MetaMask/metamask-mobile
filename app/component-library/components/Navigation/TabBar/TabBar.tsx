@@ -127,7 +127,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       >
         {renderTabBarItems()}
       </Box>
-      {renderOnboardingWizard()}
     </View>
   );
 };
