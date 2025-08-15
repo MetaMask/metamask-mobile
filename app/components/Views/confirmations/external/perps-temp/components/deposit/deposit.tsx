@@ -21,18 +21,11 @@ const AMOUNT_PREFIX = '$';
 
 export function PerpsDeposit() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [inputChanged, setInputChanged] = useState(false);
 
   const { isFullView } = usePerpsDepositView({
     isKeyboardVisible,
   });
-
-  const handleKeyboardShow = () => {
-    setIsKeyboardVisible(true);
-  };
-
-  const handleKeyboardHide = () => {
-    setIsKeyboardVisible(false);
-  };
 
   useNavbar(strings('confirm.title.perps_deposit'), false);
 
@@ -41,12 +34,13 @@ export function PerpsDeposit() {
       <EditAmount
         prefix={AMOUNT_PREFIX}
         autoKeyboard
-        onKeyboardShow={handleKeyboardShow}
-        onKeyboardHide={handleKeyboardHide}
+        onKeyboardShow={() => setIsKeyboardVisible(true)}
+        onKeyboardHide={() => setIsKeyboardVisible(false)}
+        onKeyboardDone={() => setInputChanged(true)}
       >
         <Box gap={16}>
           {isKeyboardVisible && <PayTokenBalance />}
-          <AlertMessage field={RowAlertKey.Amount} />
+          {inputChanged && <AlertMessage field={RowAlertKey.Amount} />}
           <TokenAmountNative />
         </Box>
         {!isKeyboardVisible && (
