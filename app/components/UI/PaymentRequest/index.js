@@ -16,6 +16,7 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import Fuse from 'fuse.js';
 import AssetList from './AssetList';
 import PropTypes from 'prop-types';
+import { debounce } from 'lodash';
 import {
   weiToFiat,
   toWei,
@@ -70,7 +71,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../../components/hooks/useMetrics';
 import { RequestPaymentViewSelectors } from '../../../../e2e/selectors/Receive/RequestPaymentView.selectors';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { debounce } from 'lodash';
 
 const KEYBOARD_OFFSET = 120;
 const createStyles = (colors) =>
@@ -343,6 +343,26 @@ class PaymentRequest extends PureComponent {
     inputWidth: { width: '99%' },
   };
 
+  /**
+   * Handle token search based on user input
+   * debounced by 300ms to prevent calls on every keystroke
+   *
+   * @param {string} searchInputValue - String containing assets query
+   */
+  debouncedTokenSearch = debounce((searchInputValue) => {
+    const { tokenList } = this.props;
+    if (typeof searchInputValue !== 'string') {
+      searchInputValue = this.state.searchInputValue;
+    }
+
+    const fuseSearchResult = fuse.search(searchInputValue);
+    const addressSearchResult = tokenList.filter((token) =>
+      toLowerCaseEquals(token.address, searchInputValue),
+    );
+    const results = [...addressSearchResult, ...fuseSearchResult];
+    this.setState({ results });
+  }, 300);
+
   updateNavBar = () => {
     const { navigation, route } = this.props;
     const colors = this.context.colors || mockTheme.colors;
@@ -382,6 +402,11 @@ class PaymentRequest extends PureComponent {
     });
   };
 
+  componentWillUnmount = () => {
+    // Cancel any pending debounced search
+    this.debouncedTokenSearch.cancel();
+  };
+
   /**
    * Go to asset selection view and modify navbar accordingly
    */
@@ -414,37 +439,20 @@ class PaymentRequest extends PureComponent {
     this.updateAmount();
   };
 
-  /**
-   * Handle search input result
-   *
-   * @param {string} searchInputValue - String containing assets query
-   */
-  handleSearch = (searchInputValue) => {
-    const { tokenList } = this.props;
-    if (typeof searchInputValue !== 'string') {
-      searchInputValue = this.state.searchInputValue;
-    }
-
-    const fuseSearchResult = fuse.search(searchInputValue);
-    const addressSearchResult = tokenList.filter((token) =>
-      toLowerCaseEquals(token.address, searchInputValue),
-    );
-    const results = [...addressSearchResult, ...fuseSearchResult];
-    this.setState({ searchInputValue, results });
-  };
-
   handleSearchTokenList = (searchInputValue) => {
     if (typeof searchInputValue !== 'string') {
       searchInputValue = this.state.searchInputValue;
     }
     this.setState({ searchInputValue });
 
-    this.handleSearch(searchInputValue);
+    this.debouncedTokenSearch(searchInputValue);
   };
 
   /** Clear search input and focus */
   clearSearchInput = () => {
-    this.setState({ searchInputValue: '' });
+    // Cancel any pending debounced search
+    this.debouncedTokenSearch.cancel();
+    this.setState({ searchInputValue: '', results: [] });
     this.searchInput.current?.focus?.();
   };
 
@@ -522,6 +530,7 @@ class PaymentRequest extends PureComponent {
               <TouchableOpacity
                 onPress={this.clearSearchInput}
                 style={styles.clearButton}
+                testID="clear-search-input-button"
               >
                 <FontAwesome
                   name="times-circle"

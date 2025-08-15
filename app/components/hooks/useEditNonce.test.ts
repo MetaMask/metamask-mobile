@@ -1,6 +1,9 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useEditNonce } from './useEditNonce';
-import { getNetworkNonce, updateTransaction } from '../../util/transaction-controller';
+import {
+  getNetworkNonce,
+  updateTransaction,
+} from '../../util/transaction-controller';
 import { useTransactionMetadataRequest } from '../Views/confirmations/hooks/transactions/useTransactionMetadataRequest';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
@@ -9,9 +12,12 @@ jest.mock('../../util/transaction-controller', () => ({
   updateTransaction: jest.fn(),
 }));
 
-jest.mock('../Views/confirmations/hooks/transactions/useTransactionMetadataRequest', () => ({
-  useTransactionMetadataRequest: jest.fn(),
-}));
+jest.mock(
+  '../Views/confirmations/hooks/transactions/useTransactionMetadataRequest',
+  () => ({
+    useTransactionMetadataRequest: jest.fn(),
+  }),
+);
 
 describe('useEditNonce', () => {
   const mockTransactionMetadata = {
@@ -34,7 +40,8 @@ describe('useEditNonce', () => {
   beforeEach(() => {
     mockGetNetworkNonce = getNetworkNonce as jest.Mock;
     mockUpdateTransaction = updateTransaction as jest.Mock;
-    mockUseTransactionMetadataRequest = useTransactionMetadataRequest as jest.Mock;
+    mockUseTransactionMetadataRequest =
+      useTransactionMetadataRequest as jest.Mock;
 
     mockGetNetworkNonce.mockReset();
     mockUpdateTransaction.mockReset();
@@ -72,7 +79,7 @@ describe('useEditNonce', () => {
 
     expect(mockGetNetworkNonce).toHaveBeenCalledWith(
       { from: mockTransactionMetadata.txParams.from },
-      mockTransactionMetadata.networkClientId
+      mockTransactionMetadata.networkClientId,
     );
     expect(result.current.proposedNonce).toBe(42);
     expect(result.current.userSelectedNonce).toBe(42);
@@ -156,7 +163,7 @@ describe('useEditNonce', () => {
         ...mockTransactionMetadata,
         customNonceValue: '100',
       },
-      mockTransactionMetadata.id
+      mockTransactionMetadata.id,
     );
 
     // Final state check

@@ -6,6 +6,9 @@ import {
   getNotificationDetails,
   formatCurrency,
   hasDepositOrderField,
+  generateThemeParameters,
+  timestampToTransakFormat,
+  getCryptoCurrencyFromTransakId,
 } from '.';
 import { FiatOrder } from '../../../../../reducers/fiatOrders';
 import {
@@ -14,8 +17,18 @@ import {
 } from '../../../../../constants/on-ramp';
 import { DepositOrder, DepositOrderType } from '@consensys/native-ramps-sdk';
 import { strings } from '../../../../../../locales/i18n';
-import { DepositPaymentMethod } from '../constants';
+import {
+  DepositPaymentMethod,
+  USDC_BASE_TOKEN,
+  USDC_LINEA_TOKEN,
+  USDC_TOKEN,
+  USDT_BASE_TOKEN,
+  USDT_LINEA_TOKEN,
+  USDT_TOKEN,
+} from '../constants';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { darkTheme, lightTheme } from '@metamask/design-tokens';
+import { AppThemeKey } from '../../../../../util/theme/models';
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn(),
@@ -46,11 +59,9 @@ describe('Transak Utils', () => {
       expect(
         getTransakCryptoCurrencyId({
           assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-          logo: 'usdc-logo',
           iconUrl: 'usdc-icon',
           name: 'USD Coin',
           chainId: 'eip155:1',
-          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           symbol: 'USDC',
           decimals: 6,
         }),
@@ -61,11 +72,9 @@ describe('Transak Utils', () => {
       expect(
         getTransakCryptoCurrencyId({
           assetId: 'eip155:1/erc20:0xdAC17F958D2ee523a2206206994597C13D831ec7',
-          logo: 'usdt-logo',
           iconUrl: 'usdt-icon',
           name: 'Tether USD',
           chainId: 'eip155:1',
-          address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
           symbol: 'USDT',
           decimals: 6,
         }),
@@ -76,11 +85,9 @@ describe('Transak Utils', () => {
       expect(() =>
         getTransakCryptoCurrencyId({
           assetId: 'unsupported',
-          logo: 'unsupported-logo',
           iconUrl: 'unsupported-icon',
           name: 'Unsupported',
           chainId: 'eip155:1',
-          address: '0x123',
           symbol: 'UNS',
           decimals: 18,
         }),
@@ -129,9 +136,9 @@ describe('Transak Utils', () => {
     });
 
     it('should throw error for unsupported chain', () => {
-      expect(() => getTransakChainId('unsupported')).toThrow(
-        'Unsupported chain: unsupported',
-      );
+      expect(() =>
+        getTransakChainId('unsupported' as unknown as `${string}:${string}`),
+      ).toThrow('Unsupported chain: unsupported');
     });
   });
 
@@ -155,6 +162,48 @@ describe('Transak Utils', () => {
           duration: 'unknown',
         } as unknown as DepositPaymentMethod),
       ).toThrow('Unsupported payment method: unsupported');
+    });
+  });
+
+  describe('getCryptoCurrencyFromTransakId', () => {
+    it('should return the correct crypto currency for Ethereum USDC', () => {
+      const result = getCryptoCurrencyFromTransakId('USDC', 'ethereum');
+      expect(result?.assetId).toBe(USDC_TOKEN.assetId);
+    });
+
+    it('should return the correct crypto currency for Linea USDC', () => {
+      const result = getCryptoCurrencyFromTransakId('USDC', 'linea');
+      expect(result?.assetId).toBe(USDC_LINEA_TOKEN.assetId);
+    });
+
+    it('should return the correct crypto currency for Base USDC', () => {
+      const result = getCryptoCurrencyFromTransakId('USDC', 'base');
+      expect(result?.assetId).toBe(USDC_BASE_TOKEN.assetId);
+    });
+
+    it('should return the correct crypto currency for Ethereum USDT', () => {
+      const result = getCryptoCurrencyFromTransakId('USDT', 'ethereum');
+      expect(result?.assetId).toBe(USDT_TOKEN.assetId);
+    });
+
+    it('should return the correct crypto currency for Linea USDT', () => {
+      const result = getCryptoCurrencyFromTransakId('USDT', 'linea');
+      expect(result?.assetId).toBe(USDT_LINEA_TOKEN.assetId);
+    });
+
+    it('should return the correct crypto currency for Base USDT', () => {
+      const result = getCryptoCurrencyFromTransakId('USDT', 'base');
+      expect(result?.assetId).toBe(USDT_BASE_TOKEN.assetId);
+    });
+
+    it('should return null for unsupported crypto currency', () => {
+      const result = getCryptoCurrencyFromTransakId('UNSUPPORTED', 'ethereum');
+      expect(result).toBeNull();
+    });
+
+    it('should return null for unsupported network', () => {
+      const result = getCryptoCurrencyFromTransakId('USDC', 'unsupported');
+      expect(result).toBeNull();
     });
   });
 });
@@ -349,4 +398,79 @@ describe('hasDepositOrderField', () => {
     expect(hasDepositOrderField(validDepositOrder, 'network')).toBe(true);
     expect(hasDepositOrderField(validDepositOrder, 'status')).toBe(true);
   });
+});
+
+describe('generateThemeParameters', () => {
+  it('should generate correct theme parameters for light mode', () => {
+    const themeAppearance = AppThemeKey.light;
+    const colors = lightTheme.colors;
+    const result = generateThemeParameters(themeAppearance, colors);
+    expect(result).toEqual({
+      themeColor: colors.primary.default,
+      colorMode: 'LIGHT',
+      backgroundColors: [
+        colors.background.default,
+        colors.background.default,
+        colors.background.alternative,
+      ].join(','),
+      textColors: [
+        colors.text.default,
+        colors.text.default,
+        colors.text.alternative,
+      ].join(','),
+      borderColors: [
+        colors.border.default,
+        colors.border.muted,
+        colors.border.muted,
+      ].join(','),
+      primaryButtonFillColor: colors.icon.default,
+      primaryButtonTextColor: colors.icon.inverse,
+      surfaceFillColor: colors.background.muted,
+    });
+  });
+
+  it('should generate correct theme parameters for dark mode', () => {
+    const themeAppearance = AppThemeKey.dark;
+    const colors = darkTheme.colors;
+    const result = generateThemeParameters(themeAppearance, colors);
+    expect(result).toEqual({
+      themeColor: colors.primary.default,
+      colorMode: 'DARK',
+      backgroundColors: [
+        colors.background.default,
+        colors.background.default,
+        colors.background.alternative,
+      ].join(','),
+      textColors: [
+        colors.text.default,
+        colors.text.default,
+        colors.text.alternative,
+      ].join(','),
+      borderColors: [
+        colors.border.default,
+        colors.border.muted,
+        colors.border.muted,
+      ].join(','),
+      primaryButtonFillColor: colors.icon.default,
+      primaryButtonTextColor: colors.icon.inverse,
+      surfaceFillColor: colors.background.muted,
+    });
+  });
+});
+
+describe('timestampToTransakFormat', () => {
+  it.each([
+    [new Date(2021, 6, 4).getTime().toString(), '04-07-2021'],
+    [new Date(2015, 4, 10).getTime().toString(), '10-05-2015'],
+    [new Date(1998, 3, 6).getTime().toString(), '06-04-1998'],
+    [new Date(1958, 2, 31).getTime().toString(), '31-03-1958'],
+    [new Date(2025, 11, 31).getTime().toString(), '31-12-2025'],
+    [new Date(2010, 9, 10).getTime().toString(), '10-10-2010'],
+    [new Date(1996, 0, 1).getTime().toString(), '01-01-1996'],
+  ])(
+    'should return correct Transak format for timestamp %s',
+    (timestamp, expected) => {
+      expect(timestampToTransakFormat(timestamp)).toBe(expected);
+    },
+  );
 });

@@ -173,8 +173,7 @@ export default class SelectComponent extends PureComponent {
 
     return (
       <View style={baseStyles.flexGrow}>
-        <TouchableOpacity onPress={this.showPicker}
-          testID={this.props.testID}>
+        <TouchableOpacity onPress={this.showPicker} testID={this.props.testID}>
           <View style={styles.dropdown}>
             <Text style={styles.selectedOption} numberOfLines={1}>
               {this.getSelectedValue()}

@@ -93,7 +93,9 @@ const getNonEvmDisplayBalance = (
 };
 ///: END:ONLY_INCLUDE_IF
 
-export const getShouldShowAggregatedPercentage = (chainId: SupportedCaipChainId) => {
+export const getShouldShowAggregatedPercentage = (
+  chainId: SupportedCaipChainId,
+) => {
   return !isTestNet(chainId);
 };
 
@@ -116,7 +118,6 @@ export const getAccountBalanceData = (
   multichainBalances: MultichainBalancesControllerState['balances'],
   multichainAssets: MultichainAssetsControllerState['accountsAssets'],
   multichainAssetsRates: MultichainAssetsRatesControllerState['conversionRates'],
-  nonEvmChainId: SupportedCaipChainId,
   shouldShowFiat: boolean,
   ///: END:ONLY_INCLUDE_IF
 ): {
@@ -132,7 +133,6 @@ export const getAccountBalanceData = (
       multichainBalances,
       multichainAssets,
       multichainAssetsRates,
-      nonEvmChainId,
     );
     return {
       displayBalance: getNonEvmDisplayBalance(

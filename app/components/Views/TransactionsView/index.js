@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import PropTypes from 'prop-types';
 import { connect, useSelector } from 'react-redux';
+import { KnownCaipNamespace } from '@metamask/utils';
 import { withNavigation } from '@react-navigation/compat';
 import { showAlert } from '../../../actions/alert';
 import Transactions from '../../UI/Transactions';
@@ -31,14 +32,16 @@ import {
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
+import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-import { selectSolanaAccountTransactions } from '../../../selectors/multichain';
+import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import useCurrencyRatePolling from '../../hooks/AssetPolling/useCurrencyRatePolling';
 import useTokenRatesPolling from '../../hooks/AssetPolling/useTokenRatesPolling';
 
@@ -64,6 +67,9 @@ const TransactionsView = ({
   const [confirmedTxs, setConfirmedTxs] = useState([]);
   const [loading, setLoading] = useState();
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
+  const enabledNetworksByNamespace = useSelector(
+    selectEnabledNetworksByNamespace,
+  );
 
   useCurrencyRatePolling();
   useTokenRatesPolling();
@@ -122,14 +128,25 @@ const TransactionsView = ({
         return filter;
       });
 
-      const allTransactionsFiltered = isPopularNetwork
-        ? allTransactions.filter(
-            (tx) =>
-              tx.chainId === CHAIN_IDS.MAINNET ||
-              tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
-              PopularList.some((network) => network.chainId === tx.chainId),
-          )
-        : allTransactions.filter((tx) => tx.chainId === chainId);
+      let allTransactionsFiltered;
+      if (isRemoveGlobalNetworkSelectorEnabled()) {
+        // TODO: Make sure to come back and check on how Solana transactions are handled
+        allTransactionsFiltered = allTransactions.filter((tx) => {
+          const chainId = tx.chainId;
+          return enabledNetworksByNamespace[KnownCaipNamespace.Eip155]?.[
+            chainId
+          ];
+        });
+      } else {
+        allTransactionsFiltered = isPopularNetwork
+          ? allTransactions.filter(
+              (tx) =>
+                tx.chainId === CHAIN_IDS.MAINNET ||
+                tx.chainId === CHAIN_IDS.LINEA_MAINNET ||
+                PopularList.some((network) => network.chainId === tx.chainId),
+            )
+          : allTransactions.filter((tx) => tx.chainId === chainId);
+      }
 
       const submittedTxsFiltered = submittedTxs.filter(({ txParams }) => {
         const { from, nonce } = txParams;
@@ -173,6 +190,7 @@ const TransactionsView = ({
       chainId,
       tokenNetworkFilter,
       isPopularNetwork,
+      enabledNetworksByNamespace,
     ],
   );
 
@@ -251,10 +269,10 @@ const mapStateToProps = (state) => {
     selectedInternalAccount &&
     !isEvmAccountType(selectedInternalAccount.type)
   ) {
-    const solanaTransactionData = selectSolanaAccountTransactions(state);
-    const solanaTransactions = solanaTransactionData?.transactions || [];
+    const nonEVMTransactions = selectNonEvmTransactions(state);
+    const txs = nonEVMTransactions?.transactions || [];
 
-    allTransactions = [...evmTransactions, ...solanaTransactions].sort(
+    allTransactions = [...evmTransactions, ...txs].sort(
       (a, b) => (b?.time ?? 0) - (a?.time ?? 0),
     );
   }

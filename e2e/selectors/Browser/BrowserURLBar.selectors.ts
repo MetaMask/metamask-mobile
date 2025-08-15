@@ -5,4 +5,4 @@ export const BrowserURLBarSelectorsIDs = {
   URL_CLEAR_ICON: 'url-clear-icon',
 } as const;
 
-export type BrowserURLBarSelectorsIDsType = typeof BrowserURLBarSelectorsIDs; 
+export type BrowserURLBarSelectorsIDsType = typeof BrowserURLBarSelectorsIDs;

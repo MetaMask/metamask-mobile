@@ -973,7 +973,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -1024,8 +1024,8 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -1074,6 +1074,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -1097,7 +1098,6 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -1523,6 +1523,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                                   "flexDirection": "row",
                                   "height": 40,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -2009,7 +2010,7 @@ exports[`Quotes renders animation on first fetching 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -2060,8 +2061,8 @@ exports[`Quotes renders animation on first fetching 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -3112,7 +3113,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -3163,8 +3164,8 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "height": 1334,
                                 "maxHeight": 1334,
@@ -3194,6 +3195,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -3217,7 +3219,6 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -3602,7 +3603,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "alignItems": "center",
                                                           "alignSelf": "flex-start",
-                                                          "backgroundColor": "#1c7e331a",
+                                                          "backgroundColor": "#457a391a",
                                                           "borderRadius": 4,
                                                           "height": 20,
                                                           "justifyContent": "center",
@@ -3615,7 +3616,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#1c7e33",
+                                                            "color": "#457a39",
                                                             "fontFamily": "Geist Bold",
                                                             "fontSize": 12,
                                                             "fontWeight": "bold",
@@ -3950,7 +3951,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         {
                                                           "alignItems": "center",
                                                           "alignSelf": "flex-start",
-                                                          "backgroundColor": "#1c7e331a",
+                                                          "backgroundColor": "#457a391a",
                                                           "borderRadius": 4,
                                                           "height": 20,
                                                           "justifyContent": "center",
@@ -3963,7 +3964,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                                         accessibilityRole="text"
                                                         style={
                                                           {
-                                                            "color": "#1c7e33",
+                                                            "color": "#457a39",
                                                             "fontFamily": "Geist Bold",
                                                             "fontSize": 12,
                                                             "fontWeight": "bold",
@@ -4930,7 +4931,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -4981,8 +4982,8 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -5031,6 +5032,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -5054,7 +5056,6 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -5361,7 +5362,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   {
                                                     "alignItems": "center",
                                                     "alignSelf": "flex-start",
-                                                    "backgroundColor": "#1c7e331a",
+                                                    "backgroundColor": "#457a391a",
                                                     "borderRadius": 4,
                                                     "height": 20,
                                                     "justifyContent": "center",
@@ -5374,7 +5375,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                                   accessibilityRole="text"
                                                   style={
                                                     {
-                                                      "color": "#1c7e33",
+                                                      "color": "#457a39",
                                                       "fontFamily": "Geist Bold",
                                                       "fontSize": 12,
                                                       "fontWeight": "bold",
@@ -5630,6 +5631,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                                   "flexDirection": "row",
                                   "height": 40,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -6116,7 +6118,7 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -6167,8 +6169,8 @@ exports[`Quotes renders correctly after animation without quotes 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -6870,7 +6872,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -6921,8 +6923,8 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -7624,7 +7626,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -7675,8 +7677,8 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -8378,7 +8380,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -8429,8 +8431,8 @@ exports[`Quotes renders quotes expired screen 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",

@@ -8,6 +8,7 @@ import {
   Alert,
   TouchableOpacity,
   Platform,
+  StatusBar,
 } from 'react-native';
 import PropTypes from 'prop-types';
 import { baseStyles, fontStyles } from '../../../styles/common';
@@ -51,13 +52,21 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import {
+  updateCachedConsent,
+  flushBufferedTraces,
+  discardBufferedTraces,
+} from '../../../util/trace';
+import { setupSentry } from '../../../util/sentry/utils';
 
 const createStyles = ({ colors }) =>
   StyleSheet.create({
     root: {
       ...baseStyles.flexGrow,
       backgroundColor: colors.background.default,
-      paddingTop: 24,
+      paddingTop:
+        Platform.OS === 'android' ? StatusBar.currentHeight || 24 : 24,
+      paddingBottom: 16,
     },
     checkbox: {
       display: 'flex',
@@ -80,6 +89,7 @@ const createStyles = ({ colors }) =>
       flex: 1,
       flexDirection: 'column',
       rowGap: 16,
+      paddingBottom: 80, // Space for fixed action buttons at bottom
     },
     privacyPolicy: {
       ...fontStyles.normal,
@@ -330,6 +340,9 @@ class OptinMetrics extends PureComponent {
       // and disable analytics
       clearOnboardingEvents();
       await metrics.enable(false);
+      await setupSentry(); // Re-setup Sentry with enabled: false
+      discardBufferedTraces();
+      updateCachedConsent(false);
     }, 200);
     this.continue();
   };
@@ -346,6 +359,10 @@ class OptinMetrics extends PureComponent {
     } = this.props;
 
     await metrics.enable();
+    await setupSentry(); // Re-setup Sentry with enabled: true
+    await flushBufferedTraces();
+    updateCachedConsent(true);
+
     // Handle null case for marketing consent
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -449,19 +466,17 @@ class OptinMetrics extends PureComponent {
 
     if (isPastPrivacyPolicyDate) {
       return (
-        <View>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-            {strings('privacy_policy.fine_print_1') + ' '}
-            <Text
-              color={TextColor.Primary}
-              variant={TextVariant.BodySM}
-              onPress={this.openPrivacyPolicy}
-            >
-              {strings('privacy_policy.privacy_policy_button')}
-            </Text>
-            {' ' + strings('privacy_policy.fine_print_2')}
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {strings('privacy_policy.fine_print_1') + ' '}
+          <Text
+            color={TextColor.Primary}
+            variant={TextVariant.BodySM}
+            onPress={this.openPrivacyPolicy}
+          >
+            {strings('privacy_policy.privacy_policy_button')}
           </Text>
-        </View>
+          {' ' + strings('privacy_policy.fine_print_2')}
+        </Text>
       );
     }
 

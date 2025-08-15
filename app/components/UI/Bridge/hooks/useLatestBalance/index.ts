@@ -43,7 +43,11 @@ export const fetchEvmAtomicBalance = async (
     if (tokenAddress === constants.AddressZero) {
       return await web3Provider.getBalance(getAddress(selectedAddress));
     }
-    return await fetchAtomicTokenBalance(tokenAddress, selectedAddress, web3Provider);
+    return await fetchAtomicTokenBalance(
+      tokenAddress,
+      selectedAddress,
+      web3Provider,
+    );
   }
   return undefined;
 };
@@ -62,16 +66,16 @@ interface Balance {
  * @param token.balance - The cached token balance as a non-atomic decimal string, e.g. "1.23456".
  * @returns An object containing the the balance as a non-atomic decimal string and the atomic balance as a BigNumber.
  */
-export const useLatestBalance = (
-  token: {
-    address?: string;
-    decimals?: number;
-    chainId?: Hex | CaipChainId;
-    balance?: string
-  },
-) => {
+export const useLatestBalance = (token: {
+  address?: string;
+  decimals?: number;
+  chainId?: Hex | CaipChainId;
+  balance?: string;
+}) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
-  const selectedAddress = useSelector(selectSelectedInternalAccountFormattedAddress);
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
   const previousToken = usePrevious(token);
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -89,7 +93,8 @@ export const useLatestBalance = (
     if (
       token.address &&
       token.decimals &&
-      chainId && !isCaipChainId(chainId) &&
+      chainId &&
+      !isCaipChainId(chainId) &&
       selectedAddress
     ) {
       // Create a unique UUID for this trace to prevent collisions
@@ -118,7 +123,11 @@ export const useLatestBalance = (
           });
         }
       } finally {
-        endTrace({ name: TraceName.BridgeBalancesUpdated, id: traceId, timestamp: Date.now() });
+        endTrace({
+          name: TraceName.BridgeBalancesUpdated,
+          id: traceId,
+          timestamp: Date.now(),
+        });
       }
     }
   }, [token.address, token.decimals, chainId, selectedAddress]);
@@ -130,12 +139,15 @@ export const useLatestBalance = (
     if (
       token.address &&
       token.decimals &&
-      chainId && isSolanaChainId(chainId) &&
+      chainId &&
+      isSolanaChainId(chainId) &&
       selectedAddress
     ) {
-      const displayBalance = nonEvmTokens.find((nonEvmToken) =>
-        nonEvmToken.address === token.address
-        && nonEvmToken.chainId === chainId)?.balance;
+      const displayBalance = nonEvmTokens.find(
+        (nonEvmToken) =>
+          nonEvmToken.address === token.address &&
+          nonEvmToken.chainId === chainId,
+      )?.balance;
 
       if (displayBalance && token.decimals) {
         setBalance({

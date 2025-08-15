@@ -24,14 +24,15 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flex": 1,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -41,7 +42,7 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -145,7 +146,7 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
                 testID="annual-rate-tooltip"
               >
                 <SvgMock
-                  color="#9ca1af"
+                  color="#b7bbc8"
                   fill="currentColor"
                   height={16}
                   name="Info"
@@ -163,7 +164,7 @@ exports[`EarnLendingBalance does renders earnings for output tokens 1`] = `
               accessibilityRole="text"
               style={
                 {
-                  "color": "#1c7e33",
+                  "color": "#457a39",
                   "fontFamily": "Geist Regular",
                   "fontSize": 16,
                   "letterSpacing": 0,
@@ -259,11 +260,10 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
     onPress={[Function]}
     style={
       {
-        "alignItems": "flex-start",
+        "alignItems": "center",
         "flex": 1,
         "flexDirection": "row",
-        "paddingHorizontal": 15,
-        "paddingVertical": 14,
+        "height": 64,
       }
     }
     testID="asset-ADAI"
@@ -419,7 +419,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
           accessibilityRole="text"
           style={
             {
-              "color": "#1c7e33",
+              "color": "#457a39",
               "fontFamily": "Geist Medium",
               "fontSize": 14,
               "letterSpacing": 0,
@@ -435,7 +435,6 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
       style={
         {
           "alignItems": "flex-end",
-          "alignSelf": "flex-end",
           "flexShrink": 0,
         }
       }
@@ -445,7 +444,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         style={
           {
             "color": "#121314",
-            "fontFamily": "Geist Regular",
+            "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
             "lineHeight": 24,
@@ -496,14 +495,15 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flex": 1,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -513,7 +513,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -535,14 +535,15 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         {
           "alignItems": "center",
           "alignSelf": "flex-start",
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
+          "backgroundColor": "#3c4d9d0f",
+          "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flex": 1,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -552,7 +553,7 @@ exports[`EarnLendingBalance renders balance and buttons when user has lending po
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,

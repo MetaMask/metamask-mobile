@@ -77,8 +77,7 @@ describe('asset-utils', () => {
     });
 
     it('should return correct image URL for non-hex CAIP asset ID', () => {
-      const assetId =
-        `${SolScope.Mainnet}/token:aBCD` as CaipAssetType;
+      const assetId = `${SolScope.Mainnet}/token:aBCD` as CaipAssetType;
       const expectedUrl = `${STATIC_METAMASK_BASE_URL}/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/aBCD.png`;
 
       expect(getAssetImageUrl(assetId, 'eip155:1')).toBe(expectedUrl);
@@ -92,10 +91,11 @@ describe('asset-utils', () => {
   });
 
   describe('fetchAssetMetadata', () => {
-    const mockAddress = '0x123' as Hex;
+    const mockAddress = '0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01' as Hex;
     const mockChainId = 'eip155:1' as CaipChainId;
     const mockHexChainId = '0x1' as Hex;
-    const mockAssetId = 'eip155:1/erc20:0x123' as CaipAssetType;
+    const mockAssetId =
+      'eip155:1/erc20:0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01' as CaipAssetType;
 
     beforeEach(() => {
       jest.clearAllMocks();
@@ -123,10 +123,11 @@ describe('asset-utils', () => {
         symbol: 'TEST',
         decimals: 18,
         image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x123.png',
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01.png',
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,
+        name: 'Test Token',
       });
     });
 
@@ -149,6 +150,7 @@ describe('asset-utils', () => {
       expect(result).toStrictEqual({
         symbol: 'SOL',
         decimals: 9,
+        name: 'Solana Token',
         image:
           'https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png',
         assetId: solanaAssetId,
@@ -178,8 +180,9 @@ describe('asset-utils', () => {
       expect(result).toStrictEqual({
         symbol: 'TEST',
         decimals: 18,
+        name: 'Test Token',
         image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x123.png',
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01.png',
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,
@@ -207,8 +210,9 @@ describe('asset-utils', () => {
       expect(result).toStrictEqual({
         symbol: 'TEST',
         decimals: 18,
+        name: 'Test Token',
         image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x123.png',
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01.png',
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,
@@ -216,9 +220,7 @@ describe('asset-utils', () => {
     });
 
     it('should return undefined when API call fails', async () => {
-      (handleFetch as jest.Mock).mockRejectedValueOnce(
-        new Error('API Error'),
-      );
+      (handleFetch as jest.Mock).mockRejectedValueOnce(new Error('API Error'));
 
       const result = await fetchAssetMetadata(mockAddress, mockHexChainId);
 
@@ -252,8 +254,9 @@ describe('asset-utils', () => {
       expect(result).toStrictEqual({
         symbol: 'TEST',
         decimals: 18,
+        name: 'Test Token',
         image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0x123.png',
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01.png',
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,

@@ -8,7 +8,10 @@ import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
-import { selectIsBridgeEnabledSource } from '../../../../../core/redux/slices/bridge';
+import {
+  selectIsBridgeEnabledSource,
+  selectIsUnifiedSwapsEnabled,
+} from '../../../../../core/redux/slices/bridge';
 import { ethers } from 'ethers';
 
 // Mock dependencies
@@ -21,6 +24,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../../../../core/redux/slices/bridge', () => ({
   ...jest.requireActual('../../../../../core/redux/slices/bridge'),
   selectIsBridgeEnabledSource: jest.fn(() => true),
+  selectIsUnifiedSwapsEnabled: jest.fn(() => false),
 }));
 
 const mockGoToPortfolioBridge = jest.fn();
@@ -30,7 +34,9 @@ jest.mock('../useGoToPortfolioBridge', () => ({
 }));
 
 jest.mock('../../../../../selectors/networkController', () => {
-  const actual = jest.requireActual('../../../../../selectors/networkController');
+  const actual = jest.requireActual(
+    '../../../../../selectors/networkController',
+  );
   return {
     ...actual,
     selectChainId: jest.fn(actual.selectChainId),
@@ -90,7 +96,7 @@ describe('useSwapBridgeNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        token: {
+        sourceToken: {
           address: mockNativeAsset.address,
           name: 'Ether',
           symbol: mockNativeAsset.symbol,
@@ -118,7 +124,7 @@ describe('useSwapBridgeNavigation', () => {
         useSwapBridgeNavigation({
           location: mockLocation,
           sourcePage: mockSourcePage,
-          token: mockToken,
+          sourceToken: mockToken,
         }),
       { state: initialState },
     );
@@ -128,7 +134,7 @@ describe('useSwapBridgeNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        token: mockToken,
+        sourceToken: mockToken,
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Bridge,
       },
@@ -150,7 +156,7 @@ describe('useSwapBridgeNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        token: mockNativeAsset,
+        sourceToken: mockNativeAsset,
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Bridge,
       },
@@ -227,7 +233,7 @@ describe('useSwapBridgeNavigation', () => {
         useSwapBridgeNavigation({
           location: mockLocation,
           sourcePage: mockSourcePage,
-          token: mockToken,
+          sourceToken: mockToken,
         }),
       { state: initialState },
     );
@@ -260,9 +266,37 @@ describe('useSwapBridgeNavigation', () => {
     });
   });
 
+  describe('Unified', () => {
+    it('navigates to Bridge when goToSwaps is called and unified swaps is enabled', () => {
+      (selectIsUnifiedSwapsEnabled as unknown as jest.Mock).mockReturnValueOnce(
+        true,
+      );
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps();
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          sourceToken: mockNativeAsset,
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+        },
+      });
+    });
+  });
+
   describe('Solana', () => {
     it('navigates to Bridge when goToSwaps is called and token chainId is Solana', () => {
-      (selectChainId as unknown as jest.Mock).mockReturnValue(
+      (selectChainId as unknown as jest.Mock).mockReturnValueOnce(
         SolScope.Mainnet,
       );
 
@@ -280,7 +314,7 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
         params: {
-          token: {
+          sourceToken: {
             address: ethers.constants.AddressZero,
             name: 'Solana',
             symbol: 'SOL',
@@ -295,7 +329,7 @@ describe('useSwapBridgeNavigation', () => {
     });
 
     it('navigates to Bridge when goToSwaps is called and selected chainId is Solana', () => {
-      (selectChainId as unknown as jest.Mock).mockReturnValue(
+      (selectChainId as unknown as jest.Mock).mockReturnValueOnce(
         SolScope.Mainnet,
       );
 
@@ -313,7 +347,7 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
         params: {
-          token: {
+          sourceToken: {
             address: ethers.constants.AddressZero,
             name: 'Solana',
             symbol: 'SOL',

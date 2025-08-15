@@ -37,6 +37,7 @@ import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PROGRESS_STEPPER_TEST_IDS } from './components/ProgressStepper';
+import { endTrace, trace, TraceName } from '../../../../../util/trace';
 
 type TxCallback = (event: {
   transactionMeta: Partial<TransactionMeta>;
@@ -115,6 +116,52 @@ jest.mock('../../hooks/useEarnToken', () => ({
         },
       },
     },
+    earnTokenPair: {
+      earnToken: {
+        ...MOCK_USDC_MAINNET_ASSET,
+        experience: {
+          type: 'STABLECOIN_LENDING',
+          apr: '4.5',
+          estimatedAnnualRewardsFormatted: '45',
+          estimatedAnnualRewardsFiatNumber: 45,
+          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+          estimatedAnnualRewardsTokenFormatted: '45',
+          market: {
+            protocol: 'AAVE v3',
+            underlying: {
+              address: MOCK_USDC_MAINNET_ASSET.address,
+            },
+            outputToken: {
+              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+            },
+          },
+        },
+      },
+      outputToken: {
+        ...MOCK_USDC_MAINNET_ASSET,
+        address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+        symbol: 'aUSDC',
+        name: 'aUSDC TOKEN',
+        ticker: 'aUSDC',
+        experience: {
+          type: 'STABLECOIN_LENDING',
+          apr: '4.5',
+          estimatedAnnualRewardsFormatted: '45',
+          estimatedAnnualRewardsFiatNumber: 45,
+          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+          estimatedAnnualRewardsTokenFormatted: '45',
+          market: {
+            protocol: 'AAVE v3',
+            underlying: {
+              address: MOCK_USDC_MAINNET_ASSET.address,
+            },
+            outputToken: {
+              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+            },
+          },
+        },
+      },
+    },
     getTokenSnapshot: jest.fn(),
     getEstimatedAnnualRewardsForAmount: () => ({
       estimatedAnnualRewardsFormatted: '$45.00',
@@ -136,7 +183,7 @@ jest.mock('../../../../../core/Engine', () => ({
           type: 'custom',
         },
       }),
-      findNetworkClientIdByChainId: () => 'mainnet',
+      findNetworkClientIdByChainId: jest.fn(() => 'mainnet'),
     },
     TransactionController: {
       addTransaction: jest.fn(),
@@ -184,6 +231,12 @@ jest.mock('../../../../hooks/useMetrics', () => {
   };
 });
 
+jest.mock('../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../util/trace'),
+  endTrace: jest.fn(),
+  trace: jest.fn(),
+}));
+
 describe('EarnLendingDepositConfirmationView', () => {
   jest.mocked(getStakingNavbar);
 
@@ -195,9 +248,16 @@ describe('EarnLendingDepositConfirmationView', () => {
     Engine.context.EarnController.executeLendingTokenApprove,
   );
 
+  const mockFindNetworkClientIdByChainId = jest.mocked(
+    Engine.context.NetworkController.findNetworkClientIdByChainId,
+  );
+
   const selectSelectedInternalAccountMock = jest.mocked(
     selectSelectedInternalAccount,
   );
+
+  const mockEndTrace = jest.mocked(endTrace);
+  const mockTrace = jest.mocked(trace);
 
   const mockInitialState = {
     engine: {
@@ -317,23 +377,25 @@ describe('EarnLendingDepositConfirmationView', () => {
       (useRoute as jest.Mock).mockReturnValue(routeParamsWithApproveAction);
 
       (useEarnToken as jest.Mock).mockReturnValueOnce({
-        outputToken: undefined,
-        earnToken: {
-          ...MOCK_USDT_MAINNET_ASSET,
-          experience: {
-            type: 'STABLECOIN_LENDING',
-            apr: '4.5',
-            estimatedAnnualRewardsFormatted: '45',
-            estimatedAnnualRewardsFiatNumber: 45,
-            estimatedAnnualRewardsTokenMinimalUnit: '45000000',
-            estimatedAnnualRewardsTokenFormatted: '45',
-            market: {
-              protocol: 'AAVE v3',
-              underlying: {
-                address: MOCK_USDT_MAINNET_ASSET.address,
-              },
-              outputToken: {
-                address: MOCK_AUSDT_MAINNET_ASSET.address,
+        earnTokenPair: {
+          outputToken: undefined,
+          earnToken: {
+            ...MOCK_USDT_MAINNET_ASSET,
+            experience: {
+              type: 'STABLECOIN_LENDING',
+              apr: '4.5',
+              estimatedAnnualRewardsFormatted: '45',
+              estimatedAnnualRewardsFiatNumber: 45,
+              estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+              estimatedAnnualRewardsTokenFormatted: '45',
+              market: {
+                protocol: 'AAVE v3',
+                underlying: {
+                  address: MOCK_USDT_MAINNET_ASSET.address,
+                },
+                outputToken: {
+                  address: MOCK_AUSDT_MAINNET_ASSET.address,
+                },
               },
             },
           },
@@ -377,6 +439,7 @@ describe('EarnLendingDepositConfirmationView', () => {
         Engine.context.EarnController.executeLendingTokenApprove,
       ).toHaveBeenCalledWith({
         amount: '0',
+        chainId: '0x1',
         gasOptions: {
           gasLimit: 'none',
         },
@@ -1041,6 +1104,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingTokenApprove,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {
@@ -1088,6 +1152,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingDeposit,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {
@@ -1134,6 +1199,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingTokenApprove,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {
@@ -1178,6 +1244,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingDeposit,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {
@@ -1240,23 +1307,25 @@ describe('EarnLendingDepositConfirmationView', () => {
   it('handles token import and confirmation via subscription listener when no outputToken is present', async () => {
     // Update the mock to return earnToken but no outputToken
     (useEarnToken as jest.Mock).mockReturnValueOnce({
-      outputToken: undefined,
-      earnToken: {
-        ...MOCK_USDC_MAINNET_ASSET,
-        experience: {
-          type: 'STABLECOIN_LENDING',
-          apr: '4.5',
-          estimatedAnnualRewardsFormatted: '45',
-          estimatedAnnualRewardsFiatNumber: 45,
-          estimatedAnnualRewardsTokenMinimalUnit: '45000000',
-          estimatedAnnualRewardsTokenFormatted: '45',
-          market: {
-            protocol: 'AAVE v3',
-            underlying: {
-              address: MOCK_USDC_MAINNET_ASSET.address,
-            },
-            outputToken: {
-              address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+      earnTokenPair: {
+        outputToken: undefined,
+        earnToken: {
+          ...MOCK_USDC_MAINNET_ASSET,
+          experience: {
+            type: 'STABLECOIN_LENDING',
+            apr: '4.5',
+            estimatedAnnualRewardsFormatted: '45',
+            estimatedAnnualRewardsFiatNumber: 45,
+            estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+            estimatedAnnualRewardsTokenFormatted: '45',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
+              },
+              outputToken: {
+                address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+              },
             },
           },
         },
@@ -1330,6 +1399,7 @@ describe('EarnLendingDepositConfirmationView', () => {
       Engine.context.EarnController.executeLendingDeposit,
     ).toHaveBeenCalledWith({
       amount: '5000000',
+      chainId: '0x1',
       protocol: 'AAVE v3',
       underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
       gasOptions: {
@@ -1344,5 +1414,327 @@ describe('EarnLendingDepositConfirmationView', () => {
     });
 
     expect(Engine.context.TokensController.addToken).toHaveBeenCalledTimes(1);
+  });
+
+  it('should handle error adding counter-token on confirmation', async () => {
+    // Update the mock to return earnToken but no outputToken
+    (useEarnToken as jest.Mock).mockReturnValueOnce({
+      earnTokenPair: {
+        outputToken: undefined,
+        earnToken: {
+          ...MOCK_USDC_MAINNET_ASSET,
+          experience: {
+            type: 'STABLECOIN_LENDING',
+            apr: '4.5',
+            estimatedAnnualRewardsFormatted: '45',
+            estimatedAnnualRewardsFiatNumber: 45,
+            estimatedAnnualRewardsTokenMinimalUnit: '45000000',
+            estimatedAnnualRewardsTokenFormatted: '45',
+            market: {
+              protocol: 'AAVE v3',
+              underlying: {
+                address: MOCK_USDC_MAINNET_ASSET.address,
+              },
+              outputToken: {
+                address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+              },
+            },
+          },
+        },
+      },
+      getTokenSnapshot: jest.fn(),
+      tokenSnapshot: {
+        token: {
+          address: '0x91a9948b5002846b9fa5200a58291d46c30d6fe1',
+          symbol: 'aUSDC',
+          name: 'aUSDC TOKEN',
+          decimals: 6,
+        },
+        chainId: '0x1',
+      },
+    });
+
+    const consoleErrorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => {
+        // Do nothing
+      });
+
+    // Mock the findNetworkClientIdByChainId to throw an error
+    mockFindNetworkClientIdByChainId.mockImplementationOnce(() => 'mainnet');
+    mockFindNetworkClientIdByChainId.mockImplementationOnce(() => {
+      throw new Error('Invalid chain ID');
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <EarnLendingDepositConfirmationView />,
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const footerConfirmationButton = getByTestId(
+      CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+    );
+
+    // mock executeLendingDeposit to return a transaction
+    (
+      Engine.context.EarnController.executeLendingDeposit as jest.Mock
+    ).mockResolvedValueOnce({
+      transactionMeta: {
+        id: '123',
+        type: TransactionType.lendingDeposit as TransactionType,
+      },
+    } as Result);
+
+    // Mock the subscription callback
+    let subscriptionCallback:
+      | ((event: { transaction: { hash: string; status: string } }) => void)
+      | undefined;
+    (
+      Engine.controllerMessenger.subscribeOnceIf as jest.Mock
+    ).mockImplementation((event, callback) => {
+      if (event === 'TransactionController:transactionConfirmed') {
+        subscriptionCallback = callback;
+      }
+      return () => {
+        // Cleanup function
+      };
+    });
+
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
+
+    // Simulate transaction submission
+    await act(async () => {
+      if (subscriptionCallback) {
+        subscriptionCallback({
+          transaction: {
+            hash: '0x123',
+            status: 'submitted',
+          },
+        });
+      }
+    });
+
+    // Verify the transaction was executed
+    expect(
+      Engine.context.EarnController.executeLendingDeposit,
+    ).toHaveBeenCalledWith({
+      amount: '5000000',
+      chainId: '0x1',
+      protocol: 'AAVE v3',
+      underlyingTokenAddress: MOCK_USDC_MAINNET_ASSET.address,
+      gasOptions: {
+        gasLimit: 'none',
+      },
+      txOptions: {
+        deviceConfirmedOn: 'metamask_mobile',
+        networkClientId: 'mainnet',
+        origin: 'metamask',
+        type: TransactionType.lendingDeposit,
+      },
+    });
+
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+
+    // Clean up the spy
+    consoleErrorSpy.mockRestore();
+  });
+
+  describe('Tracing', () => {
+    it('calls endTrace for EarnDepositReviewScreen when action is DEPOSIT', () => {
+      renderWithProvider(<EarnLendingDepositConfirmationView />, {
+        state: mockInitialState,
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositReviewScreen,
+      });
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls endTrace for EarnDepositSpendingCapScreen when action is ALLOWANCE_INCREASE', () => {
+      const routeParamsWithAllowanceIncrease = {
+        ...defaultRouteParams,
+        params: {
+          ...defaultRouteParams.params,
+          action: EARN_LENDING_ACTIONS.ALLOWANCE_INCREASE,
+        },
+      };
+      (useRoute as jest.Mock).mockReturnValue(routeParamsWithAllowanceIncrease);
+
+      renderWithProvider(<EarnLendingDepositConfirmationView />, {
+        state: mockInitialState,
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositSpendingCapScreen,
+      });
+      expect(mockEndTrace).not.toHaveBeenCalledWith({
+        name: TraceName.EarnDepositReviewScreen,
+      });
+      expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call trace and endTrace with EarnDepositConfirmationScreen when confirm button is pressed', async () => {
+      mockExecuteLendingDeposit.mockResolvedValue({
+        transactionMeta: {
+          id: '123',
+          type: TransactionType.lendingDeposit,
+        } as TransactionMeta,
+        result: Promise.resolve(''),
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositConfirmationScreen,
+        data: {
+          chainId: MOCK_USDC_MAINNET_ASSET.chainId,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        },
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnDepositConfirmationScreen,
+      });
+    });
+
+    it('should call trace with EarnLendingDepositTxConfirmed when transaction is submitted', async () => {
+      const transactionId = '123';
+
+      mockExecuteLendingDeposit.mockResolvedValue({
+        transactionMeta: {
+          id: transactionId,
+          type: TransactionType.lendingDeposit,
+        } as TransactionMeta,
+        result: Promise.resolve(''),
+      });
+
+      let transactionStatusCallbackSubmitted:
+        | ((event: { transactionMeta: Partial<TransactionMeta> }) => void)
+        | undefined;
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mockImplementation((eventName: string, callback: unknown) => {
+          if (eventName === 'TransactionController:transactionSubmitted') {
+            transactionStatusCallbackSubmitted = callback as (event: {
+              transactionMeta: Partial<TransactionMeta>;
+            }) => void;
+          }
+          return jest.fn();
+        });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      mockTrace.mockClear();
+
+      await act(async () => {
+        if (transactionStatusCallbackSubmitted) {
+          transactionStatusCallbackSubmitted({
+            transactionMeta: { id: transactionId },
+          });
+        }
+      });
+
+      expect(mockTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnLendingDepositTxConfirmed,
+        data: {
+          chainId: MOCK_USDC_MAINNET_ASSET.chainId,
+          experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
+        },
+      });
+    });
+
+    it('should call endTrace with EarnLendingDepositTxConfirmed when transaction is confirmed', async () => {
+      const transactionId = '123';
+
+      mockExecuteLendingDeposit.mockResolvedValue({
+        transactionMeta: {
+          id: transactionId,
+          type: TransactionType.lendingDeposit,
+        } as TransactionMeta,
+        result: Promise.resolve(''),
+      });
+
+      let transactionStatusCallbackConfirmed1:
+        | ((transactionMeta: Partial<TransactionMeta>) => void)
+        | undefined;
+      let transactionStatusCallbackConfirmed2:
+        | ((transactionMeta: Partial<TransactionMeta>) => void)
+        | undefined;
+      let confirmedCallbackCount = 0;
+
+      jest
+        .mocked(Engine.controllerMessenger.subscribeOnceIf)
+        .mockImplementation((eventName: string, callback: unknown) => {
+          if (eventName === 'TransactionController:transactionConfirmed') {
+            if (confirmedCallbackCount === 0) {
+              transactionStatusCallbackConfirmed1 = callback as (
+                transactionMeta: Partial<TransactionMeta>,
+              ) => void;
+            } else {
+              transactionStatusCallbackConfirmed2 = callback as (
+                transactionMeta: Partial<TransactionMeta>,
+              ) => void;
+            }
+            confirmedCallbackCount++;
+          }
+          return jest.fn();
+        });
+
+      const { getByTestId } = renderWithProvider(
+        <EarnLendingDepositConfirmationView />,
+        { state: mockInitialState },
+      );
+
+      const confirmButton = getByTestId(
+        CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      mockEndTrace.mockClear();
+
+      // Test transaction confirmed (both listeners)
+      await act(async () => {
+        if (transactionStatusCallbackConfirmed1) {
+          transactionStatusCallbackConfirmed1({ id: transactionId });
+        }
+        if (transactionStatusCallbackConfirmed2) {
+          transactionStatusCallbackConfirmed2({ id: transactionId });
+        }
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: TraceName.EarnLendingDepositTxConfirmed,
+      });
+    });
   });
 });

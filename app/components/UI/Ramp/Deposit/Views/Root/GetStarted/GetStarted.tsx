@@ -46,7 +46,11 @@ const GetStarted: React.FC = () => {
 
   useEffect(() => {
     navigation.setOptions(
-      getDepositNavbarOptions(navigation, { title: 'Deposit' }, theme),
+      getDepositNavbarOptions(
+        navigation,
+        { title: strings('deposit.get_started.navbar_title') },
+        theme,
+      ),
     );
   }, [navigation, theme]);
 
@@ -65,9 +69,14 @@ const GetStarted: React.FC = () => {
         <ScrollView>
           <ScreenLayout.Content>
             <View style={styles.getStartedImageWrapper}>
-              <Image source={getStartedIcon} style={styles.getStartedImage} />
+              <Image
+                source={getStartedIcon}
+                style={styles.getStartedImage}
+                resizeMode="contain"
+              />
             </View>
           </ScreenLayout.Content>
+
           <ScreenLayout.Content>
             <Text variant={TextVariant.HeadingLG} style={styles.title}>
               {strings('deposit.get_started.title')}

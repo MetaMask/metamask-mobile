@@ -327,7 +327,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -396,6 +396,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                                 "alignItems": "center",
                                 "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
+                                "gap": 16,
                               },
                               {
                                 "marginTop": 0,
@@ -420,7 +421,6 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "flex": 1,
-                                "marginHorizontal": 16,
                               }
                             }
                           >
@@ -568,12 +568,13 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#4459ff",
+                                "backgroundColor": "#121314",
                                 "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": undefined,
                                 "justifyContent": "center",
                                 "marginVertical": 10,
+                                "overflow": "hidden",
                                 "padding": 8,
                                 "paddingHorizontal": 16,
                               }

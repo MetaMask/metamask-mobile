@@ -3,18 +3,15 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import BridgeStepDescription, { getStepStatus } from './BridgeStepDescription';
 import {
-  ActionTypes,
   BridgeHistoryItem,
   StatusResponse,
-  SrcChainStatus,
 } from '@metamask/bridge-status-controller';
-import { StatusTypes, Step } from '@metamask/bridge-controller';
+import { StatusTypes, Step, ActionTypes } from '@metamask/bridge-controller';
 import {
   TransactionMeta,
   TransactionStatus,
   CHAIN_IDS,
 } from '@metamask/transaction-controller';
-import { CaipChainId } from '@metamask/utils';
 
 describe('BridgeStepDescription', () => {
   const mockStep = {
@@ -311,9 +308,13 @@ describe('BridgeStepDescription', () => {
       status: {
         status: StatusTypes.COMPLETE,
         srcChain: {
-          chainId: 'eip155:1' as CaipChainId,
-          status: StatusTypes.COMPLETE,
-        } as unknown as SrcChainStatus,
+          chainId: 1,
+          txHash: '0x123',
+        },
+        destChain: {
+          chainId: 1,
+          txHash: '0x456',
+        },
       } as StatusResponse,
       quote: {
         srcChainId: 1,

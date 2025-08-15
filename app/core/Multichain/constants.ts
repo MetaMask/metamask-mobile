@@ -5,40 +5,20 @@ import {
   SolAccountType,
   SolScope,
 } from '@metamask/keyring-api';
-import BTC from '../../images/bitcoin-logo.png';
-import SOL from '../../images/solana-logo.png';
+import imageIcons from '../../images/image-icons';
 import { MultichainBlockExplorerFormatUrls } from './networks';
 
 // Image imports for React Native rendering
 export const MULTICHAIN_TOKEN_IMAGES = {
-  [BtcScope.Mainnet]: BTC,
-  [SolScope.Mainnet]: SOL,
-  [BtcScope.Testnet]: BTC,
-  [SolScope.Devnet]: SOL,
-  [SolScope.Testnet]: SOL,
+  [BtcScope.Mainnet]: imageIcons.BTC,
+  [BtcScope.Testnet]: imageIcons['BTC-TESTNET'],
+  [BtcScope.Testnet4]: imageIcons['BTC-TESTNET'],
+  [BtcScope.Signet]: imageIcons['BTC-SIGNET'],
+  [BtcScope.Regtest]: imageIcons['BTC-TESTNET'],
+  [SolScope.Mainnet]: imageIcons.SOLANA,
+  [SolScope.Devnet]: imageIcons.SOLANA,
+  [SolScope.Testnet]: imageIcons.SOLANA,
 } as const;
-
-export interface ProviderConfigWithImageUrl {
-  rpcUrl?: string;
-  type: string;
-  ticker: string;
-  decimal: number;
-  nickname?: string;
-  rpcPrefs?: { blockExplorerUrl?: string };
-  id?: string;
-}
-
-export type MultichainNetworkIds = CaipChainId;
-
-export type MultichainProviderConfig = ProviderConfigWithImageUrl & {
-  nickname: string;
-  chainId: CaipChainId;
-  // Variant of block explorer URLs for non-EVM.
-  blockExplorerFormatUrls?: MultichainBlockExplorerFormatUrls;
-  // NOTE: For now we use a callback to check if the address is compatible with
-  // the given network or not
-  isAddressCompatible: (address: string) => boolean;
-};
 
 export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
   CaipChainId,
@@ -54,7 +34,16 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
     address: 'https://mempool.space/testnet/address/{address}',
     transaction: 'https://mempool.space/testnet/tx/{txId}',
   },
-
+  [BtcScope.Testnet4]: {
+    url: 'https://mempool.space/',
+    address: 'https://mempool.space/testnet4/address/{address}',
+    transaction: 'https://mempool.space/testnet4/tx/{txId}',
+  },
+  [BtcScope.Signet]: {
+    url: 'https://mutinynet.com/',
+    address: 'https://mutinynet.com/address/{address}',
+    transaction: 'https://mutinynet.com/tx/{txId}',
+  },
   [SolScope.Mainnet]: {
     url: 'https://solscan.io',
     address: 'https://solscan.io/account/{address}',
@@ -73,7 +62,10 @@ export const MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP: Record<
 } as const;
 
 export const MULTICHAIN_ACCOUNT_TYPE_TO_MAINNET = {
+  [BtcAccountType.P2pkh]: BtcScope.Mainnet,
+  [BtcAccountType.P2sh]: BtcScope.Mainnet,
   [BtcAccountType.P2wpkh]: BtcScope.Mainnet,
+  [BtcAccountType.P2tr]: BtcScope.Mainnet,
   [SolAccountType.DataAccount]: SolScope.Mainnet,
 } as const;
 

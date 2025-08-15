@@ -37,17 +37,12 @@ const createStyles = (colors: Colors) =>
     itemWrapper: {
       flex: 1,
       flexDirection: 'row',
-      paddingHorizontal: 15,
-      paddingVertical: 14,
-      alignItems: 'flex-start',
+      height: 64,
+      alignItems: 'center',
     },
     arrow: {
       flexShrink: 0,
-      alignSelf: 'flex-end',
       alignItems: 'flex-end',
-    },
-    arrowIcon: {
-      marginTop: 16,
     },
     skeleton: {
       width: 50,
@@ -102,7 +97,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
               asset?.hasBalanceError ||
               asset.balanceFiat === TOKEN_RATE_UNDEFINED
                 ? TextVariant.BodySM
-                : TextVariant.BodyMD
+                : TextVariant.BodyMDMedium
             }
             isHidden={privacyMode}
             length={SensitiveTextLength.Medium}

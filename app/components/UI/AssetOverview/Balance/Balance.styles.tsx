@@ -11,20 +11,15 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     wrapper: {
       flex: 1,
+      paddingHorizontal: 16,
     },
     badgeWrapper: {
       alignSelf: 'center',
     },
-    balanceInfo: {
-      flex: 1,
-      justifyContent: 'flex-start',
-      // marginLeft: 20,
-      alignSelf: 'flex-start',
-    },
     ethLogo: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       overflow: 'hidden',
     },
     percentageChange: {
@@ -34,10 +29,6 @@ const styleSheet = (params: { theme: Theme }) => {
       alignContent: 'flex-start',
       paddingLeft: 16,
     },
-    title: {
-      paddingVertical: 4,
-      paddingHorizontal: 15,
-    } as TextStyle,
     base: {
       flexDirection: 'column',
       alignItems: 'flex-start',

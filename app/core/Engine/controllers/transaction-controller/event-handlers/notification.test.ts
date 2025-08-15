@@ -49,6 +49,20 @@ describe('handleShowNotification', () => {
     ).not.toHaveBeenCalled();
   });
 
+  it('not call watchSubmittedTransaction for failed transaction', () => {
+    const transactionMeta = {
+      type: TransactionType.stakingDeposit,
+      id: '123',
+      status: 'failed',
+    } as unknown as TransactionMeta;
+
+    handleShowNotification(transactionMeta);
+
+    expect(
+      NotificationManager.watchSubmittedTransaction,
+    ).not.toHaveBeenCalled();
+  });
+
   it('handle undefined transaction type', () => {
     const transactionMeta = {
       type: undefined,

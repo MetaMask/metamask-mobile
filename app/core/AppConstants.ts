@@ -34,6 +34,9 @@ export default {
   STAKE: {
     URL: `${PORTFOLIO_URL}/stake`,
   },
+  CARD: {
+    URL: 'https://card.metamask.io',
+  },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
     MIN_DEPOSIT_ETH: 0.03,
@@ -48,8 +51,8 @@ export default {
   MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
   MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
-  MM_DEEP_LINK_PUBLIC_KEY_X: 'nFiE3X_J5n5OJJSlLK95kSByhfLrSJmRxjEtBaP3TD8',
-  MM_DEEP_LINK_PUBLIC_KEY_Y: 'RBeepuE1D3or2SdzjsFcHU-l2rrNb46ZW_4wCXCLSaY',
+  MM_DEEP_LINK_PUBLIC_KEY_X: 'PxxYwxHYnfdrHyG9LPws2330ffAYE9a4CDD6Wx9ZwGs',
+  MM_DEEP_LINK_PUBLIC_KEY_Y: 'w4ZtTHFnWyNkbgXglqJOoc-1OA5ZC4kW4GYU_QIeBNA',
   SAI_ADDRESS: '0x89d24A6b4CcB1B6fAA2625fE562bDD9a23260359',
   HOMEPAGE_URL: 'https://portfolio.metamask.io/explore?MetaMaskEntry=mobile/',
   OLD_HOMEPAGE_URL_HOST: 'home.metamask.io',
@@ -98,6 +101,8 @@ export default {
     POLL_COUNT_LIMIT: 4,
     DEFAULT_SLIPPAGE: 2,
     DEFAULT_SLIPPAGE_STABLECOINS: 0.5,
+    DEFAULT_SLIPPAGE_BRIDGE: 0.5,
+    DEFAULT_SLIPPAGE_SOLANA: undefined,
     CACHE_AGGREGATOR_METADATA_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOKENS_THRESHOLD: 5 * 60 * 1000,
     CACHE_TOP_ASSETS_THRESHOLD: 5 * 60 * 1000,

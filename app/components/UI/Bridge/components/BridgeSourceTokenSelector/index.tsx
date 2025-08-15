@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Hex,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -18,32 +18,25 @@ import {
   setSourceToken,
   selectSourceToken,
   selectDestToken,
+  selectBridgeViewMode,
 } from '../../../../../core/redux/slices/bridge';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { TokenSelectorItem } from '../TokenSelectorItem';
 import { useSortedSourceNetworks } from '../../hooks/useSortedSourceNetworks';
+import { BridgeSourceNetworksBar } from '../BridgeSourceNetworksBar';
 import {
-  BridgeSourceNetworksBar,
-  MAX_NETWORK_ICONS,
-} from '../BridgeSourceNetworksBar';
-import { BridgeTokenSelectorBase, SkeletonItem } from '../BridgeTokenSelectorBase';
+  BridgeTokenSelectorBase,
+  SkeletonItem,
+} from '../BridgeTokenSelectorBase';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
 import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 
-export interface BridgeSourceTokenSelectorRouteParams {
-  bridgeViewMode: BridgeViewMode;
-}
-
 export const BridgeSourceTokenSelector: React.FC = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
-  const route =
-    useRoute<
-      RouteProp<{ params: BridgeSourceTokenSelectorRouteParams }, 'params'>
-    >();
-  const bridgeViewMode = route.params.bridgeViewMode;
+  const bridgeViewMode = useSelector(selectBridgeViewMode);
 
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
@@ -73,11 +66,16 @@ export const BridgeSourceTokenSelector: React.FC = () => {
   });
 
   let balanceChainIds;
-  if (bridgeViewMode === BridgeViewMode.Bridge) {
+  const isBridgeOrUnified =
+    bridgeViewMode === BridgeViewMode.Bridge ||
+    bridgeViewMode === BridgeViewMode.Unified;
+  if (isBridgeOrUnified) {
     balanceChainIds = selectedSourceChainIds;
   } else {
     // Really only for Solana Swap
-    balanceChainIds = selectedSourceToken?.chainId ? [selectedSourceToken?.chainId] : undefined;
+    balanceChainIds = selectedSourceToken?.chainId
+      ? [selectedSourceToken?.chainId]
+      : undefined;
   }
 
   const { tokens: tokensList, pending } = useTokens({
@@ -144,16 +142,16 @@ export const BridgeSourceTokenSelector: React.FC = () => {
 
   const networksToShow = useMemo(
     () =>
-      sortedSourceNetworks
-        .filter(({ chainId }) => selectedSourceChainIds.includes(chainId))
-        .filter((_, i) => i < MAX_NETWORK_ICONS),
+      sortedSourceNetworks.filter(({ chainId }) =>
+        selectedSourceChainIds.includes(chainId),
+      ),
     [selectedSourceChainIds, sortedSourceNetworks],
   );
 
   return (
     <BridgeTokenSelectorBase
       networksBar={
-        bridgeViewMode === BridgeViewMode.Bridge ? (
+        isBridgeOrUnified ? (
           <BridgeSourceNetworksBar
             networksToShow={networksToShow}
             networkConfigurations={allNetworkConfigurations}

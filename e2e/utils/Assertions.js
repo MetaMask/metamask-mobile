@@ -33,7 +33,6 @@ class Assertions {
     return await expect(await element).toExist();
   }
 
-
   /**
    * Check if an element with the specified ID is not visible.
    * @param {Promise<Detox.IndexableNativeElement | Detox.IndexableSystemElement | Detox.NativeElement>} element - The element to check.
@@ -70,7 +69,6 @@ class Assertions {
       .toHaveLabel(label)
       .withTimeout(timeout);
   }
-
 
   /**
    * Check if text is visible.
@@ -170,8 +168,8 @@ class Assertions {
         const expectedBytes = Buffer.from(expectedText, 'utf8').toString('hex');
         throw new Error(
           `Text matching failed.\nExpected: "${expectedText}"\nActual: "${actualText}"\n` +
-          `Expected (hex): ${expectedBytes}\nActual (hex): ${actualBytes}\n` +
-          `Expected (normalized): "${normalizedExpected}"\nActual (normalized): "${normalizedActual}"`,
+            `Expected (hex): ${expectedBytes}\nActual (hex): ${actualBytes}\n` +
+            `Expected (normalized): "${normalizedExpected}"\nActual (normalized): "${normalizedActual}"`,
         );
       }
     }
@@ -242,9 +240,7 @@ class Assertions {
     }
 
     if (!value) {
-      throw new Error(
-        'Value is not present (falsy value)',
-      );
+      throw new Error('Value is not present (falsy value)');
     }
   }
 
@@ -311,12 +307,12 @@ class Assertions {
     });
   }
 
-   /**
+  /**
    * Checks if the actual object contains all keys from the expected array
    * @param {Object} actual - The object to check against
    * @param {Object} validations - Object with keys and their expected values
    */
-   static checkIfObjectHasKeysAndValidValues(actual, validations) {
+  static checkIfObjectHasKeysAndValidValues(actual, validations) {
     const errors = [];
 
     for (const [key, validation] of Object.entries(validations)) {
@@ -334,15 +330,21 @@ class Assertions {
         if (value === null && validation === 'null') continue;
 
         // Check type
-        if (actualType !== validation && !(Array.isArray(value) && validation === 'array')) {
-          errors.push(`Type mismatch for key "${key}": expected "${validation}", got "${actualType}"`);
+        if (
+          actualType !== validation &&
+          !(Array.isArray(value) && validation === 'array')
+        ) {
+          errors.push(
+            `Type mismatch for key "${key}": expected "${validation}", got "${actualType}"`,
+          );
         }
-      }
-      else if (typeof validation === 'function') {
+      } else if (typeof validation === 'function') {
         try {
           const valid = validation(value);
           if (!valid) {
-            errors.push(`Validation failed for key "${key}": custom validator returned false`);
+            errors.push(
+              `Validation failed for key "${key}": custom validator returned false`,
+            );
           }
         } catch (err) {
           errors.push(`Validation error for key "${key}": ${err.message}`);

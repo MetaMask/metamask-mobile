@@ -12,7 +12,11 @@ import { JsonRpcParams } from '@metamask/utils';
  * @returns {Promise<unknown|undefined>} Returns the result of the RPC method call,
  * or throws an error in case of failure.
  */
-export async function jsonRpcRequest(rpcUrl: string, rpcMethod: string, rpcParams: JsonRpcParams = []) {
+export async function jsonRpcRequest(
+  rpcUrl: string,
+  rpcMethod: string,
+  rpcParams: JsonRpcParams = [],
+) {
   let fetchUrl = rpcUrl;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

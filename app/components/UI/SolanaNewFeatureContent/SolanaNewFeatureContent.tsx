@@ -5,6 +5,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
 import { strings } from '../../../../locales/i18n';
+import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -57,7 +58,11 @@ const SolanaNewFeatureContent = () => {
         .build(),
     );
 
-    await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true');
+    await StorageWrapper.setItem(SOLANA_FEATURE_MODAL_SHOWN, 'true', {
+      // Not emitting event as solana import flow has not finished
+      // Prevents any confusion in areas that are listening for app open modals to close
+      emitEvent: false,
+    });
     navigate(Routes.MULTI_SRP.IMPORT);
   };
 
@@ -81,19 +86,11 @@ const SolanaNewFeatureContent = () => {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.wrapper}>
-          <Text
-            style={styles.title}
-            variant={TextVariant.HeadingLG}
-            color={importedColors.gettingStartedTextColor}
-          >
+          <Text style={styles.title} variant={TextVariant.HeadingLG}>
             {strings('solana_new_feature_content.title')}
           </Text>
           <View style={styles.ctas}>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={importedColors.gettingStartedTextColor}
-              style={styles.titleDescription}
-            >
+            <Text variant={TextVariant.BodyMD} style={styles.titleDescription}>
               {strings('solana_new_feature_content.title_description')}
             </Text>
 
@@ -109,41 +106,51 @@ const SolanaNewFeatureContent = () => {
             </Text>
 
             <View style={styles.largeFoxWrapper}>
-              <Image source={FoxVipers} style={styles.foxImage} resizeMode="contain" />
-            </View>
-
-            <View style={styles.createWrapper}>
-              <Button
-                variant={ButtonVariants.Primary}
-                onPress={() => importAccountWithSRP()}
-                testID={
-                  SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
-                }
-                label={strings('solana_new_feature_content.import_your_wallet')}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-                style={styles.importWalletButton}
-              />
-              <Button
-                variant={ButtonVariants.Secondary}
-                onPress={() => handleClose()}
-                testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
-                width={ButtonWidthTypes.Full}
-                size={ButtonSize.Lg}
-                style={styles.notNowButton}
-                label={
-                  <Text
-                    variant={TextVariant.BodyMDMedium}
-                    color={importedColors.gettingStartedTextColor}
-                  >
-                    {strings('solana_new_feature_content.not_now')}
-                  </Text>
-                }
+              <Image
+                source={FoxVipers}
+                style={styles.foxImage}
+                resizeMode="contain"
               />
             </View>
           </View>
         </View>
       </ScrollView>
+
+      <View style={styles.createWrapper}>
+        <ButtonBase
+          onPress={() => importAccountWithSRP()}
+          testID={
+            SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
+          }
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          style={styles.importWalletButton}
+          label={
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.importWalletButtonText}
+            >
+              {strings('solana_new_feature_content.import_your_wallet')}
+            </Text>
+          }
+        />
+        <Button
+          variant={ButtonVariants.Secondary}
+          onPress={() => handleClose()}
+          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
+          width={ButtonWidthTypes.Full}
+          size={ButtonSize.Lg}
+          style={styles.notNowButton}
+          label={
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              style={styles.notNowButtonText}
+            >
+              {strings('solana_new_feature_content.not_now')}
+            </Text>
+          }
+        />
+      </View>
     </View>
   );
 };

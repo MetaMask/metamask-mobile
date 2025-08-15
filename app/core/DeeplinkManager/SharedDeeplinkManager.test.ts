@@ -1,17 +1,35 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import SharedDeeplinkManager from './SharedDeeplinkManager';
 import DeeplinkManager from './DeeplinkManager';
+import { store } from '../../store';
+import { RootState } from '../../reducers';
+
+jest.mock('../../store', () => ({
+  store: {
+    getState: jest.fn(),
+  },
+}));
+
+jest.mock('../../core/NavigationService', () => ({
+  navigation: {
+    navigate: jest.fn(),
+  },
+}));
 
 describe('SharedDeeplinkManager', () => {
-  const mockNavigation = {
-    navigate: jest.fn(),
-  } as unknown as NavigationProp<ParamListBase>;
-
   const mockDispatch = jest.fn();
+  const mockStore = store as jest.Mocked<typeof store>;
+  const mockNavigate = jest.fn() as unknown as NavigationProp<ParamListBase>;
 
-  beforeAll(() => {
+  beforeEach(() => {
+    const mockedState = {
+      settings: { deepLinkModalDisabled: false },
+    } as jest.Mocked<RootState>;
+
+    mockStore.getState.mockReturnValue(mockedState);
+
     SharedDeeplinkManager.init({
-      navigation: mockNavigation,
+      navigation: mockNavigate,
       dispatch: mockDispatch,
     });
   });

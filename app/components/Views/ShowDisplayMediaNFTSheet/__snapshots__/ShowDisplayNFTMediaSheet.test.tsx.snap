@@ -334,7 +334,7 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -385,8 +385,8 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -555,8 +555,8 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
-                                  "backgroundColor": "transparent",
-                                  "borderColor": "#4459ff",
+                                  "backgroundColor": "#3c4d9d0f",
+                                  "borderColor": "transparent",
                                   "borderRadius": 12,
                                   "borderWidth": 1,
                                   "flex": 1,
@@ -564,6 +564,7 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                   "height": 48,
                                   "justifyContent": "center",
                                   "marginRight": 8,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -572,7 +573,7 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                 accessibilityRole="text"
                                 style={
                                   {
-                                    "color": "#4459ff",
+                                    "color": "#121314",
                                     "fontFamily": "Geist Medium",
                                     "fontSize": 16,
                                     "letterSpacing": 0,
@@ -594,13 +595,14 @@ exports[`ShowNftSheet render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flex": 1,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
                                   "marginLeft": 8,
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }

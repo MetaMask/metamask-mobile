@@ -34,6 +34,15 @@ const createStyles = ({ colors }: Theme) =>
     disclaimerText: {
       textAlign: 'center',
     },
+    strikethroughText: {
+      textDecorationLine: 'line-through',
+    },
+    networkBadgeContainer: {
+      flex: 1,
+    },
+    networkBadgeText: {
+      flex: 1,
+    },
   });
 
 export default createStyles;

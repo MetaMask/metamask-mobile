@@ -2,9 +2,9 @@ import { StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
 
-const styleSheet = (params: { theme: Theme, vars: { isTooltip: boolean } }) => {
+const styleSheet = (params: { theme: Theme; vars: { isTooltip: boolean } }) => {
   const { theme } = params;
-  const isTooltip = params.vars.isTooltip
+  const isTooltip = params.vars.isTooltip;
 
   return StyleSheet.create({
     bottomModal: {

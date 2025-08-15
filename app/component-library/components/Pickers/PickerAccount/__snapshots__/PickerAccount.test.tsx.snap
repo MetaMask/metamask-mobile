@@ -1,242 +1,163 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`PickerAccount should render correctly 1`] = `
+exports[`PickerAccount Props Forwarding forwards hitSlop prop to PickerBase 1`] = `
 <TouchableOpacity
-  onPress={[Function]}
+  activeOpacity={1}
+  hitSlop={
+    {
+      "bottom": 10,
+      "left": 15,
+      "right": 15,
+      "top": 10,
+    }
+  }
+  onPress={[MockFunction]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
   style={
     {
       "alignItems": "center",
-      "justifyContent": "center",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc8",
+      "borderRadius": 4,
+      "borderWidth": 0,
+      "flexDirection": "row",
+      "padding": 16,
     }
   }
 >
-  <TouchableOpacity
-    onPress={[Function]}
-    style={
-      {
-        "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "borderColor": "#b7bbc8",
-        "borderRadius": 4,
-        "borderWidth": 0,
-        "flexDirection": "row",
-        "padding": 0,
-      }
-    }
-  >
-    <View
-      style={
-        {
-          "alignItems": "center",
-          "flexDirection": "row",
-          "justifyContent": "center",
-        }
-      }
-    >
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "justifyContent": "center",
-          }
-        }
-      >
-        <View
-          style={
-            {
-              "alignItems": "center",
-              "flexDirection": "row",
-            }
-          }
-        >
-          <View
-            style={
-              {
-                "backgroundColor": "#ffffff",
-                "borderRadius": 8,
-                "height": 16,
-                "marginRight": 8,
-                "overflow": "hidden",
-                "width": 16,
-              }
-            }
-          >
-            <View
-              style={
-                [
-                  {
-                    "overflow": "hidden",
-                  },
-                  {
-                    "backgroundColor": "#03415D",
-                    "borderRadius": 8,
-                    "height": 16,
-                    "width": 16,
-                  },
-                  undefined,
-                ]
-              }
-            >
-              <RNSVGSvgView
-                bbHeight={16}
-                bbWidth={16}
-                focusable={false}
-                height={16}
-                style={
-                  [
-                    {
-                      "backgroundColor": "transparent",
-                      "borderWidth": 0,
-                    },
-                    {
-                      "flex": 0,
-                      "height": 16,
-                      "width": 16,
-                    },
-                  ]
-                }
-                width={16}
-              >
-                <RNSVGGroup
-                  fill={
-                    {
-                      "payload": 4278190080,
-                      "type": 0,
-                    }
-                  }
-                >
-                  <RNSVGRect
-                    fill={
-                      {
-                        "payload": 4294034178,
-                        "type": 0,
-                      }
-                    }
-                    height={16}
-                    matrix={
-                      [
-                        0.969445349895139,
-                        0.24530738587880202,
-                        -0.24530738587880202,
-                        0.969445349895139,
-                        2.9295789921527566,
-                        -2.0153776690455607,
-                      ]
-                    }
-                    propList={
-                      [
-                        "fill",
-                      ]
-                    }
-                    width={16}
-                    x={0}
-                    y={0}
-                  />
-                  <RNSVGRect
-                    fill={
-                      {
-                        "payload": 4294711613,
-                        "type": 0,
-                      }
-                    }
-                    height={16}
-                    matrix={
-                      [
-                        0.6320293026648508,
-                        -0.7749444887041796,
-                        0.7749444887041796,
-                        0.6320293026648508,
-                        -6.636678807575937,
-                        2.9249454420477825,
-                      ]
-                    }
-                    propList={
-                      [
-                        "fill",
-                      ]
-                    }
-                    width={16}
-                    x={0}
-                    y={0}
-                  />
-                  <RNSVGRect
-                    fill={
-                      {
-                        "payload": 4294745088,
-                        "type": 0,
-                      }
-                    }
-                    height={16}
-                    matrix={
-                      [
-                        0.33873792024529126,
-                        0.9408807689542256,
-                        -0.9408807689542256,
-                        0.33873792024529126,
-                        25.4423757555534,
-                        2.5600769771708034,
-                      ]
-                    }
-                    propList={
-                      [
-                        "fill",
-                      ]
-                    }
-                    width={16}
-                    x={0}
-                    y={0}
-                  />
-                </RNSVGGroup>
-              </RNSVGSvgView>
-            </View>
-          </View>
-          <Text
-            accessibilityRole="text"
-            style={
-              {
-                "color": "#121314",
-                "fontFamily": "Geist Medium",
-                "fontSize": 16,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-              }
-            }
-            testID="account-label"
-          >
-            Orangefox.eth
-          </Text>
-        </View>
-      </View>
-    </View>
-    <SvgMock
-      color="#121314"
-      fill="currentColor"
-      height={12}
-      name="ArrowDown"
-      style={
-        {
-          "height": 12,
-          "marginLeft": 8,
-          "width": 12,
-        }
-      }
-      width={12}
-    />
-  </TouchableOpacity>
   <Text
     accessibilityRole="text"
+    numberOfLines={1}
     style={
       {
-        "color": "#686e7d",
+        "color": "#121314",
         "fontFamily": "Geist Medium",
-        "fontSize": 14,
+        "fontSize": 16,
         "letterSpacing": 0,
-        "lineHeight": 22,
-        "textAlign": "center",
+        "lineHeight": 24,
       }
     }
+    testID="account-label"
   >
-    0x29900...da21a
+    Orangefox.eth
   </Text>
+  <SvgMock
+    color="#121314"
+    fill="currentColor"
+    height={16}
+    name="ArrowDown"
+    style={
+      {
+        "height": 16,
+        "marginLeft": 8,
+        "width": 16,
+      }
+    }
+    width={16}
+  />
+</TouchableOpacity>
+`;
+
+exports[`PickerAccount Props Forwarding forwards style prop 1`] = `
+<TouchableOpacity
+  activeOpacity={1}
+  onPress={[MockFunction]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc8",
+      "borderRadius": 4,
+      "borderWidth": 0,
+      "flexDirection": "row",
+      "marginTop": 20,
+      "padding": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    numberOfLines={1}
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+    testID="account-label"
+  >
+    Orangefox.eth
+  </Text>
+  <SvgMock
+    color="#121314"
+    fill="currentColor"
+    height={16}
+    name="ArrowDown"
+    style={
+      {
+        "height": 16,
+        "marginLeft": 8,
+        "width": 16,
+      }
+    }
+    width={16}
+  />
+</TouchableOpacity>
+`;
+
+exports[`PickerAccount Rendering should render correctly with snapshot 1`] = `
+<TouchableOpacity
+  activeOpacity={1}
+  onPress={[MockFunction]}
+  onPressIn={[Function]}
+  onPressOut={[Function]}
+  style={
+    {
+      "alignItems": "center",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#b7bbc8",
+      "borderRadius": 4,
+      "borderWidth": 0,
+      "flexDirection": "row",
+      "padding": 16,
+    }
+  }
+>
+  <Text
+    accessibilityRole="text"
+    numberOfLines={1}
+    style={
+      {
+        "color": "#121314",
+        "fontFamily": "Geist Medium",
+        "fontSize": 16,
+        "letterSpacing": 0,
+        "lineHeight": 24,
+      }
+    }
+    testID="account-label"
+  >
+    Orangefox.eth
+  </Text>
+  <SvgMock
+    color="#121314"
+    fill="currentColor"
+    height={16}
+    name="ArrowDown"
+    style={
+      {
+        "height": 16,
+        "marginLeft": 8,
+        "width": 16,
+      }
+    }
+    width={16}
+  />
 </TouchableOpacity>
 `;

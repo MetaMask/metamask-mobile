@@ -4,9 +4,12 @@ import { SolScope } from '@metamask/keyring-api';
 import { ethers } from 'ethers';
 import { formatChainIdToCaip, StatusTypes } from '@metamask/bridge-controller';
 
-jest.mock('../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion', () => ({
-  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
-}));
+jest.mock(
+  '../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
+  () => ({
+    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+  }),
+);
 
 export const ethChainId = '0x1' as Hex;
 export const optimismChainId = '0xa' as Hex;
