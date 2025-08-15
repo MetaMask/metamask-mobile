@@ -46,8 +46,8 @@ function detectPlatform(device) {
  */
 function getAppBundleId(platform, isCI) {
   const bundleIds = {
-    ios: isCI ? 'io.metamask.MetaMask-QA' : 'io.metamask.qa',
-    android: isCI ? 'io.metamask.qa' : 'io.metamask',
+    ios: 'io.metamask.MetaMask-QA',
+    android: 'io.metamask',
   };
 
   return bundleIds[platform];
