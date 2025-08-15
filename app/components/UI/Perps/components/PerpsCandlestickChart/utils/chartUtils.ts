@@ -87,10 +87,12 @@ export const getGridLineStyle = (
   colors: { border: { muted: string } },
   isEdge: boolean,
   position: number,
+  chartWidth?: number,
 ) => ({
   position: 'absolute' as const,
   left: 0,
-  right: 0,
+  right: chartWidth ? undefined : 0,
+  width: chartWidth ? chartWidth - 65 : undefined,
   top: position,
   height: isEdge ? 2 : 1,
   zIndex: 10,
