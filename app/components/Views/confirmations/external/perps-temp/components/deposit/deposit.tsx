@@ -13,26 +13,17 @@ import { AlertMessage } from '../../../../components/alert-message';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
 import AlertBanner from '../../../../components/alert-banner';
 import { Box } from '../../../../../../UI/Box/Box';
-import InfoRowDivider from '../../../../components/UI/info-row-divider';
-import { InfoRowDividerVariant } from '../../../../components/UI/info-row-divider/info-row-divider.styles';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 
 const AMOUNT_PREFIX = '$';
 
 export function PerpsDeposit() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [inputChanged, setInputChanged] = useState(false);
 
   const { isFullView } = usePerpsDepositView({
     isKeyboardVisible,
   });
-
-  const handleKeyboardShow = () => {
-    setIsKeyboardVisible(true);
-  };
-
-  const handleKeyboardHide = () => {
-    setIsKeyboardVisible(false);
-  };
 
   useNavbar(strings('confirm.title.perps_deposit'), false);
 
@@ -41,12 +32,13 @@ export function PerpsDeposit() {
       <EditAmount
         prefix={AMOUNT_PREFIX}
         autoKeyboard
-        onKeyboardShow={handleKeyboardShow}
-        onKeyboardHide={handleKeyboardHide}
+        onKeyboardShow={() => setIsKeyboardVisible(true)}
+        onKeyboardHide={() => setIsKeyboardVisible(false)}
+        onKeyboardDone={() => setInputChanged(true)}
       >
         <Box gap={16}>
           {isKeyboardVisible && <PayTokenBalance />}
-          <AlertMessage field={RowAlertKey.Amount} />
+          {inputChanged && <AlertMessage field={RowAlertKey.Amount} />}
           <TokenAmountNative />
         </Box>
         {!isKeyboardVisible && (
@@ -54,12 +46,11 @@ export function PerpsDeposit() {
         )}
         <InfoSection>
           <PayWithRow />
-          {isFullView && <BridgeTimeRow />}
         </InfoSection>
         {isFullView && (
           <InfoSection>
             <GasFeesDetailsRow disableUpdate hideSpeed fiatOnly noSection />
-            <InfoRowDivider variant={InfoRowDividerVariant.Large} />
+            <BridgeTimeRow />
             <TotalRow />
           </InfoSection>
         )}

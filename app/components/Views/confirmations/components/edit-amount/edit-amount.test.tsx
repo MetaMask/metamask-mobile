@@ -19,6 +19,8 @@ jest.mock('../../hooks/useTokenAsset');
 jest.mock('../../context/alert-system-context');
 jest.mock('../../hooks/pay/useTransactionPayToken');
 
+jest.useFakeTimers();
+
 const VALUE_MOCK = '1.23';
 
 const state = merge(
@@ -85,6 +87,8 @@ describe('EditAmount', () => {
       fireEvent.press(getByText('5'));
     });
 
+    await jest.runAllTimersAsync();
+
     expect(updateTokenAmountMock).toHaveBeenCalledWith(VALUE_MOCK + '5');
   });
 
@@ -112,10 +116,16 @@ describe('EditAmount', () => {
   });
 
   it('hides keyboard if done button pressed', async () => {
-    const { queryByTestId, getByText } = render({ autoKeyboard: true });
+    const { queryByTestId, getByTestId, getByText } = render({
+      autoKeyboard: true,
+    });
 
     await act(async () => {
-      fireEvent.press(getByText('Done'));
+      fireEvent.press(getByText('5'));
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('deposit-keyboard-done-button'));
     });
 
     expect(queryByTestId('deposit-keyboard')).toBeNull();
@@ -137,6 +147,8 @@ describe('EditAmount', () => {
     await act(async () => {
       fireEvent.press(getByText('50%'));
     });
+
+    await jest.runAllTimersAsync();
 
     expect(updateTokenAmountMock).toHaveBeenCalledWith('600.25');
     expect(input).toHaveProp('value', '600.25');
