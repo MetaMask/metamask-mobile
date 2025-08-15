@@ -191,7 +191,6 @@ describe('Recipient', () => {
         mockSetRecipientInputMethodSelectAccount,
       setRecipientInputMethodSelectContact:
         mockSetRecipientInputMethodSelectContact,
-      setRecipientInputMethodQRCodeScan: jest.fn(),
     });
 
     mockUseSendActions.mockReturnValue({
