@@ -101,6 +101,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         // Global variables
         window.chart = null;
         window.candlestickSeries = null;
+        window.isInitialDataLoad = true; // Track if this is the first data load
         
 
 
@@ -223,7 +224,15 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                             
                             if (window.candlestickSeries) {
                                 window.candlestickSeries.setData(message.data);
-                                window.chart.timeScale().fitContent();
+                                
+                                // Only fit content on initial load, preserve user zoom afterwards
+                                if (window.isInitialDataLoad) {
+                                    console.log('📊 TradingView: Initial data load - fitting content to show all data');
+                                    window.chart.timeScale().fitContent();
+                                    window.isInitialDataLoad = false;
+                                } else {
+                                    console.log('📊 TradingView: Data updated - preserving user zoom level');
+                                }
                             } else {
                                 console.error('📊 TradingView: Failed to create candlestick series');
                             }
