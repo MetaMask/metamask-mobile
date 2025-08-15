@@ -56,7 +56,7 @@ export const BridgeDestNetworkSelector: React.FC = () => {
   const handleChainSelect = useCallback(
     (chainId: Hex | CaipChainId) => {
       dispatch(setSelectedDestChainId(chainId));
-      onEnableNetwork(chainId as Hex);
+      onEnableNetwork(chainId);
 
       navigation.goBack();
 

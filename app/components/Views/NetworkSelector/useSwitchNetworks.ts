@@ -65,7 +65,7 @@ interface UseSwitchNetworksReturn {
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   onNonEvmNetworkChange: (chainId: CaipChainId) => Promise<void>;
   ///: END:ONLY_INCLUDE_IF
-  onEnableNetwork: (chainId: Hex) => Promise<void>;
+  onEnableNetwork: (chainId: Hex | CaipChainId) => Promise<void>;
 }
 
 /**
@@ -312,7 +312,7 @@ export function useSwitchNetworks({
   );
   ///: END:ONLY_INCLUDE_IF
 
-  const onEnableNetwork = useCallback(async (chainId: Hex) => {
+  const onEnableNetwork = useCallback(async (chainId: Hex | CaipChainId) => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
       await Engine.context.NetworkEnablementController.enableNetwork(chainId);
     }
