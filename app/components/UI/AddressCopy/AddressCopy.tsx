@@ -25,6 +25,7 @@ import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccou
 import styleSheet from './AddressCopy.styles';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getFormattedAddressFromInternalAccount } from '../../../core/Multichain/utils';
+import type { AddressCopyProps } from './AddressCopy.types';
 
 const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   const { styles } = useStyles(styleSheet, {});
