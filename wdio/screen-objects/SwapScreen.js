@@ -33,6 +33,14 @@ class SwapScreen {
     return AppwrightSelectors.getElementByText(this._device, "See all");
 
   }
+  get destinationTokenArea(){
+    return AppwrightSelectors.getElementByID(this._device, PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA);
+
+  }
+  get seeAllDropDown(){
+    return AppwrightSelectors.getElementByText(this._device, "See all");
+
+  }
 
   get getETHQuotesButton(){
     return AppwrightSelectors.getElementByText(this._device, QuoteViewSelectorText.GET_QUOTES);

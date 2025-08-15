@@ -246,22 +246,6 @@ class FixtureBuilder {
                   name: 'Ethereum Main Network',
                   nativeCurrency: 'ETH',
                 },
-                '0x539': {
-                  chainId: '0x539',
-                  rpcEndpoints: [
-                    {
-                      networkClientId: 'networkId1',
-                      url: `http://localhost:${getGanachePort()}`,
-                      type: 'custom',
-                      name: 'Local RPC',
-                    },
-                  ],
-                  defaultRpcEndpointIndex: 0,
-                  defaultBlockExplorerUrlIndex: 0,
-                  blockExplorerUrls: ['https://test.io'],
-                  name: 'Localhost',
-                  nativeCurrency: 'ETH',
-                },
                 '0xaa36a7': {
                   blockExplorerUrls: [],
                   chainId: '0xaa36a7',

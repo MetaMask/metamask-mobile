@@ -15,6 +15,7 @@ import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAc
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
 import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/ImportFromSeedScreen.js';
+import { launchApp } from '../../utils/Flows.js';
 
 const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED === 'false';
 
@@ -70,6 +71,7 @@ test('Onboarding Import SRP with +50 accounts, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on "Account list" button until the account list is visible',
   );
 
+  await launchApp(device);
   timer1.start();
   await WelcomeScreen.clickGetStartedButton();
   await TermOfUseScreen.isDisplayed();
