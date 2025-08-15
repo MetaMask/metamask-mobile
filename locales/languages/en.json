@@ -5313,10 +5313,10 @@
   "card": {
     "card": "MetaMask Card",
     "add_funds_bottomsheet": {
-      "deposit": "Deposit",
-      "deposit_description": "Convert cash to {{symbol}} on Linea",
-      "swap": "Swap",
-      "swap_description": "Exchange tokens into {{symbol}} on Linea",
+      "deposit": "Fund with cash",
+      "deposit_description": "Low-cost card or bank transfer",
+      "swap": "Fund with crypto",
+      "swap_description": "Swap tokens into {{symbol}} on Linea",
       "select_method": "Select method"
     },
     "card_home": {
