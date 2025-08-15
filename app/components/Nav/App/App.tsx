@@ -156,7 +156,7 @@ import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
-import { AddressList as AccountAddressList } from '../../Views/MultichainAccounts/AddressList';
+import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
@@ -723,7 +723,7 @@ const MultichainAddressList = () => {
     >
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
-        component={AccountAddressList}
+        component={MultichainAccountAddressList}
         initialParams={route?.params}
       />
     </Stack.Navigator>
