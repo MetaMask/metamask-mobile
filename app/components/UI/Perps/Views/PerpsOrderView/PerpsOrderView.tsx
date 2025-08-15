@@ -47,7 +47,7 @@ import {
   TraceOperation,
 } from '../../../../../util/trace';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
@@ -68,10 +68,6 @@ import {
   PerpsOrderProvider,
   usePerpsOrderContext,
 } from '../../contexts/PerpsOrderContext';
-import {
-  PerpsPriceProvider,
-  usePerpsPriceContext,
-} from '../../contexts/PerpsPriceContext';
 import type {
   OrderParams,
   OrderType,
@@ -86,6 +82,7 @@ import {
   usePerpsOrderFees,
   usePerpsOrderValidation,
   usePerpsPaymentTokens,
+  usePerpsPrices,
 } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
@@ -125,7 +122,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
   const toastContext = useContext(ToastContext);
 
   const toastRef = toastContext?.toastRef;
-  const { trackEvent, createEventBuilder } = useMetrics();
   const { track } = usePerpsEventTracking();
 
   // Ref to access current orderType in callbacks
@@ -174,19 +170,18 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
     usePerpsOrderExecution({
       onSuccess: (position) => {
         // Track successful position open
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_EXECUTED)
-            .addProperties({
-              market: orderForm.asset,
-              direction: orderForm.direction,
-              orderType: orderTypeRef.current,
-              leverage: orderForm.leverage,
-              positionSize: position?.size || orderForm.amount,
-              entryPrice: position?.entryPrice,
-              marginUsed: position?.marginUsed,
-            })
-            .build(),
-        );
+        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_EXECUTED, {
+          [PerpsEventProperties.ASSET]: orderForm.asset,
+          [PerpsEventProperties.DIRECTION]:
+            orderForm.direction === 'long'
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.ORDER_TYPE]: orderTypeRef.current,
+          [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
+          [PerpsEventProperties.ORDER_SIZE]: position?.size || orderForm.amount,
+          [PerpsEventProperties.ASSET_PRICE]: position?.entryPrice,
+          [PerpsEventProperties.MARGIN_USED]: position?.marginUsed,
+        });
 
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -338,8 +333,12 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
 
   // Note: Navigation params for order type modal are no longer needed
 
-  // Get real-time price data from context instead of direct hook
-  const { prices } = usePerpsPriceContext();
+  // Get real-time price data with debouncing for better performance
+  // Use 300ms debounce for order view to reduce re-renders
+  const prices = usePerpsPrices([orderForm.asset], {
+    includeOrderBook: false,
+    debounceMs: 300,
+  });
   const currentPrice = prices[orderForm.asset];
 
   // Track screen load with centralized hook
@@ -576,37 +575,27 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
       });
 
       // Track validation failure as error encountered
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_ERROR_ENCOUNTERED)
-          .addProperties({
-            market: orderForm.asset,
-            direction: orderForm.direction,
-            orderType: orderForm.type,
-            error: firstError,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_ERROR_ENCOUNTERED, {
+        [PerpsEventProperties.ERROR_TYPE]:
+          PerpsEventValues.ERROR_TYPE.VALIDATION,
+        [PerpsEventProperties.ERROR_MESSAGE]: firstError,
+      });
 
       return;
     }
 
     // Track trade transaction initiated
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_INITIATED)
-        .addProperties({
-          [PerpsEventProperties.TIMESTAMP]: Date.now(),
-          [PerpsEventProperties.ASSET]: orderForm.asset,
-          [PerpsEventProperties.DIRECTION]:
-            orderForm.direction === 'long'
-              ? PerpsEventValues.DIRECTION.LONG
-              : PerpsEventValues.DIRECTION.SHORT,
-          [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
-          [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
-          [PerpsEventProperties.ORDER_SIZE]: positionSize,
-          [PerpsEventProperties.MARGIN_USED]: marginRequired,
-        })
-        .build(),
-    );
+    track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_INITIATED, {
+      [PerpsEventProperties.ASSET]: orderForm.asset,
+      [PerpsEventProperties.DIRECTION]:
+        orderForm.direction === 'long'
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+      [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
+      [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
+      [PerpsEventProperties.ORDER_SIZE]: positionSize,
+      [PerpsEventProperties.MARGIN_USED]: marginRequired,
+    });
 
     // Execute order using the new hook
     const orderParams: OrderParams = {
@@ -625,39 +614,29 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
 
     try {
       // Track trade transaction submitted
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_SUBMITTED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.ASSET]: orderForm.asset,
-            [PerpsEventProperties.DIRECTION]:
-              orderForm.direction === 'long'
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
-            [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
-            [PerpsEventProperties.ORDER_SIZE]: positionSize,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_SUBMITTED, {
+        [PerpsEventProperties.ASSET]: orderForm.asset,
+        [PerpsEventProperties.DIRECTION]:
+          orderForm.direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.ORDER_TYPE]: orderForm.type,
+        [PerpsEventProperties.LEVERAGE]: orderForm.leverage,
+        [PerpsEventProperties.ORDER_SIZE]: positionSize,
+      });
 
       await executeOrder(orderParams);
     } catch (error) {
       // Track trade transaction failed
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.ASSET]: orderForm.asset,
-            [PerpsEventProperties.DIRECTION]:
-              orderForm.direction === 'long'
-                ? PerpsEventValues.DIRECTION.LONG
-                : PerpsEventValues.DIRECTION.SHORT,
-            [PerpsEventProperties.ERROR_MESSAGE]:
-              error instanceof Error ? error.message : 'Unknown error',
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED, {
+        [PerpsEventProperties.ASSET]: orderForm.asset,
+        [PerpsEventProperties.DIRECTION]:
+          orderForm.direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.ERROR_MESSAGE]:
+          error instanceof Error ? error.message : 'Unknown error',
+      });
       throw error;
     }
   }, [
@@ -667,8 +646,7 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
     positionSize,
     assetData.price,
     executeOrder,
-    trackEvent,
-    createEventBuilder,
+    track,
     marginRequired,
   ]);
 
@@ -1034,11 +1012,7 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
                 : PerpsEventValues.INPUT_METHOD.PRESET;
           }
 
-          trackEvent(
-            createEventBuilder(MetaMetricsEvents.PERPS_LEVERAGE_CHANGED)
-              .addProperties(eventProperties)
-              .build(),
-          );
+          track(MetaMetricsEvents.PERPS_LEVERAGE_CHANGED, eventProperties);
         }}
         leverage={orderForm.leverage}
         minLeverage={1}
@@ -1093,25 +1067,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
   );
 });
 
-// Wrapper component that provides price context with order-type-aware configuration
-const PerpsOrderViewWithPriceProvider: React.FC<{ asset: string }> = ({
-  asset,
-}) => {
-  const { orderForm } = usePerpsOrderContext();
-  const priceSymbols = useMemo(() => [asset], [asset]);
-
-  // Only include order book data for limit orders
-  const includeOrderBook = orderForm.type === 'limit';
-  return (
-    <PerpsPriceProvider
-      symbols={priceSymbols}
-      includeOrderBook={includeOrderBook}
-    >
-      <PerpsOrderViewContent />
-    </PerpsPriceProvider>
-  );
-};
-
 // Main component that wraps content with context providers
 const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
@@ -1131,7 +1086,7 @@ const PerpsOrderView: React.FC = () => {
       initialAmount={paramAmount}
       initialLeverage={paramLeverage}
     >
-      <PerpsOrderViewWithPriceProvider asset={asset} />
+      <PerpsOrderViewContent />
     </PerpsOrderProvider>
   );
 };

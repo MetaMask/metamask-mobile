@@ -106,7 +106,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const { track } = usePerpsEventTracking();
 
   // Subscribe to real-time price only when visible and we have an asset
-  const priceData = usePerpsPrices(isVisible && asset ? [asset] : []);
+  const priceData = usePerpsPrices(isVisible && asset ? [asset] : [], {});
   const livePrice = priceData[asset]?.price
     ? parseFloat(priceData[asset].price)
     : undefined;

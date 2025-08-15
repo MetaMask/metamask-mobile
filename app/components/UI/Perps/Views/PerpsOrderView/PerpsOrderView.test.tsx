@@ -146,6 +146,9 @@ jest.mock('../../hooks', () => ({
     isLoading: false,
     error: null,
   })),
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
 }));
 
 // Mock Redux selectors

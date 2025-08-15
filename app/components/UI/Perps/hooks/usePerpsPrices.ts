@@ -6,13 +6,33 @@ import { usePerpsConnection } from './index';
 import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 
 /**
+ * Configuration options for the usePerpsPrices hook
+ */
+export interface UsePerpsPricesOptions {
+  /** Whether to include order book data (bid/ask) */
+  includeOrderBook?: boolean;
+  /** Debounce delay in milliseconds (default: 50ms) */
+  debounceMs?: number;
+  /** Whether to include market data (funding, OI, volume) */
+  includeMarketData?: boolean;
+}
+
+/**
  * Hook for live price updates with debouncing (bypasses Redux for performance)
  * Batches rapid price updates to reduce re-renders
+ * @param symbols - Array of symbols to subscribe to
+ * @param options - Optional configuration object
  */
 export function usePerpsPrices(
   symbols: string[],
-  includeOrderBook = false,
+  options: UsePerpsPricesOptions = {},
 ): Record<string, PriceUpdate> {
+  const {
+    includeOrderBook = false,
+    debounceMs,
+    includeMarketData = false,
+  } = options;
+
   const { subscribeToPrices } = usePerpsTrading();
   const { isInitialized } = usePerpsConnection();
   const [prices, setPrices] = useState<Record<string, PriceUpdate>>({});
@@ -48,6 +68,10 @@ export function usePerpsPrices(
     }
   }, []);
 
+  // Use provided debounce or fall back to default
+  const debounceDelay =
+    debounceMs ?? PERFORMANCE_CONFIG.PRICE_UPDATE_DEBOUNCE_MS;
+
   const memoizedCallback = useCallback(
     (newPrices: PriceUpdate[]) => {
       // Store updates in pending map
@@ -64,9 +88,9 @@ export function usePerpsPrices(
       debounceTimerRef.current = setTimeout(() => {
         flushPendingUpdates();
         debounceTimerRef.current = null;
-      }, PERFORMANCE_CONFIG.PRICE_UPDATE_DEBOUNCE_MS);
+      }, debounceDelay);
     },
-    [flushPendingUpdates],
+    [flushPendingUpdates, debounceDelay],
   );
 
   const stableSymbols = useStableArray(symbols);
@@ -78,6 +102,7 @@ export function usePerpsPrices(
       symbols: stableSymbols,
       callback: memoizedCallback,
       includeOrderBook,
+      includeMarketData,
     });
 
     return () => {
@@ -94,6 +119,7 @@ export function usePerpsPrices(
     memoizedCallback,
     isInitialized,
     includeOrderBook,
+    includeMarketData,
     flushPendingUpdates,
   ]);
 

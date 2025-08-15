@@ -1,6 +1,8 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { setMeasurement } from '@sentry/react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { RefreshControl, ScrollView, View, Modal } from 'react-native';
+import { Modal, RefreshControl, ScrollView, View } from 'react-native';
+import performance from 'react-native-performance';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -22,20 +24,23 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
+  usePerpsAccount,
   usePerpsConnection,
+  usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsPositions,
   usePerpsTrading,
-  usePerpsAccount,
 } from '../../hooks';
-import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import performance from 'react-native-performance';
-import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { setMeasurement } from '@sentry/react-native';
 import styleSheet from './PerpsTabView.styles';
 
 interface PerpsTabViewProps {}
@@ -45,7 +50,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { getAccountState, depositWithConfirmation } = usePerpsTrading();
   const { isConnected, isInitialized } = usePerpsConnection();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { track } = usePerpsEventTracking();
   const cachedAccountState = usePerpsAccount();
 
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
@@ -91,31 +96,23 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       );
 
       // Track homescreen tab viewed event with exact property names from requirements
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED)
-          .addProperties({
-            Timestamp: Date.now(),
-            'Open Position': positions.map((p) => ({
-              Asset: p.coin,
-              Leverage: p.leverage.value,
-              Direction: parseFloat(p.size) > 0 ? 'Long' : 'Short',
-            })),
-            'Perp Account $ Balance': parseFloat(
-              cachedAccountState.totalBalance,
-            ),
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED, {
+        [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
+          [PerpsEventProperties.ASSET]: p.coin,
+          [PerpsEventProperties.LEVERAGE]: p.leverage.value,
+          [PerpsEventProperties.DIRECTION]:
+            parseFloat(p.size) > 0
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+        })),
+        [PerpsEventProperties.PERP_ACCOUNT_BALANCE]: parseFloat(
+          cachedAccountState.totalBalance,
+        ),
+      });
 
       hasTrackedHomescreen.current = true;
     }
-  }, [
-    isLoading,
-    positions,
-    cachedAccountState?.totalBalance,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [isLoading, positions, cachedAccountState?.totalBalance, track]);
 
   const handleRefresh = useCallback(() => {
     loadPositions();

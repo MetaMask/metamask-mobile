@@ -5,7 +5,6 @@ import Routes from '../../../../constants/navigation/Routes';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import PerpsMarketListView from '../Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
-import PerpsDepositAmountView from '../Views/PerpsDepositAmountView';
 import PerpsView from '../Views/PerpsView';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
@@ -56,9 +55,10 @@ const PerpsScreenStack = () => (
         }}
       />
 
+      {/* Deposit now uses the Confirm component for 1-click flow */}
       <Stack.Screen
         name={Routes.PERPS.DEPOSIT}
-        component={PerpsDepositAmountView}
+        component={Confirm}
         options={{
           title: strings('perps.deposit.title'),
           headerShown: false,

@@ -13,7 +13,6 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
-import { usePerpsErrorTracking } from './usePerpsErrorTracking';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -27,7 +26,6 @@ export const usePerpsClosePosition = (
   const [isClosing, setIsClosing] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const { track } = usePerpsEventTracking();
-  const { trackError } = usePerpsErrorTracking();
 
   const handleClosePosition = useCallback(
     async (
@@ -86,8 +84,8 @@ export const usePerpsClosePosition = (
               [PerpsEventProperties.OPEN_POSITION_SIZE]: positionSize,
               [PerpsEventProperties.ORDER_SIZE]: closeSize,
               [PerpsEventProperties.ORDER_TYPE]: orderType,
-              'Amount filled': filledSize,
-              'Remaining amount': closeSize - filledSize,
+              [PerpsEventProperties.AMOUNT_FILLED]: filledSize,
+              [PerpsEventProperties.REMAINING_AMOUNT]: closeSize - filledSize,
               [PerpsEventProperties.COMPLETION_DURATION]:
                 performance.now() - closeStartTime,
             });
@@ -137,18 +135,15 @@ export const usePerpsClosePosition = (
         );
         setError(closeError);
 
-        // Track general error
-        trackError(err, {
-          operation: 'close_position',
-          asset: position.coin,
-          direction: parseFloat(position.size) > 0 ? 'long' : 'short',
-          amount: size?.toString(),
-        });
-
-        // Track position close failed (specific event required by specs)
+        // Track position close failed event as required by specs
         track(MetaMetricsEvents.PERPS_POSITION_CLOSE_FAILED, {
           [PerpsEventProperties.ASSET]: position.coin,
           [PerpsEventProperties.ERROR_MESSAGE]: closeError.message,
+          [PerpsEventProperties.DIRECTION]:
+            parseFloat(position.size) > 0
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.ORDER_SIZE]: size?.toString(),
         });
 
         // Call error callback
@@ -159,7 +154,7 @@ export const usePerpsClosePosition = (
         setIsClosing(false);
       }
     },
-    [closePosition, options, track, trackError],
+    [closePosition, options, track],
   );
 
   return {

@@ -32,22 +32,23 @@ describe('usePerpsPrices', () => {
   });
 
   it('should return empty prices initially', () => {
-    const { result } = renderHook(() => usePerpsPrices(['ETH', 'BTC']));
+    const { result } = renderHook(() => usePerpsPrices(['ETH', 'BTC'], {}));
     expect(result.current).toEqual({});
   });
 
   it('should subscribe to prices when initialized', () => {
-    renderHook(() => usePerpsPrices(['ETH', 'BTC']));
+    renderHook(() => usePerpsPrices(['ETH', 'BTC'], {}));
 
     expect(mockSubscribeToPrices).toHaveBeenCalledWith({
       symbols: ['ETH', 'BTC'],
       callback: expect.any(Function),
       includeOrderBook: false,
+      includeMarketData: false,
     });
   });
 
   it('should update prices when callback is triggered', () => {
-    const { result } = renderHook(() => usePerpsPrices(['ETH']));
+    const { result } = renderHook(() => usePerpsPrices(['ETH'], {}));
 
     // Get the callback that was passed to subscribeToPrices
     const callback = mockSubscribeToPrices.mock.calls[0][0].callback;
@@ -77,7 +78,7 @@ describe('usePerpsPrices', () => {
   });
 
   it('should unsubscribe on unmount', () => {
-    const { unmount } = renderHook(() => usePerpsPrices(['ETH']));
+    const { unmount } = renderHook(() => usePerpsPrices(['ETH'], {}));
 
     unmount();
 
@@ -89,18 +90,19 @@ describe('usePerpsPrices', () => {
       isInitialized: false,
     });
 
-    renderHook(() => usePerpsPrices(['ETH']));
+    renderHook(() => usePerpsPrices(['ETH'], {}));
 
     expect(mockSubscribeToPrices).not.toHaveBeenCalled();
   });
 
   it('should handle includeOrderBook parameter', () => {
-    renderHook(() => usePerpsPrices(['ETH'], true));
+    renderHook(() => usePerpsPrices(['ETH'], { includeOrderBook: true }));
 
     expect(mockSubscribeToPrices).toHaveBeenCalledWith({
       symbols: ['ETH'],
       callback: expect.any(Function),
       includeOrderBook: true,
+      includeMarketData: false,
     });
   });
 });

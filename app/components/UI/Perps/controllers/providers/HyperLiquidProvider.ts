@@ -1161,8 +1161,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
       DevLogger.log(
-        'Getting currently open orders via HyperLiquid SDK:',
-        params,
+        'Getting currently open orders via HyperLiquid SDK',
+        params || '(no params)',
       );
       await this.ensureReady();
 

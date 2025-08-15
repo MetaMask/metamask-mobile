@@ -7,8 +7,10 @@ import performance from 'react-native-performance';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import { setMeasurement } from '@sentry/react-native';
 import { MetaMetricsEvents } from '../../../hooks/useMetrics';
-import { PerpsEventProperties } from '../constants/eventNames';
-import { usePerpsErrorTracking } from './usePerpsErrorTracking';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../constants/eventNames';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 
 interface UsePerpsOrderExecutionParams {
@@ -33,7 +35,6 @@ export function usePerpsOrderExecution(
   const { onSuccess, onError } = params;
   const { placeOrder: controllerPlaceOrder, getPositions } = usePerpsTrading();
   const { track } = usePerpsEventTracking();
-  const { trackError } = usePerpsErrorTracking();
 
   const [isPlacing, setIsPlacing] = useState(false);
   const [lastResult, setLastResult] = useState<OrderResult>();
@@ -87,8 +88,8 @@ export function usePerpsOrderExecution(
               [PerpsEventProperties.LEVERAGE]: orderParams.leverage || 1,
               [PerpsEventProperties.ORDER_SIZE]: orderSize,
               [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
-              'Amount filled': filledSize,
-              'Remaining amount': orderSize - filledSize,
+              [PerpsEventProperties.AMOUNT_FILLED]: filledSize,
+              [PerpsEventProperties.REMAINING_AMOUNT]: orderSize - filledSize,
             });
           }
 
@@ -141,13 +142,15 @@ export function usePerpsOrderExecution(
           setError(errorMessage);
           DevLogger.log('usePerpsOrderExecution: Order failed', errorMessage);
 
-          // Track order failure
-          trackError(errorMessage, {
-            operation: 'place_order_failed',
-            asset: orderParams.coin,
-            direction: orderParams.isBuy ? 'long' : 'short',
-            orderType: orderParams.orderType,
-            amount: orderParams.size,
+          // Track order failure with specific event
+          track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED, {
+            [PerpsEventProperties.ASSET]: orderParams.coin,
+            [PerpsEventProperties.DIRECTION]: orderParams.isBuy
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+            [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
+            [PerpsEventProperties.ORDER_SIZE]: orderParams.size,
+            [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
           });
 
           onError?.(errorMessage);
@@ -160,13 +163,15 @@ export function usePerpsOrderExecution(
         setError(errorMessage);
         DevLogger.log('usePerpsOrderExecution: Error placing order', err);
 
-        // Track exception
-        trackError(err, {
-          operation: 'place_order_exception',
-          asset: orderParams.coin,
-          direction: orderParams.isBuy ? 'long' : 'short',
-          orderType: orderParams.orderType,
-          amount: orderParams.size,
+        // Track exception with specific event
+        track(MetaMetricsEvents.PERPS_TRADE_TRANSACTION_FAILED, {
+          [PerpsEventProperties.ASSET]: orderParams.coin,
+          [PerpsEventProperties.DIRECTION]: orderParams.isBuy
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+          [PerpsEventProperties.ORDER_TYPE]: orderParams.orderType,
+          [PerpsEventProperties.ORDER_SIZE]: orderParams.size,
+          [PerpsEventProperties.ERROR_MESSAGE]: errorMessage,
         });
 
         onError?.(errorMessage);
@@ -174,7 +179,7 @@ export function usePerpsOrderExecution(
         setIsPlacing(false);
       }
     },
-    [controllerPlaceOrder, getPositions, onSuccess, onError, track, trackError],
+    [controllerPlaceOrder, getPositions, onSuccess, onError, track],
   );
 
   return {

@@ -20,7 +20,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -70,7 +70,6 @@ const PerpsTutorialCarousel: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
-  const { trackEvent, createEventBuilder } = useMetrics();
   const [currentTab, setCurrentTab] = useState(0);
   const safeAreaInsets = useSafeAreaInsets();
   const scrollableTabViewRef = useRef<
@@ -118,18 +117,13 @@ const PerpsTutorialCarousel: React.FC = () => {
     if (isLastScreen) {
       // Track tutorial completed
       const completionDuration = Date.now() - tutorialStartTime.current;
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_TUTORIAL_COMPLETED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.SOURCE]:
-              PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
-            'Completion Duration': completionDuration,
-            'Steps Viewed': currentTab + 1,
-            'View occurrences': 1,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_TUTORIAL_COMPLETED, {
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
+        [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,
+        [PerpsEventProperties.STEPS_VIEWED]: currentTab + 1,
+        [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
+      });
 
       // Mark tutorial as completed
       markTutorialCompleted();
@@ -150,45 +144,25 @@ const PerpsTutorialCarousel: React.FC = () => {
         hasTrackedStarted.current = true;
       }
     }
-  }, [
-    isLastScreen,
-    markTutorialCompleted,
-    navigation,
-    currentTab,
-    track,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [isLastScreen, markTutorialCompleted, navigation, currentTab, track]);
 
   const handleSkip = useCallback(() => {
     if (isLastScreen) {
       // Track tutorial completed when skipping from last screen
       const completionDuration = Date.now() - tutorialStartTime.current;
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.PERPS_TUTORIAL_COMPLETED)
-          .addProperties({
-            [PerpsEventProperties.TIMESTAMP]: Date.now(),
-            [PerpsEventProperties.SOURCE]:
-              PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
-            'Completion Duration': completionDuration,
-            'Steps Viewed': currentTab + 1,
-            'View occurrences': 1,
-          })
-          .build(),
-      );
+      track(MetaMetricsEvents.PERPS_TUTORIAL_COMPLETED, {
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
+        [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,
+        [PerpsEventProperties.STEPS_VIEWED]: currentTab + 1,
+        [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
+      });
 
       // Mark tutorial as completed
       markTutorialCompleted();
     }
     navigation.goBack();
-  }, [
-    isLastScreen,
-    markTutorialCompleted,
-    navigation,
-    currentTab,
-    trackEvent,
-    createEventBuilder,
-  ]);
+  }, [isLastScreen, markTutorialCompleted, navigation, currentTab, track]);
 
   const renderTabBar = () => <View />;
 

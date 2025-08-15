@@ -19,6 +19,9 @@ jest.mock('../../hooks', () => ({
   usePerpsTrading: jest.fn(),
   usePerpsFirstTimeUser: jest.fn(),
   usePerpsAccount: jest.fn(),
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
 }));
 
 // Mock components

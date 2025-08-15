@@ -74,8 +74,7 @@ export const PerpsEventProperties = {
   WARNING_MESSAGE: 'Warning Message',
   ERROR_TYPE: 'Error Type',
   ERROR_MESSAGE: 'Error Message',
-  COMPLETION_DURATION_CAMEL: 'completionDuration',
-  COMPLETION_DURATION_PASCAL: 'Completion Duration',
+  COMPLETION_DURATION_TUTORIAL: 'Completion Duration',
   STEPS_VIEWED: 'Steps Viewed',
   VIEW_OCCURRENCES: 'View occurrences',
   AMOUNT_FILLED: 'Amount filled',
@@ -130,6 +129,7 @@ export const PerpsEventValues = {
     NETWORK: 'network',
     APP_CRASH: 'app crash',
     BACKEND: 'backend',
+    VALIDATION: 'validation',
   },
   INTERACTION_TYPE: {
     TAP: 'tap',

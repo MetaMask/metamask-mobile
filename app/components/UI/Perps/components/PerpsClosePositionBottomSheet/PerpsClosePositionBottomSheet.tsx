@@ -80,7 +80,7 @@ const PerpsClosePositionBottomSheet: React.FC<
   const [limitPriceInputFocused, setLimitPriceInputFocused] = useState(false);
 
   // Subscribe to real-time price
-  const priceData = usePerpsPrices(isVisible ? [position.coin] : []);
+  const priceData = usePerpsPrices(isVisible ? [position.coin] : [], {});
   const currentPrice = priceData[position.coin]?.price
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);

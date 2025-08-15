@@ -62,15 +62,6 @@ export function usePerpsOrderValidation(
     // Perform immediate UI validation for critical errors
     const immediateErrors: string[] = [];
 
-    // Check for existing position immediately
-    if (hasExistingPosition) {
-      immediateErrors.push(
-        strings('perps.order.validation.existing_position', {
-          asset: orderForm.asset,
-        }),
-      );
-    }
-
     // Balance validation (immediate)
     const requiredMargin = parseFloat(marginRequired);
     if (requiredMargin > availableBalance) {
