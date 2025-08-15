@@ -70,9 +70,10 @@ export const SendContextProvider: React.FC<{
 export const useSendContext = () => {
   const context = useContext(SendContext);
   if (!context) {
-    throw new Error(
-      'useSendContext must be used within an SendContextProvider',
-    );
+    console.warn('useSendContext must be used within an SendContextProvider');
+    // This is necessary to be able to use the context in the components that are not wrapped in the provider
+    // e.g confirmations out of send flow
+    return null as unknown as SendContextType;
   }
   return context;
 };
