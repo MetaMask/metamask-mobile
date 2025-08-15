@@ -465,13 +465,6 @@ describe('useNetworkEnablement', () => {
         mockNetworkEnablementController.enableNetwork,
       ).not.toHaveBeenCalled();
     });
-
-    it('does not enable network when network is already enabled', () => {
-      // This test is complex due to the store state dependency
-      // The function should not enable a network that's already enabled
-      // This is tested indirectly through the other test cases
-      expect(true).toBe(true); // Placeholder - the logic is covered by other tests
-    });
   });
 
   describe('hook return values', () => {
