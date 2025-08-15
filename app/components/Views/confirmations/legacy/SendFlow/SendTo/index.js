@@ -4,10 +4,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { parseCaipChainId } from '@metamask/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import AddressList from '../AddressList';
-import Engine from '../../../../../../core/Engine';
 import Text from '../../../../../Base/Text';
 import WarningMessage from '../WarningMessage';
 import { getSendFlowTitle } from '../../../../../UI/Navbar';
@@ -77,7 +74,6 @@ import { toHexadecimal } from '../../../../../../util/number';
 import { selectNetworkImageSourceByChainId } from '../../../../../../selectors/networkInfos';
 import { NETWORK_SELECTOR_SOURCES } from '../../../../../../constants/networkSelector';
 import ContextualNetworkPicker from '../../../../../UI/ContextualNetworkPicker/ContextualNetworkPicker';
-import { onboardNetworkAction } from '../../../../../../actions/onboardNetwork';
 
 const dummy = () => true;
 
@@ -179,10 +175,6 @@ class SendFlow extends PureComponent {
      * Network image source
      */
     networkImageSource: PropTypes.object,
-    /**
-     * Onboard network
-     */
-    onboardNetwork: PropTypes.func,
   };
 
   addressToInputRef = React.createRef();
@@ -227,10 +219,8 @@ class SendFlow extends PureComponent {
       isPaymentRequest,
       setTransactionContextualChainId,
       newAssetTransaction,
-      onboardNetwork,
     } = this.props;
     this.updateNavBar();
-
     // For analytics
     navigation.setParams({ providerType, isPaymentRequest });
     const networkAddressBook = addressBook[globalChainId] || {};
@@ -241,7 +231,6 @@ class SendFlow extends PureComponent {
           this.addressToInputRef.current.focus();
       }, 500);
     }
-
     //Fills in to address and sets the transaction if coming from QR code scan
     const targetAddress = route.params?.txMeta?.target_address;
     if (targetAddress) {
@@ -255,28 +244,7 @@ class SendFlow extends PureComponent {
 
     // Initialize contextual chain ID with global chain ID
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      const {
-        NetworkEnablementController,
-        NetworkController,
-        MultichainNetworkController,
-      } = Engine.context;
-
-      const contextualChainId =
-        MultichainNetworkController.getChainId(globalChainId);
-
-      const networkClientId =
-        NetworkController.findNetworkClientIdByChainId(contextualChainId);
-
-      // Run async operations in parallel for better performance
-      await Promise.all([
-        NetworkEnablementController.enableNetwork(contextualChainId),
-        MultichainNetworkController.setActiveNetwork(networkClientId),
-      ]);
-
-      // Dispatch Redux action immediately (synchronous)
-      onboardNetwork(contextualChainId);
-
-      setTransactionContextualChainId(contextualChainId);
+      setTransactionContextualChainId(globalChainId);
     }
   };
 
@@ -862,7 +830,6 @@ const mapDispatchToProps = (dispatch) => ({
   },
   setTransactionContextualChainId: (chainId) =>
     dispatch(setTransactionSendFlowContextualChainId(chainId)),
-  onboardNetwork: (chainId) => dispatch(onboardNetworkAction(chainId)),
 });
 
 export default connect(
