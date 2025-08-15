@@ -23,9 +23,9 @@ describe('AddressCopy', () => {
   });
 
   it('renders correctly the component', () => {
-    const component = renderWithAddressCopy({
-      account: createMockInternalAccount('0xaddress', 'Account 1'),
-    });
+    const component = renderWithAddressCopy(
+      createMockInternalAccount('0xaddress', 'Account 1'),
+    );
     expect(component).toBeDefined();
     expect(
       component.getByTestId(WalletViewSelectorsIDs.ACCOUNT_COPY_BUTTON),
