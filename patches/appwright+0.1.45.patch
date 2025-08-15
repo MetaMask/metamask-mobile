@@ -25,6 +25,7 @@ index 638c5df..5ea0bf6 100644
                  "appium:app": process.env[envVarKey],
                  "appium:autoAcceptAlerts": true,
                  "appium:fullReset": true,
++                "appium:autoLaunch": false,
                  "appium:settings[snapshotMaxDepth]": 62,
              },
          };
