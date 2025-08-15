@@ -17,3 +17,5 @@ jobs:
         with:
           team: release-team
           token: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
+        env:
+          GH_TOKEN: ${{ secrets.METAMASK_MOBILE_ORG_READ_TOKEN }}
