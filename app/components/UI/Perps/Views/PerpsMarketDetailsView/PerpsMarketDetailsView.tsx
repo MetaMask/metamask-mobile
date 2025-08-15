@@ -25,7 +25,7 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
+import TradingViewChart from '../../components/TradingViewChart';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import type {
@@ -161,7 +161,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         />
         {/* Chart */}
         <View style={[styles.section, styles.chartSection]}>
-          <CandlestickChartComponent
+          {/* TODO: Re-enable when TradingView chart supports duration/period changes */}
+          {/* <CandlestickChartComponent
             candleData={candleData}
             isLoading={isLoadingHistory}
             height={350}
@@ -170,6 +171,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             onDurationChange={handleDurationChange}
             onGearPress={handleGearPress}
             onZoomChange={handleZoomChange}
+          /> */}
+          <TradingViewChart
+            candleData={candleData}
+            height={350}
+            testID={PerpsMarketDetailsViewSelectorsIDs.TRADINGVIEW_CHART}
           />
         </View>
 

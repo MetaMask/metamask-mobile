@@ -17,7 +17,7 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsPositionDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import type { Position } from '../../controllers/types';
-// import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
+
 import TradingViewChart from '../../components/TradingViewChart';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPositionHeader from '../../components/PerpsPostitionHeader/PerpsPositionHeader';
@@ -152,23 +152,6 @@ const PerpsPositionDetailsView: React.FC = () => {
 
         {/* Chart */}
         <View style={styles.section}>
-          {/* <CandlestickChartComponent
-            candleData={candleData}
-            isLoading={isLoadingHistory}
-            height={350}
-            selectedDuration={TimeDuration.ONE_HOUR}
-            candleCount={candleCount}
-            tpslLines={{
-              takeProfitPrice: position.takeProfitPrice,
-              stopLossPrice: position.stopLossPrice,
-              entryPrice: position.entryPrice,
-              liquidationPrice: position.liquidationPrice,
-              currentPrice: priceData?.price || position.entryPrice, // Use current price or fallback to entry price
-            }}
-            onDurationChange={handleDurationChange}
-            onGearPress={handleGearPress}
-            onZoomChange={handleZoomChange}
-          /> */}
           <TradingViewChart
             candleData={candleData}
             height={350}
