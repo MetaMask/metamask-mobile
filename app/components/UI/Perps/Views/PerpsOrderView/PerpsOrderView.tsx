@@ -4,7 +4,6 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import Routes from '../../../../../constants/navigation/Routes';
 import React, {
   useCallback,
   useContext,
@@ -15,6 +14,7 @@ import React, {
 } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -38,8 +38,8 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
+import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
-import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
   endTrace,
   trace,
@@ -82,8 +82,8 @@ import {
   usePerpsOrderFees,
   usePerpsOrderValidation,
   usePerpsPaymentTokens,
-  usePerpsPrices,
   usePerpsPerformance,
+  usePerpsPrices,
 } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
@@ -329,10 +329,14 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
   // Note: Navigation params for order type modal are no longer needed
 
   // Get real-time price data with debouncing for better performance
-  // Use 2000ms debounce for order view to reduce re-renders
+  // TODO: Currently using 100ms debounce as a workaround for multiple subscription interference
+  // When multiple usePerpsPrices hooks subscribe to the same symbol with different debounce values,
+  // they interfere with each other causing some instances to never receive updates.
+  // This will be fixed when we implement the centralized Stream Provider pattern.
+  // See: /temp/perps_websocket_architecture_analysis_v2.md
   const prices = usePerpsPrices([orderForm.asset], {
     includeOrderBook: false,
-    debounceMs: 2000,
+    debounceMs: 100, // Temporary: Keep at 100ms until Stream Provider refactor
   });
   const currentPrice = prices[orderForm.asset];
 

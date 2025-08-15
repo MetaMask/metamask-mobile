@@ -10,6 +10,7 @@ import React, {
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../locales/i18n';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 
 interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -184,6 +185,16 @@ export const PerpsConnectionProvider: React.FC<
       resetError,
     ],
   );
+
+  // Show skeleton loading UI while connection is initializing
+  // This prevents components from trying to load data before the connection is ready
+  if (connectionState.isConnecting || !connectionState.isInitialized) {
+    return (
+      <PerpsConnectionContext.Provider value={contextValue}>
+        <PerpsLoadingSkeleton />
+      </PerpsConnectionContext.Provider>
+    );
+  }
 
   return (
     <PerpsConnectionContext.Provider value={contextValue}>

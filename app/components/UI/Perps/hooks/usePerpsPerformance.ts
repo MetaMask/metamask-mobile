@@ -1,7 +1,36 @@
 import { useRef, useCallback } from 'react';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
-import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import {
+  PerpsMeasurementName,
+  PerpsPerformanceTargets,
+  PerpsMetricPriorities,
+} from '../constants/performanceMetrics';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+
+/**
+ * Validate performance measurement against target
+ */
+const validatePerformance = (
+  name: PerpsMeasurementName,
+  duration: number,
+): void => {
+  const target = PerpsPerformanceTargets[name];
+  if (!target) return;
+
+  if (duration > target) {
+    const percentOver = ((duration - target) / target) * 100;
+    const priority = PerpsMetricPriorities[name] || 'MEDIUM';
+
+    DevLogger.log('⚠️ Performance target exceeded', {
+      metric: name,
+      duration: `${duration.toFixed(0)}ms`,
+      target: `${target}ms`,
+      overBy: `+${percentOver.toFixed(1)}%`,
+      priority,
+    });
+  }
+};
 
 /**
  * Simplified performance tracking hook
@@ -18,29 +47,39 @@ export const usePerpsPerformance = () => {
   }, []);
 
   /**
-   * End timing and report to Sentry
+   * End timing and report to Sentry with validation
    */
   const endMeasure = useCallback((name: PerpsMeasurementName): number => {
     const startTime = startTimes.current.get(name);
     if (!startTime) {
-      console.warn(`No start time found for metric: ${name}`);
+      DevLogger.log(`No start time found for metric: ${name}`);
       return 0;
     }
 
     const duration = performance.now() - startTime;
+
+    // Validate against performance targets
+    validatePerformance(name, duration);
+
+    // Report to Sentry
     setMeasurement(name, duration, 'millisecond');
     startTimes.current.delete(name);
     return duration;
   }, []);
 
   /**
-   * Measure a synchronous operation
+   * Measure a synchronous operation with validation
    */
   const measure = useCallback(
     <T>(name: PerpsMeasurementName, operation: () => T): T => {
       const startTime = performance.now();
       const result = operation();
       const duration = performance.now() - startTime;
+
+      // Validate against performance targets
+      validatePerformance(name, duration);
+
+      // Report to Sentry
       setMeasurement(name, duration, 'millisecond');
       return result;
     },
@@ -48,7 +87,7 @@ export const usePerpsPerformance = () => {
   );
 
   /**
-   * Measure an async operation
+   * Measure an async operation with validation
    */
   const measureAsync = useCallback(
     async <T>(
@@ -59,10 +98,20 @@ export const usePerpsPerformance = () => {
       try {
         const result = await operation();
         const duration = performance.now() - startTime;
+
+        // Validate against performance targets
+        validatePerformance(name, duration);
+
+        // Report to Sentry
         setMeasurement(name, duration, 'millisecond');
         return result;
       } catch (error) {
         const duration = performance.now() - startTime;
+
+        // Validate even on error
+        validatePerformance(name, duration);
+
+        // Report to Sentry
         setMeasurement(name, duration, 'millisecond');
         throw error;
       }

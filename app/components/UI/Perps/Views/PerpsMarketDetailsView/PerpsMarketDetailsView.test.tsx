@@ -171,6 +171,13 @@ jest.mock('../../hooks', () => ({
     measure: jest.fn(),
     measureAsync: jest.fn(),
   })),
+  usePerpsTrading: jest.fn(() => ({
+    placeOrder: jest.fn(),
+    cancelOrder: jest.fn(),
+    getAccountState: jest.fn(),
+    depositWithConfirmation: jest.fn(() => Promise.resolve()),
+    withdrawWithConfirmation: jest.fn(),
+  })),
 }));
 
 // Mock PerpsMarketStatisticsCard to simplify the test
@@ -899,7 +906,9 @@ describe('PerpsMarketDetailsView', () => {
       fireEvent.press(addFundsButton);
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.DEPOSIT);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
     });
   });
 });

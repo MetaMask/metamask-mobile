@@ -10,8 +10,8 @@ import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
-import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
+import { Confirm } from '../../../Views/confirmations/components/confirm';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -51,16 +51,6 @@ const PerpsScreenStack = () => (
         component={PerpsMarketListView}
         options={{
           title: strings('perps.markets.title'),
-          headerShown: false,
-        }}
-      />
-
-      {/* Deposit now uses the Confirm component for 1-click flow */}
-      <Stack.Screen
-        name={Routes.PERPS.DEPOSIT}
-        component={Confirm}
-        options={{
-          title: strings('perps.deposit.title'),
           headerShown: false,
         }}
       />

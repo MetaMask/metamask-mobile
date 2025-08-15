@@ -58,6 +58,7 @@ import {
   usePerpsConnection,
   usePerpsOpenOrders,
   usePerpsPerformance,
+  usePerpsTrading,
 } from '../../hooks';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 interface MarketDetailsRouteParams {
@@ -101,6 +102,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const account = usePerpsAccount();
 
   const { isConnected } = usePerpsConnection();
+  const { depositWithConfirmation } = usePerpsTrading();
 
   // Get currently open orders for this market
   const { orders: ordersData, refresh: refreshOrders } = usePerpsOpenOrders({
@@ -267,7 +269,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   };
 
   const handleAddFundsPress = () => {
-    navigation.navigate(Routes.PERPS.DEPOSIT);
+    // Navigate immediately to confirmations screen for instant UI response
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    });
+
+    // Initialize deposit in the background without blocking
+    depositWithConfirmation().catch((error) => {
+      console.error('Failed to initialize deposit:', error);
+    });
   };
 
   // Determine if any action buttons will be visible

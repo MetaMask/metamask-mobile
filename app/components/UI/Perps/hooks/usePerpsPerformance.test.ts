@@ -3,6 +3,7 @@ import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
 import { usePerpsPerformance } from './usePerpsPerformance';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
 // Mock dependencies
 jest.mock('react-native-performance', () => ({
@@ -11,6 +12,12 @@ jest.mock('react-native-performance', () => ({
 
 jest.mock('@sentry/react-native', () => ({
   setMeasurement: jest.fn(),
+}));
+
+jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
+  DevLogger: {
+    log: jest.fn(),
+  },
 }));
 
 describe('usePerpsPerformance', () => {
@@ -79,8 +86,7 @@ describe('usePerpsPerformance', () => {
       expect(setMeasurement).toHaveBeenCalledTimes(2);
     });
 
-    it('should warn and return 0 when ending measurement without start', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    it('should log and return 0 when ending measurement without start', () => {
       const { result } = renderHook(() => usePerpsPerformance());
 
       let duration = 0;
@@ -92,12 +98,10 @@ describe('usePerpsPerformance', () => {
 
       expect(duration).toBe(0);
 
-      expect(consoleSpy).toHaveBeenCalledWith(
+      expect(DevLogger.log).toHaveBeenCalledWith(
         `No start time found for metric: ${PerpsMeasurementName.MARKETS_SCREEN_LOADED}`,
       );
       expect(setMeasurement).not.toHaveBeenCalled();
-
-      consoleSpy.mockRestore();
     });
   });
 

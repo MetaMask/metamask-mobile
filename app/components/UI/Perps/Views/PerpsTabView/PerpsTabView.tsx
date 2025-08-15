@@ -132,15 +132,18 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     setIsBottomSheetVisible(false);
   }, []);
 
-  const handleAddFunds = useCallback(async () => {
+  const handleAddFunds = useCallback(() => {
     setIsBottomSheetVisible(false);
-    const { result: depositResult } = await depositWithConfirmation();
 
+    // Navigate immediately to confirmations screen for instant UI response
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     });
 
-    await depositResult;
+    // Initialize deposit in the background without blocking
+    depositWithConfirmation().catch((error) => {
+      console.error('Failed to initialize deposit:', error);
+    });
   }, [depositWithConfirmation, navigation]);
 
   const handleWithdrawFunds = useCallback(() => {
