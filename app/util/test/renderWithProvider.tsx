@@ -29,7 +29,7 @@ export type DeepPartial<T> = T extends (...args: unknown[]) => unknown
     { [K in keyof T]?: DeepPartial<T[K]> }
   : // Otherwise, return T or undefined.
     T | undefined;
-interface ProviderValues {
+export interface ProviderValues {
   state?: DeepPartial<RootState>;
   theme?: Theme;
 }

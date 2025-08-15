@@ -26,7 +26,10 @@ import { SnapPermissions } from '../components/SnapPermissions';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../hooks/useStyles';
 import { useSelector } from 'react-redux';
-import SNAP_SETTINGS_REMOVE_BUTTON from './SnapSettings.constants';
+import {
+  SNAP_SETTINGS_REMOVE_BUTTON,
+  SNAP_SETTINGS_SCROLLVIEW,
+} from './SnapSettings.constants';
 import { selectPermissionControllerState } from '../../../../selectors/snaps/permissionController';
 import KeyringSnapRemovalWarning from '../KeyringSnapRemovalWarning/KeyringSnapRemovalWarning';
 import { getAccountsBySnapId } from '../../../../core/SnapKeyring/utils/getAccountsBySnapId';
@@ -150,7 +153,7 @@ const SnapSettings = () => {
   return (
     <>
       <SafeAreaView style={styles.snapSettingsContainer}>
-        <ScrollView>
+        <ScrollView testID={SNAP_SETTINGS_SCROLLVIEW}>
           <SnapDetails snap={snap} />
           <View style={styles.itemPaddedContainer}>
             <SnapDescription

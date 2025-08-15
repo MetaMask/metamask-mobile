@@ -1,13 +1,15 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import EnterEmail from './EnterEmail';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { DepositSdkMethodResult } from '../../hooks/useDepositSdkMethod';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import initialRootState from '../../../../../../util/test/initial-root-state';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockSetNavigationOptions = jest.fn();
+const mockTrackEvent = jest.fn();
 
 const mockResponse = {
   data: null,
@@ -15,29 +17,20 @@ const mockResponse = {
   isFetching: false,
 };
 
+const mockSendEmail = jest.fn().mockResolvedValue('Success');
+
 const mockUseDepositSdkMethodInitialValues: DepositSdkMethodResult<'sendUserOtp'> =
-  [mockResponse, jest.fn().mockResolvedValue('Success')];
+  [mockResponse, mockSendEmail];
 
 let mockUseDepositSdkMethodValues: DepositSdkMethodResult<'sendUserOtp'> = {
   ...mockUseDepositSdkMethodInitialValues,
 };
 
-interface MockQuote {
-  id: string;
-  amount: number;
-  currency: string;
-}
-
-// Mock the quote object
-const mockQuote: MockQuote = {
-  id: 'test-quote-id',
-  amount: 100,
-  currency: 'USD',
-};
-
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: () => mockUseDepositSdkMethodValues,
 }));
+
+jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -51,19 +44,19 @@ jest.mock('@react-navigation/native', () => {
       ),
     }),
     useRoute: () => ({
-      params: { quote: mockQuote },
+      params: {},
     }),
   };
 });
 
-jest.mock('../../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Enter Email',
-  }),
-}));
-
 function render(Component: React.ComponentType) {
-  return renderDepositTestComponent(Component, Routes.DEPOSIT.ENTER_EMAIL);
+  return renderScreen(
+    Component,
+    { name: Routes.DEPOSIT.ENTER_EMAIL },
+    {
+      state: initialRootState,
+    },
+  );
 }
 
 describe('EnterEmail Component', () => {
@@ -71,7 +64,7 @@ describe('EnterEmail Component', () => {
     jest.clearAllMocks();
     mockUseDepositSdkMethodValues = [
       { ...mockResponse },
-      jest.fn().mockResolvedValue('Success'),
+      mockSendEmail.mockResolvedValue('Success'),
     ];
   });
 
@@ -82,11 +75,7 @@ describe('EnterEmail Component', () => {
 
   it('calls setOptions when the component mounts', () => {
     render(EnterEmail);
-    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Enter Email',
-      }),
-    );
+    expect(mockSetNavigationOptions).toHaveBeenCalled();
   });
 
   it('renders loading state snapshot', async () => {
@@ -106,7 +95,18 @@ describe('EnterEmail Component', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.OTP_CODE, {
         email: 'test@example.com',
-        quote: mockQuote,
+      });
+    });
+  });
+
+  it('tracks analytics event when submit button is pressed with valid email', async () => {
+    render(EnterEmail);
+    const emailInput = screen.getByPlaceholderText('name@domain.com');
+    fireEvent.changeText(emailInput, 'test@example.com');
+    fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
+    await waitFor(() => {
+      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_EMAIL_SUBMITTED', {
+        ramp_type: 'DEPOSIT',
       });
     });
   });
@@ -121,11 +121,14 @@ describe('EnterEmail Component', () => {
   });
 
   it('renders error message snapshot when API call fails', async () => {
-    mockUseDepositSdkMethodValues = [
-      { ...mockResponse, error: 'API Error' },
-      jest.fn(),
-    ];
+    mockSendEmail.mockRejectedValue(new Error('API Error'));
     render(EnterEmail);
+    const emailInput = screen.getByPlaceholderText('name@domain.com');
+    fireEvent.changeText(emailInput, 'test@example.com');
+    fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
+    await waitFor(() => {
+      expect(mockSendEmail).toHaveBeenCalledWith();
+    });
     expect(screen.toJSON()).toMatchSnapshot();
   });
 });

@@ -18,6 +18,8 @@ const tags = {
   smokeAnalytics: 'SmokeAnalytics:',
   smokeMultiChainAPI: 'SmokeMultiChainAPI:',
   FlaskBuildTests: 'FlaskBuildTests:',
+  performance: 'Performance:',
+  smokeCard: 'SmokeCard:',
 };
 
 const Regression = (testName) => `${tags.regression} ${testName}`;
@@ -40,16 +42,19 @@ const SmokeNotifications = (testName) =>
   `${tags.smokeNotifications} ${testName}`;
 const SmokeAnalytics = (testName) => `${tags.smokeAnalytics} ${testName}`;
 
-
 const SmokeTrade = (testName) => `${tags.SmokeTrade} ${testName}`;
-const SmokeWalletPlatform = (testName) => `${tags.SmokeWalletPlatform} ${testName}`;
+const SmokeWalletPlatform = (testName) =>
+  `${tags.SmokeWalletPlatform} ${testName}`;
 
 const SmokeNetworkAbstractions = (testName) =>
   `${tags.SmokeNetworkAbstractions} ${testName}`;
 const SmokeNetworkExpansion = (testName) =>
   `${tags.SmokeNetworkExpansion} ${testName}`;
-const FlaskBuildTests = (testName) => 
-  `${tags.FlaskBuildTests} ${testName}`;
+const SmokeCard = (testName) => `${tags.smokeCard} ${testName}`;
+
+const FlaskBuildTests = (testName) => `${tags.FlaskBuildTests} ${testName}`;
+
+const SmokePerformance = (testName) => `${tags.performance} ${testName}`;
 
 export {
   FlaskBuildTests,
@@ -71,4 +76,6 @@ export {
   SmokeNotifications,
   SmokeAnalytics,
   SmokeMultiChainAPI,
+  SmokePerformance,
+  SmokeCard,
 };

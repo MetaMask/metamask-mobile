@@ -4,6 +4,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Switch, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
+import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
+import { SwitchAccountModalSelectorIDs } from '../../../../../../../../e2e/selectors/wallet/SwitchAccountModal.selectors';
 import { strings } from '../../../../../../../../locales/i18n';
 import Avatar, {
   AvatarSize,
@@ -32,7 +34,6 @@ import {
 } from '../../../../../../UI/Box/box.types';
 import { Box } from '../../../../../../UI/Box/Box';
 import { useTheme } from '../../../../../../../util/theme';
-import { SmartAccountIds } from '../../../../../../../../e2e/selectors/MultichainAccounts/SmartAccount.selectors';
 import { selectMultichainAccountsState1Enabled } from '../../../../../../../selectors/featureFlagController/multichainAccounts';
 
 const AccountNetworkRow = ({
@@ -71,13 +72,16 @@ const AccountNetworkRow = ({
     } else if (upgradeContractAddress) {
       await upgradeAccount(address, upgradeContractAddress);
     }
-    // This navigation below is to close account modal.
-    navigation.navigate(Routes.WALLET.HOME, {
-      screen: Routes.WALLET.TAB_STACK_FLOW,
-      params: {
-        screen: Routes.WALLET_VIEW,
-      },
-    });
+    if (!useMultichainAccountsDesign) {
+      // This navigation below is to close account modal.
+      navigation.navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+    }
+
     // This navigation to confirmation modal
     // is needed as above navigation lands on home page
     navigation.navigate(Routes.CONFIRMATION_REQUEST_MODAL);
@@ -89,6 +93,7 @@ const AccountNetworkRow = ({
     navigation,
     upgradeAccount,
     upgradeContractAddress,
+    useMultichainAccountsDesign,
   ]);
 
   useEffect(() => {
@@ -167,6 +172,7 @@ const AccountNetworkRow = ({
                 : strings('confirm.7702_functionality.switch')
             }
             onPress={onSwitch}
+            testID={`${SwitchAccountModalSelectorIDs.SWITCH_ACCOUNT_BUTTON}-${name}`}
           />
         )}
       </View>

@@ -334,7 +334,7 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                         style={
                           [
                             {
-                              "backgroundColor": "#00000066",
+                              "backgroundColor": "#3f434a66",
                               "bottom": 0,
                               "left": 0,
                               "position": "absolute",
@@ -385,8 +385,8 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -558,11 +558,12 @@ exports[`MultiRpcModal render matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#4459ff",
+                                    "backgroundColor": "#121314",
                                     "borderRadius": 12,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
+                                    "overflow": "hidden",
                                     "paddingHorizontal": 16,
                                   }
                                 }

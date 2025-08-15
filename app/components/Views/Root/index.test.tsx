@@ -14,11 +14,16 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 jest.mock('../../../core/SecureKeychain', () => ({
+  ...jest.requireActual('../../../core/SecureKeychain').default,
   init: jest.fn(),
 }));
 
 jest.mock('../../../core/EntryScriptWeb3', () => ({
   init: jest.fn(),
+}));
+
+jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
+  createLoginHandler: jest.fn(),
 }));
 
 describe('Root', () => {

@@ -15,6 +15,8 @@ export const ConnectedAccountsSelectorsIDs = {
   CONTAINER: 'accounts-connected-modal-container',
   DISCONNECT: 'disconnect',
   DISCONNECT_ALL_ACCOUNTS_NETWORKS: 'disconnect_all',
+  NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON:
+    'navigate_to_edit_accounts_permissions_button',
   NAVIGATE_TO_EDIT_NETWORKS_PERMISSIONS_BUTTON:
     'navigate_to_edit_networks_permissions_button',
   SELECT_ALL_NETWORKS_BUTTON: 'select_all',
@@ -31,6 +33,9 @@ export const PermissionsSummarySelectorsIDs = {
 } as const;
 
 // Type definitions for the selectors
-export type ConnectedAccountModalSelectorsTextType = typeof ConnectedAccountModalSelectorsText;
-export type ConnectedAccountsSelectorsIDsType = typeof ConnectedAccountsSelectorsIDs;
-export type PermissionsSummarySelectorsIDsType = typeof PermissionsSummarySelectorsIDs; 
+export type ConnectedAccountModalSelectorsTextType =
+  typeof ConnectedAccountModalSelectorsText;
+export type ConnectedAccountsSelectorsIDsType =
+  typeof ConnectedAccountsSelectorsIDs;
+export type PermissionsSummarySelectorsIDsType =
+  typeof PermissionsSummarySelectorsIDs;

@@ -84,6 +84,7 @@ const Price = ({
     '3m': strings('asset_overview.chart_time_period.3m'),
     '1y': strings('asset_overview.chart_time_period.1y'),
     '3y': strings('asset_overview.chart_time_period.3y'),
+    all: strings('asset_overview.chart_time_period.all'),
   };
 
   const price: number = isEvmAssetSelected
@@ -98,7 +99,7 @@ const Price = ({
     ? distributedPriceData[activeChartIndex]?.[1] - comparePrice
     : priceDiff;
 
-  const { styles } = useStyles(styleSheet, { priceDiff: diff });
+  const { styles, theme } = useStyles(styleSheet, { priceDiff: diff });
   const ticker = asset.ticker || asset.symbol;
   return (
     <>
@@ -120,7 +121,10 @@ const Price = ({
           >
             {isLoading ? (
               <View style={styles.loadingPrice}>
-                <SkeletonPlaceholder>
+                <SkeletonPlaceholder
+                  backgroundColor={theme.colors.background.section}
+                  highlightColor={theme.colors.background.subsection}
+                >
                   <SkeletonPlaceholder.Item
                     width={100}
                     height={32}
@@ -136,7 +140,10 @@ const Price = ({
         <Text>
           {isLoading ? (
             <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
-              <SkeletonPlaceholder>
+              <SkeletonPlaceholder
+                backgroundColor={theme.colors.background.section}
+                highlightColor={theme.colors.background.subsection}
+              >
                 <SkeletonPlaceholder.Item
                   width={150}
                   height={18}

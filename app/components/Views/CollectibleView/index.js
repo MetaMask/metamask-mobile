@@ -1,6 +1,8 @@
 import React, { PureComponent } from 'react';
 import { ScrollView, View, StyleSheet, Text, SafeAreaView } from 'react-native';
 import PropTypes from 'prop-types';
+
+import Routes from '../../../constants/navigation/Routes';
 import CollectibleOverview from '../../UI/CollectibleOverview';
 import { getNetworkNavbarOptions } from '../../UI/Navbar';
 import StyledButton from '../../UI/StyledButton';
@@ -10,6 +12,8 @@ import { connect } from 'react-redux';
 import collectiblesTransferInformation from '../../../util/collectibles-transfer';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { ThemeContext, mockTheme } from '../../../util/theme';
+import { InitSendLocation } from '../confirmations/constants/send';
+import { handleSendPageNavigation } from '../confirmations/utils/send';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -81,7 +85,11 @@ class CollectibleView extends PureComponent {
       route: { params },
     } = this.props;
     this.props.newAssetTransaction(params);
-    this.props.navigation.navigate('SendFlowView');
+    handleSendPageNavigation(
+      this.props.navigation.navigate,
+      InitSendLocation.CollectibleView,
+      params,
+    );
   };
 
   render() {

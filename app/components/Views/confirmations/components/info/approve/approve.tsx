@@ -18,7 +18,7 @@ const Approve = () => {
     <View testID={ConfirmationInfoComponentIDs.APPROVE}>
       <AccountNetworkInfoRow />
       <ApproveRow />
-      <OriginRow isSignatureRequest={false} />
+      <OriginRow />
       <GasFeesDetailsRow />
       <AdvancedDetailsRow />
     </View>

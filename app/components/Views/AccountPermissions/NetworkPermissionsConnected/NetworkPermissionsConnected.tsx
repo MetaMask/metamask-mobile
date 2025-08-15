@@ -6,9 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 
 // External dependencies.
 import { strings } from '../../../../../locales/i18n';
-import {
-  getNetworkImageSource,
-} from '../../../../util/networks';
+import { getNetworkImageSource } from '../../../../util/networks';
 import { AccountPermissionsScreens } from '../AccountPermissions.types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import Routes from '../../../../constants/navigation/Routes';
@@ -96,7 +94,7 @@ const NetworkPermissionsConnected = ({
       imageSource: getNetworkImageSource({
         chainId: network.chainId,
       }),
-      caipChainId: `eip155:${parseInt(network.chainId, 16)}` as const
+      caipChainId: `eip155:${parseInt(network.chainId, 16)}` as const,
     }));
 
   return (
@@ -136,7 +134,7 @@ const NetworkPermissionsConnected = ({
               return;
             }
 
-            const { reference } =  parseCaipChainId(onSelectChainId);
+            const { reference } = parseCaipChainId(onSelectChainId);
 
             // This helper needs to work with caipChainIds so that this component
             // can be updated to work with non-evm networks

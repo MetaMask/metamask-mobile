@@ -99,7 +99,7 @@ exports[`BrowserBottomBar should render correctly 1`] = `
               "width": 24,
             },
             {
-              "color": "#9ca1af",
+              "color": "#b7bbc8",
             },
           ],
           {

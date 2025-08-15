@@ -9,7 +9,13 @@ import { colors as importedColors } from '../../../styles/common';
  * @param params.theme App theme from ThemeContext.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme, vars: { selected?: boolean, compact?: boolean } }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: {
+    selected?: boolean;
+    compact?: boolean;
+  };
+}) => {
   const { theme, vars } = params;
   const { colors } = theme;
   return StyleSheet.create({
@@ -26,6 +32,7 @@ const styleSheet = (params: { theme: Theme, vars: { selected?: boolean, compact?
       paddingLeft: 16,
       paddingRight: 16,
     },
+
     button: {
       backgroundColor: colors.background.default,
       height: 'auto',
@@ -40,7 +47,9 @@ const styleSheet = (params: { theme: Theme, vars: { selected?: boolean, compact?
       paddingLeft: vars.compact ? 8 : 16,
     },
     modalButton: {
-      backgroundColor: vars.selected ? colors.primary.muted : importedColors.transparent,
+      backgroundColor: vars.selected
+        ? colors.primary.muted
+        : importedColors.transparent,
       height: 'auto',
       minHeight: 48,
       maxHeight: 58,

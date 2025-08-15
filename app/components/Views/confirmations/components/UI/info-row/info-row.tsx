@@ -47,7 +47,8 @@ const InfoRow = ({
 }: InfoRowProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const ValueComponent = typeof children === 'string' ? (
+  const ValueComponent =
+    typeof children === 'string' ? (
       <Text style={styles.value}>{children}</Text>
     ) : (
       <>{children}</>
@@ -61,19 +62,22 @@ const InfoRow = ({
       >
         {Boolean(label) && (
           <View style={styles.labelContainer}>
-            <Text variant={TextVariant.BodyMDMedium} color={variant} >{label}</Text>
+            <Text variant={TextVariant.BodyMDMedium} color={variant}>
+              {label}
+            </Text>
             {labelChildren}
             {!labelChildren && tooltip && (
-              <Tooltip content={tooltip} onPress={onTooltipPress} title={label} />
+              <Tooltip
+                content={tooltip}
+                onPress={onTooltipPress}
+                title={label}
+              />
             )}
           </View>
         )}
         {valueOnNewLine ? null : ValueComponent}
         {copyText && (
-          <CopyIcon
-            textToCopy={copyText ?? ''}
-            color={IconColor.Muted}
-          />
+          <CopyIcon textToCopy={copyText ?? ''} color={IconColor.Muted} />
         )}
         {withIcon && (
           <Icon
@@ -84,9 +88,7 @@ const InfoRow = ({
         )}
       </View>
       {valueOnNewLine ? (
-        <View style={styles.valueOnNewLineContainer}>
-          {ValueComponent}
-        </View>
+        <View style={styles.valueOnNewLineContainer}>{ValueComponent}</View>
       ) : null}
     </>
   );

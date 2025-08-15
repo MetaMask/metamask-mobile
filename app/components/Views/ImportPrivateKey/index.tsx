@@ -1,19 +1,15 @@
 import React, { useEffect, useState, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import {
   Alert,
-  TouchableOpacity,
   TextInput,
-  Text,
   View,
-  ActivityIndicator,
   DimensionValue,
+  SafeAreaView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import StyledButton from '../../UI/StyledButton';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
-import Icon from 'react-native-vector-icons/Feather';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { strings } from '../../../../locales/i18n';
 import Device from '../../../util/device';
 import { importAccountFromPrivateKey } from '../../../util/importAccountFromPrivateKey';
@@ -23,6 +19,26 @@ import { ImportAccountFromPrivateKeyIDs } from '../../../../e2e/selectors/Import
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
+import { Authentication } from '../../../core';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../component-library/components/Icons/Icon';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../component-library/components/Buttons/ButtonIcon';
+import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
 
 /**
  * View that's displayed the first time a user receives funds
@@ -41,6 +57,11 @@ const ImportPrivateKey = () => {
     onFirstLoad: false,
     onTransactionComplete: false,
   });
+  const authConnection = useSelector(selectSeedlessOnboardingAuthConnection);
+
+  const isSRP =
+    authConnection !== AuthConnection.Apple &&
+    authConnection !== AuthConnection.Google;
 
   useEffect(() => {
     mounted.current = true;
@@ -61,7 +82,9 @@ const ImportPrivateKey = () => {
     navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/accounts-and-addresses/what-are-imported-accounts-/',
+        url: isSRP
+          ? 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key'
+          : 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
         title: strings('drawer.metamask_support'),
       },
     });
@@ -84,26 +107,32 @@ const ImportPrivateKey = () => {
     setLoading(true);
     // Import private key
     try {
-      await importAccountFromPrivateKey(privateKeyToProcess);
-      navigation.navigate('ImportPrivateKeyView', {
-        screen: 'ImportPrivateKeySuccess',
-      });
-      setLoading(false);
-      setPrivateKey('');
-      fetchAccountsWithActivity();
+      // check if seedless pwd is outdated skip cache before importing Private Key
+      const isSeedlessPwdOutdated =
+        await Authentication.checkIsSeedlessPasswordOutdated(true);
+      // no need to handle error here, password outdated state will trigger modal that force user to log out
+      if (!isSeedlessPwdOutdated) {
+        await importAccountFromPrivateKey(privateKeyToProcess);
+        navigation.navigate('ImportPrivateKeyView', {
+          screen: 'ImportPrivateKeySuccess',
+        });
+        setPrivateKey('');
+        fetchAccountsWithActivity();
+      }
     } catch (e) {
       Alert.alert(
         strings('import_private_key.error_title'),
         strings('import_private_key.error_message'),
       );
+    } finally {
       setLoading(false);
     }
   };
 
-  const onScanSuccess = (data: { private_key: string; seed: string }) => {
+  const onScanSuccess = async (data: { private_key: string; seed: string }) => {
     if (data.private_key) {
       setPrivateKey(data.private_key);
-      goNext(data.private_key);
+      await goNext(data.private_key);
     } else if (data.seed) {
       Alert.alert(
         strings('wallet.error'),
@@ -126,46 +155,74 @@ const ImportPrivateKey = () => {
   };
 
   return (
-    <View style={styles.mainWrapper}>
+    <SafeAreaView style={styles.mainWrapper}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         style={styles.topOverlay}
         resetScrollToCoords={{ x: 0, y: 0 }}
+        keyboardShouldPersistTaps="always"
+        keyboardDismissMode="none"
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={100}
+        showsVerticalScrollIndicator={false}
       >
         <View
           style={styles.content}
           testID={ImportAccountFromPrivateKeyIDs.CONTAINER}
         >
-          <TouchableOpacity onPress={dismiss} style={styles.navbarRightButton}>
-            <MaterialIcon
-              name="close"
-              size={15}
-              style={styles.closeIcon}
-              testID={ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON}
-            />
-          </TouchableOpacity>
+          <ButtonIcon
+            onPress={dismiss}
+            iconName={IconName.Close}
+            size={ButtonIconSizes.Lg}
+            iconColor={IconColor.Default}
+            style={styles.navbarRightButton}
+            testID={ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON}
+          />
           <View style={styles.top}>
-            <Icon name="download" style={styles.icon} />
-            <Text style={styles.title}>
-              {strings('import_private_key.title')}
-            </Text>
-            <View style={styles.dataRow}>
-              <Text style={styles.label}>
-                {strings('import_private_key.description_one')}
+            <Icon
+              name={IconName.Download}
+              size={IconSize.XXL}
+              color={IconColor.Default}
+            />
+            <View style={styles.textContainer}>
+              <Text style={styles.title}>
+                {strings('import_private_key.title')}
               </Text>
-            </View>
-            <View style={styles.dataRow}>
-              <Text style={styles.label} onPress={learnMore}>
-                {strings('import_private_key.learn_more_here')}
+              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                {isSRP
+                  ? strings('import_private_key.description_srp')
+                  : strings('import_private_key.description_one')}
               </Text>
+              {isSRP ? (
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Default}
+                  onPress={learnMore}
+                >
+                  {strings('import_private_key.learn_more_srp')}{' '}
+                  <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
+                    {strings('import_private_key.here')}
+                  </Text>
+                </Text>
+              ) : (
+                <Text
+                  variant={TextVariant.BodySM}
+                  color={TextColor.Default}
+                  onPress={learnMore}
+                >
+                  <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
+                    {strings('import_private_key.learn_more')}{' '}
+                  </Text>
+                  {strings('import_private_key.learn_more_here')}
+                </Text>
+              )}
             </View>
           </View>
           <View style={styles.bottom}>
-            <View style={styles.subtitleText}>
-              <Text style={styles.subtitleText}>
-                {strings('import_private_key.subtitle')}
-              </Text>
-            </View>
+            <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+              {strings('import_private_key.subtitle')}
+            </Text>
             <TextInput
               value={privateKey}
               numberOfLines={3}
@@ -182,31 +239,29 @@ const ImportPrivateKey = () => {
               keyboardAppearance={themeAppearance}
             />
             <View style={styles.scanPkeyRow}>
-              <TouchableOpacity onPress={scanPkey}>
-                <Text style={styles.scanPkeyText}>
-                  {strings('import_private_key.or_scan_a_qr_code')}
-                </Text>
-              </TouchableOpacity>
+              <Button
+                onPress={scanPkey}
+                label={strings('import_private_key.or_scan_a_qr_code')}
+                variant={ButtonVariants.Link}
+                size={ButtonSize.Lg}
+              />
             </View>
           </View>
         </View>
         <View style={styles.buttonWrapper}>
-          <StyledButton
-            containerStyle={styles.button}
-            type={'confirm'}
+          <Button
             onPress={() => goNext()}
+            label={strings('import_private_key.cta_text')}
+            variant={ButtonVariants.Primary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            loading={loading}
             testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color={colors.primary.inverse} />
-            ) : (
-              strings('import_private_key.cta_text')
-            )}
-          </StyledButton>
+          />
         </View>
       </KeyboardAwareScrollView>
       <ScreenshotDeterrent enabled isSRP={false} />
-    </View>
+    </SafeAreaView>
   );
 };
 

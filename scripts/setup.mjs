@@ -11,6 +11,8 @@ let BUILD_IOS = IS_OSX;
 let IS_NODE = false;
 let BUILD_ANDROID = true
 let INSTALL_PODS;
+// GitHub CI pipeline flag - defaults to false
+let GITHUB_CI = false;
 const args = process.argv.slice(2) || [];
 for (const arg of args) {
   switch (arg) {
@@ -31,6 +33,9 @@ for (const arg of args) {
       continue;
     case '--no-build-android':
       BUILD_ANDROID = false
+      continue;
+    case '--build-on-github-ci':
+      GITHUB_CI = true;
       continue;
     default:
       throw new Error(`Unrecognized CLI arg ${arg}`);
@@ -112,16 +117,16 @@ const copyAndSourceEnvVarsTask = {
 const buildPpomTask = {
   title: 'Build PPOM',
   task: (_, task) => {
-    if (IS_NODE) {
-      return task.skip('Skipping building PPOM.');
-    }
     const $ppom = $({ cwd: 'ppom' });
 
     return task.newListr(
       [
         {
           title: 'Clean',
-          task: async () => {
+          task: async (_, task) => {
+            if (GITHUB_CI) {
+              return task.skip('Skipping clean in GitHub CI.');
+            }
             await $ppom`yarn clean`;
           },
         },
@@ -163,13 +168,19 @@ const setupIosTask = {
     const tasks = [
       {
         title: 'Install bundler gem',
-        task: async () => {
+        task: async (_, task) => {
+          if (GITHUB_CI) {
+            return task.skip('Skipping bundler gem installation in GitHub CI.');
+          }
           await $`gem install bundler -v 2.5.8`;
         },
       },
       {
         title: 'Install gems',
-        task: async () => {
+        task: async (_, task) => {
+          if (GITHUB_CI) {
+            return task.skip('Skipping gems installation in GitHub CI.');
+          }
           await $`yarn gem:bundle:install`;
         },
       },
@@ -352,6 +363,13 @@ const generateTermsOfUseTask = {
     ),
 };
 
+const installHuskyTask = {
+  title: 'Install Husky git hooks',
+  task: async () => {
+    await $`npx husky install`;
+  },
+};
+
 /**
  * Tasks that changes node modules and should run sequentially
  */
@@ -369,6 +387,7 @@ const prepareDependenciesTask = {
         patchPackageTask,
         installFoundryTask,
         expoBuildLinks,
+        installHuskyTask,
       ],
       {
         exitOnError: true,

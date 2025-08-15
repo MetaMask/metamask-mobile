@@ -21,11 +21,13 @@ LOG_API_CALLS=true yarn start:android
 
 1. Open a new terminal window
 2. Run the following command:
+
 ```bash
 yarn start:api-logging-server
 ```
 
 The monitor will start and display:
+
 - The port it's running on
 - Detailed logs for all API calls including:
   - Request method and URL
@@ -53,11 +55,13 @@ The API call logging functionality is implemented using the following components
 4. The API monitor script uses `mockttp` to intercept and log all API calls
 
 When using the API monitor, you'll see detailed logs in the console showing:
+
 - All API requests with their methods, URLs, headers, and bodies
 - All API responses with their status codes, headers, and bodies
 - Pretty-formatted JSON for better readability
 
 This is particularly useful for:
+
 - Debugging API-related issues
 - Understanding the network traffic of the app
-- Verifying that API calls are being made correctly 
+- Verifying that API calls are being made correctly

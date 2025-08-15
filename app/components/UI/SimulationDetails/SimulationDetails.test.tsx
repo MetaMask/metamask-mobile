@@ -36,6 +36,7 @@ const approvalData = [
     isAllApproval: false,
     isUnlimitedApproval: false,
     nestedTransactionIndex: 0,
+    usdAmount: null,
   },
 ];
 const DAPP_ORIGIN = 'https://dapp.com';
@@ -177,11 +178,16 @@ describe('SimulationDetails', () => {
     it('is not a dapp interaction', () => {
       expect(
         renderWithProvider(
-          <SimulationDetails transaction={{
-            id: mockTransactionId,
-            simulationData: simulationDataMock,
-            origin: MMM_ORIGIN,
-          } as TransactionMeta} enableMetrics={false} />,
+          <SimulationDetails
+            transaction={
+              {
+                id: mockTransactionId,
+                simulationData: simulationDataMock,
+                origin: MMM_ORIGIN,
+              } as TransactionMeta
+            }
+            enableMetrics={false}
+          />,
           { state: generateContractInteractionState },
         ).toJSON(),
       ).toBeNull();
@@ -260,6 +266,7 @@ describe('SimulationDetails', () => {
           amount: new BigNumber('0x1', 16).times(-1),
           fiatAmount: 10,
           asset: { type: AssetType.Native, chainId: CHAIN_ID_MOCK },
+          usdAmount: 0,
         },
         {
           amount: new BigNumber('0x123456', 16).times(1),
@@ -270,6 +277,7 @@ describe('SimulationDetails', () => {
             type: AssetType.ERC20,
             chainId: CHAIN_ID_MOCK,
           },
+          usdAmount: 0,
         },
         {
           amount: new BigNumber('0x123456789', 16).times(1),
@@ -280,6 +288,7 @@ describe('SimulationDetails', () => {
             type: AssetType.ERC20,
             chainId: CHAIN_ID_MOCK,
           },
+          usdAmount: 0,
         },
       ],
     });
@@ -319,6 +328,7 @@ describe('SimulationDetails', () => {
             type: AssetType.ERC20,
           },
           fiatAmount: -0.00000999877,
+          usdAmount: 0,
         },
         {
           amount: new BigNumber('0.000009'),
@@ -329,6 +339,7 @@ describe('SimulationDetails', () => {
             type: AssetType.ERC20,
           },
           fiatAmount: 0.000008998623,
+          usdAmount: 0,
         },
       ],
     });

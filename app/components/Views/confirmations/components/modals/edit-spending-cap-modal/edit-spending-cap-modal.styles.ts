@@ -10,7 +10,7 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 16,
       paddingBottom: 36,
       borderTopRightRadius: 16,
-      borderTopLeftRadius: 16
+      borderTopLeftRadius: 16,
     },
     buttonsContainer: {
       flexDirection: 'row',

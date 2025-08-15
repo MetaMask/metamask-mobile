@@ -10,7 +10,7 @@ import {
 } from '../helpers/approve';
 import { ZERO_ADDRESS } from '../../constants/address';
 
-const transactionIdMock = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
+export const transactionIdMock = '699ca2f0-e459-11ef-b6f6-d182277cf5e1';
 const permit2TokenMock = '0x1234567890123456789012345678901234567890';
 
 export const approvalSpenderMock = '0x9876543210987654321098765432109876543210';
@@ -46,7 +46,7 @@ const baseTransactionMock = {
   gasFeeEstimatesLoaded: true,
   gasFeeTokens: [],
   gasLimitNoBuffer: '0x664e',
-  id: '56f60ff0-2bef-11f0-80ce-2f66f7fbd577',
+  id: transactionIdMock,
   isFirstTimeInteraction: undefined,
   nestedTransactions: undefined,
   networkClientId: 'adb18d66-c112-449b-9f0c-c3664f6414bf',

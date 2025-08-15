@@ -37,7 +37,7 @@ exports[`NotificationContent render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#9ca1af",
+          "color": "#b7bbc8",
           "fontFamily": "Geist Regular",
           "fontSize": 14,
           "letterSpacing": 0,

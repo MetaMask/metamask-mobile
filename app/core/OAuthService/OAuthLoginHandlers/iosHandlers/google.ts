@@ -105,7 +105,7 @@ export class IosGoogleLoginHandler extends BaseLoginHandler {
     }
     throw new OAuthError(
       'handleIosGoogleLogin: Unknown error',
-      OAuthErrorType.UnknownError,
+      OAuthErrorType.GoogleLoginError,
     );
   }
 

@@ -352,7 +352,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "borderRadius": 16,
+                            "borderRadius": 8,
                             "height": 32,
                             "marginRight": 16,
                             "overflow": "hidden",
@@ -368,9 +368,14 @@ exports[`PermissionsSummary should render correctly 1`] = `
                             }
                           }
                           style={
-                            {
-                              "flex": 1,
-                            }
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              {
+                                "borderRadius": 8,
+                              },
+                            ]
                           }
                         />
                       </View>
@@ -549,6 +554,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
         >
           <TouchableOpacity
             onPress={[Function]}
+            testID="navigate_to_edit_accounts_permissions_button"
           >
             <View
               style={
@@ -690,7 +696,7 @@ exports[`PermissionsSummary should render correctly 1`] = `
                             {
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
+                              "borderRadius": 4,
                               "borderWidth": 1.5,
                               "height": 16,
                               "overflow": "hidden",
@@ -711,7 +717,9 @@ exports[`PermissionsSummary should render correctly 1`] = `
                                   "height": 16,
                                   "width": 16,
                                 },
-                                undefined,
+                                {
+                                  "borderRadius": 4,
+                                },
                               ]
                             }
                           >
@@ -1077,14 +1085,15 @@ exports[`PermissionsSummary should render correctly 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -1798,14 +1807,15 @@ exports[`PermissionsSummary should render correctly for network switch 1`] = `
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -2250,6 +2260,7 @@ exports[`PermissionsSummary should render only the account permissions card when
       >
         <TouchableOpacity
           onPress={[Function]}
+          testID="navigate_to_edit_accounts_permissions_button"
         >
           <View
             style={
@@ -2391,7 +2402,7 @@ exports[`PermissionsSummary should render only the account permissions card when
                           {
                             "backgroundColor": "#ffffff",
                             "borderColor": "#ffffff",
-                            "borderRadius": 8,
+                            "borderRadius": 4,
                             "borderWidth": 1.5,
                             "height": 16,
                             "overflow": "hidden",
@@ -2412,7 +2423,9 @@ exports[`PermissionsSummary should render only the account permissions card when
                                 "height": 16,
                                 "width": 16,
                               },
-                              undefined,
+                              {
+                                "borderRadius": 4,
+                              },
                             ]
                           }
                         >
@@ -2582,14 +2595,15 @@ exports[`PermissionsSummary should render only the account permissions card when
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -3160,14 +3174,15 @@ exports[`PermissionsSummary should render only the network permissions card when
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -3694,7 +3709,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "borderRadius": 16,
+                            "borderRadius": 8,
                             "height": 32,
                             "marginRight": 16,
                             "overflow": "hidden",
@@ -3710,9 +3725,14 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                             }
                           }
                           style={
-                            {
-                              "flex": 1,
-                            }
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              {
+                                "borderRadius": 8,
+                              },
+                            ]
                           }
                         />
                       </View>
@@ -3891,6 +3911,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
         >
           <TouchableOpacity
             onPress={[Function]}
+            testID="navigate_to_edit_accounts_permissions_button"
           >
             <View
               style={
@@ -4032,7 +4053,7 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                             {
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
+                              "borderRadius": 4,
                               "borderWidth": 1.5,
                               "height": 16,
                               "overflow": "hidden",
@@ -4053,7 +4074,9 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
                                   "height": 16,
                                   "width": 16,
                                 },
-                                undefined,
+                                {
+                                  "borderRadius": 4,
+                                },
                               ]
                             }
                           >
@@ -4419,14 +4442,15 @@ exports[`PermissionsSummary should render the tab view when both showAccountsOnl
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }
@@ -4953,7 +4977,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "borderRadius": 16,
+                            "borderRadius": 8,
                             "height": 32,
                             "marginRight": 16,
                             "overflow": "hidden",
@@ -4969,9 +4993,14 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                             }
                           }
                           style={
-                            {
-                              "flex": 1,
-                            }
+                            [
+                              {
+                                "flex": 1,
+                              },
+                              {
+                                "borderRadius": 8,
+                              },
+                            ]
                           }
                         />
                       </View>
@@ -5150,6 +5179,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
         >
           <TouchableOpacity
             onPress={[Function]}
+            testID="navigate_to_edit_accounts_permissions_button"
           >
             <View
               style={
@@ -5291,7 +5321,7 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                             {
                               "backgroundColor": "#ffffff",
                               "borderColor": "#ffffff",
-                              "borderRadius": 8,
+                              "borderRadius": 4,
                               "borderWidth": 1.5,
                               "height": 16,
                               "overflow": "hidden",
@@ -5312,7 +5342,9 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
                                   "height": 16,
                                   "width": 16,
                                 },
-                                undefined,
+                                {
+                                  "borderRadius": 4,
+                                },
                               ]
                             }
                           >
@@ -5678,14 +5710,15 @@ exports[`PermissionsSummary should render with the correct initial tab based on 
             {
               "alignItems": "center",
               "alignSelf": "flex-start",
-              "backgroundColor": "transparent",
-              "borderColor": "#ca3542",
+              "backgroundColor": "#3c4d9d0f",
+              "borderColor": "transparent",
               "borderRadius": 12,
               "borderWidth": 1,
               "flex": 1,
               "flexDirection": "row",
               "height": 48,
               "justifyContent": "center",
+              "overflow": "hidden",
               "paddingHorizontal": 16,
             }
           }

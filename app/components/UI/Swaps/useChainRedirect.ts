@@ -3,7 +3,10 @@ import { useNavigation } from '@react-navigation/native';
 import { isAddress as isSolanaAddress } from '@solana/addresses';
 import { SolScope } from '@metamask/keyring-api';
 import Routes from '../../../constants/navigation/Routes';
-import { useSwapBridgeNavigation, SwapBridgeNavigationLocation } from '../Bridge/hooks/useSwapBridgeNavigation';
+import {
+  useSwapBridgeNavigation,
+  SwapBridgeNavigationLocation,
+} from '../Bridge/hooks/useSwapBridgeNavigation';
 import { getNativeSourceToken } from '../Bridge/hooks/useInitialSourceToken';
 
 /**
@@ -19,7 +22,7 @@ export function useChainRedirect(selectedAddress: string): boolean {
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.Swaps,
     sourcePage: 'Legacy Swaps',
-    token: getNativeSourceToken(SolScope.Mainnet),
+    sourceToken: getNativeSourceToken(SolScope.Mainnet),
   });
 
   useEffect(() => {

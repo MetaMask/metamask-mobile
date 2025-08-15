@@ -1,7 +1,12 @@
 import React from 'react';
 
-import renderWithProvider, { DeepPartial } from '../../../../../util/test/renderWithProvider';
-import { stakingDepositConfirmationState, transferConfirmationState } from '../../../../../util/test/confirm-data-helpers';
+import renderWithProvider, {
+  DeepPartial,
+} from '../../../../../util/test/renderWithProvider';
+import {
+  stakingDepositConfirmationState,
+  transferConfirmationState,
+} from '../../../../../util/test/confirm-data-helpers';
 import { HeroToken } from './hero-token';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import { merge } from 'lodash';
@@ -10,22 +15,20 @@ import { decGWEIToHexWEI } from '../../../../../util/conversions';
 
 describe('HeroToken', () => {
   it('displays avatar, amount, and fiat values for a simple send transfer', async () => {
-    const state: DeepPartial<RootState> = merge(
-      {},
-      transferConfirmationState,
-      {
-        engine: {
-          backgroundState: {
-            TransactionController: {
-              transactions: [
-                { txParams: { value: `0x${decGWEIToHexWEI(55555555)}` } },
-              ],
-            },
+    const state: DeepPartial<RootState> = merge({}, transferConfirmationState, {
+      engine: {
+        backgroundState: {
+          TransactionController: {
+            transactions: [
+              { txParams: { value: `0x${decGWEIToHexWEI(55555555)}` } },
+            ],
           },
         },
       },
-    );
-    const { getByText, queryByTestId } = renderWithProvider(<HeroToken />, { state });
+    });
+    const { getByText, queryByTestId } = renderWithProvider(<HeroToken />, {
+      state,
+    });
 
     await waitFor(async () => {
       expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();
@@ -71,10 +74,9 @@ describe('HeroToken', () => {
       },
     );
 
-    const { getByText, queryByTestId } = renderWithProvider(
-      <HeroToken />,
-      { state },
-    );
+    const { getByText, queryByTestId } = renderWithProvider(<HeroToken />, {
+      state,
+    });
 
     await waitFor(() => {
       expect(queryByTestId('avatar-with-badge-avatar-token-ETH')).toBeTruthy();

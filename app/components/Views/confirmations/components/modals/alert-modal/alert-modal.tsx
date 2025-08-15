@@ -73,13 +73,11 @@ const Content: React.FC<ContentProps> = ({
   <View style={[styles.content, { backgroundColor }]}>
     {selectedAlert.content ?? (
       <>
-        {
-          typeof selectedAlert.message === 'string' ? (
-            <Text style={styles.message}>{selectedAlert.message}</Text>
-          ) : (
-            selectedAlert.message
-          )
-        }
+        {typeof selectedAlert.message === 'string' ? (
+          <Text style={styles.message}>{selectedAlert.message}</Text>
+        ) : (
+          selectedAlert.message
+        )}
         {selectedAlert.alertDetails && (
           <>
             <Text style={styles.message} variant={TextVariant.BodyMDBold}>

@@ -30,7 +30,7 @@ describe('text component', () => {
       element: 'Text',
       children: [
         {
-          key: 'ac37e9a8c31a35346c51f0f9058d2e2f0aecde724a0d7192561af5625000f3d1_1',
+          key: expect.any(String),
           element: 'Text',
           children: 'Hello World',
           props: {

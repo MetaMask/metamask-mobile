@@ -2,6 +2,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { useRoute } from '@react-navigation/native';
 
 // External dependencies
 import renderWithProvider from '../../../util/test/renderWithProvider';
@@ -14,6 +15,7 @@ import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { NetworkListModalSelectorsIDs } from '../../../../e2e/selectors/Network/NetworkListModal.selectors';
 import { isNetworkUiRedesignEnabled } from '../../../util/networks/isNetworkUiRedesignEnabled';
 import { mockNetworkState } from '../../../util/test/network';
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 
 jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   removeItemFromChainIdList: jest.fn().mockReturnValue({
@@ -41,6 +43,12 @@ jest.mock('../../../core/Analytics', () => ({
   MetaMetricsEvents: {
     NETWORK_SWITCHED: 'Network Switched',
   },
+}));
+
+const mockedUseRoute = jest.mocked(useRoute);
+const mockSelectSendFlowContextualChainId = jest.fn();
+jest.mock('../../../selectors/sendFlow', () => ({
+  selectSendFlowContextualChainId: mockSelectSendFlowContextualChainId,
 }));
 
 // eslint-disable-next-line import/no-namespace
@@ -75,8 +83,15 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockedNavigate,
       goBack: mockedGoBack,
     }),
+    useRoute: jest.fn(() => ({
+      params: {},
+    })),
   };
 });
+
+jest.mock('../../../selectors/sendFlow', () => ({
+  selectSendFlowContextualChainId: jest.fn(),
+}));
 
 jest.mock('../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: jest.fn(),
@@ -714,6 +729,178 @@ describe('Network Selector', () => {
           mockEngine.context.MultichainNetworkController.setActiveNetwork,
         ).toHaveBeenCalled();
       });
+    });
+  });
+
+  describe('contextual chain ID logic', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    it('uses contextual chain ID when source is SendFlow and contextual chain ID exists', () => {
+      const contextualChainId = '0x89'; // Polygon
+
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
+        },
+      }));
+
+      mockSelectSendFlowContextualChainId.mockReturnValue(contextualChainId);
+
+      const { getByText } = renderComponent(initialState);
+
+      // The Polygon network should be selected when contextual chain ID is Polygon
+      const polygonCell = getByText('Polygon Mainnet');
+      expect(polygonCell).toBeTruthy();
+    });
+
+    it('does not use contextual chain ID when source is not SendFlow', () => {
+      const contextualChainId = '0x89'; // Polygon
+
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          source: 'other-source',
+        },
+      }));
+
+      mockSelectSendFlowContextualChainId.mockReturnValue(contextualChainId);
+
+      const { getByText } = renderComponent(initialState);
+
+      // Should fall back to per-dapp chain ID instead of contextual
+      const ethereumCell = getByText('Ethereum Mainnet');
+      expect(ethereumCell).toBeTruthy();
+    });
+
+    it('does not use contextual chain ID when source is SendFlow but no contextual chain ID exists', () => {
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
+        },
+      }));
+
+      mockSelectSendFlowContextualChainId.mockReturnValue(null);
+
+      const { getByText } = renderComponent(initialState);
+
+      // Should fall back to per-dapp chain ID when no contextual chain ID
+      const ethereumCell = getByText('Ethereum Mainnet');
+      expect(ethereumCell).toBeTruthy();
+    });
+
+    it('does not use contextual chain ID when source is SendFlow but contextual chain ID is undefined', () => {
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
+        },
+      }));
+
+      mockSelectSendFlowContextualChainId.mockReturnValue(undefined);
+
+      const { getByText } = renderComponent(initialState);
+
+      // Should fall back to per-dapp chain ID when contextual chain ID is undefined
+      const ethereumCell = getByText('Ethereum Mainnet');
+      expect(ethereumCell).toBeTruthy();
+    });
+
+    it('uses contextual chain ID for different networks when source is SendFlow', () => {
+      const contextualChainId = '0xa86a'; // Avalanche
+
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
+        },
+      }));
+
+      mockSelectSendFlowContextualChainId.mockReturnValue(contextualChainId);
+
+      const { getByText } = renderComponent(initialState);
+
+      // The Avalanche network should be available when contextual chain ID is Avalanche
+      const avalancheCell = getByText('Avalanche Mainnet C-Chain');
+      expect(avalancheCell).toBeTruthy();
+    });
+
+    it('handles missing route params gracefully', () => {
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: undefined,
+      }));
+
+      mockSelectSendFlowContextualChainId.mockReturnValue('0x89');
+
+      const { getByText } = renderComponent(initialState);
+
+      // Should not crash and should fall back to per-dapp chain ID
+      const ethereumCell = getByText('Ethereum Mainnet');
+      expect(ethereumCell).toBeTruthy();
+    });
+
+    it('handles missing source param gracefully', () => {
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          // source is missing
+        },
+      }));
+
+      mockSelectSendFlowContextualChainId.mockReturnValue('0x89');
+
+      const { getByText } = renderComponent(initialState);
+
+      // Should not crash and should fall back to per-dapp chain ID
+      const ethereumCell = getByText('Ethereum Mainnet');
+      expect(ethereumCell).toBeTruthy();
+    });
+
+    it('verifies isContextualChainId is false when conditions are not met', () => {
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          source: 'other-source',
+        },
+      }));
+
+      mockSelectSendFlowContextualChainId.mockReturnValue(null);
+
+      const { getByText } = renderComponent(initialState);
+
+      // Should use per-dapp chain ID (mainnet in this case)
+      const ethereumCell = getByText('Ethereum Mainnet');
+      expect(ethereumCell).toBeTruthy();
+    });
+
+    it('verifies isContextualChainId is true when both conditions are met', () => {
+      const contextualChainId = '0x64';
+      mockedUseRoute.mockImplementation(() => ({
+        key: 'mock-key',
+        name: 'mock-route',
+        params: {
+          source: NETWORK_SELECTOR_SOURCES.SEND_FLOW,
+        },
+      }));
+
+      mockSelectSendFlowContextualChainId.mockReturnValue(contextualChainId);
+
+      const { getByText } = renderComponent(initialState);
+
+      const gnosisCell = getByText('Gnosis Chain');
+      expect(gnosisCell).toBeTruthy();
     });
   });
 });

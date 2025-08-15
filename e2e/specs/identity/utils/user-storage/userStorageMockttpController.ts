@@ -16,10 +16,6 @@ export const pathRegexps = {
     `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.accounts}`,
     'u',
   ),
-  [USER_STORAGE_FEATURE_NAMES.networks]: new RegExp(
-    `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.networks}`,
-    'u',
-  ),
   [USER_STORAGE_FEATURE_NAMES.notifications]: new RegExp(
     `${baseUrl}/${USER_STORAGE_FEATURE_NAMES.notifications}`,
     'u',
@@ -29,12 +25,18 @@ export const pathRegexps = {
     'u',
   ),
 };
-
 export interface UserStorageResponseData {
   HashedKey: string;
   Data: string;
   // E2E Specific identifier that is not present in the real API
   SrpIdentifier?: string;
+}
+
+export interface UserStorageMockttpControllerOverrides {
+  getResponse?: UserStorageResponseData[];
+  getStatusCode?: number;
+  putStatusCode?: number;
+  deleteStatusCode?: number;
 }
 
 export const UserStorageMockttpControllerEvents = {
@@ -299,12 +301,7 @@ export class UserStorageMockttpController {
   async setupPath(
     path: keyof typeof pathRegexps,
     server: Mockttp,
-    overrides?: {
-      getResponse?: UserStorageResponseData[];
-      getStatusCode?: number;
-      putStatusCode?: number;
-      deleteStatusCode?: number;
-    },
+    overrides?: UserStorageMockttpControllerOverrides,
   ) {
     const previouslySetupPath = this.paths.get(path);
 

@@ -11,12 +11,12 @@ export enum WalletActionType {
   Send = 'Send',
   Receive = 'Receive',
   Earn = 'Earn',
+  Perps = 'Perps',
 }
 
 export interface WalletActionDetail {
   title: string;
   description: string;
-  disabledDescription: string;
 }
 
 export interface WalletActionProps {

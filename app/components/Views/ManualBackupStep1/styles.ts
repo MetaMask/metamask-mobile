@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import { StyleSheet } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 import { fontStyles } from '../../../styles/common';
 
 // TODO: Replace "any" with type
@@ -109,8 +109,7 @@ export const createStyles = (colors: any) =>
       alignItems: 'flex-start',
     },
     text: {
-      marginBottom: 10,
-      marginTop: 20,
+      marginBottom: 8,
       justifyContent: 'center',
     },
     buttonWrapper: {
@@ -139,5 +138,6 @@ export const createStyles = (colors: any) =>
     },
     buttonContainer: {
       paddingHorizontal: 0,
+      marginBottom: Platform.OS === 'android' ? 16 : 0,
     },
   });

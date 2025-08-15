@@ -134,7 +134,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
       <AvatarToken
         name={asset.symbol}
         imageSource={{ uri: asset.image }}
-        size={AvatarSize.Md}
+        size={AvatarSize.Lg}
       />
     );
   }, [asset, styles.ethLogo]);
@@ -156,7 +156,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
 
   return (
     <View style={styles.wrapper}>
-      <Text variant={TextVariant.HeadingMD} style={styles.title}>
+      <Text variant={TextVariant.HeadingMD}>
         {strings('asset_overview.your_balance')}
       </Text>
       <AssetElement
@@ -181,9 +181,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         </BadgeWrapper>
 
         <View style={styles.percentageChange}>
-          <Text style={styles.balanceInfo} variant={TextVariant.BodyMD}>
-            {asset.name || asset.symbol}
-          </Text>
+          <Text variant={TextVariant.BodyMD}>{asset.name || asset.symbol}</Text>
 
           <PercentageChange value={getPricePercentChange1d()} />
         </View>
