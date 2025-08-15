@@ -15,11 +15,20 @@ export type RewardsControllerMessenger = RestrictedMessenger<
 >;
 
 export function getRewardsControllerMessenger(
-  messenger: Messenger<RewardsControllerMessengerActions, RewardsControllerMessengerEvents>,
+  messenger: Messenger<
+    RewardsControllerMessengerActions,
+    RewardsControllerMessengerEvents
+  >,
 ): RewardsControllerMessenger {
   return messenger.getRestricted({
     name,
-    allowedActions: [],
-    allowedEvents: [],
+    allowedActions: [
+      'AccountsController:getSelectedAccount',
+      'KeyringController:signPersonalMessage',
+    ],
+    allowedEvents: [
+      'AccountsController:selectedAccountChange',
+      'KeyringController:unlock',
+    ],
   });
 }

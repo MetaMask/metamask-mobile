@@ -16,12 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import Identicon from '../../UI/Identicon';
 import { renderShortAddress } from '../../../util/address';
-import {
-  useRewardsAuth,
-  REWARDS_SIGNUP_PREFIX,
-} from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsAuth';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Routes from '../../../constants/navigation/Routes';
+import { useRewards } from '../../../core/Engine/controllers/rewards-controller/RewardsAuthProvider';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -105,24 +100,18 @@ const RewardsTerms: React.FC = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const address = useSelector(selectSelectedInternalAccountAddress);
-  const { login, isLoading } = useRewardsAuth({
-    onLoginSuccess: () => {
-      navigation.navigate(Routes.REWARDS_DASHBOARD);
-    },
-  });
+  const { optin, isLoading } = useRewards();
 
   const handleAccept = useCallback(async () => {
     if (!address) return;
 
     try {
-      // Mark that user has seen terms
-      await AsyncStorage.setItem(`${REWARDS_SIGNUP_PREFIX}-${address}`, 'true');
       // Proceed with login - onLoginSuccess callback will handle navigation
-      await login();
+      await optin();
     } catch (error) {
       console.error('Error accepting terms:', error);
     }
-  }, [address, login]);
+  }, [address, optin]);
 
   const handleDecline = useCallback(() => {
     // Just navigate back without doing anything

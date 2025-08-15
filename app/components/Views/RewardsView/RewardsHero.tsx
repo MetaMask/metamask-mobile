@@ -28,7 +28,7 @@ import Routes from '../../../constants/navigation/Routes';
 
 interface RewardsHeroProps {
   onOptIn: () => void;
-  loginError?: string | null;
+  optinError?: string | null;
   onClearError?: () => void;
   isLoading?: boolean;
 }
@@ -112,7 +112,7 @@ const createStyles = (colors: Colors) =>
 
 const RewardsHero: React.FC<RewardsHeroProps> = ({
   onOptIn,
-  loginError,
+  optinError,
   onClearError,
   isLoading,
 }) => {
@@ -159,10 +159,10 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({
 
         <Text style={styles.seasonEndText}>{formatSeasonEndDate(endDate)}</Text>
 
-        {loginError && (
+        {optinError && (
           <BannerAlert
             severity={BannerAlertSeverity.Error}
-            description={loginError}
+            description={optinError}
             onClose={onClearError}
             style={styles.errorBanner}
           />

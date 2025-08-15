@@ -1,5 +1,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import AppConstants from '../../../../AppConstants';
+import { getSubscriptionToken } from '../utils/MultiSubscriptionTokenVault';
+import Engine from '../../../Engine';
+import Logger from '../../../../../util/Logger';
 import type {
   GenerateChallengeDto,
   ChallengeResponseDto,
@@ -7,7 +10,6 @@ import type {
   DevOnlyLoginDto,
   SubscriptionDto,
   JoinSubscriptionDto,
-  AccountLifeTimeSpendDto,
   SeasonDto,
   SeasonStatusDto,
   PointsEventDto,
@@ -15,6 +17,7 @@ import type {
   SeasonRewardsCatalogDto,
   RewardDto,
   ClaimRewardDto,
+  LoginResponseDto,
 } from '../types';
 
 /**
@@ -25,7 +28,6 @@ export const rewardsApi = createApi({
   tagTypes: [
     'Subscription',
     'PointsEvents',
-    'AccountLifetimeSpend',
     'TokenPrices',
     'Season',
     'SeasonStatus',
@@ -34,9 +36,31 @@ export const rewardsApi = createApi({
   ],
   baseQuery: fetchBaseQuery({
     baseUrl: AppConstants.REWARDS_API_URL,
-    credentials: 'include',
-    prepareHeaders: (headers) => {
+    credentials: 'omit',
+    prepareHeaders: async (headers) => {
       headers.set('Content-Type', 'application/json');
+      // Add Bearer token for authenticated requests
+      try {
+        const rewardsController = Engine.context.RewardsController;
+        const selectedAccount =
+          Engine.context.AccountsController.getSelectedAccount();
+
+        if (selectedAccount && rewardsController) {
+          const subscriptionId = rewardsController.getSubscriptionIdForAccount(
+            selectedAccount.address,
+          );
+          if (subscriptionId) {
+            const tokenResult = await getSubscriptionToken(subscriptionId);
+            if (tokenResult.success && tokenResult.token) {
+              headers.set('rewards-api-key', `${tokenResult.token}`);
+            }
+          }
+        }
+      } catch (error) {
+        // Silently fail if we can't get the token - the request will proceed without auth
+        Logger.log('Failed to get subscription token for API request:', error);
+      }
+
       return headers;
     },
   }),
@@ -54,7 +78,7 @@ export const rewardsApi = createApi({
         body,
       }),
     }),
-    login: builder.mutation<void, LoginDto>({
+    optin: builder.mutation<LoginResponseDto, LoginDto>({
       query: (body) => ({
         url: '/auth/login',
         method: 'POST',
@@ -63,11 +87,34 @@ export const rewardsApi = createApi({
       invalidatesTags: [
         'Subscription',
         'PointsEvents',
-        'AccountLifetimeSpend',
         'SeasonStatus',
         'RewardsStatus',
       ],
+      async onQueryStarted(_args, { queryFulfilled }) {
+        try {
+          const { data: loginResponse } = await queryFulfilled;
+
+          // Get the current selected account address
+          const selectedAccount =
+            Engine.context.AccountsController.getSelectedAccount();
+          if (!selectedAccount?.address) {
+            return;
+          }
+
+          // Update the RewardsController state directly
+          const rewardsController = Engine.context.RewardsController;
+          if (rewardsController) {
+            await rewardsController.updateStateWithOptinResponse(
+              selectedAccount.address,
+              loginResponse,
+            );
+          }
+        } catch (error) {
+          // Do nothing if the query fails
+        }
+      },
     }),
+
     logout: builder.mutation<void, void>({
       query: () => ({
         url: '/auth/logout',
@@ -76,7 +123,6 @@ export const rewardsApi = createApi({
       invalidatesTags: [
         'Subscription',
         'PointsEvents',
-        'AccountLifetimeSpend',
         'SeasonStatus',
         'RewardsStatus',
       ],
@@ -90,7 +136,6 @@ export const rewardsApi = createApi({
       invalidatesTags: [
         'Subscription',
         'PointsEvents',
-        'AccountLifetimeSpend',
         'SeasonStatus',
         'RewardsStatus',
       ],
@@ -101,19 +146,13 @@ export const rewardsApi = createApi({
       query: () => '/subscriptions',
       providesTags: ['Subscription'],
     }),
-    joinSubscription: builder.mutation<void, JoinSubscriptionDto>({
+    joinSubscription: builder.mutation<SubscriptionDto, JoinSubscriptionDto>({
       query: (body) => ({
         url: '/subscriptions/join',
         method: 'POST',
         body,
       }),
       invalidatesTags: ['Subscription'],
-    }),
-
-    // Account lifetime spend endpoints
-    getAccountLifetimeSpend: builder.query<AccountLifeTimeSpendDto, string>({
-      query: (address) => `/account-lifetime-spend/${address}`,
-      providesTags: ['AccountLifetimeSpend'],
     }),
 
     // Token prices endpoint (external API)
@@ -203,12 +242,11 @@ export const rewardsApi = createApi({
 // Export hooks for usage in functional components
 export const {
   useGenerateChallengeMutation,
-  useLoginMutation,
+  useOptinMutation,
   useLogoutMutation,
   useDevOnlyLoginMutation,
   useGetSubscriptionQuery,
   useJoinSubscriptionMutation,
-  useGetAccountLifetimeSpendQuery,
   useGetTokenPricesQuery,
   useGetSeasonQuery,
   useGetSeasonStatusQuery,

@@ -397,6 +397,7 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | PerpsControllerActions
+  | RewardsControllerActions
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
@@ -671,7 +672,7 @@ export type ControllersToInitialize =
   | 'PerpsController'
   | 'BridgeController'
   | 'BridgeStatusController'
-  | 'NetworkEnablementController';
+  | 'NetworkEnablementController'
   | 'RewardsController';
 
 /**
