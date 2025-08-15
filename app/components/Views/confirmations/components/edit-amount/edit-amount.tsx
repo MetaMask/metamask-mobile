@@ -1,4 +1,10 @@
-import React, { createRef, useCallback, useEffect, useState } from 'react';
+import React, {
+  createRef,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { TextInput, View } from 'react-native';
 import { useTokenAmount } from '../../hooks/useTokenAmount';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -9,6 +15,9 @@ import { DepositKeyboard } from '../deposit-keyboard';
 import { useConfirmationContext } from '../../context/confirmation-context';
 import { useTransactionPayToken } from '../../hooks/pay/useTransactionPayToken';
 import { BigNumber } from 'bignumber.js';
+import { debounce } from 'lodash';
+
+const TOKEN_UPDATE_DEBOUNCE = 500;
 
 export interface EditAmountProps {
   autoKeyboard?: boolean;
@@ -42,6 +51,14 @@ export function EditAmount({
   const { balanceFiat } = useTransactionPayToken();
   const { amountUnformatted, updateTokenAmount } = useTokenAmount();
 
+  const debouncedUpdateTokenAmount = useMemo(
+    () =>
+      debounce((amount: string) => {
+        updateTokenAmount(amount);
+      }, TOKEN_UPDATE_DEBOUNCE),
+    [updateTokenAmount],
+  );
+
   const [amountHuman, setAmountHuman] = useState<string>(
     amountUnformatted ?? '0',
   );
@@ -61,10 +78,13 @@ export function EditAmount({
 
   const handleChange = useCallback(
     (amount: string) => {
-      setAmountHuman(amount);
-      updateTokenAmount(amount);
+      const normalizedAmount = amount.startsWith(prefix)
+        ? amount.replace(prefix, '')
+        : amount;
+
+      setAmountHuman(normalizedAmount);
     },
-    [updateTokenAmount],
+    [prefix],
   );
 
   const handleKeyboardDone = useCallback(() => {
@@ -91,6 +111,15 @@ export function EditAmount({
     [balanceFiat, handleChange],
   );
 
+  const syncTokenAmount = useCallback(
+    () => debouncedUpdateTokenAmount(amountHuman),
+    [amountHuman, debouncedUpdateTokenAmount],
+  );
+
+  useEffect(() => {
+    syncTokenAmount();
+  }, [syncTokenAmount]);
+
   const displayValue = `${prefix}${amountHuman}`;
 
   return (
@@ -103,6 +132,7 @@ export function EditAmount({
           ref={inputRef}
           showSoftInputOnFocus={false}
           onPress={handleInputPress}
+          onChangeText={handleChange}
         />
         {children}
       </View>
