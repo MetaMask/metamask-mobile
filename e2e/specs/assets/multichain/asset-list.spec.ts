@@ -100,6 +100,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
         await Assertions.expectElementToBeVisible(bnb);
         await WalletView.tapOnToken('BNB');
         await TokenOverview.tapSwapButton();
+        await TokenOverview.tapBackButton();
         await QuoteView.tapOnCancelButton();
         await WalletView.tapTokenNetworkFilter();
         await WalletView.tapTokenNetworkFilterCurrent();
