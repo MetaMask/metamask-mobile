@@ -20,7 +20,7 @@ export type { RewardsControllerMessenger };
 const controllerName = 'RewardsController';
 
 // Silent authentication constants
-const GRACE_PERIOD_MS = 1000; // 30 minutes
+const GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
 
 /**
  * State metadata for the RewardsController
