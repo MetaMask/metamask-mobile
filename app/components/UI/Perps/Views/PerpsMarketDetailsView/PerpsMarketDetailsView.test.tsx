@@ -143,6 +143,7 @@ jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
 
 // Mock notification utility
 jest.mock('../../../../../util/notifications', () => ({
+  ...jest.requireActual('../../../../../util/notifications'),
   isNotificationsFeatureEnabled: () => mockIsNotificationsFeatureEnabled(),
 }));
 
