@@ -17,7 +17,8 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsPositionDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import type { Position } from '../../controllers/types';
-import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
+// import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
+import TradingViewChart from '../../components/TradingViewChart';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsPositionHeader from '../../components/PerpsPostitionHeader/PerpsPositionHeader';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
@@ -46,9 +47,10 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const { position } = route.params || {};
 
-  const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
-    TimeDuration.ONE_HOUR,
-  );
+  // TODO: Re-enable when TradingView chart supports duration changes
+  // const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
+  //   TimeDuration.ONE_HOUR,
+  // );
   const [selectedCandlePeriod, setSelectedCandlePeriod] =
     useState<CandlePeriod>(() =>
       getDefaultCandlePeriodForDuration(TimeDuration.ONE_HOUR),
@@ -59,7 +61,8 @@ const PerpsPositionDetailsView: React.FC = () => {
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
   ] = useState(false);
-  const [candleCount, setCandleCount] = useState<number>(45); // Default zoom level: 45 candles
+  // TODO: Re-enable when TradingView chart supports zoom functionality
+  // const [candleCount, setCandleCount] = useState<number>(45); // Default zoom level: 45 candles
   const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Navigate back to refresh the position
@@ -74,29 +77,32 @@ const PerpsPositionDetailsView: React.FC = () => {
   });
   const { candleData, priceData, isLoadingHistory } = usePerpsPositionData({
     coin: position?.coin || '',
-    selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
+    selectedDuration: TimeDuration.ONE_HOUR, // Time duration (1hr, 1D, 1W, etc.) - hardcoded for TradingView
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
-    candleCount, // Number of candles to fetch for zoom functionality
+    candleCount: 45, // Number of candles to fetch for zoom functionality - hardcoded for TradingView
   });
 
-  const handleDurationChange = useCallback((newDuration: TimeDuration) => {
-    setSelectedDuration(newDuration);
-    // Auto-update candle period to the appropriate default for the new duration
-    const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
-    setSelectedCandlePeriod(defaultPeriod);
-  }, []);
+  // TODO: Re-enable when TradingView chart supports duration changes
+  // const handleDurationChange = useCallback((newDuration: TimeDuration) => {
+  //   setSelectedDuration(newDuration);
+  //   // Auto-update candle period to the appropriate default for the new duration
+  //   const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
+  //   setSelectedCandlePeriod(defaultPeriod);
+  // }, []);
 
   const handleCandlePeriodChange = useCallback((newPeriod: CandlePeriod) => {
     setSelectedCandlePeriod(newPeriod);
   }, []);
 
-  const handleZoomChange = useCallback((newCandleCount: number) => {
-    setCandleCount(newCandleCount);
-  }, []);
+  // TODO: Re-enable when TradingView chart supports zoom changes
+  // const handleZoomChange = useCallback((newCandleCount: number) => {
+  //   setCandleCount(newCandleCount);
+  // }, []);
 
-  const handleGearPress = useCallback(() => {
-    setIsCandlePeriodBottomSheetVisible(true);
-  }, []);
+  // TODO: Re-enable when TradingView chart supports gear/settings press
+  // const handleGearPress = useCallback(() => {
+  //   setIsCandlePeriodBottomSheetVisible(true);
+  // }, []);
 
   // Handle position close button click
   const handleCloseClick = useCallback(() => {
@@ -146,11 +152,11 @@ const PerpsPositionDetailsView: React.FC = () => {
 
         {/* Chart */}
         <View style={styles.section}>
-          <CandlestickChartComponent
+          {/* <CandlestickChartComponent
             candleData={candleData}
             isLoading={isLoadingHistory}
             height={350}
-            selectedDuration={selectedDuration}
+            selectedDuration={TimeDuration.ONE_HOUR}
             candleCount={candleCount}
             tpslLines={{
               takeProfitPrice: position.takeProfitPrice,
@@ -162,6 +168,21 @@ const PerpsPositionDetailsView: React.FC = () => {
             onDurationChange={handleDurationChange}
             onGearPress={handleGearPress}
             onZoomChange={handleZoomChange}
+          /> */}
+          <TradingViewChart
+            candleData={candleData}
+            isLoading={isLoadingHistory}
+            height={350}
+            tpslLines={{
+              takeProfitPrice: position.takeProfitPrice || undefined,
+              stopLossPrice: position.stopLossPrice || undefined,
+              entryPrice: position.entryPrice || undefined,
+              liquidationPrice: position.liquidationPrice || undefined,
+              currentPrice:
+                priceData?.price || position.entryPrice || undefined,
+            }}
+            showSampleDataWhenEmpty={true} // Enable for debugging
+            testID={PerpsPositionDetailsViewSelectorsIDs.TRADINGVIEW_CHART}
           />
         </View>
 
@@ -221,7 +242,7 @@ const PerpsPositionDetailsView: React.FC = () => {
           isVisible
           onClose={() => setIsCandlePeriodBottomSheetVisible(false)}
           selectedPeriod={selectedCandlePeriod}
-          selectedDuration={selectedDuration}
+          selectedDuration={TimeDuration.ONE_HOUR}
           onPeriodChange={handleCandlePeriodChange}
           testID={
             PerpsPositionDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOMSHEET

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TradingView Lightweight Chart</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f0f0f0; /* Temporary background to see if WebView is loading */
+        }
+        
+        #chart-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            border: 2px solid red; /* Temporary red border for debugging */
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #666;
+            z-index: 1000;
+            background: yellow; /* Make loading indicator visible */
+            padding: 10px;
+        }
+        
+        .debug-info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            font-size: 12px;
+            z-index: 2000;
+        }
+    </style>
+</head>
+<body>
+    <div id="chart-container">
+        <div class="loading" id="loading">Loading chart...</div>
+        <div class="debug-info" id="debug-info">
+            WebView Status: Loading...<br/>
+            Chart: Not initialized<br/>
+            Data: None
+        </div>
+    </div>
+
+    <script>
+        let chart;
+        let candlestickSeries;
+        let lineSeries;
+        let auxiliaryLines = {};
+        
+        // Chart configuration
+        const defaultOptions = {
+            layout: {
+                backgroundColor: 'transparent',
+                textColor: '#333',
+                fontSize: 12,
+            },
+            grid: {
+                vertLines: {
+                    color: 'rgba(197, 203, 206, 0.3)',
+                },
+                horzLines: {
+                    color: 'rgba(197, 203, 206, 0.3)',
+                },
+            },
+            timeScale: {
+                borderColor: 'rgba(197, 203, 206, 0.5)',
+                timeVisible: true,
+                secondsVisible: false,
+            },
+            rightPriceScale: {
+                borderColor: 'rgba(197, 203, 206, 0.5)',
+            },
+            crosshair: {
+                mode: LightweightCharts.CrosshairMode.Normal,
+            },
+            handleScroll: {
+                mouseWheel: true,
+                pressedMouseMove: true,
+                horzTouchDrag: true,
+                vertTouchDrag: true,
+            },
+            handleScale: {
+                axisPressedMouseMove: true,
+                mouseWheel: true,
+                pinch: true,
+            },
+        };
+
+        // Update debug info
+        function updateDebugInfo(status) {
+            const debugElement = document.getElementById('debug-info');
+            if (debugElement) {
+                debugElement.innerHTML = status;
+            }
+        }
+
+        // Initialize chart
+        function initChart() {
+            console.log('TradingView WebView: Initializing chart with dimensions:', window.innerWidth, 'x', window.innerHeight);
+            updateDebugInfo(`WebView Status: Initializing...<br/>Chart: Creating<br/>Data: None<br/>LightweightCharts: ${!!LightweightCharts}`);
+            
+            if (!LightweightCharts) {
+                console.error('TradingView WebView: LightweightCharts library not loaded!');
+                updateDebugInfo(`WebView Status: ERROR<br/>Chart: Failed - LightweightCharts not loaded<br/>Data: None`);
+                return;
+            }
+            
+            const container = document.getElementById('chart-container');
+            if (!container) {
+                console.error('TradingView WebView: Chart container not found!');
+                updateDebugInfo(`WebView Status: ERROR<br/>Chart: Failed - Container not found<br/>Data: None`);
+                return;
+            }
+            
+            try {
+                chart = LightweightCharts.createChart(container, {
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    ...defaultOptions
+                });
+                
+                console.log('TradingView WebView: Chart created successfully');
+                updateDebugInfo(`WebView Status: Ready<br/>Chart: Created successfully<br/>Data: Waiting for data<br/>Dimensions: ${window.innerWidth}x${window.innerHeight}`);
+                
+                const loadingElement = document.getElementById('loading');
+                if (loadingElement) {
+                    loadingElement.style.display = 'none';
+                    console.log('TradingView WebView: Loading indicator hidden');
+                }
+            } catch (error) {
+                console.error('TradingView WebView: Error creating chart:', error);
+                updateDebugInfo(`WebView Status: ERROR<br/>Chart: Failed to create - ${error.message}<br/>Data: None`);
+            }
+        }
+
+        // Update chart theme
+        function updateTheme(theme) {
+            if (!chart) return;
+            
+            const isDark = theme === 'dark';
+            chart.applyOptions({
+                layout: {
+                    backgroundColor: isDark ? '#1a1a1a' : 'transparent',
+                    textColor: isDark ? '#fff' : '#333',
+                },
+                grid: {
+                    vertLines: {
+                        color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(197, 203, 206, 0.3)',
+                    },
+                    horzLines: {
+                        color: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(197, 203, 206, 0.3)',
+                    },
+                },
+                timeScale: {
+                    borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(197, 203, 206, 0.5)',
+                },
+                rightPriceScale: {
+                    borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(197, 203, 206, 0.5)',
+                },
+            });
+        }
+
+        // Set candlestick data
+        function setCandlestickData(data, theme = 'light') {
+            console.log('TradingView WebView: setCandlestickData called with data:', data?.length, 'points, theme:', theme);
+            
+            if (!chart) {
+                console.log('TradingView WebView: Chart not initialized, initializing now');
+                initChart();
+            }
+            
+            // Clear existing series
+            if (candlestickSeries) {
+                console.log('TradingView WebView: Removing existing candlestick series');
+                chart.removeSeries(candlestickSeries);
+            }
+            if (lineSeries) {
+                console.log('TradingView WebView: Removing existing line series');
+                chart.removeSeries(lineSeries);
+                lineSeries = null;
+            }
+            
+            // Create candlestick series
+            console.log('TradingView WebView: Creating new candlestick series');
+            candlestickSeries = chart.addCandlestickSeries({
+                upColor: '#26a69a',
+                downColor: '#ef5350',
+                borderVisible: false,
+                wickUpColor: '#26a69a',
+                wickDownColor: '#ef5350',
+            });
+            
+            updateTheme(theme);
+            
+            if (data && data.length > 0) {
+                console.log('TradingView WebView: Processing', data.length, 'data points');
+                console.log('TradingView WebView: First data point:', data[0]);
+                
+                // Convert data format and validate
+                const formattedData = data.map(candle => {
+                    const formatted = {
+                        time: candle.time,
+                        open: typeof candle.open === 'string' ? parseFloat(candle.open) : candle.open,
+                        high: typeof candle.high === 'string' ? parseFloat(candle.high) : candle.high,
+                        low: typeof candle.low === 'string' ? parseFloat(candle.low) : candle.low,
+                        close: typeof candle.close === 'string' ? parseFloat(candle.close) : candle.close,
+                    };
+                    
+                    // Validate that all values are valid numbers
+                    if (isNaN(formatted.open) || isNaN(formatted.high) || isNaN(formatted.low) || isNaN(formatted.close)) {
+                        console.error('TradingView WebView: Invalid number in candle data:', candle);
+                    }
+                    
+                    return formatted;
+                }).filter(candle => 
+                    !isNaN(candle.open) && !isNaN(candle.high) && !isNaN(candle.low) && !isNaN(candle.close)
+                );
+                
+                console.log('TradingView WebView: First formatted point:', formattedData[0]);
+                console.log('TradingView WebView: Valid data points after filtering:', formattedData.length);
+                
+                if (formattedData.length === 0) {
+                    console.error('TradingView WebView: No valid data points after filtering!');
+                    return;
+                }
+                
+                console.log('TradingView WebView: Setting data on candlestick series');
+                try {
+                    candlestickSeries.setData(formattedData);
+                } catch (error) {
+                    console.error('TradingView WebView: Error setting data on series:', error);
+                    return;
+                }
+                
+                console.log('TradingView WebView: Fitting content to time scale');
+                chart.timeScale().fitContent();
+                
+                console.log('TradingView WebView: Chart data set successfully');
+                updateDebugInfo(`WebView Status: Ready<br/>Chart: Data loaded successfully<br/>Data: ${formattedData.length} points<br/>Dimensions: ${window.innerWidth}x${window.innerHeight}`);
+            } else {
+                console.log('TradingView WebView: No data provided or empty data array');
+            }
+        }
+
+        // Set line chart data (fallback for simple data)
+        function setLineData(data, theme = 'light') {
+            if (!chart) initChart();
+            
+            // Clear existing series
+            if (candlestickSeries) {
+                chart.removeSeries(candlestickSeries);
+                candlestickSeries = null;
+            }
+            if (lineSeries) {
+                chart.removeSeries(lineSeries);
+            }
+            
+            // Create line series
+            lineSeries = chart.addLineSeries({
+                color: '#2196F3',
+                lineWidth: 2,
+            });
+            
+            updateTheme(theme);
+            
+            if (data && data.length > 0) {
+                lineSeries.setData(data);
+                chart.timeScale().fitContent();
+            }
+        }
+
+        // Add auxiliary lines (TP, SL, Entry, Liquidation)
+        function addAuxiliaryLines(lines) {
+            if (!chart) return;
+            
+            // Clear existing auxiliary lines
+            Object.values(auxiliaryLines).forEach(line => {
+                chart.removeSeries(line);
+            });
+            auxiliaryLines = {};
+            
+            if (!lines) return;
+            
+            // Add TP line
+            if (lines.takeProfitPrice) {
+                auxiliaryLines.tp = chart.addLineSeries({
+                    color: '#4caf50',
+                    lineWidth: 1,
+                    lineStyle: LightweightCharts.LineStyle.Dashed,
+                    crosshairMarkerVisible: false,
+                });
+                auxiliaryLines.tp.setData([
+                    { time: 0, value: parseFloat(lines.takeProfitPrice) },
+                    { time: 9999999999, value: parseFloat(lines.takeProfitPrice) }
+                ]);
+            }
+            
+            // Add SL line
+            if (lines.stopLossPrice) {
+                auxiliaryLines.sl = chart.addLineSeries({
+                    color: '#f44336',
+                    lineWidth: 1,
+                    lineStyle: LightweightCharts.LineStyle.Dashed,
+                    crosshairMarkerVisible: false,
+                });
+                auxiliaryLines.sl.setData([
+                    { time: 0, value: parseFloat(lines.stopLossPrice) },
+                    { time: 9999999999, value: parseFloat(lines.stopLossPrice) }
+                ]);
+            }
+            
+            // Add Entry line
+            if (lines.entryPrice) {
+                auxiliaryLines.entry = chart.addLineSeries({
+                    color: '#2196F3',
+                    lineWidth: 1,
+                    lineStyle: LightweightCharts.LineStyle.Dotted,
+                    crosshairMarkerVisible: false,
+                });
+                auxiliaryLines.entry.setData([
+                    { time: 0, value: parseFloat(lines.entryPrice) },
+                    { time: 9999999999, value: parseFloat(lines.entryPrice) }
+                ]);
+            }
+            
+            // Add Liquidation line
+            if (lines.liquidationPrice) {
+                auxiliaryLines.liquidation = chart.addLineSeries({
+                    color: '#ff9800',
+                    lineWidth: 1,
+                    lineStyle: LightweightCharts.LineStyle.Solid,
+                    crosshairMarkerVisible: false,
+                });
+                auxiliaryLines.liquidation.setData([
+                    { time: 0, value: parseFloat(lines.liquidationPrice) },
+                    { time: 9999999999, value: parseFloat(lines.liquidationPrice) }
+                ]);
+            }
+            
+            // Add Current Price line
+            if (lines.currentPrice) {
+                auxiliaryLines.current = chart.addLineSeries({
+                    color: '#9c27b0',
+                    lineWidth: 2,
+                    lineStyle: LightweightCharts.LineStyle.Solid,
+                    crosshairMarkerVisible: false,
+                });
+                auxiliaryLines.current.setData([
+                    { time: 0, value: parseFloat(lines.currentPrice) },
+                    { time: 9999999999, value: parseFloat(lines.currentPrice) }
+                ]);
+            }
+        }
+
+        // Handle resize
+        function handleResize() {
+            if (chart) {
+                chart.applyOptions({
+                    width: window.innerWidth,
+                    height: window.innerHeight
+                });
+            }
+        }
+
+        // Message handling from React Native
+        function handleMessage(event) {
+            try {
+                const message = JSON.parse(event.data);
+                console.log('TradingView WebView: Received message:', message.type, message);
+                
+                switch (message.type) {
+                    case 'SET_CANDLESTICK_DATA':
+                        console.log('TradingView WebView: Setting candlestick data, points:', message.data?.length);
+                        setCandlestickData(message.data, message.theme);
+                        if (message.auxiliaryLines) {
+                            console.log('TradingView WebView: Adding auxiliary lines');
+                            addAuxiliaryLines(message.auxiliaryLines);
+                        }
+                        break;
+                    case 'SET_LINE_DATA':
+                        console.log('TradingView WebView: Setting line data, points:', message.data?.length);
+                        setLineData(message.data, message.theme);
+                        break;
+                    case 'UPDATE_THEME':
+                        console.log('TradingView WebView: Updating theme to:', message.theme);
+                        updateTheme(message.theme);
+                        break;
+                    case 'ADD_AUXILIARY_LINES':
+                        console.log('TradingView WebView: Adding auxiliary lines');
+                        addAuxiliaryLines(message.lines);
+                        break;
+                    case 'RESIZE':
+                        console.log('TradingView WebView: Resizing chart');
+                        handleResize();
+                        break;
+                    default:
+                        console.log('TradingView WebView: Unknown message type:', message.type);
+                }
+            } catch (error) {
+                console.error('TradingView WebView: Error handling message:', error);
+            }
+        }
+
+        // Set up message listener
+        if (window.ReactNativeWebView) {
+            document.addEventListener('message', handleMessage);
+            window.addEventListener('message', handleMessage);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', handleResize);
+
+        // Initialize chart on load
+        window.addEventListener('load', () => {
+            console.log('TradingView WebView: Window loaded, initializing chart...');
+            updateDebugInfo(`WebView Status: Window loaded<br/>Chart: Initializing<br/>Data: None`);
+            
+            // Add a small delay to ensure DOM is ready
+            setTimeout(() => {
+                initChart();
+                
+                // Notify React Native that chart is ready
+                if (window.ReactNativeWebView) {
+                    console.log('TradingView WebView: Notifying React Native that chart is ready');
+                    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'CHART_READY' }));
+                } else {
+                    console.log('TradingView WebView: ReactNativeWebView not available');
+                    updateDebugInfo(`WebView Status: ERROR<br/>Chart: ReactNativeWebView not available<br/>Data: None`);
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
