@@ -33,13 +33,13 @@ import Rive, { Alignment, Fit } from 'rive-react-native';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
 const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel.riv');
 
-const PERPS_RIVE_ARTBOARD_NAMES = {
+export const PERPS_RIVE_ARTBOARD_NAMES = {
   SHORT_LONG: 'Short_Long_v03',
   LEVERAGE: 'Leverage_v03',
   LIQUIDATION: 'Liquidation_v03',
   CLOSE: 'Close_v03',
   READY: 'Ready_v03',
-};
+} as const;
 
 const tutorialScreens = [
   {
