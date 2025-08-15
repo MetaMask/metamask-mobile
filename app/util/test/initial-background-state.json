@@ -389,6 +389,10 @@
     "isFirstTimeUser": {
       "testnet": true,
       "mainnet": true
+    },
+    "hasPlacedFirstOrder": {
+      "testnet": false,
+      "mainnet": false
     }
   },
   "RemoteFeatureFlagController": {

@@ -93,6 +93,10 @@ describe('perps controller init', () => {
         testnet: true,
         mainnet: true,
       },
+      hasPlacedFirstOrder: {
+        testnet: false,
+        mainnet: false,
+      },
     };
 
     initRequestMock.persistedState = {

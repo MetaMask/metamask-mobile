@@ -125,6 +125,12 @@ export type PerpsControllerState = {
     mainnet: boolean;
   };
 
+  // Notification tracking
+  hasPlacedFirstOrder: {
+    testnet: boolean;
+    mainnet: boolean;
+  };
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -152,6 +158,10 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     testnet: true,
     mainnet: true,
   },
+  hasPlacedFirstOrder: {
+    testnet: false,
+    mainnet: false,
+  },
 });
 
 /**
@@ -173,6 +183,7 @@ const metadata = {
   lastUpdateTimestamp: { persist: false, anonymous: false },
   isEligible: { persist: false, anonymous: false },
   isFirstTimeUser: { persist: true, anonymous: false },
+  hasPlacedFirstOrder: { persist: true, anonymous: false },
 };
 
 /**
@@ -266,6 +277,10 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:markTutorialCompleted';
       handler: PerpsController['markTutorialCompleted'];
+    }
+  | {
+      type: 'PerpsController:markFirstOrderCompleted';
+      handler: PerpsController['markFirstOrderCompleted'];
     };
 
 /**
@@ -1848,6 +1863,23 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.isFirstTimeUser[currentNetwork] = false;
+    });
+  }
+
+  /*
+   * Mark that user has placed their first successful order
+   * This prevents the notification tooltip from showing again
+   */
+  markFirstOrderCompleted(): void {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Marking first order completed', {
+      timestamp: new Date().toISOString(),
+      network: currentNetwork,
+    });
+
+    this.update((state) => {
+      state.hasPlacedFirstOrder[currentNetwork] = true;
     });
   }
 }
