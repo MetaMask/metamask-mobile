@@ -1,5 +1,17 @@
 {
-  "PHISHING_SITE": "https://test.metamask-phishing.io",
+  "PHISHING_SITE": "https://coin-qr.to",
+  "PHISHING_SITE_INSIDE_IFRAME": "https://tyschenko.github.io/embedded_iframe.html",
   "INVALID_URL": "https://quackquakc.easq",
-  "TEST_DAPP": "https://metamask.github.io/test-dapp/"
+  "TEST_DAPP": "https://metamask.github.io/test-dapp/",
+  "WEBSITE_WITH_REDIRECT": "https://tyschenko.github.io/address_bar_spoof.html",
+  "PORTFOLIO": "https://portfolio.metamask.io",
+  "ENS_WEBSITE": "vitalik.eth",
+  "UNISWAP_WEBSITE": "https://uniswap.org",
+  "OPENSEA_WEBSITE": "https://opensea.io",
+  "PANCAKESWAP_WEBSITE": "https://pancakeswap.finance/swap",
+  "DOWNLOAD_BLOB_FILE_WEBSITE": "https://tyschenko.github.io/download_blob_file.html",
+  "DOWNLOAD_BASE64_FILE_WEBSITE": "https://tyschenko.github.io/download_base64_file.html",
+  "SECURITY_CAMERA_WEBSITE": "https://tyschenko.github.io/mobile/html/camera.html",
+  "GOOGLE_WEBSITE": "https://google.com",
+  "HISTORY_DISCLOSURE_WEBSITE": "https://aogarantiza.com/metamask/history-disclosure.html"
 }

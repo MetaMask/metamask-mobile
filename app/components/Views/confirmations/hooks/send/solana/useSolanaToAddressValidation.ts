@@ -32,6 +32,7 @@ export const shouldSkipValidation = ({
   return false;
 };
 
+// todo: once we integrate with solana snap for validations this can be fully / partially removed
 export const validateToAddress = (
   internalAccounts: InternalAccount[],
   toAddress?: string,
@@ -51,7 +52,6 @@ export const validateToAddress = (
       error: strings('transaction.invalid_address'),
     };
   }
-  // todo: solana sns name validation
   return {};
 };
 
