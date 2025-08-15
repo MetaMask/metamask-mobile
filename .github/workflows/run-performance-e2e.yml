@@ -155,8 +155,6 @@ jobs:
           ANDROID_BUILD_ID=$(echo "$PIPELINE_RESPONSE" | jq -r '.stages[0].workflows[] | select(.name == "build_android_qa") | .external_id')
           IOS_BUILD_ID=$(echo "$PIPELINE_RESPONSE" | jq -r '.stages[0].workflows[] | select(.name == "build_ios_qa") | .external_id')
           
-          echo "Android build ID: $ANDROID_BUILD_ID"
-          echo "iOS build ID: $IOS_BUILD_ID"
           
           if [[ -z "$ANDROID_BUILD_ID" || "$ANDROID_BUILD_ID" == "null" ]]; then
             echo "Error: Failed to get Android build ID"
@@ -191,9 +189,7 @@ jobs:
             echo "Error: Failed to fetch Android artifacts"
             exit 1
           fi
-          
-          echo "Android artifacts response: $ANDROID_ARTIFACTS"
-          
+                    
           # Find the browserstack_uploaded_apps.json file
           ANDROID_BS_JSON_ARTIFACT=$(echo "$ANDROID_ARTIFACTS" | jq -r '.data[] | 
             select(.title == "browserstack_uploaded_apps.json")')
@@ -202,8 +198,7 @@ jobs:
           
           if [[ -n "$ANDROID_BS_JSON_ARTIFACT" ]]; then
             ANDROID_BS_ARTIFACT_SLUG=$(echo "$ANDROID_BS_JSON_ARTIFACT" | jq -r '.slug')
-            echo "Android browserstack artifact slug: $ANDROID_BS_ARTIFACT_SLUG"
-            
+
             # Download the JSON file
             ANDROID_BS_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
               "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts/$ANDROID_BS_ARTIFACT_SLUG" | \
@@ -244,9 +239,7 @@ jobs:
             echo "Error: Failed to fetch iOS artifacts"
             exit 1
           fi
-          
-          echo "iOS artifacts response: $IOS_ARTIFACTS"
-          
+                    
           # Find the browserstack_uploaded_apps.json file
           IOS_BS_JSON_ARTIFACT=$(echo "$IOS_ARTIFACTS" | jq -r '.data[] | 
             select(.title == "browserstack_uploaded_apps.json")')
