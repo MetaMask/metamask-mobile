@@ -189,8 +189,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                     }));
                 }
                 
-                // Add sample data for testing
-                addSampleData();
+                console.log('📊 TradingView: Chart initialized successfully - waiting for real data from React Native');
                 
             } catch (error) {
                 console.error('📊 TradingView: Error creating chart:', error);
@@ -198,86 +197,29 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             }
         }
         
-        // Step 3: Add sample data 
-        function addSampleData() {
-            console.log('📊 TradingView: Adding sample data...');
-            updateDebug('Status: Ready<br/>Library: ✅ Loaded<br/>Chart: ✅ Created<br/>Data: Adding...');
+        // Create candlestick series when data is received
+        window.createCandlestickSeries = function() {
+            if (!window.chart || !window.LightweightCharts?.CandlestickSeries) return null;
             
-            if (!window.chart) {
-                console.error('📊 TradingView: Chart not available for sample data');
-                updateDebug('Status: ERROR<br/>Library: ✅ Loaded<br/>Chart: ❌ Lost<br/>Data: ❌ No chart');
-                return;
+            console.log('📊 TradingView: Creating candlestick series for data...');
+            
+            // Remove existing series if it exists
+            if (window.candlestickSeries) {
+                window.chart.removeSeries(window.candlestickSeries);
             }
             
-            console.log('📊 TradingView: Chart is available, checking LightweightCharts...');
-            console.log('📊 TradingView: window.LightweightCharts available:', !!window.LightweightCharts);
-            console.log('📊 TradingView: window.chart available:', !!window.chart);
+            // Create new candlestick series
+            window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
+                upColor: '#26a69a',
+                downColor: '#ef5350',
+                borderVisible: false,
+                wickUpColor: '#26a69a',
+                wickDownColor: '#ef5350',
+            });
             
-            try {
-                console.log('📊 TradingView: Step 1 - Debugging chart object...');
-                console.log('📊 TradingView: Chart object type:', typeof window.chart);
-                console.log('📊 TradingView: Chart object keys:', Object.keys(window.chart));
-                console.log('📊 TradingView: Available methods:', Object.getOwnPropertyNames(window.chart));
-                
-                // Check for different method names
-                console.log('📊 TradingView: addCandlestickSeries available:', !!window.chart.addCandlestickSeries);
-                console.log('📊 TradingView: addSeries available:', !!window.chart.addSeries);
-                console.log('📊 TradingView: addAreaSeries available:', !!window.chart.addAreaSeries);
-                console.log('📊 TradingView: addLineSeries available:', !!window.chart.addLineSeries);
-                
-                console.log('📊 TradingView: Step 2 - Attempting to create candlestick series...');
-                
-                // Use the correct TradingView API: addSeries(CandlestickSeries, options)
-                console.log('📊 TradingView: Using correct API - chart.addSeries(CandlestickSeries, options)...');
-                
-                if (!window.LightweightCharts.CandlestickSeries) {
-                    console.error('📊 TradingView: CandlestickSeries definition not found in LightweightCharts');
-                    throw new Error('CandlestickSeries not available');
-                }
-                
-                const candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
-                    upColor: '#26a69a',
-                    downColor: '#ef5350',
-                    borderVisible: false,
-                    wickUpColor: '#26a69a',
-                    wickDownColor: '#ef5350',
-                });
-                
-                window.candlestickSeries = candlestickSeries;
-                console.log('📊 TradingView: Step 3 - Candlestick series created successfully:', !!window.candlestickSeries);
-                
-                // Sample data
-                const sampleData = [
-                    { time: '2024-01-01', open: 2000, high: 2100, low: 1950, close: 2050 },
-                    { time: '2024-01-02', open: 2050, high: 2150, low: 2000, close: 2120 },
-                    { time: '2024-01-03', open: 2120, high: 2200, low: 2080, close: 2180 },
-                    { time: '2024-01-04', open: 2180, high: 2250, low: 2150, close: 2200 },
-                    { time: '2024-01-05', open: 2200, high: 2300, low: 2180, close: 2250 },
-                    { time: '2024-01-06', open: 2250, high: 2320, low: 2220, close: 2280 },
-                    { time: '2024-01-07', open: 2280, high: 2350, low: 2250, close: 2300 },
-                ];
-                
-                console.log('📊 TradingView: Step 3 - Sample data prepared:', sampleData.length, 'points');
-                console.log('📊 TradingView: First data point:', JSON.stringify(sampleData[0]));
-                
-                // Set the data
-                console.log('📊 TradingView: Step 4 - Calling setData...');
-                window.candlestickSeries.setData(sampleData);
-                
-                console.log('📊 TradingView: Step 5 - Calling fitContent...');
-                window.chart.timeScale().fitContent();
-                
-                console.log('📊 TradingView: Step 6 - All data operations completed successfully!');
-                updateDebug('Status: Ready ✅<br/>Library: ✅ Loaded<br/>Chart: ✅ Active<br/>Data: ✅ ' + sampleData.length + ' candles');
-                
-            } catch (error) {
-                console.error('📊 TradingView: DETAILED Error adding sample data:', error);
-                console.error('📊 TradingView: Error name:', error.name);
-                console.error('📊 TradingView: Error message:', error.message);
-                console.error('📊 TradingView: Error stack:', error.stack);
-                updateDebug('Status: ERROR<br/>Library: ✅ Loaded<br/>Chart: ✅ Created<br/>Data: ❌ ' + error.message);
-            }
-        }
+            console.log('📊 TradingView: Candlestick series created successfully');
+            return window.candlestickSeries;
+        };
         
         // Handle window resize
         window.addEventListener('resize', function() {
@@ -287,6 +229,62 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                     height: window.innerHeight
                 });
             }
+        });
+        
+        // Message handling from React Native
+        window.addEventListener('message', function(event) {
+            try {
+                const message = JSON.parse(event.data);
+                console.log('📊 TradingView: Received message:', message.type);
+                
+                switch (message.type) {
+                    case 'SET_CANDLESTICK_DATA':
+                        console.log('📊 TradingView: Setting candlestick data, points:', message.data?.length);
+                        console.log('📊 TradingView: First data point received:', message.data?.[0]);
+                        console.log('📊 TradingView: Last data point received:', message.data?.[message.data?.length - 1]);
+                        
+                        if (window.chart && message.data?.length > 0) {
+                            // Create or get candlestick series
+                            if (!window.candlestickSeries) {
+                                window.createCandlestickSeries();
+                            }
+                            
+                            if (window.candlestickSeries) {
+                                console.log('📊 TradingView: Setting data on series...');
+                                try {
+                                    window.candlestickSeries.setData(message.data);
+                                    window.chart.timeScale().fitContent();
+                                    
+                                    const dataType = message.source || 'unknown';
+                                    updateDebug('Status: Ready ✅<br/>Library: ✅ Loaded<br/>Chart: ✅ Active<br/>Data: ✅ ' + message.data.length + ' candles (' + dataType.toUpperCase() + ')');
+                                    console.log('📊 TradingView: ' + dataType + ' data set successfully!');
+                                } catch (error) {
+                                    console.error('📊 TradingView: Error setting data on series:', error);
+                                    console.error('📊 TradingView: Error details:', error.message);
+                                    updateDebug('Status: ERROR<br/>Library: ✅ Loaded<br/>Chart: ✅ Created<br/>Data: ❌ ' + error.message);
+                                }
+                            } else {
+                                console.error('📊 TradingView: Failed to create candlestick series');
+                            }
+                        } else {
+                            console.log('📊 TradingView: No data or chart not ready');
+                            console.log('📊 TradingView: Chart available:', !!window.chart);
+                            console.log('📊 TradingView: Data length:', message.data?.length);
+                        }
+                        break;
+                    case 'UPDATE_THEME':
+                        console.log('📊 TradingView: Updating theme to:', message.theme);
+                        // Theme update logic can be added here
+                        break;
+                }
+            } catch (error) {
+                console.error('📊 TradingView: Message handling error:', error);
+            }
+        });
+        
+        // Also listen for React Native WebView messages
+        document.addEventListener('message', function(event) {
+            window.dispatchEvent(new MessageEvent('message', event));
         });
         
         // Start the process
@@ -358,21 +356,65 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     [onChartReady],
   );
 
-  // Convert CandleData to format expected by chart
+  // Convert CandleData to format expected by TradingView Lightweight Charts
   const formatCandleData = useCallback((data: CandleData) => {
     if (!data?.candles) return [];
 
-    return data.candles.map((candle) => ({
-      time:
-        typeof candle.time === 'string'
-          ? candle.time
-          : new Date(candle.time * 1000).toISOString().split('T')[0],
-      open: parseFloat(candle.open),
-      high: parseFloat(candle.high),
-      low: parseFloat(candle.low),
-      close: parseFloat(candle.close),
-      volume: parseFloat(candle.volume),
-    }));
+    console.log(
+      '🔧 formatCandleData: Processing',
+      data.candles.length,
+      'candles',
+    );
+    console.log('🔧 formatCandleData: First raw candle:', data.candles[0]);
+
+    const formatted = data.candles
+      .map((candle) => {
+        // TradingView expects Unix timestamp in SECONDS for intraday data
+        // Our data comes in milliseconds, so divide by 1000
+        const timeInSeconds = Math.floor(candle.time / 1000);
+
+        const formattedCandle = {
+          time: timeInSeconds,
+          open: parseFloat(candle.open),
+          high: parseFloat(candle.high),
+          low: parseFloat(candle.low),
+          close: parseFloat(candle.close),
+        };
+
+        // Validate all values are valid numbers
+        const isValid =
+          !isNaN(formattedCandle.time) &&
+          !isNaN(formattedCandle.open) &&
+          !isNaN(formattedCandle.high) &&
+          !isNaN(formattedCandle.low) &&
+          !isNaN(formattedCandle.close) &&
+          formattedCandle.open > 0 &&
+          formattedCandle.high > 0 &&
+          formattedCandle.low > 0 &&
+          formattedCandle.close > 0;
+
+        if (!isValid) {
+          console.warn('🚨 Invalid candle data:', candle, '→', formattedCandle);
+          return null;
+        }
+
+        return formattedCandle;
+      })
+      .filter((candle): candle is NonNullable<typeof candle> => candle !== null)
+      .sort((a, b) => a.time - b.time); // Sort by time ascending
+
+    console.log(
+      '🔧 formatCandleData: Processed',
+      formatted.length,
+      'valid candles',
+    );
+    console.log('🔧 formatCandleData: First formatted candle:', formatted[0]);
+    console.log(
+      '🔧 formatCandleData: Last formatted candle:',
+      formatted[formatted.length - 1],
+    );
+
+    return formatted;
   }, []);
 
   // Memoize the candle data to prevent infinite loops
@@ -387,35 +429,57 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     };
   }, [candleData]);
 
-  // Update chart data when props change - DISABLED due to broken message bridge
-  //   useEffect(() => {
-  //     if (
-  //       isChartReady &&
-  //       candleData &&
-  //       candleData.candles &&
-  //       candleData.candles.length > 0
-  //     ) {
-  //       const message = {
-  //         type: 'SET_CANDLESTICK_DATA',
-  //         data: candleData,
-  //         theme: themeMode,
-  //         auxiliaryLines: tpslLines,
-  //       };
+  // Send real candle data to chart
+  useEffect(() => {
+    if (!isChartReady || !webViewRef.current) return;
 
-  //       if (webViewRef.current) {
-  //         webViewRef.current.postMessage(JSON.stringify(message));
-  //         console.log('TradingViewChart: Sample data sent to WebView');
-  //       }
-  //     }
-  //   }, [
-  //     isChartReady,
-  //     candleDataVersion,
-  //     themeMode,
-  //     candleData,
-  //     showSampleDataWhenEmpty,
-  //     formatCandleData,
-  //     tpslLines,
-  //   ]); // Removed problematic dependencies
+    let dataToSend = null;
+    let dataSource = 'none';
+
+    // Prioritize real data over sample data
+    if (candleData?.candles && candleData.candles.length > 0) {
+      dataToSend = formatCandleData(candleData);
+      dataSource = 'real';
+      console.log(
+        '📊 TradingViewChart: Sending real candle data:',
+        dataToSend.length,
+        'points',
+      );
+    } else if (showSampleDataWhenEmpty) {
+      dataToSend = [
+        { time: '2024-01-01', open: 2000, high: 2100, low: 1950, close: 2050 },
+        { time: '2024-01-02', open: 2050, high: 2150, low: 2000, close: 2120 },
+        { time: '2024-01-03', open: 2120, high: 2200, low: 2080, close: 2180 },
+        { time: '2024-01-04', open: 2180, high: 2250, low: 2150, close: 2200 },
+        { time: '2024-01-05', open: 2200, high: 2300, low: 2180, close: 2250 },
+      ];
+      dataSource = 'sample';
+      console.log('📊 TradingViewChart: Sending sample data as fallback');
+    }
+
+    if (dataToSend) {
+      const message = {
+        type: 'SET_CANDLESTICK_DATA',
+        data: dataToSend,
+        theme: themeMode,
+        source: dataSource,
+      };
+
+      console.log(
+        `📊 TradingViewChart: Posting ${dataSource} data message:`,
+        message.data.length,
+        'candles',
+      );
+      webViewRef.current.postMessage(JSON.stringify(message));
+    }
+  }, [
+    isChartReady,
+    candleDataVersion,
+    themeMode,
+    formatCandleData,
+    showSampleDataWhenEmpty,
+    candleData,
+  ]);
 
   // Update auxiliary lines when they change
   useEffect(() => {
@@ -438,10 +502,13 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   }, [themeMode, isChartReady, sendMessage]);
 
   // Handle WebView errors
-  const handleWebViewError = useCallback((error: any) => {
-    setWebViewError(error?.description || 'WebView error occurred');
-    console.error('WebView error:', error);
-  }, []);
+  const handleWebViewError = useCallback(
+    (error: { description?: string } | null | undefined) => {
+      setWebViewError(error?.description || 'WebView error occurred');
+      console.error('WebView error:', error);
+    },
+    [],
+  );
 
   if (webViewError) {
     return (
