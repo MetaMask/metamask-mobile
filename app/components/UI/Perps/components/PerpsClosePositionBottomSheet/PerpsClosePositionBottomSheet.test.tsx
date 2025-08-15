@@ -64,12 +64,16 @@ jest.mock('../PerpsSlider/PerpsSlider', () => {
   };
 });
 
-jest.mock('../../hooks', () => ({
-  usePerpsPrices: jest.fn(() => ({
+// Mock stream hooks
+jest.mock('../../hooks/stream', () => ({
+  useLivePrices: jest.fn(() => ({
     BTC: { price: '45000' },
     ETH: { price: '2500' },
   })),
-  useLivePrices: jest.fn(() => ({
+}));
+
+jest.mock('../../hooks', () => ({
+  usePerpsPrices: jest.fn(() => ({
     BTC: { price: '45000' },
     ETH: { price: '2500' },
   })),

@@ -1,5 +1,5 @@
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsLimitPriceBottomSheet from './PerpsLimitPriceBottomSheet';
 
 // Mock dependencies - only what's absolutely necessary
@@ -262,23 +262,13 @@ describe('PerpsLimitPriceBottomSheet', () => {
     currentPrice: 3000,
   };
 
-  const mockPriceData = {
-    ETH: {
-      price: '3000.00',
-      markPrice: '3001.00',
-      bestBid: '2995.00',
-      bestAsk: '3005.00',
-      change24h: 2.5,
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTheme.mockReturnValue(mockTheme);
 
-    // Mock usePerpsPrices hook
-    const { usePerpsPrices } = jest.requireMock('../../hooks/usePerpsPrices');
-    usePerpsPrices.mockReturnValue(mockPriceData);
+    // Mock useLivePrices hook to return empty by default
+    const { useLivePrices } = jest.requireMock('../../hooks/stream');
+    useLivePrices.mockReturnValue({});
 
     // Mock usePerpsConnection hook
     const { usePerpsConnection } = jest.requireMock('../../hooks/index');
@@ -323,8 +313,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
       // Assert
       expect(screen.getByText('$3000.00')).toBeOnTheScreen(); // Current price
-      expect(screen.getByText('$3005.00')).toBeOnTheScreen(); // Ask price
-      expect(screen.getByText('$2995.00')).toBeOnTheScreen(); // Bid price
+      expect(screen.getByText('$3000.30')).toBeOnTheScreen(); // Ask price (3000 * 1.0001)
+      expect(screen.getByText('$2999.70')).toBeOnTheScreen(); // Bid price (3000 * 0.9999)
     });
 
     it('displays placeholder when no limit price is set', () => {
