@@ -29,6 +29,13 @@ export type IconByTabBarIconKey = {
   [key in TabBarIconKey]: IconName;
 };
 
+/**
+ * Mapping of label key by tab bar icon key.
+ */
+export type LabelByTabBarIconKey = {
+  [key in TabBarIconKey]: string;
+};
+
 interface ExtendedBottomTabDescriptor extends BottomTabDescriptor {
   options: BottomTabNavigationOptions & {
     tabBarIconKey: TabBarIconKey;
