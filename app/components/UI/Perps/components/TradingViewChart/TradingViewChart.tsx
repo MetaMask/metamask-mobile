@@ -87,29 +87,12 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             z-index: 1000;
         }
         
-        #debug {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            max-width: 200px;
-            z-index: 1001;
-        }
+
     </style>
 </head>
 <body>
     <div id="container">
         <div id="loading">📊 Loading TradingView...</div>
-        <div id="debug">
-            Status: Loading...<br/>
-            Library: Not loaded<br/>
-            Chart: Not created<br/>
-            Data: None
-        </div>
     </div>
 
     <script>
@@ -119,28 +102,23 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         window.chart = null;
         window.candlestickSeries = null;
         
-        // Update debug info
-        function updateDebug(info) {
-            document.getElementById('debug').innerHTML = info;
-        }
+
+
         
         // Step 1: Load TradingView library dynamically
         function loadTradingView() {
             console.log('📊 TradingView: Loading library...');
-            updateDebug('Status: Loading...<br/>Library: Downloading...<br/>Chart: Waiting<br/>Data: None');
             
             const script = document.createElement('script');
             script.src = 'https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js';
             
             script.onload = function() {
                 console.log('📊 TradingView: Library loaded successfully');
-                updateDebug('Status: Ready<br/>Library: ✅ Loaded<br/>Chart: Creating...<br/>Data: None');
                 setTimeout(createChart, 500); // Small delay to ensure library is ready
             };
             
             script.onerror = function() {
                 console.error('📊 TradingView: Failed to load library');
-                updateDebug('Status: ERROR<br/>Library: ❌ Failed<br/>Chart: Not created<br/>Data: None');
             };
             
             document.head.appendChild(script);
@@ -182,8 +160,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                         borderColor: 'transparent', // ✅ Remove left border (if visible)
                     }
                 });
-                
-                updateDebug('Status: Ready<br/>Library: ✅ Loaded<br/>Chart: ✅ Created<br/>Data: Waiting...');
                 
                 // Hide loading
                 document.getElementById('loading').style.display = 'none';
@@ -266,7 +242,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         
         // Start the process
         console.log('📊 TradingView: WebView loaded, starting initialization...');
-        updateDebug('Status: Starting...<br/>Library: Loading...<br/>Chart: Not created<br/>Data: None');
         
         // Start loading after a small delay
         setTimeout(loadTradingView, 500);
