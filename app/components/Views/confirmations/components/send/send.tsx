@@ -8,7 +8,7 @@ import { Confirm } from '../confirm';
 
 import { Amount } from './amount';
 import { Asset } from './asset';
-import { SendTo } from './send-to';
+import { Recipient } from './recipient';
 
 const Stack = createStackNavigator();
 
@@ -18,7 +18,7 @@ export const Send = () => (
       <Stack.Navigator headerMode="screen">
         <Stack.Screen name={Routes.SEND.AMOUNT} component={Amount} />
         <Stack.Screen name={Routes.SEND.ASSET} component={Asset} />
-        <Stack.Screen name={Routes.SEND.RECIPIENT} component={SendTo} />
+        <Stack.Screen name={Routes.SEND.RECIPIENT} component={Recipient} />
         <Stack.Screen
           name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
           component={Confirm}

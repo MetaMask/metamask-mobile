@@ -16,10 +16,6 @@ export const useRecipientSelectionMetrics = () => {
   const { accountType, recipientInputMethod, setRecipientInputMethod } =
     useSendMetricsContext();
 
-  const setRecipientInputMethodManual = useCallback(() => {
-    setRecipientInputMethod(RecipientInputMethod.Manual);
-  }, [setRecipientInputMethod]);
-
   const captureRecipientSelected = useCallback(async () => {
     let inputMethod = recipientInputMethod;
     const clipboardText = await Clipboard.getString();
@@ -48,6 +44,6 @@ export const useRecipientSelectionMetrics = () => {
 
   return {
     captureRecipientSelected,
-    setRecipientInputMethodManual,
+    setRecipientInputMethod,
   };
 };
