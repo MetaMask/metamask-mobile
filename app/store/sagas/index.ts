@@ -29,6 +29,10 @@ import {
   SetCompletedOnboardingAction,
 } from '../../actions/onboarding';
 import { selectCompletedOnboarding } from '../../selectors/onboarding';
+import { EXISTING_USER } from '../../constants/storage';
+import StorageWrapper from '../storage-wrapper';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import { captureException } from '@sentry/react-native';
 
 export function* appLockStateMachine() {
   let biometricsListenerTask: Task<void> | undefined;
@@ -195,9 +199,43 @@ export function* startAppServices() {
   yield put(setAppServicesReady());
 }
 
+/**
+ * Clean up MMKV data after verifying data is actually persisted to disk
+ * This ensures the migration data is safely written before deletion
+ */
+export function* cleanupMmkvDataSaga() {
+  // Wait for app services to be ready (which comes after persistence + navigation)
+  yield take(UserActionType.SET_APP_SERVICES_READY);
+
+  try {
+    // Verify the data was actually written to disk by reading it back
+    const persistedState: string | null = yield call(
+      [FilesystemStorage, 'getItem'],
+      'persist:root',
+    );
+
+    if (persistedState) {
+      const parsedState = JSON.parse(persistedState);
+
+      // Check if migration 93 completed and user state contains existingUser
+      if (parsedState._persist?.version >= 93 && parsedState.user) {
+        const userState = JSON.parse(parsedState.user);
+
+        // If existingUser field exists in persisted data, migration was successful
+        if (userState.existingUser !== undefined) {
+          yield call([StorageWrapper, 'removeItem'], EXISTING_USER);
+        }
+      }
+    }
+  } catch (removeError) {
+    captureException(removeError as Error);
+  }
+}
+
 // Main generator function that initializes other sagas in parallel.
 export function* rootSaga() {
   yield fork(startAppServices);
+  yield fork(cleanupMmkvDataSaga);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
   yield fork(handleDeeplinkSaga);

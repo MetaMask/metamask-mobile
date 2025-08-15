@@ -15,9 +15,6 @@ import { onPersistedDataLoaded } from '../actions/user';
 import { toggleBasicFunctionality } from '../actions/settings';
 import Logger from '../util/Logger';
 import devToolsEnhancer from 'redux-devtools-expo-dev-plugin';
-import { EXISTING_USER } from '../constants/storage';
-import StorageWrapper from './storage-wrapper';
-import { captureException } from '@sentry/react-native';
 
 // TODO: Improve type safety by using real Action types instead of `AnyAction`
 const pReducer = persistReducer<RootState, AnyAction>(
@@ -68,12 +65,6 @@ const createStoreAndPersistor = async () => {
     endTrace({ name: TraceName.StoreInit });
     // Signal that persisted data has been loaded
     store.dispatch(onPersistedDataLoaded());
-
-    // Clean up MMKV data that was migrated to Redux state
-    // This happens after persistence completes to avoid race condition
-    StorageWrapper.removeItem(EXISTING_USER).catch((removeError) => {
-      captureException(removeError as Error);
-    });
 
     const currentState = store.getState();
 
