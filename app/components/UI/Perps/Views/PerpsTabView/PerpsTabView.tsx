@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { RefreshControl, ScrollView, View, Modal } from 'react-native';
+import { Modal, RefreshControl, ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -22,14 +22,23 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
+  usePerpsAccount,
   usePerpsConnection,
+  usePerpsEventTracking,
   usePerpsFirstTimeUser,
   usePerpsPositions,
   usePerpsTrading,
+  usePerpsPerformance,
 } from '../../hooks';
 import styleSheet from './PerpsTabView.styles';
 
@@ -40,8 +49,12 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { getAccountState, depositWithConfirmation } = usePerpsTrading();
   const { isConnected, isInitialized } = usePerpsConnection();
+  const { track } = usePerpsEventTracking();
+  const cachedAccountState = usePerpsAccount();
 
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
+  const hasTrackedHomescreen = useRef(false);
+  const { startMeasure, endMeasure } = usePerpsPerformance();
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -55,6 +68,12 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const isLoading = isPositionsLoading;
   const firstTimeUserIconSize = 48 as unknown as IconSize;
+
+  // Start measuring position data load time on mount
+  useEffect(() => {
+    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
+  }, [startMeasure]);
+
   // Automatically load account state on mount and when network changes
   useEffect(() => {
     // Only load account state if we're connected and initialized
@@ -64,6 +83,42 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       getAccountState();
     }
   }, [getAccountState, isConnected, isInitialized]);
+
+  // Track homescreen tab viewed - only once when positions and account are loaded
+  useEffect(() => {
+    if (
+      !hasTrackedHomescreen.current &&
+      !isLoading &&
+      positions &&
+      cachedAccountState?.totalBalance !== undefined
+    ) {
+      // Track position data loaded performance
+      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
+
+      // Track homescreen tab viewed event with exact property names from requirements
+      track(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED, {
+        [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
+          [PerpsEventProperties.ASSET]: p.coin,
+          [PerpsEventProperties.LEVERAGE]: p.leverage.value,
+          [PerpsEventProperties.DIRECTION]:
+            parseFloat(p.size) > 0
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+        })),
+        [PerpsEventProperties.PERP_ACCOUNT_BALANCE]: parseFloat(
+          cachedAccountState.totalBalance,
+        ),
+      });
+
+      hasTrackedHomescreen.current = true;
+    }
+  }, [
+    isLoading,
+    positions,
+    cachedAccountState?.totalBalance,
+    track,
+    endMeasure,
+  ]);
 
   const handleRefresh = useCallback(() => {
     loadPositions();
@@ -77,15 +132,18 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     setIsBottomSheetVisible(false);
   }, []);
 
-  const handleAddFunds = useCallback(async () => {
+  const handleAddFunds = useCallback(() => {
     setIsBottomSheetVisible(false);
-    const { result: depositResult } = await depositWithConfirmation();
 
+    // Navigate immediately to confirmations screen for instant UI response
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     });
 
-    await depositResult;
+    // Initialize deposit in the background without blocking
+    depositWithConfirmation().catch((error) => {
+      console.error('Failed to initialize deposit:', error);
+    });
   }, [depositWithConfirmation, navigation]);
 
   const handleWithdrawFunds = useCallback(() => {

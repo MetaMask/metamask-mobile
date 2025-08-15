@@ -22,7 +22,10 @@ import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
 import { TabBarProps } from './TabBar.types';
-import { ICON_BY_TAB_BAR_ICON_KEY } from './TabBar.constants';
+import {
+  ICON_BY_TAB_BAR_ICON_KEY,
+  LABEL_BY_TAB_BAR_ICON_KEY,
+} from './TabBar.constants';
 import OnboardingWizard from '../../../../components/UI/OnboardingWizard';
 import { selectChainId } from '../../../../selectors/networkController';
 
@@ -49,21 +52,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
     [navigation, wizardStep],
   );
 
-  const getTabLabel = useCallback((tabBarIconKey: string) => {
-    switch (tabBarIconKey) {
-      case 'Wallet':
-        return strings('bottom_nav.home');
-      case 'Browser':
-        return strings('bottom_nav.browser');
-      case 'Activity':
-        return strings('bottom_nav.activity');
-      case 'Setting':
-        return strings('bottom_nav.settings');
-      default:
-        return '';
-    }
-  }, []);
-
   const renderTabBarItem = useCallback(
     (route: { name: string; key: string }, index: number) => {
       const { options } = descriptors[route.key];
@@ -74,7 +62,8 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const key = `tab-bar-item-${tabBarIconKey}`; // this key is also used to identify elements for e2e testing
       const isSelected = state.index === index;
       const icon = ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
-      const labelText = getTabLabel(tabBarIconKey);
+      const labelKey = LABEL_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
+      const labelText = labelKey ? strings(labelKey) : '';
       const onPress = () => {
         callback?.();
         switch (rootScreenName) {
@@ -136,7 +125,6 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       chainId,
       trackEvent,
       createEventBuilder,
-      getTabLabel,
       tw,
     ],
   );
@@ -151,12 +139,12 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="w-full px-4 pt-3 bg-default border-t border-muted"
+        twClassName="w-full pt-3 px-2 bg-default border-t border-muted gap-x-2"
         style={[tw.style(`pb-[${bottomInset}px]`)]}
       >
         {renderTabBarItems()}
-        {renderOnboardingWizard()}
       </Box>
+      {renderOnboardingWizard()}
     </View>
   );
 };

@@ -5,14 +5,13 @@ import Routes from '../../../../constants/navigation/Routes';
 import { PerpsConnectionProvider } from '../providers/PerpsConnectionProvider';
 import PerpsMarketListView from '../Views/PerpsMarketListView/PerpsMarketListView';
 import PerpsMarketDetailsView from '../Views/PerpsMarketDetailsView';
-import PerpsDepositAmountView from '../Views/PerpsDepositAmountView';
 import PerpsView from '../Views/PerpsView';
 import PerpsPositionsView from '../Views/PerpsPositionsView';
 import PerpsWithdrawView from '../Views/PerpsWithdrawView';
 import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
-import { Confirm } from '../../../Views/confirmations/components/confirm';
 import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
+import { Confirm } from '../../../Views/confirmations/components/confirm';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -52,15 +51,6 @@ const PerpsScreenStack = () => (
         component={PerpsMarketListView}
         options={{
           title: strings('perps.markets.title'),
-          headerShown: false,
-        }}
-      />
-
-      <Stack.Screen
-        name={Routes.PERPS.DEPOSIT}
-        component={PerpsDepositAmountView}
-        options={{
-          title: strings('perps.deposit.title'),
           headerShown: false,
         }}
       />

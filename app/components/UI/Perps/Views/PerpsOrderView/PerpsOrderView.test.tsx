@@ -146,6 +146,15 @@ jest.mock('../../hooks', () => ({
     isLoading: false,
     error: null,
   })),
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
+  usePerpsPerformance: jest.fn(() => ({
+    startMeasure: jest.fn(),
+    endMeasure: jest.fn(),
+    measure: jest.fn(),
+    measureAsync: jest.fn(),
+  })),
 }));
 
 // Mock Redux selectors
@@ -165,6 +174,48 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
+  },
+}));
+
+// Mock trace utilities
+jest.mock('../../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PerpsOrderView: 'Perps Order View',
+  },
+  TraceOperation: {
+    UIStartup: 'ui.startup',
+  },
+}));
+
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+}));
+jest.mock('../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+  MetaMetricsEvents: {
+    PERPS_TRADING_SCREEN_VIEWED: 'PERPS_TRADING_SCREEN_VIEWED',
+    PERPS_TRADE_TRANSACTION_EXECUTED: 'PERPS_TRADE_TRANSACTION_EXECUTED',
+    PERPS_LEVERAGE_CHANGED: 'PERPS_LEVERAGE_CHANGED',
+    PERPS_ORDER_SIZE_CHANGED: 'PERPS_ORDER_SIZE_CHANGED',
+    PERPS_ORDER_PREVIEW_SHOWN: 'PERPS_ORDER_PREVIEW_SHOWN',
+    PERPS_ORDER_SUBMIT_CLICKED: 'PERPS_ORDER_SUBMIT_CLICKED',
+    PERPS_TRADE_TRANSACTION_FAILED: 'PERPS_TRADE_TRANSACTION_FAILED',
+    PERPS_PAYMENT_TOKEN_SELECTED: 'PERPS_PAYMENT_TOKEN_SELECTED',
+    PERPS_STOP_LOSS_SET: 'PERPS_STOP_LOSS_SET',
+    PERPS_TAKE_PROFIT_SET: 'PERPS_TAKE_PROFIT_SET',
+    PERPS_ORDER_TYPE_CHANGED: 'PERPS_ORDER_TYPE_CHANGED',
+    PERPS_ORDER_TYPE_VIEWED: 'PERPS_ORDER_TYPE_VIEWED',
+    PERPS_TRADE_TRANSACTION_INITIATED: 'PERPS_TRADE_TRANSACTION_INITIATED',
+    PERPS_TRADE_TRANSACTION_SUBMITTED: 'PERPS_TRADE_TRANSACTION_SUBMITTED',
+    PERPS_ERROR_ENCOUNTERED: 'PERPS_ERROR_ENCOUNTERED',
   },
 }));
 
@@ -558,6 +609,23 @@ describe('PerpsOrderView', () => {
     // MIN button functionality is part of the component
     // Verify the component renders correctly
     expect(screen.getByTestId('perps-amount-display')).toBeDefined();
+  });
+
+  it('should track performance metrics on mount', () => {
+    render(<PerpsOrderView />);
+
+    // Verify trace was called for screen load
+    const traceModule = jest.requireMock('../../../../../util/trace');
+    expect(traceModule.trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Perps Order View',
+        op: 'ui.startup',
+      }),
+    );
+
+    // Verify Mixpanel event was tracked
+    expect(mockCreateEventBuilder).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
   });
 
   it('shows slider when not focused on input', async () => {
