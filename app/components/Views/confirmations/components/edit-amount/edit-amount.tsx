@@ -15,6 +15,7 @@ export interface EditAmountProps {
   children?: React.ReactNode;
   onKeyboardShow?: () => void;
   onKeyboardHide?: () => void;
+  onKeyboardDone?: () => void;
   prefix?: string;
 }
 
@@ -23,15 +24,16 @@ export function EditAmount({
   children,
   onKeyboardShow,
   onKeyboardHide,
+  onKeyboardDone,
   prefix = '',
 }: EditAmountProps) {
   const { fieldAlerts } = useAlerts();
   const alerts = fieldAlerts.filter((a) => a.field === RowAlertKey.Amount);
-  const hasAlert = alerts.length > 0;
   const inputRef = createRef<TextInput>();
   const [showKeyboard, setShowKeyboard] = useState<boolean>(false);
   const [inputChanged, setInputChanged] = useState<boolean>(false);
   const { setIsFooterVisible } = useConfirmationContext();
+  const hasAlert = alerts.length > 0 && inputChanged;
 
   const { styles } = useStyles(styleSheet, {
     hasAlert,
@@ -72,7 +74,8 @@ export function EditAmount({
     setShowKeyboard(false);
     setIsFooterVisible?.(true);
     onKeyboardHide?.();
-  }, [inputRef, onKeyboardHide, setIsFooterVisible]);
+    onKeyboardDone?.();
+  }, [inputRef, onKeyboardHide, setIsFooterVisible, onKeyboardDone]);
 
   const handlePercentagePress = useCallback(
     (percentage: number) => {
