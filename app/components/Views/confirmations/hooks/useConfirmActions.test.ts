@@ -22,10 +22,15 @@ import { useConfirmActions } from './useConfirmActions';
 import { cloneDeep } from 'lodash';
 import { RootState } from '../../../../reducers';
 import { ConfirmationMetricsState } from '../../../../core/redux/slices/confirmationMetrics';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: jest.fn(),
+}));
+
+jest.mock('../../../../util/networks', () => ({
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -73,6 +78,7 @@ describe('useConfirmAction', () => {
       goBack: jest.fn(),
       navigate: navigateMock,
     } as unknown as ReturnType<typeof useNavigation>);
+    (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(true);
   });
 
   it('call setScannerVisible if QR signing is in progress', async () => {
@@ -305,7 +311,7 @@ describe('useConfirmAction', () => {
     );
   });
 
-  it('enables network when global network selector is enabled and network is not enabled', async () => {
+  it('enables network when feature flag is enabled and network is not enabled', async () => {
     const mockTryEnableEvmNetwork = jest.fn();
 
     jest.spyOn(NetworkEnablementHook, 'useNetworkEnablement').mockReturnValue({
@@ -340,7 +346,9 @@ describe('useConfirmAction', () => {
     expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
   });
 
-  it('does not enable network when global network selector is disabled', async () => {
+  it('does not enable network when feature flag is disabled', async () => {
+    (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(false);
+
     const mockTryEnableEvmNetwork = jest.fn();
 
     jest.spyOn(NetworkEnablementHook, 'useNetworkEnablement').mockReturnValue({
@@ -372,7 +380,7 @@ describe('useConfirmAction', () => {
     result?.current?.onConfirm();
     await flushPromises();
 
-    expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
+    expect(mockTryEnableEvmNetwork).not.toHaveBeenCalled();
   });
 
   it('does not enable network when network is already enabled', async () => {

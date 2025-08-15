@@ -14,7 +14,6 @@ import Engine from '../../../core/Engine';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../selectors/networkController';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 /**
  * Manages network enablement state across namespaces (EVM, Bitcoin, etc).
@@ -113,11 +112,7 @@ export const useNetworkEnablement = () => {
 
   const tryEnableEvmNetwork = useCallback(
     (chainId?: string) => {
-      if (
-        isRemoveGlobalNetworkSelectorEnabled() &&
-        chainId &&
-        isHexString(chainId)
-      ) {
+      if (chainId && isHexString(chainId)) {
         const caipChainId = toCaipChainId(KnownCaipNamespace.Eip155, chainId);
         const isEnabled = isNetworkEnabled(caipChainId);
         if (!isEnabled) {

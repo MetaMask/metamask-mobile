@@ -39,6 +39,7 @@ import {
   isMainnetByChainId,
   isMultiLayerFeeNetwork,
   getDecimalChainId,
+  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import { fetchEstimatedMultiLayerL1Fee } from '../../../util/networks/engineNetworkUtils';
 import {
@@ -1233,7 +1234,9 @@ function SwapsQuotesView({
     }
 
     // Enable the network if it's not enabled for the Network Manager
-    tryEnableEvmNetwork(chainId);
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      tryEnableEvmNetwork(chainId);
+    }
   }, [
     selectedQuote,
     selectedAddress,

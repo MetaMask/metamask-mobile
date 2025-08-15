@@ -23,6 +23,7 @@ import { useSwapsSmartTransaction } from './utils/useSwapsSmartTransaction';
 import { query } from '@metamask/controller-utils';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 jest.mock('../../../util/networks/global-network', () => ({
   ...jest.requireActual('../../../util/networks/global-network'),
@@ -58,6 +59,11 @@ jest.mock('../../../../app/selectors/smartTransactionsController', () => ({
 
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
   useNetworkEnablement: jest.fn(),
+}));
+
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
 }));
 
 const mockSubmitSignedTransactions = jest
@@ -330,6 +336,7 @@ describe('QuotesView', () => {
     (useNetworkEnablement as jest.Mock).mockReturnValue({
       tryEnableEvmNetwork: mockTryEnableEvmNetwork,
     });
+    (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(true);
   });
 
   it('should render quote screen', async () => {
@@ -479,8 +486,7 @@ describe('QuotesView', () => {
   });
 
   describe('Network enablement after swap', () => {
-    // Enable the network if it's not enabled for the Network Manager
-    it('should call tryEnableEvmNetwork when swap is completed', async () => {
+    it('should call tryEnableEvmNetwork when swap is completed and feature flag is enabled', async () => {
       const state = merge({}, mockInitialState);
       jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
         timestamp: 1234,
@@ -520,7 +526,7 @@ describe('QuotesView', () => {
       });
     });
 
-    it('should call tryEnableEvmNetwork when smart transaction is completed', async () => {
+    it('should call tryEnableEvmNetwork when smart transaction is completed and feature flag is enabled', async () => {
       const mockSubmitSwapsSmartTransaction = jest.fn().mockResolvedValue({
         approvalTxUuid: 'approval-uuid-123',
         tradeTxUuid: 'trade-uuid-456',
@@ -543,6 +549,50 @@ describe('QuotesView', () => {
 
       await waitFor(() => {
         expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
+      });
+    });
+
+    it('should not call tryEnableEvmNetwork when feature flag is disabled', async () => {
+      (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(
+        false,
+      );
+
+      const state = merge({}, mockInitialState);
+      jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
+        timestamp: 1234,
+      });
+      jest
+        .spyOn(Engine.context.TransactionController, 'addTransaction')
+        .mockResolvedValue({
+          result: Promise.resolve('mock-tx-hash'),
+          transactionMeta: {
+            id: 'mock-id',
+            networkClientId: 'mock-network-id',
+            time: Date.now(),
+            chainId: '0x1',
+            status: 'submitted' as TransactionStatus,
+            txParams: {
+              from: '0x0',
+              to: '0x1',
+              value: '0x0',
+              gas: '0x0',
+              gasPrice: '0x0',
+            },
+          },
+        });
+
+      const wrapper = render(QuotesView, state);
+
+      const swapButton = await wrapper.findByTestId(
+        SwapsViewSelectorsIDs.SWAP_BUTTON,
+      );
+
+      act(() => {
+        fireEvent.press(swapButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTryEnableEvmNetwork).not.toHaveBeenCalled();
       });
     });
   });

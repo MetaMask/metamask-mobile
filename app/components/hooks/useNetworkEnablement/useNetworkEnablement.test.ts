@@ -59,15 +59,10 @@ jest.mock('../../../selectors/networkController', () => ({
   selectChainId: jest.fn(),
 }));
 
-jest.mock('../../../util/networks', () => ({
-  isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
-}));
-
 import { useNetworkEnablement } from './useNetworkEnablement';
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../selectors/networkController';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 const mockNetworkEnablementController = {
   enableNetwork: jest.fn(),
@@ -121,7 +116,6 @@ describe('useNetworkEnablement', () => {
       (namespace, chainId) => `${namespace}:${chainId}`,
     );
     (isHexString as unknown as jest.Mock).mockReturnValue(true);
-    (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(true);
 
     (
       Engine.context as unknown as {
@@ -448,20 +442,6 @@ describe('useNetworkEnablement', () => {
       expect(
         mockNetworkEnablementController.enableNetwork,
       ).toHaveBeenCalledWith('eip155:0x1');
-    });
-
-    it('does not enable network when global selector is disabled', () => {
-      (isRemoveGlobalNetworkSelectorEnabled as jest.Mock).mockReturnValue(
-        false,
-      );
-
-      const { result } = renderHook(() => useNetworkEnablement());
-
-      result.current.tryEnableEvmNetwork('0x1');
-
-      expect(
-        mockNetworkEnablementController.enableNetwork,
-      ).not.toHaveBeenCalled();
     });
 
     it('does not enable network when chainId is not provided', () => {

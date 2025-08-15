@@ -19,6 +19,7 @@ import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
 import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../../hooks/useNetworkEnablement/useNetworkEnablement';
+import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
 
 export const useConfirmActions = () => {
   const {
@@ -113,8 +114,10 @@ export const useConfirmActions = () => {
       dispatch(resetTransaction());
     }
 
-    // Auto-enable network if needed
-    tryEnableEvmNetwork(chainId);
+    // Enable the network if it's not enabled for the Network Manager
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      tryEnableEvmNetwork(chainId);
+    }
   }, [
     captureSignatureMetrics,
     dispatch,
