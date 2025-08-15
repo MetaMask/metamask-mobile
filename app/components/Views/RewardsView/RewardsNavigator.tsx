@@ -14,7 +14,7 @@ interface RewardsNavigatorProps {
 }
 
 const RewardsNavigator: React.FC<RewardsNavigatorProps> = () => {
-  const { isLoggedIn, isLoading, loginError, clearLoginError } = useRewards();
+  const { isOptIn, isLoading, optinError, clearOptinError } = useRewards();
   const navigation = useNavigation();
 
   const handleOptIn = () => {
@@ -28,33 +28,35 @@ const RewardsNavigator: React.FC<RewardsNavigatorProps> = () => {
 
   return (
     <Stack.Navigator>
-      {isLoggedIn ? (
+      {isOptIn ? (
         <Stack.Screen
           name={Routes.REWARDS_DASHBOARD}
           component={RewardsDashboard}
           options={{ headerShown: false }}
         />
       ) : (
-        <Stack.Screen
-          name={Routes.REWARDS_VIEW}
-          options={{ headerShown: false }}
-        >
-          {(props) => (
-            <RewardsView
-              {...props}
-              onOptIn={handleOptIn}
-              loginError={loginError}
-              onClearError={clearLoginError}
-              isLoading={isLoading}
-            />
-          )}
-        </Stack.Screen>
+        <>
+          <Stack.Screen
+            name={Routes.REWARDS_VIEW}
+            options={{ headerShown: false }}
+          >
+            {(props) => (
+              <RewardsView
+                {...props}
+                onOptIn={handleOptIn}
+                optinError={optinError}
+                onClearError={clearOptinError}
+                isLoading={isLoading}
+              />
+            )}
+          </Stack.Screen>
+          <Stack.Screen
+            name={Routes.REWARDS_TERMS}
+            component={RewardsTerms}
+            options={{ headerShown: false }}
+          />
+        </>
       )}
-      <Stack.Screen
-        name={Routes.REWARDS_TERMS}
-        component={RewardsTerms}
-        options={{ headerShown: false }}
-      />
     </Stack.Navigator>
   );
 };

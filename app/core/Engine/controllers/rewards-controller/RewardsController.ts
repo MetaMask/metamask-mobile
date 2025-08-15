@@ -64,6 +64,7 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #isProcessingSilentAuth = false;
+  #accountOptInCallbacks: Set<(address: string) => void> = new Set();
 
   constructor({
     messenger,
@@ -327,6 +328,49 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Update the state with a successful login response
+   */
+  async updateStateWithOptinResponse(
+    address: string,
+    loginResponse: LoginResponseDto,
+  ): Promise<void> {
+    const { subscription, sessionId } = loginResponse;
+
+    // Store the session token for this subscription
+    await storeSubscriptionToken(subscription.id, sessionId);
+    Logger.log('RewardsController:updateStateWithOptinResponse', {
+      address,
+      subscription,
+      sessionId,
+    });
+    this.update((state) => {
+      const currentTime = Date.now();
+
+      // Update account to subscription mapping for all accounts in this subscription
+      (subscription?.accounts || []).forEach((accountAddress) => {
+        state.silentAuth.accountToSubscription[
+          accountAddress.address.toLowerCase()
+        ] = subscription.id;
+      });
+
+      state.silentAuth.lastAuthenticatedAccount = address;
+      state.silentAuth.lastAuthTime = currentTime;
+    });
+
+    // Notify all registered callbacks about the account opt-in
+    this.#accountOptInCallbacks.forEach((callback) => {
+      try {
+        callback(address);
+      } catch (error) {
+        Logger.log(
+          'RewardsController: Error in account opt-in callback:',
+          error,
+        );
+      }
+    });
+  }
+
+  /**
    * Get the current silent authentication state
    */
   getSilentAuthState(): SilentAuthState {
@@ -350,5 +394,15 @@ export class RewardsController extends BaseController<
     return (
       this.state.silentAuth.accountToSubscription[address.toLowerCase()] || null
     );
+  }
+
+  /**
+   * Subscribe to account opt-in events
+   */
+  onAccountOptIn(callback: (address: string) => void): () => void {
+    this.#accountOptInCallbacks.add(callback);
+    return () => {
+      this.#accountOptInCallbacks.delete(callback);
+    };
   }
 }

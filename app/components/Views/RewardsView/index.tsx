@@ -28,14 +28,14 @@ const createStyles = (colors: Colors) =>
 
 interface RewardsViewProps {
   onOptIn: () => void;
-  loginError: string | null;
+  optinError: string | null;
   onClearError: () => void;
   isLoading: boolean;
 }
 
 const RewardsView: React.FC<RewardsViewProps> = ({
   onOptIn,
-  loginError,
+  optinError,
   onClearError,
   isLoading,
 }) => {
@@ -59,7 +59,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({
       <ScrollView style={styles.container}>
         <RewardsHero
           onOptIn={onOptIn}
-          loginError={loginError || null}
+          optinError={optinError || null}
           onClearError={onClearError}
           isLoading={isLoading}
         />

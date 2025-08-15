@@ -5,35 +5,61 @@ import { toHex } from '@metamask/controller-utils';
 
 import {
   useGenerateChallengeMutation,
-  useLoginMutation,
+  useOptinMutation,
   useLogoutMutation,
 } from '../services';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 import { handleRewardsErrorMessage } from '../../../../../util/rewards';
 import { getSubscriptionToken } from '../utils/MultiSubscriptionTokenVault';
 import Engine from '../../../../Engine';
+import Logger from '../../../../../util/Logger';
 
-export const useRewardsAuth = ({
-  onLoginSuccess,
-}: {
-  onLoginSuccess?: () => void;
-} = {}) => {
+export const useRewardsAuth = () => {
   const address = useSelector(selectSelectedInternalAccountAddress);
-  const [loginError, setLoginError] = useState<string | null>(null);
-  const [loginLoading, setLoginLoading] = useState<boolean>(false);
+  const [optinError, setOptinError] = useState<string | null>(null);
+  const [optinLoading, setOptinLoading] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
 
   const [generateChallenge] = useGenerateChallengeMutation();
-  const [login] = useLoginMutation();
+  const [optin] = useOptinMutation();
   const [logout, logoutResult] = useLogoutMutation();
 
-  const handleLogin = useCallback(async () => {
+  // Reusable function to check authentication state
+  const checkAuthState = useCallback(async () => {
+    Logger.log('RewardsController:checking auth state');
+    if (!address) {
+      setIsAuthenticated(false);
+      setIsAuthenticating(false);
+      return;
+    }
+
+    setIsAuthenticating(true);
+    try {
+      const rewardsController = Engine.context.RewardsController;
+      const subscriptionId =
+        rewardsController.getSubscriptionIdForAccount(address);
+
+      if (subscriptionId) {
+        const tokenResult = await getSubscriptionToken(subscriptionId);
+        Logger.log('RewardsController:tokenResult', tokenResult);
+        setIsAuthenticated(tokenResult.success && !!tokenResult.token);
+      } else {
+        setIsAuthenticated(false);
+      }
+    } catch {
+      setIsAuthenticated(false);
+    } finally {
+      setIsAuthenticating(false);
+    }
+  }, [address]);
+
+  const handleOptin = useCallback(async () => {
     if (!address) return;
 
     try {
-      setLoginLoading(true);
-      setLoginError(null);
+      setOptinLoading(true);
+      setOptinError(null);
       const challengeResponse = await generateChallenge({ address }).unwrap();
 
       // Try different encoding approaches to handle potential character issues
@@ -54,14 +80,13 @@ export const useRewardsAuth = ({
           from: address,
         });
 
-      await login({ challengeId: challengeResponse.id, signature });
-      onLoginSuccess?.();
+      await optin({ challengeId: challengeResponse.id, signature });
     } catch (error) {
-      setLoginError(handleRewardsErrorMessage(error));
+      setOptinError(handleRewardsErrorMessage(error));
     } finally {
-      setLoginLoading(false);
+      setOptinLoading(false);
     }
-  }, [address, generateChallenge, login, onLoginSuccess]);
+  }, [address, generateChallenge, optin]);
 
   const handleLogout = useCallback(async () => {
     logout();
@@ -69,45 +94,38 @@ export const useRewardsAuth = ({
     Engine.context.RewardsController.setDevOnlyLoginAddress(null);
   }, [logout]);
 
-  const clearLoginError = useCallback(() => setLoginError(null), []);
+  const clearOptinError = useCallback(() => setOptinError(null), []);
 
-  // Check if we have a valid subscription token for current account
+  // Check authentication state when address changes
   useEffect(() => {
-    const checkAuthState = async () => {
-      if (!address) {
-        setIsAuthenticated(false);
-        setIsAuthenticating(false);
-        return;
-      }
+    checkAuthState();
+  }, [checkAuthState, address]);
 
-      setIsAuthenticating(true);
-      try {
-        const rewardsController = Engine.context.RewardsController;
-        const subscriptionId =
-          rewardsController.getSubscriptionIdForAccount(address);
-
-        if (subscriptionId) {
-          const tokenResult = await getSubscriptionToken(subscriptionId);
-          setIsAuthenticated(tokenResult.success && !!tokenResult.token);
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch {
-        setIsAuthenticated(false);
-      } finally {
-        setIsAuthenticating(false);
+  // Listen for auth state changes from successful optin
+  useEffect(() => {
+    const handleAccountOptIn = (accountAddress: string) => {
+      // Only check auth state if the opt-in is for the current address
+      if (accountAddress.toLowerCase() === address?.toLowerCase()) {
+        checkAuthState();
       }
     };
 
-    checkAuthState();
-  }, [address]); // Re-check when account or subscription changes
+    // Subscribe to account opt-in events through the RewardsController
+    const rewardsController = Engine.context.RewardsController;
+    if (rewardsController) {
+      const unsubscribe = rewardsController.onAccountOptIn(handleAccountOptIn);
+      return unsubscribe;
+    }
+  }, [checkAuthState, address]);
+
+  Logger.log('RewardsController:IsOptIn', isAuthenticated);
 
   return {
-    login: handleLogin,
+    optin: handleOptin,
     logout: handleLogout,
-    isLoggedIn: isAuthenticated,
-    isLoading: loginLoading || logoutResult.isLoading || isAuthenticating,
-    loginError,
-    clearLoginError,
+    isOptIn: isAuthenticated,
+    isLoading: optinLoading || logoutResult.isLoading || isAuthenticating,
+    optinError,
+    clearOptinError,
   };
 };

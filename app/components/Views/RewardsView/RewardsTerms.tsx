@@ -17,7 +17,6 @@ import { selectSelectedInternalAccountAddress } from '../../../selectors/account
 import Identicon from '../../UI/Identicon';
 import { renderShortAddress } from '../../../util/address';
 import { useRewardsAuth } from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsAuth';
-import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -101,22 +100,18 @@ const RewardsTerms: React.FC = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const address = useSelector(selectSelectedInternalAccountAddress);
-  const { login, isLoading } = useRewardsAuth({
-    onLoginSuccess: () => {
-      navigation.navigate(Routes.REWARDS_DASHBOARD);
-    },
-  });
+  const { optin, isLoading } = useRewardsAuth();
 
   const handleAccept = useCallback(async () => {
     if (!address) return;
 
     try {
       // Proceed with login - onLoginSuccess callback will handle navigation
-      await login();
+      await optin();
     } catch (error) {
       console.error('Error accepting terms:', error);
     }
-  }, [address, login]);
+  }, [address, optin]);
 
   const handleDecline = useCallback(() => {
     // Just navigate back without doing anything

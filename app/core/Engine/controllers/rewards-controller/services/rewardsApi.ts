@@ -17,6 +17,7 @@ import type {
   SeasonRewardsCatalogDto,
   RewardDto,
   ClaimRewardDto,
+  LoginResponseDto,
 } from '../types';
 
 /**
@@ -77,7 +78,7 @@ export const rewardsApi = createApi({
         body,
       }),
     }),
-    login: builder.mutation<void, LoginDto>({
+    optin: builder.mutation<LoginResponseDto, LoginDto>({
       query: (body) => ({
         url: '/auth/login',
         method: 'POST',
@@ -89,7 +90,31 @@ export const rewardsApi = createApi({
         'SeasonStatus',
         'RewardsStatus',
       ],
+      async onQueryStarted(_args, { queryFulfilled }) {
+        try {
+          const { data: loginResponse } = await queryFulfilled;
+
+          // Get the current selected account address
+          const selectedAccount =
+            Engine.context.AccountsController.getSelectedAccount();
+          if (!selectedAccount?.address) {
+            return;
+          }
+
+          // Update the RewardsController state directly
+          const rewardsController = Engine.context.RewardsController;
+          if (rewardsController) {
+            await rewardsController.updateStateWithOptinResponse(
+              selectedAccount.address,
+              loginResponse,
+            );
+          }
+        } catch (error) {
+          // Do nothing if the query fails
+        }
+      },
     }),
+
     logout: builder.mutation<void, void>({
       query: () => ({
         url: '/auth/logout',
@@ -217,7 +242,7 @@ export const rewardsApi = createApi({
 // Export hooks for usage in functional components
 export const {
   useGenerateChallengeMutation,
-  useLoginMutation,
+  useOptinMutation,
   useLogoutMutation,
   useDevOnlyLoginMutation,
   useGetSubscriptionQuery,
