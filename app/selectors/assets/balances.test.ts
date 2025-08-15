@@ -101,10 +101,8 @@ jest.mock('@metamask/assets-controllers', () => {
 import {
   selectBalanceForAllWallets,
   selectBalanceByWallet,
-  selectSelectedGroupAggregatedBalance,
   selectBalanceByAccountGroup,
   selectBalanceChangeForAllWallets,
-  selectBalancePercentChange,
   selectBalanceChangeByAccountGroup,
   selectBalancePercentChangeByAccountGroup,
 } from './balances';
@@ -272,55 +270,7 @@ describe('assets balance and balance change selectors (mobile)', () => {
     });
   });
 
-  describe('selectSelectedGroupAggregatedBalance', () => {
-    it('returns selected group balance when group exists', () => {
-      const state = makeState() as unknown as RootState;
-      const result = selectSelectedGroupAggregatedBalance(state);
-
-      expect(result).toEqual({
-        walletId: 'wallet-1',
-        groupId: 'wallet-1/group-1',
-        totalBalanceInUserCurrency: 500,
-        userCurrency: 'usd',
-      });
-    });
-
-    it('returns null when no selected group', () => {
-      const state = makeState({
-        engine: {
-          backgroundState: {
-            AccountTreeController: {
-              accountTree: {
-                wallets: {},
-                selectedAccountGroup: '',
-              },
-            },
-            AccountsController: {
-              internalAccounts: { accounts: {}, selectedAccount: '' },
-            },
-            TokenBalancesController: { tokenBalances: {} },
-            TokenRatesController: { marketData: {} },
-            MultichainAssetsRatesController: { conversionRates: {} },
-            MultichainBalancesController: { balances: {} },
-            TokensController: {
-              allTokens: {},
-              allIgnoredTokens: {},
-              allDetectedTokens: {},
-            },
-            CurrencyRateController: {
-              currentCurrency: 'usd',
-              currencyRates: {},
-            },
-            NetworkEnablementController: { enabledNetworkMap: {} },
-          },
-        },
-      }) as unknown as RootState;
-
-      expect(selectSelectedGroupAggregatedBalance(state)).toBeNull();
-    });
-  });
-
-  describe('selectAggregatedBalanceByAccountGroup', () => {
+  describe('selectBalanceByAccountGroup', () => {
     it('returns group balance when group exists', () => {
       const state = makeState() as unknown as RootState;
       const selector = selectBalanceByAccountGroup('wallet-1/group-1');
@@ -394,27 +344,6 @@ describe('assets balance and balance change selectors (mobile)', () => {
       });
     });
   });
-
-  describe('selectBalancePercentChange', () => {
-    it('returns percent from all-wallet change for 1d', () => {
-      const state = makeState() as unknown as RootState;
-      const selector = selectBalancePercentChange('1d');
-      expect(selector(state)).toBe(5.67);
-    });
-
-    it('returns percent from all-wallet change for 7d', () => {
-      const state = makeState() as unknown as RootState;
-      const selector = selectBalancePercentChange('7d');
-      expect(selector(state)).toBe(8.9);
-    });
-
-    it('returns percent from all-wallet change for 30d', () => {
-      const state = makeState() as unknown as RootState;
-      const selector = selectBalancePercentChange('30d');
-      expect(selector(state)).toBe(12.34);
-    });
-  });
-
   describe('selectBalanceChangeByAccountGroup', () => {
     it('returns group change for wallet-1 group', () => {
       const state = makeState() as unknown as RootState;

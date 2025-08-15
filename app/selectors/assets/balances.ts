@@ -147,28 +147,6 @@ export const selectBalanceForAllWallets = createSelector(
     ),
 );
 
-export const selectSelectedGroupAggregatedBalance = createSelector(
-  [selectAccountTreeControllerState, selectBalanceForAllWallets],
-  (accountTreeState, allBalances) => {
-    const selectedGroupId = accountTreeState?.accountTree?.selectedAccountGroup;
-    if (!selectedGroupId) {
-      return null;
-    }
-    const walletId = selectedGroupId.split('/')[0];
-    const wallet = allBalances.wallets[walletId] ?? null;
-    const { userCurrency } = allBalances;
-    if (!wallet?.groups[selectedGroupId]) {
-      return {
-        walletId,
-        groupId: selectedGroupId,
-        totalBalanceInUserCurrency: 0,
-        userCurrency,
-      };
-    }
-    return wallet.groups[selectedGroupId];
-  },
-);
-
 export const selectBalanceByAccountGroup = (groupId: string) =>
   createSelector([selectBalanceForAllWallets], (allBalances) => {
     const walletId = groupId.split('/')[0];
@@ -246,13 +224,7 @@ export const selectBalanceChangeForAllWallets = (period: BalanceChangePeriod) =>
       ),
   );
 
-export const selectBalancePercentChange = (period: BalanceChangePeriod) =>
-  createSelector(
-    [selectBalanceChangeForAllWallets(period)],
-    (change) => change.percentChange,
-  );
-
-// Per-account-group balance change selectors (mirror extension)
+// Per-account-group balance change selectors
 export const selectBalanceChangeByAccountGroup = (
   groupId: string,
   period: BalanceChangePeriod,
