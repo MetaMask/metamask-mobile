@@ -11,12 +11,48 @@ import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePas
 import MetaMetricsScreen from '../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../wdio/screen-objects/OnboardingSucessScreen.js';
 import SolanaFeatureSheet from '../../wdio/screen-objects/Modals/SolanaFeatureSheet.js';
+import AppwrightSelectors from '../../wdio/helpers/AppwrightSelectors.js';
 const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED
   ? process.env.SEEDLESS_ONBOARDING_ENABLED
   : true;
 const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED
   ? process.env.SOLANA_MODAL_ENABLE
   : false;
+
+/**
+   app launch function
+ * @param {Object} device - The device object from appwright
+ */
+export async function launchApp(device) {
+  const platform = detectPlatform(device);
+  const isCI = process.env.CI === 'true';
+  const appBundleId = getAppBundleId(platform, isCI);
+
+  await device.activateApp(appBundleId);
+}
+
+/**
+ * Get platform using existing utilities
+ */
+function detectPlatform(device) {
+  if (AppwrightSelectors.isIOS(device)) {
+    return 'ios';
+  }
+  return 'android';
+}
+
+/**
+ * Get app bundle ID based on platform and environment
+ */
+function getAppBundleId(platform, isCI) {
+  const bundleIds = {
+    ios: isCI ? 'io.metamask.MetaMask-QA' : 'io.metamask.qa',
+    android: isCI ? 'io.metamask.qa' : 'io.metamask',
+  };
+
+  return bundleIds[platform];
+}
+
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
@@ -27,6 +63,7 @@ export async function onboardingFlowImportSRP(device, srp) {
   MetaMetricsScreen.device = device;
   OnboardingSucessScreen.device = device;
   SolanaFeatureSheet.device = device;
+  await launchApp(device);
   await WelcomeScreen.clickGetStartedButton();
   await TermOfUseScreen.isDisplayed();
 

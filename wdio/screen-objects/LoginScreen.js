@@ -33,7 +33,7 @@ class LoginScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(LoginViewSelectors.RESET_WALLET);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, LoginViewSelectors.RESET_WALLET);
+      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.RESET_WALLET);
     }
   }
 
@@ -41,7 +41,7 @@ class LoginScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(LoginViewSelectors.PASSWORD_INPUT);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, LoginViewSelectors.PASSWORD_INPUT);
+      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.PASSWORD_INPUT);
     }
   }
 
@@ -58,7 +58,7 @@ class LoginScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(LoginViewSelectors.TITLE_ID);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, LoginViewSelectors.TITLE_ID);
+      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.TITLE_ID);
     }
   }
 
@@ -66,7 +66,7 @@ class LoginScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(LoginViewSelectors.REMEMBER_ME_SWITCH);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, LoginViewSelectors.REMEMBER_ME_SWITCH);
+      return AppwrightSelectors.getElementByID(this._device, LoginViewSelectors.REMEMBER_ME_SWITCH);
     }
   }
 
