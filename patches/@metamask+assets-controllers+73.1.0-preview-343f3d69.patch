@@ -1,76 +1,5 @@
-diff --git a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
-index 9749434..fed49f4 100644
---- a/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
-+++ b/node_modules/@metamask/assets-controllers/dist/AccountTrackerController.cjs
-@@ -148,27 +148,33 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
-             this.syncAccounts(chainIds);
-             // Create an array of promises for each networkClientId
-             const updatePromises = networkClientIds.map(async (networkClientId) => {
--                const { chainId, ethQuery, provider } = __classPrivateFieldGet(this, _AccountTrackerController_instances, "m", _AccountTrackerController_getCorrectNetworkClient).call(this, networkClientId);
-+                const { chainId, ethQuery, provider, blockTracker } = __classPrivateFieldGet(this, _AccountTrackerController_instances, "m", _AccountTrackerController_getCorrectNetworkClient).call(this, networkClientId);
-                 const { accountsByChainId } = this.state;
-                 const { isMultiAccountBalancesEnabled } = this.messagingSystem.call('PreferencesController:getState');
-                 const accountsToUpdate = isMultiAccountBalancesEnabled
-                     ? Object.keys(accountsByChainId[chainId])
-                     : [(0, controller_utils_1.toChecksumHexAddress)(selectedAccount.address)];
-                 const accountsForChain = { ...accountsByChainId[chainId] };
-+                // Force fresh block data before multicall
-+                // TODO: This is a temporary fix to ensure that the block number is up to date.
-+                // We should remove this once we have a better solution for this on the block tracker controller.
-+                await (0, controller_utils_1.safelyExecuteWithTimeout)(() => blockTracker?.checkForLatestBlock?.());
-                 const stakedBalancesPromise = __classPrivateFieldGet(this, _AccountTrackerController_includeStakedAssets, "f")
-                     ? __classPrivateFieldGet(this, _AccountTrackerController_getStakedBalanceForChain, "f").call(this, accountsToUpdate, networkClientId)
-                     : Promise.resolve({});
-                 if ((0, utils_1.hasProperty)(AssetsContractController_1.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID, chainId)) {
-                     const contractAddress = AssetsContractController_1.SINGLE_CALL_BALANCES_ADDRESS_BY_CHAINID[chainId];
-                     const contract = new contracts_1.Contract(contractAddress, single_call_balance_checker_abi_1.default, new providers_1.Web3Provider(provider));
--                    const nativeBalances = await contract.balances(accountsToUpdate, [
-+                    const nativeBalances = await (0, controller_utils_1.safelyExecuteWithTimeout)(() => contract.balances(accountsToUpdate, [
-                         '0x0000000000000000000000000000000000000000',
--                    ]);
--                    accountsToUpdate.forEach((address, index) => {
--                        accountsForChain[address] = {
--                            balance: nativeBalances[index].toHexString(),
--                        };
--                    });
-+                    ]), false, 3000);
-+                    if (nativeBalances) {
-+                        accountsToUpdate.forEach((address, index) => {
-+                            accountsForChain[address] = {
-+                                balance: nativeBalances[index].toHexString(),
-+                            };
-+                        });
-+                    }
-                 }
-                 else {
-                     // Process accounts in batches using reduceInBatchesSerially
-@@ -191,8 +197,8 @@ class AccountTrackerController extends (0, polling_controller_1.StaticIntervalPo
-                         },
-                     });
-                 }
--                const stakedBalanceResult = (await stakedBalancesPromise);
--                Object.entries(stakedBalanceResult).forEach(([address, balance]) => {
-+                const stakedBalanceResult = await (0, controller_utils_1.safelyExecuteWithTimeout)(async () => (await stakedBalancesPromise));
-+                Object.entries(stakedBalanceResult ?? {}).forEach(([address, balance]) => {
-                     accountsForChain[address] = {
-                         ...accountsForChain[address],
-                         stakedBalance: balance,
-@@ -269,11 +275,12 @@ _AccountTrackerController_refreshMutex = new WeakMap(), _AccountTrackerControlle
-     const selectedNetworkClientId = networkClientId ??
-         this.messagingSystem.call('NetworkController:getState')
-             .selectedNetworkClientId;
--    const { configuration: { chainId }, provider, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
-+    const { configuration: { chainId }, provider, blockTracker, } = this.messagingSystem.call('NetworkController:getNetworkClientById', selectedNetworkClientId);
-     return {
-         chainId,
-         provider,
-         ethQuery: new eth_query_1.default(provider),
-+        blockTracker,
-     };
- }, _AccountTrackerController_getNetworkClientIds = function _AccountTrackerController_getNetworkClientIds() {
-     const { networkConfigurationsByChainId } = this.messagingSystem.call('NetworkController:getState');
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
-index 3e7b205..00ad856 100644
+index 3e7b205..36ba9b8 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 @@ -13,7 +13,8 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -83,17 +12,7 @@ index 3e7b205..00ad856 100644
  Object.defineProperty(exports, "__esModule", { value: true });
  exports.NftController = exports.getDefaultNftControllerState = void 0;
  const address_1 = require("@ethersproject/address");
-@@ -54,7 +55,8 @@ class NftController extends base_controller_1.BaseController {
-      *
-      * @param options - The controller options.
-      * @param options.ipfsGateway - The configured IPFS gateway.
--     * @param options.openSeaEnabled - Controls whether the OpenSea API is used.
-+     * Remove once https://github.com/MetaMask/core/pull/4774 is released
-+     * @param options.displayNftMedia - Controls whether the NFT API is used.
-      * @param options.useIpfsSubdomains - Controls whether IPFS subdomains are used.
-      * @param options.isIpfsGatewayEnabled - Controls whether IPFS is enabled or not.
-      * @param options.onNftAdded - Callback that is called when an NFT is added. Currently used pass data
-@@ -62,7 +64,7 @@ class NftController extends base_controller_1.BaseController {
+@@ -62,7 +63,7 @@ class NftController extends base_controller_1.BaseController {
       * @param options.messenger - The messenger.
       * @param options.state - Initial state to set on this controller.
       */
@@ -102,7 +21,7 @@ index 3e7b205..00ad856 100644
          super({
              name: controllerName,
              metadata: nftControllerMetadata,
-@@ -76,13 +78,13 @@ class NftController extends base_controller_1.BaseController {
+@@ -76,13 +77,13 @@ class NftController extends base_controller_1.BaseController {
          _NftController_mutex.set(this, new async_mutex_1.Mutex());
          _NftController_selectedAccountId.set(this, void 0);
          _NftController_ipfsGateway.set(this, void 0);
@@ -118,7 +37,7 @@ index 3e7b205..00ad856 100644
          __classPrivateFieldSet(this, _NftController_useIpfsSubdomains, useIpfsSubdomains, "f");
          __classPrivateFieldSet(this, _NftController_isIpfsGatewayEnabled, isIpfsGatewayEnabled, "f");
          __classPrivateFieldSet(this, _NftController_onNftAdded, onNftAdded, "f");
-@@ -615,26 +617,26 @@ class NftController extends base_controller_1.BaseController {
+@@ -615,7 +616,7 @@ class NftController extends base_controller_1.BaseController {
      }
  }
  exports.NftController = NftController;
@@ -127,10 +46,8 @@ index 3e7b205..00ad856 100644
  /**
   * Handles the state change of the preference controller.
   *
-  * @param preferencesState - The new state of the preference controller.
-  * @param preferencesState.ipfsGateway - The configured IPFS gateway.
-- * @param preferencesState.openSeaEnabled - Controls whether the OpenSea API is used.
-+ * @param preferencesState.displayNftMedia - Controls whether the NFT API is used.
+@@ -624,17 +625,17 @@ _NftController_mutex = new WeakMap(), _NftController_selectedAccountId = new Wea
+  * @param preferencesState.openSeaEnabled - Controls whether the OpenSea API is used.
   * @param preferencesState.isIpfsGatewayEnabled - Controls whether IPFS is enabled or not.
   */
 -async function _NftController_onPreferencesControllerStateChange({ ipfsGateway, openSeaEnabled, isIpfsGatewayEnabled, }) {
@@ -151,16 +68,7 @@ index 3e7b205..00ad856 100644
          if (needsUpdateNftMetadata && selectedAccount) {
              await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, selectedAccount);
          }
-@@ -649,7 +651,7 @@ async function _NftController_onSelectedAccountChange(internalAccount) {
-     const oldSelectedAccountId = __classPrivateFieldGet(this, _NftController_selectedAccountId, "f");
-     __classPrivateFieldSet(this, _NftController_selectedAccountId, internalAccount.id, "f");
-     const needsUpdateNftMetadata = ((__classPrivateFieldGet(this, _NftController_isIpfsGatewayEnabled, "f") && __classPrivateFieldGet(this, _NftController_ipfsGateway, "f") !== '') ||
--        __classPrivateFieldGet(this, _NftController_openSeaEnabled, "f")) &&
-+        __classPrivateFieldGet(this, _NftController_displayNftMedia, "f")) &&
-         oldSelectedAccountId !== internalAccount.id;
-     if (needsUpdateNftMetadata) {
-         await __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_updateNftUpdateForAccount).call(this, internalAccount);
-@@ -724,6 +726,7 @@ async function _NftController_getNftInformationFromApi(contractAddress, tokenId)
+@@ -724,6 +725,7 @@ async function _NftController_getNftInformationFromApi(contractAddress, tokenId)
              description: null,
              image: null,
              standard: null,
@@ -168,7 +76,7 @@ index 3e7b205..00ad856 100644
          };
      }
      // if we've reached this point, we have successfully fetched some data for nftInformation
-@@ -766,9 +769,10 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -766,9 +768,10 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              standard: standard || null,
              favorite: false,
              tokenURI: tokenURI ?? null,
@@ -180,15 +88,23 @@ index 3e7b205..00ad856 100644
      if (!hasIpfsTokenURI && !isDisplayNFTMediaToggleEnabled) {
          return {
              image: null,
-@@ -777,6 +781,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+@@ -790,6 +793,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
              standard: standard || null,
              favorite: false,
              tokenURI: tokenURI ?? null,
 +            error: 'URI import error',
          };
      }
-     if (hasIpfsTokenURI) {
-@@ -868,10 +873,22 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
+     try {
+@@ -815,6 +819,7 @@ async function _NftController_getNftInformationFromTokenURI(contractAddress, tok
+             standard: standard || null,
+             favorite: false,
+             tokenURI: tokenURI ?? null,
++            error: 'URI import error',
+         };
+     }
+ }, _NftController_getNftURIAndStandard = 
+@@ -868,10 +873,21 @@ async function _NftController_getNftInformation(contractAddress, tokenId, networ
      const { configuration: { chainId }, } = this.messagingSystem.call('NetworkController:getNetworkClientById', networkClientId);
      const [blockchainMetadata, nftApiMetadata] = await Promise.all([
          (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _NftController_instances, "m", _NftController_getNftInformationFromTokenURI).call(this, contractAddress, tokenId, networkClientId)),
@@ -208,18 +124,9 @@ index 3e7b205..00ad856 100644
 +            error: 'Both import failed',
 +        };
 +    }
-+        
      const metadata = {
          ...nftApiMetadata,
          name: blockchainMetadata?.name ?? nftApiMetadata?.name ?? null,
-@@ -1017,6 +1034,7 @@ async function _NftController_addIndividualNft(tokenAddress, tokenId, nftMetadat
-                 tokenId: tokenId.toString(),
-                 standard: nftMetadata.standard,
-                 source,
-+                tokenURI: nftMetadata.tokenURI
-             });
-         }
-     }
 diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts b/node_modules/@metamask/assets-controllers/dist/NftController.d.cts
 index 4a81bbc..6cd5476 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.d.cts

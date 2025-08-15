@@ -147,6 +147,7 @@ app/components/hooks/useIsOriginalNativeTokenSymbol @MetaMask/metamask-assets
 app/components/hooks/useTokenBalancesController @MetaMask/metamask-assets
 app/components/hooks/useTokenBalance.tsx @MetaMask/metamask-assets
 app/components/hooks/useSafeChains.ts @MetaMask/metamask-assets
+app/components/UI/Assets @MetaMask/metamask-assets
 app/components/UI/AssetOverview @MetaMask/metamask-assets
 app/components/UI/Collectibles @MetaMask/metamask-assets
 app/components/UI/CollectibleContractElement @MetaMask/metamask-assets
@@ -173,6 +174,7 @@ app/components/Views/NftDetails @MetaMask/metamask-assets
 app/reducers/collectibles @MetaMask/metamask-assets
 app/core/Engine/controllers/defi-positions-controller @MetaMask/metamask-assets
 app/core/Engine/messengers/defi-positions-controller-messenger @MetaMask/metamask-assets
+
 
 # UX Team
 app/components/Views/AccountActions @MetaMask/wallet-ux
