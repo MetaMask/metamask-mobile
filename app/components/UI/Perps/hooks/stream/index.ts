@@ -38,6 +38,9 @@ export function useLivePrices(
     const unsubscribe = stream.prices.subscribeToSymbols({
       symbols,
       callback: (newPrices) => {
+        if (!newPrices) {
+          return;
+        }
         DevLogger.log(
           `useLivePrices: Received price update (${debounceMs}ms debounce)`,
           {
@@ -83,7 +86,12 @@ export function useLiveOrders(options: UseLiveOrdersOptions = {}): Order[] {
 
   useEffect(() => {
     const unsubscribe = stream.orders.subscribe({
-      callback: setOrders,
+      callback: (newOrders) => {
+        if (!newOrders) {
+          return;
+        }
+        setOrders(newOrders);
+      },
       debounceMs,
     });
 
@@ -112,7 +120,12 @@ export function useLivePositions(
 
   useEffect(() => {
     const unsubscribe = stream.positions.subscribe({
-      callback: setPositions,
+      callback: (newPositions) => {
+        if (!newPositions) {
+          return;
+        }
+        setPositions(newPositions);
+      },
       debounceMs,
     });
 
@@ -139,7 +152,12 @@ export function useLiveFills(options: UseLiveFillsOptions = {}): OrderFill[] {
 
   useEffect(() => {
     const unsubscribe = stream.fills.subscribe({
-      callback: setFills,
+      callback: (newFills) => {
+        if (!newFills) {
+          return;
+        }
+        setFills(newFills);
+      },
       debounceMs,
     });
 

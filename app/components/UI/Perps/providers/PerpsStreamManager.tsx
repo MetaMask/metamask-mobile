@@ -329,7 +329,7 @@ class PerpsStreamManager {
 const streamManager = new PerpsStreamManager();
 
 // Context
-const PerpsStreamContext = createContext(streamManager);
+const PerpsStreamContext = createContext<PerpsStreamManager | null>(null);
 
 export const PerpsStreamProvider: React.FC<{
   children: React.ReactNode;
