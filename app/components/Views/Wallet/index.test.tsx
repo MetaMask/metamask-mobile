@@ -187,9 +187,6 @@ const mockInitialState = {
     hasOnboarded: false,
     isLive: true,
   },
-  wizard: {
-    step: 0,
-  },
   card: cardInitialState,
   settings: {
     primaryCurrency: 'usd',

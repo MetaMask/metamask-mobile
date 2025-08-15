@@ -28,9 +28,7 @@ const testSpecificMock = {
 };
 
 describe(
-  Regression(
-    'Onboarding wizard opt-in, metametrics opt out from settings WITH ANALYTICS',
-  ),
+  Regression('Regression - metametrics opt out from settings WITH ANALYTICS'),
   () => {
     let mockServer: MockttpServer;
     let eventsBeforeDisablingAnalytics: EventPayload[];
