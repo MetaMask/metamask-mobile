@@ -20,6 +20,10 @@ interface ValidStateWithUser extends ValidState {
  * Migration 093: Move EXISTING_USER flag from MMKV to Redux state
  * This unifies user state management and fixes iCloud backup inconsistencies
  *
+ * NOTE: We do NOT delete the MMKV data to avoid race conditions where the app
+ * closes before Redux state persistence completes. The Redux state becomes the
+ * source of truth, and the MMKV data remains as harmless legacy data.
+ *
  * IMPORTANT: After iCloud restore, we should default to existingUser: false
  * because keychain credentials are not backed up, even if MMKV data is restored
  */
@@ -48,15 +52,8 @@ const migration = async (state: unknown): Promise<unknown> => {
       newState.user.existingUser = existingUserValue;
     }
 
-    if (existingUser !== null) {
-      try {
-        await StorageWrapper.removeItem(EXISTING_USER);
-      } catch (removeError) {
-        // If removeItem fails, capture the error but don't change the existingUser value
-        // since we successfully retrieved it from MMKV
-        captureException(removeError as Error);
-      }
-    }
+    // Note: We intentionally do NOT clean up the MMKV data to avoid race conditions.
+    // The Redux state is now the source of truth, and the MMKV data becomes harmless legacy data.
   } catch (error) {
     captureException(error as Error);
 
