@@ -1,47 +1,17 @@
 diff --git a/node_modules/appwright/dist/providers/browserstack/index.js b/node_modules/appwright/dist/providers/browserstack/index.js
-index 638c5df..1733feb 100644
+index 638c5df..b0bd626 100644
 --- a/node_modules/appwright/dist/providers/browserstack/index.js
 +++ b/node_modules/appwright/dist/providers/browserstack/index.js
-@@ -242,6 +242,9 @@ class BrowserStackDeviceProvider {
-                 "bstack:options": {
-                     debug: true,
-                     interactiveDebugging: true,
-+                    local: process.env.BROWSERSTACK_LOCAL || false, // needed to run e2e on CI
-+                    localIdentifier: process.env.GITHUB_RUN_ID, // needed to run e2e on CI
-+                    appProfiling: true, // needed to profile the app
-                     networkLogs: true,
-                     appiumVersion: "2.6.0",
-                     enableCameraImageInjection: this.project.use.device?.enableCameraImageInjection,
-@@ -250,16 +253,17 @@ class BrowserStackDeviceProvider {
+@@ -250,10 +250,10 @@ class BrowserStackDeviceProvider {
                      osVersion: this.project.use.device.osVersion,
                      platformName: platformName,
                      deviceOrientation: this.project.use.device?.orientation,
 -                    buildName: `${projectName} ${platformName}`,
 +                    buildName: process.env.BROWSERSTACK_BUILD_NAME || `${projectName} ${platformName}`,
                      sessionName: `${projectName} ${platformName} test`,
-                     buildIdentifier: process.env.GITHUB_ACTIONS === "true" 
+                     buildIdentifier: process.env.GITHUB_ACTIONS === "true"
 -                        ? `CI ${process.env.GITHUB_RUN_ID}`
--                        : process.env.USER,
-+                    ? ""  // Empty string for CI
-+                    : process.env.USER, 
++                        ? ""
+                         : process.env.USER,
                  },
                  "appium:autoGrantPermissions": true,
-                 "appium:app": process.env[envVarKey],
-                 "appium:autoAcceptAlerts": true,
-                 "appium:fullReset": true,
-                 "appium:settings[snapshotMaxDepth]": 62,
-             },
-         };
-diff --git a/node_modules/appwright/dist/providers/emulator/index.js b/node_modules/appwright/dist/providers/emulator/index.js
-index f3bc150..e45fd2a 100644
---- a/node_modules/appwright/dist/providers/emulator/index.js
-+++ b/node_modules/appwright/dist/providers/emulator/index.js
-@@ -75,7 +75,7 @@ Follow the steps mentioned in ${androidSimulatorConfigDocLink} to run test on An
-                 "appium:autoAcceptAlerts": true,
-                 "appium:fullReset": true,
-                 "appium:deviceOrientation": this.project.use.device?.orientation,
--                "appium:settings[snapshotMaxDepth]": 62,
-+                "appium:settings[snapshotMaxDepth]": 80,
-                 "appium:wdaLaunchTimeout": 300_000,
-             },
-         };
