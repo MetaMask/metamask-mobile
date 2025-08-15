@@ -3,6 +3,7 @@ import {
   PERPS_ERROR_CODES,
   type PerpsErrorCode,
 } from '../controllers/PerpsController';
+import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * Maps error codes to i18n keys
@@ -125,6 +126,13 @@ export function handlePerpsError(params: HandlePerpsErrorParams): string {
   } else if (typeof error === 'string') {
     errorString = error;
   }
+
+  // Log error for debugging (without event tracking)
+  DevLogger.log('PerpsErrorHandler: Error encountered', {
+    errorMessage: errorString,
+    context,
+    stack: error instanceof Error ? error.stack : undefined,
+  });
 
   // Check if it's a PerpsController error code
   if (
