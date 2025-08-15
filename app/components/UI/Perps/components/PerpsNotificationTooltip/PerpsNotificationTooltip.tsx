@@ -84,14 +84,17 @@ const PerpsNotificationTooltip = ({
       timeoutId = setTimeout(() => {
         showTooltip();
       }, 3000);
-    } else if (orderSuccess && onComplete) {
+    } else if (orderSuccess) {
       processedOrderSuccessRef.current = true;
       // mark first order as completed if it's the first order
       // regardless of if tooltip is shown or not
       if (!hasPlacedFirstOrder) {
         markFirstOrderCompleted();
       }
-      onComplete();
+      // Call completion callback
+      if (onComplete) {
+        onComplete();
+      }
     }
 
     // Cleanup function to prevent memory leaks and calls on unmounted components

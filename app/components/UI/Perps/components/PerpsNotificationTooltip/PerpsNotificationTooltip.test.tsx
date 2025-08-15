@@ -12,6 +12,12 @@ jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock notifications utility
+jest.mock('../../../../../util/notifications', () => ({
+  ...jest.requireActual('../../../../../util/notifications'),
+  isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
 // Mock the hook with realistic behavior
 jest.mock('../../hooks/usePerpsNotificationTooltip', () => ({
   usePerpsNotificationTooltip: jest.fn(),
@@ -416,7 +422,7 @@ describe('PerpsNotificationTooltip', () => {
 
       // Verify first call
       expect(mockOnComplete).toHaveBeenCalledTimes(1);
-      expect(mockMarkFirstOrderCompleted).toHaveBeenCalledTimes(1);
+      expect(mockedMarkFirstOrderCompleted).toHaveBeenCalledTimes(1);
 
       // Simulate the state update by re-rendering with updated hasPlacedFirstOrder
       rerender(

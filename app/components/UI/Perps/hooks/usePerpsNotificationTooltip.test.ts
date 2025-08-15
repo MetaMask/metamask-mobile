@@ -97,7 +97,10 @@ describe('usePerpsNotificationTooltip', () => {
             isPerpsNotificationsEnabled: perpsNotificationsEnabled,
           } as unknown as NotificationServicesControllerState,
           PerpsController: {
-            hasPlacedFirstOrder,
+            hasPlacedFirstOrder: {
+              testnet: hasPlacedFirstOrder,
+              mainnet: hasPlacedFirstOrder,
+            },
           },
         },
       },
