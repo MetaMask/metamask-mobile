@@ -9,10 +9,11 @@ import { strings } from '../../../../../../locales/i18n';
 
 export function useInsufficientPayTokenBalanceAlert(): Alert[] {
   const { totalHuman } = useTransactionPayTokenAmounts();
-  const { balanceHuman } = useTransactionPayToken();
+  const { payToken } = useTransactionPayToken();
+  const { balance } = payToken ?? {};
 
   const isInsufficient =
-    new BigNumber(balanceHuman ?? '0').isLessThan(
+    new BigNumber(balance ?? '0').isLessThan(
       new BigNumber(totalHuman ?? '0'),
     ) && process.env.MM_CONFIRMATION_INTENTS === 'true';
 

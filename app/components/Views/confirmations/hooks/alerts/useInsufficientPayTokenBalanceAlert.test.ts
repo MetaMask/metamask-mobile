@@ -31,7 +31,7 @@ describe('useInsufficientPayTokenBalance', () => {
     } as ReturnType<typeof useTransactionPayTokenAmounts>);
 
     useTransactionPayTokenMock.mockReturnValue({
-      balanceHuman: '123.455',
+      payToken: { balance: '123.455' },
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result } = runHook();
@@ -53,7 +53,7 @@ describe('useInsufficientPayTokenBalance', () => {
     } as ReturnType<typeof useTransactionPayTokenAmounts>);
 
     useTransactionPayTokenMock.mockReturnValue({
-      balanceHuman: '123.456',
+      payToken: { balance: '123.456' },
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { result } = runHook();

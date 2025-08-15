@@ -12,8 +12,8 @@ const log = createProjectLogger('transaction-pay');
  * Calculate the amount of the selected pay token, that is needed for each token required by the transaction.
  */
 export function useTransactionPayTokenAmounts() {
-  const { decimals, payToken } = useTransactionPayToken();
-  const { address, chainId } = payToken ?? {};
+  const { payToken } = useTransactionPayToken();
+  const { address, chainId, decimals } = payToken ?? {};
 
   const fiatRequests = useMemo(() => {
     if (!address || !chainId) {
