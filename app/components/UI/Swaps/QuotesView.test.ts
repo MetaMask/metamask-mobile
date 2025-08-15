@@ -24,6 +24,7 @@ import { query } from '@metamask/controller-utils';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import { isHardwareAccount } from '../../../util/address';
 
 jest.mock('../../../util/networks/global-network', () => ({
   ...jest.requireActual('../../../util/networks/global-network'),
@@ -64,6 +65,11 @@ jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
   isRemoveGlobalNetworkSelectorEnabled: jest.fn(),
+}));
+
+jest.mock('../../../util/address', () => ({
+  ...jest.requireActual('../../../util/address'),
+  isHardwareAccount: jest.fn(),
 }));
 
 const mockSubmitSignedTransactions = jest
@@ -546,6 +552,74 @@ describe('QuotesView', () => {
       );
 
       fireEvent.press(swapButton);
+
+      await waitFor(() => {
+        expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
+      });
+    });
+
+    it('should call tryEnableEvmNetwork when smart transaction fails and feature flag is enabled', async () => {
+      const mockSubmitSwapsSmartTransaction = jest
+        .fn()
+        .mockRejectedValue(new Error('Smart transaction failed'));
+      (useSwapsSmartTransaction as jest.Mock).mockReturnValue({
+        submitSwapsSmartTransaction: mockSubmitSwapsSmartTransaction,
+      });
+      jest.mocked(selectShouldUseSmartTransaction).mockReturnValue(true);
+      jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
+        timestamp: 1234,
+      });
+
+      const wrapper = render(QuotesView, mockInitialState);
+
+      const swapButton = await wrapper.findByTestId(
+        SwapsViewSelectorsIDs.SWAP_BUTTON,
+      );
+
+      fireEvent.press(swapButton);
+
+      await waitFor(() => {
+        expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
+      });
+    });
+
+    it('should call tryEnableEvmNetwork when hardware wallet confirmation is required and feature flag is enabled', async () => {
+      const state = merge({}, mockInitialState);
+      jest.mocked(query).mockResolvedValueOnce(123).mockResolvedValueOnce({
+        timestamp: 1234,
+      });
+      jest
+        .spyOn(Engine.context.TransactionController, 'addTransaction')
+        .mockResolvedValue({
+          result: Promise.resolve('mock-tx-hash'),
+          transactionMeta: {
+            id: 'mock-id',
+            networkClientId: 'mock-network-id',
+            time: Date.now(),
+            chainId: '0x1',
+            status: 'submitted' as TransactionStatus,
+            txParams: {
+              from: '0x0',
+              to: '0x1',
+              value: '0x0',
+              gas: '0x0',
+              gasPrice: '0x0',
+            },
+          },
+        });
+
+      // Mock hardware wallet address
+      (isHardwareAccount as jest.Mock).mockReturnValue(true);
+
+      const wrapper = render(QuotesView, state);
+
+      const swapButton = await wrapper.findByTestId(
+        SwapsViewSelectorsIDs.SWAP_BUTTON,
+      );
+
+      act(() => {
+        fireEvent.press(swapButton);
+      });
 
       await waitFor(() => {
         expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');

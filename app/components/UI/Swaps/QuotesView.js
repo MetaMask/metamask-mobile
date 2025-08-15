@@ -1167,6 +1167,11 @@ function SwapsQuotesView({
 
     let approvalTransactionMetaId;
 
+    // Enable the network if it's not enabled for the Network Manager
+    if (isRemoveGlobalNetworkSelectorEnabled()) {
+      tryEnableEvmNetwork(chainId);
+    }
+
     if (shouldUseSmartTransaction) {
       try {
         const { approvalTxUuid, tradeTxUuid } =
@@ -1231,11 +1236,6 @@ function SwapsQuotesView({
 
       setIsHandlingSwap(false);
       navigation.dangerouslyGetParent()?.pop();
-    }
-
-    // Enable the network if it's not enabled for the Network Manager
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      tryEnableEvmNetwork(chainId);
     }
   }, [
     selectedQuote,

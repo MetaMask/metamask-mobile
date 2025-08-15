@@ -417,4 +417,85 @@ describe('useConfirmAction', () => {
 
     expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
   });
+
+  it('enables network when ledger signing is in progress and feature flag is enabled', async () => {
+    const mockTryEnableEvmNetwork = jest.fn();
+
+    jest.spyOn(NetworkEnablementHook, 'useNetworkEnablement').mockReturnValue({
+      tryEnableEvmNetwork: mockTryEnableEvmNetwork,
+      namespace: 'eip155',
+      enabledNetworksByNamespace: {},
+      enabledNetworksForCurrentNamespace: {},
+      networkEnablementController: {
+        enableNetwork: jest.fn(),
+        disableNetwork: jest.fn(),
+      } as unknown as ReturnType<
+        typeof NetworkEnablementHook.useNetworkEnablement
+      >['networkEnablementController'],
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      toggleNetwork: jest.fn(),
+      isNetworkEnabled: jest.fn(),
+      hasOneEnabledNetwork: false,
+    });
+
+    jest.spyOn(LedgerContext, 'useLedgerContext').mockReturnValue({
+      ledgerSigningInProgress: true,
+      openLedgerSignModal: jest.fn(),
+    } as unknown as ReturnType<typeof LedgerContext.useLedgerContext>);
+
+    const state = cloneDeep(
+      stakingDepositConfirmationState,
+    ) as unknown as RootState;
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state,
+    });
+
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
+  });
+
+  it('enables network when QR signing is in progress and feature flag is enabled', async () => {
+    const mockTryEnableEvmNetwork = jest.fn();
+
+    jest.spyOn(NetworkEnablementHook, 'useNetworkEnablement').mockReturnValue({
+      tryEnableEvmNetwork: mockTryEnableEvmNetwork,
+      namespace: 'eip155',
+      enabledNetworksByNamespace: {},
+      enabledNetworksForCurrentNamespace: {},
+      networkEnablementController: {
+        enableNetwork: jest.fn(),
+        disableNetwork: jest.fn(),
+      } as unknown as ReturnType<
+        typeof NetworkEnablementHook.useNetworkEnablement
+      >['networkEnablementController'],
+      enableNetwork: jest.fn(),
+      disableNetwork: jest.fn(),
+      toggleNetwork: jest.fn(),
+      isNetworkEnabled: jest.fn(),
+      hasOneEnabledNetwork: false,
+    });
+
+    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+      isQRSigningInProgress: true,
+      setScannerVisible: jest.fn(),
+      cancelQRScanRequestIfPresent: jest.fn(),
+    } as unknown as QRHardwareHook.QRHardwareContextType);
+
+    const state = cloneDeep(
+      stakingDepositConfirmationState,
+    ) as unknown as RootState;
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state,
+    });
+
+    result?.current?.onConfirm();
+    await flushPromises();
+
+    expect(mockTryEnableEvmNetwork).toHaveBeenCalledWith('0x1');
+  });
 });
