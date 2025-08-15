@@ -329,10 +329,10 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
   // Note: Navigation params for order type modal are no longer needed
 
   // Get real-time price data with debouncing for better performance
-  // Use 300ms debounce for order view to reduce re-renders
+  // Use 2000ms debounce for order view to reduce re-renders
   const prices = usePerpsPrices([orderForm.asset], {
     includeOrderBook: false,
-    debounceMs: 300,
+    debounceMs: 2000,
   });
   const currentPrice = prices[orderForm.asset];
 
