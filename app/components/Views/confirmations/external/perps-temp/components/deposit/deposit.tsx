@@ -11,8 +11,6 @@ import { AlertMessage } from '../../../../components/alert-message';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
 import AlertBanner from '../../../../components/alert-banner';
 import { Box } from '../../../../../../UI/Box/Box';
-import InfoRowDivider from '../../../../components/UI/info-row-divider';
-import { InfoRowDividerVariant } from '../../../../components/UI/info-row-divider/info-row-divider.styles';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
 import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
 
@@ -46,12 +44,11 @@ export function PerpsDeposit() {
         )}
         <InfoSection>
           <PayWithRow />
-          {isFullView && <BridgeTimeRow />}
         </InfoSection>
         {isFullView && (
           <InfoSection>
             <GasFeeFiatRow />
-            <InfoRowDivider variant={InfoRowDividerVariant.Large} />
+            <BridgeTimeRow />
             <TotalRow />
           </InfoSection>
         )}
