@@ -4837,10 +4837,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@73.1.0-preview-343f3d69":
-  version "73.1.0-preview-343f3d69"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/assets-controllers/-/assets-controllers-73.1.0-preview-343f3d69.tgz#b3d8404c0b8572d5808de266f98597f4e72b6e40"
-  integrity sha512-v786w+NEqO1w1ufh5TQ8QRnt43ZG0d3Fh7hKaiqct8UuWEp3Q8j2JI8aPX1hGcM62z0CaLijas1L4dWqOnHXrQ==
+"@metamask/assets-controllers@npm:@metamask-previews/assets-controllers@73.1.0-preview-a89812f5":
+  version "73.1.0-preview-a89812f5"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/assets-controllers/-/assets-controllers-73.1.0-preview-a89812f5.tgz#19f15f723e38b6eda03980dd867ac5a11c99b42d"
+  integrity sha512-+/xsOqjppZwzGLtFr2wOK4Sue93R6SPUw54Q1WgtbTbSU5zstZd7iuTu0U9GkbhOVb5WK9tJp+vDOMz2PKYf/g==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4851,7 +4851,7 @@
     "@metamask/abi-utils" "^2.0.3"
     "@metamask/base-controller" "^8.1.0"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.11.0"
+    "@metamask/controller-utils" "^11.12.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/keyring-api" "^20.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
