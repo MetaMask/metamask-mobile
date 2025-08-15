@@ -20,14 +20,26 @@ export const useRewardsAuth = () => {
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
+  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
 
   const [generateChallenge] = useGenerateChallengeMutation();
   const [optin] = useOptinMutation();
   const [logout, logoutResult] = useLogoutMutation();
 
+  // Update subscription ID when address or auth state changes
+  useEffect(() => {
+    if (!address) {
+      setSubscriptionId(null);
+      return;
+    }
+    const id =
+      Engine.context.RewardsController.getSubscriptionIdForAccount(address);
+    setSubscriptionId(id);
+  }, [address, isAuthenticated]);
+
   // Reusable function to check authentication state
   const checkAuthState = useCallback(async () => {
-    Logger.log('RewardsController:checking auth state');
+    Logger.log('RewardsController: Checking auth state');
     if (!address) {
       setIsAuthenticated(false);
       setIsAuthenticating(false);
@@ -37,12 +49,12 @@ export const useRewardsAuth = () => {
     setIsAuthenticating(true);
     try {
       const rewardsController = Engine.context.RewardsController;
-      const subscriptionId =
+      const currentSubscriptionId =
         rewardsController.getSubscriptionIdForAccount(address);
 
-      if (subscriptionId) {
-        const tokenResult = await getSubscriptionToken(subscriptionId);
-        Logger.log('RewardsController:tokenResult', tokenResult);
+      if (currentSubscriptionId) {
+        const tokenResult = await getSubscriptionToken(currentSubscriptionId);
+        Logger.log('RewardsController: tokenResult', tokenResult);
         setIsAuthenticated(tokenResult.success && !!tokenResult.token);
       } else {
         setIsAuthenticated(false);
@@ -118,11 +130,11 @@ export const useRewardsAuth = () => {
     }
   }, [checkAuthState, address]);
 
-  Logger.log('RewardsController:IsOptIn', isAuthenticated);
-
   return {
     optin: handleOptin,
     logout: handleLogout,
+    currentAccount: address,
+    subscriptionId,
     isOptIn: isAuthenticated,
     isLoading: optinLoading || logoutResult.isLoading || isAuthenticating,
     optinError,

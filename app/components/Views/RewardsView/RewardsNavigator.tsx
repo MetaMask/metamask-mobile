@@ -6,6 +6,7 @@ import RewardsTerms from './RewardsTerms';
 import Routes from '../../../constants/navigation/Routes';
 import { useRewards } from '../../../core/Engine/controllers/rewards-controller/RewardsAuthProvider';
 import RewardsView from '.';
+import Logger from '../../../util/Logger';
 
 const Stack = createStackNavigator();
 
@@ -14,7 +15,14 @@ interface RewardsNavigatorProps {
 }
 
 const RewardsNavigator: React.FC<RewardsNavigatorProps> = () => {
-  const { isOptIn, isLoading, optinError, clearOptinError } = useRewards();
+  const {
+    isOptIn,
+    isLoading,
+    optinError,
+    clearOptinError,
+    currentAccount,
+    subscriptionId,
+  } = useRewards();
   const navigation = useNavigation();
 
   const handleOptIn = () => {
@@ -25,6 +33,12 @@ const RewardsNavigator: React.FC<RewardsNavigatorProps> = () => {
   if (isLoading) {
     return null;
   }
+
+  Logger.log('RewardsAuthState:', {
+    isOptIn,
+    currentAccount,
+    subscriptionId,
+  });
 
   return (
     <Stack.Navigator>
