@@ -115,6 +115,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const translateY = useSharedValue(0);
   const baseTranslateX = useSharedValue(0);
   const baseTranslateY = useSharedValue(0);
+  const candleTranslateX = useSharedValue(0); // ✨ NEW: Individual candle translation (not chart container)
 
   // Gesture handler refs for simultaneous handling
   const pinchRef = useRef(null);
@@ -150,7 +151,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       const distanceFromCenter = originalCandleCenter - chartCenter; // How far this candle center is from chart center
       const scaledDistanceFromCenter = distanceFromCenter * candleScaleX.value; // Scale the distance
       const scaledCandleCenter = chartCenter + scaledDistanceFromCenter; // New candle center position
-      const scaledX = scaledCandleCenter - scaledWidth / 2; // Convert center to left edge for Rect
+      const scaledX =
+        scaledCandleCenter - scaledWidth / 2 + candleTranslateX.value; // Convert center to left edge + apply candle translation
 
       const scaledY = y - (scaledHeight - rectHeight) / 2; // Keep vertically centered
 
@@ -164,7 +166,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         />
       );
     },
-    [candleScaleX, candleScaleY, chartWidth],
+    [candleScaleX, candleScaleY, chartWidth, candleTranslateX],
   );
 
   const renderCustomWick = useCallback(
@@ -195,7 +197,8 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       const chartCenter = (chartWidth - 65) / 2; // Get chart center (subtract Y-axis space)
       const distanceFromCenter = originalWickCenter - chartCenter; // How far wick center is from chart center
       const scaledDistanceFromCenter = distanceFromCenter * candleScaleX.value; // Scale the distance
-      const scaledWickCenter = chartCenter + scaledDistanceFromCenter; // New wick center position
+      const scaledWickCenter =
+        chartCenter + scaledDistanceFromCenter + candleTranslateX.value; // New wick center position + candle translation
 
       // Apply Y scaling to the wick length
       const wickLength = Math.abs(y2 - y1);
@@ -216,7 +219,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         />
       );
     },
-    [candleScaleX, candleScaleY, chartWidth],
+    [candleScaleX, candleScaleY, chartWidth, candleTranslateX],
   );
 
   // ✨ NEW: Reanimated zoom functions (smooth candle scaling)
@@ -261,6 +264,17 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
       stiffness: 100,
     });
   }, [translateX]);
+
+  // ✨ NEW: Move all candles to the left function
+  const moveAllCandlesLeft = useCallback(() => {
+    const moveStep = 50; // Pixels to move candles left
+    const newCandleTranslateX = candleTranslateX.value - moveStep; // Move individual candles left
+
+    candleTranslateX.value = withSpring(newCandleTranslateX, {
+      damping: 12,
+      stiffness: 100,
+    });
+  }, [candleTranslateX]);
 
   const canPanLeft = true; // Always allow pan (constraints handled in transform)
   const canPanRight = true; // Always allow pan (constraints handled in transform)
@@ -347,17 +361,19 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     candleScaleY.value = withSpring(1);
     translateX.value = withSpring(initialChartTransform);
     translateY.value = withSpring(0);
+    candleTranslateX.value = withSpring(0); // ✨ Reset individual candle translation
     setDisplayScale(1);
-  }, [candleScaleX, candleScaleY, translateX, translateY]);
+  }, [candleScaleX, candleScaleY, translateX, translateY, candleTranslateX]);
 
   // Cleanup debounce timeout on unmount
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       if (debounceTimeout.current) {
         clearTimeout(debounceTimeout.current);
       }
-    };
-  }, []);
+    },
+    [],
+  );
 
   // Get candlestick colors from centralized configuration
   // This allows for easy customization and potential user settings integration
@@ -776,6 +792,18 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
             </Pressable>
           </View>
         )}
+
+        {/* ✨ NEW: Move Candles Left Button */}
+        <View style={styles.panResetContainer}>
+          <Pressable style={styles.panResetButton} onPress={moveAllCandlesLeft}>
+            <Text variant={TextVariant.BodySM} color={TextColor.Primary}>
+              ⬅️ Move All Candles Left
+            </Text>
+          </Pressable>
+          <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
+            Testing leftward movement with smooth animation
+          </Text>
+        </View>
 
         {/* ✨ NEW: Reset Zoom Button */}
         <View style={styles.panResetContainer}>
