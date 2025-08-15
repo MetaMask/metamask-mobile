@@ -17,7 +17,7 @@ class WalletAccountModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT);
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT);
     }
   }
 

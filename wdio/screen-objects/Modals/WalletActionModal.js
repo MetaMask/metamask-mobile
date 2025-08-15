@@ -13,7 +13,11 @@ class WalletActionModal {
   }
 
   get sendButton() {
-    return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
+    if (!this._device) {
+      return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.SEND_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, 'wallet-send-button');
+    }
   }
 
   get receiveButton() {
@@ -24,12 +28,25 @@ class WalletActionModal {
     if (!this._device) {
       return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON);
+    }
+  }
+
+  get bridgeButton() {
+    if (!this._device) {
+      return Selectors.getElementByPlatform(WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletActionsBottomSheetSelectorsIDs.BRIDGE_BUTTON);
     }
   }
 
   async tapSendButton() {
-    await Gestures.waitAndTap(this.sendButton);
+    if (!this._device) {
+      await Gestures.waitAndTap(this.sendButton);
+    } else {
+      const element = await this.sendButton;
+      await element.tap();
+    }
   }
 
   async tapReceiveButton() {
@@ -41,6 +58,15 @@ class WalletActionModal {
       await Gestures.waitAndTap(this.swapButton);
     } else {
       const element = await this.swapButton;
+      await element.tap();
+    }
+  }
+
+  async tapBridgeButton() {
+    if (!this._device) {
+      await Gestures.waitAndTap(this.bridgeButton);
+    } else {
+      const element = await this.bridgeButton;
       await element.tap();
     }
   }

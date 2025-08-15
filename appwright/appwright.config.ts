@@ -1,20 +1,19 @@
 // In appwright.config.ts
-const dotenv = require('dotenv');
+import dotenv from 'dotenv';
 dotenv.config({ path: '.e2e.env' });
 import { defineConfig, Platform } from 'appwright';
 export default defineConfig({
-  testMatch: '**/tests/*.spec.js',
+  testMatch: '**/tests/performance/*.spec.js',
   reporter: [
     // The default HTML reporter from Appwright
-    ['html', { open: 'never', outputFolder: './test-reports/appwright-report' }],
+    [
+      'html',
+      { open: 'never', outputFolder: './test-reports/appwright-report' },
+    ],
     ['./reporters/custom-reporter.js'],
-    ['list']
+    ['list'],
   ],
-  /*reporter: [['./reporters/custom-reporter.js', {
-    videoDownloadMaxRetries: 1,
-    videoDownloadRetryInterval: 5000,
-    videoDownloadTimeout: 30000,
-  }]],*/
+
   projects: [
     {
       name: 'android',
@@ -22,6 +21,8 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'emulator', // or 'local-device' or 'browserstack'
+          name: 'Samsung Galaxy S24 Ultra', // this can changed
+          osVersion: '14', // this can changed
         },
         buildPath: '/Users/javi/Downloads/app-qa-release.apk', // Path to your .apk file
       },
@@ -43,10 +44,10 @@ export default defineConfig({
         platform: Platform.ANDROID,
         device: {
           provider: 'browserstack', // or 'local-device' or 'browserstack'
-          name: 'Google Pixel 8 Pro', // this can changed
-          osVersion: '14.0', // this can changed
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra', // this can changed
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0', // this can changed
         },
-        buildPath: 'bs://', // Path to Browserstack url bs:// link release-7.53.0-7.53.0-2223.apk
+        buildPath: process.env.BROWSERSTACK_ANDROID_APP_URL, // Path to Browserstack url bs:// link release-7.53.0-7.53.0-2223.apk
       },
     },
     {
@@ -55,10 +56,10 @@ export default defineConfig({
         platform: Platform.IOS,
         device: {
           provider: 'browserstack',
-          name: 'iPhone 14 Pro Max', // this can changed
-          osVersion: '16', // this can changed
+          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
-        buildPath: 'bs://', // Path to Browserstack url bs:// link //release-7.53.0-7.53.0-2223.ipa
+        buildPath: process.env.BROWSERSTACK_IOS_APP_URL, // Path to Browserstack url bs:// link //release-7.53.0-7.53.0-2223.ipa
       },
     },
   ],

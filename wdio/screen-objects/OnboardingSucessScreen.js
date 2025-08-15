@@ -2,6 +2,7 @@ import { OnboardingSuccessSelectorIDs } from '../../e2e/selectors/Onboarding/Onb
 import Selectors from '../helpers/Selectors';
 import Gestures from '../helpers/Gestures';
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
+import { expect as appwrightExpect } from 'appwright';
 
 
 class OnboardingSuccessView {
@@ -17,8 +18,13 @@ class OnboardingSuccessView {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, OnboardingSuccessSelectorIDs.DONE_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, OnboardingSuccessSelectorIDs.DONE_BUTTON);
     }
+  }
+
+  async isVisible() {
+    const element = await this.doneButton;
+    await appwrightExpect(element).toBeVisible({ timeout: 10000 });
   }
 
   async tapDone() {

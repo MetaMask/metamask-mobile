@@ -18,7 +18,7 @@ class TabBarModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.WALLET);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TabBarSelectorIDs.WALLET);
+      return AppwrightSelectors.getElementByID(this._device, TabBarSelectorIDs.WALLET);
     }
   }
 
@@ -26,7 +26,7 @@ class TabBarModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.BROWSER);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TabBarSelectorIDs.BROWSER);
+      return AppwrightSelectors.getElementByID(this._device, TabBarSelectorIDs.BROWSER);
     }
   }
 
@@ -34,7 +34,7 @@ class TabBarModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.ACTIONS);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TabBarSelectorIDs.ACTIONS);
+      return AppwrightSelectors.getElementByID(this._device, TabBarSelectorIDs.ACTIONS);
     }
   }
 
@@ -42,7 +42,7 @@ class TabBarModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.SETTING);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TabBarSelectorIDs.SETTING);
+      return AppwrightSelectors.getElementByID(this._device, TabBarSelectorIDs.SETTING);
     }
   }
 
@@ -50,7 +50,7 @@ class TabBarModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.ACTIVITY);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TabBarSelectorIDs.ACTIVITY);
+      return AppwrightSelectors.getElementByID(this._device, TabBarSelectorIDs.ACTIVITY);
     }
   }
 

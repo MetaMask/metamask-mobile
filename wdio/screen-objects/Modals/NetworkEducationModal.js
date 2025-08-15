@@ -20,7 +20,7 @@ class NetworkEducationModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(NETWORK_EDUCATION_MODAL_CONTAINER_ID);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, NETWORK_EDUCATION_MODAL_CONTAINER_ID);
+      return AppwrightSelectors.getElementByID(this._device, NETWORK_EDUCATION_MODAL_CONTAINER_ID);
     }
   }
 
@@ -30,7 +30,7 @@ class NetworkEducationModal {
         NETWORK_EDUCATION_MODAL_CLOSE_BUTTON,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, NETWORK_EDUCATION_MODAL_CLOSE_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, NETWORK_EDUCATION_MODAL_CLOSE_BUTTON);
     }
   }
 
@@ -40,7 +40,7 @@ class NetworkEducationModal {
         NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID);
+      return AppwrightSelectors.getElementByID(this._device, NETWORK_EDUCATION_MODAL_NETWORK_NAME_ID);
     }
   }
 

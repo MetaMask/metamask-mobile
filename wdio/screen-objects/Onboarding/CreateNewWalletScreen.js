@@ -28,7 +28,7 @@ class CreateNewWalletScreen{
         WALLET_SETUP_SCREEN_DESCRIPTION_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, WALLET_SETUP_SCREEN_DESCRIPTION_ID);
+      return AppwrightSelectors.getElementByID(this._device, WALLET_SETUP_SCREEN_DESCRIPTION_ID);
     }
   }
 
@@ -38,7 +38,7 @@ class CreateNewWalletScreen{
         PROTECT_YOUR_WALLET_CONTAINER_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, PROTECT_YOUR_WALLET_CONTAINER_ID);
+      return AppwrightSelectors.getElementByID(this._device, PROTECT_YOUR_WALLET_CONTAINER_ID);
     }
   }
 
@@ -46,7 +46,7 @@ class CreateNewWalletScreen{
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(REMIND_LATER_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, REMIND_LATER_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, REMIND_LATER_BUTTON_ID);
     }
   }
 
@@ -56,7 +56,7 @@ class CreateNewWalletScreen{
         CREATE_PASSWORD_INPUT_FIRST_FIELD,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
+      return AppwrightSelectors.getElementByID(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
     }
   }
 
@@ -66,7 +66,7 @@ class CreateNewWalletScreen{
         CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
+      return AppwrightSelectors.getElementByID(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
     }
   }
 
@@ -74,7 +74,7 @@ class CreateNewWalletScreen{
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(I_UNDERSTAND_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, I_UNDERSTAND_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, I_UNDERSTAND_BUTTON_ID);
     }
   }
 
@@ -82,7 +82,7 @@ class CreateNewWalletScreen{
     if (!this._device) {
       return Selectors.getXpathByContentDesc(SUBMIT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, SUBMIT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, SUBMIT_BUTTON);
     }
   }
 
@@ -142,7 +142,7 @@ class CreateNewWalletScreen{
 
   async isNewAccountScreenFieldsVisible() {
     if (!this._device) {
-      await expect(this.newWalletPasswordField).toBeDisplayed();
+      await expect(this.newWalletPasswordField).toBeVisible();
     } else {
       const element = await this.newWalletPasswordField;
       await expect(element).toBeVisible();

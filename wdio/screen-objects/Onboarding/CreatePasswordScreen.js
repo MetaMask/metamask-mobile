@@ -4,6 +4,7 @@ import Gestures from '../../helpers/Gestures';
 import { ChoosePasswordSelectorsIDs } from '../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
 import { CONFIRM_PASSWORD_INPUT_FIRST_FIELD, CREATE_PASSWORD_INPUT_FIRST_FIELD } from '../testIDs/Screens/WalletSetupScreen.testIds';
+import { expect as appwrightExpect } from 'appwright';
 
 class CreatePasswordScreen {
   get device() {
@@ -18,7 +19,7 @@ class CreatePasswordScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(ChoosePasswordSelectorsIDs.CONTAINER_ID);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, ChoosePasswordSelectorsIDs.CONTAINER_ID);
+      return AppwrightSelectors.getElementByID(this._device, ChoosePasswordSelectorsIDs.CONTAINER_ID);
     }
   }
 
@@ -28,7 +29,7 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
+      return AppwrightSelectors.getElementByID(this._device, CREATE_PASSWORD_INPUT_FIRST_FIELD);
     }
   }
 
@@ -38,7 +39,7 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
+      return AppwrightSelectors.getElementByID(this._device, CONFIRM_PASSWORD_INPUT_FIRST_FIELD);
     }
   }
 
@@ -48,7 +49,7 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID);
+      return AppwrightSelectors.getElementByID(this._device, ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID);
     }
   }
 
@@ -58,7 +59,7 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID);
+      return AppwrightSelectors.getElementByID(this._device, ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID);
     }
   }
 
@@ -68,7 +69,7 @@ class CreatePasswordScreen {
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
     }
   }
 
@@ -106,6 +107,11 @@ class CreatePasswordScreen {
       const element = await this.submitButton;
       await element.tap();
     }
+  }
+
+  async isVisible() {
+    const element = await this.newPasswordInput;
+    await appwrightExpect(element).toBeVisible({ timeout: 10000 });
   }
 }
 

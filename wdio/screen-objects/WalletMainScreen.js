@@ -35,7 +35,7 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ICON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.ACCOUNT_ICON);
     }
   }
 
@@ -43,12 +43,16 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.WALLET_CONTAINER);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.WALLET_CONTAINER);
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.WALLET_CONTAINER);
     }
   }
 
   get networkInNavBar() {
-    return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+    if (!this._device) {
+      return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+    } else {
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON);
+    }
   }
 
   get remindMeLaterNotification() {
@@ -69,7 +73,7 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
+      return AppwrightSelectors.getElementByID(this._device, WalletViewSelectorsIDs.ACCOUNT_ACTIONS);
     }
   }
 
@@ -89,7 +93,8 @@ class WalletMainScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(TabBarSelectorIDs.WALLET);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, TabBarSelectorIDs.WALLET);
+      return AppwrightSelectors.getElementByID(this._device, TabBarSelectorIDs.WALLET);
+
     }
   }
 
@@ -129,10 +134,31 @@ class WalletMainScreen {
     if (!this._device) {
       await Gestures.waitAndTap(this.accountIcon);
     } else {
-      const tokenName = await AppwrightSelectors.getElementByResourceId(this._device, `ChainLink Token`);
-        await tokenName.tap();
+      const isAndroid = AppwrightSelectors.isAndroid(this._device);
+      
+      let tokenName;
+      if (isAndroid) {
+        // For Android: use asset-{token} approach
+        tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
+      } else {
+        // For iOS: use catch-all selector
+        tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, `${token}`);
+      }
+      
+      await tokenName.tap();
     }
+  }
+
+  async isTokenVisible(token) {
+    const isAndroid = AppwrightSelectors.isAndroid(this._device);
+    if (isAndroid) {
+      const tokenName = await AppwrightSelectors.getElementByID(this._device, `asset-${token}`);
+      await tokenName.isVisible();
+    } else {
+      const tokenName = await AppwrightSelectors.getElementByCatchAll(this._device, token);
+      await tokenName.isVisible();
     }
+  }
 
   async tapIdenticon() {
     if (!this._device) {
@@ -144,7 +170,13 @@ class WalletMainScreen {
   }
 
   async tapNetworkNavBar() {
-    await Gestures.waitAndTap(await this.networkInNavBar);
+
+    if (!this._device) {
+      await Gestures.waitAndTap(await this.networkInNavBar);
+    } else {
+      const element = await this.networkInNavBar;
+      await element.tap();
+    }
   }
 
   async tapRemindMeLaterOnNotification() {

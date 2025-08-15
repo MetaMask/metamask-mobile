@@ -2,6 +2,7 @@ import Selectors from '../../helpers/Selectors';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import Gestures from '../../helpers/Gestures';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
+import { expect as appwrightExpect } from 'appwright';
 
 class AddAccountModal {
   get device() {
@@ -16,7 +17,7 @@ class AddAccountModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON);
     }
   }
 
@@ -24,7 +25,7 @@ class AddAccountModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, AddAccountBottomSheetSelectorsIDs.NEW_ACCOUNT_BUTTON);
     }
   }
 
@@ -32,7 +33,7 @@ class AddAccountModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON);
     }
   }
 
@@ -40,7 +41,7 @@ class AddAccountModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, AddAccountBottomSheetSelectorsIDs.ADD_SOLANA_ACCOUNT_BUTTON);
     }
   }
 
@@ -48,7 +49,7 @@ class AddAccountModal {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON);
     }
   }
 
@@ -97,6 +98,11 @@ class AddAccountModal {
       const element = await this.createEthereumAccountButton;
       await element.tap();
     }
+  }
+
+  async isVisible() {
+    const element = await this.importSrpButton;
+    await appwrightExpect(element).toBeVisible({ timeout: 10000 });
   }
 }
 

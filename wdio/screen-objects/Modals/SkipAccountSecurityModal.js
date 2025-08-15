@@ -3,6 +3,7 @@ import Gestures from '../../helpers/Gestures';
 import { ChoosePasswordSelectorsIDs } from '../../../e2e/selectors/Onboarding/ChoosePassword.selectors';
 import AppwrightSelectors from '../../helpers/AppwrightSelectors';
 import { SkipAccountSecurityModalSelectorsIDs } from '../../../e2e/selectors/Onboarding/SkipAccountSecurityModal.selectors';
+import { expect as appwrightExpect } from 'appwright';
 
 class SkipAccountSecurityModal {
 
@@ -19,7 +20,7 @@ class SkipAccountSecurityModal {
         SkipAccountSecurityModalSelectorsIDs.ANDROID_SKIP_BACKUP_BUTTON_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, SkipAccountSecurityModalSelectorsIDs.ANDROID_SKIP_BACKUP_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, SkipAccountSecurityModalSelectorsIDs.ANDROID_SKIP_BACKUP_BUTTON_ID);
     }
   }
 
@@ -32,13 +33,14 @@ class SkipAccountSecurityModal {
     } else {
       const button = await this.skipBackupText;
       await button.tap();
-      const skipButton = await AppwrightSelectors.getElementByResourceId(this._device, 'Skip-button');
+      const skipButton = await AppwrightSelectors.getElementByID(this._device, 'Skip-button');
       await skipButton.tap();
     }
   }
 
   async isVisible() {
-    await expect(this.skipBackupText).toBeDisplayed();
+    const element = await this.skipBackupText;
+    await appwrightExpect(element).toBeVisible({ timeout: 10000 });
   }
 }
 

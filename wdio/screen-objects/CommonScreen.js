@@ -87,7 +87,7 @@ class CommonScreen {
       await Gestures.getElementByResourceId(`asset-${asset}`);
     } else {
       console.log('tapOnAsset ->', this._device);
-      const assetElement = await AppwrightSelectors.getElementByResourceId(this._device, `asset-${asset}`);
+      const assetElement = await AppwrightSelectors.getElementByID(this._device, `asset-${asset}`);
       await assetElement.tap();
     }
   }

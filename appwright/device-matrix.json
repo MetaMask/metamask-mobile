@@ -1,0 +1,67 @@
+{
+  "android_devices": [
+    {
+      "name": "Samsung Galaxy S23 Ultra",
+      "os_version": "13.0",
+      "category": "high",
+      "description": "High-end Samsung flagship device with Android 13"
+    },
+    {
+      "name": "Google Pixel 8 Pro",
+      "os_version": "14.0",
+      "category": "high",
+      "description": "High-end Google flagship device with Android 14"
+    },
+    {
+      "name": "Samsung Galaxy A52s 5G",
+      "os_version": "12.0",
+      "category": "medium",
+      "description": "Mid-range Samsung device with Android 12 (Snapdragon 778G, 8 cores, ~2.4 GHz, 6 GB RAM)"
+    },
+    {
+      "name": "Samsung Galaxy A32",
+      "os_version": "11.0",
+      "category": "low",
+      "description": "Low-end Samsung device with Android 11 for broader compatibility"
+    },
+    {
+      "name": "TECNO KI5k",
+      "os_version": "11.0",
+      "category": "low",
+      "description": "Low-end device with Android 11 (MediaTek Helio A25, 8 cores, ~1.8 GHz, 3-4 GB RAM) - High production volume in emerging markets"
+    }
+  ],
+  "ios_devices": [
+    {
+      "name": "iPhone 14 Pro Max",
+      "os_version": "16",
+      "category": "high",
+      "description": "High-end iPhone 14 Pro Max with iOS 16"
+    },
+    {
+      "name": "iPhone 11",
+      "os_version": "13",
+      "category": "medium",
+      "description": "Medium iPhone 11 with iOS 13 - Note: iOS 13 not supported by MetaMask app"
+    },
+    {
+      "name": "iPhone 8",
+      "os_version": "11",
+      "category": "low",
+      "description": "Low-end iPhone 8 with iOS 11 - Note: iOS 11 not supported by MetaMask app"
+    }
+  ],
+  "device_categories": {
+    "high": "High-end devices for primary testing",
+    "medium": "Mid-range devices for broader compatibility testing",
+    "low": "Low-end devices for backward compatibility and emerging market testing"
+  },
+  "os_coverage": {
+    "android": ["11.0", "12.0", "13.0", "14.0"],
+    "ios": ["11", "13", "16"]
+  },
+  "notes": {
+    "ios_limitations": "iPhone 11 (iOS 13) and iPhone 8 (iOS 11) have OS versions not supported by MetaMask app",
+    "android_performance": "TECNO KI5k included despite low-end specs due to high production volume (250.2K units) in emerging markets"
+  }
+}

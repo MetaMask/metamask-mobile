@@ -23,7 +23,7 @@ class MetaMetricsScreen{
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID);
+      return AppwrightSelectors.getElementByID(this._device, MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID);
     }
   }
 
@@ -33,7 +33,7 @@ class MetaMetricsScreen{
         MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_I_AGREE_BUTTON_ID);
     }
   }
 
@@ -43,7 +43,7 @@ class MetaMetricsScreen{
         MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID);
+      return AppwrightSelectors.getElementByID(this._device, MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_NO_THANKS_BUTTON_ID);
     }
   }
 

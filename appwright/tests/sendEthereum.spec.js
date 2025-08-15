@@ -1,4 +1,4 @@
-import { test, expect } from 'appwright';
+import { test } from 'appwright';
 
 import TimerHelper from '../utils/TimersHelper.js';
 import { PerformanceTracker } from '../reporters/PerformanceTracker.js';
@@ -17,11 +17,15 @@ import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePas
 import WalletMainScreen from '../../wdio/screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../wdio/screen-objects/Modals/AddAccountModal.js';
-import CommonScreen from '../../wdio/screen-objects/CommonScreen.js';
-import TokenOverviewScreen from '../../wdio/screen-objects/TokenOverviewScreen.js';
+import WalletActionModal from '../../wdio/screen-objects/Modals/WalletActionModal.js';
+import SendScreen from '../../wdio/screen-objects/SendScreen.js';
+import ConfirmationScreen from '../../wdio/screen-objects/ConfirmationScreen.js';
+import AmountScreen from '../../wdio/screen-objects/AmountScreen.js';
+import NetworkEducationModal from '../../wdio/screen-objects/Modals/NetworkEducationModal.js';
+
 const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
-test('Asset View', async ({ device }, testInfo) => {
+test('Send flow - Ethereum', async ({ device }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -37,10 +41,12 @@ test('Asset View', async ({ device }, testInfo) => {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
-  TokenOverviewScreen.device = device;
-  CommonScreen.device = device;
-
-  device.webDriverClient.capabilities["appium:settings[snapshotMaxDepth]"] = 80;
+  WalletActionModal.device = device;
+  SendScreen.device = device;
+  ConfirmationScreen.device = device;
+  AmountScreen.device = device;
+  NetworkEducationModal.device = device;
+  console.log("testInfo", testInfo.project.use.device);
 
   await WelcomeScreen.clickGetStartedButton();
 
@@ -72,18 +78,27 @@ test('Asset View', async ({ device }, testInfo) => {
   await OnboardingSucessScreen.tapDone();
   await SolanaFeatureSheet.isVisible();
   await SolanaFeatureSheet.tapNotNowButton();
-  await WalletMainScreen.isMainWalletViewVisible();
-
-  const assetViewScreen = new TimerHelper(
-    'Time since the user clicks on the asset view button until the user sees the token overview screen',
+  const sendAccountSelectorScreen = new TimerHelper(
+    'Time since the user clicks on the send button, until the user clicks on the next button',
   );
-  assetViewScreen.start();
-  await WalletMainScreen.tapOnToken('Ethereum');
-  await TokenOverviewScreen.isTokenOverviewVisible();
-  await TokenOverviewScreen.isTodaysChangeVisible();
-  assetViewScreen.stop();
+  await WalletActionModal.tapSendButton();
+  sendAccountSelectorScreen.start();
+  await SendScreen.typeAddressInSendAddressField('0x8aBB895C61706f33060cDb40e7a2b496C3CA1Dcf');
+  await SendScreen.tapOnNextButton();
+  sendAccountSelectorScreen.stop();
+  const sendAmountScreen = new TimerHelper(
+    'Time since the user is on the send amount screen, until the user gets the confirmation screen',
+  );
+  sendAmountScreen.start();
+  await AmountScreen.enterAmount('0.00001');
+  await AmountScreen.tapOnNextButton();
+  await ConfirmationScreen.isAccountSendToVisible();
+  await ConfirmationScreen.isNetworkDisplayed();
+  await ConfirmationScreen.isAdvancedSettingsDisplayed();
+  sendAmountScreen.stop();
 
   const performanceTracker = new PerformanceTracker();
-  performanceTracker.addTimer(assetViewScreen);
+  performanceTracker.addTimer(sendAccountSelectorScreen);
+  performanceTracker.addTimer(sendAmountScreen);
   await performanceTracker.attachToTest(testInfo);
 });

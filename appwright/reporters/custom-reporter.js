@@ -43,7 +43,14 @@ class CustomReporter {
   onEnd() {
     const fs = require('fs');
     const path = require('path');
-    
+            // Create a timestamp for unique filenames
+
+    const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\./g, '-');
+    if (this.metrics.length === 0) {
+      console.log('No metrics found');
+      return;
+    }
+    const testName = this.metrics[0].testName.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
     try {
       // Ensure reports directory exists
       const reportsDir = path.join(__dirname, 'reports');
@@ -52,20 +59,16 @@ class CustomReporter {
       }
       
       if (this.metrics.length > 0) {
-        // Create a timestamp for unique filenames
-        const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\./g, '-');
-        const testName = this.metrics[0].testName.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
         
         // Save JSON metrics
-        const jsonPath = path.join(reportsDir, `performance-metrics-${testName}-${timestamp}.json`);
+        const jsonPath = path.join(reportsDir, `performance-metrics-${testName}-${this.metrics[0].device.name}.json`);
         fs.writeFileSync(jsonPath, JSON.stringify(this.metrics, null, 2));
-        
         // Generate HTML report
         const html = `
           <!DOCTYPE html>
           <html>
           <head>
-            <title>Performance Metrics: ${testName}</title>
+            <title>Performance Metrics: ${testName} - ${this.metrics[0].device}</title>
             <style>
               body { font-family: Arial, sans-serif; margin: 40px; }
               table { border-collapse: collapse; width: 100%; }
@@ -76,7 +79,7 @@ class CustomReporter {
             </style>
           </head>
           <body>
-            <h1>Performance Report</h1>
+            <h1>Performance Report - ${this.metrics[0].device.name} - OS version: ${this.metrics[0].device.osVersion}</h1>
             ${this.metrics.map(test => `
               <h2>${test.testName}</h2>
               <table>
@@ -95,12 +98,14 @@ class CustomReporter {
                         </tr>
                       `;
                     }
+                    if (key !== 'device') {
                     return `
                       <tr>
                         <td>${key}</td>
-                        <td>${value}ms</td>
+                        <td>${value} ms</td>
                       </tr>
                     `;
+                  }
                   }).join('')}
               </table>
             `).join('')}
@@ -115,6 +120,53 @@ class CustomReporter {
         console.log(`\n✅ Performance report generated: ${reportPath}`);
         console.log(`✅ Performance metrics saved: ${jsonPath}`);
       }
+         // CSV Export - Steps Performance Report
+    // CSV Export - One table per scenario with steps and times
+    const csvRows = [];
+    for (let i = 0; i < this.metrics.length; i++) {
+      const test = this.metrics[i];
+      
+      // Add scenario/test name as a header
+      csvRows.push(`Test: ${test.testName}`);
+      if (test.device) {
+        csvRows.push(`Device: ${test.device.name} - OS: ${test.device.osVersion}`);
+      }
+      csvRows.push(''); // Blank line for readability
+      
+      // Add column headers
+      csvRows.push('Step,Time (ms)');
+      
+      // Add each step (excluding testName and device)
+      Object.entries(test).forEach(([key, value]) => {
+        if (key !== 'testName' && key !== 'device') {
+          if (key === 'total') {
+            // Add a separator line before total
+            csvRows.push('---,---');
+            csvRows.push(`TOTAL TIME (s),${value}`);
+          } else {
+            // Regular step with time in ms
+            csvRows.push(`"${key}","${value}"`);
+          }
+        }
+      });
+      
+      // Add spacing between tables (3 blank lines to clearly separate tables)
+      if (i < this.metrics.length - 1) {
+        csvRows.push('');
+        csvRows.push('');
+        csvRows.push('');
+      }
+    }
+
+    // Add generation timestamp at the end
+    csvRows.push('');
+    csvRows.push('');
+    csvRows.push(`Generated: ${new Date().toLocaleString()}`);
+
+    // Write to single CSV file
+    const csvPath = path.join(reportsDir, `performance-report-${testName}-${timestamp}.csv`);
+    fs.writeFileSync(csvPath, csvRows.join('\n'));
+    console.log(`✅ Performance CSV report saved: ${csvPath}`);
     } catch (error) {
       console.error('Error generating performance report:', error);
     }

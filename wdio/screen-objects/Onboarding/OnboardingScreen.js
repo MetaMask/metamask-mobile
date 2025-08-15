@@ -18,7 +18,7 @@ class OnBoardingScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(OnboardingSelectorIDs.SCREEN_TITLE);
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, OnboardingSelectorIDs.SCREEN_TITLE);
+      return AppwrightSelectors.getElementByID(this._device, OnboardingSelectorIDs.SCREEN_TITLE);
     }
   }
 
@@ -34,7 +34,7 @@ class OnBoardingScreen {
         OnboardingSelectorIDs.NEW_WALLET_BUTTON,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, OnboardingSelectorIDs.NEW_WALLET_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, OnboardingSelectorIDs.NEW_WALLET_BUTTON);
     }
   }
 
@@ -44,7 +44,7 @@ class OnBoardingScreen {
         OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
       );
     } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
+      return AppwrightSelectors.getElementByID(this._device, OnboardingSelectorIDs.EXISTING_WALLET_BUTTON);
     }
   }
 

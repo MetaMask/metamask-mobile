@@ -17,11 +17,16 @@ import CreatePasswordScreen from '../../wdio/screen-objects/Onboarding/CreatePas
 import WalletMainScreen from '../../wdio/screen-objects/WalletMainScreen.js';
 import AccountListComponent from '../../wdio/screen-objects/AccountListComponent.js';
 import AddAccountModal from '../../wdio/screen-objects/Modals/AddAccountModal.js';
-import CommonScreen from '../../wdio/screen-objects/CommonScreen.js';
-import TokenOverviewScreen from '../../wdio/screen-objects/TokenOverviewScreen.js';
-const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
+import WalletActionModal from '../../wdio/screen-objects/Modals/WalletActionModal.js';
+import SwapScreen from '../../wdio/screen-objects/SwapScreen.js';
+import NetworksScreen from '../../wdio/screen-objects/NetworksScreen.js';
 
-test('Asset View', async ({ device }, testInfo) => {
+import NetworkEducationModal from '../../wdio/screen-objects/Modals/NetworkEducationModal.js';
+
+const SEEDLESS_ONBOARDING_ENABLED =
+  process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
+
+test.only('Swap flow - Solana', async ({ device }, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -37,11 +42,10 @@ test('Asset View', async ({ device }, testInfo) => {
   WalletMainScreen.device = device;
   AccountListComponent.device = device;
   AddAccountModal.device = device;
-  TokenOverviewScreen.device = device;
-  CommonScreen.device = device;
-
-  device.webDriverClient.capabilities["appium:settings[snapshotMaxDepth]"] = 80;
-
+  WalletActionModal.device = device;
+  SwapScreen.device = device;
+  NetworkEducationModal.device = device;
+  NetworksScreen.device = device;
   await WelcomeScreen.clickGetStartedButton();
 
   await TermOfUseScreen.isDisplayed();
@@ -70,20 +74,28 @@ test('Asset View', async ({ device }, testInfo) => {
   await MetaMetricsScreen.tapIAgreeButton();
 
   await OnboardingSucessScreen.tapDone();
-  await SolanaFeatureSheet.isVisible();
-  await SolanaFeatureSheet.tapNotNowButton();
-  await WalletMainScreen.isMainWalletViewVisible();
+  // Not sure if this is a bug, but the solana sheet does not appear on builds based off
+  // current main.
 
-  const assetViewScreen = new TimerHelper(
-    'Time since the user clicks on the asset view button until the user sees the token overview screen',
+  // await SolanaFeatureSheet.isVisible();
+  // await SolanaFeatureSheet.tapNotNowButton();
+
+  await WalletMainScreen.tapNetworkNavBar();
+  await NetworksScreen.tapOnNetwork('Solana');
+  await NetworkEducationModal.tapGotItButton();
+
+  const swapLoadTimer = new TimerHelper(
+    'Time since the user clicks on the "Swap" button until the swap page is loaded',
   );
-  assetViewScreen.start();
-  await WalletMainScreen.tapOnToken('Ethereum');
-  await TokenOverviewScreen.isTokenOverviewVisible();
-  await TokenOverviewScreen.isTodaysChangeVisible();
-  assetViewScreen.stop();
-
-  const performanceTracker = new PerformanceTracker();
-  performanceTracker.addTimer(assetViewScreen);
-  await performanceTracker.attachToTest(testInfo);
+  swapLoadTimer.start();
+  await WalletActionModal.tapSwapButton();
+  swapLoadTimer.stop();
+  const swapTimer = new TimerHelper(
+    'Time since the user enters the amount until the quote is displayed',
+  );
+  // await SwapScreen.selectNetworkAndTokenTo('Solana', 'SOL');
+  await SwapScreen.enterSourceTokenAmount('1');
+  // await SwapScreen.tapGetQuotes('Solana');
+  swapTimer.start();
+  await SwapScreen.isQuoteDisplayed('Solana');
 });
