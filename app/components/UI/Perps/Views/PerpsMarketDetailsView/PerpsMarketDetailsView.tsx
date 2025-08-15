@@ -13,7 +13,6 @@ import React, {
 } from 'react';
 import { SafeAreaView, ScrollView, View, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import performance from 'react-native-performance';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -45,7 +44,6 @@ import {
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
-import { setMeasurement } from '@sentry/react-native';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
@@ -59,6 +57,7 @@ import {
   usePerpsAccount,
   usePerpsConnection,
   usePerpsOpenOrders,
+  usePerpsPerformance,
 } from '../../hooks';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 interface MarketDetailsRouteParams {
@@ -74,8 +73,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const { track } = usePerpsEventTracking();
 
   // Track screen load time
-  const screenLoadStartRef = useRef<number>(performance.now());
+  const { startMeasure, endMeasure } = usePerpsPerformance();
   const hasTrackedAssetView = useRef(false);
+
+  // Start measuring screen load time on mount
+  useEffect(() => {
+    startMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
+    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
+  }, [startMeasure]);
 
   const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
     TimeDuration.ONE_DAY,
@@ -145,12 +150,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       !hasTrackedAssetView.current
     ) {
       // Track asset screen loaded
-      const duration = performance.now() - screenLoadStartRef.current;
-      setMeasurement(
-        PerpsMeasurementName.ASSET_SCREEN_LOADED,
-        duration,
-        'millisecond',
-      );
+      endMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
 
       // Track asset screen viewed event - only once
       track(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED, {
@@ -160,19 +160,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       hasTrackedAssetView.current = true;
     }
-  }, [market, marketStats, isLoadingHistory, track]);
+  }, [market, marketStats, isLoadingHistory, track, endMeasure]);
 
   useEffect(() => {
     if (!isLoadingPosition && market) {
       // Track position data loaded for asset screen
-      const duration = performance.now() - screenLoadStartRef.current;
-      setMeasurement(
-        PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN,
-        duration,
-        'millisecond',
-      );
+      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
     }
-  }, [isLoadingPosition, market]);
+  }, [isLoadingPosition, market, endMeasure]);
 
   const handleDurationChange = useCallback(
     (newDuration: TimeDuration) => {

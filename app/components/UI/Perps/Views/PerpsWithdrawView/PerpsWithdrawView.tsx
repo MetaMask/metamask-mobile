@@ -8,7 +8,6 @@ import React, {
   useState,
 } from 'react';
 import { SafeAreaView, ScrollView, View } from 'react-native';
-import performance from 'react-native-performance';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
@@ -63,8 +62,8 @@ import {
   usePerpsWithdrawQuote,
   useWithdrawTokens,
   useWithdrawValidation,
+  usePerpsPerformance,
 } from '../../hooks';
-import { setMeasurement } from '@sentry/react-native';
 import createStyles from './PerpsWithdrawView.styles';
 
 const PerpsWithdrawView: React.FC = () => {
@@ -79,7 +78,6 @@ const PerpsWithdrawView: React.FC = () => {
 
   // Refs
   const inputRef = useRef<TokenInputAreaRef>(null);
-  const screenLoadStartRef = useRef<number>(performance.now());
   const hasTrackedWithdrawView = useRef(false);
 
   // Hooks
@@ -88,6 +86,12 @@ const PerpsWithdrawView: React.FC = () => {
   const perpsNetwork = usePerpsNetwork();
   const isTestnet = perpsNetwork === 'testnet';
   const { track } = usePerpsEventTracking();
+  const { startMeasure, endMeasure } = usePerpsPerformance();
+
+  // Start measuring screen load time on mount
+  useEffect(() => {
+    startMeasure(PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED);
+  }, [startMeasure]);
 
   // TODO: Get network names dynamically once we implement multiple protocol
   const sourceNetworkName = useMemo(() => 'Hyperliquid', []);
@@ -95,12 +99,7 @@ const PerpsWithdrawView: React.FC = () => {
   // Track screen load - only once
   useEffect(() => {
     if (!hasTrackedWithdrawView.current) {
-      const duration = performance.now() - screenLoadStartRef.current;
-      setMeasurement(
-        PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED,
-        duration,
-        'millisecond',
-      );
+      endMeasure(PerpsMeasurementName.WITHDRAWAL_SCREEN_LOADED);
 
       // Track withdrawal input viewed
       track(MetaMetricsEvents.PERPS_WITHDRAWAL_INPUT_VIEWED, {
@@ -110,7 +109,7 @@ const PerpsWithdrawView: React.FC = () => {
 
       hasTrackedWithdrawView.current = true;
     }
-  }, [track]);
+  }, [track, endMeasure]);
   const destNetworkName = useMemo(
     () => (isTestnet ? 'Arbitrum Sepolia' : 'Arbitrum'),
     [isTestnet],
@@ -235,7 +234,12 @@ const PerpsWithdrawView: React.FC = () => {
       });
 
       // Track withdrawal execution time
-      const withdrawStartTime = performance.now();
+      startMeasure(
+        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED,
+      );
+      startMeasure(
+        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
+      );
 
       // Initiate withdrawal with required assetId
       const result = await withdraw({
@@ -244,27 +248,18 @@ const PerpsWithdrawView: React.FC = () => {
       });
 
       // Measure withdrawal transaction submission
-      const submissionDuration = performance.now() - withdrawStartTime;
-      setMeasurement(
-        PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED,
-        submissionDuration,
-        'millisecond',
-      );
+      endMeasure(PerpsMeasurementName.WITHDRAWAL_TRANSACTION_SUBMISSION_LOADED);
 
       if (result.success) {
         // Measure withdrawal transaction confirmation
-        const confirmationDuration = performance.now() - withdrawStartTime;
-        setMeasurement(
+        const confirmationDuration = endMeasure(
           PerpsMeasurementName.WITHDRAWAL_TRANSACTION_CONFIRMATION_LOADED,
-          confirmationDuration,
-          'millisecond',
         );
 
         // Track withdrawal completed
         track(MetaMetricsEvents.PERPS_WITHDRAWAL_COMPLETED, {
           [PerpsEventProperties.WITHDRAWAL_AMOUNT]: parseFloat(withdrawAmount),
-          [PerpsEventProperties.COMPLETION_DURATION]:
-            performance.now() - withdrawStartTime,
+          [PerpsEventProperties.COMPLETION_DURATION]: confirmationDuration,
         });
 
         // Show success toast - funds will arrive within 5 minutes
@@ -341,6 +336,8 @@ const PerpsWithdrawView: React.FC = () => {
     withdraw,
     navigation,
     track,
+    startMeasure,
+    endMeasure,
   ]);
 
   // UI state calculations

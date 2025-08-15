@@ -6,7 +6,6 @@ import {
   Animated,
   TextInput,
 } from 'react-native';
-import performance from 'react-native-performance';
 import { FlashList } from '@shopify/flash-list';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -36,9 +35,9 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { setMeasurement } from '@sentry/react-native';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsPerformance } from '../../hooks';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -145,6 +144,12 @@ const PerpsMarketListView = ({
   };
 
   const { track } = usePerpsEventTracking();
+  const { startMeasure, endMeasure } = usePerpsPerformance();
+
+  // Start measuring screen load time on mount
+  useEffect(() => {
+    startMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
+  }, [startMeasure]);
 
   const handleRefresh = () => {
     refreshMarkets();
@@ -184,7 +189,6 @@ const PerpsMarketListView = ({
   };
 
   // Track screen load performance
-  const screenLoadStartRef = useRef<number>(performance.now());
   const hasTrackedMarketsView = useRef(false);
   const hasTrackedSkeletonDisplay = useRef(false);
 
@@ -192,15 +196,10 @@ const PerpsMarketListView = ({
   useEffect(() => {
     if (isLoadingMarkets && !hasTrackedSkeletonDisplay.current) {
       // Measure time to skeleton display (should be instant)
-      const duration = performance.now() - screenLoadStartRef.current;
-      setMeasurement(
-        PerpsMeasurementName.MARKETS_SCREEN_LOADED,
-        duration,
-        'millisecond',
-      );
+      endMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
       hasTrackedSkeletonDisplay.current = true;
     }
-  }, [isLoadingMarkets]);
+  }, [isLoadingMarkets, endMeasure]);
 
   useEffect(() => {
     // Track markets screen viewed event - only once when data is loaded

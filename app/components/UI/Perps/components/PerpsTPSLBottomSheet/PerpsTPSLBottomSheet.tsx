@@ -5,7 +5,6 @@ import {
   TextInput,
   ActivityIndicator,
 } from 'react-native';
-import performance from 'react-native-performance';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -25,13 +24,12 @@ import { strings } from '../../../../../../locales/i18n';
 
 import type { Position } from '../../controllers/types';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
-import { usePerpsPrices } from '../../hooks';
+import { usePerpsPrices, usePerpsPerformance } from '../../hooks';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { setMeasurement } from '@sentry/react-native';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
@@ -78,7 +76,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
-  const screenLoadStartRef = useRef<number>(0);
+  const { startMeasure, endMeasure } = usePerpsPerformance();
 
   const [takeProfitPrice, setTakeProfitPrice] = useState(
     initialTakeProfitPrice ? formatPrice(initialTakeProfitPrice) : '',
@@ -128,18 +126,13 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
   useEffect(() => {
     if (isVisible) {
-      screenLoadStartRef.current = performance.now();
+      startMeasure(PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED);
       bottomSheetRef.current?.onOpenBottomSheet(() => {
         // Measure TP/SL bottom sheet loaded when animation actually completes
-        const duration = performance.now() - screenLoadStartRef.current;
-        setMeasurement(
-          PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED,
-          duration,
-          'millisecond',
-        );
+        endMeasure(PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED);
       });
     }
-  }, [isVisible]);
+  }, [isVisible, startMeasure, endMeasure]);
 
   // Calculate initial percentages only once when component first becomes visible
   useEffect(() => {

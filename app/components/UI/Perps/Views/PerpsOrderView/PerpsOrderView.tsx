@@ -83,13 +83,12 @@ import {
   usePerpsOrderValidation,
   usePerpsPaymentTokens,
   usePerpsPrices,
+  usePerpsPerformance,
 } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
-import { setMeasurement } from '@sentry/react-native';
-import performance from 'react-native-performance';
 import createStyles from './PerpsOrderView.styles';
 
 // Navigation params interface
@@ -123,6 +122,7 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
 
   const toastRef = toastContext?.toastRef;
   const { track } = usePerpsEventTracking();
+  const { startMeasure, endMeasure } = usePerpsPerformance();
 
   // Ref to access current orderType in callbacks
   const orderTypeRef = useRef<OrderType>('market');
@@ -290,18 +290,13 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
   // Track balance display updates - measure after actual render
   useEffect(() => {
     if (cachedAccountState?.availableBalance !== undefined) {
-      const startTime = performance.now();
+      startMeasure(PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED);
       // Use requestAnimationFrame to measure after actual DOM update
       requestAnimationFrame(() => {
-        const duration = performance.now() - startTime;
-        setMeasurement(
-          PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED,
-          duration,
-          'millisecond',
-        );
+        endMeasure(PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED);
       });
     }
-  }, [cachedAccountState?.availableBalance]);
+  }, [cachedAccountState?.availableBalance, startMeasure, endMeasure]);
 
   // Clean up trace on unmount
   useEffect(
@@ -470,7 +465,7 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
       parseFloat(orderForm.amount) > 0
     ) {
       // Measure after all dependent calculations have completed
-      const startTime = performance.now();
+      startMeasure(PerpsMeasurementName.UPDATE_DEPENDENT_METRICS_ON_INPUT);
 
       // These values trigger recalculation when amount/leverage changes:
       // - positionSize (memoized)
@@ -480,12 +475,7 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
 
       // Use requestAnimationFrame to measure after React has updated
       requestAnimationFrame(() => {
-        const duration = performance.now() - startTime;
-        setMeasurement(
-          PerpsMeasurementName.UPDATE_DEPENDENT_METRICS_ON_INPUT,
-          duration,
-          'millisecond',
-        );
+        endMeasure(PerpsMeasurementName.UPDATE_DEPENDENT_METRICS_ON_INPUT);
       });
 
       prevInputValuesRef.current = {
@@ -499,6 +489,8 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
     positionSize,
     marginRequired,
     liquidationPrice,
+    startMeasure,
+    endMeasure,
   ]);
 
   // Handlers

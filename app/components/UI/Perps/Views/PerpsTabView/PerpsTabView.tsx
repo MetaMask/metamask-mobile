@@ -1,8 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import { setMeasurement } from '@sentry/react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Modal, RefreshControl, ScrollView, View } from 'react-native';
-import performance from 'react-native-performance';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -40,6 +38,7 @@ import {
   usePerpsFirstTimeUser,
   usePerpsPositions,
   usePerpsTrading,
+  usePerpsPerformance,
 } from '../../hooks';
 import styleSheet from './PerpsTabView.styles';
 
@@ -55,7 +54,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const hasTrackedHomescreen = useRef(false);
-  const screenLoadStartRef = useRef<number>(performance.now());
+  const { startMeasure, endMeasure } = usePerpsPerformance();
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -69,6 +68,12 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const isLoading = isPositionsLoading;
   const firstTimeUserIconSize = 48 as unknown as IconSize;
+
+  // Start measuring position data load time on mount
+  useEffect(() => {
+    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
+  }, [startMeasure]);
+
   // Automatically load account state on mount and when network changes
   useEffect(() => {
     // Only load account state if we're connected and initialized
@@ -88,12 +93,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       cachedAccountState?.totalBalance !== undefined
     ) {
       // Track position data loaded performance
-      const duration = performance.now() - screenLoadStartRef.current;
-      setMeasurement(
-        PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB,
-        duration,
-        'millisecond',
-      );
+      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
 
       // Track homescreen tab viewed event with exact property names from requirements
       track(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED, {
@@ -112,7 +112,13 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
       hasTrackedHomescreen.current = true;
     }
-  }, [isLoading, positions, cachedAccountState?.totalBalance, track]);
+  }, [
+    isLoading,
+    positions,
+    cachedAccountState?.totalBalance,
+    track,
+    endMeasure,
+  ]);
 
   const handleRefresh = useCallback(() => {
     loadPositions();
