@@ -246,6 +246,12 @@ jest.mock('../../../../../util/notifications', () => ({
   isNotificationsFeatureEnabled: () => mockIsNotificationsFeatureEnabled(),
 }));
 
+// Mock perps config to control the notification feature flag
+jest.mock('../../constants/perpsConfig', () => ({
+  ...jest.requireActual('../../constants/perpsConfig'),
+  PERPS_NOTIFICATIONS_FEATURE_ENABLED: false, // Hardcoded to false until feature is ready
+}));
+
 // Mock PerpsNotificationTooltip
 jest.mock('../../components/PerpsNotificationTooltip', () => ({
   __esModule: true,
@@ -948,11 +954,12 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('notification tooltip functionality', () => {
-    it('shows PerpsNotificationTooltip when navigating from order success with notifications enabled', async () => {
+    // TODO: Update this test when PERPS_NOTIFICATIONS_FEATURE_ENABLED is set to true
+    it('does not show PerpsNotificationTooltip even when conditions are met due to PERPS_NOTIFICATIONS_FEATURE_ENABLED being false', async () => {
       mockIsNotificationsFeatureEnabled.mockReturnValue(true);
       mockRouteParams.isNavigationFromOrderSuccess = true;
 
-      const { getByTestId } = renderWithProvider(
+      const { queryByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -961,11 +968,11 @@ describe('PerpsMarketDetailsView', () => {
         },
       );
 
-      // Notification tooltip should be visible
+      // Notification tooltip should NOT be visible because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false
       await waitFor(() => {
         expect(
-          getByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
-        ).toBeTruthy();
+          queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeNull();
       });
     });
 
@@ -1007,13 +1014,14 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeNull();
     });
 
-    it('shows tooltip only when BOTH notifications enabled AND navigating from order success', () => {
-      // Test all four combinations
+    // TODO: Update this test when PERPS_NOTIFICATIONS_FEATURE_ENABLED is set to true
+    it('never shows tooltip because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false', () => {
+      // Test all four combinations - all should result in no tooltip due to the constant flag
       const testCases = [
         {
           notificationsEnabled: true,
           fromOrderSuccess: true,
-          shouldShow: true,
+          shouldShow: false, // Would be true if PERPS_NOTIFICATIONS_FEATURE_ENABLED was true
         },
         {
           notificationsEnabled: true,
@@ -1032,47 +1040,11 @@ describe('PerpsMarketDetailsView', () => {
         },
       ];
 
-      testCases.forEach(
-        ({ notificationsEnabled, fromOrderSuccess, shouldShow }) => {
-          mockIsNotificationsFeatureEnabled.mockReturnValue(
-            notificationsEnabled,
-          );
-          mockRouteParams.isNavigationFromOrderSuccess = fromOrderSuccess;
+      testCases.forEach(({ notificationsEnabled, fromOrderSuccess }) => {
+        mockIsNotificationsFeatureEnabled.mockReturnValue(notificationsEnabled);
+        mockRouteParams.isNavigationFromOrderSuccess = fromOrderSuccess;
 
-          const { queryByTestId, unmount } = renderWithProvider(
-            <PerpsConnectionProvider>
-              <PerpsMarketDetailsView />
-            </PerpsConnectionProvider>,
-            {
-              state: initialState,
-            },
-          );
-
-          if (shouldShow) {
-            expect(
-              queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
-            ).toBeTruthy();
-          } else {
-            expect(
-              queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
-            ).toBeNull();
-          }
-
-          unmount();
-        },
-      );
-    });
-
-    describe('notifications feature flag behavior', () => {
-      beforeEach(() => {
-        jest.clearAllMocks();
-      });
-
-      it('renders notification when feature is enabled and navigating from order success', async () => {
-        mockIsNotificationsFeatureEnabled.mockReturnValue(true);
-        mockRouteParams.isNavigationFromOrderSuccess = true;
-
-        const { getByTestId } = renderWithProvider(
+        const { queryByTestId, unmount } = renderWithProvider(
           <PerpsConnectionProvider>
             <PerpsMarketDetailsView />
           </PerpsConnectionProvider>,
@@ -1081,11 +1053,40 @@ describe('PerpsMarketDetailsView', () => {
           },
         );
 
-        // Tooltip should be shown since notifications feature is enabled and navigating from order success
+        // Always expect null because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false
+        expect(
+          queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+        ).toBeNull();
+
+        unmount();
+      });
+    });
+
+    describe('notifications feature flag behavior', () => {
+      beforeEach(() => {
+        jest.clearAllMocks();
+      });
+
+      // TODO: Update these tests when PERPS_NOTIFICATIONS_FEATURE_ENABLED is set to true
+      it('does not render notification when PERPS_NOTIFICATIONS_FEATURE_ENABLED is false', async () => {
+        // Even when isNotificationsFeatureEnabled returns true, the constant flag prevents rendering
+        mockIsNotificationsFeatureEnabled.mockReturnValue(true);
+        mockRouteParams.isNavigationFromOrderSuccess = true;
+
+        const { queryByTestId } = renderWithProvider(
+          <PerpsConnectionProvider>
+            <PerpsMarketDetailsView />
+          </PerpsConnectionProvider>,
+          {
+            state: initialState,
+          },
+        );
+
+        // Tooltip should NOT be shown because PERPS_NOTIFICATIONS_FEATURE_ENABLED is false
         await waitFor(() => {
           expect(
-            getByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
-          ).toBeTruthy();
+            queryByTestId(PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP),
+          ).toBeNull();
         });
       });
 

@@ -32,6 +32,8 @@ import styleSheet, {
 import { ResetNotificationsButton } from './ResetNotificationsButton';
 import SessionHeader from './sectionHeader';
 import { PushNotificationToggle } from './PushNotificationToggle';
+import { selectPerpsEnabledFlag } from '../../../UI/Perps/selectors/featureFlags';
+import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../../UI/Perps/constants/perpsConfig';
 
 const NotificationsSettings = ({ navigation, route }: Props) => {
   const theme = useTheme();
@@ -39,6 +41,7 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
   const isMetamaskNotificationsEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   const loadingText = useSwitchNotificationLoadingText();
 
@@ -82,7 +85,10 @@ const NotificationsSettings = ({ navigation, route }: Props) => {
             styles={styles}
           />
           <FeatureAnnouncementToggle />
-          <PerpsNotificationToggle />
+
+          {isPerpsEnabled && PERPS_NOTIFICATIONS_FEATURE_ENABLED && (
+            <PerpsNotificationToggle />
+          )}
 
           {/* Account Notification Toggles */}
           <SessionHeader
