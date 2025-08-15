@@ -33,6 +33,7 @@ interface AssetElementProps {
   secondaryBalanceVariant?: TextVariant;
   secondaryBalanceColor?: TextColor;
   privacyMode?: boolean;
+  hideSecondaryBalanceInPrivacyMode?: boolean;
   disabled?: boolean;
 }
 
@@ -72,6 +73,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
   onPress,
   onLongPress,
   privacyMode = false,
+  hideSecondaryBalanceInPrivacyMode = true,
   disabled = false,
 }) => {
   const { colors } = useTheme();
@@ -127,7 +129,7 @@ const AssetElement: React.FC<AssetElementProps> = ({
                 : styles.secondaryBalance
             }
             color={secondaryBalanceColor}
-            isHidden={privacyMode}
+            isHidden={privacyMode && hideSecondaryBalanceInPrivacyMode}
             length={SensitiveTextLength.Short}
             testID={SECONDARY_BALANCE_TEST_ID}
           >

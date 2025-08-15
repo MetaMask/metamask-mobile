@@ -89,6 +89,24 @@ describe('AssetElement', () => {
     expect(secondaryBalance.props.children).toBe('••••••');
   });
 
+  it('does not hide secondary balance in privacy mode when hideSecondaryBalanceInPrivacyMode is false', () => {
+    const { getByTestId } = render(
+      <AssetElement
+        asset={erc20Token}
+        balance={erc20Token.balance}
+        secondaryBalance="+5.67%"
+        hideSecondaryBalanceInPrivacyMode={false}
+        privacyMode
+      />,
+    );
+
+    const mainBalance = getByTestId(BALANCE_TEST_ID);
+    const secondaryBalance = getByTestId(SECONDARY_BALANCE_TEST_ID);
+
+    expect(mainBalance.props.children).toBe('•••••••••');
+    expect(secondaryBalance.props.children).toBe('+5.67%'); // Should not be hidden
+  });
+
   it('renders skeleton when balance is loading', () => {
     const { getByTestId } = render(
       <AssetElement

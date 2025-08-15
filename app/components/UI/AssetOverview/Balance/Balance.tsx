@@ -199,6 +199,7 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
         secondaryBalance={percentageText}
         secondaryBalanceColor={percentageColor}
         privacyMode={privacyMode}
+        hideSecondaryBalanceInPrivacyMode={false}
         onPress={handlePress}
       >
         <BadgeWrapper

@@ -413,6 +413,7 @@ export const TokenListItem = React.memo(
         secondaryBalance={secondaryBalance}
         secondaryBalanceColor={secondaryBalanceColorToUse}
         privacyMode={privacyMode}
+        hideSecondaryBalanceInPrivacyMode={false}
       >
         <BadgeWrapper
           style={styles.badge}
