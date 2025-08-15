@@ -296,6 +296,7 @@ enum EVENT_NAME {
   WALLET_VIEW = 'Wallet View',
   RECEIVE_OPTIONS = 'Receive Options',
   SEND_FLOW = 'Send Flow',
+  SEND = 'Send',
   DAPP_INTERACTIONS = 'Dapp Interactions',
 
   // Swaps
@@ -614,6 +615,8 @@ enum ACTIONS {
   RECEIVE_OPTIONS = 'Receive Options',
   // Send Flow
   SEND_FLOW = 'Send Flow',
+  // Re-designed send
+  SEND = 'Send',
   // Dapp Interactions
   APPROVE_REQUEST = 'Approve Request',
   // Swaps
@@ -1543,6 +1546,12 @@ enum DESCRIPTION {
   RECEIVE_OPTIONS_SHARE_ADDRESS = 'Share address',
   RECEIVE_OPTIONS_QR_CODE = 'QR Code',
   RECEIVE_OPTIONS_PAYMENT_REQUEST = 'Payment Request',
+  // Re-designed send
+  SEND_STARTED = 'Send flow started',
+  SEND_ASSET_SELECTED = 'Send asset selected',
+  SEND_AMOUNT_SELECTED = 'Send amount selected',
+  SEND_RECIPIENT_SELECTED = 'Send recipient selected',
+  SEND_EXIT = 'Send flow exitted',
   // Send flow
   SEND_FLOW_ADDS_RECIPIENT = `Adds recipient address 'Send to'`,
   SEND_FLOW_ADDS_AMOUNT = `Adds Amount`,
@@ -1756,7 +1765,28 @@ const legacyMetaMetricsEvents = {
     ACTIONS.RECEIVE_OPTIONS,
     DESCRIPTION.RECEIVE_OPTIONS_PAYMENT_REQUEST,
   ),
-  // Send flow
+  // Re-designed send
+  SEND_STARTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_STARTED,
+  ),
+  SEND_ASSET_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_ASSET_SELECTED,
+  ),
+  SEND_AMOUNT_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_AMOUNT_SELECTED,
+  ),
+  SEND_RECIPIENT_SELECTED: generateOpt(
+    EVENT_NAME.SEND,
+    ACTIONS.SEND,
+    DESCRIPTION.SEND_RECIPIENT_SELECTED,
+  ),
+  SEND_EXIT: generateOpt(EVENT_NAME.SEND, ACTIONS.SEND, DESCRIPTION.SEND_EXIT), // Send flow
   SEND_FLOW_ADDS_RECIPIENT: generateOpt(
     EVENT_NAME.SEND_FLOW,
     ACTIONS.SEND_FLOW,

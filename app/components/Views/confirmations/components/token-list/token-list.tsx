@@ -5,6 +5,7 @@ import { Box } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { useSendScreenNavigation } from '../../hooks/send/useSendScreenNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
+import { useAssetSelectionMetrics } from '../../hooks/send/metrics/useAssetSelectionMetrics';
 import { useSendContext } from '../../context/send-context';
 import { AssetType } from '../../types/token';
 import { Token } from '../UI/token';
@@ -18,13 +19,18 @@ export function TokenList({ tokens }: TokenListProps) {
   const { gotToSendScreen } = useSendScreenNavigation();
   const { updateAsset } = useSendContext();
   const { styles } = useStyles(styleSheet, {});
+  const { captureAssetSelected } = useAssetSelectionMetrics();
 
   const handleTokenPress = useCallback(
     (asset: AssetType) => {
+      const position = tokens.findIndex(
+        ({ address }) => address === asset.address,
+      );
+      captureAssetSelected(asset, position.toString());
       updateAsset(asset);
       gotToSendScreen(Routes.SEND.AMOUNT);
     },
-    [gotToSendScreen, updateAsset],
+    [captureAssetSelected, gotToSendScreen, tokens, updateAsset],
   );
 
   const renderTokenListItem = useCallback(

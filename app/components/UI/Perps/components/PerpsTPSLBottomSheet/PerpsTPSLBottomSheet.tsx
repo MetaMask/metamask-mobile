@@ -22,7 +22,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { formatPrice } from '../../utils/formatUtils';
 import { strings } from '../../../../../../locales/i18n';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+
 import type { Position } from '../../controllers/types';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
 import { usePerpsPrices } from '../../hooks';
@@ -42,11 +42,12 @@ import {
   getStopLossErrorDirection,
   calculatePriceForPercentage,
   calculatePercentageForPrice,
+  hasTPSLValuesChanged,
 } from '../../utils/tpslValidation';
 
 // Quick percentage buttons constants
-const TAKE_PROFIT_PERCENTAGES = [5, 10, 15, 20];
-const STOP_LOSS_PERCENTAGES = [5, 10, 15, 20];
+const TAKE_PROFIT_PERCENTAGES = [1, 5, 20, 30];
+const STOP_LOSS_PERCENTAGES = [1, 5, 20, 30];
 
 interface PerpsTPSLBottomSheetProps {
   isVisible: boolean;
@@ -125,17 +126,6 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       : 'short'
     : direction;
 
-  // Debug logging
-  if (position) {
-    DevLogger.log('PerpsTPSLBottomSheet Debug:', {
-      positionSize: position.size,
-      parsedSize: parseFloat(position.size),
-      determinedDirection: actualDirection,
-      entryPrice: position.entryPrice,
-      currentPrice,
-    });
-  }
-
   useEffect(() => {
     if (isVisible) {
       screenLoadStartRef.current = performance.now();
@@ -208,7 +198,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPrice, actualDirection]); // Update prices when current price changes
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     // Parse the formatted prices back to plain numbers for storage
     const parseTakeProfitPrice = takeProfitPrice
       ? takeProfitPrice.replace(/[$,]/g, '')
@@ -249,7 +239,21 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
     onConfirm(parseTakeProfitPrice, parseStopLossPrice);
     // Don't close immediately - let the parent handle closing after update completes
-  };
+  }, [
+    takeProfitPrice,
+    stopLossPrice,
+    onConfirm,
+    actualDirection,
+    asset,
+    slUsingPercentage,
+    tpUsingPercentage,
+    track,
+  ]);
+
+  // Handle close without saving
+  const handleClose = useCallback(() => {
+    onClose();
+  }, [onClose]);
 
   // Memoized callbacks for take profit price input
   const handleTakeProfitPriceChange = useCallback(
@@ -267,12 +271,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
           currentPrice,
           direction: actualDirection,
         });
-        DevLogger.log('TP Price Change Debug:', {
-          sanitizedPrice: sanitized,
-          currentPrice,
-          actualDirection,
-          calculatedPercentage: percentage,
-        });
+
         // For short positions, show take profit percentage as negative
         // The function returns positive for valid directions, but UI convention
         // is to show negative percentages for shorts (price going down)
@@ -386,17 +385,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   // Memoized callbacks for percentage buttons
   const handleTakeProfitPercentageButton = useCallback(
     (percentage: number) => {
-      DevLogger.log('TP Percentage Button Debug:', {
-        percentage,
-        currentPrice,
-        actualDirection,
-        isProfit: true,
-      });
       const price = calculatePriceForPercentage(percentage, true, {
         currentPrice,
         direction: actualDirection,
       });
-      DevLogger.log('Calculated TP price:', price);
+
       setTakeProfitPrice(formatPrice(price));
       // For short positions, display take profit percentage as negative
       const displayPercentage =
@@ -424,29 +417,41 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     [currentPrice, actualDirection],
   );
 
-  // Debug log for loading state
-  useEffect(() => {
-    if (isUpdating !== undefined) {
-      DevLogger.log('PerpsTPSLBottomSheet: isUpdating state changed', {
-        isUpdating,
-      });
-    }
-  }, [isUpdating]);
+  // Handle "Off" button clicks
+  const handleTakeProfitOff = useCallback(() => {
+    setTakeProfitPrice('');
+    setTakeProfitPercentage('');
+    setSelectedTpPercentage(null);
+    setTpUsingPercentage(false);
+  }, []);
+
+  const handleStopLossOff = useCallback(() => {
+    setStopLossPrice('');
+    setStopLossPercentage('');
+    setSelectedSlPercentage(null);
+    setSlUsingPercentage(false);
+  }, []);
 
   const footerButtonProps = [
     {
       label: isUpdating
         ? strings('perps.tpsl.updating')
-        : strings('perps.tpsl.set_button'),
+        : strings('perps.tpsl.set'),
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
-      disabled:
+      isDisabled:
         isUpdating ||
         !validateTPSLPrices(takeProfitPrice, stopLossPrice, {
           currentPrice,
           direction: actualDirection,
-        }),
+        }) ||
+        !hasTPSLValuesChanged(
+          takeProfitPrice,
+          stopLossPrice,
+          initialTakeProfitPrice,
+          initialStopLossPrice,
+        ),
       loading: isUpdating,
     },
   ];
@@ -457,28 +462,75 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
     <BottomSheet
       ref={bottomSheetRef}
       shouldNavigateBack={false}
-      onClose={onClose}
+      onClose={handleClose}
+      style={styles.bottomSheet}
     >
-      <BottomSheetHeader onClose={onClose}>
+      <BottomSheetHeader onClose={handleClose} style={styles.header}>
         <Text variant={TextVariant.HeadingMD}>
           {strings('perps.tpsl.title')}
         </Text>
       </BottomSheetHeader>
 
       <View style={styles.container}>
-        {/* Current price display */}
-        <View style={styles.priceDisplay}>
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {`${asset} - ${currentPrice ? formatPrice(currentPrice) : '$---'}`}
-            {position && ` (Entry: ${formatPrice(position.entryPrice)})`}
-          </Text>
+        {/* Price information */}
+        <View style={styles.priceInfoContainer}>
+          <View style={styles.priceInfoRow}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {strings('perps.tpsl.current_price')}
+            </Text>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+              {currentPrice ? formatPrice(currentPrice) : '$---'}
+            </Text>
+          </View>
+          {position?.liquidationPrice && (
+            <View style={styles.priceInfoRow}>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {strings('perps.tpsl.liquidation_price')}
+              </Text>
+              <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+                {formatPrice(position.liquidationPrice)}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Take Profit Section */}
         <View style={styles.section}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.sectionTitle}>
-            {strings('perps.order.take_profit')}
+            {actualDirection === 'long'
+              ? strings('perps.tpsl.take_profit_long')
+              : strings('perps.tpsl.take_profit_short')}
           </Text>
+
+          <View style={styles.percentageRow}>
+            <TouchableOpacity
+              style={[
+                styles.percentageButton,
+                !takeProfitPrice && styles.percentageButtonOff,
+              ]}
+              onPress={handleTakeProfitOff}
+            >
+              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                {strings('perps.tpsl.off')}
+              </Text>
+            </TouchableOpacity>
+            {TAKE_PROFIT_PERCENTAGES.map((percentage) => (
+              <TouchableOpacity
+                key={percentage}
+                style={[
+                  styles.percentageButton,
+                  selectedTpPercentage === percentage &&
+                    styles.percentageButtonActiveTP,
+                ]}
+                onPress={() => handleTakeProfitPercentageButton(percentage)}
+              >
+                <Text variant={TextVariant.BodySM} color={TextColor.Success}>
+                  {actualDirection === 'short' ? '-' : '+'}
+                  {percentage}%
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           <View style={styles.inputRow}>
             {/* USD Input */}
@@ -499,7 +551,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 style={styles.input}
                 value={takeProfitPrice}
                 onChangeText={handleTakeProfitPriceChange}
-                placeholder="0"
+                placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
                 onFocus={() => setTpPriceInputFocused(true)}
@@ -528,7 +580,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 style={styles.input}
                 value={takeProfitPercentage}
                 onChangeText={handleTakeProfitPercentageChange}
-                placeholder="0"
+                placeholder={strings('perps.tpsl.profit_percent_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
                 onFocus={() => setTpPercentInputFocused(true)}
@@ -539,33 +591,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </Text>
             </View>
           </View>
-
-          <View style={styles.percentageRow}>
-            {TAKE_PROFIT_PERCENTAGES.map((percentage) => (
-              <TouchableOpacity
-                key={percentage}
-                style={[
-                  styles.percentageButton,
-                  selectedTpPercentage === percentage &&
-                    styles.percentageButtonActive,
-                ]}
-                onPress={() => handleTakeProfitPercentageButton(percentage)}
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={
-                    selectedTpPercentage === percentage
-                      ? TextColor.Inverse
-                      : TextColor.Default
-                  }
-                >
-                  {actualDirection === 'short' ? '-' : '+'}
-                  {percentage}%
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {takeProfitPrice &&
+          {Boolean(takeProfitPrice) &&
             !isValidTakeProfitPrice(takeProfitPrice, {
               currentPrice,
               direction: actualDirection,
@@ -576,7 +602,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 color={TextColor.Error}
                 style={styles.helperText}
               >
-                {strings('perps.validation.invalid_take_profit', {
+                {strings('perps.order.validation.invalid_take_profit', {
                   direction: getTakeProfitErrorDirection(actualDirection),
                   positionType: actualDirection,
                 })}
@@ -587,8 +613,40 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         {/* Stop Loss Section */}
         <View style={styles.section}>
           <Text variant={TextVariant.BodyLGMedium} style={styles.sectionTitle}>
-            {strings('perps.order.stop_loss')}
+            {actualDirection === 'long'
+              ? strings('perps.tpsl.stop_loss_long')
+              : strings('perps.tpsl.stop_loss_short')}
           </Text>
+
+          <View style={styles.percentageRow}>
+            <TouchableOpacity
+              style={[
+                styles.percentageButton,
+                !stopLossPrice && styles.percentageButtonOff,
+              ]}
+              onPress={handleStopLossOff}
+            >
+              <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+                {strings('perps.tpsl.off')}
+              </Text>
+            </TouchableOpacity>
+            {STOP_LOSS_PERCENTAGES.map((percentage) => (
+              <TouchableOpacity
+                key={percentage}
+                style={[
+                  styles.percentageButton,
+                  selectedSlPercentage === percentage &&
+                    styles.percentageButtonActiveSL,
+                ]}
+                onPress={() => handleStopLossPercentageButton(percentage)}
+              >
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {actualDirection === 'short' ? '+' : '-'}
+                  {percentage}%
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
           <View style={styles.inputRow}>
             {/* USD Input */}
@@ -609,7 +667,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 style={styles.input}
                 value={stopLossPrice}
                 onChangeText={handleStopLossPriceChange}
-                placeholder="0"
+                placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
                 onFocus={() => setSlPriceInputFocused(true)}
@@ -638,7 +696,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 style={styles.input}
                 value={stopLossPercentage}
                 onChangeText={handleStopLossPercentageChange}
-                placeholder="0"
+                placeholder={strings('perps.tpsl.loss_percent_placeholder')}
                 placeholderTextColor={colors.text.muted}
                 keyboardType="numeric"
                 onFocus={() => setSlPercentInputFocused(true)}
@@ -649,33 +707,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               </Text>
             </View>
           </View>
-
-          <View style={styles.percentageRow}>
-            {STOP_LOSS_PERCENTAGES.map((percentage) => (
-              <TouchableOpacity
-                key={percentage}
-                style={[
-                  styles.percentageButton,
-                  selectedSlPercentage === percentage &&
-                    styles.percentageButtonActive,
-                ]}
-                onPress={() => handleStopLossPercentageButton(percentage)}
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={
-                    selectedSlPercentage === percentage
-                      ? TextColor.Inverse
-                      : TextColor.Default
-                  }
-                >
-                  {actualDirection === 'short' ? '+' : '-'}
-                  {percentage}%
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-          {stopLossPrice &&
+          {Boolean(stopLossPrice) &&
             !isValidStopLossPrice(stopLossPrice, {
               currentPrice,
               direction: actualDirection,
@@ -686,7 +718,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
                 color={TextColor.Error}
                 style={styles.helperText}
               >
-                {strings('perps.validation.invalid_stop_loss', {
+                {strings('perps.order.validation.invalid_stop_loss', {
                   direction: getStopLossErrorDirection(actualDirection),
                   positionType: actualDirection,
                 })}
@@ -695,7 +727,10 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         </View>
       </View>
 
-      <BottomSheetFooter buttonPropsArray={footerButtonProps} />
+      <BottomSheetFooter
+        buttonPropsArray={footerButtonProps}
+        style={styles.footer}
+      />
 
       {/* Loading Overlay */}
       {isUpdating && (

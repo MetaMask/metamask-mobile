@@ -3,13 +3,14 @@ import {
   BaseController,
   type RestrictedMessenger,
 } from '@metamask/base-controller';
-import { successfulFetch } from '@metamask/controller-utils';
+import { successfulFetch, toHex } from '@metamask/controller-utils';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
-import type {
+import {
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionSubmittedEvent,
   TransactionParams,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { parseCaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
@@ -89,6 +90,9 @@ const ON_RAMP_GEO_BLOCKING_URLS = {
 // Unknown is the default/fallback in case the location API call fails
 const DEFAULT_GEO_BLOCKED_REGIONS = ['US', 'CA-ON', 'UNKNOWN'];
 
+// Temporary to avoids estimation failures due to insufficient balance.
+const DEPOSIT_GAS_LIMIT = toHex(100000);
+
 /**
  * State shape for PerpsController
  */
@@ -115,8 +119,11 @@ export type PerpsControllerState = {
   // Eligibility (Geo-Blocking)
   isEligible: boolean;
 
-  // Tutorial/First time user tracking
-  isFirstTimeUser: boolean;
+  // Tutorial/First time user tracking (per network)
+  isFirstTimeUser: {
+    testnet: boolean;
+    mainnet: boolean;
+  };
 
   // Error handling
   lastError: string | null;
@@ -141,7 +148,10 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   lastError: null,
   lastUpdateTimestamp: 0,
   isEligible: false,
-  isFirstTimeUser: true,
+  isFirstTimeUser: {
+    testnet: true,
+    mainnet: true,
+  },
 });
 
 /**
@@ -220,6 +230,10 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:getOrders';
       handler: PerpsController['getOrders'];
+    }
+  | {
+      type: 'PerpsController:getOpenOrders';
+      handler: PerpsController['getOpenOrders'];
     }
   | {
       type: 'PerpsController:getFunding';
@@ -691,6 +705,49 @@ export class PerpsController extends BaseController<
     return result;
   }
 
+  async depositWithConfirmation() {
+    const { AccountsController, NetworkController, TransactionController } =
+      Engine.context;
+
+    const provider = this.getActiveProvider();
+    const depositRoutes = provider.getDepositRoutes({ isTestnet: false });
+    const route = depositRoutes[0];
+    const bridgeContractAddress = route.contractAddress;
+
+    const transferData = generateTransferData('transfer', {
+      toAddress: bridgeContractAddress,
+      amount: '0x0',
+    });
+
+    const selectedAccount = AccountsController.getSelectedAccount();
+    const accountAddress = selectedAccount.address as Hex;
+
+    const parsedAsset = parseCaipAssetId(route.assetId);
+    const assetChainId = toHex(parsedAsset.chainId.split(':')[1]);
+    const tokenAddress = parsedAsset.assetReference as Hex;
+
+    const transaction: TransactionParams = {
+      from: accountAddress,
+      to: tokenAddress,
+      value: '0x0',
+      data: transferData,
+      gas: DEPOSIT_GAS_LIMIT,
+    };
+
+    const networkClientId =
+      NetworkController.findNetworkClientIdByChainId(assetChainId);
+
+    const { result } = await TransactionController.addTransaction(transaction, {
+      networkClientId,
+      origin: 'metamask',
+      type: TransactionType.perpsDeposit,
+    });
+
+    return {
+      result,
+    };
+  }
+
   /**
    * Deposit funds to trading account
    * Routes deposits based on chain compatibility:
@@ -1063,6 +1120,14 @@ export class PerpsController extends BaseController<
   async getOrders(params?: GetOrdersParams): Promise<Order[]> {
     const provider = this.getActiveProvider();
     return provider.getOrders(params);
+  }
+
+  /**
+   * Get currently open orders (real-time status)
+   */
+  async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
+    const provider = this.getActiveProvider();
+    return provider.getOpenOrders(params);
   }
 
   /**
@@ -1762,16 +1827,27 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Check if user is first-time for the current network
+   */
+  isFirstTimeUserOnCurrentNetwork(): boolean {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+    return this.state.isFirstTimeUser[currentNetwork];
+  }
+
+  /**
    * Mark that the user has completed the tutorial/onboarding
    * This prevents the tutorial from showing again
    */
   markTutorialCompleted(): void {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+
     DevLogger.log('PerpsController: Marking tutorial as completed', {
       timestamp: new Date().toISOString(),
+      network: currentNetwork,
     });
 
     this.update((state) => {
-      state.isFirstTimeUser = false;
+      state.isFirstTimeUser[currentNetwork] = false;
     });
   }
 }

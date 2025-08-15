@@ -3,6 +3,7 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { HyperLiquidClientService } from '../../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../../services/HyperLiquidSubscriptionService';
 import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletService';
+import { REFERRAL_CONFIG } from '../../constants/hyperLiquidConfig';
 import {
   validateAssetSupport,
   validateBalance,
@@ -136,6 +137,12 @@ describe('HyperLiquidProvider', () => {
         updateLeverage: jest.fn().mockResolvedValue({
           status: 'ok',
         }),
+        approveBuilderFee: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
+        setReferrer: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
       }),
       getInfoClient: jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
@@ -204,6 +211,13 @@ describe('HyperLiquidProvider', () => {
         }),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
         frontendOpenOrders: jest.fn().mockResolvedValue([]),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: 'TESTNET' },
+          },
+        }),
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
       }),
       disconnect: jest.fn().mockResolvedValue(undefined),
       toggleTestnet: jest.fn(),
@@ -453,6 +467,104 @@ describe('HyperLiquidProvider', () => {
       expect(result.success).toBe(true);
     });
 
+    it('should edit a market order with slippage calculation', async () => {
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+          slippage: 0.02, // 2% slippage
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      expect(result.success).toBe(true);
+      expect(mockClientService.getInfoClient().allMids).toHaveBeenCalled();
+    });
+
+    it('should handle editOrder when asset is not found', async () => {
+      (
+        mockClientService.getInfoClient().meta as jest.Mock
+      ).mockResolvedValueOnce({
+        universe: [], // Empty universe - asset not found
+      });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          coin: 'UNKNOWN',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'limit',
+          price: '50000',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Asset UNKNOWN not found');
+    });
+
+    it('should handle editOrder when no price is available', async () => {
+      (
+        mockClientService.getInfoClient().allMids as jest.Mock
+      ).mockResolvedValueOnce({}); // Empty price data
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'market',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('No price available for BTC');
+    });
+
+    it('should handle editOrder when asset ID is not found', async () => {
+      // Create a spy on the coinToAssetId.get method to return undefined for BTC
+      // eslint-disable-next-line dot-notation
+      const originalGet = provider['coinToAssetId'].get;
+      jest
+        // eslint-disable-next-line dot-notation
+        .spyOn(provider['coinToAssetId'], 'get')
+        .mockImplementation((coin) => {
+          if (coin === 'BTC') {
+            return undefined; // Simulate BTC not found in mapping
+          }
+          // eslint-disable-next-line dot-notation
+          return originalGet.call(provider['coinToAssetId'], coin);
+        });
+
+      const editParams = {
+        orderId: '123',
+        newOrder: {
+          coin: 'BTC',
+          isBuy: true,
+          size: '0.1',
+          orderType: 'limit',
+          price: '50000',
+        } as OrderParams,
+      };
+
+      const result = await provider.editOrder(editParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Asset ID not found for BTC');
+
+      // Restore the original method
+      jest.restoreAllMocks();
+    });
+
     it('should cancel an order successfully', async () => {
       const cancelParams = {
         orderId: '123',
@@ -518,6 +630,13 @@ describe('HyperLiquidProvider', () => {
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: 'TESTNET' },
+          },
+        }),
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
       });
 
       const closeParams: ClosePositionParams = {
@@ -608,6 +727,13 @@ describe('HyperLiquidProvider', () => {
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: 'TESTNET' },
+          },
+        }),
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
       });
 
       const closeParams: ClosePositionParams = {
@@ -683,6 +809,13 @@ describe('HyperLiquidProvider', () => {
           universe: [{ name: 'ETH', szDecimals: 4, maxLeverage: 50 }],
         }),
         allMids: jest.fn().mockResolvedValue({ ETH: '3000' }),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: 'TESTNET' },
+          },
+        }),
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
       });
 
       const closeParams: ClosePositionParams = {
@@ -753,6 +886,13 @@ describe('HyperLiquidProvider', () => {
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: 'TESTNET' },
+          },
+        }),
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
       });
 
       const closeParams: ClosePositionParams = {
@@ -871,6 +1011,13 @@ describe('HyperLiquidProvider', () => {
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: 'TESTNET' },
+          },
+        }),
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
       });
 
       const closeParams: ClosePositionParams = {
@@ -941,6 +1088,13 @@ describe('HyperLiquidProvider', () => {
           universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
         }),
         allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: 'TESTNET' },
+          },
+        }),
+        maxBuilderFee: jest.fn().mockResolvedValue(1),
       });
 
       const closeParams: ClosePositionParams = {
@@ -1946,6 +2100,7 @@ describe('HyperLiquidProvider', () => {
           }),
           frontendOpenOrders: jest.fn().mockResolvedValue([]),
           allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+          maxBuilderFee: jest.fn().mockResolvedValue(1),
         });
 
         mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
@@ -1990,6 +2145,7 @@ describe('HyperLiquidProvider', () => {
           }),
           frontendOpenOrders: jest.fn().mockResolvedValue([]),
           allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+          maxBuilderFee: jest.fn().mockResolvedValue(1),
         });
 
         const updateParams = {
@@ -2234,6 +2390,13 @@ describe('HyperLiquidProvider', () => {
               orderType: 'Stop Loss',
             },
           ]),
+          referral: jest.fn().mockResolvedValue({
+            referrerState: {
+              stage: 'ready',
+              data: { code: 'TESTNET' },
+            },
+          }),
+          maxBuilderFee: jest.fn().mockResolvedValue(1),
         });
 
         mockClientService.getExchangeClient = jest.fn().mockReturnValue({
@@ -2840,6 +3003,582 @@ describe('HyperLiquidProvider', () => {
 
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('Unexpected error');
+    });
+  });
+
+  describe('Builder Fee and Referral Integration', () => {
+    beforeEach(() => {
+      // Mock the new builder fee and referral methods
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest.fn().mockResolvedValue(0.001), // 0.1% approval
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: REFERRAL_CONFIG.mainnetCode },
+          },
+          referredBy: null, // User has no referral set
+        }),
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
+        }),
+        meta: jest.fn().mockResolvedValue({
+          universe: [
+            { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+            { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+          ],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+      });
+
+      // Mock user address to be different from builder address
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        '0x1234567890123456789012345678901234567890', // Different from builder
+      );
+
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+        order: jest.fn().mockResolvedValue({
+          status: 'ok',
+          response: { data: { statuses: [{ resting: { oid: '123' } }] } },
+        }),
+        modify: jest.fn().mockResolvedValue({
+          status: 'ok',
+          response: { data: { statuses: [{ resting: { oid: '123' } }] } },
+        }),
+        cancel: jest.fn().mockResolvedValue({
+          status: 'ok',
+          response: { data: { statuses: ['success'] } },
+        }),
+        withdraw3: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
+        updateLeverage: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
+        approveBuilderFee: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
+        setReferrer: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
+      });
+    });
+
+    it('should include builder fee and referral setup in order placement', async () => {
+      // Mock builder fee not approved to trigger approval call
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest
+          .fn()
+          .mockResolvedValueOnce(0) // First call: not approved
+          .mockResolvedValueOnce(0.001), // Second call: approved after approval
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: REFERRAL_CONFIG.mainnetCode },
+          },
+          referredBy: null, // User has no referral set
+        }),
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
+        }),
+        meta: jest.fn().mockResolvedValue({
+          universe: [
+            { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+            { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+          ],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+      });
+
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+
+      // Verify builder fee approval was called
+      expect(
+        mockClientService.getExchangeClient().approveBuilderFee,
+      ).toHaveBeenCalledWith({
+        builder: expect.any(String),
+        maxFeeRate: expect.stringContaining('%'),
+      });
+
+      // Verify referral code was set
+      expect(
+        mockClientService.getExchangeClient().setReferrer,
+      ).toHaveBeenCalledWith({
+        code: expect.any(String),
+      });
+
+      // Verify order was placed with builder fee
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: expect.any(Array),
+          builder: {
+            b: expect.any(String),
+            f: expect.any(Number),
+          },
+        }),
+      );
+    });
+
+    it('should include builder fee and referral setup in TP/SL updates', async () => {
+      // Mock builder fee not approved to trigger approval call
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest
+          .fn()
+          .mockResolvedValueOnce(0) // First call: not approved
+          .mockResolvedValueOnce(0.001), // Second call: approved after approval
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: REFERRAL_CONFIG.mainnetCode },
+          },
+          referredBy: null, // User has no referral set
+        }),
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
+        }),
+        meta: jest.fn().mockResolvedValue({
+          universe: [
+            { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+            { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+          ],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+      });
+
+      const updateParams = {
+        coin: 'BTC',
+        takeProfitPrice: '55000',
+        stopLossPrice: '45000',
+      };
+
+      const result = await provider.updatePositionTPSL(updateParams);
+
+      expect(result.success).toBe(true);
+
+      // Verify builder fee approval was called
+      expect(
+        mockClientService.getExchangeClient().approveBuilderFee,
+      ).toHaveBeenCalledWith({
+        builder: expect.any(String),
+        maxFeeRate: expect.stringContaining('%'),
+      });
+
+      // Verify referral code was set
+      expect(
+        mockClientService.getExchangeClient().setReferrer,
+      ).toHaveBeenCalledWith({
+        code: expect.any(String),
+      });
+
+      // Verify order was placed with builder fee
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          orders: expect.any(Array),
+          grouping: 'positionTpsl',
+          builder: {
+            b: expect.any(String),
+            f: expect.any(Number),
+          },
+        }),
+      );
+    });
+
+    it('should skip referral setup when user is the builder', async () => {
+      // Mock user address to be the same as builder address
+      mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+        '0xe95a5e31904e005066614247d309e00d8ad753aa', // Builder address
+      );
+
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+
+      // Should not call setReferrer when user is the builder
+      expect(
+        mockClientService.getExchangeClient().setReferrer,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('should handle builder fee approval failure', async () => {
+      // Mock builder fee not approved to trigger approval call
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest.fn().mockResolvedValue(0), // Not approved
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: REFERRAL_CONFIG.mainnetCode },
+          },
+          referredBy: null, // User has no referral set
+        }),
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
+        }),
+        meta: jest.fn().mockResolvedValue({
+          universe: [
+            { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+            { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+          ],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+      });
+
+      // Mock builder fee approval to fail
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+        approveBuilderFee: jest
+          .fn()
+          .mockRejectedValue(new Error('Builder fee approval failed')),
+        setReferrer: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
+        order: jest.fn().mockResolvedValue({
+          status: 'ok',
+          response: { data: { statuses: [{ resting: { oid: '123' } }] } },
+        }),
+        updateLeverage: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
+      });
+
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Builder fee approval failed');
+    });
+
+    it('should handle referral code setup failure', async () => {
+      // Mock builder fee already approved
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest.fn().mockResolvedValue(0.001), // Already approved
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: REFERRAL_CONFIG.mainnetCode },
+          },
+          referredBy: null, // User has no referral set
+        }),
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
+        }),
+        meta: jest.fn().mockResolvedValue({
+          universe: [
+            { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+            { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+          ],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+      });
+
+      // Mock referral code setup to fail
+      mockClientService.getExchangeClient = jest.fn().mockReturnValue({
+        approveBuilderFee: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
+        setReferrer: jest
+          .fn()
+          .mockRejectedValue(new Error('Referral code setup failed')),
+        order: jest.fn().mockResolvedValue({
+          status: 'ok',
+          response: { data: { statuses: [{ resting: { oid: '123' } }] } },
+        }),
+        updateLeverage: jest.fn().mockResolvedValue({
+          status: 'ok',
+        }),
+      });
+
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('Error ensuring referral code is set');
+    });
+
+    it('should skip referral setup when referral code is not ready', async () => {
+      // Mock referral code not ready
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest.fn().mockResolvedValue(0.001),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'not_ready',
+            data: { code: REFERRAL_CONFIG.mainnetCode },
+          },
+          referredBy: null,
+        }),
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
+        }),
+        meta: jest.fn().mockResolvedValue({
+          universe: [
+            { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+            { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+          ],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+      });
+
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+
+      // Should not call setReferrer when referral code is not ready
+      expect(
+        mockClientService.getExchangeClient().setReferrer,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('should skip referral setup when user already has a referral', async () => {
+      // Mock user already has a referral
+      mockClientService.getInfoClient = jest.fn().mockReturnValue({
+        maxBuilderFee: jest.fn().mockResolvedValue(0.001),
+        referral: jest.fn().mockResolvedValue({
+          referrerState: {
+            stage: 'ready',
+            data: { code: REFERRAL_CONFIG.mainnetCode },
+          },
+          referredBy: { code: 'EXISTING_REFERRAL' }, // User already has referral
+        }),
+        clearinghouseState: jest.fn().mockResolvedValue({
+          assetPositions: [
+            {
+              position: {
+                coin: 'BTC',
+                szi: '0.1',
+                entryPx: '50000',
+                positionValue: '5000',
+                unrealizedPnl: '100',
+                marginUsed: '500',
+                leverage: { type: 'cross', value: 10 },
+                liquidationPx: '45000',
+                maxLeverage: 50,
+                returnOnEquity: '20',
+                cumFunding: {
+                  allTime: '10',
+                  sinceOpen: '5',
+                  sinceChange: '2',
+                },
+              },
+              type: 'oneWay',
+            },
+          ],
+        }),
+        spotClearinghouseState: jest.fn().mockResolvedValue({
+          balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
+        }),
+        meta: jest.fn().mockResolvedValue({
+          universe: [
+            { name: 'BTC', szDecimals: 3, maxLeverage: 50 },
+            { name: 'ETH', szDecimals: 4, maxLeverage: 50 },
+          ],
+        }),
+        allMids: jest.fn().mockResolvedValue({ BTC: '50000', ETH: '3000' }),
+        frontendOpenOrders: jest.fn().mockResolvedValue([]),
+      });
+
+      const orderParams: OrderParams = {
+        coin: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      const result = await provider.placeOrder(orderParams);
+
+      expect(result.success).toBe(true);
+
+      // Should not call setReferrer when user already has a referral
+      expect(
+        mockClientService.getExchangeClient().setReferrer,
+      ).not.toHaveBeenCalled();
     });
   });
 });

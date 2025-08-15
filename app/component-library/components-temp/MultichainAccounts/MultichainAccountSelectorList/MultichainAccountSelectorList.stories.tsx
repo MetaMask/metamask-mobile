@@ -7,38 +7,37 @@ import { Box } from '@metamask/design-system-react-native';
 
 import MultichainAccountSelectorList from './MultichainAccountSelectorList';
 
-const mockAccountGroup1: AccountGroupObject = {
-  id: 'keyring:test-group1/ethereum' as const,
-  type: AccountGroupType.SingleAccount,
-  metadata: {
-    name: 'Test Group 1',
-    pinned: false,
-    hidden: false,
-  },
-  accounts: ['account-id-1'],
-} as AccountGroupObject;
+const createMockAccountGroup = (
+  id: string,
+  name: string,
+  accounts: string[] = [`account-${id}`],
+): AccountGroupObject =>
+  ({
+    id: id as AccountGroupObject['id'],
+    type: AccountGroupType.SingleAccount,
+    metadata: {
+      name,
+      pinned: false,
+      hidden: false,
+    },
+    accounts: accounts as [string],
+  } as AccountGroupObject);
 
-const mockAccountGroup2: AccountGroupObject = {
-  id: 'keyring:test-group2/ethereum' as const,
-  type: AccountGroupType.SingleAccount,
-  metadata: {
-    name: 'Test Group 2',
-    pinned: false,
-    hidden: false,
-  },
-  accounts: ['account-id-2'],
-} as AccountGroupObject;
-
-const mockAccountGroup3: AccountGroupObject = {
-  id: 'keyring:test-group3/ethereum' as const,
-  type: AccountGroupType.SingleAccount,
-  metadata: {
-    name: 'Test Group 3',
-    pinned: false,
-    hidden: false,
-  },
-  accounts: ['account-id-3'],
-} as AccountGroupObject;
+const mockAccountGroup1 = createMockAccountGroup(
+  'test-group1',
+  'Test Group 1',
+  ['account-id-1'],
+);
+const mockAccountGroup2 = createMockAccountGroup(
+  'test-group2',
+  'Test Group 2',
+  ['account-id-2'],
+);
+const mockAccountGroup3 = createMockAccountGroup(
+  'test-group3',
+  'Test Group 3',
+  ['account-id-3'],
+);
 
 // Mock store with account sections
 const mockStore = configureStore({
@@ -64,6 +63,52 @@ const mockStore = configureStore({
                 },
               },
             },
+          },
+        },
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              'account-id-1': {
+                id: 'account-id-1',
+                address: '0x1234567890123456789012345678901234567890',
+                type: 'eip155:eoa',
+                scopes: ['eip155:1'],
+                options: {},
+                methods: ['personal_sign', 'eth_sign', 'eth_signTypedData_v4'],
+                metadata: {
+                  name: 'Test Group 1',
+                  keyring: { type: 'simple' },
+                  importTime: Date.now(),
+                },
+              },
+              'account-id-2': {
+                id: 'account-id-2',
+                address: '0x2345678901234567890123456789012345678901',
+                type: 'eip155:eoa',
+                scopes: ['eip155:1'],
+                options: {},
+                methods: ['personal_sign', 'eth_sign', 'eth_signTypedData_v4'],
+                metadata: {
+                  name: 'Test Group 2',
+                  keyring: { type: 'simple' },
+                  importTime: Date.now(),
+                },
+              },
+              'account-id-3': {
+                id: 'account-id-3',
+                address: '0x3456789012345678901234567890123456789012',
+                type: 'eip155:eoa',
+                scopes: ['eip155:1'],
+                options: {},
+                methods: ['personal_sign', 'eth_sign', 'eth_signTypedData_v4'],
+                metadata: {
+                  name: 'Test Group 3',
+                  keyring: { type: 'simple' },
+                  importTime: Date.now(),
+                },
+              },
+            },
+            selectedAccount: 'account-id-1',
           },
         },
         RemoteFeatureFlagController: {
@@ -97,11 +142,19 @@ const MultichainAccountSelectorListMeta = {
     onSelectAccount: { action: 'account selected' },
     selectedAccountGroup: {
       control: { type: 'object' },
-      defaultValue: null,
+      defaultValue: mockAccountGroup1,
     },
-    privacyMode: {
-      control: { type: 'boolean' },
-      defaultValue: false,
+    testID: {
+      control: { type: 'text' },
+      defaultValue: 'multichain-account-selector-list',
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        component:
+          'A component for selecting multichain accounts with search functionality and wallet grouping.',
+      },
     },
   },
 };

@@ -5,6 +5,7 @@ const createStyles = ({ theme }: { theme: Theme }) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      minHeight: 300,
     },
     searchContainer: {
       paddingHorizontal: 16,
@@ -32,6 +33,7 @@ const createStyles = ({ theme }: { theme: Theme }) =>
       flexGrow: 1,
       flexShrink: 1,
       flexDirection: 'row',
+      minHeight: 200,
     },
     sectionHeader: {
       paddingHorizontal: 16,
@@ -50,6 +52,7 @@ const createStyles = ({ theme }: { theme: Theme }) =>
       justifyContent: 'center',
       alignItems: 'center',
       paddingHorizontal: 32,
+      minHeight: 200,
     },
     emptyStateText: {
       color: theme.colors.text.muted,

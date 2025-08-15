@@ -236,7 +236,7 @@ const PerpsClosePositionBottomSheet: React.FC<
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
-      disabled:
+      isDisabled:
         isClosing ||
         (orderType === 'limit' &&
           (!limitPrice || parseFloat(limitPrice) <= 0)) ||

@@ -21,7 +21,6 @@ interface UsePerpsOrderValidationParams {
   availableBalance: number;
   marginRequired: string;
   selectedPaymentToken?: PerpsToken | null;
-  hasExistingPosition?: boolean;
 }
 
 interface ValidationResult {
@@ -45,7 +44,6 @@ export function usePerpsOrderValidation(
     availableBalance,
     marginRequired,
     selectedPaymentToken,
-    hasExistingPosition,
   } = params;
 
   const { validateOrder } = usePerpsTrading();
@@ -170,7 +168,6 @@ export function usePerpsOrderValidation(
     availableBalance,
     marginRequired,
     selectedPaymentToken?.chainId,
-    hasExistingPosition,
     validateOrder,
   ]);
 
