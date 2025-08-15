@@ -5,8 +5,9 @@ import { type InternalAccount } from '@metamask/keyring-internal-api';
 export interface Props {
   route: {
     params: {
-      groupId: AccountGroupId;
       title: string;
+      groupId: AccountGroupId;
+      revealPrivateKey: boolean;
     };
   };
 }
