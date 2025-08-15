@@ -51,7 +51,8 @@ export const RecipientInput = ({
         }, 100);
       }
     } catch (error) {
-      // Do nothing
+      // Might consider showing an alert here if pasting fails
+      // for now just ignore it
     }
   }, [
     updateTo,
