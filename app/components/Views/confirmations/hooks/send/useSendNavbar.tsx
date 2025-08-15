@@ -15,13 +15,25 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
+import { useSendContext } from '../../context/send-context/send-context';
 import { useSendActions } from './useSendActions';
 
 export function useSendNavbar({ currentRoute }: { currentRoute: string }) {
   const navigation = useNavigation();
   const { handleCancelPress, handleBackPress } = useSendActions();
+  const { updateTo, updateAsset } = useSendContext();
   const theme = useTheme();
   const tw = useTailwind();
+
+  const onBackPress = useCallback(() => {
+    if (currentRoute === Routes.SEND.RECIPIENT) {
+      updateTo('');
+    }
+    if (currentRoute === Routes.SEND.AMOUNT) {
+      updateAsset(undefined);
+    }
+    handleBackPress();
+  }, [currentRoute, updateTo, updateAsset, handleBackPress]);
 
   const styles = useMemo(
     () => ({
@@ -42,12 +54,12 @@ export function useSendNavbar({ currentRoute }: { currentRoute: string }) {
       <ButtonIcon
         size={ButtonIconSize.Lg}
         iconName={IconName.ArrowLeft}
-        onPress={handleBackPress}
-        twClassName="ml-4"
+        onPress={onBackPress}
+        twClassName="ml-2"
         testID="send-navbar-back-button"
       />
     ),
-    [handleBackPress],
+    [onBackPress],
   );
 
   const headerRight = useCallback(
@@ -56,7 +68,7 @@ export function useSendNavbar({ currentRoute }: { currentRoute: string }) {
         size={ButtonIconSize.Lg}
         iconName={IconName.Close}
         onPress={handleCancelPress}
-        twClassName="mx-4"
+        twClassName="mr-1"
         testID="send-navbar-close-button"
       />
     ),
