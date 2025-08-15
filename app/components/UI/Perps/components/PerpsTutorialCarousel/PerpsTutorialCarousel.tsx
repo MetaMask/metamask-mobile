@@ -29,6 +29,17 @@ import type { PerpsNavigationParamList } from '../../controllers/types';
 import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import createStyles from './PerpsTutorialCarousel.styles';
+import Rive, { Alignment, Fit } from 'rive-react-native';
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+const PerpsOnboardingAnimation = require('../../animations/perps-onboarding-carousel.riv');
+
+const PERPS_RIVE_ARTBOARD_NAMES = {
+  SHORT_LONG: 'Short_Long_v03',
+  LEVERAGE: 'Leverage_v03',
+  LIQUIDATION: 'Liquidation_v03',
+  CLOSE: 'Close_v03',
+  READY: 'Ready_v03',
+};
 
 const tutorialScreens = [
   {
@@ -42,26 +53,31 @@ const tutorialScreens = [
     title: strings('perps.tutorial.go_long_or_short.title'),
     description: strings('perps.tutorial.go_long_or_short.description'),
     subtitle: strings('perps.tutorial.go_long_or_short.subtitle'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
   },
   {
     id: 'choose_leverage',
     title: strings('perps.tutorial.choose_leverage.title'),
     description: strings('perps.tutorial.choose_leverage.description'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
   },
   {
     id: 'watch_liquidation',
     title: strings('perps.tutorial.watch_liquidation.title'),
     description: strings('perps.tutorial.watch_liquidation.description'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
   },
   {
     id: 'close_anytime',
     title: strings('perps.tutorial.close_anytime.title'),
     description: strings('perps.tutorial.close_anytime.description'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.CLOSE,
   },
   {
     id: 'ready_to_trade',
     title: strings('perps.tutorial.ready_to_trade.title'),
     description: strings('perps.tutorial.ready_to_trade.description'),
+    riveArtboardName: PERPS_RIVE_ARTBOARD_NAMES.READY,
   },
 ];
 
@@ -178,9 +194,9 @@ const PerpsTutorialCarousel: React.FC = () => {
     <View style={[styles.container, { paddingTop: safeAreaInsets.top }]}>
       {/* Progress Dots */}
       <View style={styles.progressContainer}>
-        {tutorialScreens.map((_, index) => (
+        {tutorialScreens.map((screen, index) => (
           <View
-            key={index}
+            key={screen.id}
             style={[
               styles.progressDot,
               currentTab === index && styles.progressDotActive,
@@ -226,6 +242,18 @@ const PerpsTutorialCarousel: React.FC = () => {
                     >
                       {screen.subtitle}
                     </Text>
+                  )}
+                  {screen?.riveArtboardName && (
+                    // Animation Container
+                    <View style={styles.animationContainer}>
+                      <Rive
+                        artboardName={screen.riveArtboardName}
+                        source={PerpsOnboardingAnimation}
+                        fit={Fit.Cover}
+                        alignment={Alignment.Center}
+                        autoplay
+                      />
+                    </View>
                   )}
                 </View>
               </View>
