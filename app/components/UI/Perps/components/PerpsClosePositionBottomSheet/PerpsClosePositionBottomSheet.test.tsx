@@ -69,6 +69,10 @@ jest.mock('../../hooks', () => ({
     BTC: { price: '45000' },
     ETH: { price: '2500' },
   })),
+  useLivePrices: jest.fn(() => ({
+    BTC: { price: '45000' },
+    ETH: { price: '2500' },
+  })),
   usePerpsOrderFees: jest.fn(() => ({
     totalFee: 45,
     protocolFee: 45,

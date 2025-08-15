@@ -57,9 +57,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-// Mock usePerpsPrices hook
-jest.mock('../../hooks/usePerpsPrices', () => ({
-  usePerpsPrices: jest.fn(),
+// Mock stream hooks
+jest.mock('../../hooks/stream', () => ({
+  useLivePrices: jest.fn(() => ({})),
 }));
 
 // Mock usePerpsConnection hook
@@ -371,8 +371,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
   describe('Price Data Integration', () => {
     it('uses real-time price data when available', () => {
       // Arrange - Mock returns real-time data
-      const { usePerpsPrices } = jest.requireMock('../../hooks/usePerpsPrices');
-      usePerpsPrices.mockReturnValue({
+      const { useLivePrices } = jest.requireMock('../../hooks/stream');
+      useLivePrices.mockReturnValue({
         ETH: {
           price: '3200.00',
           markPrice: '3201.00',
@@ -392,8 +392,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
     it('falls back to passed current price when real-time data unavailable', () => {
       // Arrange - Mock returns no real-time data
-      const { usePerpsPrices } = jest.requireMock('../../hooks/usePerpsPrices');
-      usePerpsPrices.mockReturnValue({});
+      const { useLivePrices } = jest.requireMock('../../hooks/stream');
+      useLivePrices.mockReturnValue({});
 
       // Act
       render(<PerpsLimitPriceBottomSheet {...defaultProps} />);
@@ -405,8 +405,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
     it('displays unavailable prices when no data', () => {
       // Arrange
       const propsWithoutPrice = { ...defaultProps, currentPrice: 0 };
-      const { usePerpsPrices } = jest.requireMock('../../hooks/usePerpsPrices');
-      usePerpsPrices.mockReturnValue({});
+      const { useLivePrices } = jest.requireMock('../../hooks/stream');
+      useLivePrices.mockReturnValue({});
 
       // Act
       render(<PerpsLimitPriceBottomSheet {...propsWithoutPrice} />);
@@ -417,8 +417,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
     it('calculates default bid/ask spreads when order book data unavailable', () => {
       // Arrange - Mock returns only basic price data
-      const { usePerpsPrices } = jest.requireMock('../../hooks/usePerpsPrices');
-      usePerpsPrices.mockReturnValue({
+      const { useLivePrices } = jest.requireMock('../../hooks/stream');
+      useLivePrices.mockReturnValue({
         ETH: {
           price: '3000.00',
           markPrice: '3001.00',

@@ -24,7 +24,8 @@ import { strings } from '../../../../../../locales/i18n';
 
 import type { Position } from '../../controllers/types';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
-import { usePerpsPrices, usePerpsPerformance } from '../../hooks';
+import { usePerpsPerformance } from '../../hooks';
+import { useLivePrices } from '../../hooks/stream';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   PerpsEventProperties,
@@ -104,7 +105,11 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const { track } = usePerpsEventTracking();
 
   // Subscribe to real-time price only when visible and we have an asset
-  const priceData = usePerpsPrices(isVisible && asset ? [asset] : [], {});
+  // Use 1s debounce for TP/SL bottom sheet
+  const priceData = useLivePrices({
+    symbols: isVisible && asset ? [asset] : [],
+    debounceMs: 1000,
+  });
   const livePrice = priceData[asset]?.price
     ? parseFloat(priceData[asset].price)
     : undefined;
@@ -745,6 +750,15 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 };
 
 PerpsTPSLBottomSheet.displayName = 'PerpsTPSLBottomSheet';
+
+// Enable WDYR tracking in development
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsTPSLBottomSheet as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsTPSLBottomSheet',
+  };
+}
 
 export default memo(
   PerpsTPSLBottomSheet,

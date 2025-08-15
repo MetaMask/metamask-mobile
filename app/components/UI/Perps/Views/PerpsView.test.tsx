@@ -35,6 +35,12 @@ jest.mock('../hooks', () => ({
     SOL: { price: '100', percentChange24h: '5.0' },
     ARB: { price: '2', percentChange24h: '-3.0' },
   })),
+  useLivePrices: jest.fn(() => ({
+    'BTC-PERP': { price: '50000', percentChange24h: '2.5' },
+    'ETH-PERP': { price: '3000', percentChange24h: '-1.2' },
+    'SOL-PERP': { price: '100', percentChange24h: '5.0' },
+    'ARB-PERP': { price: '2', percentChange24h: '-3.0' },
+  })),
 }));
 
 // Mock the hooks that deal with styles
