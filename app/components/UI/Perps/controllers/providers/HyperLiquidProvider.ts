@@ -805,8 +805,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orders.push(slOrder);
       }
 
+      // If no new orders, we've just cancelled existing ones (clearing TP/SL)
       if (orders.length === 0) {
-        throw new Error('No TP/SL prices provided');
+        DevLogger.log('No new TP/SL orders to place - existing ones cancelled');
+        return {
+          success: true,
+          // No orderId since we only cancelled orders, didn't place new ones
+        };
       }
 
       // Submit via SDK exchange client with positionTpsl grouping
@@ -1145,6 +1150,93 @@ export class HyperLiquidProvider implements IPerpsProvider {
       return orders;
     } catch (error) {
       DevLogger.log('Error getting user orders:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get currently open orders (real-time status)
+   * Uses frontendOpenOrders API to get only currently active orders
+   */
+  async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
+    try {
+      DevLogger.log(
+        'Getting currently open orders via HyperLiquid SDK:',
+        params,
+      );
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawOrders = await infoClient.frontendOpenOrders({
+        user: userAddress,
+      });
+
+      DevLogger.log('Currently open orders received:', rawOrders);
+
+      // Transform HyperLiquid open orders to abstract Order type
+      const orders: Order[] = (rawOrders || []).map((rawOrder) => {
+        const orderId = rawOrder.oid?.toString() || '';
+        const symbol = rawOrder.coin;
+        const side = rawOrder.side === 'B' ? 'buy' : 'sell';
+        const detailedOrderType = rawOrder.orderType || '';
+        const orderType = detailedOrderType.toLowerCase().includes('limit')
+          ? 'limit'
+          : 'market';
+        const size = rawOrder.sz;
+        const originalSize = rawOrder.origSz || size;
+        const price = rawOrder.limitPx || rawOrder.triggerPx || '0';
+        const isTrigger = rawOrder.isTrigger || false;
+        const reduceOnly = rawOrder.reduceOnly || false;
+
+        // Calculate filled and remaining size
+        const currentSize = parseFloat(size);
+        const origSize = parseFloat(originalSize);
+        const filledSize = origSize - currentSize;
+
+        // Check for TP/SL in child orders
+        let takeProfitPrice: string | undefined;
+        let stopLossPrice: string | undefined;
+
+        if (rawOrder.children && rawOrder.children.length > 0) {
+          rawOrder.children.forEach((child: typeof rawOrder) => {
+            if (child.isTrigger && child.orderType) {
+              if (child.orderType.includes('Take Profit')) {
+                takeProfitPrice = child.triggerPx || child.limitPx;
+              } else if (child.orderType.includes('Stop')) {
+                stopLossPrice = child.triggerPx || child.limitPx;
+              }
+            }
+          });
+        }
+
+        return {
+          orderId,
+          symbol,
+          side,
+          orderType,
+          size,
+          originalSize,
+          price,
+          filledSize: filledSize.toString(),
+          remainingSize: size,
+          status: 'open' as const,
+          timestamp: rawOrder.timestamp,
+          lastUpdated: rawOrder.timestamp,
+          takeProfitPrice,
+          stopLossPrice,
+          detailedOrderType,
+          isTrigger,
+          reduceOnly,
+        };
+      });
+
+      return orders;
+    } catch (error) {
+      DevLogger.log('Error getting currently open orders:', error);
       return [];
     }
   }
