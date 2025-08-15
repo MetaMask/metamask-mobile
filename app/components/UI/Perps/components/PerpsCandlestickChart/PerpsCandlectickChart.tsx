@@ -15,13 +15,10 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import {
-  PinchGestureHandler,
   PanGestureHandler,
   State,
-  PinchGestureHandlerEventPayload,
   PanGestureHandlerEventPayload,
   HandlerStateChangeEvent,
-  PinchGestureHandlerGestureEvent,
   PanGestureHandlerGestureEvent,
 } from 'react-native-gesture-handler';
 import { CandlestickChart } from 'react-native-wagmi-charts';
@@ -117,8 +114,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
   const baseTranslateY = useSharedValue(0);
   const candleTranslateX = useSharedValue(0); // ✨ NEW: Individual candle translation (not chart container)
 
-  // Gesture handler refs for simultaneous handling
-  const pinchRef = useRef(null);
+  // Gesture handler ref
   const panRef = useRef(null);
 
   // ✨ NEW: Custom candle rendering with reanimated scaling + horizontal spacing
@@ -222,24 +218,42 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
     [candleScaleX, candleScaleY, chartWidth, candleTranslateX],
   );
 
-  // ✨ NEW: Reanimated zoom functions (smooth candle scaling)
+  // ✨ NEW: Reanimated zoom functions (smooth candle scaling + coordinated translation)
   const handleZoomIn = useCallback(() => {
     const newScaleX = Math.min(5, candleScaleX.value * 1.2); // Zoom in = wider candles
     const newScaleY = Math.min(3, candleScaleY.value * 1.1); // Zoom in = taller candles (less aggressive)
 
+    // ✨ COORDINATED TRANSLATION: Scale candles + move all candles left simultaneously
+    const scaleIncrease = newScaleX / candleScaleX.value; // How much wider candles are getting
+    const translationStep = 60 * (scaleIncrease - 1); // More noticeable translation (increased from 30 to 60)
+    const newTranslateX = candleTranslateX.value - translationStep; // Move all candles left
+
     candleScaleX.value = withSpring(newScaleX, { damping: 12, stiffness: 100 });
     candleScaleY.value = withSpring(newScaleY, { damping: 12, stiffness: 100 });
+    candleTranslateX.value = withSpring(newTranslateX, {
+      damping: 12,
+      stiffness: 100,
+    }); // Smooth coordinated translation
     setDisplayScale(newScaleX); // Use X scale for debug display
-  }, [candleScaleX, candleScaleY]);
+  }, [candleScaleX, candleScaleY, candleTranslateX]);
 
   const handleZoomOut = useCallback(() => {
     const newScaleX = Math.max(0.3, candleScaleX.value / 1.2); // Zoom out = narrower candles
     const newScaleY = Math.max(0.5, candleScaleY.value / 1.1); // Zoom out = shorter candles
 
+    // ✨ COORDINATED TRANSLATION: Scale candles + move all candles right to re-center
+    const scaleDecrease = candleScaleX.value / newScaleX; // How much smaller candles are getting
+    const translationStep = 60 * (scaleDecrease - 1); // More noticeable translation (increased from 30 to 60)
+    const newTranslateX = candleTranslateX.value + translationStep; // Move all candles right
+
     candleScaleX.value = withSpring(newScaleX, { damping: 12, stiffness: 100 });
     candleScaleY.value = withSpring(newScaleY, { damping: 12, stiffness: 100 });
+    candleTranslateX.value = withSpring(newTranslateX, {
+      damping: 12,
+      stiffness: 100,
+    }); // Smooth coordinated translation
     setDisplayScale(newScaleX); // Use X scale for debug display
-  }, [candleScaleX, candleScaleY]);
+  }, [candleScaleX, candleScaleY, candleTranslateX]);
 
   const canZoomIn = true; // Always allow zoom in (scale up to 5x)
   const canZoomOut = true; // Always allow zoom out (scale down to 0.5x)
@@ -632,7 +646,7 @@ const CandlestickChartComponent: React.FC<CandlestickChartComponentProps> = ({
         testID={PerpsChartAdditionalSelectorsIDs.CANDLESTICK_AUXILIARY_LINES}
       />
       <View style={styles.chartContainer}>
-        {/* ✨ NEW: Single Pan Gesture Handler (no nesting - eliminates reanimated warning) */}
+        {/* ✨ NEW: Single Pan Gesture Handler for smooth panning */}
         <View style={styles.relativeContainer}>
           <PanGestureHandler
             ref={panRef}
