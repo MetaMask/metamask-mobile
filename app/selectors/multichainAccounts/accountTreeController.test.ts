@@ -22,6 +22,7 @@ import { AccountGroupType } from '@metamask/account-api';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 import { EthScope, SolScope } from '@metamask/keyring-api';
+import { CaipChainId } from '@metamask/utils';
 
 const WALLET_ID_1 = 'keyring:wallet1' as const;
 const WALLET_ID_2 = 'keyring:wallet2' as const;
@@ -160,20 +161,31 @@ const mockWallet2 = createMockWallet(WALLET_ID_2, 'Wallet 2', {
 
 const mockInternalAccounts = {
   account1: {
-    id: 'account1',
-    address: '0x123',
-    methods: [],
-    options: {},
-    type: 'eip155:eoa',
-    metadata: { name: 'Account 1' },
+    ...createMockInternalAccount('0x123', 'Account 1'),
+    id: 'account1', // Ensure ID matches the key used in wallet groups
+    scopes: [EthScope.Eoa, 'eip155:137'] as CaipChainId[],
   },
   account2: {
-    id: 'account2',
-    address: '0x456',
-    methods: [],
-    options: {},
-    type: 'eip155:eoa',
-    metadata: { name: 'Account 2' },
+    ...createMockInternalAccount('0x456', 'Account 2'),
+    id: 'account2', // Ensure ID matches the key used in wallet groups
+    scopes: [EthScope.Eoa] as CaipChainId[],
+  },
+  account3: {
+    ...createMockInternalAccount(
+      '0xabcdef1234567890abcdef1234567890abcdef12',
+      'Account 3',
+    ),
+    id: 'account3', // Ensure ID matches the key used in wallet groups
+    type: 'solana:data-account' as const,
+    scopes: [SolScope.Mainnet] as CaipChainId[],
+  },
+  account4: {
+    ...createMockInternalAccount(
+      '0xdeadbeef1234567890deadbeef1234567890dead',
+      'Account 4',
+    ),
+    id: 'account4', // Ensure ID matches the key used in wallet groups
+    scopes: ['eip155:137'] as CaipChainId[],
   },
 };
 
@@ -1195,43 +1207,43 @@ describe('AccountTreeController Selectors', () => {
   });
 
   describe('selectInternalAccountFromAccountGroup', () => {
-    const mockInternalAccounts: Record<AccountId, InternalAccount> = {
+    const mockInternalAccountsForGroup = {
       account1: {
         ...createMockInternalAccount(
           '0x1234567890123456789012345678901234567890',
           'Account 1',
         ),
-        scopes: [EthScope.Eoa, 'eip155:137'],
+        scopes: [EthScope.Eoa, 'eip155:137'] as CaipChainId[],
       },
       account2: {
         ...createMockInternalAccount(
           '0x0987654321098765432109876543210987654321',
           'Account 2',
         ),
-        scopes: [EthScope.Eoa],
+        scopes: [EthScope.Eoa] as CaipChainId[],
       },
       account3: {
         ...createMockInternalAccount(
           '0xabcdef1234567890abcdef1234567890abcdef12',
           'Account 3',
         ),
-        type: 'solana:data-account',
-        scopes: [SolScope.Mainnet],
+        type: 'solana:data-account' as const,
+        scopes: [SolScope.Mainnet] as CaipChainId[],
       },
       account4: {
         ...createMockInternalAccount(
           '0xdeadbeef1234567890deadbeef1234567890dead',
           'Account 4',
         ),
-        scopes: ['eip155:137'],
+        scopes: ['eip155:137'] as CaipChainId[],
       },
-    };
+    } as Record<AccountId, InternalAccount>;
 
     it('returns null when group is null', () => {
       const result = selectInternalAccountFromAccountGroup(
         null,
         EthScope.Eoa,
-        mockInternalAccounts,
+        mockInternalAccountsForGroup,
       );
       expect(result).toBeNull();
     });
@@ -1240,7 +1252,7 @@ describe('AccountTreeController Selectors', () => {
       const result = selectInternalAccountFromAccountGroup(
         undefined as unknown as null,
         EthScope.Eoa,
-        mockInternalAccounts,
+        mockInternalAccountsForGroup,
       );
       expect(result).toBeNull();
     });
@@ -1255,7 +1267,7 @@ describe('AccountTreeController Selectors', () => {
       const result = selectInternalAccountFromAccountGroup(
         emptyGroup,
         EthScope.Eoa,
-        mockInternalAccounts,
+        mockInternalAccountsForGroup,
       );
       expect(result).toBeNull();
     });
@@ -1268,7 +1280,7 @@ describe('AccountTreeController Selectors', () => {
       const result = selectInternalAccountFromAccountGroup(
         group,
         'eip155:999',
-        mockInternalAccounts,
+        mockInternalAccountsForGroup,
       );
       expect(result).toBeNull();
     });
@@ -1282,9 +1294,9 @@ describe('AccountTreeController Selectors', () => {
       const result = selectInternalAccountFromAccountGroup(
         group,
         EthScope.Eoa,
-        mockInternalAccounts,
+        mockInternalAccountsForGroup,
       );
-      expect(result).toEqual(mockInternalAccounts.account1);
+      expect(result).toEqual(mockInternalAccountsForGroup.account1);
     });
 
     it('returns account with exact scope match for non-EVM chains', () => {
@@ -1295,9 +1307,9 @@ describe('AccountTreeController Selectors', () => {
       const result = selectInternalAccountFromAccountGroup(
         group,
         SolScope.Mainnet,
-        mockInternalAccounts,
+        mockInternalAccountsForGroup,
       );
-      expect(result).toEqual(mockInternalAccounts.account3);
+      expect(result).toEqual(mockInternalAccountsForGroup.account3);
     });
 
     it('returns null when account exists but has no scopes', () => {
@@ -1330,7 +1342,7 @@ describe('AccountTreeController Selectors', () => {
       const result = selectInternalAccountFromAccountGroup(
         group,
         EthScope.Eoa,
-        mockInternalAccounts,
+        mockInternalAccountsForGroup,
       );
       expect(result).toBeNull();
     });
@@ -1343,9 +1355,9 @@ describe('AccountTreeController Selectors', () => {
       const result = selectInternalAccountFromAccountGroup(
         group,
         'eip155:137',
-        mockInternalAccounts,
+        mockInternalAccountsForGroup,
       );
-      expect(result).toEqual(mockInternalAccounts.account1);
+      expect(result).toEqual(mockInternalAccountsForGroup.account1);
     });
 
     it('returns null for EVM scope when account only has non-EVM scopes', () => {
@@ -1355,7 +1367,7 @@ describe('AccountTreeController Selectors', () => {
       const result = selectInternalAccountFromAccountGroup(
         group,
         EthScope.Eoa,
-        mockInternalAccounts,
+        mockInternalAccountsForGroup,
       );
       expect(result).toBeNull();
     });
@@ -1379,9 +1391,9 @@ describe('AccountTreeController Selectors', () => {
       const result = selectInternalAccountFromAccountGroup(
         group,
         EthScope.Eoa,
-        mockInternalAccounts,
+        mockInternalAccountsForGroup,
       );
-      expect(result).toEqual(mockInternalAccounts.account2);
+      expect(result).toEqual(mockInternalAccountsForGroup.account2);
     });
 
     it('handles group with single account that does not match', () => {
@@ -1391,7 +1403,7 @@ describe('AccountTreeController Selectors', () => {
       const result = selectInternalAccountFromAccountGroup(
         group,
         'eip155:137',
-        mockInternalAccounts,
+        mockInternalAccountsForGroup,
       );
       expect(result).toBeNull();
     });
