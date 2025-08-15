@@ -149,3 +149,39 @@ export const calculatePercentageForPrice = (
   const isValidDirection = isLong ? priceDiff < 0 : priceDiff > 0;
   return isValidDirection ? percentage.toFixed(2) : `-${percentage.toFixed(2)}`;
 };
+
+/**
+ * Checks if take profit or stop loss values have changed from their initial values
+ * @param currentTakeProfitPrice Current take profit price value
+ * @param currentStopLossPrice Current stop loss price value
+ * @param initialTakeProfitPrice Initial take profit price value
+ * @param initialStopLossPrice Initial stop loss price value
+ * @returns true if either value has changed, false if both are unchanged
+ */
+export const hasTPSLValuesChanged = (
+  currentTakeProfitPrice: string | undefined,
+  currentStopLossPrice: string | undefined,
+  initialTakeProfitPrice: string | undefined,
+  initialStopLossPrice: string | undefined,
+): boolean => {
+  // Normalize values - remove formatting, convert to numbers for comparison
+  const normalizeValue = (value: string | undefined): number | undefined => {
+    if (!value || value.trim() === '') return undefined;
+    const cleaned = value.replace(/[$,]/g, '');
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) ? undefined : parsed;
+  };
+
+  const normalizedCurrentTP = normalizeValue(currentTakeProfitPrice);
+  const normalizedCurrentSL = normalizeValue(currentStopLossPrice);
+  const normalizedInitialTP = normalizeValue(initialTakeProfitPrice);
+  const normalizedInitialSL = normalizeValue(initialStopLossPrice);
+
+  // Check if take profit has changed
+  const tpChanged = normalizedCurrentTP !== normalizedInitialTP;
+
+  // Check if stop loss has changed
+  const slChanged = normalizedCurrentSL !== normalizedInitialSL;
+
+  return tpChanged || slChanged;
+};

@@ -20,13 +20,11 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
-import PerpsClosePositionBottomSheet from '../../components/PerpsClosePositionBottomSheet';
 import type { Position } from '../../controllers/types';
 import {
   usePerpsAccount,
   usePerpsPositions,
   usePerpsTPSLUpdate,
-  usePerpsClosePosition,
 } from '../../hooks';
 import { formatPnl, formatPrice } from '../../utils/formatUtils';
 import { calculateTotalPnL } from '../../utils/pnlCalculations';
@@ -43,7 +41,6 @@ const PerpsPositionsView: React.FC = () => {
     null,
   );
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
-  const [isClosePositionVisible, setIsClosePositionVisible] = useState(false);
 
   const { positions, isLoading, isRefreshing, error, loadPositions } =
     usePerpsPositions({
@@ -55,15 +52,6 @@ const PerpsPositionsView: React.FC = () => {
     onSuccess: () => {
       // Refresh positions to show updated data
       loadPositions({ isRefresh: true });
-    },
-  });
-
-  const { handleClosePosition, isClosing } = usePerpsClosePosition({
-    onSuccess: () => {
-      // Refresh positions to show updated data
-      loadPositions({ isRefresh: true });
-      setIsClosePositionVisible(false);
-      setSelectedPosition(null);
     },
   });
 
@@ -88,16 +76,6 @@ const PerpsPositionsView: React.FC = () => {
 
   const handleRefresh = () => {
     loadPositions({ isRefresh: true });
-  };
-
-  const handleEditTPSL = (position: Position) => {
-    setSelectedPosition(position);
-    setIsTPSLVisible(true);
-  };
-
-  const handleClosePositionClick = (position: Position) => {
-    setSelectedPosition(position);
-    setIsClosePositionVisible(true);
   };
 
   const renderContent = () => {
@@ -151,8 +129,6 @@ const PerpsPositionsView: React.FC = () => {
           <PerpsPositionCard
             key={`${position.coin}-${index}`}
             position={position}
-            onEdit={handleEditTPSL}
-            onClose={handleClosePositionClick}
           />
         ))}
       </View>
@@ -260,27 +236,6 @@ const PerpsPositionsView: React.FC = () => {
           initialTakeProfitPrice={selectedPosition.takeProfitPrice}
           initialStopLossPrice={selectedPosition.stopLossPrice}
           isUpdating={isUpdating}
-        />
-      )}
-
-      {/* Close Position Bottom Sheet */}
-      {isClosePositionVisible && selectedPosition && (
-        <PerpsClosePositionBottomSheet
-          isVisible
-          onClose={() => {
-            setIsClosePositionVisible(false);
-            setSelectedPosition(null);
-          }}
-          onConfirm={async (size, orderType, limitPrice) => {
-            await handleClosePosition(
-              selectedPosition,
-              size,
-              orderType,
-              limitPrice,
-            );
-          }}
-          position={selectedPosition}
-          isClosing={isClosing}
         />
       )}
     </SafeAreaView>

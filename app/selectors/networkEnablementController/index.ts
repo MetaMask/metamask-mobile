@@ -19,5 +19,5 @@ export const selectEVMEnabledNetworks = createDeepEqualSelector(
   ) =>
     Object.keys(enabledNetworksByNamespace?.eip155 ?? {}).filter(
       (chainId) => enabledNetworksByNamespace?.eip155?.[chainId as Hex],
-    ),
+    ) as Hex[],
 );

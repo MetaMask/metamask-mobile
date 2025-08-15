@@ -386,7 +386,10 @@
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
-    "isFirstTimeUser": true
+    "isFirstTimeUser": {
+      "testnet": true,
+      "mainnet": true
+    }
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
