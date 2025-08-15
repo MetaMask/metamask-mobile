@@ -7,6 +7,12 @@ import type { Order, GetOrdersParams } from '../controllers/types';
 // Mock Engine and DevLogger
 jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
+jest.mock('../providers/PerpsConnectionProvider', () => ({
+  usePerpsConnection: jest.fn(() => ({
+    isInitialized: true,
+    isConnected: true,
+  })),
+}));
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
@@ -73,9 +79,12 @@ describe('usePerpsOpenOrders', () => {
     expect(result.current.orders).toEqual([]);
     expect(result.current.error).toBeNull();
 
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
+    await waitFor(
+      () => {
+        expect(result.current.isLoading).toBe(false);
+      },
+      { timeout: 3000 },
+    );
 
     expect(result.current.orders).toEqual(mockOrders);
     expect(

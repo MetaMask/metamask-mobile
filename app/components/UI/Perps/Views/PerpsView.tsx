@@ -174,7 +174,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   } = usePerpsConnection();
 
   // Get real-time prices for popular assets
-  const priceData = usePerpsPrices(POPULAR_ASSETS);
+  const priceData = usePerpsPrices(POPULAR_ASSETS, {});
 
   // Parse available balance to check if withdrawal should be enabled
   const hasAvailableBalance = useCallback((): boolean => {
@@ -281,14 +281,16 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     });
   };
 
-  const handleDepositNavigation = async () => {
-    const { result: depositResult } = await depositWithConfirmation();
-
+  const handleDepositNavigation = () => {
+    // Navigate immediately to confirmations screen for instant UI response
     navigation.navigate(Routes.PERPS.ROOT, {
       screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
     });
 
-    await depositResult;
+    // Initialize deposit in the background without blocking
+    depositWithConfirmation().catch((error) => {
+      console.error('Failed to initialize deposit:', error);
+    });
   };
 
   const handleWithdrawNavigation = () => {

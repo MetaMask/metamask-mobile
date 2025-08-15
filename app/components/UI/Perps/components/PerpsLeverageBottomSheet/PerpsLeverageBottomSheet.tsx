@@ -44,17 +44,26 @@ import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 import { strings } from '../../../../../../locales/i18n';
 import { Theme } from '../../../../../util/theme/models';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
-  onConfirm: (leverage: number) => void;
+  onConfirm: (leverage: number, inputMethod?: 'slider' | 'preset') => void;
   leverage: number;
   minLeverage: number;
   maxLeverage: number;
   currentPrice: number;
   liquidationPrice: number;
   direction: 'long' | 'short';
+  asset?: string;
 }
 
 // Custom Leverage Slider Component
@@ -64,7 +73,8 @@ const LeverageSlider: React.FC<{
   minValue: number;
   maxValue: number;
   colors: Theme['colors'];
-}> = ({ value, onValueChange, minValue, maxValue, colors }) => {
+  onInteraction?: () => void;
+}> = ({ value, onValueChange, minValue, maxValue, colors, onInteraction }) => {
   const styles = createStyles(colors);
   const sliderWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
@@ -122,8 +132,9 @@ const LeverageSlider: React.FC<{
   const updateValue = useCallback(
     (newValue: number) => {
       onValueChange(newValue);
+      onInteraction?.();
     },
-    [onValueChange],
+    [onValueChange, onInteraction],
   );
 
   const panGesture = Gesture.Pan()
@@ -216,21 +227,52 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   currentPrice,
   liquidationPrice,
   direction,
+  asset = '',
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [tempLeverage, setTempLeverage] = useState(initialLeverage);
+  const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
+  const { track } = usePerpsEventTracking();
+  const hasTrackedLeverageView = useRef(false);
+
+  // Track screen load performance
+  usePerpsScreenTracking({
+    screenName: PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
+    dependencies: [isVisible],
+  });
 
   useEffect(() => {
     if (isVisible) {
       bottomSheetRef.current?.onOpenBottomSheet();
+    } else {
+      // Reset the flag and leverage when the bottom sheet is closed
+      hasTrackedLeverageView.current = false;
+      setTempLeverage(initialLeverage);
     }
-  }, [isVisible]);
+  }, [isVisible, initialLeverage]);
+
+  // Track leverage screen viewed event - separate concern
+  useEffect(() => {
+    if (isVisible && !hasTrackedLeverageView.current) {
+      track(MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED, {
+        [PerpsEventProperties.ASSET]: asset,
+        [PerpsEventProperties.DIRECTION]:
+          direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+      });
+      hasTrackedLeverageView.current = true;
+    }
+  }, [isVisible, direction, asset, track]);
 
   const handleConfirm = () => {
-    DevLogger.log(`Confirming leverage: ${tempLeverage}`);
-    onConfirm(tempLeverage);
+    DevLogger.log(
+      `Confirming leverage: ${tempLeverage}, method: ${inputMethod}`,
+    );
+
+    onConfirm(tempLeverage, inputMethod);
     onClose();
   };
 
@@ -391,6 +433,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             minValue={minLeverage}
             maxValue={maxLeverage}
             colors={colors}
+            onInteraction={() => setInputMethod('slider')}
           />
           <View style={styles.sliderLabels}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
@@ -411,7 +454,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 styles.quickSelectButton,
                 tempLeverage === value && styles.quickSelectButtonActive,
               ]}
-              onPress={() => setTempLeverage(value)}
+              onPress={() => {
+                setTempLeverage(value);
+                setInputMethod('preset');
+              }}
             >
               <Text
                 variant={TextVariant.BodyLGMedium}
