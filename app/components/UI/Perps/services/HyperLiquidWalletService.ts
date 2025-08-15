@@ -5,7 +5,7 @@ import {
   isValidHexAddress,
 } from '@metamask/utils';
 import { store } from '../../../../store';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import Engine from '../../../../core/Engine';
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import { getChainId } from '../constants/hyperLiquidConfig';
@@ -38,9 +38,9 @@ export class HyperLiquidWalletService {
       }): Promise<unknown> => {
         switch (args.method) {
           case 'eth_requestAccounts': {
-            const selectedAddress = selectSelectedInternalAccountAddress(
+            const selectedAddress = selectSelectedInternalAccountByScope(
               store.getState(),
-            );
+            )('eip155:1')?.address;
             if (!selectedAddress) {
               throw new Error(strings('perps.errors.noAccountSelected'));
             }
@@ -61,9 +61,9 @@ export class HyperLiquidWalletService {
 
           case 'eth_signTypedData_v4': {
             const [address, data] = args.params as [string, string | object];
-            const selectedAddress = selectSelectedInternalAccountAddress(
+            const selectedAddress = selectSelectedInternalAccountByScope(
               store.getState(),
-            );
+            )('eip155:1')?.address;
 
             // Check if account is selected
             if (!selectedAddress) {
@@ -107,9 +107,9 @@ export class HyperLiquidWalletService {
    * Get current account ID from Redux store
    */
   public async getCurrentAccountId(): Promise<CaipAccountId> {
-    const selectedAddress = selectSelectedInternalAccountAddress(
+    const selectedAddress = selectSelectedInternalAccountByScope(
       store.getState(),
-    );
+    )('eip155:1')?.address;
 
     if (!selectedAddress) {
       throw new Error(strings('perps.errors.noAccountSelected'));

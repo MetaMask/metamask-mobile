@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
   TextColor,
@@ -21,6 +22,7 @@ import {
 import { AccountState } from '../../controllers';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { formatPerpsFiat } from '../../utils/formatUtils';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 
 interface PerpsTabControlBarProps {
   onManageBalancePress?: () => void;
@@ -29,6 +31,9 @@ interface PerpsTabControlBarProps {
 export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   onManageBalancePress,
 }) => {
+  const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:1',
+  );
   const { styles } = useStyles(styleSheet, {});
   const [result, setResult] = useState<AccountState>({
     totalBalance: '',
@@ -125,7 +130,12 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
       // Cleanup animations
       stopAnimation();
     };
-  }, [getAccountBalance, subscribeToPositions, stopAnimation]);
+  }, [
+    getAccountBalance,
+    subscribeToPositions,
+    stopAnimation,
+    selectedEvmAccount,
+  ]);
 
   const handlePress = () => {
     onManageBalancePress?.();

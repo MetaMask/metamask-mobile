@@ -8,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { selectBridgeControllerState } from '../../../../core/redux/slices/bridge';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectCurrencyRates } from '../../../../selectors/currencyRateController';
 import {
   selectProviderConfig,
@@ -114,7 +114,9 @@ export const usePerpsDepositQuote = ({
   const ticker = useSelector(selectTicker);
   const fiatFormatter = useFiatFormatter();
 
-  const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
+  const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:1',
+  )?.address;
   const providerConfig = useSelector(selectProviderConfig);
   const currencyRates = useSelector(selectCurrencyRates);
   const bridgeControllerState = useSelector(selectBridgeControllerState);
