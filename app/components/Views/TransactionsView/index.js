@@ -38,7 +38,6 @@ import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
@@ -286,7 +285,7 @@ const mapStateToProps = (state) => {
     transactions: allTransactions,
     networkType: selectProviderType(state),
     chainId,
-    tokenNetworkFilter: selectTokenNetworkFilter(state),
+    tokenNetworkFilter: selectEnabledNetworksByNamespace(state),
   };
 };
 
