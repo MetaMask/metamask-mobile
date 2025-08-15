@@ -9,7 +9,7 @@ import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../components/Buttons/ButtonIcon';
 import Text, { TextVariant, TextColor } from '../../../components/Texts/Text';
-import { IconName, IconColor } from '../../../components/Icons/Icon';
+import { IconColor } from '../../../components/Icons/Icon';
 import { useStyles } from '../../../hooks';
 import { formatAddress } from '../../../../util/address';
 import { getNetworkImageSource } from '../../../../util/networks';
@@ -21,8 +21,6 @@ import {
   MULTICHAIN_ADDRESS_ROW_NETWORK_ICON_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_ADDRESS_TEST_ID,
-  MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
-  MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from './MultichainAddressRow.constants';
 import useCopyClipboard from '../../../../components/Views/Notifications/Details/hooks/useCopyClipboard';
 
@@ -30,6 +28,7 @@ const MultichainAddressRow = ({
   chainId,
   networkName,
   address,
+  icons,
   style,
   testID = MULTICHAIN_ADDRESS_ROW_TEST_ID,
   ...props
@@ -40,10 +39,12 @@ const MultichainAddressRow = ({
   const networkImageSource = getNetworkImageSource({ chainId });
   const truncatedAddress = formatAddress(address, 'short');
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleCopyClick = useCallback(() => {
     copyToClipboard(address);
   }, [copyToClipboard, address]);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleQrClick = useCallback(() => {
     // TODO: Implement QR code functionality
     // QR code clicked for address: address
@@ -77,21 +78,16 @@ const MultichainAddressRow = ({
       </View>
 
       <View style={styles.actions}>
-        <ButtonIcon
-          iconName={IconName.Copy}
-          size={ButtonIconSizes.Md}
-          onPress={handleCopyClick}
-          iconColor={IconColor.Default}
-          testID={MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID}
-        />
-
-        <ButtonIcon
-          iconName={IconName.QrCode}
-          size={ButtonIconSizes.Md}
-          onPress={handleQrClick}
-          iconColor={IconColor.Default}
-          testID={MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID}
-        />
+        {icons.map((icon, index) => (
+          <ButtonIcon
+            key={index}
+            iconName={icon.name}
+            size={ButtonIconSizes.Md}
+            onPress={icon.callback}
+            iconColor={IconColor.Default}
+            testID={icon.testId}
+          />
+        ))}
       </View>
     </View>
   );
