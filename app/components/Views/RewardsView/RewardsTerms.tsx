@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import Identicon from '../../UI/Identicon';
 import { renderShortAddress } from '../../../util/address';
-import { useRewardsAuth } from '../../../core/Engine/controllers/rewards-controller/hooks/useRewardsAuth';
+import { useRewards } from '../../../core/Engine/controllers/rewards-controller/RewardsAuthProvider';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -100,7 +100,7 @@ const RewardsTerms: React.FC = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const address = useSelector(selectSelectedInternalAccountAddress);
-  const { optin, isLoading } = useRewardsAuth();
+  const { optin, isLoading } = useRewards();
 
   const handleAccept = useCallback(async () => {
     if (!address) return;

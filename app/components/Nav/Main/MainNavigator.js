@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -47,9 +47,6 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
-import RewardsView from '../../Views/RewardsView';
-import RewardsTerms from '../../Views/RewardsView/RewardsTerms';
-import RewardsDashboard from '../../Views/RewardsView/RewardsDashboard';
 import { RewardsAuthProvider } from '../../../core/Engine/controllers/rewards-controller/RewardsAuthProvider';
 import RewardsNavigator from '../../Views/RewardsView/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
@@ -546,7 +543,9 @@ const HomeTabs = () => {
       tabBarIconKey: TabBarIconKey.Activity,
       callback: () => {
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
+          createEventBuilder(
+            MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
+          ).build(),
         );
       },
       rootScreenName: Routes.TRANSACTIONS_VIEW,

@@ -672,7 +672,7 @@ export type ControllersToInitialize =
   | 'PerpsController'
   | 'BridgeController'
   | 'BridgeStatusController'
-  | 'NetworkEnablementController';
+  | 'NetworkEnablementController'
   | 'RewardsController';
 
 /**
