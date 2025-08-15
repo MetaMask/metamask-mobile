@@ -18,6 +18,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../util/networks';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
 import { TabBarProps } from './TabBar.types';
@@ -61,7 +62,8 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       const key = `tab-bar-item-${tabBarIconKey}`; // this key is also used to identify elements for e2e testing
       const isSelected = state.index === index;
       const icon = ICON_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
-      const labelText = LABEL_BY_TAB_BAR_ICON_KEY[tabBarIconKey] || '';
+      const labelKey = LABEL_BY_TAB_BAR_ICON_KEY[tabBarIconKey];
+      const labelText = labelKey ? strings(labelKey) : '';
       const onPress = () => {
         callback?.();
         switch (rootScreenName) {
