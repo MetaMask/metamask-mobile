@@ -50,7 +50,7 @@ export const selectAccountSections = createSelector(
         const allAccountsIdInWallet = Object.values(wallet.groups).flatMap(
           (group) => group.accounts,
         );
-        // To presevere the order of the accounts in the accounts controller
+        // To preserve the order of the accounts in the accounts controller
         const accountIds = internalAccounts
           .filter((account) => allAccountsIdInWallet.includes(account.id))
           .map((account) => account.id);
@@ -289,3 +289,16 @@ export const selectInternalAccountFromAccountGroup = (
 
   return null;
 };
+
+/**
+ * Selector to get the currently selected account group from the AccountTreeController state.
+ * This selector retrieves the selected account group ID from the account tree state.
+ *
+ * @param state - The Redux root state
+ * @returns The currently selected account group ID or null if none is found
+ */
+export const selectSelectedAccountGroupId = createSelector(
+  [selectAccountTreeControllerState],
+  (accountTreeState: AccountTreeControllerState) =>
+    accountTreeState?.accountTree?.selectedAccountGroup || null,
+);

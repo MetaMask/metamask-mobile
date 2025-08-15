@@ -12,6 +12,7 @@ import {
   selectMultichainAccountGroups,
   selectSingleAccountGroups,
   selectAccountGroupById,
+  selectSelectedAccountGroupId,
 } from './accountTreeController';
 import { RootState } from '../../reducers';
 
@@ -1133,6 +1134,44 @@ describe('AccountTreeController Selectors', () => {
 
       const result = selectAccountGroupById(mockState, groupId);
       expect(result).toEqual(targetGroup);
+    });
+  });
+
+  describe('selectSelectedAccountGroupId', () => {
+    it('returns undefined when AccountTreeController is undefined', () => {
+      const mockState = createMockState(undefined);
+      const result = selectSelectedAccountGroupId(mockState);
+      expect(result).toBe(null);
+    });
+
+    it('returns undefined when selectedAccountGroup is undefined', () => {
+      const mockState = createMockState({
+        accountTree: {
+          selectedAccountGroup: undefined,
+          wallets: {},
+        },
+      });
+
+      const result = selectSelectedAccountGroupId(mockState);
+      expect(result).toBe(null);
+    });
+
+    it('returns selected account group ID', () => {
+      const mockState = createMockState({
+        accountTree: {
+          selectedAccountGroup: 'keyring:1/ethereum',
+          wallets: {
+            [WALLET_ID_1]: {
+              id: WALLET_ID_1,
+              metadata: { name: 'Wallet 1' },
+              groups: {},
+            },
+          },
+        },
+      });
+
+      const result = selectSelectedAccountGroupId(mockState);
+      expect(result).toBe('keyring:1/ethereum');
     });
   });
 });
