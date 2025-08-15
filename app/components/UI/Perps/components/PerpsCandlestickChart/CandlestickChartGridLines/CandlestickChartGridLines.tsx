@@ -27,6 +27,8 @@ interface CandlestickChartGridLinesProps {
   transformedData: ChartDataPoint[];
   /** Chart height for position calculations */
   height: number;
+  /** Chart width for grid line positioning */
+  chartWidth?: number;
   /** Test ID for the container */
   testID?: string;
 }
@@ -38,6 +40,7 @@ interface CandlestickChartGridLinesProps {
 const CandlestickChartGridLines: React.FC<CandlestickChartGridLinesProps> = ({
   transformedData,
   height,
+  chartWidth,
   testID = PerpsChartGridLinesSelectorsIDs.CHART_GRID_LINES,
 }) => {
   const theme = useTheme();
@@ -82,7 +85,12 @@ const CandlestickChartGridLines: React.FC<CandlestickChartGridLinesProps> = ({
         >
           {/* Grid Line */}
           <View
-            style={getGridLineStyle(theme.colors, line.isEdge, line.position)}
+            style={getGridLineStyle(
+              theme.colors,
+              line.isEdge,
+              line.position,
+              chartWidth,
+            )}
             testID={`${PerpsChartGridLinesSelectorsIDs.GRID_LINE_BAR}-${index}`}
           />
           {/* Price Label */}

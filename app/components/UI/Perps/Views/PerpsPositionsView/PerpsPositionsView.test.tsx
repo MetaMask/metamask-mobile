@@ -41,6 +41,14 @@ jest.mock('../../hooks', () => ({
     handleClosePosition: jest.fn(),
     isClosing: false,
   })),
+  usePerpsMarkets: jest.fn(() => ({
+    markets: [
+      { name: 'ETH', symbol: 'ETH' },
+      { name: 'BTC', symbol: 'BTC' },
+    ],
+    error: null,
+    isLoading: false,
+  })),
 }));
 
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
