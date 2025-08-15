@@ -10,8 +10,8 @@ import AccountGroupBalanceChange from '../../../Assets/BalanceChange/AccountGrou
 import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
 import {
   selectBalanceForAllWallets,
-  selectAggregatedBalanceByAccountGroup,
-  selectPortfolioChangeByAccountGroup,
+  selectBalanceByAccountGroup,
+  selectBalanceChangeByAccountGroup,
 } from '../../../../../selectors/assets/balances';
 import { formatWithThreshold } from '../../../../../util/assets';
 import I18n from '../../../../../../locales/i18n';
@@ -79,9 +79,7 @@ export const PortfolioBalance = () => {
 
   const selectBalanceForResolvedGroup = useMemo(
     () =>
-      resolvedGroupId
-        ? selectAggregatedBalanceByAccountGroup(resolvedGroupId)
-        : null,
+      resolvedGroupId ? selectBalanceByAccountGroup(resolvedGroupId) : null,
     [resolvedGroupId],
   );
   const resolvedGroupBalance = useSelector((state: RootState) =>
@@ -92,7 +90,7 @@ export const PortfolioBalance = () => {
   const selectChangeForResolvedGroup = useMemo(
     () =>
       resolvedGroupId
-        ? selectPortfolioChangeByAccountGroup(resolvedGroupId, '1d')
+        ? selectBalanceChangeByAccountGroup(resolvedGroupId, '1d')
         : null,
     [resolvedGroupId],
   );

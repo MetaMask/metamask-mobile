@@ -1,16 +1,16 @@
 import { createSelector } from 'reselect';
 import {
   calculateBalanceForAllWallets,
-  calculateAggregatedChangeForAllWallets,
-  calculateAggregatedChangeForGroup,
   type TokenBalancesControllerState,
   type TokenRatesControllerState,
   type MultichainBalancesControllerState,
   type MultichainAssetsRatesControllerState,
   type TokensControllerState,
   type CurrencyRateState,
-  type PortfolioChangePeriod,
-  type AggregatedChangeForAllWallets,
+  type BalanceChangeResult,
+  calculateBalanceChangeForAllWallets,
+  calculateBalanceChangeForAccountGroup,
+  type BalanceChangePeriod,
 } from '@metamask/assets-controllers';
 import type { AccountTreeControllerState } from '@metamask/account-tree-controller';
 import type { AccountsControllerState } from '@metamask/accounts-controller';
@@ -169,7 +169,7 @@ export const selectSelectedGroupAggregatedBalance = createSelector(
   },
 );
 
-export const selectAggregatedBalanceByAccountGroup = (groupId: string) =>
+export const selectBalanceByAccountGroup = (groupId: string) =>
   createSelector([selectBalanceForAllWallets], (allBalances) => {
     const walletId = groupId.split('/')[0];
     const wallet = allBalances.wallets[walletId] ?? null;
@@ -207,10 +207,8 @@ export const selectBalanceByWallet = (walletId: string) =>
     };
   });
 
-// Portfolio change selectors (period: '1d' | '7d' | '30d')
-export const selectPortfolioChangeForAllWallets = (
-  period: PortfolioChangePeriod,
-) =>
+// Balance change selectors (period: '1d' | '7d' | '30d')
+export const selectBalanceChangeForAllWallets = (period: BalanceChangePeriod) =>
   createSelector(
     [
       selectAccountTreeStateForBalances,
@@ -233,8 +231,8 @@ export const selectPortfolioChangeForAllWallets = (
       tokensState,
       currencyRateState,
       enabledNetworkMap,
-    ): AggregatedChangeForAllWallets =>
-      calculateAggregatedChangeForAllWallets(
+    ): BalanceChangeResult =>
+      calculateBalanceChangeForAllWallets(
         accountTreeState,
         accountsState,
         tokenBalancesState,
@@ -248,16 +246,16 @@ export const selectPortfolioChangeForAllWallets = (
       ),
   );
 
-export const selectPortfolioPercentChange = (period: PortfolioChangePeriod) =>
+export const selectBalancePercentChange = (period: BalanceChangePeriod) =>
   createSelector(
-    [selectPortfolioChangeForAllWallets(period)],
+    [selectBalanceChangeForAllWallets(period)],
     (change) => change.percentChange,
   );
 
-// Per-account-group portfolio change selectors (mirror extension)
-export const selectPortfolioChangeByAccountGroup = (
+// Per-account-group balance change selectors (mirror extension)
+export const selectBalanceChangeByAccountGroup = (
   groupId: string,
-  period: PortfolioChangePeriod,
+  period: BalanceChangePeriod,
 ) =>
   createSelector(
     [
@@ -281,8 +279,8 @@ export const selectPortfolioChangeByAccountGroup = (
       tokensState,
       currencyRateState,
       enabledNetworkMap,
-    ): AggregatedChangeForAllWallets =>
-      calculateAggregatedChangeForGroup(
+    ): BalanceChangeResult =>
+      calculateBalanceChangeForAccountGroup(
         accountTreeState,
         accountsState,
         tokenBalancesState,
@@ -297,11 +295,11 @@ export const selectPortfolioChangeByAccountGroup = (
       ),
   );
 
-export const selectPortfolioPercentChangeByAccountGroup = (
+export const selectBalancePercentChangeByAccountGroup = (
   groupId: string,
-  period: PortfolioChangePeriod,
+  period: BalanceChangePeriod,
 ) =>
   createSelector(
-    [selectPortfolioChangeByAccountGroup(groupId, period)],
+    [selectBalanceChangeByAccountGroup(groupId, period)],
     (change) => change.percentChange,
   );
