@@ -1,6 +1,8 @@
 import { merge } from 'lodash';
 
-const accountMock = '0xdc47789de4ceff0e8fe9d15d728af7f17550c164';
+export const accountMock = '0xdc47789de4ceff0e8fe9d15d728af7f17550c164';
+export const tokenAddress1Mock = '0x1234567890abcdef1234567890abcdef12345678';
+export const tokenAddress2Mock = '0xabcdefabcdefabcdefabcdefabcdefabcdefabcdef';
 
 export const keyringControllerMock = {
   engine: {
@@ -153,6 +155,33 @@ export const preferencesControllerMock = {
     backgroundState: {
       PreferencesController: {
         useTransactionSimulations: false,
+      },
+    },
+  },
+};
+
+export const tokensControllerMock = {
+  engine: {
+    backgroundState: {
+      TokensController: {
+        allTokens: {
+          '0x1': {
+            [accountMock]: [
+              {
+                address: tokenAddress1Mock,
+                chainId: '0x1',
+                decimals: 4,
+                symbol: 'T1',
+              },
+              {
+                address: tokenAddress2Mock,
+                chainId: '0x1',
+                decimals: 6,
+                symbol: 'T2',
+              },
+            ],
+          },
+        },
       },
     },
   },

@@ -1,4 +1,9 @@
-import { GasFeeEstimateLevel, GasFeeEstimateType, type TransactionBatchMeta, TransactionStatus } from '@metamask/transaction-controller';
+import {
+  GasFeeEstimateLevel,
+  GasFeeEstimateType,
+  type TransactionBatchMeta,
+  TransactionStatus,
+} from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { cloneDeep } from 'lodash';
 import { toHex } from 'viem';
@@ -94,7 +99,8 @@ describe('useFeeCalculationsTransactionBatch', () => {
 
   it('returns fee calculations for GasPrice type', () => {
     const { result } = renderHookWithProvider(
-      () => useFeeCalculationsTransactionBatch(mockTransactionBatchMetaGasPrice),
+      () =>
+        useFeeCalculationsTransactionBatch(mockTransactionBatchMetaGasPrice),
       {
         state: stakingDepositConfirmationState,
       },

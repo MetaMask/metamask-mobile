@@ -4,10 +4,7 @@ import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import SDKConnect from '../SDKConnect';
 import DevLogger from '../utils/DevLogger';
-import {
-  waitForCondition,
-  waitForKeychainUnlocked
-} from '../utils/wait.util';
+import { waitForCondition, waitForKeychainUnlocked } from '../utils/wait.util';
 import { isE2E } from '../../../util/test/utils';
 
 async function postInit(instance: SDKConnect, callback?: () => void) {
@@ -15,7 +12,7 @@ async function postInit(instance: SDKConnect, callback?: () => void) {
     throw new Error(`SDKConnect::postInit() - not initialized`);
   }
 
-  if(isE2E) {
+  if (isE2E) {
     DevLogger.log(`SDKConnect::postInit() - SKIP -- E2E`);
     instance.state._postInitialized = true;
     return;
@@ -51,7 +48,9 @@ async function postInit(instance: SDKConnect, callback?: () => void) {
   await waitForKeychainUnlocked({ keyringController, context: 'init' });
 
   let currentRouteName = instance.state.navigation?.getCurrentRoute()?.name;
-  DevLogger.log(`SDKConnect::postInit() - currentRouteName=${currentRouteName}`);
+  DevLogger.log(
+    `SDKConnect::postInit() - currentRouteName=${currentRouteName}`,
+  );
 
   const waitRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN];
   await waitForCondition({
@@ -62,7 +61,9 @@ async function postInit(instance: SDKConnect, callback?: () => void) {
     context: 'post_init',
     waitTime: 1000,
   });
-  DevLogger.log(`SDKConnect::postInit() - currentRouteName=${currentRouteName} - start reconnectAll`);
+  DevLogger.log(
+    `SDKConnect::postInit() - currentRouteName=${currentRouteName} - start reconnectAll`,
+  );
 
   // Also wait for user to be logged in (outside of login screen)
   instance.state.appStateListener = AppState.addEventListener(
@@ -70,7 +71,9 @@ async function postInit(instance: SDKConnect, callback?: () => void) {
     instance._handleAppState.bind(instance),
   );
 
-  DevLogger.log(`SDKConnect::postInit() - keychain unlocked -- wait for reconnectAll`);
+  DevLogger.log(
+    `SDKConnect::postInit() - keychain unlocked -- wait for reconnectAll`,
+  );
   await instance.reconnectAll();
 
   instance.state._postInitialized = true;

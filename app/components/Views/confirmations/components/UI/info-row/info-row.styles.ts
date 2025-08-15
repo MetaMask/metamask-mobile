@@ -23,7 +23,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       minHeight: 38,
       paddingEnd: 4,
-      marginRight: 'auto', 
+      marginRight: 'auto',
     },
     value: {
       color: theme.colors.text.default,

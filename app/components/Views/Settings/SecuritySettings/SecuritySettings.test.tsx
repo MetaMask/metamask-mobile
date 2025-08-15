@@ -19,6 +19,7 @@ import {
 import { SecurityPrivacyViewSelectorsIDs } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SecurityPrivacyView.selectors';
 import SECURITY_ALERTS_TOGGLE_TEST_ID from './constants';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
+import { strings } from '../../../../../locales/i18n';
 
 const initialState = {
   privacy: { approvedHosts: {} },
@@ -91,7 +92,7 @@ describe('SecuritySettings', () => {
         state: initialState,
       },
     );
-    expect(getByText('Wallet recovery')).toBeTruthy();
+    expect(getByText(strings('app_settings.protect_title'))).toBeTruthy();
     expect(
       getByTestId(SecurityPrivacyViewSelectorsIDs.CHANGE_PASSWORD_CONTAINER),
     ).toBeTruthy();

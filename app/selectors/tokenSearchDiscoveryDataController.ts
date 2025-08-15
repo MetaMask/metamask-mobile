@@ -11,7 +11,11 @@ import { selectCurrentCurrency } from './currencyRateController';
  * This condition is used when displaying an asset, to determine where the information
  * about the asset should be loaded from.
  */
-export const isAssetFromSearch = (asset: unknown) => typeof asset === 'object' && asset !== null && 'isFromSearch' in asset && asset.isFromSearch === true;
+export const isAssetFromSearch = (asset: unknown) =>
+  typeof asset === 'object' &&
+  asset !== null &&
+  'isFromSearch' in asset &&
+  asset.isFromSearch === true;
 
 const selectTokenSearchDiscoveryDataControllerState = (state: RootState) =>
   state.engine.backgroundState.TokenSearchDiscoveryDataController;
@@ -21,16 +25,24 @@ export const selectTokenDisplayData = createDeepEqualSelector(
   selectCurrentCurrency,
   (_state: RootState, chainId: Hex) => chainId,
   (_state: RootState, _chainId: Hex, address: string) => address,
-  (state, currentCurrency, chainId, address) => state?.tokenDisplayData.find(d => d.chainId === chainId && d.address === address && d.currency === currentCurrency)
+  (state, currentCurrency, chainId, address) =>
+    state?.tokenDisplayData.find(
+      (d) =>
+        d.chainId === chainId &&
+        d.address === address &&
+        d.currency === currentCurrency,
+    ),
 );
 
-export const selectSupportedSwapTokenAddressesByChainId = createDeepEqualSelector(
-  selectTokenSearchDiscoveryDataControllerState,
-  (state) => state?.swapsTokenAddressesByChainId,
-);
+export const selectSupportedSwapTokenAddressesByChainId =
+  createDeepEqualSelector(
+    selectTokenSearchDiscoveryDataControllerState,
+    (state) => state?.swapsTokenAddressesByChainId,
+  );
 
-export const selectSupportedSwapTokenAddressesForChainId = createDeepEqualSelector(
-  selectTokenSearchDiscoveryDataControllerState,
-  (_state: RootState, chainId: Hex) => chainId,
-  (state, chainId) => state?.swapsTokenAddressesByChainId[chainId]?.addresses,
-);
+export const selectSupportedSwapTokenAddressesForChainId =
+  createDeepEqualSelector(
+    selectTokenSearchDiscoveryDataControllerState,
+    (_state: RootState, chainId: Hex) => chainId,
+    (state, chainId) => state?.swapsTokenAddressesByChainId[chainId]?.addresses,
+  );

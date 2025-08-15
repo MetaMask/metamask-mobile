@@ -27,7 +27,7 @@ const THUMB_HEIGHT =
   THUMB_VERTICAL_MARGIN;
 const ROWS_VISIBLE = Math.floor(
   (Dimensions.get('window').height - NAVBAR_SIZE - THUMB_VERTICAL_MARGIN) /
-  THUMB_HEIGHT,
+    THUMB_HEIGHT,
 );
 const TABS_VISIBLE = ROWS_VISIBLE;
 
@@ -38,6 +38,7 @@ const createStyles = (colors, shadows) =>
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: colors.background.alternative,
+      paddingHorizontal: 16,
     },
     noTabsTitle: {
       ...fontStyles.normal,
@@ -117,7 +118,7 @@ const createStyles = (colors, shadows) =>
       width: 30,
       height: 30,
       marginTop: -7,
-    }
+    },
   });
 
 /**
@@ -161,7 +162,7 @@ class Tabs extends PureComponent {
     /**
      * Metrics injected by withMetricsAwareness HOC
      */
-    metrics: PropTypes.object
+    metrics: PropTypes.object,
   };
 
   thumbnails = {};

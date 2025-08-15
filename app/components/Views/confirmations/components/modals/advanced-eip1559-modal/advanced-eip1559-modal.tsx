@@ -1,7 +1,10 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Hex } from '@metamask/utils';
-import { TransactionMeta, UserFeeLevel } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  UserFeeLevel,
+} from '@metamask/transaction-controller';
 import { pickBy } from 'lodash';
 
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -48,7 +51,9 @@ export const AdvancedEIP1559Modal = ({
     maxFeePerGas: false,
     maxPriorityFeePerGas: false,
   });
-  const hasError = Boolean(errors.gas || errors.maxFeePerGas || errors.maxPriorityFeePerGas);
+  const hasError = Boolean(
+    errors.gas || errors.maxFeePerGas || errors.maxPriorityFeePerGas,
+  );
 
   const handleSaveClick = useCallback(() => {
     updateTransactionGasFees(transactionMeta.id, {

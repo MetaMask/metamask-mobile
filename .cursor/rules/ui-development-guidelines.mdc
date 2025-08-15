@@ -1,0 +1,158 @@
+---
+description: UI Development Guidelines
+globs: 'app/*.{tsx,ts,jsx,js}'
+alwaysApply: true
+---
+
+# MetaMask Mobile React Native UI Development Guidelines
+
+## Core Principle
+
+Always prioritize @metamask/design-system-react-native components and Tailwind CSS patterns over custom implementations.
+
+## Component Hierarchy (STRICT ORDER)
+
+1. **FIRST**: Use `@metamask/design-system-react-native` components
+2. **SECOND**: Use `app/component-library` components only if design system lacks the component
+3. **LAST RESORT**: Custom components with StyleSheet (avoid unless absolutely necessary)
+
+## Required Imports for React Native
+
+```tsx
+// ALWAYS prefer these imports
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  Text,
+  Button,
+  ButtonBase,
+  Icon,
+  TextVariant,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  // ... other design system components
+} from '@metamask/design-system-react-native';
+```
+
+## Styling Rules (ENFORCE STRICTLY)
+
+### ✅ ALWAYS DO:
+
+- Use `const tw = useTailwind();` hook instead of importing twrnc directly
+- Use `Box` component instead of `View`
+- Use `Text` component with variants instead of raw Text with styles
+- Use `twClassName` prop for static styles
+- Use `tw.style()` function for interactive/dynamic styles
+- Use design system color tokens: `bg-default`, `text-primary`, `border-muted`
+- Use component props first: `variant`, `color`, `size`, etc.
+
+### ❌ NEVER SUGGEST:
+
+- `import tw from 'twrnc'` (use useTailwind hook instead)
+- `StyleSheet.create()` (use Tailwind classes)
+- Raw `View` or `Text` components (use Box/Text from design system)
+- Arbitrary color values like `bg-[#3B82F6]` or `text-[#000000]`
+- Inline style objects unless for dynamic values
+- Mixing multiple styling approaches unnecessarily
+
+## Code Pattern Templates
+
+### Basic Container:
+
+```tsx
+const MyComponent = () => {
+  const tw = useTailwind();
+
+  return (
+    <Box twClassName="w-full bg-default p-4">
+      <Text variant={TextVariant.HeadingMd}>Title</Text>
+    </Box>
+  );
+};
+```
+
+### Flex Layout:
+
+```tsx
+<Box
+  flexDirection={BoxFlexDirection.Row}
+  alignItems={BoxAlignItems.Center}
+  justifyContent={BoxJustifyContent.Between}
+  twClassName="gap-3"
+>
+```
+
+### Interactive Element:
+
+```tsx
+<ButtonBase
+  twClassName="h-20 flex-1 rounded-lg bg-muted px-0 py-4"
+  style={({ pressed }) =>
+    tw.style(
+      'w-full flex-row items-center justify-center',
+      pressed && 'bg-pressed',
+    )
+  }
+>
+  <Text fontWeight={FontWeight.Medium}>Button Text</Text>
+</ButtonBase>
+```
+
+### Pressable with Tailwind:
+
+```tsx
+<Pressable
+  style={({ pressed }) =>
+    tw.style(
+      'w-full flex-row items-center justify-between px-4 py-2',
+      pressed && 'bg-pressed',
+    )
+  }
+>
+```
+
+## Component Conversion Guide
+
+| DON'T Use                            | USE Instead                            |
+| ------------------------------------ | -------------------------------------- |
+| `<View>`                             | `<Box>`                                |
+| `<Text style={...}>`                 | `<Text variant={TextVariant.BodyMd}>`  |
+| `StyleSheet.create()`                | `twClassName="..."`                    |
+| `style={{ backgroundColor: 'red' }}` | `twClassName="bg-error-default"`       |
+| `flexDirection: 'row'`               | `flexDirection={BoxFlexDirection.Row}` |
+| Manual padding/margin                | `twClassName="p-4 m-2"`                |
+
+## Error Prevention
+
+When you see these patterns, IMMEDIATELY suggest alternatives:
+
+- Any `import tw from 'twrnc'` → `import { useTailwind } from '@metamask/design-system-twrnc-preset'`
+- Any `View` component → `Box` from design system
+- Any `StyleSheet` usage → Tailwind classes
+- Any arbitrary color values → Design system tokens
+- Any manual flex properties → Box component props + twClassName
+
+## Design System Priority
+
+Before suggesting any UI solution:
+
+1. Check if `@metamask/design-system-react-native` has the component
+2. Use component's built-in props (variant, color, size)
+3. Add layout/spacing with `twClassName`
+4. Add interactions with `tw.style()`
+5. Only suggest component-library or custom components if design system lacks it
+
+## Reference Examples
+
+Always reference the patterns from `app/component-library/components/design-system.stories.tsx` for proper usage examples.
+
+## Enforcement
+
+- REJECT any code suggestions that use StyleSheet.create()
+- REJECT raw View/Text usage when Box/Text components exist
+- REQUIRE useTailwind hook for all Tailwind usage
+- REQUIRE design system components as first choice
+- ENFORCE design token usage over arbitrary values
+
+@app/component-library/components/design-system.stories.tsx

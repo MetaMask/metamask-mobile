@@ -7,7 +7,7 @@ exports[`TabBar renders correctly 1`] = `
       {
         "backgroundColor": "#ffffff",
         "flexBasis": 1,
-        "shadowColor": "#00000066",
+        "shadowColor": "#3f434a66",
         "shadowOffset": {
           "height": 4,
           "width": 0,
@@ -91,7 +91,7 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#9ca1af"
+          color="#b7bbc8"
           fill="currentColor"
           height={24}
           name="Activity"
@@ -167,7 +167,7 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#9ca1af"
+          color="#b7bbc8"
           fill="currentColor"
           height={24}
           name="Explore"
@@ -205,7 +205,7 @@ exports[`TabBar renders correctly 1`] = `
         }
       >
         <SvgMock
-          color="#9ca1af"
+          color="#b7bbc8"
           fill="currentColor"
           height={24}
           name="Setting"

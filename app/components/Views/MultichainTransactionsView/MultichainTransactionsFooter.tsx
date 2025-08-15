@@ -47,6 +47,10 @@ interface MultichainTransactionsFooterProps {
    */
   showDisclaimer?: boolean;
   /**
+   * Show explorer link
+   */
+  showExplorerLink?: boolean;
+  /**
    * Navigation handler for view more button
    */
   onViewMore: () => void;
@@ -56,6 +60,7 @@ const MultichainTransactionsFooter = ({
   url,
   hasTransactions,
   showDisclaimer = false,
+  showExplorerLink = true,
   onViewMore,
 }: MultichainTransactionsFooterProps) => {
   const { colors } = useTheme();
@@ -63,7 +68,7 @@ const MultichainTransactionsFooter = ({
 
   return (
     <View>
-      {hasTransactions && (
+      {hasTransactions && showExplorerLink && (
         <View style={styles.viewMoreWrapper}>
           <Button
             variant={ButtonVariants.Link}

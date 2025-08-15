@@ -12,6 +12,7 @@ import { TextStyle, ViewStyle } from 'react-native';
 export const colors = {
   blackTransparent: 'rgba(0, 0, 0, 0.5)',
   whiteTransparent: 'rgba(255, 255, 255, 0.7)',
+  white: '#FFFFFF',
   transparent: 'transparent',
   overlay: 'rgba(242, 244, 246, 0.33)',
   // Do not change the values of applePay tokens unless noted by

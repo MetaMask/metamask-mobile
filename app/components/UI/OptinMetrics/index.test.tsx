@@ -5,6 +5,7 @@ import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../locales/i18n';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { MetaMetricsOptInSelectorsIDs } from '../../../../e2e/selectors/Onboarding/MetaMetricsOptIn.selectors';
+import { Platform } from 'react-native';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -41,18 +42,62 @@ jest.mock('../../../reducers/legalNotices', () => ({
   isPastPrivacyPolicyDate: jest.fn().mockReturnValue(true),
 }));
 
+// Use dynamic mocking to avoid native module conflicts
+jest.doMock('react-native', () => {
+  const originalRN = jest.requireActual('react-native');
+  return {
+    ...originalRN,
+    StatusBar: {
+      currentHeight: 42,
+    },
+  };
+});
+
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', () => {
-    const { toJSON } = renderScreen(
-      OptinMetrics,
-      { name: 'OptinMetrics' },
-      { state: {} },
-    );
-    expect(toJSON()).toMatchSnapshot();
+  describe('Snapshots iOS', () => {
+    Platform.OS = 'ios';
+    it('renders correctly', () => {
+      const { toJSON } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
+  describe('Snapshots android', () => {
+    beforeEach(() => {
+      Platform.OS = 'android';
+    });
+
+    it('render matches snapshot', () => {
+      const { toJSON } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+      expect(toJSON()).toMatchSnapshot();
+    });
+
+    it('render matches snapshot with status bar height to zero', () => {
+      const { StatusBar } = jest.requireMock('react-native');
+      const originalCurrentHeight = StatusBar.currentHeight;
+      StatusBar.currentHeight = 0;
+
+      const { toJSON } = renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+      );
+      expect(toJSON()).toMatchSnapshot();
+
+      StatusBar.currentHeight = originalCurrentHeight;
+    });
   });
 
   describe('sets traits and sends metric event on confirm', () => {

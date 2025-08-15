@@ -1,14 +1,14 @@
 import { ConfirmationRequestTypeIDs } from '../../../selectors/Confirmation/ConfirmationView.selectors';
-import Matchers from '../../../utils/Matchers';
+import Matchers from '../../../framework/Matchers';
 
 class RequestTypes {
-  get PersonalSignRequest() {
+  get PersonalSignRequest(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationRequestTypeIDs.PERSONAL_SIGN_REQUEST,
     );
   }
 
-  get TypedSignRequest() {
+  get TypedSignRequest(): DetoxElement {
     return Matchers.getElementByID(
       ConfirmationRequestTypeIDs.TYPED_SIGN_REQUEST,
     );

@@ -16,6 +16,7 @@ import { form } from './form';
 import { icon } from './icon';
 import { field } from './field';
 import { section } from './section';
+import { selector } from './selector';
 import { spinner } from './spinner';
 import { skeleton } from './skeleton';
 import { address } from './address';
@@ -24,6 +25,7 @@ import { tooltip } from './tooltip';
 import { addressInput } from './address-input';
 import { assetSelector } from './asset-selector';
 import { copyable } from './copyable';
+import { accountSelector } from './account-selector';
 
 export const COMPONENT_MAPPING = {
   Box: box,
@@ -45,6 +47,7 @@ export const COMPONENT_MAPPING = {
   Field: field,
   Icon: icon,
   Section: section,
+  Selector: selector,
   Spinner: spinner,
   Skeleton: skeleton,
   Avatar: avatar,
@@ -52,4 +55,5 @@ export const COMPONENT_MAPPING = {
   Tooltip: tooltip,
   AssetSelector: assetSelector,
   Copyable: copyable,
+  AccountSelector: accountSelector,
 };

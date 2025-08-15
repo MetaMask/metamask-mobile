@@ -109,7 +109,7 @@ exports[`SnapUIForm will render 1`] = `
                       onFocus={[Function]}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#121314",
@@ -297,7 +297,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       onFocus={[Function]}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#121314",
@@ -461,6 +461,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       "justifyContent": "center",
                       "maxHeight": 58,
                       "minHeight": 48,
+                      "overflow": "hidden",
                       "paddingBottom": 8,
                       "paddingHorizontal": 16,
                       "paddingLeft": 16,
@@ -473,12 +474,14 @@ exports[`SnapUIForm will render with fields 1`] = `
                   <View
                     alignItems="center"
                     flexDirection="row"
+                    gap={8}
                     justifyContent="space-between"
                     style={
                       [
                         {
                           "alignItems": "center",
                           "flexDirection": "row",
+                          "gap": 8,
                           "justifyContent": "space-between",
                         },
                         {
@@ -659,7 +662,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     onStartShouldSetResponder={[Function]}
                     style={
                       {
-                        "backgroundColor": "#00000066",
+                        "backgroundColor": "#3f434a66",
                         "bottom": 0,
                         "height": 1334,
                         "left": 0,
@@ -895,6 +898,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                     "justifyContent": "center",
                                     "maxHeight": 58,
                                     "minHeight": 48,
+                                    "overflow": "hidden",
                                     "paddingBottom": 8,
                                     "paddingHorizontal": 16,
                                     "paddingLeft": 16,
@@ -907,12 +911,14 @@ exports[`SnapUIForm will render with fields 1`] = `
                                 <View
                                   alignItems="center"
                                   flexDirection="row"
+                                  gap={8}
                                   justifyContent="space-between"
                                   style={
                                     [
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "gap": 8,
                                         "justifyContent": "space-between",
                                       },
                                       {
@@ -1042,6 +1048,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                                     "justifyContent": "center",
                                     "maxHeight": 58,
                                     "minHeight": 48,
+                                    "overflow": "hidden",
                                     "paddingBottom": 8,
                                     "paddingHorizontal": 16,
                                     "paddingLeft": 16,
@@ -1054,12 +1061,14 @@ exports[`SnapUIForm will render with fields 1`] = `
                                 <View
                                   alignItems="center"
                                   flexDirection="row"
+                                  gap={8}
                                   justifyContent="space-between"
                                   style={
                                     [
                                       {
                                         "alignItems": "center",
                                         "flexDirection": "row",
+                                        "gap": 8,
                                         "justifyContent": "space-between",
                                       },
                                       {

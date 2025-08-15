@@ -129,15 +129,15 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -174,7 +174,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                     }
                   }
                 >
-                  Enter your basic info
+                  Verify your identity
                 </Text>
               </TouchableOpacity>
             </View>
@@ -572,7 +572,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             "height": 4,
                                           },
                                           {
-                                            "backgroundColor": "#9ca1af",
+                                            "backgroundColor": "#b7bbc8",
                                           },
                                         ],
                                         undefined,
@@ -586,16 +586,30 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 24,
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginBottom": 20,
+                                      "lineHeight": 32,
                                       "marginTop": 24,
                                     }
                                   }
                                 >
-                                  To begin verifying your identity, we need some basic information.
+                                  Enter your basic info
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#b7bbc8",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginBottom": 16,
+                                    }
+                                  }
+                                >
+                                  Next, we need some basic information about you.
                                 </Text>
                                 <View
                                   style={
@@ -669,11 +683,11 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="John"
-                                          placeholderTextColor="#9ca1af"
+                                          placeholderTextColor="#b7bbc8"
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -756,11 +770,11 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Smith"
-                                          placeholderTextColor="#9ca1af"
+                                          placeholderTextColor="#b7bbc8"
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -861,7 +875,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#9ca1af",
+                                              "color": "#b7bbc8",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -882,6 +896,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       }
                                     >
                                       <TextInput
+                                        autoComplete="tel"
                                         autoFocus={false}
                                         editable={true}
                                         keyboardAppearance="light"
@@ -890,11 +905,11 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
-                                        placeholder="(555) 555-1234"
-                                        placeholderTextColor="#9ca1af"
+                                        placeholder="(555) 123-4567"
+                                        placeholderTextColor="#b7bbc8"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -908,6 +923,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
+                                        textContentType="telephoneNumber"
                                         value="(234) 567-890"
                                       />
                                     </View>
@@ -963,7 +979,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                       }
                                       testID="label"
                                     >
-                                      Date of Birth
+                                      Date of birth
                                     </Text>
                                     <View
                                       style={
@@ -989,30 +1005,19 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         }
                                         testID="textfield-startacccessory"
                                       >
-                                        <Text
-                                          allowFontScaling={false}
-                                          selectable={false}
+                                        <SvgMock
+                                          color="#121314"
+                                          fill="currentColor"
+                                          height={20}
+                                          name="Calendar"
                                           style={
-                                            [
-                                              {
-                                                "color": undefined,
-                                                "fontSize": 20,
-                                              },
-                                              {
-                                                "color": "#121314",
-                                                "marginRight": 8,
-                                              },
-                                              {
-                                                "fontFamily": "Ionicons",
-                                                "fontStyle": "normal",
-                                                "fontWeight": "normal",
-                                              },
-                                              {},
-                                            ]
+                                            {
+                                              "height": 20,
+                                              "width": 20,
+                                            }
                                           }
-                                        >
-                                          
-                                        </Text>
+                                          width={20}
+                                        />
                                       </View>
                                       <View
                                         style={
@@ -1028,12 +1033,12 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="01/01/2000"
-                                          placeholderTextColor="#9ca1af"
+                                          placeholderTextColor="#b7bbc8"
                                           pointerEvents="none"
                                           readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -1047,7 +1052,7 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                             }
                                           }
                                           testID="date-of-birth-input"
-                                          value="01/01/1990"
+                                          value="01/01/2024"
                                         />
                                       </View>
                                     </View>
@@ -1064,22 +1069,56 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                     ]
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
+                                  <View
                                     style={
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
                                         "marginBottom": 6,
                                       }
                                     }
-                                    testID="label"
                                   >
-                                    Social Security Number
-                                  </Text>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "gap": 8,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Social Security Number
+                                      </Text>
+                                      <TouchableOpacity
+                                        onPress={[Function]}
+                                        testID="ssn-info-button"
+                                      >
+                                        <SvgMock
+                                          color="#686e7d"
+                                          fill="currentColor"
+                                          height={16}
+                                          name="Info"
+                                          style={
+                                            {
+                                              "height": 16,
+                                              "width": 16,
+                                            }
+                                          }
+                                          width={16}
+                                        />
+                                      </TouchableOpacity>
+                                    </View>
+                                  </View>
                                   <View
                                     style={
                                       {
@@ -1115,12 +1154,12 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#9ca1af"
+                                        placeholderTextColor="#b7bbc8"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -1158,6 +1197,97 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                               ]
                             }
                           >
+                            <View
+                              accessibilityRole="none"
+                              accessible={true}
+                              style={
+                                {
+                                  "backgroundColor": "#3c4d9d1a",
+                                  "borderRadius": 8,
+                                  "marginVertical": 8,
+                                  "padding": 16,
+                                  "paddingVertical": 8,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-start",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flex": -1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="SecurityKey"
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    width={24}
+                                  />
+                                </View>
+                                <View
+                                  accessible={false}
+                                  style={
+                                    {
+                                      "width": 8,
+                                    }
+                                  }
+                                  testID="listitem-gap"
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    Transak encrypts and stores this information.
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    MetaMask never receives or uses your data.
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
@@ -1169,11 +1299,12 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -1349,15 +1480,15 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -1394,7 +1525,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                     }
                   }
                 >
-                  Enter your basic info
+                  Verify your identity
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1792,7 +1923,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             "height": 4,
                                           },
                                           {
-                                            "backgroundColor": "#9ca1af",
+                                            "backgroundColor": "#b7bbc8",
                                           },
                                         ],
                                         undefined,
@@ -1806,16 +1937,30 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 24,
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginBottom": 20,
+                                      "lineHeight": 32,
                                       "marginTop": 24,
                                     }
                                   }
                                 >
-                                  To begin verifying your identity, we need some basic information.
+                                  Enter your basic info
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#b7bbc8",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginBottom": 16,
+                                    }
+                                  }
+                                >
+                                  Next, we need some basic information about you.
                                 </Text>
                                 <View
                                   style={
@@ -1889,11 +2034,11 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="John"
-                                          placeholderTextColor="#9ca1af"
+                                          placeholderTextColor="#b7bbc8"
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -1976,11 +2121,11 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Smith"
-                                          placeholderTextColor="#9ca1af"
+                                          placeholderTextColor="#b7bbc8"
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -2081,7 +2226,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#9ca1af",
+                                              "color": "#b7bbc8",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -2102,6 +2247,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       }
                                     >
                                       <TextInput
+                                        autoComplete="tel"
                                         autoFocus={false}
                                         editable={true}
                                         keyboardAppearance="light"
@@ -2110,11 +2256,11 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
-                                        placeholder="(555) 555-1234"
-                                        placeholderTextColor="#9ca1af"
+                                        placeholder="(555) 123-4567"
+                                        placeholderTextColor="#b7bbc8"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -2128,6 +2274,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
+                                        textContentType="telephoneNumber"
                                         value=""
                                       />
                                     </View>
@@ -2183,7 +2330,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                       }
                                       testID="label"
                                     >
-                                      Date of Birth
+                                      Date of birth
                                     </Text>
                                     <View
                                       style={
@@ -2209,30 +2356,19 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         }
                                         testID="textfield-startacccessory"
                                       >
-                                        <Text
-                                          allowFontScaling={false}
-                                          selectable={false}
+                                        <SvgMock
+                                          color="#121314"
+                                          fill="currentColor"
+                                          height={20}
+                                          name="Calendar"
                                           style={
-                                            [
-                                              {
-                                                "color": undefined,
-                                                "fontSize": 20,
-                                              },
-                                              {
-                                                "color": "#121314",
-                                                "marginRight": 8,
-                                              },
-                                              {
-                                                "fontFamily": "Ionicons",
-                                                "fontStyle": "normal",
-                                                "fontWeight": "normal",
-                                              },
-                                              {},
-                                            ]
+                                            {
+                                              "height": 20,
+                                              "width": 20,
+                                            }
                                           }
-                                        >
-                                          
-                                        </Text>
+                                          width={20}
+                                        />
                                       </View>
                                       <View
                                         style={
@@ -2248,12 +2384,12 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="01/01/2000"
-                                          placeholderTextColor="#9ca1af"
+                                          placeholderTextColor="#b7bbc8"
                                           pointerEvents="none"
                                           readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -2267,7 +2403,7 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                             }
                                           }
                                           testID="date-of-birth-input"
-                                          value="01/01/2000"
+                                          value=""
                                         />
                                       </View>
                                     </View>
@@ -2284,22 +2420,56 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                     ]
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
+                                  <View
                                     style={
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
                                         "marginBottom": 6,
                                       }
                                     }
-                                    testID="label"
                                   >
-                                    Social Security Number
-                                  </Text>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "gap": 8,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Social Security Number
+                                      </Text>
+                                      <TouchableOpacity
+                                        onPress={[Function]}
+                                        testID="ssn-info-button"
+                                      >
+                                        <SvgMock
+                                          color="#686e7d"
+                                          fill="currentColor"
+                                          height={16}
+                                          name="Info"
+                                          style={
+                                            {
+                                              "height": 16,
+                                              "width": 16,
+                                            }
+                                          }
+                                          width={16}
+                                        />
+                                      </TouchableOpacity>
+                                    </View>
+                                  </View>
                                   <View
                                     style={
                                       {
@@ -2335,12 +2505,12 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#9ca1af"
+                                        placeholderTextColor="#b7bbc8"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -2378,6 +2548,97 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                               ]
                             }
                           >
+                            <View
+                              accessibilityRole="none"
+                              accessible={true}
+                              style={
+                                {
+                                  "backgroundColor": "#3c4d9d1a",
+                                  "borderRadius": 8,
+                                  "marginVertical": 8,
+                                  "padding": 16,
+                                  "paddingVertical": 8,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-start",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flex": -1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="SecurityKey"
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    width={24}
+                                  />
+                                </View>
+                                <View
+                                  accessible={false}
+                                  style={
+                                    {
+                                      "width": 8,
+                                    }
+                                  }
+                                  testID="listitem-gap"
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    Transak encrypts and stores this information.
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    MetaMask never receives or uses your data.
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
@@ -2389,11 +2650,12 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }
@@ -2569,15 +2831,15 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                 <SvgMock
                   color="#121314"
                   fill="currentColor"
-                  height={20}
+                  height={24}
                   name="ArrowLeft"
                   style={
                     {
-                      "height": 20,
-                      "width": 20,
+                      "height": 24,
+                      "width": 24,
                     }
                   }
-                  width={20}
+                  width={24}
                 />
               </TouchableOpacity>
             </View>
@@ -2614,7 +2876,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                     }
                   }
                 >
-                  Enter your basic info
+                  Verify your identity
                 </Text>
               </TouchableOpacity>
             </View>
@@ -3012,7 +3274,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             "height": 4,
                                           },
                                           {
-                                            "backgroundColor": "#9ca1af",
+                                            "backgroundColor": "#b7bbc8",
                                           },
                                         ],
                                         undefined,
@@ -3026,16 +3288,30 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                   style={
                                     {
                                       "color": "#121314",
-                                      "fontFamily": "Geist Regular",
-                                      "fontSize": 14,
+                                      "fontFamily": "Geist Bold",
+                                      "fontSize": 24,
                                       "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                      "marginBottom": 20,
+                                      "lineHeight": 32,
                                       "marginTop": 24,
                                     }
                                   }
                                 >
-                                  To begin verifying your identity, we need some basic information.
+                                  Enter your basic info
+                                </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#b7bbc8",
+                                      "fontFamily": "Geist Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "marginBottom": 16,
+                                    }
+                                  }
+                                >
+                                  Next, we need some basic information about you.
                                 </Text>
                                 <View
                                   style={
@@ -3109,11 +3385,11 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="John"
-                                          placeholderTextColor="#9ca1af"
+                                          placeholderTextColor="#b7bbc8"
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3211,11 +3487,11 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           onFocus={[Function]}
                                           onSubmitEditing={[Function]}
                                           placeholder="Smith"
-                                          placeholderTextColor="#9ca1af"
+                                          placeholderTextColor="#b7bbc8"
                                           returnKeyType="next"
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3331,7 +3607,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           accessibilityRole="text"
                                           style={
                                             {
-                                              "color": "#9ca1af",
+                                              "color": "#b7bbc8",
                                               "fontFamily": "Geist Regular",
                                               "fontSize": 14,
                                               "letterSpacing": 0,
@@ -3352,6 +3628,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       }
                                     >
                                       <TextInput
+                                        autoComplete="tel"
                                         autoFocus={false}
                                         editable={true}
                                         keyboardAppearance="light"
@@ -3360,11 +3637,11 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         onChangeText={[Function]}
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
-                                        placeholder="(555) 555-1234"
-                                        placeholderTextColor="#9ca1af"
+                                        placeholder="(555) 123-4567"
+                                        placeholderTextColor="#b7bbc8"
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -3378,6 +3655,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           }
                                         }
                                         testID="deposit-phone-field-test-id"
+                                        textContentType="telephoneNumber"
                                         value=""
                                       />
                                     </View>
@@ -3448,7 +3726,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                       }
                                       testID="label"
                                     >
-                                      Date of Birth
+                                      Date of birth
                                     </Text>
                                     <View
                                       style={
@@ -3474,30 +3752,19 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         }
                                         testID="textfield-startacccessory"
                                       >
-                                        <Text
-                                          allowFontScaling={false}
-                                          selectable={false}
+                                        <SvgMock
+                                          color="#121314"
+                                          fill="currentColor"
+                                          height={20}
+                                          name="Calendar"
                                           style={
-                                            [
-                                              {
-                                                "color": undefined,
-                                                "fontSize": 20,
-                                              },
-                                              {
-                                                "color": "#121314",
-                                                "marginRight": 8,
-                                              },
-                                              {
-                                                "fontFamily": "Ionicons",
-                                                "fontStyle": "normal",
-                                                "fontWeight": "normal",
-                                              },
-                                              {},
-                                            ]
+                                            {
+                                              "height": 20,
+                                              "width": 20,
+                                            }
                                           }
-                                        >
-                                          
-                                        </Text>
+                                          width={20}
+                                        />
                                       </View>
                                       <View
                                         style={
@@ -3513,12 +3780,12 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                           onBlur={[Function]}
                                           onFocus={[Function]}
                                           placeholder="01/01/2000"
-                                          placeholderTextColor="#9ca1af"
+                                          placeholderTextColor="#b7bbc8"
                                           pointerEvents="none"
                                           readOnly={true}
                                           style={
                                             {
-                                              "backgroundColor": "#ffffff",
+                                              "backgroundColor": "inherit",
                                               "borderColor": "transparent",
                                               "borderWidth": 1,
                                               "color": "#121314",
@@ -3532,7 +3799,7 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                             }
                                           }
                                           testID="date-of-birth-input"
-                                          value="01/01/2000"
+                                          value=""
                                         />
                                       </View>
                                     </View>
@@ -3564,22 +3831,56 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                     ]
                                   }
                                 >
-                                  <Text
-                                    accessibilityRole="text"
+                                  <View
                                     style={
                                       {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist Regular",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
                                         "marginBottom": 6,
                                       }
                                     }
-                                    testID="label"
                                   >
-                                    Social Security Number
-                                  </Text>
+                                    <View
+                                      style={
+                                        {
+                                          "alignItems": "center",
+                                          "flexDirection": "row",
+                                          "gap": 8,
+                                        }
+                                      }
+                                    >
+                                      <Text
+                                        accessibilityRole="text"
+                                        style={
+                                          {
+                                            "color": "#121314",
+                                            "fontFamily": "Geist Regular",
+                                            "fontSize": 16,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                          }
+                                        }
+                                      >
+                                        Social Security Number
+                                      </Text>
+                                      <TouchableOpacity
+                                        onPress={[Function]}
+                                        testID="ssn-info-button"
+                                      >
+                                        <SvgMock
+                                          color="#686e7d"
+                                          fill="currentColor"
+                                          height={16}
+                                          name="Info"
+                                          style={
+                                            {
+                                              "height": 16,
+                                              "width": 16,
+                                            }
+                                          }
+                                          width={16}
+                                        />
+                                      </TouchableOpacity>
+                                    </View>
+                                  </View>
                                   <View
                                     style={
                                       {
@@ -3615,12 +3916,12 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                         onFocus={[Function]}
                                         onSubmitEditing={[Function]}
                                         placeholder="XXX-XX-XXXX"
-                                        placeholderTextColor="#9ca1af"
+                                        placeholderTextColor="#b7bbc8"
                                         returnKeyType="done"
                                         secureTextEntry={true}
                                         style={
                                           {
-                                            "backgroundColor": "#ffffff",
+                                            "backgroundColor": "inherit",
                                             "borderColor": "transparent",
                                             "borderWidth": 1,
                                             "color": "#121314",
@@ -3673,6 +3974,97 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                               ]
                             }
                           >
+                            <View
+                              accessibilityRole="none"
+                              accessible={true}
+                              style={
+                                {
+                                  "backgroundColor": "#3c4d9d1a",
+                                  "borderRadius": 8,
+                                  "marginVertical": 8,
+                                  "padding": 16,
+                                  "paddingVertical": 8,
+                                }
+                              }
+                            >
+                              <View
+                                style={
+                                  {
+                                    "alignItems": "flex-start",
+                                    "flexDirection": "row",
+                                  }
+                                }
+                              >
+                                <View
+                                  style={
+                                    {
+                                      "flex": -1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <SvgMock
+                                    color="#686e7d"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="SecurityKey"
+                                    style={
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
+                                    }
+                                    width={24}
+                                  />
+                                </View>
+                                <View
+                                  accessible={false}
+                                  style={
+                                    {
+                                      "width": 8,
+                                    }
+                                  }
+                                  testID="listitem-gap"
+                                />
+                                <View
+                                  style={
+                                    {
+                                      "flex": 1,
+                                    }
+                                  }
+                                  testID="listitemcolumn"
+                                >
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    Transak encrypts and stores this information.
+                                  </Text>
+                                  <Text
+                                    accessibilityRole="text"
+                                    style={
+                                      {
+                                        "color": "#686e7d",
+                                        "fontFamily": "Geist Regular",
+                                        "fontSize": 12,
+                                        "letterSpacing": 0.25,
+                                        "lineHeight": 20,
+                                      }
+                                    }
+                                  >
+                                    MetaMask never receives or uses your data.
+                                  </Text>
+                                </View>
+                              </View>
+                            </View>
                             <TouchableOpacity
                               accessibilityRole="button"
                               accessible={true}
@@ -3684,11 +4076,12 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "stretch",
-                                  "backgroundColor": "#4459ff",
+                                  "backgroundColor": "#121314",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
                                   "height": 48,
                                   "justifyContent": "center",
+                                  "overflow": "hidden",
                                   "paddingHorizontal": 16,
                                 }
                               }

@@ -72,7 +72,7 @@ exports[`EditAccountName should render correctly 1`] = `
             onFocus={[Function]}
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "inherit",
                 "borderColor": "transparent",
                 "borderWidth": 1,
                 "color": "#121314",
@@ -144,7 +144,7 @@ exports[`EditAccountName should render correctly 1`] = `
             placeholder="0x49a016E6736F9Ad381605c...72A6"
             style={
               {
-                "backgroundColor": "#ffffff",
+                "backgroundColor": "inherit",
                 "borderColor": "transparent",
                 "borderWidth": 1,
                 "color": "#121314",
@@ -183,8 +183,8 @@ exports[`EditAccountName should render correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "transparent",
-          "borderColor": "#4459ff",
+          "backgroundColor": "#3c4d9d1a",
+          "borderColor": "transparent",
           "borderRadius": 12,
           "borderWidth": 1,
           "flex": 1,
@@ -192,6 +192,7 @@ exports[`EditAccountName should render correctly 1`] = `
           "height": 48,
           "justifyContent": "center",
           "marginRight": 8,
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }
@@ -200,7 +201,7 @@ exports[`EditAccountName should render correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
+            "color": "#121314",
             "fontFamily": "Geist Medium",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -223,13 +224,14 @@ exports[`EditAccountName should render correctly 1`] = `
         {
           "alignItems": "center",
           "alignSelf": "stretch",
-          "backgroundColor": "#4459ff",
+          "backgroundColor": "#121314",
           "borderRadius": 12,
           "flex": 1,
           "flexDirection": "row",
           "height": 48,
           "justifyContent": "center",
           "marginLeft": 8,
+          "overflow": "hidden",
           "paddingHorizontal": 16,
         }
       }

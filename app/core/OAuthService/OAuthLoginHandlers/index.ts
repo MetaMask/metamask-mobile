@@ -11,7 +11,6 @@ import {
   IosGoogleRedirectUri,
   AndroidGoogleWebGID,
   AppleWebClientId,
-  IosAppleClientId,
   web3AuthNetwork,
 } from './constants';
 import { OAuthErrorType, OAuthError } from '../error';
@@ -34,8 +33,7 @@ export function createLoginHandler(
     !IosGID ||
     !IosGoogleRedirectUri ||
     !AndroidGoogleWebGID ||
-    !AppleWebClientId ||
-    !IosAppleClientId
+    !AppleWebClientId
   ) {
     throw new Error('Missing environment variables');
   }
@@ -51,7 +49,7 @@ export function createLoginHandler(
           });
         case AuthConnection.Apple:
           return new IosAppleLoginHandler({
-            clientId: IosAppleClientId,
+            clientId: AppleWebClientId,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
           });

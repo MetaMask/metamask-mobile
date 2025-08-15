@@ -27,6 +27,9 @@ describe('getMultichainAccountName', () => {
   it.each([
     [BtcScope.Mainnet, WalletClientType.Bitcoin, 'Bitcoin Account 1'],
     [BtcScope.Testnet, WalletClientType.Bitcoin, 'Bitcoin Testnet Account 1'],
+    [BtcScope.Testnet4, WalletClientType.Bitcoin, 'Bitcoin Testnet Account 1'],
+    [BtcScope.Signet, WalletClientType.Bitcoin, 'Bitcoin Signet Account 1'],
+    [BtcScope.Regtest, WalletClientType.Bitcoin, 'Bitcoin Regtest Account 1'],
     [SolScope.Mainnet, WalletClientType.Solana, 'Solana Account 1'],
     [SolScope.Devnet, WalletClientType.Solana, 'Solana Devnet Account 1'],
     [SolScope.Testnet, WalletClientType.Solana, 'Solana Testnet Account 1'],

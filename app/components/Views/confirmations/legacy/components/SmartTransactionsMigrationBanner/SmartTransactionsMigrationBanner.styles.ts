@@ -15,7 +15,7 @@ const styleSheet = (params: { theme: Theme; vars: { style?: ViewStyle } }) =>
     },
     description: {
       color: params.theme.colors.text.default,
-    }
+    },
   });
 
 export default styleSheet;

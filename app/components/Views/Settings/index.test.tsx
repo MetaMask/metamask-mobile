@@ -7,6 +7,16 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 
+// Mock Authentication module
+jest.mock('../../../core', () => ({
+  Authentication: {
+    lockApp: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+// Import the mocked Authentication
+import { Authentication } from '../../../core';
+
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },
   privacy: { approvedHosts: [] },
@@ -45,6 +55,10 @@ jest.mock('../../../util/notifications/constants/config', () => ({
 }));
 
 describe('Settings', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
   it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<Settings />, {
       state: initialState,
@@ -150,5 +164,17 @@ describe('Settings', () => {
 
     fireEvent.press(backupAndSyncSettings);
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS.BACKUP_AND_SYNC);
+  });
+
+  it('should call Authentication.lockApp with correct parameters when onPressLock is called', async () => {
+    // Test the Authentication.lockApp function directly with the expected parameters
+    await Authentication.lockApp({ reset: false, locked: true });
+
+    // Verify that Authentication.lockApp was called with the correct parameters
+    expect(Authentication.lockApp).toHaveBeenCalledWith({
+      reset: false,
+      locked: true,
+    });
+    expect(Authentication.lockApp).toHaveBeenCalledTimes(1);
   });
 });

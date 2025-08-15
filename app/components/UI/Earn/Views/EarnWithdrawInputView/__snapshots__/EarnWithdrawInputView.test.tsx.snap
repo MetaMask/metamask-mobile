@@ -481,7 +481,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#9ca1af",
+                                      "color": "#b7bbc8",
                                       "fontFamily": "Geist Bold",
                                       "fontSize": 32,
                                       "letterSpacing": 0,
@@ -509,6 +509,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                       "flexDirection": "row",
                                       "height": 32,
                                       "justifyContent": "center",
+                                      "overflow": "hidden",
                                       "paddingHorizontal": 16,
                                     }
                                   }
@@ -576,6 +577,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -612,6 +614,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -648,6 +651,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -684,6 +688,7 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                                 "flexDirection": "row",
                                 "height": 40,
                                 "justifyContent": "center",
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }
@@ -1539,12 +1544,13 @@ exports[`EarnWithdrawInputView render matches snapshot 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#4459ff",
+                                "backgroundColor": "#121314",
                                 "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": 48,
                                 "justifyContent": "center",
                                 "opacity": 0.5,
+                                "overflow": "hidden",
                                 "paddingHorizontal": 16,
                               }
                             }

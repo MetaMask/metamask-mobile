@@ -6,4 +6,4 @@ export type MinimumAppVersionType = {
   appMinimumBuild: number;
   appleMinimumOS: number;
   androidMinimumAPIVersion: number;
-}
+};

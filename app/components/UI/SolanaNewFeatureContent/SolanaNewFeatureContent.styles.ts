@@ -2,7 +2,8 @@ import { StyleSheet } from 'react-native';
 import { colors as importedColors } from '../../../styles/common';
 import Device from '../../../util/device';
 
-const createStyles = () => StyleSheet.create({
+const createStyles = () =>
+  StyleSheet.create({
     scroll: {
       flexGrow: 1,
       minHeight: '100%',
@@ -22,12 +23,14 @@ const createStyles = () => StyleSheet.create({
       textAlign: 'center',
       paddingTop: Device.isLargeDevice() ? 40 : 10,
       fontFamily: 'MM Poly Regular',
+      color: importedColors.gettingStartedTextColor,
     },
     titleDescription: {
       paddingTop: 20,
       textAlign: 'center',
       fontSize: 16,
       fontFamily: 'MM Sans Regular',
+      color: importedColors.gettingStartedTextColor,
     },
     foxImage: {
       height: Device.isLargeDevice() ? 350 : 260,
@@ -37,7 +40,6 @@ const createStyles = () => StyleSheet.create({
       position: 'relative',
       width: '100%',
       paddingHorizontal: 30,
-      justifyContent: 'space-between',
     },
     createWrapper: {
       display: 'flex',
@@ -45,6 +47,7 @@ const createStyles = () => StyleSheet.create({
       justifyContent: 'flex-end',
       rowGap: 5,
       marginBottom: 16,
+      paddingHorizontal: 30,
     },
     learnMoreButton: {
       textDecorationLine: 'underline',
@@ -57,12 +60,18 @@ const createStyles = () => StyleSheet.create({
       borderRadius: 12,
       backgroundColor: importedColors.gettingStartedTextColor,
     },
+    importWalletButtonText: {
+      color: importedColors.white,
+    },
     notNowButton: {
       borderRadius: 12,
       backgroundColor: importedColors.transparent,
       borderWidth: 1,
       borderColor: importedColors.transparent,
     },
+    notNowButtonText: {
+      color: importedColors.gettingStartedTextColor,
+    },
   });
 
-  export default createStyles;
+export default createStyles;

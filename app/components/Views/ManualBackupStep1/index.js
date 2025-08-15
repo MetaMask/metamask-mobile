@@ -51,6 +51,7 @@ import { TextFieldSize } from '../../../component-library/components/Form/TextFi
 import TextField from '../../../component-library/components/Form/TextField/TextField';
 import Routes from '../../../constants/navigation/Routes';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import { AppThemeKey } from '../../../util/theme/models';
 
 /**
  * View that's shown during the second step of
@@ -76,6 +77,8 @@ const ManualBackupStep1 = ({
   const settingsBackup = route?.params?.settingsBackup || false;
 
   const steps = MANUAL_BACKUP_STEPS;
+
+  const seedPhrase = route?.params?.seedPhrase;
 
   const headerLeft = useCallback(
     () => (
@@ -146,8 +149,13 @@ const ManualBackupStep1 = ({
       }
     };
 
-    getSeedphrase();
-    setWords(route.params?.words ?? []);
+    if (seedPhrase) {
+      setWords(seedPhrase);
+    } else {
+      getSeedphrase();
+      setWords(route.params?.words ?? []);
+    }
+
     setReady(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -203,7 +211,11 @@ const ManualBackupStep1 = ({
         testID={ManualBackUpStepsSelectorsIDs.BLUR_BUTTON}
       >
         <ImageBackground
-          source={require('../../../images/blur.png')}
+          source={
+            themeAppearance === AppThemeKey.dark
+              ? require('../../../images/dark-blur.png')
+              : require('../../../images/blur.png')
+          }
           style={styles.blurView}
           resizeMode="cover"
         />
@@ -211,7 +223,7 @@ const ManualBackupStep1 = ({
           <Icon
             name={IconName.EyeSlash}
             size={IconSize.Xl}
-            color={colors.overlay.default}
+            color={colors.icon.default}
           />
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
             {strings('manual_backup_step_1.reveal')}
@@ -232,9 +244,6 @@ const ManualBackupStep1 = ({
       <KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
         <View style={styles.confirmPasswordWrapper}>
           <View style={[styles.content, styles.passwordRequiredContent]}>
-            <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
-              {strings('manual_backup_step_1.confirm_password')}
-            </Text>
             <View style={styles.text}>
               <Label variant={TextVariant.BodyMD} color={TextColor.Default}>
                 {strings('manual_backup_step_1.before_continiuing')}
@@ -359,9 +368,14 @@ const ManualBackupStep1 = ({
   return ready ? (
     <SafeAreaView style={styles.mainWrapper}>
       <View style={[styles.container]}>
-        <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-          Step 2 of 3
-        </Text>
+        {seedPhrase && (
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+            {strings('choose_password.steps', {
+              currentStep: 2,
+              totalSteps: 3,
+            })}
+          </Text>
+        )}
         {view === SEED_PHRASE
           ? renderSeedphraseView()
           : renderConfirmPassword()}

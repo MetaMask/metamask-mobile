@@ -1,5 +1,8 @@
 import BN from 'bnjs4';
-import { validateSufficientBalance, validateSufficientTokenBalance } from './validation';
+import {
+  validateSufficientBalance,
+  validateSufficientTokenBalance,
+} from './validation';
 import { renderFromWei, hexToBN } from '../../../../../../util/number';
 import {
   getTicker,

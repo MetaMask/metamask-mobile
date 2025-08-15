@@ -1,103 +1,127 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import UnsupportedRegionModal from './UnsupportedRegionModal';
-import renderDepositTestComponent from '../../../utils/renderDepositTestComponent';
+import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
+import { createBuyNavigationDetails } from '../../../../Aggregator/routes/utils';
+import { createRegionSelectorModalNavigationDetails } from '../RegionSelectorModal';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import { useParams } from '../../../../../../../util/navigation/navUtils';
 
-const mockUseParams = useParams as jest.MockedFunction<typeof useParams>;
-
-jest.mock('../../../../../../../util/navigation/navUtils', () => ({
-  useParams: jest.fn(),
-  createNavigationDetails: jest.fn((params: Record<string, unknown>) => [
-    'DepositModals',
-    'DepositUnsupportedRegionModal',
-    params,
-  ]),
+const mockNavigate = jest.fn();
+const mockUseDepositSDK = jest.fn();
+const mockGoBack = jest.fn();
+const mockPop = jest.fn();
+const mockDangerouslyGetParent = jest.fn(() => ({
+  pop: mockPop,
 }));
 
-jest.mock('../../../../utils/withRampAndDepositSDK', () =>
-  jest.fn((Component) => (props: Record<string, unknown>) => (
-    <Component {...props} />
-  )),
-);
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      dangerouslyGetParent: mockDangerouslyGetParent,
+    }),
+  };
+});
+
+jest.mock('../../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
+}));
+
+function render(component: React.ComponentType) {
+  return renderScreen(component, {
+    name: Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
+  });
+}
 
 describe('UnsupportedRegionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly', () => {
-    mockUseParams.mockReturnValue({
-      onExitToWalletHome: jest.fn(),
-      onSelectDifferentRegion: jest.fn(),
+  it('render match snapshot', () => {
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: {
+        isoCode: 'BR',
+        flag: '🇧🇷',
+        name: 'Brazil',
+        phone: {
+          prefix: '+55',
+          placeholder: '11 12345 6789',
+          template: 'XX XXXXX XXXX',
+        },
+        currency: 'BRL',
+        supported: false,
+      },
     });
 
-    const { toJSON } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
-    );
+    const { toJSON } = render(UnsupportedRegionModal);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls onExitToWalletHome when exit to wallet home button is pressed', () => {
-    const mockOnExitToWalletHome = jest.fn();
-    mockUseParams.mockReturnValue({
-      onExitToWalletHome: mockOnExitToWalletHome,
-      onSelectDifferentRegion: jest.fn(),
+  it('closes parent navigator and navigates to buy screen when Buy Crypto button is pressed', () => {
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: {
+        isoCode: 'BR',
+        flag: '🇧🇷',
+        name: 'Brazil',
+        phone: {
+          prefix: '+55',
+          placeholder: '11 12345 6789',
+          template: 'XX XXXXX XXXX',
+        },
+        currency: 'BRL',
+        supported: false,
+      },
     });
 
-    const { getByText } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
-    );
+    const { getByText } = render(UnsupportedRegionModal);
 
-    const exitButton = getByText('Exit to wallet home');
-    fireEvent.press(exitButton);
+    const buyCryptoButton = getByText('Buy Crypto');
+    fireEvent.press(buyCryptoButton);
 
-    expect(mockOnExitToWalletHome).toHaveBeenCalled();
+    expect(mockDangerouslyGetParent).toHaveBeenCalled();
+    expect(mockPop).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(...createBuyNavigationDetails());
   });
 
-  it('calls onSelectDifferentRegion when select different region button is pressed', () => {
-    const mockOnSelectDifferentRegion = jest.fn();
-    mockUseParams.mockReturnValue({
-      onExitToWalletHome: jest.fn(),
-      onSelectDifferentRegion: mockOnSelectDifferentRegion,
+  it('navigates to region selector when Change region button is pressed', () => {
+    const mockSelectedRegion = {
+      isoCode: 'BR',
+      flag: '🇧🇷',
+      name: 'Brazil',
+      phone: {
+        prefix: '+55',
+        placeholder: '11 12345 6789',
+        template: 'XX XXXXX XXXX',
+      },
+      currency: 'BRL',
+      supported: false,
+    };
+
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: mockSelectedRegion,
     });
 
-    const { getByText } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
+    const { getByText } = render(UnsupportedRegionModal);
+
+    const changeRegionButton = getByText('Change region');
+    fireEvent.press(changeRegionButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      ...createRegionSelectorModalNavigationDetails(),
     );
-
-    const selectRegionButton = getByText('Select a different region');
-    fireEvent.press(selectRegionButton);
-
-    expect(mockOnSelectDifferentRegion).toHaveBeenCalled();
   });
 
-  it('handles missing callback functions gracefully', () => {
-    mockUseParams.mockReturnValue({});
-
-    const { toJSON } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
-    );
-
-    expect(toJSON()).toBeTruthy();
-  });
-
-  it('handles missing regionName gracefully', () => {
-    mockUseParams.mockReturnValue({
-      onExitToWalletHome: jest.fn(),
-      onSelectDifferentRegion: jest.fn(),
+  it('handles missing region gracefully', () => {
+    mockUseDepositSDK.mockReturnValue({
+      selectedRegion: null,
     });
 
-    const { toJSON } = renderDepositTestComponent(
-      UnsupportedRegionModal,
-      Routes.DEPOSIT.MODALS.UNSUPPORTED_REGION,
-    );
+    const { toJSON } = render(UnsupportedRegionModal);
 
-    expect(toJSON()).toBeTruthy();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

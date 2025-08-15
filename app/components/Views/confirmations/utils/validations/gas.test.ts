@@ -12,9 +12,7 @@ describe('gas-validations', () => {
     });
 
     it('return error message when gas is not a number', () => {
-      expect(validateGas('abc')).toBe(
-        'Only numbers are allowed',
-      );
+      expect(validateGas('abc')).toBe('Only numbers are allowed');
     });
 
     it('return error message when gas is zero', () => {
@@ -22,15 +20,15 @@ describe('gas-validations', () => {
     });
 
     it('return error message when gas is negative', () => {
-      expect(validateGas('-1')).toBe(
-        'Only numbers are allowed',
-      );
+      expect(validateGas('-1')).toBe('Only numbers are allowed');
     });
 
     it('return error message when gas is less than 21000', () => {
-      expect(validateGas('20000')).toBe(
-        'Gas limit must be greater than 21000',
-      );
+      expect(validateGas('20000')).toBe('Gas limit must be greater than 21000');
+    });
+
+    it('return error message when gas is not an integer', () => {
+      expect(validateGas('21000.5')).toBe('Only whole numbers are allowed');
     });
 
     it('return false when gas is valid', () => {
@@ -45,9 +43,7 @@ describe('gas-validations', () => {
     });
 
     it('return error message when priority fee is not a number', () => {
-      expect(validatePriorityFee('abc', '10')).toBe(
-        'Only numbers are allowed',
-      );
+      expect(validatePriorityFee('abc', '10')).toBe('Only numbers are allowed');
     });
 
     it('return error message when priority fee is zero', () => {
@@ -57,9 +53,7 @@ describe('gas-validations', () => {
     });
 
     it('return error message when priority fee is negative', () => {
-      expect(validatePriorityFee('-1', '10')).toBe(
-        'Only numbers are allowed',
-      );
+      expect(validatePriorityFee('-1', '10')).toBe('Only numbers are allowed');
     });
 
     it('return error message when priority fee is greater than max fee', () => {
@@ -71,6 +65,7 @@ describe('gas-validations', () => {
     it('return false when priority fee is valid', () => {
       expect(validatePriorityFee('5', '10')).toBe(false);
       expect(validatePriorityFee('10', '10')).toBe(false);
+      expect(validatePriorityFee('10.5', '10.5')).toBe(false);
     });
   });
 
@@ -80,19 +75,17 @@ describe('gas-validations', () => {
     });
 
     it('return error message when max base fee is not a number', () => {
-      expect(validateMaxBaseFee('abc', '5')).toBe(
-        'Only numbers are allowed',
-      );
+      expect(validateMaxBaseFee('abc', '5')).toBe('Only numbers are allowed');
     });
 
     it('return error message when max base fee is zero', () => {
-      expect(validateMaxBaseFee('0', '5')).toBe('Max Base Fee must be greater than 0');
+      expect(validateMaxBaseFee('0', '5')).toBe(
+        'Max Base Fee must be greater than 0',
+      );
     });
 
     it('return error message when max base fee is negative', () => {
-      expect(validateMaxBaseFee('-1', '5')).toBe(
-        'Only numbers are allowed',
-      );
+      expect(validateMaxBaseFee('-1', '5')).toBe('Only numbers are allowed');
     });
 
     it('return error message when max base fee is less than max priority fee', () => {
@@ -104,6 +97,7 @@ describe('gas-validations', () => {
     it('return false when max base fee is valid', () => {
       expect(validateMaxBaseFee('6', '5')).toBe(false);
       expect(validateMaxBaseFee('10', '5')).toBe(false);
+      expect(validateMaxBaseFee('10.5', '5')).toBe(false);
     });
   });
 
@@ -113,9 +107,7 @@ describe('gas-validations', () => {
     });
 
     it('return error message when gas price is not a number', () => {
-      expect(validateGasPrice('abc')).toBe(
-        'Only numbers are allowed',
-      );
+      expect(validateGasPrice('abc')).toBe('Only numbers are allowed');
     });
 
     it('return error message when gas price is zero', () => {
@@ -123,9 +115,7 @@ describe('gas-validations', () => {
     });
 
     it('return error message when gas price is negative', () => {
-      expect(validateGasPrice('-1')).toBe(
-        'Only numbers are allowed',
-      );
+      expect(validateGasPrice('-1')).toBe('Only numbers are allowed');
     });
 
     it('return false when gas price is valid', () => {

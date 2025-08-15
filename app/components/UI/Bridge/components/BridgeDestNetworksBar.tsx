@@ -12,6 +12,7 @@ import { StyleSheet } from 'react-native';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { useDispatch, useSelector } from 'react-redux';
 import {
+  selectBridgeViewMode,
   selectEnabledDestChains,
   selectSelectedDestChainId,
   setSelectedDestChainId,
@@ -39,6 +40,7 @@ import { selectChainId } from '../../../../selectors/networkController';
 import { ScrollView } from 'react-native-gesture-handler';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { SolScope } from '@metamask/keyring-api';
+import { BridgeViewMode } from '../types';
 ///: END:ONLY_INCLUDE_IF
 const createStyles = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -94,17 +96,23 @@ export const BridgeDestNetworksBar = () => {
   const selectedDestChainId = useSelector(selectSelectedDestChainId);
   const currentChainId = useSelector(selectChainId);
   const { styles } = useStyles(createStyles, { selectedDestChainId });
+  const bridgeViewMode = useSelector(selectBridgeViewMode);
 
   const sortedDestChains = useMemo(
     () =>
       [...enabledDestChains]
-        .filter((chain) => chain.chainId !== currentChainId)
+        .filter((chain) => {
+          if (bridgeViewMode === BridgeViewMode.Unified) {
+            return true;
+          }
+          return chain.chainId !== currentChainId;
+        })
         .sort((a, b) => {
           const aPopularity = ChainPopularity[a.chainId] ?? Infinity;
           const bPopularity = ChainPopularity[b.chainId] ?? Infinity;
           return aPopularity - bPopularity;
         }),
-    [enabledDestChains, currentChainId],
+    [enabledDestChains, currentChainId, bridgeViewMode],
   );
 
   const navigateToNetworkSelector = () => {

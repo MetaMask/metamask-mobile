@@ -5,6 +5,10 @@ jest.unmock('./storage-wrapper');
 import StorageWrapper from './storage-wrapper';
 
 describe('StorageWrapper', () => {
+  afterEach(() => {
+    StorageWrapper.removeAllListeners();
+  });
+
   it('return the value from Storage Wrapper', async () => {
     const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
     const getItemSpy = jest.spyOn(StorageWrapper, 'getItem');
@@ -91,5 +95,48 @@ describe('StorageWrapper', () => {
     expect(setItemSpy).toHaveBeenCalledWith('test-key', 'test-value');
     expect(getItemSpy).toHaveBeenCalledWith('test-key');
     expect(result).toBe('test-value');
+  });
+
+  describe('Event Emitter Functionality', () => {
+    it('emits key-specific change event when setItem is called', async () => {
+      const mockCallback = jest.fn();
+      const unsubscribe = StorageWrapper.onKeyChange('test-key', mockCallback);
+
+      await StorageWrapper.setItem('test-key', 'test-value');
+
+      expect(mockCallback).toHaveBeenCalledWith({
+        key: 'test-key',
+        value: 'test-value',
+        action: 'set',
+      });
+
+      unsubscribe();
+    });
+
+    it('only emits key-specific events for the correct key', async () => {
+      const mockCallbackKey1 = jest.fn();
+      const mockCallbackKey2 = jest.fn();
+
+      const unsubscribe1 = StorageWrapper.onKeyChange(
+        'test-key-1',
+        mockCallbackKey1,
+      );
+      const unsubscribe2 = StorageWrapper.onKeyChange(
+        'test-key-2',
+        mockCallbackKey2,
+      );
+
+      await StorageWrapper.setItem('test-key-1', 'test-value-1');
+
+      expect(mockCallbackKey1).toHaveBeenCalledWith({
+        key: 'test-key-1',
+        value: 'test-value-1',
+        action: 'set',
+      });
+      expect(mockCallbackKey2).not.toHaveBeenCalled();
+
+      unsubscribe1();
+      unsubscribe2();
+    });
   });
 });

@@ -21,11 +21,6 @@ export function getUserStorageControllerMessenger(
       'AccountsController:listAccounts',
       'AccountsController:updateAccountMetadata',
       'AccountsController:updateAccounts',
-      // Network Controller Requests
-      'NetworkController:getState',
-      'NetworkController:addNetwork',
-      'NetworkController:removeNetwork',
-      'NetworkController:updateNetwork',
       // Address Book Controller Requests
       'AddressBookController:list',
       'AddressBookController:set',
@@ -38,8 +33,6 @@ export function getUserStorageControllerMessenger(
       // Accounts Controller Events
       'AccountsController:accountAdded',
       'AccountsController:accountRenamed',
-      // Network Controller Events
-      'NetworkController:networkRemoved',
       // Address Book Controller Events
       'AddressBookController:contactUpdated',
       'AddressBookController:contactDeleted',
