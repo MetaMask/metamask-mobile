@@ -1,5 +1,5 @@
 // Third parties dependencies
-import React from 'react';
+import React, { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -82,12 +82,12 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
     );
   };
 
-  const navigateToAddressList = () => {
+  const navigateToAddressList = useCallback(() => {
     navigate(Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST, {
       groupId: selectedAccountGroupId,
       title: `${strings('multichain_accounts.address_list.receiving_address')}`,
     });
-  };
+  }, [navigate, selectedAccountGroupId]);
 
   const handleOnPress = () => {
     if (isMultichainAccountsState2Enabled) {

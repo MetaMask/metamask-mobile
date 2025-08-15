@@ -16,12 +16,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: jest.fn(),
   }),
-  NavigationContainer: ({ children }: { children: React.ReactNode }) =>
-    children,
-}));
-
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: jest.fn(),
 }));
 
 const mockAddress = '0x67B2fAf7959fB61eb9746571041476Bbd0672569';
