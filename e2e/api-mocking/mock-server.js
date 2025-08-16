@@ -12,6 +12,17 @@ const logger = createLogger({
 });
 
 /**
+ * Try to parse response body as JSON, return as-is if not valid JSON
+ */
+const safeJsonParser = (responseBody) => {
+  try {
+    return JSON.parse(responseBody);
+  } catch (e) {
+    return responseBody; // Return raw text for non-JSON responses (like SVGs, HTML, etc.)
+  }
+};
+
+/**
  * Utility function to handle direct fetch requests
  * @param {string} url - The URL to fetch from
  * @param {string} method - The HTTP method
@@ -21,6 +32,9 @@ const logger = createLogger({
  */
 const handleDirectFetch = async (url, method, headers, requestBody) => {
   try {
+    // For measuring request duration
+    const startTime = Date.now();
+
     const response = await global.fetch(url, {
       method,
       headers,
@@ -28,12 +42,35 @@ const handleDirectFetch = async (url, method, headers, requestBody) => {
     });
 
     const responseBody = await response.text();
+    const duration = Date.now() - startTime;
+
+    // Only used in capture mode
+    if (process.env.CAPTURE_MODE === 'true') {
+      const captureData = {
+        url,
+        method,
+        requestHeaders: headers
+          ? typeof headers.entries === 'function'
+            ? Object.fromEntries(headers.entries())
+            : headers
+          : {},
+        requestBody: requestBody || null,
+        responseStatus: response.status,
+        responseHeaders: Object.fromEntries(response.headers.entries()),
+        responseBody: safeJsonParser(responseBody),
+        timestamp: new Date().toISOString(),
+        duration,
+      };
+
+      logger.info(`CAPTURE_REQUEST: ${JSON.stringify(captureData)}`);
+    }
+
     return {
       statusCode: response.status,
       body: responseBody,
     };
   } catch (error) {
-    console.error('Error forwarding request:', url);
+    logger.error('Error forwarding request:', url);
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Failed to forward request' }),
@@ -91,7 +128,7 @@ export const startMockServer = async (events, port) => {
     logger.error(`Failed to start mock server on port ${port}: ${error}`);
     throw new Error(`Failed to start mock server on port ${port}: ${error}`);
   }
-  console.log(`Mockttp server running at http://localhost:${port}`);
+  logger.info(`Mockttp server running at http://localhost:${port}`);
 
   await mockServer
     .forGet('/health-check')
@@ -112,9 +149,9 @@ export const startMockServer = async (events, port) => {
       );
 
       if (matchingEvent) {
-        console.log(`Mocking ${method} request to: ${urlEndpoint}`);
-        console.log(`Response status: ${matchingEvent.responseCode}`);
-        console.log('Response:', matchingEvent.response);
+        logger.info(`Mocking ${method} request to: ${urlEndpoint}`);
+        logger.info(`Response status: ${matchingEvent.responseCode}`);
+        logger.debug('Response:', matchingEvent.response);
 
         // For POST requests, verify the request body if specified
         if (method === 'POST' && matchingEvent.requestBody) {
@@ -144,13 +181,13 @@ export const startMockServer = async (events, port) => {
           const matches = _.isMatch(requestToCheck, expectedRequest);
 
           if (!matches) {
-            console.log('Request body validation failed:');
-            console.log(
+            logger.warn('Request body validation failed:');
+            logger.info(
               'Expected:',
               JSON.stringify(matchingEvent.requestBody, null, 2),
             );
-            console.log('Received:', JSON.stringify(requestBodyJson, null, 2));
-            console.log(
+            logger.info('Received:', JSON.stringify(requestBodyJson, null, 2));
+            logger.info(
               'Differences:',
               JSON.stringify(
                 _.differenceWith(
