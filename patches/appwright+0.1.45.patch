@@ -1,3 +1,16 @@
+diff --git a/node_modules/appwright/dist/config.js b/node_modules/appwright/dist/config.js
+index a51913b..8c0335c 100644
+--- a/node_modules/appwright/dist/config.js
++++ b/node_modules/appwright/dist/config.js
+@@ -25,7 +25,7 @@ const defaultConfig = {
+     fullyParallel: false,
+     forbidOnly: false,
+     retries: process.env.CI ? 2 : 0,
+-    workers: 2,
++    workers: 1,
+     reporter: [["list"], ["html", { open: "always" }]],
+     use: {
+         // TODO: Use this for actions
 diff --git a/node_modules/appwright/dist/providers/browserstack/index.js b/node_modules/appwright/dist/providers/browserstack/index.js
 index 638c5df..b0bd626 100644
 --- a/node_modules/appwright/dist/providers/browserstack/index.js
