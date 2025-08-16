@@ -83,6 +83,7 @@ import IPFSGatewaySettings from '../../Settings/IPFSGatewaySettings';
 import BatchAccountBalanceSettings from '../../Settings/BatchAccountBalanceSettings';
 import useCheckNftAutoDetectionModal from '../../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../../hooks/useCheckMultiRpcModal';
+import DeleteMetamaskAccountData from './Sections/DeleteMetamaskAccountData';
 
 const Heading: React.FC<HeadingProps> = ({ children, first }) => {
   const { colors } = useTheme();
@@ -608,6 +609,7 @@ const Settings: React.FC = () => {
         </Text>
         <MetaMetricsAndDataCollectionSection />
         <DeleteMetaMetricsData metricsOptin={analyticsEnabled} />
+        <DeleteMetamaskAccountData />
         <DeleteWalletData />
         {renderHint()}
       </View>

@@ -104,3 +104,6 @@ export const HOW_TO_MANAGE_METRAMETRICS_SETTINGS =
 
 export const SOLANA_NEW_FEATURE_CONTENT_LEARN_MORE =
   'https://support.metamask.io/configure/accounts/how-to-add-accounts-in-your-wallet/#solana-accounts';
+
+export const DELETE_ACCOUNT_DATA_FORM_URL =
+  'https://share.hsforms.com/1uC-CrIfeScqeCpt28xwiRw2urwb';
