@@ -56,13 +56,6 @@ jobs:
           # This step reads the device matrix from appwright/device-matrix.json
           # You can override this by providing a custom device_matrix input
           # You can also filter devices by category using the device_category input
-          #
-          # Examples:
-          # - Leave inputs empty: Uses all devices from JSON file
-          # - device_category: "high" - Only high-end devices
-          # - device_category: "medium" - Only mid-range devices
-          # - device_category: "low" - Only low-end devices
-          # - device_matrix: '[{"name": "Custom Device", "os_version": "13.0", "category": "high"}]'
           
           if [ -n "${{ github.event.inputs.device_matrix }}" ]; then
             # Use custom device matrix from input

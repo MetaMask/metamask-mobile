@@ -28,9 +28,9 @@
     },
     {
       "name": "iPhone 12 Pro",
-      "os_version": "14",
+      "os_version": "17",
       "category": "medium",
-      "description": "Medium iPhone 11 with iOS 13 - Note: iOS 13 not supported by MetaMask app"
+      "description": "Medium iPhone 12."
     }
   ],
   "device_categories": {
@@ -40,7 +40,7 @@
   },
   "os_coverage": {
     "android": ["11.0", "13.0", "14.0"],
-    "ios": ["14", "16"]
+    "ios": ["16", "17"]
   },
   "notes": {
     "ios_limitations": "iPhone 11 (iOS 13) and iPhone 8 (iOS 11) have OS versions not supported by MetaMask app",
