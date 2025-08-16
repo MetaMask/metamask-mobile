@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
+import { isEqual } from 'lodash';
 import type { Hex } from '@metamask/utils';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { selectNetworkConfigurations } from '../../../../selectors/networkController';
@@ -33,6 +34,9 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const tokenList = useSelector(selectTokenList);
   const isIpfsGatewayEnabled = useSelector(selectIsIpfsGatewayEnabled);
+
+  // Use ref to store previous token array
+  const previousTokensRef = useRef<PerpsToken[]>([]);
 
   // Get Hyperliquid account balance
   const cachedAccountState = usePerpsAccount();
@@ -152,5 +156,14 @@ export function usePerpsPaymentTokens(): PerpsToken[] {
     isIpfsGatewayEnabled,
   ]);
 
-  return paymentTokens;
+  // Check if tokens have actually changed using lodash deep equality
+  const tokensChanged = !isEqual(previousTokensRef.current, paymentTokens);
+
+  // Only update the reference if tokens have actually changed
+  if (tokensChanged) {
+    previousTokensRef.current = paymentTokens;
+  }
+
+  // Return the stable reference if tokens haven't changed
+  return tokensChanged ? paymentTokens : previousTokensRef.current;
 }

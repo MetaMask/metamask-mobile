@@ -28,6 +28,11 @@ jest.mock('../providers/PerpsConnectionProvider', () => ({
   })),
 }));
 
+// Mock stream hooks
+jest.mock('./stream', () => ({
+  useLivePrices: jest.fn(() => ({})),
+}));
+
 // Mock data
 const mockMarketData: PerpsMarketData[] = [
   {
@@ -164,7 +169,7 @@ describe('usePerpsMarkets', () => {
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'Perps: Successfully fetched and transformed market data',
-        { marketCount: 2 },
+        { marketCount: 2, livePricesEnabled: false },
       );
     });
 

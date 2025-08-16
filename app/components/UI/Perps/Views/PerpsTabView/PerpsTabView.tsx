@@ -307,4 +307,13 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   );
 };
 
+// Enable WDYR tracking in development
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsTabView as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsTabView',
+  };
+}
+
 export default PerpsTabView;
