@@ -35,6 +35,7 @@ import useAnalytics from '../../../hooks/useAnalytics';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
 import { useRampSDK } from '../../sdk';
 import { isNetworkRampSupported } from '../../utils';
+import { areChainIdsEqual } from '../../types';
 
 import Engine from '../../../../../../core/Engine';
 import { useTheme } from '../../../../../../util/theme';
@@ -75,6 +76,7 @@ function NetworkSwitcher() {
 
   const isLoading = isLoadingNetworks || isLoadingNetworksDetail;
   const error = errorFetchingNetworks || errorFetchingNetworksDetail;
+
   const rampNetworksDetails = useMemo(() => {
     const activeNetworkDetails: Network[] = [];
     // TODO(ramp, btc): filter supportedNetworks by EVM compatible chains (chainId are strings of decimal numbers)
@@ -160,6 +162,14 @@ function NetworkSwitcher() {
     [navigateToGetStarted],
   );
 
+  const switchToSolana = useCallback(() => {
+    const { MultichainNetworkController } = Engine.context;
+    MultichainNetworkController.setActiveNetwork(
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+    );
+    navigateToGetStarted();
+  }, [navigateToGetStarted]);
+
   const switchNetwork = useCallback(
     async (networkConfiguration: Network) => {
       const { MultichainNetworkController } = Engine.context;
@@ -188,6 +198,16 @@ function NetworkSwitcher() {
         chainId: networkConfiguration.chainId,
       }));
 
+      // Handle non-EVM networks (like Solana, Bitcoin, etc.)
+      if (networkConfiguration.chainId.includes(':')) {
+        const { MultichainNetworkController } = Engine.context;
+        await MultichainNetworkController.setActiveNetwork(
+          networkConfiguration.chainId,
+        );
+        navigateToGetStarted();
+        return;
+      }
+
       const networkConfigurationWithHexChainId = {
         ...networkConfiguration,
         chainId: toHex(networkConfiguration.chainId),
@@ -199,14 +219,29 @@ function NetworkSwitcher() {
         setNetworkToBeAdded(networkConfigurationWithHexChainId);
       }
     },
-    [setIntent, switchNetwork],
+    [setIntent, switchNetwork, navigateToGetStarted],
   );
 
   const handleIntentChainId = useCallback(
     async (chainId: string) => {
+      // Handle non-EVM networks (like Solana, Bitcoin, etc.)
+      if (chainId.includes(':')) {
+        const { MultichainNetworkController } = Engine.context;
+        try {
+          await MultichainNetworkController.setActiveNetwork(chainId);
+
+          navigateToGetStarted();
+        } catch (networkError) {
+          // Network switching failed, continue with normal flow
+        }
+        return;
+      }
+
+      // For EVM networks, check if they are supported
       if (!isNetworkRampSupported(chainId, supportedNetworks)) {
         return;
       }
+
       if (getDecimalChainId(ChainId.mainnet) === chainId) {
         return switchToMainnet('mainnet');
       }
@@ -244,13 +279,14 @@ function NetworkSwitcher() {
       rampNetworksDetails,
       networkConfigurations,
       handleNetworkPress,
+      navigateToGetStarted,
     ],
   );
 
   useEffect(() => {
     if (
       isCurrentNetworkRampSupported &&
-      (!intent?.chainId || selectedChainId === intent.chainId)
+      (!intent?.chainId || areChainIdsEqual(selectedChainId, intent.chainId))
     ) {
       navigateToGetStarted();
     } else if (intent?.chainId) {
@@ -261,7 +297,6 @@ function NetworkSwitcher() {
     intent?.chainId,
     isCurrentNetworkRampSupported,
     navigateToGetStarted,
-    navigation,
     selectedChainId,
   ]);
 
@@ -379,6 +414,36 @@ function NetworkSwitcher() {
                     <View style={customNetworkStyle.popularWrapper}>
                       {selectedChainId ===
                       getDecimalChainId(ChainId['linea-mainnet']) ? (
+                        <Text link>{strings('networks.continue')}</Text>
+                      ) : (
+                        <Text link>{strings('networks.switch')}</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                ) : null}
+
+                {isNetworkRampSupported(
+                  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+                  supportedNetworks,
+                ) ? (
+                  <TouchableOpacity
+                    style={customNetworkStyle.popularNetwork}
+                    onPress={() => switchToSolana()}
+                  >
+                    <View style={customNetworkStyle.popularWrapper}>
+                      <View style={customNetworkStyle.popularNetworkImage}>
+                        <Avatar
+                          variant={AvatarVariant.Network}
+                          size={AvatarSize.Sm}
+                          name={'Solana Mainnet'}
+                          imageSource={imageIcons.SOLANA as ImageSourcePropType}
+                        />
+                      </View>
+                      <Text bold>Solana Main Network</Text>
+                    </View>
+                    <View style={customNetworkStyle.popularWrapper}>
+                      {selectedChainId ===
+                      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp' ? (
                         <Text link>{strings('networks.continue')}</Text>
                       ) : (
                         <Text link>{strings('networks.switch')}</Text>
