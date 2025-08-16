@@ -46,6 +46,14 @@ import {
 // Export to make compatible with components that use this file.
 export type { ReusableModalRef } from './ReusableModal.types';
 
+/**
+ * @deprecated The `<ReusableModal />` component has been deprecated in favor of the new `<BottomSheet>` component from the component-library.
+ * Please update your code to use the new `<BottomSheet>` component instead, which can be found at app/component-library/components/BottomSheets/BottomSheet/BottomSheet.tsx.
+ * You can find documentation for the new BottomSheet component in the README:
+ * {@link https://github.com/MetaMask/metamask-mobile/tree/main/app/component-library/components/BottomSheets/BottomSheet}
+ * If you would like to help with the replacement of the old ReusableModal component, please submit a pull request against this GitHub issue:
+ * {@link https://github.com/MetaMask/metamask-mobile/issues/12656}
+ */
 const ReusableModal = forwardRef<ReusableModalRef, ReusableModalProps>(
   (
     {
