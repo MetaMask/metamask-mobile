@@ -51,7 +51,7 @@ exports[`OnboardingWizard should render correctly 1`] = `
       onStartShouldSetResponder={[Function]}
       style={
         {
-          "backgroundColor": "black",
+          "backgroundColor": "transparent",
           "bottom": 0,
           "height": 1334,
           "left": 0,
