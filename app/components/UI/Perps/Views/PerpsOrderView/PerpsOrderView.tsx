@@ -210,6 +210,7 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: {
             market: navigationMarketData,
+            isNavigationFromOrderSuccess: true,
           },
         });
       },
@@ -668,7 +669,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
         orderType={orderForm.type}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
       />
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -868,7 +868,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
           </View>
         </View>
       </ScrollView>
-
       {/* Keypad Section - Show when input is focused */}
       {isInputFocused && (
         <View style={styles.bottomSection}>
@@ -928,7 +927,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
           />
         </View>
       )}
-
       {/* Fixed Place Order Button - Hide when keypad is active */}
       {!isInputFocused && (
         <View style={styles.fixedBottomContainer}>
@@ -961,7 +959,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
           />
         </View>
       )}
-
       {/* TP/SL Bottom Sheet */}
       <PerpsTPSLBottomSheet
         isVisible={isTPSLVisible}
@@ -979,7 +976,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
         initialTakeProfitPrice={orderForm.takeProfitPrice}
         initialStopLossPrice={orderForm.stopLossPrice}
       />
-
       {/* Leverage Selector */}
       <PerpsLeverageBottomSheet
         isVisible={isLeverageVisible}
@@ -1020,7 +1016,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
         direction={orderForm.direction}
         asset={orderForm.asset}
       />
-
       {/* Limit Price Bottom Sheet */}
       <PerpsLimitPriceBottomSheet
         isVisible={isLimitPriceVisible}
@@ -1033,7 +1028,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
         limitPrice={orderForm.limitPrice}
         currentPrice={assetData.price}
       />
-
       {/* Order Type Bottom Sheet */}
       <PerpsOrderTypeBottomSheet
         isVisible={isOrderTypeVisible}
