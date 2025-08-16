@@ -15,13 +15,15 @@ import {
   RegressionStage,
   craftRegressionLabel,
   externalContributorLabel,
+  needsTriageLabel,
+  areaSentryLabel,
   invalidIssueTemplateLabel,
   invalidPullRequestTemplateLabel,
 } from './shared/label';
 import { TemplateType, templates } from './shared/template';
 import { retrievePullRequest } from './shared/pull-request';
 
-const knownBots = ["metamaskbot", "dependabot", "github-actions", "sentry-io", "devin-ai-integration"];
+const knownBots = ["metamaskbot", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github"];
 
 main().catch((error: Error): void => {
   console.error(error);
@@ -85,13 +87,33 @@ async function main(): Promise<void> {
     labelable.body,
   );
 
-  // If labelable's author is a bot we skip the template checks as bots don't use templates
-  if (knownBots.includes(labelable.author)) {
+  // If labelable's author is a bot we skip the rest of the script, including the template checks as bots don't use templates.
+  // Exception: For issues created the 'sentry-io' bot, we don't skip the rest of the script because there's a specific handling for those issues.
+  if (knownBots.includes(labelable.author) && labelable.author !== 'sentry-io') {
     console.log(`${labelable.type === LabelableType.PullRequest ? 'PR' : 'Issue'} was created by a bot (${labelable.author}). Skip template checks.`);
     process.exit(0); // Stop the process and exit with a success status code
   }
 
   if (labelable.type === LabelableType.Issue) {
+
+    if (labelable.author === 'sentry-io') {
+      console.log(
+        `Issue ${labelable?.number} was created through Sentry. Issue's description doesn't need to match issue template in that case. Skip template checks.`,
+      );
+      await removeLabelFromLabelableIfPresent(
+        octokit,
+        labelable,
+        invalidIssueTemplateLabel,
+      );
+      // Add needs triage label ONLY if issue is created (not updated)
+      if (context.payload.action === 'opened') {
+        await addNeedsTriageLabelToIssue(octokit, labelable);
+      }
+      // Add area-Sentry label to the bug report issue
+      await addAreaSentryLabelToIssue(octokit, labelable);
+      process.exit(0); // Stop the process and exit with a success status code
+    }
+
     if (templateType === TemplateType.GeneralIssue) {
       console.log("Issue matches 'general-issue.yml' template.");
       await removeLabelFromLabelableIfPresent(
@@ -108,7 +130,12 @@ async function main(): Promise<void> {
       );
 
       // Add regression label to the bug report issue
-      addRegressionLabelToIssue(octokit, labelable);
+      await addRegressionLabelToIssue(octokit, labelable);
+
+      // Add needs triage label ONLY if issue is created (not updated)
+      if (context.payload.action === 'opened') {
+        await addNeedsTriageLabelToIssue(octokit, labelable);
+      }
 
     } else {
       const errorMessage =
@@ -230,6 +257,21 @@ function extractReleaseVersionFromBugReportIssueBody(
   }
 
   return version;
+}
+
+// This function adds the "needs-triage" label to the issue if it doesn't have it
+async function addNeedsTriageLabelToIssue(
+  octokit: InstanceType<typeof GitHub>,
+  issue: Labelable,
+): Promise<void> {
+  await addLabelToLabelable(octokit, issue, needsTriageLabel);
+}
+// This function adds the "area-Sentry" label to the issue if it doesn't have it
+async function addAreaSentryLabelToIssue(
+  octokit: InstanceType<typeof GitHub>,
+  issue: Labelable,
+): Promise<void> {
+  await addLabelToLabelable(octokit, issue, areaSentryLabel);
 }
 
 // This function adds the correct regression label to the issue, and removes other ones
