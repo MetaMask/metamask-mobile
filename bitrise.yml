@@ -44,6 +44,12 @@ pipelines:
       - bump_version_stage: {}
       - create_build_beta: {}
       - deploy_build_release: {}
+  #Releases MetaMask RC apps for release buil profiling
+  release_rc_builds_to_store_pipeline:
+    stages:
+      - bump_version_stage: {}
+      - create_build_rc: {}
+      - deploy_build_release: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
     stages:
@@ -207,6 +213,10 @@ stages:
     workflows:
       - build_ios_main_prod: {}
       - build_ios_main_beta: {}
+      - build_ios_main_rc: {}
+  create_build_rc:
+    workflows:
+      - build_android_main_rc: {}
       - build_ios_main_rc: {}
   deploy_android_release:
     workflows:

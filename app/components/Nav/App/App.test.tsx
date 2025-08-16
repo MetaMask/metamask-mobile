@@ -50,6 +50,14 @@ jest.mock('react-native/Libraries/Linking/Linking', () => ({
   removeEventListener: jest.fn(),
 }));
 
+jest.mock('expo-sensors', () => ({
+  Accelerometer: {
+    setUpdateInterval: jest.fn(),
+    addListener: jest.fn(),
+    removeAllListeners: jest.fn(),
+  },
+}));
+
 jest.mock('../../../core/DeeplinkManager/SharedDeeplinkManager', () => ({
   init: jest.fn(),
   parse: jest.fn(),
@@ -210,6 +218,7 @@ jest.mock('react-native-branch', () => ({
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
+  getBundleId: jest.fn().mockReturnValue('io.metamask'),
 }));
 
 jest.mock('../../../selectors/accountsController', () => ({
