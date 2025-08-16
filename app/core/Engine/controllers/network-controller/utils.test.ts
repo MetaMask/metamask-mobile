@@ -1,14 +1,15 @@
 import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
 
+import { QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME } from '../../../../util/networks/customNetworks';
 import {
-  getIsOurInfuraEndpointUrl,
   getIsQuicknodeEndpointUrl,
   shouldCreateRpcServiceEvents,
 } from './utils';
-import { QUICKNODE_ENDPOINT_URLS_BY_INFURA_NETWORK_NAME } from '../../../../util/networks/customNetworks';
 
 jest.mock('@metamask/remote-feature-flag-controller', () => ({
   ...jest.requireActual('@metamask/remote-feature-flag-controller'),
+  // This is the name of the property that turns this into an ES module.
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   __esModule: true,
   generateDeterministicRandomNumber: jest.fn(),
 }));
@@ -17,34 +18,8 @@ const generateDeterministicRandomNumberMock = jest.mocked(
   generateDeterministicRandomNumber,
 );
 
-describe('getIsOurInfuraEndpointUrl', () => {
-  it('returns true if the URL has an Infura hostname with some subdomain whose path starts with the MetaMask API key', () => {
-    expect(
-      getIsOurInfuraEndpointUrl(
-        'https://some-subdomain.infura.io/v3/the-infura-project-id',
-        'the-infura-project-id',
-      ),
-    ).toBe(true);
-  });
-
-  it('returns false if the URL has an Infura hostname with some subdomain whose path does not start with the MetaMask API key', () => {
-    expect(
-      getIsOurInfuraEndpointUrl(
-        'https://some-subdomain.infura.io/v3/a-different-infura-project-id',
-        'the-infura-project-id',
-      ),
-    ).toBe(false);
-  });
-
-  it('returns false if the URL does match an Infura URL', () => {
-    expect(
-      getIsOurInfuraEndpointUrl(
-        'https://a-different-url.com',
-        'the-infura-project-id',
-      ),
-    ).toBe(false);
-  });
-});
+const MOCK_METAMETRICS_ID =
+  '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420';
 
 describe('getIsQuicknodeEndpointUrl', () => {
   for (const [infuraNetwork, getQuicknodeEndpointUrl] of Object.entries(
@@ -82,64 +57,75 @@ describe('getIsQuicknodeEndpointUrl', () => {
 });
 
 describe('shouldCreateRpcServiceEvents', () => {
-  it('returns false if given no metaMetricsId', () => {
-    expect(shouldCreateRpcServiceEvents(undefined)).toBe(false);
-  });
-
-  it('returns false if METAMASK_ENVIRONMENT is not set', async () => {
-    await withChangesToEnvironmentVariables(() => {
-      delete process.env.METAMASK_ENVIRONMENT;
-
-      expect(
-        shouldCreateRpcServiceEvents(
-          '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
-        ),
-      ).toBe(false);
-    });
-  });
-
-  it('returns true if METAMASK_ENVIRONMENT is not "production" or "release-candidate"', async () => {
-    await withChangesToEnvironmentVariables(() => {
-      process.env.METAMASK_ENVIRONMENT = 'development';
-
-      expect(
-        shouldCreateRpcServiceEvents(
-          '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
-        ),
-      ).toBe(true);
-    });
-  });
-
-  describe.each(['production', 'pre-release', 'qa', 'beta', 'rc', 'exp'])(
-    'if METAMASK_ENVIRONMENT is "%s"',
-    (metamaskEnvironment: string) => {
-      it('returns false if the MetaMetrics user is not within the sample', async () => {
-        await withChangesToEnvironmentVariables(() => {
-          process.env.METAMASK_ENVIRONMENT = metamaskEnvironment;
-          generateDeterministicRandomNumberMock.mockReturnValue(0.7);
-
-          expect(
-            shouldCreateRpcServiceEvents(
-              '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
-            ),
-          ).toBe(false);
-        });
-      });
-
-      it('returns true if the MetaMetrics user is within the sample', async () => {
-        await withChangesToEnvironmentVariables(() => {
-          process.env.METAMASK_ENVIRONMENT = metamaskEnvironment;
-          generateDeterministicRandomNumberMock.mockReturnValue(0.09999);
-
-          expect(
-            shouldCreateRpcServiceEvents(
-              '0x86bacb9b2bf9a7e8d2b147eadb95ac9aaa26842327cd24afc8bd4b3c1d136420',
-            ),
-          ).toBe(true);
-        });
+  it.each(['production', 'pre-release', 'qa', 'beta', 'rc', 'exp'])(
+    'returns false given a connection error, even when given a defined metametricsId, METAMASK_ENVIRONMENT is "%s", and the user is in the sample',
+    async (metamaskEnvironment: string | undefined) => {
+      await withChangesToEnvironmentVariables(() => {
+        process.env.METAMASK_ENVIRONMENT = metamaskEnvironment;
+        generateDeterministicRandomNumberMock.mockReturnValue(0.009999);
+        const error = new TypeError('Failed to fetch');
+        expect(shouldCreateRpcServiceEvents(error, MOCK_METAMETRICS_ID)).toBe(
+          false,
+        );
       });
     },
   );
+
+  describe.each([
+    ['a non-connection error', new Error('some error')],
+    ['no error', undefined],
+  ])('given %s', (_description: string, error: unknown) => {
+    it('returns false given an undefined metaMetricsId', () => {
+      expect(shouldCreateRpcServiceEvents(error, undefined)).toBe(false);
+    });
+
+    it('returns false given a defined metaMetricsId, but METAMASK_ENVIRONMENT is not set', async () => {
+      await withChangesToEnvironmentVariables(() => {
+        delete process.env.METAMASK_ENVIRONMENT;
+
+        expect(shouldCreateRpcServiceEvents(error, MOCK_METAMETRICS_ID)).toBe(
+          false,
+        );
+      });
+    });
+
+    it('returns true when METAMASK_ENVIRONMENT is not "production", "pre-release", "qa", "beta", "rc", or "exp"', async () => {
+      await withChangesToEnvironmentVariables(() => {
+        process.env.METAMASK_ENVIRONMENT = 'development';
+
+        expect(shouldCreateRpcServiceEvents(error, MOCK_METAMETRICS_ID)).toBe(
+          true,
+        );
+      });
+    });
+
+    describe.each(['production', 'pre-release', 'qa', 'beta', 'rc', 'exp'])(
+      'if METAMASK_ENVIRONMENT is "%s"',
+      (metamaskEnvironment: string) => {
+        it('returns false when the MetaMetrics user is not within the sample', async () => {
+          await withChangesToEnvironmentVariables(() => {
+            process.env.METAMASK_ENVIRONMENT = metamaskEnvironment;
+            generateDeterministicRandomNumberMock.mockReturnValue(0.2);
+
+            expect(
+              shouldCreateRpcServiceEvents(error, MOCK_METAMETRICS_ID),
+            ).toBe(false);
+          });
+        });
+
+        it('returns true when the MetaMetrics user is within the sample', async () => {
+          await withChangesToEnvironmentVariables(() => {
+            process.env.METAMASK_ENVIRONMENT = metamaskEnvironment;
+            generateDeterministicRandomNumberMock.mockReturnValue(0.009999);
+
+            expect(
+              shouldCreateRpcServiceEvents(error, MOCK_METAMETRICS_ID),
+            ).toBe(true);
+          });
+        });
+      },
+    );
+  });
 });
 
 /**
