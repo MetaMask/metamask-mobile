@@ -104,7 +104,8 @@ class StreamChannel<T> {
   }
 
   protected connect() {
-    // Override in subclasses
+    // Template method for establishing WebSocket connections
+    // Each stream type overrides this with specific subscription logic
   }
 
   protected disconnect() {
@@ -115,7 +116,8 @@ class StreamChannel<T> {
   }
 
   protected getCachedData(): T | null {
-    // Override in subclasses
+    // Template method for retrieving cached data for new subscribers
+    // Each stream type overrides this to return their specific cached format
     return null;
   }
 }
