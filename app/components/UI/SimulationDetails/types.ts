@@ -100,7 +100,4 @@ export type BalanceChange = Readonly<{
    * Optional field is balance change in Unlimited Approval
    */
   isUnlimitedApproval?: boolean;
-
-  /** The amount of USD that corresponds to the asset amount. */
-  usdAmount: FiatAmount;
 }>;

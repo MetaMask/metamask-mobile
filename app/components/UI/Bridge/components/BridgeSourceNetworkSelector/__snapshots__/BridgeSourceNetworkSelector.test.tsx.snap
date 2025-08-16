@@ -385,8 +385,8 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 24,
-                                "borderTopRightRadius": 24,
+                                "borderTopLeftRadius": 8,
+                                "borderTopRightRadius": 8,
                                 "borderWidth": 1,
                                 "height": 1334,
                                 "maxHeight": 1334,
@@ -1025,7 +1025,7 @@ exports[`BridgeSourceNetworkSelector renders with initial state and displays net
                                     {
                                       "alignItems": "center",
                                       "alignSelf": "stretch",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "transparent",
                                       "borderRadius": 12,
                                       "borderWidth": 1,

@@ -30,7 +30,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
-import { selectWalletByAccount } from '../../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectWalletByAccount } from '../../../../../../multichain-accounts/selectors/accountTreeController';
 
 interface BaseAccountDetailsProps {
   account: InternalAccount;

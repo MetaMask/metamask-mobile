@@ -37,7 +37,6 @@ import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 
 export interface EnterAddressParams {
-  previousFormData?: BasicInfoFormData & AddressFormData;
   formData: BasicInfoFormData;
   quote: BuyQuote;
 }
@@ -45,7 +44,7 @@ export interface EnterAddressParams {
 export const createEnterAddressNavDetails =
   createNavigationDetails<EnterAddressParams>(Routes.DEPOSIT.ENTER_ADDRESS);
 
-export interface AddressFormData {
+interface AddressFormData {
   addressLine1: string;
   addressLine2: string;
   city: string;
@@ -57,11 +56,8 @@ export interface AddressFormData {
 const EnterAddress = (): JSX.Element => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
-  const {
-    formData: basicInfoFormData,
-    quote,
-    previousFormData,
-  } = useParams<EnterAddressParams>();
+  const { formData: basicInfoFormData, quote } =
+    useParams<EnterAddressParams>();
   const { selectedRegion } = useDepositSDK();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -84,12 +80,12 @@ const EnterAddress = (): JSX.Element => {
   });
 
   const initialFormData: AddressFormData = {
-    addressLine1: previousFormData?.addressLine1 || '',
-    addressLine2: previousFormData?.addressLine2 || '',
-    state: previousFormData?.state || '',
-    city: previousFormData?.city || '',
-    postCode: previousFormData?.postCode || '',
-    countryCode: previousFormData?.countryCode || selectedRegion?.isoCode || '',
+    addressLine1: '',
+    addressLine2: '',
+    state: '',
+    city: '',
+    postCode: '',
+    countryCode: selectedRegion?.isoCode || '',
   };
 
   const validateForm = (data: AddressFormData): Record<string, string> => {

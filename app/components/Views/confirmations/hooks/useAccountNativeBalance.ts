@@ -9,10 +9,7 @@ interface AccountData {
 
 type AccountsByChainId = Record<Hex, Record<string, AccountData>>;
 
-export const useAccountNativeBalance = (
-  chainId: Hex,
-  address: string,
-): { balanceWeiInHex: Hex } => {
+export const useAccountNativeBalance = (chainId: Hex, address: string) => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
 
   // Create a normalized version of accountsByChainId with lowercase addresses
@@ -44,6 +41,6 @@ export const useAccountNativeBalance = (
     normalizedAccountsByChainId[chainId]?.[lowercaseAddress]?.balance ?? '0x0';
 
   return {
-    balanceWeiInHex: rawAccountBalance as Hex,
+    balanceWeiInHex: rawAccountBalance,
   };
 };

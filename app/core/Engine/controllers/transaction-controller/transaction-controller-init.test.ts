@@ -1,5 +1,4 @@
 import {
-  PublishHook,
   TransactionController,
   TransactionControllerMessenger,
   TransactionControllerOptions,
@@ -27,7 +26,6 @@ import {
   handleTransactionSubmittedEventForMetrics,
 } from './event-handlers/metrics';
 import { Hex } from '@metamask/utils';
-import { PayHook } from '../../../../util/transactions/hooks/pay-hook';
 
 jest.mock('@metamask/transaction-controller');
 jest.mock('../../../../reducers/swaps');
@@ -35,8 +33,6 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
 jest.mock('./event-handlers/metrics');
-jest.mock('../../../../util/transactions/hooks/pay-hook');
-
 jest.mock('../../../../util/transactions', () => ({
   getTransactionById: jest.fn((_id) => ({
     id: _id,
@@ -49,17 +45,6 @@ jest.mock('../../../../util/transactions', () => ({
     networkClientId: 'selectedNetworkClientId',
   })),
 }));
-
-const MOCK_TRANSACTION_META = {
-  id: '123',
-  chainId: '0x1',
-  status: 'approved',
-  time: 123,
-  txParams: {
-    from: '0x123',
-  },
-  networkClientId: 'selectedNetworkClientId',
-} as TransactionMeta;
 
 /**
  * Build a mock NetworkController.
@@ -133,8 +118,6 @@ describe('Transaction Controller Init', () => {
   const handleTransactionAddedEventForMetricsMock = jest.mocked(
     handleTransactionAddedEventForMetrics,
   );
-  const payHookClassMock = jest.mocked(PayHook);
-  const payHookMock: jest.MockedFn<PublishHook> = jest.fn();
 
   /**
    * Extract a constructor option passed to the controller.
@@ -161,18 +144,9 @@ describe('Transaction Controller Init', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
-
     selectShouldUseSmartTransactionMock.mockReturnValue(true);
     selectSwapsChainFeatureFlagsMock.mockReturnValue({});
     getGlobalChainIdMock.mockReturnValue('0x1');
-
-    payHookClassMock.mockReturnValue({
-      getHook: () => payHookMock,
-    } as unknown as PayHook);
-
-    payHookMock.mockResolvedValue({
-      transactionHash: undefined,
-    });
   });
 
   it('returns controller instance', () => {
@@ -282,87 +256,87 @@ describe('Transaction Controller Init', () => {
     expect(optionFn?.()).toBe(false);
   });
 
-  describe('publish hook', () => {
-    it('calls submitSmartTransactionHook', async () => {
-      const hooks = testConstructorOption('hooks');
+  it('publish hook calls submitSmartTransactionHook', () => {
+    const MOCK_TRANSACTION_META = {
+      id: '123',
+      chainId: '0x1',
+      status: 'approved',
+      time: 123,
+      txParams: {
+        from: '0x123',
+      },
+      networkClientId: 'selectedNetworkClientId',
+    } as TransactionMeta;
 
-      await hooks?.publish?.(MOCK_TRANSACTION_META);
+    const hooks = testConstructorOption('hooks');
 
-      expect(submitSmartTransactionHookMock).toHaveBeenCalledTimes(1);
-      expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledTimes(1);
-      expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledWith(
-        undefined,
-        MOCK_TRANSACTION_META.chainId,
-      );
-      expect(selectSwapsChainFeatureFlagsMock).toHaveBeenCalledTimes(1);
-      expect(submitSmartTransactionHookMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          transactionMeta: MOCK_TRANSACTION_META,
-          shouldUseSmartTransaction: true,
-        }),
-      );
-    });
+    hooks?.publish?.(MOCK_TRANSACTION_META);
 
-    it('calls pay hook', async () => {
-      const hooks = testConstructorOption('hooks');
-      await hooks?.publish?.(MOCK_TRANSACTION_META);
-
-      expect(payHookMock).toHaveBeenCalledTimes(1);
-    });
+    expect(submitSmartTransactionHookMock).toHaveBeenCalledTimes(1);
+    expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledTimes(1);
+    expect(selectShouldUseSmartTransactionMock).toHaveBeenCalledWith(
+      undefined,
+      MOCK_TRANSACTION_META.chainId,
+    );
+    expect(selectSwapsChainFeatureFlagsMock).toHaveBeenCalledTimes(1);
+    expect(submitSmartTransactionHookMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        transactionMeta: MOCK_TRANSACTION_META,
+        shouldUseSmartTransaction: true,
+      }),
+    );
   });
 
-  describe('publishBatch hook', () => {
-    it('calls submitBatchSmartTransactionHook', () => {
-      const mockTransactionMeta = {
-        id: '123',
-        chainId: '0x1',
-        status: 'approved',
-        time: 123,
-        txParams: {
-          from: '0x123',
-        },
-        networkClientId: 'selectedNetworkClientId',
-      };
-
-      const getTransactionByIdMock = jest.requireMock(
-        '../../../../util/transactions',
-      ).getTransactionById;
-      getTransactionByIdMock.mockReturnValue(mockTransactionMeta);
-
-      selectShouldUseSmartTransactionMock.mockReturnValue(true);
-
-      const submitBatchSmartTransactionHookMock = jest.requireMock(
-        '../../../../util/smart-transactions/smart-publish-hook',
-      ).submitBatchSmartTransactionHook;
-      submitBatchSmartTransactionHookMock.mockResolvedValue({
-        results: [{ transactionHash: '0xhash' }],
-      });
-
-      const hooks = testConstructorOption('hooks');
-
-      const mockTransactions = [
-        {
-          id: '123',
-          signedTx: '0x1234' as Hex,
-        },
-      ];
-
-      hooks?.publishBatch?.({
-        transactions:
-          mockTransactions as unknown as PublishBatchHookTransaction[],
+  it('publishBatch hook calls submitBatchSmartTransactionHook', () => {
+    const mockTransactionMeta = {
+      id: '123',
+      chainId: '0x1',
+      status: 'approved',
+      time: 123,
+      txParams: {
         from: '0x123',
-        networkClientId: 'selectedNetworkClientId',
-      });
+      },
+      networkClientId: 'selectedNetworkClientId',
+    };
 
-      expect(submitBatchSmartTransactionHookMock).toHaveBeenCalled();
+    const getTransactionByIdMock = jest.requireMock(
+      '../../../../util/transactions',
+    ).getTransactionById;
+    getTransactionByIdMock.mockReturnValue(mockTransactionMeta);
 
-      expect(submitBatchSmartTransactionHookMock).toHaveBeenCalledWith(
-        expect.objectContaining({
-          transactions: mockTransactions,
-          shouldUseSmartTransaction: true,
-        }),
-      );
+    selectShouldUseSmartTransactionMock.mockReturnValue(true);
+
+    const submitBatchSmartTransactionHookMock = jest.requireMock(
+      '../../../../util/smart-transactions/smart-publish-hook',
+    ).submitBatchSmartTransactionHook;
+    submitBatchSmartTransactionHookMock.mockResolvedValue({
+      results: [{ transactionHash: '0xhash' }],
     });
+
+    const hooks = testConstructorOption('hooks');
+
+    const mockTransactions = [
+      {
+        id: '123',
+        signedTx: '0x1234' as Hex,
+      },
+    ];
+
+    hooks?.publishBatch?.({
+      transactions:
+        mockTransactions as unknown as PublishBatchHookTransaction[],
+      from: '0x123',
+      networkClientId: 'selectedNetworkClientId',
+    });
+
+    expect(submitBatchSmartTransactionHookMock).toHaveBeenCalled();
+
+    expect(submitBatchSmartTransactionHookMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        transactions: mockTransactions,
+        shouldUseSmartTransaction: true,
+      }),
+    );
   });
 
   it('determines incoming transactions based on preference privacyMode', () => {

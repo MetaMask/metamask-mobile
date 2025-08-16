@@ -2,13 +2,29 @@ import React from 'react';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react-native';
 import OtpCode from './OtpCode';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
+import {
+  BuyQuote,
+  NativeTransakAccessToken,
+} from '@consensys/native-ramps-sdk';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 
 const EMAIL = 'test@email.com';
+const PAYMENT_METHOD_ID = 'test-payment-method';
+const CRYPTO_CURRENCY_CHAIN_ID = '1';
 
+const mockQuote = {
+  quoteId: 'mock-quote-id',
+} as BuyQuote;
+
+const mockRouteAfterAuthentication = jest.fn();
 const mockTrackEvent = jest.fn();
+
+jest.mock('../../hooks/useDepositRouting', () => ({
+  useDepositRouting: () => ({
+    routeAfterAuthentication: mockRouteAfterAuthentication,
+  }),
+}));
 
 const mockSetAuthToken = jest.fn();
 
@@ -26,6 +42,9 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: () => ({
     email: EMAIL,
+    quote: mockQuote,
+    paymentMethodId: PAYMENT_METHOD_ID,
+    cryptoCurrencyChainId: CRYPTO_CURRENCY_CHAIN_ID,
   }),
 }));
 
@@ -153,7 +172,7 @@ describe('OtpCode Screen', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('navigates to build quote when valid code is input', async () => {
+  it('calls routeAfterAuthentication when valid code is input', async () => {
     const mockResponse = {
       id: 'mock-id-123',
       ttl: 1000,
@@ -170,9 +189,7 @@ describe('OtpCode Screen', () => {
     await waitFor(() => {
       expect(mockVerifyUserOtp).toHaveBeenCalled();
       expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.BUILD_QUOTE, {
-        shouldRouteImmediately: true,
-      });
+      expect(mockRouteAfterAuthentication).toHaveBeenCalledWith(mockQuote);
     });
   });
 

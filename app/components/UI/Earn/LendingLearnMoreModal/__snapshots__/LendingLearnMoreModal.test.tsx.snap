@@ -85,8 +85,8 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
             {
               "backgroundColor": "#ffffff",
               "borderColor": "#b7bbc866",
-              "borderTopLeftRadius": 24,
-              "borderTopRightRadius": 24,
+              "borderTopLeftRadius": 8,
+              "borderTopRightRadius": 8,
               "borderWidth": 1,
               "maxHeight": 640,
               "overflow": "hidden",
@@ -236,7 +236,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
                 style={
                   {
                     "alignItems": "center",
-                    "backgroundColor": "#3c4d9d0f",
+                    "backgroundColor": "#3c4d9d1a",
                     "borderRadius": 32,
                     "height": 36,
                     "justifyContent": "center",
@@ -629,7 +629,7 @@ exports[`LendingLearnMoreModal render lending history apy chart 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#3c4d9d0f",
+                "backgroundColor": "#3c4d9d1a",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,

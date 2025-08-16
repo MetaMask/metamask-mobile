@@ -8,8 +8,6 @@ import {
   PerpsPositionCardSelectorsIDs,
   PerpsPositionHeaderSelectorsIDs,
   PerpsPositionDetailsViewSelectorsIDs,
-  PerpsCandlestickChartSelectorsIDs,
-  getPerpsViewSelector,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock dependencies
@@ -48,14 +46,8 @@ jest.mock('../../components/PerpsTPSLBottomSheet', () => ({
   }) => {
     if (!isVisible) return null;
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    const {
-      PerpsPositionDetailsViewSelectorsIDs:
-        PerpsPositionDetailsViewSelectorsIDsMock,
-    } = jest.requireActual(
-      '../../../../../../e2e/selectors/Perps/Perps.selectors',
-    );
     return (
-      <View testID={PerpsPositionDetailsViewSelectorsIDsMock.TPSL_BOTTOMSHEET}>
+      <View testID="perps-tpsl-bottomsheet">
         <TouchableOpacity onPress={onClose}>
           <Text>Close</Text>
         </TouchableOpacity>
@@ -80,27 +72,12 @@ jest.mock('../../components/PerpsClosePositionBottomSheet', () => ({
   }) => {
     if (!isVisible) return null;
     const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    const {
-      PerpsPositionDetailsViewSelectorsIDs:
-        PerpsPositionDetailsViewSelectorsIDsMock,
-    } = jest.requireActual(
-      '../../../../../../e2e/selectors/Perps/Perps.selectors',
-    );
     return (
-      <View
-        testID={
-          PerpsPositionDetailsViewSelectorsIDsMock.CLOSE_POSITION_BOTTOMSHEET
-        }
-      >
+      <View testID="perps-close-position-bottomsheet">
         <TouchableOpacity onPress={onClose}>
           <Text>Close</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          onPress={onConfirm}
-          testID={
-            PerpsPositionDetailsViewSelectorsIDsMock.CONFIRM_CLOSE_POSITION
-          }
-        >
+        <TouchableOpacity onPress={onConfirm} testID="confirm-close-position">
           <Text>Confirm</Text>
         </TouchableOpacity>
       </View>
@@ -111,12 +88,6 @@ jest.mock('../../components/PerpsClosePositionBottomSheet', () => ({
 // Mock the wagmi charts library to fix missing getDomain function
 jest.mock('react-native-wagmi-charts', () => {
   const { View } = jest.requireActual('react-native');
-  const {
-    PerpsPositionDetailsViewSelectorsIDs:
-      PerpsPositionDetailsViewSelectorsIDsMock,
-  } = jest.requireActual(
-    '../../../../../../e2e/selectors/Perps/Perps.selectors',
-  );
 
   const MockChart = ({
     children,
@@ -127,11 +98,7 @@ jest.mock('react-native-wagmi-charts', () => {
     height: number;
     width: number;
   }) => (
-    <View
-      testID={PerpsPositionDetailsViewSelectorsIDsMock.CANDLESTICK_CHART}
-      data-height={height}
-      data-width={width}
-    >
+    <View testID="candlestick-chart" data-height={height} data-width={width}>
       {children}
     </View>
   );
@@ -143,10 +110,7 @@ jest.mock('react-native-wagmi-charts', () => {
     children: React.ReactNode;
     data: unknown[];
   }) => (
-    <View
-      testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_PROVIDER}
-      data-data-points={data?.length || 0}
-    >
+    <View testID="chart-provider" data-data-points={data?.length || 0}>
       {children}
     </View>
   );
@@ -159,16 +123,14 @@ jest.mock('react-native-wagmi-charts', () => {
     negativeColor: string;
   }) => (
     <View
-      testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_CANDLES}
+      testID="chart-candles"
       data-positive-color={positiveColor}
       data-negative-color={negativeColor}
     />
   );
 
   MockChart.Crosshair = ({ children }: { children: React.ReactNode }) => (
-    <View testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_CROSSHAIR}>
-      {children}
-    </View>
+    <View testID="chart-crosshair">{children}</View>
   );
 
   MockChart.Tooltip = ({
@@ -181,7 +143,7 @@ jest.mock('react-native-wagmi-charts', () => {
     tooltipTextProps?: unknown;
   }) => (
     <View
-      testID={PerpsPositionDetailsViewSelectorsIDsMock.CHART_TOOLTIP}
+      testID="chart-tooltip"
       data-style={style}
       data-text-props={tooltipTextProps}
     >
@@ -308,10 +270,10 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR),
+        screen.getByTestId('perps-chart-interval-selector'),
       ).toBeOnTheScreen();
       expect(
-        screen.getByTestId(getPerpsViewSelector.chartDurationButton('1d')),
+        screen.getByTestId('perps-chart-interval-selector-1h'),
       ).toBeOnTheScreen();
     });
   });
@@ -382,13 +344,9 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId(
-          PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR_LOADING,
-        ),
+        screen.getByTestId('perps-chart-interval-selector-loading'),
       ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.LOADING_SKELETON),
-      ).toBeOnTheScreen();
+      expect(screen.getByText('Loading chart data...')).toBeOnTheScreen();
     });
 
     it('displays chart with no data state when candle data is null', () => {
@@ -403,25 +361,21 @@ describe('PerpsPositionDetailsView', () => {
 
       // Assert
       expect(
-        screen.getByTestId(
-          PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR_NO_DATA,
-        ),
+        screen.getByTestId('perps-chart-interval-selector-no-data'),
       ).toBeOnTheScreen();
       expect(screen.getByText('No chart data available')).toBeOnTheScreen();
     });
 
-    it('handles duration change correctly', () => {
+    it('handles interval change correctly', () => {
       // Act
       render(<PerpsPositionDetailsView />);
-      fireEvent.press(
-        screen.getByTestId(getPerpsViewSelector.chartDurationButton('1w')),
-      );
+      fireEvent.press(screen.getByTestId('perps-chart-interval-selector-5m'));
 
       // Assert
-      // The component should re-render with new duration, but we can't easily test state changes
-      // This test ensures the duration change handler doesn't crash
+      // The component should re-render with new interval, but we can't easily test state changes
+      // This test ensures the interval change handler doesn't crash
       expect(
-        screen.getByTestId(PerpsCandlestickChartSelectorsIDs.DURATION_SELECTOR),
+        screen.getByTestId('perps-chart-interval-selector'),
       ).toBeOnTheScreen();
     });
   });
@@ -447,11 +401,7 @@ describe('PerpsPositionDetailsView', () => {
       render(<PerpsPositionDetailsView />);
 
       // Bottom sheet should not be visible initially
-      expect(
-        screen.queryByTestId(
-          PerpsPositionDetailsViewSelectorsIDs.TPSL_BOTTOMSHEET,
-        ),
-      ).toBeNull();
+      expect(screen.queryByTestId('perps-tpsl-bottomsheet')).toBeNull();
 
       // Press edit button
       fireEvent.press(
@@ -459,11 +409,7 @@ describe('PerpsPositionDetailsView', () => {
       );
 
       // Assert - Bottom sheet should be visible
-      expect(
-        screen.getByTestId(
-          PerpsPositionDetailsViewSelectorsIDs.TPSL_BOTTOMSHEET,
-        ),
-      ).toBeDefined();
+      expect(screen.getByTestId('perps-tpsl-bottomsheet')).toBeDefined();
 
       // Component should still be on screen
       expect(
@@ -480,7 +426,6 @@ describe('PerpsPositionDetailsView', () => {
       // Assert
       expect(usePerpsPositionData).toHaveBeenCalledWith({
         coin: 'ETH',
-        selectedDuration: '1d',
         selectedInterval: '1h',
       });
     });
@@ -502,7 +447,6 @@ describe('PerpsPositionDetailsView', () => {
       // Assert
       expect(usePerpsPositionData).toHaveBeenCalledWith({
         coin: 'BTC',
-        selectedDuration: '1d',
         selectedInterval: '1h',
       });
       expect(screen.getByText('BTC-USD')).toBeOnTheScreen();

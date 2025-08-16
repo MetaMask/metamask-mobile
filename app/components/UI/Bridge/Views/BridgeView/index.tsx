@@ -15,7 +15,10 @@ import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import {
   getDecimalChainId,
   getNetworkImageSource,
@@ -35,7 +38,6 @@ import {
   selectDestAddress,
   selectIsSolanaSourced,
   selectBridgeViewMode,
-  setBridgeViewMode,
 } from '../../../../../core/redux/slices/bridge';
 import {
   useNavigation,
@@ -61,7 +63,7 @@ import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useMetrics, MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import { ScrollView } from 'react-native';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
@@ -70,13 +72,11 @@ import { isHardwareAccount } from '../../../../../util/address';
 import AppConstants from '../../../../../core/AppConstants';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
+import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
 
 export interface BridgeRouteParams {
+  token?: BridgeToken;
   sourcePage: string;
-  bridgeViewMode: BridgeViewMode;
-  sourceToken?: BridgeToken;
-  destToken?: BridgeToken;
-  sourceAmount?: string;
 }
 
 const BridgeView = () => {
@@ -120,17 +120,9 @@ const BridgeView = () => {
 
   const updateQuoteParams = useBridgeQuoteRequest();
 
-  const initialSourceToken = route.params?.sourceToken;
-  const initialSourceAmount = route.params?.sourceAmount;
-  const initialDestToken = route.params?.destToken;
-  useInitialSourceToken(initialSourceToken, initialSourceAmount);
-  useInitialDestToken(initialSourceToken, initialDestToken);
-
-  useEffect(() => {
-    if (route.params?.bridgeViewMode && bridgeViewMode === undefined) {
-      dispatch(setBridgeViewMode(route.params?.bridgeViewMode));
-    }
-  }, [route.params?.bridgeViewMode, dispatch, bridgeViewMode]);
+  const initialSourceToken = route.params?.token;
+  useInitialSourceToken(initialSourceToken);
+  useInitialDestToken(initialSourceToken);
 
   // End trace when component mounts
   useEffect(() => {
@@ -174,6 +166,7 @@ const BridgeView = () => {
     // Destinations address is only needed for EVM <> Solana bridges
     (!isEvmSolanaBridge || (isEvmSolanaBridge && !!destAddress));
 
+  const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientBalance = useIsInsufficientBalance({
     amount: sourceAmount,
     token: sourceToken,
@@ -312,6 +305,7 @@ const BridgeView = () => {
 
   const getButtonLabel = () => {
     if (hasInsufficientBalance) return strings('bridge.insufficient_funds');
+    if (!hasSufficientGas) return strings('bridge.insufficient_gas');
     if (isSubmittingTx) return strings('bridge.submitting_transaction');
 
     const isSwap = sourceToken?.chainId === destToken?.chainId;
@@ -394,7 +388,8 @@ const BridgeView = () => {
               hasInsufficientBalance ||
               isSubmittingTx ||
               (isHardwareAddress && isSolanaSourced) ||
-              !!blockaidError
+              !!blockaidError ||
+              !hasSufficientGas
             }
           />
           <Button
@@ -497,6 +492,9 @@ const BridgeView = () => {
                   onChange={handleKeypadChange}
                   currency={sourceToken?.symbol || 'ETH'}
                   decimals={sourceToken?.decimals || 18}
+                  deleteIcon={
+                    <Icon name={IconName.Arrow2Left} size={IconSize.Lg} />
+                  }
                 />
               </Box>
             ) : null}

@@ -3,7 +3,6 @@ import {
   BaseController,
   type RestrictedMessenger,
 } from '@metamask/base-controller';
-import { successfulFetch } from '@metamask/controller-utils';
 import type { NetworkControllerGetStateAction } from '@metamask/network-controller';
 import type {
   TransactionControllerTransactionConfirmedEvent,
@@ -11,12 +10,13 @@ import type {
   TransactionControllerTransactionSubmittedEvent,
   TransactionParams,
 } from '@metamask/transaction-controller';
+import { successfulFetch } from '@metamask/controller-utils';
 import { parseCaipAssetId, type CaipChainId, type Hex } from '@metamask/utils';
+import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { generateTransferData } from '../../../../util/transactions';
 import type { CandleData } from '../types';
-import { CandlePeriod } from '../constants/chartConfig';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
   AccountState,
@@ -29,19 +29,11 @@ import type {
   DepositStatus,
   EditOrderParams,
   FeeCalculationResult,
-  Funding,
   GetAccountStateParams,
-  GetFundingParams,
-  GetOrderFillsParams,
-  GetOrdersParams,
   GetPositionsParams,
   IPerpsProvider,
-  LiquidationPriceParams,
   LiveDataConfig,
-  MaintenanceMarginParams,
   MarketInfo,
-  Order,
-  OrderFill,
   OrderParams,
   OrderResult,
   Position,
@@ -55,25 +47,6 @@ import type {
   WithdrawResult,
 } from './types';
 import { getEnvironment } from './utils';
-
-/**
- * Error codes for PerpsController
- * These codes are returned to the UI layer for translation
- */
-export const PERPS_ERROR_CODES = {
-  CLIENT_NOT_INITIALIZED: 'CLIENT_NOT_INITIALIZED',
-  PROVIDER_NOT_AVAILABLE: 'PROVIDER_NOT_AVAILABLE',
-  TOKEN_NOT_SUPPORTED: 'TOKEN_NOT_SUPPORTED',
-  BRIDGE_CONTRACT_NOT_FOUND: 'BRIDGE_CONTRACT_NOT_FOUND',
-  WITHDRAW_FAILED: 'WITHDRAW_FAILED',
-  POSITIONS_FAILED: 'POSITIONS_FAILED',
-  ACCOUNT_STATE_FAILED: 'ACCOUNT_STATE_FAILED',
-  MARKETS_FAILED: 'MARKETS_FAILED',
-  UNKNOWN_ERROR: 'UNKNOWN_ERROR',
-} as const;
-
-export type PerpsErrorCode =
-  (typeof PERPS_ERROR_CODES)[keyof typeof PERPS_ERROR_CODES];
 
 const ON_RAMP_GEO_BLOCKING_URLS = {
   DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
@@ -203,18 +176,6 @@ export type PerpsControllerActions =
       handler: PerpsController['getPositions'];
     }
   | {
-      type: 'PerpsController:getOrderFills';
-      handler: PerpsController['getOrderFills'];
-    }
-  | {
-      type: 'PerpsController:getOrders';
-      handler: PerpsController['getOrders'];
-    }
-  | {
-      type: 'PerpsController:getFunding';
-      handler: PerpsController['getFunding'];
-    }
-  | {
       type: 'PerpsController:getAccountState';
       handler: PerpsController['getAccountState'];
     }
@@ -321,7 +282,7 @@ export class PerpsController extends BaseController<
         error:
           error instanceof Error
             ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+            : strings('perps.errors.unknownError'),
         timestamp: new Date().toISOString(),
       });
     });
@@ -331,7 +292,7 @@ export class PerpsController extends BaseController<
         error:
           error instanceof Error
             ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+            : strings('perps.errors.unknownError'),
         timestamp: new Date().toISOString(),
       });
     });
@@ -477,20 +438,24 @@ export class PerpsController extends BaseController<
    */
   getActiveProvider(): IPerpsProvider {
     if (!this.isInitialized) {
+      const error = strings('perps.errors.clientNotInitialized');
       this.update((state) => {
-        state.lastError = PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED;
+        state.lastError = error;
         state.lastUpdateTimestamp = Date.now();
       });
-      throw new Error(PERPS_ERROR_CODES.CLIENT_NOT_INITIALIZED);
+      throw new Error(error);
     }
 
     const provider = this.providers.get(this.state.activeProvider);
     if (!provider) {
+      const error = strings('perps.errors.providerNotAvailable', {
+        providerId: this.state.activeProvider,
+      });
       this.update((state) => {
-        state.lastError = PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE;
+        state.lastError = error;
         state.lastUpdateTimestamp = Date.now();
       });
-      throw new Error(PERPS_ERROR_CODES.PROVIDER_NOT_AVAILABLE);
+      throw new Error(error);
     }
 
     return provider;
@@ -615,7 +580,7 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
 
       // Validate deposit parameters
-      const validation = await provider.validateDeposit(params);
+      const validation = provider.validateDeposit(params);
       if (!validation.isValid) {
         this.update((state) => {
           state.depositStatus = 'error';
@@ -640,25 +605,26 @@ export class PerpsController extends BaseController<
       });
 
       if (depositRoutes.length === 0) {
+        const error = strings('perps.errors.tokenNotSupported', {
+          token: params.assetId,
+        });
         this.update((state) => {
           state.depositStatus = 'error';
-          state.depositError = PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED;
+          state.depositError = error;
         });
-        return { success: false, error: PERPS_ERROR_CODES.TOKEN_NOT_SUPPORTED };
+        return { success: false, error };
       }
 
       const route = depositRoutes[0];
       const bridgeContractAddress = route.contractAddress;
 
       if (!bridgeContractAddress) {
+        const error = strings('perps.errors.bridgeContractNotFound');
         this.update((state) => {
           state.depositStatus = 'error';
-          state.depositError = PERPS_ERROR_CODES.BRIDGE_CONTRACT_NOT_FOUND;
+          state.depositError = error;
         });
-        return {
-          success: false,
-          error: PERPS_ERROR_CODES.BRIDGE_CONTRACT_NOT_FOUND,
-        };
+        return { success: false, error };
       }
 
       DevLogger.log('PerpsController: Preparing deposit', {
@@ -767,7 +733,8 @@ export class PerpsController extends BaseController<
       }
 
       this.update((state) => {
-        state.lastError = result.error || PERPS_ERROR_CODES.WITHDRAW_FAILED;
+        state.lastError =
+          result.error || strings('perps.errors.withdrawFailed');
         state.lastUpdateTimestamp = Date.now();
       });
       DevLogger.log('❌ PerpsController: WITHDRAWAL FAILED', {
@@ -780,7 +747,7 @@ export class PerpsController extends BaseController<
       const errorMessage =
         error instanceof Error
           ? error.message
-          : PERPS_ERROR_CODES.WITHDRAW_FAILED;
+          : strings('perps.errors.withdrawFailed');
 
       DevLogger.log('💥 PerpsController: WITHDRAWAL EXCEPTION', {
         error: errorMessage,
@@ -820,7 +787,7 @@ export class PerpsController extends BaseController<
       const errorMessage =
         error instanceof Error
           ? error.message
-          : PERPS_ERROR_CODES.POSITIONS_FAILED;
+          : strings('perps.errors.positionsFailed');
 
       // Update error state but don't modify positions (keep existing data)
       this.update((state) => {
@@ -831,30 +798,6 @@ export class PerpsController extends BaseController<
       // Re-throw the error so components can handle it appropriately
       throw error;
     }
-  }
-
-  /**
-   * Get historical user fills (trade executions)
-   */
-  async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
-    const provider = this.getActiveProvider();
-    return provider.getOrderFills(params);
-  }
-
-  /**
-   * Get historical user orders (order lifecycle)
-   */
-  async getOrders(params?: GetOrdersParams): Promise<Order[]> {
-    const provider = this.getActiveProvider();
-    return provider.getOrders(params);
-  }
-
-  /**
-   * Get historical user funding history (funding payments)
-   */
-  async getFunding(params?: GetFundingParams): Promise<Funding[]> {
-    const provider = this.getActiveProvider();
-    return provider.getFunding(params);
   }
 
   /**
@@ -882,7 +825,7 @@ export class PerpsController extends BaseController<
       const errorMessage =
         error instanceof Error
           ? error.message
-          : PERPS_ERROR_CODES.ACCOUNT_STATE_FAILED;
+          : strings('perps.errors.accountStateFailed');
 
       // Update error state but don't modify accountState (keep existing data)
       this.update((state) => {
@@ -923,7 +866,7 @@ export class PerpsController extends BaseController<
       const errorMessage =
         error instanceof Error
           ? error.message
-          : PERPS_ERROR_CODES.MARKETS_FAILED;
+          : strings('perps.errors.marketsFailed');
 
       // Update error state
       this.update((state) => {
@@ -941,17 +884,17 @@ export class PerpsController extends BaseController<
    */
   async fetchHistoricalCandles(
     coin: string,
-    interval: CandlePeriod,
+    interval: string,
     limit: number = 100,
-  ): Promise<CandleData> {
+  ): Promise<CandleData | null> {
     try {
       const provider = this.getActiveProvider() as IPerpsProvider & {
         clientService?: {
           fetchHistoricalCandles: (
             coin: string,
-            interval: CandlePeriod,
+            interval: string,
             limit: number,
-          ) => Promise<CandleData>;
+          ) => Promise<CandleData | null>;
         };
       };
 
@@ -987,9 +930,14 @@ export class PerpsController extends BaseController<
    * Calculate liquidation price for a position
    * Uses provider-specific formulas based on protocol rules
    */
-  async calculateLiquidationPrice(
-    params: LiquidationPriceParams,
-  ): Promise<string> {
+  async calculateLiquidationPrice(params: {
+    entryPrice: number;
+    leverage: number;
+    direction: 'long' | 'short';
+    positionSize?: number;
+    marginType?: 'isolated' | 'cross';
+    asset?: string;
+  }): Promise<string> {
     const provider = this.getActiveProvider();
     return provider.calculateLiquidationPrice(params);
   }
@@ -998,9 +946,10 @@ export class PerpsController extends BaseController<
    * Calculate maintenance margin for a specific asset
    * Returns a percentage (e.g., 0.0125 for 1.25%)
    */
-  async calculateMaintenanceMargin(
-    params: MaintenanceMarginParams,
-  ): Promise<number> {
+  async calculateMaintenanceMargin(params: {
+    asset: string;
+    positionSize?: number;
+  }): Promise<number> {
     const provider = this.getActiveProvider();
     return provider.calculateMaintenanceMargin(params);
   }
@@ -1011,36 +960,6 @@ export class PerpsController extends BaseController<
   async getMaxLeverage(asset: string): Promise<number> {
     const provider = this.getActiveProvider();
     return provider.getMaxLeverage(asset);
-  }
-
-  /**
-   * Validate order parameters according to protocol-specific rules
-   */
-  async validateOrder(
-    params: OrderParams,
-  ): Promise<{ isValid: boolean; error?: string }> {
-    const provider = this.getActiveProvider();
-    return provider.validateOrder(params);
-  }
-
-  /**
-   * Validate close position parameters according to protocol-specific rules
-   */
-  async validateClosePosition(
-    params: ClosePositionParams,
-  ): Promise<{ isValid: boolean; error?: string }> {
-    const provider = this.getActiveProvider();
-    return provider.validateClosePosition(params);
-  }
-
-  /**
-   * Validate withdrawal parameters according to protocol-specific rules
-   */
-  async validateWithdrawal(
-    params: WithdrawParams,
-  ): Promise<{ isValid: boolean; error?: string }> {
-    const provider = this.getActiveProvider();
-    return provider.validateWithdrawal(params);
   }
 
   /**
@@ -1098,7 +1017,7 @@ export class PerpsController extends BaseController<
         error:
           error instanceof Error
             ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+            : strings('perps.errors.unknownError'),
       };
     }
   }
@@ -1309,7 +1228,7 @@ export class PerpsController extends BaseController<
         error:
           error instanceof Error
             ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+            : strings('perps.errors.unknownError'),
         transaction,
         timestamp: new Date().toISOString(),
       });
@@ -1460,7 +1379,7 @@ export class PerpsController extends BaseController<
         error:
           error instanceof Error
             ? error.message
-            : PERPS_ERROR_CODES.UNKNOWN_ERROR,
+            : strings('perps.errors.unknownError'),
         timestamp: new Date().toISOString(),
       });
     } finally {
@@ -1468,15 +1387,5 @@ export class PerpsController extends BaseController<
         state.isEligible = isEligible;
       });
     }
-  }
-
-  /**
-   * Get block explorer URL for an address or just the base URL
-   * @param address - Optional address to append to the base URL
-   * @returns Block explorer URL
-   */
-  getBlockExplorerUrl(address?: string): string {
-    const provider = this.getActiveProvider();
-    return provider.getBlockExplorerUrl(address);
   }
 }

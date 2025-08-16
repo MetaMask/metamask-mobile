@@ -24,7 +24,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toHex } from '@metamask/controller-utils';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
-import { handlePerpsError } from '../../utils/perpsErrorHandler';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -78,7 +77,7 @@ import {
 } from '../../../../UI/Bridge/components/TokenInputArea';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { BridgeViewMode } from '../../../Bridge/types';
-import Keypad from '../../../../Base/Keypad';
+import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import { isSwapsNativeAsset } from '../../../Swaps/utils';
 import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
 import { type PerpsToken } from '../../components/PerpsTokenSelector';
@@ -448,13 +447,7 @@ const PerpsDepositAmountView: React.FC<PerpsDepositAmountViewProps> = () => {
         // Navigate to trading view
         navigation.navigate(Routes.PERPS.TRADING_VIEW);
       } else {
-        // Use centralized error handler for all errors
-        const errorMessage = handlePerpsError({
-          error: depositResult.error,
-          context: { token: sourceToken.symbol },
-          fallbackMessage: strings('perps.errors.depositFailed'),
-        });
-        setError(errorMessage);
+        setError(depositResult.error || strings('perps.errors.depositFailed'));
       }
     } catch (err) {
       setError(

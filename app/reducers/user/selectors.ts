@@ -31,9 +31,3 @@ export const selectSeedphraseBackedUp = (state: RootState) =>
  * Selects the existingUser state
  */
 export const selectExistingUser = (state: RootState) => state.user.existingUser;
-
-/**
- * Selects the isConnectionRemoved state
- */
-export const selectIsConnectionRemoved = (state: RootState) =>
-  state.user.isConnectionRemoved;

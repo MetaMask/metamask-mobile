@@ -2,7 +2,7 @@ import { initialState } from '../../_mocks_/initialState';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { SwapBridgeNavigationLocation, useSwapBridgeNavigation } from '.';
 import { waitFor } from '@testing-library/react-native';
-import { BridgeToken, BridgeViewMode } from '../../types';
+import { BridgeToken } from '../../types';
 import { Hex } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
 import Engine from '../../../../../core/Engine';
@@ -96,7 +96,7 @@ describe('useSwapBridgeNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: {
+        token: {
           address: mockNativeAsset.address,
           name: 'Ether',
           symbol: mockNativeAsset.symbol,
@@ -105,7 +105,6 @@ describe('useSwapBridgeNavigation', () => {
           chainId: mockChainId,
         },
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
       },
     });
   });
@@ -124,7 +123,7 @@ describe('useSwapBridgeNavigation', () => {
         useSwapBridgeNavigation({
           location: mockLocation,
           sourcePage: mockSourcePage,
-          sourceToken: mockToken,
+          token: mockToken,
         }),
       { state: initialState },
     );
@@ -134,9 +133,8 @@ describe('useSwapBridgeNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: mockToken,
+        token: mockToken,
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
       },
     });
   });
@@ -156,9 +154,8 @@ describe('useSwapBridgeNavigation', () => {
     expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
       screen: 'BridgeView',
       params: {
-        sourceToken: mockNativeAsset,
+        token: mockNativeAsset,
         sourcePage: mockSourcePage,
-        bridgeViewMode: BridgeViewMode.Bridge,
       },
     });
   });
@@ -233,7 +230,7 @@ describe('useSwapBridgeNavigation', () => {
         useSwapBridgeNavigation({
           location: mockLocation,
           sourcePage: mockSourcePage,
-          sourceToken: mockToken,
+          token: mockToken,
         }),
       { state: initialState },
     );
@@ -286,9 +283,8 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
         params: {
-          sourceToken: mockNativeAsset,
+          token: mockNativeAsset,
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Unified,
         },
       });
     });
@@ -314,7 +310,7 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
         params: {
-          sourceToken: {
+          token: {
             address: ethers.constants.AddressZero,
             name: 'Solana',
             symbol: 'SOL',
@@ -323,7 +319,6 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Swap,
         },
       });
     });
@@ -347,7 +342,7 @@ describe('useSwapBridgeNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
         screen: 'BridgeView',
         params: {
-          sourceToken: {
+          token: {
             address: ethers.constants.AddressZero,
             name: 'Solana',
             symbol: 'SOL',
@@ -356,7 +351,6 @@ describe('useSwapBridgeNavigation', () => {
             chainId: SolScope.Mainnet,
           },
           sourcePage: mockSourcePage,
-          bridgeViewMode: BridgeViewMode.Swap,
         },
       });
     });

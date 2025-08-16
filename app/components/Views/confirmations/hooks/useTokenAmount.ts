@@ -17,21 +17,14 @@ import {
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { toBigNumber } from '../../../../util/number';
-import {
-  calcTokenAmount,
-  calcTokenValue,
-  generateTransferData,
-} from '../../../../util/transactions';
+import { calcTokenAmount } from '../../../../util/transactions';
 import { useAsyncResult } from '../../../hooks/useAsyncResult';
 import useFiatFormatter from '../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { NATIVE_TOKEN_ADDRESS } from '../constants/tokens';
 import { ERC20_DEFAULT_DECIMALS, fetchErc20Decimals } from '../utils/token';
 import { parseStandardTokenTransactionData } from '../utils/transaction';
-import { useTransactionMetadataOrThrow } from './transactions/useTransactionMetadataRequest';
+import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import useNetworkInfo from './useNetworkInfo';
-import { useCallback } from 'react';
-import { updateEditableParams } from '../../../../util/transaction-controller';
-import { selectTokensByChainIdAndAddress } from '../../../../selectors/tokensController';
 
 interface TokenAmountProps {
   /**
@@ -41,60 +34,32 @@ interface TokenAmountProps {
 }
 
 interface TokenAmount {
-  amount: string | undefined;
-  amountNative: string | undefined;
   amountPrecise: string | undefined;
-  amountUnformatted: string | undefined;
-  fiat: string | undefined;
+  amount: string | undefined;
   isNative: boolean | undefined;
-  updateTokenAmount: (amount: string) => void;
+  fiat: string | undefined;
   usdValue: string | null;
 }
 
 const useTokenDecimals = (
   tokenAddress: Hex,
-  chainId: Hex,
-  networkClientId: NetworkClientId,
-) => {
-  const chainTokens = Object.values(
-    useSelector((state) => selectTokensByChainIdAndAddress(state, chainId)),
+  networkClientId?: NetworkClientId,
+) =>
+  useAsyncResult(
+    async () => await fetchErc20Decimals(tokenAddress, networkClientId),
+    [tokenAddress, networkClientId],
   );
-
-  const token = chainTokens.find(
-    (t) => t.address.toLowerCase() === tokenAddress.toLowerCase(),
-  );
-
-  const tokenDecimals = token?.decimals;
-
-  const { value, pending } = useAsyncResult(async () => {
-    if (tokenDecimals !== undefined) {
-      return undefined;
-    }
-
-    return (
-      (await fetchErc20Decimals(tokenAddress, networkClientId)) ??
-      ERC20_DEFAULT_DECIMALS
-    );
-  }, [tokenAddress, tokenDecimals, networkClientId]);
-
-  return {
-    value: tokenDecimals ?? value,
-    pending: tokenDecimals === undefined && pending,
-  };
-};
 
 export const useTokenAmount = ({
   amountWei,
 }: TokenAmountProps = {}): TokenAmount => {
   const fiatFormatter = useFiatFormatter();
-
   const {
     chainId,
-    id: transactionId,
     networkClientId,
     txParams,
     type: transactionType,
-  } = useTransactionMetadataOrThrow();
+  } = useTransactionMetadataRequest() ?? {};
 
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, chainId as Hex),
@@ -112,45 +77,22 @@ export const useTokenAmount = ({
 
   const tokenAddress =
     safeToChecksumAddress(txParams?.to) || NATIVE_TOKEN_ADDRESS;
-
   const { value: decimals, pending } = useTokenDecimals(
     tokenAddress,
-    chainId,
     networkClientId,
-  );
-
-  const transactionData = parseStandardTokenTransactionData(txParams?.data);
-  const recipient = transactionData?.args?._to;
-
-  const updateTokenAmount = useCallback(
-    (amount: string) => {
-      const amountRaw = calcTokenValue(amount, decimals);
-
-      const newData = generateTransferData('transfer', {
-        toAddress: recipient,
-        amount: amountRaw.toString(16),
-      });
-
-      updateEditableParams(transactionId as string, {
-        data: newData,
-      });
-    },
-    [decimals, recipient, transactionId],
   );
 
   if (pending) {
     return {
-      amount: undefined,
-      amountNative: undefined,
       amountPrecise: undefined,
-      amountUnformatted: undefined,
+      amount: undefined,
       fiat: undefined,
       isNative: undefined,
       usdValue: null,
-      updateTokenAmount,
     };
   }
 
+  const transactionData = parseStandardTokenTransactionData(txParams?.data);
   const value = amountWei
     ? toBigNumber.dec(amountWei)
     : transactionData?.args?._value || txParams?.value || '0';
@@ -161,7 +103,6 @@ export const useTokenAmount = ({
   );
 
   let fiat;
-  let native;
   let usdValue = null;
   let isNative = false;
 
@@ -185,7 +126,6 @@ export const useTokenAmount = ({
       const contractExchangeRate =
         contractExchangeRates?.[tokenAddress]?.price ?? 0;
       fiat = amount.times(nativeConversionRate).times(contractExchangeRate);
-      native = amount.times(contractExchangeRate);
 
       const usdAmount = amount
         .times(contractExchangeRate)
@@ -201,13 +141,10 @@ export const useTokenAmount = ({
   }
 
   return {
-    amount: formatAmount(I18n.locale, amount),
-    amountNative: native ? formatAmount(I18n.locale, native) : undefined,
     amountPrecise: formatAmountMaxPrecision(I18n.locale, amount),
-    amountUnformatted: amount.toString(),
+    amount: formatAmount(I18n.locale, amount),
     fiat: fiat !== undefined ? fiatFormatter(fiat) : undefined,
     isNative,
-    updateTokenAmount,
     usdValue,
   };
 };

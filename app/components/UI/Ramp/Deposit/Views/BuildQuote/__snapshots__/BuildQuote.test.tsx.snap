@@ -116,87 +116,31 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
+                testID="deposit-configuration-menu-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-configuration-menu-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="MoreHorizontal"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -250,87 +194,47 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -721,7 +625,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -968,7 +872,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -1832,37 +1736,19 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Arrow2Left"
                                     style={
-                                      [
-                                        {
-                                          "color": undefined,
-                                          "fontSize": 12,
-                                        },
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontSize": 30,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "fontSize": 25,
-                                            "marginTop": 5,
-                                          },
-                                        ],
-                                        {
-                                          "fontFamily": "Ionicons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
                                     }
-                                  >
-                                    
-                                  </Text>
+                                    width={24}
+                                  />
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -2051,87 +1937,31 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
+                testID="deposit-configuration-menu-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-configuration-menu-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="MoreHorizontal"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -2185,87 +2015,47 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -2656,7 +2446,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -2903,7 +2693,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -3767,37 +3557,19 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Arrow2Left"
                                     style={
-                                      [
-                                        {
-                                          "color": undefined,
-                                          "fontSize": 12,
-                                        },
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontSize": 30,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "fontSize": 25,
-                                            "marginTop": 5,
-                                          },
-                                        ],
-                                        {
-                                          "fontFamily": "Ionicons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
                                     }
-                                  >
-                                    
-                                  </Text>
+                                    width={24}
+                                  />
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -3986,87 +3758,31 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
+                testID="deposit-configuration-menu-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-configuration-menu-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="MoreHorizontal"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -4120,87 +3836,47 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -4591,7 +4267,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -4838,7 +4514,7 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -5702,37 +5378,19 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Arrow2Left"
                                     style={
-                                      [
-                                        {
-                                          "color": undefined,
-                                          "fontSize": 12,
-                                        },
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontSize": 30,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "fontSize": 25,
-                                            "marginTop": 5,
-                                          },
-                                        ],
-                                        {
-                                          "fontFamily": "Ionicons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
                                     }
-                                  >
-                                    
-                                  </Text>
+                                    width={24}
+                                  />
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -5921,87 +5579,31 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
+                testID="deposit-configuration-menu-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-configuration-menu-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="MoreHorizontal"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -6055,87 +5657,47 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -6526,7 +6088,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -6749,7 +6311,7 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -7613,37 +7175,19 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Arrow2Left"
                                     style={
-                                      [
-                                        {
-                                          "color": undefined,
-                                          "fontSize": 12,
-                                        },
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontSize": 30,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "fontSize": 25,
-                                            "marginTop": 5,
-                                          },
-                                        ],
-                                        {
-                                          "fontFamily": "Ionicons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
                                     }
-                                  >
-                                    
-                                  </Text>
+                                    width={24}
+                                  />
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -7832,87 +7376,31 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
+                testID="deposit-configuration-menu-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-configuration-menu-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="MoreHorizontal"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -7966,87 +7454,47 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -8437,7 +7885,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -8660,7 +8108,7 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -9524,37 +8972,19 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Arrow2Left"
                                     style={
-                                      [
-                                        {
-                                          "color": undefined,
-                                          "fontSize": 12,
-                                        },
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontSize": 30,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "fontSize": 25,
-                                            "marginTop": 5,
-                                          },
-                                        ],
-                                        {
-                                          "fontFamily": "Ionicons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
                                     }
-                                  >
-                                    
-                                  </Text>
+                                    width={24}
+                                  />
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -9742,87 +9172,31 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
+                testID="deposit-configuration-menu-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-configuration-menu-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="MoreHorizontal"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -9876,87 +9250,47 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -10347,7 +9681,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -10570,7 +9904,7 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -11434,37 +10768,19 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Arrow2Left"
                                     style={
-                                      [
-                                        {
-                                          "color": undefined,
-                                          "fontSize": 12,
-                                        },
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontSize": 30,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "fontSize": 25,
-                                            "marginTop": 5,
-                                          },
-                                        ],
-                                        {
-                                          "fontFamily": "Ionicons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
                                     }
-                                  >
-                                    
-                                  </Text>
+                                    width={24}
+                                  />
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -11653,87 +10969,31 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
+                testID="deposit-configuration-menu-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-configuration-menu-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="MoreHorizontal"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -11787,87 +11047,47 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -12258,7 +11478,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -12481,7 +11701,7 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -13345,37 +12565,19 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Arrow2Left"
                                     style={
-                                      [
-                                        {
-                                          "color": undefined,
-                                          "fontSize": 12,
-                                        },
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontSize": 30,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "fontSize": 25,
-                                            "marginTop": 5,
-                                          },
-                                        ],
-                                        {
-                                          "fontFamily": "Ionicons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
                                     }
-                                  >
-                                    
-                                  </Text>
+                                    width={24}
+                                  />
                                 </TouchableOpacity>
                               </View>
                             </View>
@@ -13564,87 +12766,31 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
+                onPress={[Function]}
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "marginTop": 5,
+                    "paddingLeft": 18,
+                    "paddingRight": 18,
+                  }
                 }
+                testID="deposit-configuration-menu-button"
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
-                  accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                <SvgMock
+                  color="#121314"
+                  fill="currentColor"
+                  height={24}
+                  name="MoreHorizontal"
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
-                  }
-                  testID="deposit-configuration-menu-button"
-                >
-                  <SvgMock
-                    fill="currentColor"
-                    name="MoreHorizontal"
-                    style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                    {
+                      "height": 24,
+                      "width": 24,
                     }
-                  />
-                </View>
-              </View>
+                  }
+                  width={24}
+                />
+              </TouchableOpacity>
             </View>
             <View
               collapsable={false}
@@ -13698,87 +12844,47 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                 }
               }
             >
-              <View
+              <TouchableOpacity
                 style={
-                  [
-                    {
-                      "transform": [
-                        {
-                          "scale": 1,
-                        },
-                      ],
-                    },
-                    {
-                      "alignItems": "center",
-                      "justifyContent": "center",
-                    },
-                  ]
+                  {
+                    "paddingHorizontal": 18,
+                    "paddingVertical": 8,
+                  }
                 }
               >
-                <View
-                  accessibilityState={
-                    {
-                      "busy": undefined,
-                      "checked": undefined,
-                      "disabled": false,
-                      "expanded": undefined,
-                      "selected": undefined,
-                    }
-                  }
-                  accessibilityValue={
-                    {
-                      "max": undefined,
-                      "min": undefined,
-                      "now": undefined,
-                      "text": undefined,
-                    }
-                  }
+                <TouchableOpacity
                   accessible={true}
-                  collapsable={false}
-                  focusable={true}
-                  onBlur={[Function]}
-                  onClick={[Function]}
-                  onFocus={[Function]}
-                  onResponderGrant={[Function]}
-                  onResponderMove={[Function]}
-                  onResponderRelease={[Function]}
-                  onResponderTerminate={[Function]}
-                  onResponderTerminationRequest={[Function]}
-                  onStartShouldSetResponder={[Function]}
+                  activeOpacity={1}
+                  disabled={false}
+                  onPress={[Function]}
+                  onPressIn={[Function]}
+                  onPressOut={[Function]}
                   style={
-                    [
-                      {
-                        "alignItems": "center",
-                        "backgroundColor": "transparent",
-                        "borderRadius": 2,
-                        "height": 40,
-                        "justifyContent": "center",
-                        "opacity": 1,
-                        "width": 40,
-                      },
-                      {
-                        "marginHorizontal": 16,
-                      },
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "height": 32,
+                      "justifyContent": "center",
+                      "opacity": 1,
+                      "width": 32,
+                    }
                   }
-                  testID="button-icon"
                 >
                   <SvgMock
+                    color="#121314"
                     fill="currentColor"
+                    height={24}
                     name="Close"
                     style={
-                      [
-                        {
-                          "color": "#121314",
-                          "height": 24,
-                          "width": 24,
-                        },
-                        undefined,
-                      ]
+                      {
+                        "height": 24,
+                        "width": 24,
+                      }
                     }
+                    width={24}
                   />
-                </View>
-              </View>
+                </TouchableOpacity>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -14169,7 +13275,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   style={
                                     {
                                       "alignItems": "center",
-                                      "backgroundColor": "#3c4d9d0f",
+                                      "backgroundColor": "#3c4d9d1a",
                                       "borderColor": "#b7bbc866",
                                       "borderRadius": 100,
                                       "borderWidth": 1,
@@ -14392,7 +13498,7 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                         }
                                       }
                                     >
-                                      Debit or Credit
+                                      Debit Card
                                     </Text>
                                   </View>
                                   <View
@@ -15256,37 +14362,19 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                                   }
                                   testID="keypad-delete-button"
                                 >
-                                  <Text
-                                    allowFontScaling={false}
-                                    selectable={false}
+                                  <SvgMock
+                                    color="#121314"
+                                    fill="currentColor"
+                                    height={24}
+                                    name="Arrow2Left"
                                     style={
-                                      [
-                                        {
-                                          "color": undefined,
-                                          "fontSize": 12,
-                                        },
-                                        [
-                                          {
-                                            "color": "#121314",
-                                            "fontSize": 30,
-                                            "textAlign": "center",
-                                          },
-                                          {
-                                            "fontSize": 25,
-                                            "marginTop": 5,
-                                          },
-                                        ],
-                                        {
-                                          "fontFamily": "Ionicons",
-                                          "fontStyle": "normal",
-                                          "fontWeight": "normal",
-                                        },
-                                        {},
-                                      ]
+                                      {
+                                        "height": 24,
+                                        "width": 24,
+                                      }
                                     }
-                                  >
-                                    
-                                  </Text>
+                                    width={24}
+                                  />
                                 </TouchableOpacity>
                               </View>
                             </View>

@@ -27,8 +27,6 @@ import {
   SrpSecurityQuestionTwoSelectorsIDs,
   SrpSecurityQuestionTwoSelectorsText,
 } from '../../../../../e2e/selectors/Settings/SecurityAndPrivacy/SrpQuizModal.selectors';
-import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
-import { useSelector } from 'react-redux';
 
 const introductionImg = require('../../../../images/reveal-srp.png');
 
@@ -66,18 +64,9 @@ const SRPQuiz = (props: SRPQuizProps) => {
     };
   }, []);
 
-  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
-
-  const SRP_GUIDE_SOCIAL_LOGIN_URL =
-    'https://support.metamask.io/start/user-guide-secret-recovery-phrase-password-and-private-keys/#metamask-secret-recovery-phrase-dos-and-donts';
-
-  const LEARN_MORE_URL = isSocialLogin
-    ? SRP_GUIDE_SOCIAL_LOGIN_URL
-    : SRP_GUIDE_URL;
-
-  const openSupportArticle = useCallback((): void => {
-    Linking.openURL(LEARN_MORE_URL);
-  }, [LEARN_MORE_URL]);
+  const openSupportArticle = (): void => {
+    Linking.openURL(SRP_GUIDE_URL);
+  };
 
   const wrongAnswerIcon = useCallback(
     (): React.ReactElement => (
@@ -148,7 +137,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
         dismiss={dismissModal}
       />
     );
-  }, [trackEvent, createEventBuilder, openSupportArticle]);
+  }, [trackEvent, createEventBuilder]);
 
   const questionOne = useCallback((): React.ReactElement => {
     trackEvent(
@@ -185,7 +174,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
         dismiss={dismissModal}
       />
     );
-  }, [trackEvent, createEventBuilder, openSupportArticle]);
+  }, [trackEvent, createEventBuilder]);
 
   const rightAnswerQuestionOne = useCallback((): React.ReactElement => {
     trackEvent(
@@ -222,13 +211,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
         dismiss={dismissModal}
       />
     );
-  }, [
-    trackEvent,
-    createEventBuilder,
-    rightAnswerIcon,
-    styles.rightText,
-    openSupportArticle,
-  ]);
+  }, [rightAnswerIcon, styles.rightText, trackEvent, createEventBuilder]);
 
   const wrongAnswerQuestionOne = useCallback((): React.ReactElement => {
     trackEvent(
@@ -266,13 +249,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
         dismiss={dismissModal}
       />
     );
-  }, [
-    trackEvent,
-    createEventBuilder,
-    wrongAnswerIcon,
-    styles.wrongText,
-    openSupportArticle,
-  ]);
+  }, [styles.wrongText, wrongAnswerIcon, trackEvent, createEventBuilder]);
 
   const questionTwo = useCallback((): React.ReactElement => {
     trackEvent(
@@ -309,7 +286,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
         dismiss={dismissModal}
       />
     );
-  }, [trackEvent, createEventBuilder, openSupportArticle]);
+  }, [trackEvent, createEventBuilder]);
 
   const rightAnswerQuestionTwo = useCallback((): React.ReactElement => {
     trackEvent(
@@ -347,12 +324,11 @@ const SRPQuiz = (props: SRPQuizProps) => {
       />
     );
   }, [
-    trackEvent,
-    createEventBuilder,
+    goToRevealPrivateCredential,
     rightAnswerIcon,
     styles.rightText,
-    goToRevealPrivateCredential,
-    openSupportArticle,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const wrongAnswerQuestionTwo = useCallback((): React.ReactElement => {
@@ -391,13 +367,7 @@ const SRPQuiz = (props: SRPQuizProps) => {
         dismiss={dismissModal}
       />
     );
-  }, [
-    trackEvent,
-    createEventBuilder,
-    wrongAnswerIcon,
-    styles.wrongText,
-    openSupportArticle,
-  ]);
+  }, [styles.wrongText, wrongAnswerIcon, trackEvent, createEventBuilder]);
 
   const quizPage = useCallback(() => {
     switch (stage) {

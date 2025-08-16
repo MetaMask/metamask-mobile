@@ -144,7 +144,7 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   const { goToBridge, goToSwaps, networkModal } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TokenDetails,
     sourcePage: 'MainView',
-    sourceToken: {
+    token: {
       ...asset,
       address: asset.address ?? swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: asset.chainId as Hex,
@@ -156,7 +156,12 @@ const AssetOverview: React.FC<AssetOverviewProps> = ({
   });
 
   // Hook for handling non-EVM asset sending
-  const { sendNonEvmAsset } = useSendNonEvmAsset({ asset });
+  const { sendNonEvmAsset } = useSendNonEvmAsset({
+    asset: {
+      chainId: asset.chainId as string,
+      address: asset.address,
+    },
+  });
 
   const { styles } = useStyles(styleSheet, {});
   const dispatch = useDispatch();

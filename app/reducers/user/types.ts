@@ -18,5 +18,4 @@ export interface UserState {
   ambiguousAddressEntries: Record<string, string[]>;
   appServicesReady: boolean;
   existingUser: boolean;
-  isConnectionRemoved: boolean;
 }

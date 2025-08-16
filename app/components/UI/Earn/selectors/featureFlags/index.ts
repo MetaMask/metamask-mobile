@@ -1,8 +1,15 @@
 import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
+import { getVersion } from 'react-native-device-info';
+import compareVersions from 'compare-versions';
 import { isProduction } from '../../../../../util/environment';
 import { EarnLaunchDarklyFlag } from './types';
-import { hasMinimumRequiredVersion } from '../../../../../util/remoteFeatureFlag';
+
+const hasMinimumRequiredVersion = (minRequiredVersion: string) => {
+  if (!minRequiredVersion) return false;
+  const currentVersion = getVersion();
+  return compareVersions.compare(currentVersion, minRequiredVersion, '>=');
+};
 
 const earnRemoteFeatureFlag = (remoteFlag: EarnLaunchDarklyFlag) =>
   Boolean(remoteFlag?.enabled) &&

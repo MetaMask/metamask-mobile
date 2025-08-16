@@ -13,7 +13,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { Mockttp } from 'mockttp';
 import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
+import { getMockServerPort } from '../../fixtures/utils';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   let mockServer: Mockttp;

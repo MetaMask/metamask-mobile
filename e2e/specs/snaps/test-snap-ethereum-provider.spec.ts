@@ -4,14 +4,17 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
+import BrowserView from '../../pages/Browser/BrowserView';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
 
-jest.setTimeout(150_000);
-
 describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
+  beforeEach(() => {
+    jest.setTimeout(150000);
+  });
+
   it('can use the Ethereum provider', async () => {
     await withFixtures(
       {
@@ -27,6 +30,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         // Navigate to test snaps URL once for all tests
         await TabBarComponent.tapBrowser();
         await TestSnaps.navigateToTestSnap();
+        await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
 
         await TestSnaps.installSnap('connectEthereumProviderButton');
 

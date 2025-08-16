@@ -1,6 +1,5 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { usePerpsMarketStats } from './usePerpsMarketStats';
-import { CandlePeriod } from '../constants/chartConfig';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -60,7 +59,7 @@ describe('usePerpsMarketStats', () => {
 
   const mockCandleData = {
     coin: 'BTC',
-    interval: CandlePeriod.ONE_HOUR,
+    interval: '1h',
     candles: [
       {
         open: '44000',

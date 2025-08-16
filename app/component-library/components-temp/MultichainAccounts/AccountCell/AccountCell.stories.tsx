@@ -1,18 +1,12 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { AccountGroupType } from '@metamask/account-api';
 import React from 'react';
 import { View } from 'react-native';
 import AccountCell from '.';
 import { mockTheme } from '../../../../util/theme';
 
 const SAMPLE_ACCOUNT_GROUP = {
-  type: AccountGroupType.SingleAccount,
-  metadata: {
-    name: 'Account 1',
-    pinned: false,
-    hidden: false,
-  },
-  accounts: ['account-1'],
+  metadata: { name: 'Account 1' },
+  accounts: [],
   id: 'keyring:test-group/ethereum' as const,
 } as AccountGroupObject;
 

@@ -22,7 +22,7 @@ export function useChainRedirect(selectedAddress: string): boolean {
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.Swaps,
     sourcePage: 'Legacy Swaps',
-    sourceToken: getNativeSourceToken(SolScope.Mainnet),
+    token: getNativeSourceToken(SolScope.Mainnet),
   });
 
   useEffect(() => {

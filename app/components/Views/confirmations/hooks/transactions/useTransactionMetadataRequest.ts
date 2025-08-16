@@ -1,15 +1,10 @@
 import { ApprovalType } from '@metamask/controller-utils';
-import {
-  TransactionMeta,
-  TransactionStatus,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { TransactionMeta } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 
 import { selectTransactionMetadataById } from '../../../../../selectors/transactionController';
 import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useApprovalRequest from '../useApprovalRequest';
-import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 
 export function useTransactionMetadataRequest() {
   const { approvalRequest } = useApprovalRequest();
@@ -28,18 +23,12 @@ export function useTransactionMetadataRequest() {
   return transactionMetadata as TransactionMeta;
 }
 
-export function useTransactionMetadataOrThrow(): TransactionMeta {
-  return (
-    useTransactionMetadataRequest() ?? {
-      id: '',
-      chainId: '0x123456',
-      networkClientId: '',
-      status: TransactionStatus.rejected,
-      time: 0,
-      txParams: {
-        from: EMPTY_ADDRESS,
-      },
-      type: TransactionType.simpleSend,
-    }
-  );
+export function useTransactionMetadataOrThrow() {
+  const transactionMetadata = useTransactionMetadataRequest();
+
+  if (!transactionMetadata) {
+    throw new Error('Transaction approval request not found');
+  }
+
+  return transactionMetadata;
 }

@@ -205,7 +205,6 @@ describe('useSimulationMetrics', () => {
     const balanceChange = {
       ...BALANCE_CHANGE_MOCK,
       amount: new BigNumber(isNegative ? -1 : 1),
-      usdAmount: 1.23,
     };
 
     expectUpdateConfirmationMetricCalled(
@@ -354,12 +353,12 @@ describe('useSimulationMetrics', () => {
     const balanceChange1 = {
       ...BALANCE_CHANGE_MOCK,
       amount: new BigNumber(isNegative ? -1 : 1),
-      usdAmount: 1.23,
+      fiatAmount: 1.23,
     };
 
     const balanceChange2 = {
       ...balanceChange1,
-      usdAmount: 1.23,
+      fiatAmount: 1.23,
     };
 
     expectUpdateConfirmationMetricCalled(

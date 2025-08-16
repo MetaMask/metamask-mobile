@@ -101,29 +101,29 @@ const createStyles = (colors) =>
       flexDirection: 'column',
     },
     loadingWrapper: {
-      paddingHorizontal: 16,
+      paddingHorizontal: 40,
+      paddingBottom: 30,
       alignItems: 'center',
-      display: 'flex',
-      justifyContent: 'flex-start',
-      alignContent: 'center',
       flex: 1,
-      rowGap: 24,
     },
     foxWrapper: {
-      width: Device.isMediumDevice() ? 180 : 220,
-      height: Device.isMediumDevice() ? 180 : 220,
+      width: Device.isIos() ? 90 : 80,
+      height: Device.isIos() ? 90 : 80,
+      marginTop: 30,
+      marginBottom: 30,
     },
     image: {
       alignSelf: 'center',
-      width: Device.isMediumDevice() ? 180 : 220,
-      height: Device.isMediumDevice() ? 180 : 220,
+      width: 80,
+      height: 80,
     },
-    loadingTextContainer: {
-      display: 'flex',
-      flexDirection: 'column',
-      rowGap: 4,
-      alignItems: 'center',
-      justifyContent: 'center',
+    title: {
+      justifyContent: 'flex-start',
+      textAlign: 'flex-start',
+      fontSize: 32,
+    },
+    subtitle: {
+      textAlign: 'center',
     },
     field: {
       position: 'relative',
@@ -283,7 +283,7 @@ class ChoosePassword extends PureComponent {
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
-          color={colors.icon.default}
+          color={this.state.loading ? colors.icon.muted : colors.icon.default}
           style={{ marginLeft }}
         />
       </TouchableOpacity>
@@ -297,7 +297,7 @@ class ChoosePassword extends PureComponent {
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: this.state.loading ? () => <View /> : this.headerLeft,
+          headerLeft: this.headerLeft,
         },
         colors,
         false,
@@ -705,20 +705,13 @@ class ChoosePassword extends PureComponent {
   };
 
   learnMore = () => {
-    let learnMoreUrl =
+    const learnMoreUrl =
       'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
-
-    if (this.getOauth2LoginSuccess()) {
-      learnMoreUrl =
-        'https://support.metamask.io/configure/wallet/passwords-and-metamask/';
-    }
-
     this.track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
       location: 'choose_password',
       url: learnMoreUrl,
     });
-
     this.props.navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -772,26 +765,21 @@ class ChoosePassword extends PureComponent {
               />
             </View>
             <ActivityIndicator size="large" color={colors.text.default} />
-            <View style={styles.loadingTextContainer}>
-              <Text
-                variant={TextVariant.HeadingLG}
-                color={colors.text.default}
-                adjustsFontSizeToFit
-                numberOfLines={1}
-              >
-                {strings(
-                  previousScreen === ONBOARDING
-                    ? 'create_wallet.title'
-                    : 'secure_your_wallet.creating_password',
-                )}
-              </Text>
-              <Text
-                variant={TextVariant.BodyMD}
-                color={colors.text.alternative}
-              >
-                {strings('create_wallet.subtitle')}
-              </Text>
-            </View>
+            <Text
+              variant={TextVariant.HeadingLG}
+              style={styles.title}
+              adjustsFontSizeToFit
+              numberOfLines={1}
+            >
+              {strings(
+                previousScreen === ONBOARDING
+                  ? 'create_wallet.title'
+                  : 'secure_your_wallet.creating_password',
+              )}
+            </Text>
+            <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
+              {strings('create_wallet.subtitle')}
+            </Text>
           </View>
         ) : (
           <KeyboardAwareScrollView

@@ -12,11 +12,9 @@ import {
 
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
-import { handleFetch } from '@metamask/controller-utils';
-import {
-  formatAddressToCaipReference,
-  formatChainIdToHex,
-} from '@metamask/bridge-controller';
+import { handleFetch, toHex } from '@metamask/controller-utils';
+import { decimalToHex } from '../../../../../util/conversions';
+import { addHexPrefix } from 'ethereumjs-util';
 
 const TOKEN_API_V3_BASE_URL = 'https://tokens.api.cx.metamask.io/v3';
 const STATIC_METAMASK_BASE_URL = 'https://static.cx.metamask.io';
@@ -92,18 +90,17 @@ export const fetchAssetMetadata = async (
   }
 
   try {
-    const url = `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${assetId}`;
-    const [assetMetadata]: AssetMetadata[] = await handleFetch(url);
+    const [assetMetadata]: AssetMetadata[] = await handleFetch(
+      `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${assetId}`,
+    );
 
     const commonFields = {
       symbol: assetMetadata.symbol,
       decimals: assetMetadata.decimals,
-      name: assetMetadata.name,
       image: getAssetImageUrl(assetId, chainIdInCaip),
       assetId,
     };
 
-    // Solana
     if (chainId === MultichainNetwork.Solana && assetId) {
       const { assetReference } = parseCaipAssetType(assetId);
       return {
@@ -114,14 +111,11 @@ export const fetchAssetMetadata = async (
       };
     }
 
-    // EVM
     const { reference } = parseCaipChainId(chainIdInCaip);
-
     return {
       ...commonFields,
-      // This is the EVM hex address of the token
-      address: formatAddressToCaipReference(address),
-      chainId: formatChainIdToHex(reference),
+      address: toHex(address),
+      chainId: addHexPrefix(decimalToHex(reference).toString()),
     };
   } catch (error) {
     return undefined;

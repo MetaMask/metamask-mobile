@@ -24,8 +24,6 @@ type Actions =
 type Events =
   | KeyringControllerStateChangeEvent
   | AccountsControllerAccountAddedEvent
-  | AccountsControllerAccountRemovedEvent
-  | AccountsControllerAccountAddedEvent
   | AccountsControllerAccountRemovedEvent;
 
 export type MultichainAccountServiceMessenger = ReturnType<
@@ -44,11 +42,7 @@ export function getMultichainAccountServiceMessenger(
 ) {
   return messenger.getRestricted({
     name: 'MultichainAccountService',
-    allowedEvents: [
-      'KeyringController:stateChange',
-      'AccountsController:accountAdded',
-      'AccountsController:accountRemoved',
-    ],
+    allowedEvents: ['KeyringController:stateChange'],
     allowedActions: [
       'AccountsController:listMultichainAccounts',
       'AccountsController:getAccountByAddress',

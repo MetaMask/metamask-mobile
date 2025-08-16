@@ -6,7 +6,6 @@ import { initialState as initialInpageProvider } from '../../core/redux/slices/i
 import { initialState as confirmationMetrics } from '../../core/redux/slices/confirmationMetrics';
 import { initialState as originThrottling } from '../../core/redux/slices/originThrottling';
 import { initialState as initialBridgeState } from '../../core/redux/slices/bridge';
-import { initialState as initialCardState } from '../../core/redux/slices/card';
 import initialBackgroundState from './initial-background-state.json';
 import { userInitialState } from '../../reducers/user';
 import { initialNavigationState } from '../../reducers/navigation';
@@ -56,7 +55,6 @@ const initialRootState: RootState = {
   banners: {
     dismissedBanners: [],
   },
-  card: initialCardState,
 };
 
 if (isTest) {

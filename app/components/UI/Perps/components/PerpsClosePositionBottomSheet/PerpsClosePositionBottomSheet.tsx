@@ -1,35 +1,30 @@
-import React, { memo, useEffect, useRef, useState } from 'react';
+import React, { useRef, useState, useCallback, useEffect, memo } from 'react';
 import {
-  ActivityIndicator,
-  TextInput,
-  TouchableOpacity,
   View,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
 } from 'react-native';
-import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import type { OrderType, Position } from '../../controllers/types';
-import {
-  useMinimumOrderAmount,
-  usePerpsOrderFees,
-  usePerpsPrices,
-  usePerpsClosePositionValidation,
-} from '../../hooks';
-import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
-import PerpsSlider from '../PerpsSlider/PerpsSlider';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
+import { formatPrice, formatPositionSize } from '../../utils/formatUtils';
+import { strings } from '../../../../../../locales/i18n';
+import type { Position, OrderType } from '../../controllers/types';
 import { createStyles } from './PerpsClosePositionBottomSheet.styles';
+import { usePerpsPrices, usePerpsOrderFees } from '../../hooks';
+import PerpsSlider from '../PerpsSlider/PerpsSlider';
 
 interface PerpsClosePositionBottomSheetProps {
   isVisible: boolean;
@@ -101,32 +96,6 @@ const PerpsClosePositionBottomSheet: React.FC<
     (closePercentage / 100) * pnl -
     feeResults.totalFee;
 
-  // Get minimum order amount for this asset
-  const { minimumOrderAmount } = useMinimumOrderAmount({
-    asset: position.coin,
-  });
-
-  // Calculate remaining position value after partial close
-  const remainingPositionValue = positionValue * (1 - closePercentage / 100);
-  const isPartialClose = closePercentage < 100;
-
-  // Use the validation hook
-  const validationResult = usePerpsClosePositionValidation({
-    coin: position.coin,
-    closePercentage,
-    closeAmount: closeAmount.toString(),
-    orderType,
-    limitPrice,
-    currentPrice,
-    positionSize: absSize,
-    positionValue,
-    minimumOrderAmount,
-    closingValue,
-    remainingPositionValue,
-    receiveAmount,
-    isPartialClose,
-  });
-
   useEffect(() => {
     if (isVisible) {
       bottomSheetRef.current?.onOpenBottomSheet();
@@ -156,14 +125,14 @@ const PerpsClosePositionBottomSheet: React.FC<
     );
   };
 
-  const handleLimitPriceChange = (text: string) => {
+  const handleLimitPriceChange = useCallback((text: string) => {
     // Allow only numbers and decimal point
     const sanitized = text.replace(/[^0-9.]/g, '');
     // Prevent multiple decimal points
     const parts = sanitized.split('.');
     if (parts.length > 2) return;
     setLimitPrice(sanitized);
-  };
+  }, []);
 
   const footerButtonProps = [
     {
@@ -178,8 +147,7 @@ const PerpsClosePositionBottomSheet: React.FC<
         (orderType === 'limit' &&
           (!limitPrice || parseFloat(limitPrice) <= 0)) ||
         (orderType === 'market' && closePercentage === 0) ||
-        receiveAmount <= 0 ||
-        !validationResult.isValid,
+        receiveAmount <= 0,
       loading: isClosing,
       testID: 'close-position-confirm-button',
     },
@@ -352,35 +320,6 @@ const PerpsClosePositionBottomSheet: React.FC<
               </Text>
             </View>
           </View>
-
-          {validationResult.errors.length > 0 && (
-            <View style={styles.warningContainer}>
-              {validationResult.errors.map((error, index) => (
-                <Text
-                  key={`error-${index}`}
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Error}
-                  style={styles.warningText}
-                >
-                  {error}
-                </Text>
-              ))}
-            </View>
-          )}
-          {validationResult.warnings.length > 0 && (
-            <View style={styles.warningContainer}>
-              {validationResult.warnings.map((warning, index) => (
-                <Text
-                  key={`warning-${index}`}
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Warning}
-                  style={styles.warningText}
-                >
-                  {warning}
-                </Text>
-              ))}
-            </View>
-          )}
         </View>
       </View>
 

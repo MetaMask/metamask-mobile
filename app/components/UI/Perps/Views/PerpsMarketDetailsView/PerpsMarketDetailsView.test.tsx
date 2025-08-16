@@ -1,5 +1,4 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
 import PerpsMarketDetailsView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -27,27 +26,8 @@ jest.mock('@react-navigation/native', () => {
         },
       },
     }),
-    useFocusEffect: jest.fn(),
   };
 });
-
-jest.mock('../../hooks/useHasExistingPosition', () => ({
-  useHasExistingPosition: () => ({
-    hasPosition: false,
-    isLoading: false,
-    error: null,
-    existingPosition: null,
-  }),
-}));
-
-// Mock PerpsBottomSheetTooltip to avoid SafeAreaProvider issues
-jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
-  __esModule: true,
-  default: ({ isVisible }: { isVisible: boolean }) => {
-    const { View } = jest.requireActual('react-native');
-    return isVisible ? <View testID="perps-bottom-sheet-tooltip" /> : null;
-  },
-}));
 
 const initialState = {
   engine: {
@@ -56,7 +36,7 @@ const initialState = {
 };
 
 describe('PerpsMarketDetailsView', () => {
-  it('renders correctly', () => {
+  it('should render correctly', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsConnectionProvider>
         <PerpsMarketDetailsView />
@@ -72,7 +52,7 @@ describe('PerpsMarketDetailsView', () => {
     expect(getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER)).toBeTruthy();
   });
 
-  it('renders statistics items', () => {
+  it('should render statistics items', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsConnectionProvider>
         <PerpsMarketDetailsView />
@@ -104,7 +84,7 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeTruthy();
   });
 
-  it('renders action buttons', () => {
+  it('should render action buttons', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsConnectionProvider>
         <PerpsMarketDetailsView />
@@ -120,49 +100,5 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
     ).toBeTruthy();
-  });
-
-  it('shows tooltip when Open Interest info icon is clicked', async () => {
-    const { getByTestId } = renderWithProvider(
-      <PerpsConnectionProvider>
-        <PerpsMarketDetailsView />
-      </PerpsConnectionProvider>,
-      {
-        state: initialState,
-      },
-    );
-
-    const openInterestInfoIcon = getByTestId(
-      PerpsMarketDetailsViewSelectorsIDs.OPEN_INTEREST_INFO_ICON,
-    );
-    expect(openInterestInfoIcon).toBeTruthy();
-
-    fireEvent.press(openInterestInfoIcon);
-
-    await waitFor(() => {
-      expect(getByTestId('perps-bottom-sheet-tooltip')).toBeTruthy();
-    });
-  });
-
-  it('shows tooltip when Funding Rate info icon is clicked', async () => {
-    const { getByTestId } = renderWithProvider(
-      <PerpsConnectionProvider>
-        <PerpsMarketDetailsView />
-      </PerpsConnectionProvider>,
-      {
-        state: initialState,
-      },
-    );
-
-    const fundingRateInfoIcon = getByTestId(
-      PerpsMarketDetailsViewSelectorsIDs.FUNDING_RATE_INFO_ICON,
-    );
-    expect(fundingRateInfoIcon).toBeTruthy();
-
-    fireEvent.press(fundingRateInfoIcon);
-
-    await waitFor(() => {
-      expect(getByTestId('perps-bottom-sheet-tooltip')).toBeTruthy();
-    });
   });
 });

@@ -1,7 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { usePerpsPositionData } from './usePerpsPositionData';
 import Engine from '../../../../core/Engine';
-import { CandlePeriod, TimeDuration } from '../constants/chartConfig';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -41,25 +40,17 @@ describe('usePerpsPositionData', () => {
 
   it('should fetch historical candles on mount', async () => {
     const { waitForNextUpdate } = renderHook(() =>
-      usePerpsPositionData({
-        coin: 'ETH',
-        selectedInterval: CandlePeriod.ONE_HOUR,
-        selectedDuration: TimeDuration.ONE_DAY,
-      }),
+      usePerpsPositionData({ coin: 'ETH', selectedInterval: '1h' }),
     );
 
     await waitForNextUpdate();
 
-    expect(mockFetchHistoricalCandles).toHaveBeenCalledWith('ETH', '1h', 24);
+    expect(mockFetchHistoricalCandles).toHaveBeenCalledWith('ETH', '1h', 100);
   });
 
   it('should subscribe to price updates on mount', () => {
     renderHook(() =>
-      usePerpsPositionData({
-        coin: 'ETH',
-        selectedInterval: CandlePeriod.ONE_HOUR,
-        selectedDuration: TimeDuration.ONE_DAY,
-      }),
+      usePerpsPositionData({ coin: 'ETH', selectedInterval: '1h' }),
     );
 
     expect(mockSubscribeToPrices).toHaveBeenCalledWith({
@@ -70,11 +61,7 @@ describe('usePerpsPositionData', () => {
 
   it('should update price data when receiving updates', async () => {
     const { result } = renderHook(() =>
-      usePerpsPositionData({
-        coin: 'ETH',
-        selectedInterval: CandlePeriod.ONE_HOUR,
-        selectedDuration: TimeDuration.ONE_DAY,
-      }),
+      usePerpsPositionData({ coin: 'ETH', selectedInterval: '1h' }),
     );
 
     // Get the callback that was passed to subscribeToPrices
@@ -90,11 +77,7 @@ describe('usePerpsPositionData', () => {
 
   it('should handle loading state correctly', async () => {
     const { result, waitForNextUpdate } = renderHook(() =>
-      usePerpsPositionData({
-        coin: 'ETH',
-        selectedInterval: CandlePeriod.ONE_HOUR,
-        selectedDuration: TimeDuration.ONE_DAY,
-      }),
+      usePerpsPositionData({ coin: 'ETH', selectedInterval: '1h' }),
     );
 
     // Initially loading
@@ -109,11 +92,7 @@ describe('usePerpsPositionData', () => {
 
   it('should unsubscribe on unmount', () => {
     const { unmount } = renderHook(() =>
-      usePerpsPositionData({
-        coin: 'ETH',
-        selectedInterval: CandlePeriod.ONE_HOUR,
-        selectedDuration: TimeDuration.ONE_DAY,
-      }),
+      usePerpsPositionData({ coin: 'ETH', selectedInterval: '1h' }),
     );
 
     unmount();
@@ -126,11 +105,7 @@ describe('usePerpsPositionData', () => {
     mockFetchHistoricalCandles.mockRejectedValue(new Error('Failed to fetch'));
 
     const { result, waitForNextUpdate } = renderHook(() =>
-      usePerpsPositionData({
-        coin: 'ETH',
-        selectedInterval: CandlePeriod.ONE_HOUR,
-        selectedDuration: TimeDuration.ONE_DAY,
-      }),
+      usePerpsPositionData({ coin: 'ETH', selectedInterval: '1h' }),
     );
 
     await waitForNextUpdate();

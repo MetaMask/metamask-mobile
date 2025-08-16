@@ -102,7 +102,6 @@ describe('Engine', () => {
     expect(engine.context).toHaveProperty('EarnController');
     expect(engine.context).toHaveProperty('MultichainTransactionsController');
     expect(engine.context).toHaveProperty('DeFiPositionsController');
-    expect(engine.context).toHaveProperty('NetworkEnablementController');
     expect(engine.context).toHaveProperty('PerpsController');
   });
 

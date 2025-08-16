@@ -9,7 +9,7 @@ import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
-import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import { buildPermissions } from '../../../fixtures/utils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../../framework/Constants';
 

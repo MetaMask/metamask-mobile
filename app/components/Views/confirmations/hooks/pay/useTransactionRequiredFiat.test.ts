@@ -4,11 +4,10 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
-import {
-  TransactionToken,
-  useTransactionRequiredTokens,
-} from './useTransactionRequiredTokens';
+import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { toHex } from '@metamask/controller-utils';
+import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import {
   accountsControllerMock,
   tokenAddress1Mock,
@@ -49,49 +48,46 @@ describe('useTransactionRequiredFiat', () => {
     useTransactionRequiredTokensMock.mockReturnValue([
       {
         address: tokenAddress1Mock,
-        balanceHuman: '10',
-        missingHuman: '2',
+        amount: toHex(20000),
       },
       {
         address: tokenAddress2Mock,
-        balanceHuman: '20',
-        missingHuman: '3',
+        amount: toHex(3000000),
       },
-    ] as unknown as TransactionToken[]);
+    ]);
 
     useTokenFiatRatesMock.mockReturnValue([4, 5]);
   });
 
   it('returns fiat values for each required token', () => {
-    const { values } = runHook();
+    const { fiatValues } = runHook();
+    expect(fiatValues).toEqual([8.2, 15.375]);
+  });
 
-    expect(values).toStrictEqual([
+  it('uses 18 decimals if token not found', () => {
+    useTransactionRequiredTokensMock.mockReturnValue([
       {
-        balanceFiat: 40,
-        feeFiat: 0.2,
-        missingFiat: 8,
-        totalFiat: 8.2,
-        totalWithBalanceFiat: 48.2,
-      },
-      {
-        balanceFiat: 100,
-        feeFiat: 0.375,
-        missingFiat: 15,
-        totalFiat: 15.375,
-        totalWithBalanceFiat: 115.375,
+        address: NATIVE_TOKEN_ADDRESS,
+        amount: toHex(5000000000000000000),
       },
     ]);
+
+    const { fiatValues } = runHook();
+
+    expect(fiatValues).toEqual([20.5]);
+  });
+
+  it('returns undefined if no fiat rate', () => {
+    useTokenFiatRatesMock.mockReturnValue([4]);
+
+    const { fiatValues } = runHook();
+
+    expect(fiatValues).toEqual([8.2, undefined]);
   });
 
   it('returns total fiat value', () => {
-    const { totalFiat } = runHook();
+    const { fiatTotal } = runHook();
 
-    expect(totalFiat).toBe(23.575);
-  });
-
-  it('returns total fiat value including balance', () => {
-    const { totalWithBalanceFiat } = runHook();
-
-    expect(totalWithBalanceFiat).toBe(163.575);
+    expect(fiatTotal).toBe(23.575);
   });
 });

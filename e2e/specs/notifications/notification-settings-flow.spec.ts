@@ -11,7 +11,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
 import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
+import { getMockServerPort } from '../../fixtures/utils';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   let mockServer: Mockttp;

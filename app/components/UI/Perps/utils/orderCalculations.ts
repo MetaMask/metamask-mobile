@@ -1,7 +1,6 @@
 interface PositionSizeParams {
   amount: string;
   price: number;
-  szDecimals?: number;
 }
 
 interface MarginRequiredParams {
@@ -11,24 +10,18 @@ interface MarginRequiredParams {
 
 /**
  * Calculate position size based on USD amount and asset price
- * Uses Math.ceil to ensure orders meet minimum USD requirements
- * @param params - Amount in USD, current asset price, and optional decimal precision
- * @returns Position size formatted to the asset's decimal precision
+ * @param params - Amount in USD and current asset price
+ * @returns Position size formatted to 6 decimal places
  */
 export function calculatePositionSize(params: PositionSizeParams): string {
-  const { amount, price, szDecimals = 6 } = params;
+  const { amount, price } = params;
   const amountNum = parseFloat(amount || '0');
 
   if (isNaN(amountNum) || isNaN(price) || amountNum === 0 || price === 0) {
-    return (0).toFixed(szDecimals);
+    return '0.000000';
   }
 
-  const positionSize = amountNum / price;
-  const multiplier = Math.pow(10, szDecimals);
-  // Math.ceil prevents orders from falling below minimum USD requirements
-  const rounded = Math.ceil(positionSize * multiplier) / multiplier;
-
-  return rounded.toFixed(szDecimals);
+  return (amountNum / price).toFixed(6);
 }
 
 /**

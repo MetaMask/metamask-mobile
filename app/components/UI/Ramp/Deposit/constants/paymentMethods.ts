@@ -19,7 +19,7 @@ export interface DepositPaymentMethod {
 
 export const DEBIT_CREDIT_PAYMENT_METHOD: DepositPaymentMethod = {
   id: 'credit_debit_card',
-  name: 'Debit or Credit',
+  name: 'Debit Card',
   duration: 'instant',
   icon: IconName.Card,
 };

@@ -198,8 +198,7 @@ export const useBatchedUnusedApprovalsAlert = () => {
     return findUnusedApprovals(approvals, tokenOutflows);
   }, [approvals, tokenOutflows]);
 
-  const shouldShowAlert =
-    unusedApprovals.length > 0 && Boolean(transactionMetadata?.simulationData);
+  const shouldShowAlert = unusedApprovals.length > 0;
 
   return useMemo(() => {
     if (!shouldShowAlert) {

@@ -313,7 +313,7 @@ const WalletActions = () => {
       } else {
         dispatch(newAssetTransaction(assetToSend));
       }
-      navigateToSendPage();
+      navigateToSendPage(asset);
     });
   }, [
     closeBottomSheetAndNavigate,
@@ -364,6 +364,20 @@ const WalletActions = () => {
       });
     });
   }, [closeBottomSheetAndNavigate, navigate]);
+
+  const onPerpsSandbox = useCallback(() => {
+    closeBottomSheetAndNavigate(() => {
+      navigate(Routes.PERPS.ROOT);
+    });
+  }, [closeBottomSheetAndNavigate, navigate]);
+
+  const sendIconStyle = useMemo(
+    () => ({
+      transform: [{ rotate: '-45deg' }],
+      ...styles.icon,
+    }),
+    [styles.icon],
+  );
 
   const isEarnWalletActionEnabled = useMemo(() => {
     if (
@@ -441,6 +455,17 @@ const WalletActions = () => {
             onPress={onPerps}
             actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
             iconStyle={styles.icon}
+            iconSize={AvatarSize.Md}
+            disabled={!canSignTransactions}
+          />
+        )}
+        {isPerpsEnabled && (
+          <WalletAction
+            actionType={WalletActionType.PerpsSandbox}
+            iconName={IconName.Arrow2Right}
+            onPress={onPerpsSandbox}
+            iconStyle={sendIconStyle}
+            actionID={WalletActionsBottomSheetSelectorsIDs.PERPS_SANDBOX_BUTTON}
             iconSize={AvatarSize.Md}
             disabled={!canSignTransactions}
           />

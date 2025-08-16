@@ -36,6 +36,10 @@ class AuthTokenHandler {
       },
     );
 
+    if (!response.ok) {
+      throw new Error('Failed to refresh JWT token');
+    }
+
     const refreshTokenData = await response.json();
     const idToken = refreshTokenData.id_token;
 
@@ -67,6 +71,10 @@ class AuthTokenHandler {
         body: JSON.stringify(requestData),
       },
     );
+
+    if (!response.ok) {
+      throw new Error('Failed to revoke refresh token');
+    }
 
     const responseData = await response.json();
     return {

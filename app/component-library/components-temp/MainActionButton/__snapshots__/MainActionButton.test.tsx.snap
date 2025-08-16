@@ -47,7 +47,7 @@ exports[`MainActionButton should render correctly 1`] = `
       [
         {
           "alignItems": "center",
-          "backgroundColor": "#3c4d9d0f",
+          "backgroundColor": "#3c4d9d1a",
           "borderRadius": 12,
           "justifyContent": "center",
           "opacity": 1,

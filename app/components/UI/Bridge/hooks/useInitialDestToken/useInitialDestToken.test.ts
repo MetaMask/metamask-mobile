@@ -89,21 +89,17 @@ describe('useInitialDestToken', () => {
     });
   });
 
-  it('should set default dest token when in unified mode and default token exists', async () => {
+  it('should not set dest token when in swap mode but no default token exists', () => {
     (selectBridgeViewMode as unknown as jest.Mock).mockReturnValue(
-      BridgeViewMode.Unified,
+      BridgeViewMode.Swap,
     );
-    (selectChainId as unknown as jest.Mock).mockReturnValue(SolScope.Mainnet);
+    (selectChainId as unknown as jest.Mock).mockReturnValue('0x1234567890');
 
     renderHookWithProvider(() => useInitialDestToken(mockSourceToken), {
       state: initialState,
     });
 
-    await waitFor(() => {
-      expect(setDestToken).toHaveBeenCalledWith(
-        DefaultSwapDestTokens[SolScope.Mainnet],
-      );
-    });
+    expect(setDestToken).not.toHaveBeenCalled();
   });
 
   it('should not set dest token when source token address matches default token address', () => {

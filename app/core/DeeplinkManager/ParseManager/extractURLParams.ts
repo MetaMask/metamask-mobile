@@ -3,6 +3,8 @@ import { Alert } from 'react-native';
 import UrlParser from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
+import Logger from '../../../util/Logger';
+import DevLogger from '../../SDKConnect/utils/DevLogger';
 
 export interface DeeplinkUrlParams {
   uri: string;
@@ -18,11 +20,7 @@ export interface DeeplinkUrlParams {
   originatorInfo?: string;
   request?: string;
   attributionId?: string;
-  utm_source?: string;
-  utm_medium?: string;
-  utm_campaign?: string;
-  utm_term?: string;
-  utm_content?: string;
+  utm?: string;
   account?: string; // This is the format => "address@chainId"
 }
 
@@ -44,23 +42,21 @@ function extractURLParams(url: string) {
     channelId: '',
     comm: '',
     attributionId: '',
-    utm_source: '',
-    utm_medium: '',
-    utm_campaign: '',
-    utm_term: '',
-    utm_content: '',
+    utm: '',
   };
+
+  DevLogger.log(`extractParams:: urlObj`, urlObj);
 
   if (urlObj.query.length) {
     try {
-      // Use arrayLimit: 1 to prevent arrays from being returned for duplicate parameters
-      const parsedParams = qs.parse(urlObj.query.substring(1), {
-        arrayLimit: 99,
-      });
-      params = { ...params, ...parsedParams };
+      params = qs.parse(
+        urlObj.query.substring(1),
+      ) as unknown as DeeplinkUrlParams;
 
       if (params.message) {
+        Logger.log('extractParams:: message before...: ', params.message);
         params.message = params.message?.replace(/ /g, '+');
+        Logger.log('extractParams:: message after: ', params.message);
       }
     } catch (e) {
       if (e) Alert.alert(strings('deeplink.invalid'), e.toString());

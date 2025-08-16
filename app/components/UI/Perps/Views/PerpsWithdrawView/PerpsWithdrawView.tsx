@@ -39,7 +39,7 @@ import {
   TokenInputAreaType,
   type TokenInputAreaRef,
 } from '../../../../UI/Bridge/components/TokenInputArea';
-import Keypad from '../../../../Base/Keypad';
+import Keypad from '../../../Ramp/Aggregator/components/Keypad';
 import PerpsQuoteDetailsCard from '../../components/PerpsQuoteDetailsCard';
 import {
   HYPERLIQUID_ASSET_CONFIGS,

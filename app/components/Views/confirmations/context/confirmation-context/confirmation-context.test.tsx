@@ -13,12 +13,10 @@ describe('ConfirmationContext', () => {
   it('provides initial values', () => {
     const { result } = renderHook(() => useConfirmationContext(), { wrapper });
 
-    expect(result.current).toStrictEqual({
-      isFooterVisible: true,
-      isTransactionValueUpdating: false,
-      setIsFooterVisible: expect.any(Function),
-      setIsTransactionValueUpdating: expect.any(Function),
-    });
+    expect(result.current.isTransactionValueUpdating).toBe(false);
+    expect(typeof result.current.setIsTransactionValueUpdating).toBe(
+      'function',
+    );
   });
 
   it('updates isTransactionValueUpdating state when calling setIsTransactionValueUpdating', () => {
@@ -35,13 +33,5 @@ describe('ConfirmationContext', () => {
     });
 
     expect(result.current.isTransactionValueUpdating).toBe(false);
-  });
-
-  it('updates isFooterVisible state when calling setIsFooterVisible', () => {
-    const { result } = renderHook(() => useConfirmationContext(), { wrapper });
-
-    result.current.setIsFooterVisible(false);
-
-    expect(result.current.isFooterVisible).toBe(false);
   });
 });
