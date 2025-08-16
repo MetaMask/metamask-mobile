@@ -242,11 +242,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderTypeRef.current = orderForm.type;
   }, [orderForm.type]);
 
-  // Update ref when orderType changes
-  useEffect(() => {
-    orderTypeRef.current = orderForm.type;
-  }, [orderForm.type]);
-
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
