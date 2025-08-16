@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { Alert, TextInput, View, DimensionValue } from 'react-native';
+import {
+  Alert,
+  TextInput,
+  View,
+  DimensionValue,
+  SafeAreaView,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -147,11 +153,17 @@ const ImportPrivateKey = () => {
   };
 
   return (
-    <View style={styles.mainWrapper}>
+    <SafeAreaView style={styles.mainWrapper}>
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         style={styles.topOverlay}
         resetScrollToCoords={{ x: 0, y: 0 }}
+        keyboardShouldPersistTaps="always"
+        keyboardDismissMode="none"
+        enableOnAndroid
+        enableAutomaticScroll
+        extraScrollHeight={100}
+        showsVerticalScrollIndicator={false}
       >
         <View
           style={styles.content}
@@ -247,7 +259,7 @@ const ImportPrivateKey = () => {
         </View>
       </KeyboardAwareScrollView>
       <ScreenshotDeterrent enabled isSRP={false} />
-    </View>
+    </SafeAreaView>
   );
 };
 
