@@ -46,7 +46,6 @@ import {
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsNetwork,
-  usePerpsPaymentTokens,
   usePerpsPrices,
   usePerpsTrading,
   usePerpsOrderValidation,
@@ -384,9 +383,6 @@ describe('PerpsOrderView', () => {
     );
     (usePerpsPrices as jest.Mock).mockReturnValue(
       defaultMockHooks.usePerpsPrices,
-    );
-    (usePerpsPaymentTokens as jest.Mock).mockReturnValue(
-      defaultMockHooks.usePerpsPaymentTokens,
     );
 
     // Mock the new hooks

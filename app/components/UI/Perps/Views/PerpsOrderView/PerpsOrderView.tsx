@@ -242,6 +242,11 @@ const PerpsOrderViewContentBase: React.FC = () => {
     orderTypeRef.current = orderForm.type;
   }, [orderForm.type]);
 
+  // Update ref when orderType changes
+  useEffect(() => {
+    orderTypeRef.current = orderForm.type;
+  }, [orderForm.type]);
+
   const [isTPSLVisible, setIsTPSLVisible] = useState(false);
   const [isLeverageVisible, setIsLeverageVisible] = useState(false);
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
@@ -1055,7 +1060,6 @@ const PerpsOrderViewContent = React.memo(PerpsOrderViewContentBase);
 
 // Set display name for debugging
 PerpsOrderViewContent.displayName = 'PerpsOrderViewContent';
-
 // Main component that wraps content with context providers
 const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();
