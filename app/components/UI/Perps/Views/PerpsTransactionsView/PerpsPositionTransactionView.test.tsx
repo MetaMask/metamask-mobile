@@ -47,12 +47,18 @@ jest.mock('../../../Navbar', () => ({
   getPerpsTransactionsDetailsNavbar: jest.fn(() => ({ title: 'Test Title' })),
 }));
 
-jest.mock('../../../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccount: jest.fn(),
-  selectSelectedInternalAccountAddress: jest.fn(),
-  selectSelectedInternalAccountFormattedAddress: jest.fn(),
-  selectHasCreatedSolanaMainnetAccount: jest.fn(),
-}));
+jest.mock('../../../../../selectors/accountsController', () => {
+  const actual = jest.requireActual(
+    '../../../../../selectors/accountsController',
+  );
+  return {
+    ...actual,
+    selectSelectedInternalAccount: jest.fn(),
+    selectSelectedInternalAccountAddress: jest.fn(),
+    selectSelectedInternalAccountFormattedAddress: jest.fn(),
+    selectHasCreatedSolanaMainnetAccount: jest.fn(),
+  };
+});
 
 const mockTransaction = {
   id: 'trade-123',
