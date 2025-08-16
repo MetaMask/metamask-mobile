@@ -49,6 +49,16 @@
     "batched_unused_approvals": {
       "title": "Permiso innecesario",
       "message": "Le estás dando permiso a otra persona para que retire tus tokens, aunque no sea necesario para esta transacción."
+    },
+    "perps_deposit_minimum": {
+      "message": "Min order value is $10"
+    },
+    "insufficient_pay_token_balance": {
+      "message": "Insufficient funds. Select different token."
+    },
+    "no_pay_token_quotes": {
+      "title": "We couldn't find any quotes.",
+      "message": "Change the amount or select a different token for payment."
     }
   },
   "blockaid_banner": {
@@ -176,6 +186,8 @@
     "import_title": "¡Su monedero está listo!",
     "import_description": "Si pierdes tu frase secreta de recuperación, no podrás usar tu billetera.",
     "import_description2": "puedes mantener esta frase segura para nunca perder el acceso a tu dinero.",
+    "import_description_social_login": "You can log in to your wallet anytime with your {{authConnection}} account and password.",
+    "import_description_social_login_2": "If you forget your password, you won’t be able to access your wallet.",
     "done": "Hecho",
     "create_hint": "Crear una pista de contraseña",
     "hint_title": "Pista de contraseña",
@@ -410,7 +422,7 @@
     "confirm_password_placeholder": "Vuelve a ingresar tu contraseña",
     "confirm_btn": "Guardar",
     "warning_password_change_title": "¿Estás seguro?",
-    "warning_password_change_description": "Cambiar tu contraseña aquí bloqueará MetaMask en otros dispositivos que estés utilizando. Deberás iniciar sesión nuevamente con tu nueva contraseña.",
+    "warning_password_change_description": "Changing your password here will lock MetaMask on other devices you’re using. You’ll need to log in again with your new password",
     "warning_password_change_button": "Confirmar",
     "warning_password_cancel_button": "Cancelar",
     "changing_password": "Cambiando contraseña...",
@@ -461,6 +473,12 @@
     "wallet": "Billetera",
     "transfer": "Transferir"
   },
+  "bottom_nav": {
+    "home": "Home",
+    "browser": "Browser",
+    "activity": "Activity",
+    "settings": "Settings"
+  },
   "drawer": {
     "send_button": "Enviar",
     "receive_button": "Agregar fondos",
@@ -488,12 +506,24 @@
     "public_address": "Dirección pública"
   },
   "send": {
+    "available": "available",
+    "invalid_value": "Invalid value",
+    "insufficient_funds": "Insufficient funds",
+    "continue": "Continue",
     "title": "Enviar",
     "deeplink_failure": "Se produjo un error. Vuelva a intentarlo",
     "warn_network_change": "La red cambió a ",
     "send_to": "Enviar a",
     "amount": "Cantidad",
     "confirm": "Confirmar",
+    "paste": "Paste",
+    "clear": "Clear",
+    "to": "To",
+    "enter_address_to_send_to": "Enter address to send to",
+    "accounts": "Accounts",
+    "contacts": "Contacts",
+    "no_contacts_found": "No contacts found",
+    "review": "Review",
     "sign": "Firmar",
     "network_not_found_title": "No se encontró la red",
     "network_not_found_description": "La red con ID de cadena {{chain_id}} no se encontró en su monedero. Instale primero la red.",
@@ -512,8 +542,18 @@
     },
     "token_modal": {
       "select_a_token": "Selecciona un token",
+      "select_token": "Select token",
       "search_by_name_or_address": "Buscar token por nombre o dirección",
       "no_tokens_found": "No se encontraron tokens que coincidan con “{{searchString}}\""
+    },
+    "networks_filter_bar": {
+      "all_networks": "All networks"
+    },
+    "networks_filter_selector": {
+      "select_network": "Select network",
+      "select_all": "Select all",
+      "deselect_all": "Deselect all",
+      "apply": "Apply"
     },
     "configuration_modal": {
       "title": "Options",
@@ -628,11 +668,11 @@
       "title": "Ingresa tu información básica",
       "continue": "Continuar",
       "subtitle": "A continuación, necesitamos información básica sobre ti.",
-      "first_name": "Nombre",
-      "last_name": "Apellido",
-      "phone_number": "Número de teléfono",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "phone_number": "Phone number",
       "date_of_birth": "Fecha de nacimiento",
-      "social_security_number": "Número de seguro social",
+      "social_security_number": "Social security number (SSN)",
       "enter_phone_number": "Ingresar el número de teléfono",
       "select_region": "Seleccionar región",
       "first_name_required": "Se requiere el nombre",
@@ -643,7 +683,8 @@
       "mobile_number_invalid": "Ingresa un número de teléfono válido",
       "dob_required": "Se requiere la fecha de nacimiento",
       "dob_invalid": "Ingresa una fecha de nacimiento válida",
-      "ssn_required": "Se requiere un número de seguro social"
+      "ssn_required": "Se requiere un número de seguro social",
+      "unexpected_error": "An unexpected error occurred. Please try again."
     },
     "enter_address": {
       "navbar_title": "Verifica tu identidad",
@@ -719,11 +760,11 @@
     },
     "bank_details": {
       "navbar_title": "Transferencia bancaria mediante {{paymentMethod}}",
-      "button": "Transferencia bancaria enviada",
+      "button": "Confirm transfer",
       "button_cancel": "Cancelar orden",
       "main_title": "Para completar tu orden",
       "main_content_1": "Inicia una transferencia desde tu banco preferido utilizando la información que figura a continuación.",
-      "main_content_2": "Una vez que hayas terminado, regresa y haz clic en \"Transferencia bancaria enviada\" para confirmar.",
+      "main_content_2": "Once you’re finished, come back and click “Confirm transfer” to confirm.",
       "show_bank_info": "Mostrar información bancaria",
       "hide_bank_info": "Ocultar información bancaria",
       "transfer_amount": "Monto de la transferencia",
@@ -735,6 +776,7 @@
       "bic": "BIC",
       "account_type": "Tipo de cuenta",
       "bank_name": "Nombre del banco",
+      "beneficiary_address": "Beneficiary address",
       "bank_address": "Dirección del banco",
       "info_banner_text": "Deberías ver '{{accountHolderName}}' como el titular de la cuenta. Esto ayuda a tu banco a procesar la transferencia.",
       "error_message": "No pudimos confirmar tu transferencia bancaria. Inténtalo de nuevo.",
@@ -760,7 +802,8 @@
     }
   },
   "perps": {
-    "title": "Operaciones con contratos perpetuos",
+    "title": "Perps",
+    "perps_trading": "Perps Trading",
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage Balance",
     "total_balance": "Saldo total",
@@ -770,13 +813,12 @@
     "withdraw": "Retirar",
     "refresh_balance": "Refresh Balance",
     "add_funds": "Agregar fondos",
-    "perpetuals": "Contratos perpetuos",
     "your_positions": "Your positions",
     "loading_positions": "Cargando posiciones...",
     "refreshing_positions": "Refreshing positions...",
+    "no_open_orders": "No open orders",
     "deposit": {
       "title": "Amount to deposit",
-      "pay_with": "Pagar con",
       "get_usdc_hyperliquid": "Get USDC • Hyperliquid",
       "insufficient_funds": "Fondos insuficientes",
       "enter_amount": "Ingrese una cantidad",
@@ -888,15 +930,27 @@
       "title": "Nueva orden",
       "leverage": "Apalancamiento",
       "limit_price": "Limit price",
+      "trigger_price": "Trigger price",
       "liquidation_price": "Precio de liquidación",
       "fees": "Tarifas",
       "market": "Mercado",
       "limit": "Limit",
+      "take_profit": "Take profit",
+      "stop_loss": "Stop loss",
+      "cancel_order": "Cancel order",
+      "filled": "filled",
+      "reduce_only": "Reduce only",
+      "yes": "Yes",
+      "status": {
+        "open": "Open",
+        "filled": "Filled",
+        "canceled": "Canceled",
+        "rejected": "Rejected"
+      },
       "validation": {
         "failed": "Error en la validación de la orden",
         "amount_required": "El monto de la orden debe ser mayor que 0",
         "minimum_amount": "El tamaño mínimo de la orden es de ${{amount}}",
-        "maximum_amount": "El tamaño máximo de la orden es de ${{amount}}",
         "insufficient_balance": "Saldo insuficiente. Necesitas: ${{required}}, Disponible: ${{available}}",
         "invalid_leverage": "El apalancamiento debe estar entre {{min}}x y {{max}}x",
         "high_leverage_warning": "Un apalancamiento elevado aumenta el riesgo de liquidación",
@@ -919,9 +973,6 @@
       "estimated_execution_time": "Estimated execution time",
       "one_to_three_seconds": "1 to 3 seconds",
       "margin": "Margen",
-      "take_profit": "Take profit",
-      "stop_loss": "Stop loss",
-      "select_payment_asset": "Select asset to pay with",
       "button": {
         "long": "{{asset}} largo",
         "short": "{{asset}} corto"
@@ -986,13 +1037,28 @@
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
       "success_message": "Successfully closed {{coin}} position. Order ID: {{orderId}}",
       "error_title": "Close Position Failed",
-      "fox_points_earned": "{{points}} Fox Points earned!"
+      "fox_points_earned": "{{points}} Fox Points earned!",
+      "minimum_remaining_warning": "Remaining position must be at least ${{minimum}}. Current: ${{remaining}}",
+      "minimum_remaining_error": "Cannot partial close: remaining position (${{remaining}}) would be below minimum order size (${{minimum}}). Please close 100% instead.",
+      "small_close_warning": "Warning: You're closing only {{percentage}}% of your position",
+      "negative_receive_amount": "The fees exceed your position value",
+      "no_amount_selected": "Please select an amount to close"
     },
     "tpsl": {
-      "title": "Set take profit and stop loss",
-      "set_button": "Establecer",
+      "title": "Take profit and stop loss",
+      "set": "Set",
       "updating": "Updating...",
-      "usd_label": "USD"
+      "off": "Off",
+      "current_price": "Current price",
+      "liquidation_price": "Liquidation price",
+      "take_profit_long": "Take profit when price increases by",
+      "take_profit_short": "Take profit when price decreases by",
+      "stop_loss_long": "Stop loss when price drops by",
+      "stop_loss_short": "Stop loss when price increases by",
+      "trigger_price_placeholder": "Trigger price",
+      "profit_percent_placeholder": "Profit",
+      "loss_percent_placeholder": "Loss",
+      "usd_label": "($)"
     },
     "token_selector": {
       "no_tokens": "No tokens available"
@@ -1011,6 +1077,7 @@
       "failedToUnsubscribeOrderFill": "Failed to unsubscribe from order fill updates",
       "failedToEstablishAllMids": "Failed to establish global allMids subscription",
       "failedToEstablishMarketData": "Failed to establish market data subscription for {{symbol}}",
+      "failed_to_toggle_network": "Failed to toggle network",
       "noAccountSelected": "No account selected",
       "unsupportedMethod": "Unsupported method: {{method}}",
       "invalidAddressFormat": "Invalid address format: {{address}}",
@@ -1064,19 +1131,16 @@
         "error_title": "Error al cargar posiciones",
         "empty_title": "No hay posiciones abiertas",
         "empty_description": "Aún no tienes ninguna posición abierta.\nComienza a operar para ver tus posiciones aquí.",
+        "first_time_title": "Perps",
+        "first_time_description": "Predict price moves with up to 40x leverage.",
+        "start_trading": "Start trading",
         "open_positions": "Posiciones abiertas",
         "position_count": "{{count}} posición",
         "position_count_plural": "{{count}} posiciones"
       },
       "details": {
-        "title": "Detalles de la posición",
         "error_message": "No se encontraron datos de la posición. Vuelve atrás e inténtalo de nuevo.",
         "section_title": "Posición"
-      },
-      "tpsl": {
-        "update_success": "TP/SL updated successfully",
-        "update_failed": "Failed to update TP/SL",
-        "update_error": "Error updating TP/SL"
       },
       "account": {
         "summary_title": "Resumen de cuenta",
@@ -1097,15 +1161,16 @@
       "statistics": "Statistics",
       "24hr_high": "24hr high",
       "24hr_low": "24hr low",
-      "24h_volume": "24h volume",
+      "24h_volume": "24hr volume",
       "open_interest": "Open interest",
       "funding_rate": "Funding rate",
       "countdown": "Countdown",
       "long": "Long",
-      "short": "Short"
-    },
-    "network": {
-      "hyperliquid": "Hyperliquid"
+      "short": "Short",
+      "add_funds": "Add Funds",
+      "add_funds_to_start_trading_perps": "Add funds to start trading perps",
+      "position": "Position",
+      "orders": "Orders"
     },
     "buttons": {
       "get_account_balance": "Obtener saldo de cuenta",
@@ -1114,6 +1179,38 @@
       "switch_to_testnet": "Cambiar a la red de pruebas",
       "view_markets": "View Markets",
       "positions": "Posiciones"
+    },
+    "tooltips": {
+      "leverage": {
+        "title": "Leverage",
+        "content": "Leverage lets you trade with more than you put in. It can boost your profits, but also your losses. The higher the leverage, the riskier the trade."
+      },
+      "liquidation_price": {
+        "title": "Liquidation price",
+        "content": "If the price hits this point, you'll be liquidated and lose your margin. Higher leverage makes this more likely."
+      },
+      "margin": {
+        "title": "Margin",
+        "content": "Margin is the money you put in to open a trade. It acts as collateral, and it's the most you can lose on that trade."
+      },
+      "fees": {
+        "title": "Fees",
+        "metamask_fee": "MetaMask fee",
+        "provider_fee": "Provider fee"
+      },
+      "open_interest": {
+        "title": "Open interest",
+        "content": "The combined value of all open positions for this perp."
+      },
+      "funding_rate": {
+        "title": "Funding rate",
+        "content": "An hourly fee paid between traders to keep prices in line with the market. If the rate is positive, longs pay shorts. If negative, shorts pay longs."
+      },
+      "perps_geo_block": {
+        "title": "Perps geo block",
+        "content": "Perps trading isn’t available in your location due to local restrictions or sanctions."
+      },
+      "got_it_button": "Got it"
     },
     "connection": {
       "failed": "La conexión falló",
@@ -1129,7 +1226,82 @@
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
     "tap_to_retry": "Tap to retry",
-    "search": "Search"
+    "search": "Search",
+    "testnet": "Testnet",
+    "mainnet": "Mainnet",
+    "developer_options": {
+      "hyperliquid_network_toggle": "Hyperliquid Network Toggle",
+      "perps_sandbox_button": "Perps Sandbox"
+    },
+    "transactions": {
+      "title": "Perps",
+      "tabs": {
+        "trades": "Trades",
+        "orders": "Orders",
+        "funding": "Funding"
+      },
+      "not_found": "Transaction not found",
+      "position": {
+        "date": "Date",
+        "size": "Size",
+        "entry_price": "Entry price",
+        "points": "Points",
+        "fees": "Total fees",
+        "pnl": "Net P&L"
+      },
+      "order": {
+        "date": "Date",
+        "size": "Size",
+        "limit_price": "Limit price",
+        "filled": "Filled",
+        "metamask_fee": "MetaMask fee",
+        "hyperliquid_fee": "Hyperliquid fee",
+        "total_fee": "Total fee"
+      },
+      "funding": {
+        "date": "Date",
+        "fee": "Fee",
+        "rate": "Rate"
+      },
+      "view_on_explorer": "View on block explorer",
+      "empty_state": {
+        "no_transactions": "No {{type}} transactions yet",
+        "history_will_appear": "Your trading history will appear here"
+      }
+    },
+    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by {{provider}}.",
+    "tutorial": {
+      "continue": "Continue",
+      "skip": "Skip",
+      "add_funds": "Add funds",
+      "what_are_perps": {
+        "title": "What are perps?",
+        "description": "MetaMask now supports perpetual futures—aka perps—letting you trade on a token's price movement without buying it.",
+        "subtitle": "Here's how it works."
+      },
+      "go_long_or_short": {
+        "title": "Go long or short on a token",
+        "description": "Pick a token to long or short, then set your margin.",
+        "subtitle": "Go long to profit if the price goes up. Go short to profit if the price goes down."
+      },
+      "choose_leverage": {
+        "title": "Choose your leverage",
+        "description": "Leverage amplifies both gains and losses. With 10x leverage, a 1% price move = 10% gain or loss on your margin."
+      },
+      "watch_liquidation": {
+        "title": "Watch out for liquidation",
+        "description": "You'll lose your entire margin if the token hits your liquidation price. Higher leverage means less room to liquidation."
+      },
+      "close_anytime": {
+        "title": "Close any time",
+        "description": "Exit whenever you want. You'll get back your margin, plus profits or minus losses."
+      },
+      "ready_to_trade": {
+        "title": "Ready to trade?",
+        "description": "Fund your perps account with any token and make your first trade in seconds."
+      },
+      "got_it": "Got it"
+    }
   },
   "receive": {
     "title": "Recibir"
@@ -1199,7 +1371,7 @@
     "collectible": "Coleccionable",
     "collectibles": "NFT",
     "defi": "DeFi",
-    "perps": "Contratos perpetuos",
+    "perps": "Perps",
     "transactions": "TRANSACCIONES",
     "no_collectibles": "¿No ve su NFT?",
     "no_available_tokens": "¿No ve su token?",
@@ -1229,6 +1401,9 @@
     "import": "Importar",
     "sort_by": "Ordenar por",
     "filter_by": "Filtrar por",
+    "networks": "Networks",
+    "default": "Default",
+    "custom": "Custom",
     "current_network": "Red actual",
     "popular_networks": "Redes populares",
     "all_networks": "Todas las redes",
@@ -1572,7 +1747,10 @@
     "account_connect_create_initial_account": {
       "description": "Se requiere una cuenta de Solana para conectarse a este sitio.",
       "button": "Crear cuenta de Solana"
-    }
+    },
+    "no_accounts_found": "No accounts found",
+    "no_accounts_found_for_search": "No accounts found matching your search",
+    "search_your_accounts": "Search your accounts"
   },
   "toast": {
     "connected_and_active": "conectado y activo.",
@@ -2133,16 +2311,25 @@
     "change_password": "Cambiar contraseña",
     "password_hint": "Pista de contraseña"
   },
+  "fund_actionmenu": {
+    "deposit": "Deposit",
+    "deposit_description": "Low-fee bank or card transfer",
+    "buy": "Buy",
+    "buy_description": "Good for buying a specific token",
+    "sell": "Withdraw",
+    "sell_description": "Sell crypto for cash"
+  },
   "asset_overview": {
     "send_button": "Enviar",
     "buy_button": "Comprar",
+    "fund_button": "Fund",
     "token_marketplace": "Mercado de tókenes",
-    "sell_button": "Vender",
+    "sell_button": "Withdraw",
     "receive_button": "Recibir",
     "portfolio_button": "Portfolio",
+    "deposit_button": "Deposit",
     "earn_button": "Ganar",
-    "perps_button": "Contratos perpetuos",
-    "perps_sandbox_button": "Perps Sandbox",
+    "perps_button": "Perps",
     "add_collectible_button": "Agregar",
     "info": "Información",
     "swap": "Canjear",
@@ -2157,8 +2344,7 @@
       "send": "No es posible enviar en esta cuenta",
       "action": "Esta acción no se admite en esta cuenta",
       "earn": "No es posible ganar en esta cuenta",
-      "perps": "Esta cuenta no admite operaciones con contratos perpetuos",
-      "perps_sandbox": "Perps sandbox not supported for this account"
+      "perps": "Perps trading not supported for this account"
     },
     "description": "Descripción",
     "totalSupply": "Suministro total",
@@ -2168,7 +2354,7 @@
     "troubleshooting_missing": "sobre la solución de problemas para saldos faltantes",
     "for_help": "a fin de obtener ayuda.",
     "troubleshoot": "Solucionar problemas",
-    "deposit_description": "Low-cost card or bank transfer",
+    "deposit_description": "Low-fee bank or card transfer",
     "buy_description": "Good for buying a specific token",
     "sell_description": "Vender cripto por dinero en efectivo",
     "swap_description": "Cambiar entre tokens",
@@ -2176,8 +2362,7 @@
     "send_description": "Enviar criptomonedas a cualquier cuenta",
     "receive_description": "Recibir criptomonedas",
     "earn_description": "Gane recompensas con sus tokens",
-    "perps_description": "Operar con contratos perpetuos",
-    "perps_sandbox_description": "Explore perpetual trading",
+    "perps_description": "Trade perp contracts",
     "chart_time_period": {
       "1d": "Hoy",
       "7d": "Últimos 7 días",
@@ -2765,6 +2950,7 @@
     "switch_network": "Cambiar de red",
     "switch": "Cambiar",
     "select_all": "Seleccionar todo",
+    "deselect_all": "Deselect all",
     "new_network": "Se agregó una red nueva",
     "network_name": "Red {{networkName}}",
     "network_added": " ya está disponible en el selector de redes.",
@@ -4729,7 +4915,10 @@
       "signing_in_with": "Iniciando sesión con",
       "spender": "Gastador",
       "now": "Ahora",
-      "switching_to": "Cambiando a"
+      "switching_to": "Cambiando a",
+      "bridge_estimated_time": "Est. time",
+      "pay_with": "Pay with",
+      "total": "Total"
     },
     "title": {
       "signature": "Solicitud de firma",
@@ -4741,7 +4930,8 @@
       "contract_deployment": "Implementar un contrato",
       "transfer": "Solicitud de transferencia",
       "switch_account_type": "Actualización de la cuenta",
-      "approve": "Aprobar la solicitud"
+      "approve": "Aprobar la solicitud",
+      "perps_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "Este sitio necesita permiso para gastar sus tokens.",
@@ -4848,7 +5038,9 @@
     "review": "Revisar",
     "transferRequest": "Solicitud de transferencia",
     "nested_transaction_heading": "{{index}} de transacción",
-    "transaction": "Transacción"
+    "transaction": "Transacción",
+    "available_balance": "Available: ",
+    "edit_amount_done": "Done"
   },
   "change_in_simulation_modal": {
     "title": "Los resultados cambiaron",
@@ -4896,6 +5088,7 @@
     "receive_at": "Recibir en",
     "error_banner_description": "Esta ruta de operación no está disponible en este momento. Intente cambiar el monto, la red o el token y encontraremos la mejor opción.",
     "insufficient_funds": "Fondos insuficientes",
+    "insufficient_gas": "Insufficient gas",
     "select_amount": "Seleccionar monto",
     "bridge_to": "Puentear a",
     "swap_to": "Canjear a",
@@ -4905,6 +5098,9 @@
     "fee_disclaimer": "Incluye comisión MM del 0,875 %",
     "hardware_wallet_not_supported": "Las billeteras físicas aún no son compatibles. Usa una billetera en caliente para continuar.",
     "hardware_wallet_not_supported_solana": "Las billeteras físicas aún no son compatibles con Solana. Usa una billetera en caliente para continuar.",
+    "price_impact_warning_title": "Price Impact Warning",
+    "price_impact_gasless_warning": "Price impact reflects how your swap order affects the market price of the asset. If you do not hold enough funds for gas, part of your source token is automatically allocated to cover fees, which will reduce the amount swapped. MetaMask does not influence or control price impact.",
+    "price_impact_normal_warning": "Price impact reflects how your swap order affects the market price of the asset. It depends on the trade size and the available liquidity in the pool. MetaMask does not influence or control price impact.",
     "blockaid_error_title": "This transaction will be reverted",
     "max": "Máx."
   },
@@ -5112,6 +5308,27 @@
     "back_button": "Volver",
     "continue_button": "Continuar"
   },
+  "card": {
+    "card": "Tarjeta MetaMask",
+    "add_funds_bottomsheet": {
+      "deposit": "Deposit",
+      "deposit_description": "Convert cash to {{symbol}} on Linea",
+      "swap": "Swap",
+      "swap_description": "Exchange tokens into {{symbol}} on Linea",
+      "select_method": "Select method"
+    },
+    "card_home": {
+      "error_title": "Can’t fetch data",
+      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
+      "try_again": "Inténtalo de nuevo",
+      "limited_spending_warning": "Your actual spending ability may be limited. To adjust your limit, go to {{manageCard}}",
+      "add_funds": "Agregar fondos",
+      "manage_card_options": {
+        "manage_card": "Manage card",
+        "advanced_card_management_description": "See transactions, freeze card, and more"
+      }
+    }
+  },
   "onboarding_error_fallback": {
     "title": "Ocurrió un error",
     "description": "Send us an error report to help fix the problem and improve MetaMask. It will be confidential and anonymous.",
@@ -5125,19 +5342,11 @@
   "pay_with_modal": {
     "title": "Seleccionar método de pago"
   },
-  "card": {
-    "card": "Tarjeta MetaMask",
-    "card_home": {
-      "error_title": "Can’t fetch data",
-      "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
-      "try_again": "Inténtalo de nuevo",
-      "limited_spending_warning": "Full balance may not be available. Adjust your spending limit in {{manageCard}}",
-      "add_funds": "Agregar fondos",
-      "manage_card_options": {
-        "manage_card": "Manage card",
-        "advanced_card_management_description": "See transactions, freeze card, and more"
-      }
-    }
+  "connection_removed_modal": {
+    "title": "Connections removed",
+    "content": "Some connections (like hardware wallets and snaps) were removed due to inactivity on this device. You can re-add them anytime in Settings.",
+    "tryAgain": "Try again",
+    "close": "Close"
   },
   "time": {
     "minutes_format": "{{count}} minute",
