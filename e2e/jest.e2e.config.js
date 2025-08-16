@@ -15,6 +15,14 @@ if (process.env.BITRISE_TRIGGERED_WORKFLOW_ID) {
   }
 }
 
+// Allow explicit override of max workers via environment variable
+if (process.env.E2E_MAX_WORKERS) {
+  const parsed = parseInt(process.env.E2E_MAX_WORKERS, 10);
+  if (!Number.isNaN(parsed) && parsed > 0) {
+    workers = parsed;
+  }
+}
+
 module.exports = {
   rootDir: '..',
   testMatch: ['<rootDir>/e2e/specs/**/*.spec.{js,ts}'],

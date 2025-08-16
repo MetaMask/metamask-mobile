@@ -18,6 +18,21 @@ on:
         description: 'The Cucumber tag expression to use for filtering tests'
         required: true
         type: string
+      split_number:
+        description: 'Which split number to run (1-based index)'
+        required: false
+        type: number
+        default: 1
+      total_splits:
+        description: 'Total number of splits to divide tests into'
+        required: false
+        type: number
+        default: 1
+      e2e-max-workers:
+        description: 'Override Jest maxWorkers for E2E (e.g., 1 for serial)'
+        required: false
+        type: number
+        default: 0
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}
@@ -35,7 +50,10 @@ jobs:
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
+      SPLIT_NUMBER: ${{ inputs.split_number }}
+      TOTAL_SPLITS: ${{ inputs.total_splits }}
       GITHUB_CI: 'true'
+      E2E_MAX_WORKERS: ${{ inputs.e2e-max-workers && inputs.e2e-max-workers > 0 && inputs.e2e-max-workers || null }}
       MM_UNIFIED_SWAPS_ENABLED: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       MM_BRIDGE_ENABLED: 'true'
@@ -93,34 +111,42 @@ jobs:
           # Create required directories
           mkdir -p android/app/build/outputs/apk/prod/release/
 
-      - name: Download Android build artifacts
+      - name: Download Android main APK artifact
         if: ${{ inputs.platform == 'android' }}
         uses: actions/download-artifact@v4
         with:
-          path: artifacts/
+          name: app-prod-release.apk
+          path: apk-downloads/
+
+      - name: Download Android test APK artifact
+        if: ${{ inputs.platform == 'android' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: app-prod-release-androidTest.apk
+          path: apk-downloads/
 
       - name: Move Android artifacts to expected locations
         if: ${{ inputs.platform == 'android' }}
         run: |
           # Move main APK
-          if [[ -f "artifacts/app-prod-release.apk/app-prod-release.apk" ]]; then
+          if [[ -f "apk-downloads/app-prod-release.apk" ]]; then
             mkdir -p "android/app/build/outputs/apk/prod/release/"
-            cp "artifacts/app-prod-release.apk/app-prod-release.apk" "android/app/build/outputs/apk/prod/release/"
+            cp "apk-downloads/app-prod-release.apk" "android/app/build/outputs/apk/prod/release/"
             echo "✅ Android main APK ready for E2E tests"
           else
             echo "❌ Android main APK not found"
-            ls -la artifacts/
+            ls -la apk-downloads/ || true
             exit 1
           fi
 
           # Move test APK
-          if [[ -f "artifacts/app-prod-release-androidTest.apk/app-prod-release-androidTest.apk" ]]; then
+          if [[ -f "apk-downloads/app-prod-release-androidTest.apk" ]]; then
             mkdir -p "android/app/build/outputs/apk/androidTest/prod/release/"
-            cp "artifacts/app-prod-release-androidTest.apk/app-prod-release-androidTest.apk" "android/app/build/outputs/apk/androidTest/prod/release/"
+            cp "apk-downloads/app-prod-release-androidTest.apk" "android/app/build/outputs/apk/androidTest/prod/release/"
             echo "✅ Android test APK ready for E2E tests"
           else
             echo "❌ Android test APK not found"
-            ls -la artifacts/
+            ls -la apk-downloads/ || true
             exit 1
           fi
 
@@ -165,7 +191,12 @@ jobs:
             export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
           fi
           
-          ./scripts/run-e2e-tags.sh
+          # Always use the splitting script (handles both split and non-split cases)
+          echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
+          if [[ -n "${{ inputs.e2e-max-workers }}" && "${{ inputs.e2e-max-workers }}" != "0" ]]; then
+            echo "Forcing Jest maxWorkers=${{ inputs.e2e-max-workers }}"
+          fi
+          ./scripts/run-e2e-tags-split.sh
           
           echo "✅ Test execution completed"
 
@@ -180,8 +211,7 @@ jobs:
       - name: Prepare screenshots
         if: failure()
         run: |
-          echo "Removing APKs from artifacts..."
-          find artifacts/ -name "*app-*" -delete 2>/dev/null || true
+          echo "Preparing Detox artifacts for upload..."
         continue-on-error: true
 
       - name: Upload screenshots
