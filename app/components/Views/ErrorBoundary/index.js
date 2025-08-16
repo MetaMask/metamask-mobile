@@ -45,6 +45,9 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
+import { selectExistingUser } from '../../../reducers/user';
+import Routes from '../../../constants/navigation/Routes';
+import ReduxService from '../../../core/redux';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -189,9 +192,16 @@ export const Fallback = (props) => {
     : strings('error_screen.error_message');
 
   const navigateToOnboarding = () => {
-    props.onboardingErrorConfig?.navigation?.reset({
-      routes: [{ name: 'OnboardingRootNav' }],
-    });
+    const isExistingUser = selectExistingUser(ReduxService.store.getState());
+    if (isExistingUser) {
+      props.onboardingErrorConfig?.navigation?.reset({
+        routes: [{ name: Routes.ONBOARDING.LOGIN }],
+      });
+    } else {
+      props.onboardingErrorConfig?.navigation?.reset({
+        routes: [{ name: Routes.ONBOARDING.ROOT_NAV }],
+      });
+    }
   };
 
   const onPrimary = isOnboardingError
