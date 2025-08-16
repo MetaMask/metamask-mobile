@@ -46,6 +46,25 @@ const createMockSDKReturn = (overrides = {}) => ({
     supported: true,
   },
   setSelectedRegion: jest.fn(),
+  paymentMethod: DEBIT_CREDIT_PAYMENT_METHOD,
+  setPaymentMethod: jest.fn(),
+  cryptoCurrency: {
+    assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    chainId: 'eip155:1',
+    name: 'USD Coin',
+    symbol: 'USDC',
+    decimals: 6,
+    iconUrl:
+      'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48.png',
+  },
+  setCryptoCurrency: jest.fn(),
+  fiatCurrency: {
+    id: 'USD',
+    name: 'US Dollar',
+    symbol: '$',
+    emoji: '🇺🇸',
+  },
+  setFiatCurrency: jest.fn(),
   ...overrides,
 });
 
@@ -101,6 +120,21 @@ const mockUsePaymentMethods = jest
   .mockReturnValue([DEBIT_CREDIT_PAYMENT_METHOD, WIRE_TRANSFER_PAYMENT_METHOD]);
 jest.mock('../../hooks/usePaymentMethods', () => () => mockUsePaymentMethods());
 
+const mockUseSupportedTokens = jest.fn().mockReturnValue([
+  {
+    assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+    chainId: 'eip155:1',
+    name: 'USD Coin',
+    symbol: 'USDC',
+    decimals: 6,
+    iconUrl: 'https://example.com/usdc.png',
+  },
+]);
+jest.mock(
+  '../../hooks/useSupportedTokens',
+  () => () => mockUseSupportedTokens(),
+);
+
 // Mock the analytics hook like in the aggregator test
 jest.mock('../../../hooks/useAnalytics', () => () => mockTrackEvent);
 
@@ -137,7 +171,9 @@ function render(Component: React.ComponentType) {
 describe('BuildQuote Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
+    const mockSDK = createMockSDKReturn();
+
+    mockUseDepositSDK.mockReturnValue(mockSDK);
     mockUseDepositTokenExchange.mockReturnValue({
       tokenAmount: '0.00',
     });
@@ -179,6 +215,12 @@ describe('BuildQuote Component', () => {
             currency: 'EUR',
             supported: true,
           },
+          fiatCurrency: {
+            id: 'EUR',
+            name: 'Euro',
+            symbol: '€',
+            emoji: '🇪🇺',
+          },
         }),
       );
 
@@ -217,33 +259,7 @@ describe('BuildQuote Component', () => {
       fireEvent.press(payWithButton);
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositPaymentMethodSelectorModal',
-        params: {
-          handleSelectPaymentMethodId: expect.any(Function),
-          selectedPaymentMethodId: 'credit_debit_card',
-        },
       });
-    });
-
-    it('tracks RAMPS_PAYMENT_METHOD_SELECTED event when payment method is selected', () => {
-      render(BuildQuote);
-      const payWithButton = screen.getByText('Pay with');
-      fireEvent.press(payWithButton);
-
-      act(() =>
-        mockNavigate.mock.calls[0][1].params.handleSelectPaymentMethodId(
-          'credit_debit_card',
-        ),
-      );
-
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_PAYMENT_METHOD_SELECTED',
-        {
-          ramp_type: 'DEPOSIT',
-          region: 'US',
-          payment_method_id: 'credit_debit_card',
-          is_authenticated: false,
-        },
-      );
     });
   });
 
@@ -254,33 +270,6 @@ describe('BuildQuote Component', () => {
       fireEvent.press(tokenButton);
       expect(mockNavigate).toHaveBeenCalledWith('DepositModals', {
         screen: 'DepositTokenSelectorModal',
-        params: {
-          handleSelectAssetId: expect.any(Function),
-          selectedAssetId:
-            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        },
-      });
-    });
-
-    it('tracks RAMPS_TOKEN_SELECTED event when token is selected', () => {
-      render(BuildQuote);
-      const tokenButton = screen.getByText('USDC');
-      fireEvent.press(tokenButton);
-
-      act(() =>
-        mockNavigate.mock.calls[0][1].params.handleSelectAssetId(
-          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        ),
-      );
-
-      expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_TOKEN_SELECTED', {
-        ramp_type: 'DEPOSIT',
-        region: 'US',
-        chain_id: 'eip155:1',
-        currency_destination:
-          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-        currency_source: 'USD',
-        is_authenticated: false,
       });
     });
   });
