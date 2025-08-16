@@ -5,6 +5,7 @@ import { CaipChainId } from '@metamask/utils';
 import { AccountId } from '@metamask/accounts-controller';
 import { BtcAccountType, SolAccountType } from '@metamask/keyring-api';
 import { RootState } from '../../reducers';
+
 import {
   createMockInternalAccount,
   createMockSnapInternalAccount,
