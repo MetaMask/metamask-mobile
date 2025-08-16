@@ -25,9 +25,6 @@ class StreamChannel<T> {
   protected wsSubscription: (() => void) | null = null;
 
   protected notifySubscribers(updates: T) {
-    // DevLogger.log(
-    //   `StreamChannel: Notifying ${this.subscribers.size} subscribers`,
-    // );
     this.subscribers.forEach((subscriber) => {
       // Check if this is the first update for this subscriber
       if (!subscriber.hasReceivedFirstUpdate) {
@@ -58,10 +55,6 @@ class StreamChannel<T> {
             subscriber.timer = undefined;
           }
         }, subscriber.debounceMs);
-      } else {
-        // DevLogger.log(
-        //   `StreamChannel: Timer already running for subscriber ${subscriber.id}, updating pending data`,
-        // );
       }
     });
   }
@@ -154,11 +147,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols, // Subscribe to specific symbols
       callback: (updates: PriceUpdate[]) => {
-        // DevLogger.log(
-        //   `PriceStream: Received ${updates.length} price updates from WebSocket`,
-        //   { symbols: updates.map((u) => u.coin).slice(0, 5) },
-        // );
-
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
         updates.forEach((update) => {
