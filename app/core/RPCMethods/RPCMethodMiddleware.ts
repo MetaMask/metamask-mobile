@@ -661,7 +661,10 @@ export const getRpcMethodMiddleware = ({
       parity_defaultAccount: getEthAccounts,
       eth_sendTransaction: async () => {
         checkTabActive();
-
+        const transactionAnalytics = {
+          dapp_url: url.current,
+          request_source: getSource(),
+        };
         return RPCMethods.eth_sendTransaction({
           hostname,
           req,
@@ -683,6 +686,7 @@ export const getRpcMethodMiddleware = ({
               isWalletConnect,
             });
           },
+          analytics: transactionAnalytics,
         });
       },
 
