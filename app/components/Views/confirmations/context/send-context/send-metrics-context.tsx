@@ -30,7 +30,6 @@ export const RecipientInputMethod = {
   Pasted: 'pasted',
   SelectAccount: 'select_account',
   SelectContact: 'select_contact',
-  QRCodeScan: 'qr_code_scan',
 };
 
 export interface SendMetricsContextType {

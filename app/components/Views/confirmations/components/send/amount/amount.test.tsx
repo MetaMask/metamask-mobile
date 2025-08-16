@@ -6,7 +6,6 @@ import { merge } from 'lodash';
 import renderWithProvider, {
   ProviderValues,
 } from '../../../../../../util/test/renderWithProvider';
-import Routes from '../../../../../../constants/navigation/Routes';
 import {
   ETHEREUM_ADDRESS,
   SOLANA_ASSET,
@@ -16,12 +15,7 @@ import {
 // eslint-disable-next-line import/no-namespace
 import * as AmountSelectionMetrics from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { SendContextProvider } from '../../../context/send-context';
-import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { Amount } from './amount';
-
-jest.mock('../../../hooks/send/useSendNavbar', () => ({
-  useSendNavbar: jest.fn(),
-}));
 
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
@@ -83,14 +77,6 @@ describe('Amount', () => {
   it('renders correctly', async () => {
     const { getByTestId } = renderComponent();
     expect(getByTestId('send_amount')).toBeTruthy();
-  });
-
-  it('calls useSendNavbar with correct currentRoute', () => {
-    renderComponent();
-
-    expect(useSendNavbar).toHaveBeenCalledWith({
-      currentRoute: Routes.SEND.AMOUNT,
-    });
   });
 
   it('asset passed in nav params should be used if present', () => {
