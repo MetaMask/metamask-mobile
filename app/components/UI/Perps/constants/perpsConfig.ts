@@ -66,3 +66,9 @@ export const PERFORMANCE_CONFIG = {
   // Prevents excessive validation calls during rapid form input changes
   VALIDATION_DEBOUNCE_MS: 1000,
 } as const;
+
+/**
+ * Perps notifications feature flag (temporary hard-coded flag)
+ * This flag controls whether the perps notifications feature logic is enabled
+ */
+export const PERPS_NOTIFICATIONS_FEATURE_ENABLED = false;
