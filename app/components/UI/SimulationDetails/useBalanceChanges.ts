@@ -22,7 +22,6 @@ import {
 } from './types';
 import { getTokenDetails } from '../../../util/address';
 import {
-  selectUSDConversionRateByChainId,
   selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
@@ -30,13 +29,8 @@ import { useAsyncResultOrThrow } from '../../hooks/useAsyncResult';
 import { RootState } from '../../../reducers';
 
 const NATIVE_DECIMALS = 18;
-const ERC20_DEFAULT_DECIMALS = 18;
-const CURRENCY_USD = 'usd';
 
-// See https://github.com/MikeMcl/bignumber.js/issues/11#issuecomment-23053776
-function convertNumberToStringWithPrecisionWarning(value: number): string {
-  return String(value);
-}
+const ERC20_DEFAULT_DECIMALS = 18;
 
 // Converts a SimulationTokenStandard to a TokenStandard
 function convertStandard(standard: SimulationTokenStandard) {
@@ -149,7 +143,6 @@ async function fetchTokenFiatRates(
 function getNativeBalanceChange(
   nativeBalanceChange: SimulationBalanceChange | undefined,
   nativeFiatRate: number,
-  nativeUsdRate: number | undefined,
   chainId: Hex,
 ): BalanceChange | undefined {
   if (!nativeBalanceChange) {
@@ -162,13 +155,9 @@ function getNativeBalanceChange(
   };
 
   const amount = getAssetAmount(nativeBalanceChange, NATIVE_DECIMALS);
-  const [fiatAmount, usdAmount] = [nativeFiatRate, nativeUsdRate].map((rate) =>
-    rate
-      ? amount.times(convertNumberToStringWithPrecisionWarning(rate)).toNumber()
-      : FIAT_UNAVAILABLE,
-  );
+  const fiatAmount = amount.times(nativeFiatRate).toNumber();
 
-  return { asset, amount, fiatAmount, usdAmount };
+  return { asset, amount, fiatAmount };
 }
 
 // Compiles the balance changes for token assets
@@ -176,7 +165,6 @@ function getTokenBalanceChanges(
   tokenBalanceChanges: SimulationTokenBalanceChange[],
   erc20Decimals: Record<Hex, number>,
   erc20FiatRates: Partial<Record<Hex, number>>,
-  erc20UsdRates: Partial<Record<Hex, number>>,
   chainId: Hex,
 ): BalanceChange[] {
   return tokenBalanceChanges.map((tokenBc) => {
@@ -191,6 +179,7 @@ function getTokenBalanceChanges(
       asset.type === AssetType.ERC20
         ? erc20Decimals[asset.address] ?? ERC20_DEFAULT_DECIMALS
         : 0;
+    const amount = getAssetAmount(tokenBc, decimals);
     const balance = getAssetAmount(
       {
         difference: tokenBc.previousBalance,
@@ -199,16 +188,10 @@ function getTokenBalanceChanges(
       decimals,
     );
 
-    const amount = getAssetAmount(tokenBc, decimals);
     const fiatRate = erc20FiatRates[tokenBc.address];
-    const usdRate = erc20UsdRates[tokenBc.address.toLowerCase() as Hex];
-    const [fiatAmount, usdAmount] = [fiatRate, usdRate].map((rate) =>
-      rate
-        ? amount
-            .times(convertNumberToStringWithPrecisionWarning(rate))
-            .toNumber()
-        : FIAT_UNAVAILABLE,
-    );
+    const fiatAmount = fiatRate
+      ? amount.times(fiatRate).toNumber()
+      : FIAT_UNAVAILABLE;
 
     const tokenSymbol = (
       tokenBc as SimulationTokenBalanceChange & { tokenSymbol: string }
@@ -217,10 +200,9 @@ function getTokenBalanceChanges(
     return {
       asset,
       amount,
+      fiatAmount,
       balance,
       decimals,
-      fiatAmount,
-      usdAmount,
       tokenSymbol,
     };
   });
@@ -236,15 +218,10 @@ export default function useBalanceChanges({
   simulationData?: SimulationData;
   networkClientId: string;
 }): { pending: boolean; value: BalanceChange[] } {
-  const nativeFiatRate =
-    useSelector((state: RootState) =>
-      selectConversionRateByChainId(state, chainId),
-    ) ?? 0;
+  const nativeFiatRate = useSelector((state: RootState) =>
+    selectConversionRateByChainId(state, chainId),
+  ) as number;
   const fiatCurrency = useSelector(selectCurrentCurrency);
-  const nativeUsdRate =
-    useSelector((state: RootState) =>
-      selectUSDConversionRateByChainId(state, chainId),
-    ) ?? undefined;
 
   const { nativeBalanceChange, tokenBalanceChanges = [] } =
     simulationData ?? {};
@@ -267,32 +244,13 @@ export default function useBalanceChanges({
     [JSON.stringify(erc20TokenAddresses), chainId, fiatCurrency],
   );
 
-  const erc20UsdRates = useAsyncResultOrThrow(
-    async () =>
-      fiatCurrency === CURRENCY_USD
-        ? erc20FiatRates.value ?? {}
-        : fetchTokenFiatRates(CURRENCY_USD, erc20TokenAddresses, chainId),
-    [
-      JSON.stringify(erc20TokenAddresses),
-      chainId,
-      fiatCurrency,
-      erc20FiatRates.value,
-    ],
-  );
-
-  if (
-    erc20Decimals.pending ||
-    erc20FiatRates.pending ||
-    erc20UsdRates.pending ||
-    !simulationData
-  ) {
+  if (erc20Decimals.pending || erc20FiatRates.pending || !simulationData) {
     return { pending: true, value: [] };
   }
 
   const nativeChange = getNativeBalanceChange(
     nativeBalanceChange,
     nativeFiatRate,
-    nativeUsdRate,
     chainId,
   );
 
@@ -300,7 +258,6 @@ export default function useBalanceChanges({
     tokenBalanceChanges,
     erc20Decimals.value,
     erc20FiatRates.value,
-    erc20UsdRates.value,
     chainId,
   );
 
@@ -308,6 +265,5 @@ export default function useBalanceChanges({
     ...(nativeChange ? [nativeChange] : []),
     ...tokenChanges,
   ];
-
   return { pending: false, value: balanceChanges };
 }

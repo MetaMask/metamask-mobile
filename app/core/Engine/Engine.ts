@@ -230,7 +230,6 @@ import {
 import { ErrorReportingService } from '@metamask/error-reporting-service';
 import { captureException } from '@sentry/react-native';
 import { WebSocketServiceInit } from './controllers/snaps/websocket-service-init';
-import { networkEnablementControllerInit } from './controllers/network-enablement-controller/network-enablement-controller-init';
 
 import { seedlessOnboardingControllerInit } from './controllers/seedless-onboarding-controller';
 import { perpsControllerInit } from './controllers/perps-controller';
@@ -1205,6 +1204,7 @@ export class Engine {
           'SnapController:handleRequest',
           'TransactionController:getState',
           'RemoteFeatureFlagController:getState',
+          'BridgeController:stopPollingForQuotes',
         ],
         allowedEvents: [
           'TransactionController:transactionConfirmed',
@@ -1278,7 +1278,6 @@ export class Engine {
         MultichainAccountService: multichainAccountServiceInit,
         ///: END:ONLY_INCLUDE_IF
         SeedlessOnboardingController: seedlessOnboardingControllerInit,
-        NetworkEnablementController: networkEnablementControllerInit,
         PerpsController: perpsControllerInit,
       },
       persistedState: initialState as EngineState,
@@ -1342,9 +1341,6 @@ export class Engine {
       messenger: multichainRatesControllerMessenger,
       initialState: initialState.RatesController,
     });
-
-    const networkEnablementController =
-      controllersByName.NetworkEnablementController;
 
     // Set up currency rate sync
     setupCurrencyRateSync(
@@ -1661,7 +1657,6 @@ export class Engine {
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,
-      NetworkEnablementController: networkEnablementController,
       PerpsController: perpsController,
     };
 
@@ -2386,7 +2381,6 @@ export default {
       PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
-      NetworkEnablementController,
     } = instance.datamodel.state;
 
     return {
@@ -2442,7 +2436,6 @@ export default {
       PerpsController,
       DeFiPositionsController,
       SeedlessOnboardingController,
-      NetworkEnablementController,
     };
   },
 

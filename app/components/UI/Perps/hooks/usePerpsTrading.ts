@@ -11,12 +11,6 @@ import type {
   FeeCalculationParams,
   FeeCalculationResult,
   GetAccountStateParams,
-  GetOrderFillsParams,
-  GetOrdersParams,
-  GetFundingParams,
-  OrderFill,
-  Order,
-  Funding,
   LiquidationPriceParams,
   MaintenanceMarginParams,
   MarketInfo,
@@ -24,8 +18,8 @@ import type {
   OrderResult,
   Position,
   SubscribeOrderFillsParams,
-  SubscribePricesParams,
   SubscribePositionsParams,
+  SubscribePricesParams,
   UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
@@ -168,60 +162,6 @@ export function usePerpsTrading() {
     [],
   );
 
-  const validateOrder = useCallback(
-    async (
-      params: OrderParams,
-    ): Promise<{ isValid: boolean; error?: string }> => {
-      const controller = Engine.context.PerpsController;
-      return controller.validateOrder(params);
-    },
-    [],
-  );
-
-  const getOrderFills = useCallback(
-    async (params?: GetOrderFillsParams): Promise<OrderFill[]> => {
-      const controller = Engine.context.PerpsController;
-      return controller.getOrderFills(params);
-    },
-    [],
-  );
-
-  const validateClosePosition = useCallback(
-    async (
-      params: ClosePositionParams,
-    ): Promise<{ isValid: boolean; error?: string }> => {
-      const controller = Engine.context.PerpsController;
-      return controller.validateClosePosition(params);
-    },
-    [],
-  );
-
-  const getOrders = useCallback(
-    async (params?: GetOrdersParams): Promise<Order[]> => {
-      const controller = Engine.context.PerpsController;
-      return controller.getOrders(params);
-    },
-    [],
-  );
-
-  const validateWithdrawal = useCallback(
-    async (
-      params: WithdrawParams,
-    ): Promise<{ isValid: boolean; error?: string }> => {
-      const controller = Engine.context.PerpsController;
-      return controller.validateWithdrawal(params);
-    },
-    [],
-  );
-
-  const getFunding = useCallback(
-    async (params?: GetFundingParams): Promise<Funding[]> => {
-      const controller = Engine.context.PerpsController;
-      return controller.getFunding(params);
-    },
-    [],
-  );
-
   return {
     placeOrder,
     cancelOrder,
@@ -241,11 +181,5 @@ export function usePerpsTrading() {
     getMaxLeverage,
     updatePositionTPSL,
     calculateFees,
-    validateOrder,
-    validateClosePosition,
-    validateWithdrawal,
-    getOrderFills,
-    getOrders,
-    getFunding,
   };
 }

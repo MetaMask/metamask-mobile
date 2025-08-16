@@ -63,10 +63,6 @@ export default function ActionView({
   scrollViewTestID,
   contentContainerStyle,
   buttonContainerStyle,
-  enableOnAndroid,
-  enableAutomaticScroll,
-  extraScrollHeight,
-  showsVerticalScrollIndicator,
 }) {
   const { colors } = useTheme();
   confirmText = confirmText || strings('action_view.confirm');
@@ -81,10 +77,6 @@ export default function ActionView({
         keyboardShouldPersistTaps={keyboardShouldPersistTaps}
         testID={scrollViewTestID}
         contentContainerStyle={contentContainerStyle}
-        enableOnAndroid={enableOnAndroid}
-        enableAutomaticScroll={enableAutomaticScroll}
-        extraScrollHeight={extraScrollHeight}
-        showsVerticalScrollIndicator={showsVerticalScrollIndicator ?? true}
       >
         <TouchableWithoutFeedback
           style={baseStyles.flexGrow}
@@ -229,20 +221,4 @@ ActionView.propTypes = {
    * Optional View styles. Applies to button container
    */
   buttonContainerStyle: PropTypes.object,
-  /**
-   * Enable on Android
-   */
-  enableOnAndroid: PropTypes.bool,
-  /**
-   * Enable automatic scroll
-   */
-  enableAutomaticScroll: PropTypes.bool,
-  /**
-   * Extra scroll height
-   */
-  extraScrollHeight: PropTypes.number,
-  /**
-   * Shows vertical scroll indicator
-   */
-  showsVerticalScrollIndicator: PropTypes.bool,
 };

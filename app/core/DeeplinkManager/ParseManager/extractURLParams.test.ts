@@ -1,5 +1,6 @@
 import qs from 'qs';
 import { Alert } from 'react-native';
+import UrlParser from 'url-parse';
 import { strings } from '../../../../locales/i18n';
 import { PROTOCOLS } from '../../../constants/deeplinks';
 import extractURLParams from './extractURLParams';
@@ -8,6 +9,15 @@ jest.mock('qs', () => ({
   parse: jest.fn(),
 }));
 
+jest.mock('url-parse', () => {
+  const mockUrlParser = jest.fn();
+
+  return {
+    __esModule: true,
+    default: mockUrlParser,
+  };
+});
+
 jest.mock('react-native', () => ({
   Alert: {
     alert: jest.fn(),
@@ -15,14 +25,13 @@ jest.mock('react-native', () => ({
 }));
 
 describe('extractURLParams', () => {
-  // const mockUrlParser = UrlParser as jest.MockedClass<typeof UrlParser>;
+  const mockUrlParser = UrlParser as jest.MockedClass<typeof UrlParser>;
   const mockQs = qs as jest.Mocked<typeof qs>;
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  it('extracts parameters from a valid URL with query parameters', () => {
+  it('should correctly extract parameters from a valid URL with query parameters', () => {
     const url = `${PROTOCOLS.DAPP}/https://example.com?uri=test&redirect=true&channelId=123&comm=test&pubkey=abc&v=2`;
     const expectedParams = {
       uri: 'test',
@@ -32,15 +41,18 @@ describe('extractURLParams', () => {
       sdkVersion: '',
       channelId: '123',
       comm: 'test',
-      pubkey: 'abc',
       v: '2',
       attributionId: '',
-      utm_source: '',
-      utm_medium: '',
-      utm_campaign: '',
-      utm_term: '',
-      utm_content: '',
+      utm: '',
     };
+
+    mockUrlParser.mockImplementation(
+      () =>
+        ({
+          query:
+            '?uri=test&redirect=true&channelId=123&comm=test&pubkey=abc&v=2',
+        } as unknown as UrlParser<string>),
+    );
 
     mockQs.parse.mockReturnValue(expectedParams);
 
@@ -49,35 +61,15 @@ describe('extractURLParams', () => {
     expect(params).toEqual(expectedParams);
   });
 
-  it('extracts UTM parameters from a URL', () => {
-    const url = `${PROTOCOLS.DAPP}/https://example.com?utm_source=facebook&utm_medium=social&utm_campaign=summer_sale&utm_term=wallet&utm_content=banner`;
-    const expectedParams = {
-      uri: '',
-      redirect: '',
-      originatorInfo: '',
-      rpc: '',
-      sdkVersion: '',
-      channelId: '',
-      comm: '',
-      v: '',
-      pubkey: '',
-      attributionId: '',
-      utm_source: 'facebook',
-      utm_medium: 'social',
-      utm_campaign: 'summer_sale',
-      utm_term: 'wallet',
-      utm_content: 'banner',
-    };
-
-    mockQs.parse.mockReturnValue(expectedParams);
-
-    const { params } = extractURLParams(url);
-
-    expect(params).toEqual(expectedParams);
-  });
-
-  it('returns an empty params object when the URL has no query parameters', () => {
+  it('should return an empty params object when the URL has no query parameters', () => {
     const url = `${PROTOCOLS.DAPP}/https://example.com`;
+
+    mockUrlParser.mockImplementation(
+      () =>
+        ({
+          query: '',
+        } as unknown as UrlParser<string>),
+    );
 
     const { params } = extractURLParams(url);
 
@@ -92,17 +84,20 @@ describe('extractURLParams', () => {
       pubkey: '',
       v: '',
       attributionId: '',
-      utm_source: '',
-      utm_medium: '',
-      utm_campaign: '',
-      utm_term: '',
-      utm_content: '',
+      utm: '',
     });
   });
 
-  it('handles invalid query parameters and shows an alert when parsing fails', () => {
+  it('should handle invalid query parameters and show an alert when parsing fails', () => {
     const url = `${PROTOCOLS.DAPP}/https://example.com?invalid=param`;
     const errorMessage = 'Invalid query parameter';
+
+    mockUrlParser.mockImplementation(
+      () =>
+        ({
+          query: '?invalid=param',
+        } as unknown as UrlParser<string>),
+    );
 
     mockQs.parse.mockImplementation(() => {
       throw new Error(errorMessage);
@@ -123,11 +118,7 @@ describe('extractURLParams', () => {
       pubkey: '',
       v: '',
       attributionId: '',
-      utm_source: '',
-      utm_medium: '',
-      utm_campaign: '',
-      utm_term: '',
-      utm_content: '',
+      utm: '',
     });
 
     expect(alertSpy).toHaveBeenCalledWith(
@@ -136,7 +127,7 @@ describe('extractURLParams', () => {
     );
   });
 
-  it('parses and extracts parameters from a URL with valid query parameters', () => {
+  it('should correctly parse and extract parameters from a URL with valid query parameters', () => {
     const url = `${PROTOCOLS.DAPP}/https://example.com?uri=test&redirect=false&channelId=456&comm=other&pubkey=xyz`;
     const expectedParams = {
       uri: 'test',
@@ -149,40 +140,15 @@ describe('extractURLParams', () => {
       sdkVersion: '',
       pubkey: 'xyz',
       attributionId: '',
-      utm_source: '',
-      utm_medium: '',
-      utm_campaign: '',
-      utm_term: '',
-      utm_content: '',
+      utm: '',
     };
 
-    mockQs.parse.mockReturnValue(expectedParams);
-
-    const { params } = extractURLParams(url);
-
-    expect(params).toEqual(expectedParams);
-  });
-
-  it('extracts parameters from a valid URL with duplicate query parameters', () => {
-    // pubkey and comm is duplicated
-    const url = `${PROTOCOLS.DAPP}/https://example.com?uri=test&redirect=true&channelId=123&comm=test&comm=test&pubkey=abc&v=2&pubkey=abc`;
-    const expectedParams = {
-      uri: 'test',
-      redirect: 'true',
-      originatorInfo: '',
-      rpc: '',
-      sdkVersion: '',
-      channelId: '123',
-      comm: 'test',
-      pubkey: 'abc',
-      v: '2',
-      attributionId: '',
-      utm_source: '',
-      utm_medium: '',
-      utm_campaign: '',
-      utm_term: '',
-      utm_content: '',
-    };
+    mockUrlParser.mockImplementation(
+      () =>
+        ({
+          query: '?uri=test&redirect=false&channelId=456&comm=other&pubkey=xyz',
+        } as unknown as UrlParser<string>),
+    );
 
     mockQs.parse.mockReturnValue(expectedParams);
 

@@ -59,7 +59,6 @@ import { accountTreeControllerInit } from '../../../multichain-accounts/controll
 import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
 import { perpsControllerInit } from '../controllers/perps-controller';
 import { multichainAccountServiceInit } from '../controllers/multichain-account-service/multichain-account-service-init';
-import { networkEnablementControllerInit } from '../controllers/network-enablement-controller/network-enablement-controller-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -145,9 +144,6 @@ describe('initModularizedControllers', () => {
   const mockMultichainAccountServiceInit = jest.mocked(
     multichainAccountServiceInit,
   );
-  const mockNetworkEnablementControllerInit = jest.mocked(
-    networkEnablementControllerInit,
-  );
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -172,7 +168,6 @@ describe('initModularizedControllers', () => {
             mockMultichainAssetsRatesControllerInit,
           MultichainBalancesController: mockMultichainBalancesControllerInit,
           MultichainAccountService: mockMultichainAccountServiceInit,
-          NetworkEnablementController: mockNetworkEnablementControllerInit,
           NotificationServicesController:
             mockNotificationServicesControllerInit,
           NotificationServicesPushController:

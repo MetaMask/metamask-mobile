@@ -38,12 +38,6 @@ describe('usePerpsOrderFees', () => {
       calculateMaintenanceMargin: jest.fn(),
       getMaxLeverage: jest.fn(),
       updatePositionTPSL: jest.fn(),
-      validateOrder: jest.fn(),
-      validateClosePosition: jest.fn(),
-      validateWithdrawal: jest.fn(),
-      getFunding: jest.fn(),
-      getOrders: jest.fn(),
-      getOrderFills: jest.fn(),
     });
   });
 
@@ -404,11 +398,5 @@ describe('formatFeeRate', () => {
   it('should handle large fee rates', () => {
     expect(formatFeeRate(0.1)).toBe('10.000%');
     expect(formatFeeRate(1)).toBe('100.000%');
-  });
-
-  it('should handle invalid values', () => {
-    expect(formatFeeRate(undefined)).toBe('N/A');
-    expect(formatFeeRate(null)).toBe('N/A');
-    expect(formatFeeRate(NaN)).toBe('N/A');
   });
 });
