@@ -9,6 +9,7 @@ import renderWithProvider, {
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   ETHEREUM_ADDRESS,
+  MOCK_NFT1155,
   SOLANA_ASSET,
   TOKEN_ADDRESS_MOCK_1,
   evmSendStateMock,
@@ -185,6 +186,30 @@ describe('Amount', () => {
     expect(mockSetAmountInputTypeFiat).toHaveBeenCalled();
   });
 
+  it('fiatmode is not avaialble for NFT', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: MOCK_NFT1155,
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { queryByTestId } = renderComponent();
+    expect(queryByTestId('fiat_toggle')).toBeNull();
+  });
+
+  it('display image and NFT details for NFT asset', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: MOCK_NFT1155,
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByTestId, getByText } = renderComponent();
+    expect(getByTestId('nft-image')).toBeTruthy();
+    expect(getByText('Doodleverse (Draw Me Closer) Pack')).toBeTruthy();
+    expect(getByText('17')).toBeTruthy();
+  });
+
   it('display total balance correctly for native token', () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
@@ -198,7 +223,19 @@ describe('Amount', () => {
     } as RouteProp<ParamListBase, string>);
 
     const { getByText } = renderComponent();
-    expect(getByText('1.00000 ETH available')).toBeTruthy();
+    expect(getByText('1 ETH available')).toBeTruthy();
+  });
+
+  // todo: update this test case once we have way to get asset balance for ERC1155 tokens
+  it('display 0 balance for ERC1155 tokens', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: MOCK_NFT1155,
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText } = renderComponent();
+    expect(getByText('0 units available')).toBeTruthy();
   });
 
   it('display total balance correctly for ERC20 token', () => {
@@ -224,7 +261,7 @@ describe('Amount', () => {
     } as RouteProp<ParamListBase, string>);
 
     const { getByText } = renderComponent();
-    expect(getByText('400.00000 SOL available')).toBeTruthy();
+    expect(getByText('400 SOL available')).toBeTruthy();
   });
 
   it('on amount page options - 25%, 50%, 75%, Max are present', () => {
@@ -247,23 +284,6 @@ describe('Amount', () => {
   it('percentage options are not present as amount value is entered', () => {
     (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
       params: {
-        asset: {
-          address: TOKEN_ADDRESS_MOCK_1,
-          decimals: 2,
-        },
-      },
-    } as RouteProp<ParamListBase, string>);
-
-    const { getByText } = renderComponent();
-    expect(getByText('25%')).toBeTruthy();
-    expect(getByText('50%')).toBeTruthy();
-    expect(getByText('75%')).toBeTruthy();
-    expect(getByText('Max')).toBeTruthy();
-  });
-
-  it('on amount page options optionMax is not visible for non-evm native tokens', () => {
-    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
-      params: {
         asset: SOLANA_ASSET,
       },
     } as RouteProp<ParamListBase, string>);
@@ -273,6 +293,35 @@ describe('Amount', () => {
     expect(queryByText('25%')).toBeNull();
     expect(queryByText('50%')).toBeNull();
     expect(queryByText('75%')).toBeNull();
+    expect(queryByText('Max')).toBeNull();
+  });
+
+  it('percentage options are not present for NFT send', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: MOCK_NFT1155,
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { getByText, queryByText } = renderComponent();
+    expect(getByText('Next')).toBeTruthy();
+    expect(queryByText('25%')).toBeNull();
+    expect(queryByText('50%')).toBeNull();
+    expect(queryByText('75%')).toBeNull();
+    expect(queryByText('Max')).toBeNull();
+  });
+
+  it('on amount page options optionMax is not visible for non-evm native tokens', () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: SOLANA_ASSET,
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { queryByText } = renderComponent();
+    expect(queryByText('25%')).toBeTruthy();
+    expect(queryByText('50%')).toBeTruthy();
+    expect(queryByText('75%')).toBeTruthy();
     expect(queryByText('Max')).toBeNull();
   });
 
@@ -318,7 +367,7 @@ describe('Amount', () => {
     fireEvent.press(getByText('Max'));
     expect(getByTestId('send_amount').props.value).toBe('0.9999685');
     expect(getByText('$ 3889.87')).toBeTruthy();
-    fireEvent.press(getByText('1.00000 ETH available'));
+    fireEvent.press(getByText('1 ETH available'));
   });
 
   it('pressing Max in fiat mode should work as expected', () => {
@@ -370,6 +419,19 @@ describe('Amount', () => {
     fireEvent.press(getByText('Max'));
     expect(mockSetAmountInputTypeToken).toHaveBeenCalled();
     expect(mockSetAmountInputMethodPressedMax).toHaveBeenCalled();
+  });
+
+  // todo: update this test case once we have way to get asset balance for ERC1155 tokens
+  it('does not show error in case of insufficient balance for ERC1155 token', async () => {
+    (useRoute as jest.MockedFn<typeof useRoute>).mockReturnValue({
+      params: {
+        asset: MOCK_NFT1155,
+      },
+    } as RouteProp<ParamListBase, string>);
+
+    const { queryByText, getByTestId } = renderComponent();
+    fireEvent.changeText(getByTestId('send_amount'), '100');
+    expect(queryByText('Insufficient funds')).toBeNull();
   });
 
   it('continue button show error text in case of insufficient balance for erc20 token', async () => {

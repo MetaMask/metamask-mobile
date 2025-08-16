@@ -1,18 +1,24 @@
 import { useMemo } from 'react';
 
+import { TokenStandard } from '../../types/token';
+import { useSendContext } from '../../context/send-context';
 import { useEvmAmountValidation } from './evm/useEvmAmountValidation';
 import { useNonEvmAmountValidation } from './non-evm/useNonEvmAmountValidation';
 import { useSendType } from './useSendType';
 
 export const useAmountValidation = () => {
+  const { asset } = useSendContext();
   const { isEvmSendType } = useSendType();
   const { validateEvmAmount } = useEvmAmountValidation();
   const { validateNonEvmAmount } = useNonEvmAmountValidation();
 
-  const amountError = useMemo(
-    () => (isEvmSendType ? validateEvmAmount() : validateNonEvmAmount()),
-    [isEvmSendType, validateEvmAmount, validateNonEvmAmount],
-  );
+  const amountError = useMemo(() => {
+    if (asset?.standard === TokenStandard.ERC1155) {
+      // todo: add logic to check units for ERC1155 tokens
+      return;
+    }
+    return isEvmSendType ? validateEvmAmount() : validateNonEvmAmount();
+  }, [asset?.standard, isEvmSendType, validateEvmAmount, validateNonEvmAmount]);
 
   return { amountError };
 };

@@ -8,6 +8,7 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../../hooks/useStyles';
+import { TokenStandard } from '../../../../types/token';
 import { useAmountSelectionMetrics } from '../../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../../hooks/send/useAmountValidation';
 import { useCurrencyConversions } from '../../../../hooks/send/useCurrencyConversions';
@@ -41,12 +42,13 @@ export const AmountKeyboard = ({
   const { gotToSendScreen } = useSendScreenNavigation();
   const { isMaxAmountSupported, getPercentageAmount } = usePercentageAmount();
   const { amountError } = useAmountValidation();
-  const { updateValue } = useSendContext();
+  const { asset, updateValue } = useSendContext();
   const { styles } = useStyles(styleSheet, {
     continueDisabled: Boolean(amountError),
   });
   const { captureAmountSelected, setAmountInputMethodPressedMax } =
     useAmountSelectionMetrics();
+  const isNFT = asset?.standard === TokenStandard.ERC1155;
 
   const updateToPercentageAmount = useCallback(
     (percentage: number) => {
@@ -90,10 +92,13 @@ export const AmountKeyboard = ({
           : ADDITIONAL_KAYBOARD_BUTTONS
       }
       additionalRow={
-        amount.length > 0 ? (
+        amount.length > 0 || isNFT ? (
           <Button
             disabled={Boolean(amountError)}
-            label={amountError ?? strings('send.continue')}
+            label={
+              amountError ??
+              (isNFT ? strings('send.next') : strings('send.continue'))
+            }
             onPress={goToNextPage}
             size={ButtonSize.Lg}
             style={styles.continueButton}
@@ -105,7 +110,7 @@ export const AmountKeyboard = ({
       hideDoneButton
       onChange={updateToNewAmount}
       onPercentagePress={updateToPercentageAmount}
-      showAdditionalKeyboard={amount.length < 1}
+      showAdditionalKeyboard={amount.length < 1 && !isNFT}
       value={amount}
     />
   );

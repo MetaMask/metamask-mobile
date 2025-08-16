@@ -12,7 +12,7 @@ import { addTransaction } from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
 import { sendMultichainTransaction } from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { toTokenMinimalUnit, toWei } from '../../../../util/number';
-import { AssetType } from '../types/token';
+import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
@@ -40,7 +40,14 @@ export const handleSendPageNavigation = (
 ) => {
   if (isSendRedesignEnabled()) {
     captureSendStartedEvent(location);
-    const screen = asset ? Routes.SEND.AMOUNT : Routes.SEND.ASSET;
+    let screen = Routes.SEND.ASSET;
+    if (asset) {
+      if (asset.standard === TokenStandard.ERC721) {
+        screen = Routes.SEND.RECIPIENT;
+      } else {
+        screen = Routes.SEND.AMOUNT;
+      }
+    }
     navigate(Routes.SEND.DEFAULT, {
       screen,
       params: {
@@ -130,7 +137,7 @@ export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
     if (val < minVal) {
       return `< ${minVal}`;
     }
-    return val.toFixed(decimals);
+    return val.toFixed(decimals).replace(/\.?0+$/, '');
   }
   return '0';
 }

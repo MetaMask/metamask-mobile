@@ -21,7 +21,6 @@ export const AmountInputType = {
 
 export const AmountInputMethod = {
   Manual: 'manual',
-  Pasted: 'pasted',
   PressedMax: 'pressed_max',
 };
 

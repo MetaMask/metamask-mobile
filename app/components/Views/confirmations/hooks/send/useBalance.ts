@@ -10,7 +10,8 @@ import {
 } from '../../../../../util/number';
 import { selectAccounts } from '../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../selectors/tokenBalancesController';
-import { AssetType } from '../../types/token';
+import { AssetType, TokenStandard } from '../../types/token';
+import { formatToFixedDecimals } from '../../utils/send';
 import { isNativeToken } from '../../utils/generic';
 import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
@@ -37,10 +38,13 @@ export const getEvmBalance = ({
     ) as Hex;
     const account = accounts[accountAddress];
     const balance = hexToBN(account.balance);
-    return fromWei(balance);
+    return formatToFixedDecimals(fromWei(balance), asset.decimals);
   }
-  return fromTokenMinimalUnitString(
-    contractBalances[asset.address as Hex],
+  return formatToFixedDecimals(
+    fromTokenMinimalUnitString(
+      contractBalances[asset.address as Hex],
+      asset.decimals,
+    ),
     asset.decimals,
   );
 };
@@ -49,7 +53,8 @@ export const getNonEvmBalance = (asset?: AssetType) => {
   if (!asset) {
     return '0';
   }
-  return asset.balance;
+
+  return formatToFixedDecimals(asset.balance, asset?.decimals);
 };
 
 export const useBalance = () => {
@@ -58,13 +63,15 @@ export const useBalance = () => {
   const contractBalances = useSelector(selectContractBalances);
   const { asset, from } = useSendContext();
 
-  const balance = useMemo(
-    () =>
-      isEvmSendType
-        ? getEvmBalance({ accounts, asset, contractBalances, from })
-        : getNonEvmBalance(asset),
-    [accounts, asset, contractBalances, from, isEvmSendType],
-  );
+  const balance = useMemo(() => {
+    if (asset?.standard === TokenStandard.ERC1155) {
+      // todo: add logic to check balance units for ERC1155 tokens
+      return '0';
+    }
+    return isEvmSendType
+      ? getEvmBalance({ accounts, asset, contractBalances, from })
+      : getNonEvmBalance(asset);
+  }, [accounts, asset, contractBalances, from, isEvmSendType]);
 
   return {
     balance,
