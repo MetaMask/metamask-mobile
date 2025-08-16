@@ -28,6 +28,9 @@ export { usePerpsMarketStats } from './usePerpsMarketStats';
 export { useWithdrawTokens } from './useWithdrawTokens';
 export { useWithdrawValidation } from './useWithdrawValidation';
 
+// Payment tokens hook
+export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
+
 // UI utility hooks
 export { useBalanceComparison } from './useBalanceComparison';
 export { useColorPulseAnimation } from './useColorPulseAnimation';
