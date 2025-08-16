@@ -5,7 +5,6 @@ import { ScrollView } from 'react-native-gesture-handler';
 
 import { SolanaNewFeatureSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/SolanaNewFeatureSheet.selectors';
 import { strings } from '../../../../locales/i18n';
-import ButtonBase from '../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -23,6 +22,7 @@ import FoxVipers from '../../../images/Fox_Vipers.png';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { baseStyles, colors as importedColors } from '../../../styles/common';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
+import { lightTheme } from '@metamask/design-tokens';
 import createStyles from './SolanaNewFeatureContent.styles';
 
 const SolanaNewFeatureContent = () => {
@@ -112,45 +112,46 @@ const SolanaNewFeatureContent = () => {
                 resizeMode="contain"
               />
             </View>
+
+            <View style={styles.createWrapper}>
+              <Button
+                variant={ButtonVariants.Primary}
+                onPress={() => importAccountWithSRP()}
+                testID={
+                  SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
+                }
+                label={
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={lightTheme.colors.primary.inverse}
+                  >
+                    {strings('solana_new_feature_content.import_your_wallet')}
+                  </Text>
+                }
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+                style={styles.importWalletButton}
+              />
+              <Button
+                variant={ButtonVariants.Secondary}
+                onPress={() => handleClose()}
+                testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
+                width={ButtonWidthTypes.Full}
+                size={ButtonSize.Lg}
+                style={styles.notNowButton}
+                label={
+                  <Text
+                    variant={TextVariant.BodyMDMedium}
+                    color={importedColors.gettingStartedTextColor}
+                  >
+                    {strings('solana_new_feature_content.not_now')}
+                  </Text>
+                }
+              />
+            </View>
           </View>
         </View>
       </ScrollView>
-
-      <View style={styles.createWrapper}>
-        <ButtonBase
-          onPress={() => importAccountWithSRP()}
-          testID={
-            SolanaNewFeatureSheetSelectorsIDs.SOLANA_IMPORT_ACCOUNT_BUTTON
-          }
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          style={styles.importWalletButton}
-          label={
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              style={styles.importWalletButtonText}
-            >
-              {strings('solana_new_feature_content.import_your_wallet')}
-            </Text>
-          }
-        />
-        <Button
-          variant={ButtonVariants.Secondary}
-          onPress={() => handleClose()}
-          testID={SolanaNewFeatureSheetSelectorsIDs.SOLANA_NOT_NOW_BUTTON}
-          width={ButtonWidthTypes.Full}
-          size={ButtonSize.Lg}
-          style={styles.notNowButton}
-          label={
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              style={styles.notNowButtonText}
-            >
-              {strings('solana_new_feature_content.not_now')}
-            </Text>
-          }
-        />
-      </View>
     </View>
   );
 };
