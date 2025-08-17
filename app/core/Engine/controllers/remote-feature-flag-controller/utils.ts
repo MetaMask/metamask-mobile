@@ -21,7 +21,7 @@ const getFeatureFlagAppEnvironment = () => {
     case 'pre-release':
     case 'rc':
       return EnvironmentType.ReleaseCandidate;
-    case 'e2e':
+    // case 'e2e':
     case 'test':
       return EnvironmentType.Test;
     case 'exp':
