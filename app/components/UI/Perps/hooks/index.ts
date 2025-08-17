@@ -19,10 +19,6 @@ export { usePerpsPrices } from './usePerpsPrices';
 
 // Asset metadata hooks
 export { usePerpsAssetMetadata } from './usePerpsAssetsMetadata';
-
-// Payment token hooks
-export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
-
 // Market data and calculation hooks
 export { usePerpsLiquidationPrice } from './usePerpsLiquidationPrice';
 export { usePerpsMarketData } from './usePerpsMarketData';
@@ -31,6 +27,9 @@ export { usePerpsMarketStats } from './usePerpsMarketStats';
 // Withdrawal specific hooks
 export { useWithdrawTokens } from './useWithdrawTokens';
 export { useWithdrawValidation } from './useWithdrawValidation';
+
+// Payment tokens hook
+export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
 // UI utility hooks
 export { useBalanceComparison } from './useBalanceComparison';
@@ -63,6 +62,12 @@ export { usePerpsScreenTracking } from './usePerpsScreenTracking';
 // Block explorer hook
 export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
 
+// Utility hooks
+export { useStableArray } from './useStableArray';
+
+// Stream hooks (WebSocket subscriptions)
+export * from './stream';
+
 // - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)
 // - usePerpsError (error handling)
@@ -70,4 +75,3 @@ export { usePerpsBlockExplorerUrl } from './usePerpsBlockExplorerUrl';
 // - usePerpsPositionPnL (P&L calculations)
 // - usePerpsReadiness (readiness checks)
 // - usePerpsOrderManagement (order workflows)
-// - useStableArray (utility hook for stable array references)
