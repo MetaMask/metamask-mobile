@@ -11,8 +11,11 @@ import Logger from '../../../../util/Logger';
 import { RemoteFeatureFlagInitParamTypes } from './types';
 import AppConstants from '../../../AppConstants';
 
-const getFeatureFlagAppEnvironment = () => {
-  const env = process.env.METAMASK_ENVIRONMENT;
+// Points to the LaunchDarkly environment based on the METAMASK_ENVIRONMENT environment variable
+export const getFeatureFlagAppEnvironment = () => {
+  // Spread process.env, which forces a fresh read when running unit tests
+  const env = { ...process.env }?.METAMASK_ENVIRONMENT;
+
   switch (env) {
     case 'production':
       return EnvironmentType.Production;
@@ -21,6 +24,9 @@ const getFeatureFlagAppEnvironment = () => {
     case 'pre-release':
     case 'rc':
       return EnvironmentType.ReleaseCandidate;
+    // TODO: e2e needs to point to LaunchDarkly's test environment
+    // This conflicts with isProduction from app/util/environment.ts and breaks e2e smoke tests
+    // Add this back once isProduction is removed or resolved
     // case 'e2e':
     case 'test':
       return EnvironmentType.Test;
@@ -33,8 +39,10 @@ const getFeatureFlagAppEnvironment = () => {
   }
 };
 
-const getFeatureFlagAppDistribution = () => {
-  const dist = process.env.METAMASK_BUILD_TYPE;
+export const getFeatureFlagAppDistribution = () => {
+  // Spread process.env, which forces a fresh read when running unit tests
+  const dist = { ...process.env }?.METAMASK_BUILD_TYPE;
+
   switch (dist) {
     case 'main':
       return DistributionType.Main;
