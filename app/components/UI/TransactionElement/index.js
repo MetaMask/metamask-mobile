@@ -56,6 +56,7 @@ import {
 import { selectConversionRateByChainId } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
+import Routes from '../../../constants/navigation/Routes';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -255,7 +256,11 @@ class TransactionElement extends PureComponent {
         this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
       );
     } else {
-      this.setState({ detailsModalVisible: true });
+      this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
+        transactionId: tx.id,
+      });
+
+      // this.setState({ detailsModalVisible: true });
     }
   };
 
