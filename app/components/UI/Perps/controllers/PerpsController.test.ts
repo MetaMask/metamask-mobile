@@ -68,6 +68,24 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock trace utilities
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PerpsController: 'Perps Controller',
+    PerpsOrderExecution: 'Perps Order Execution',
+    PerpsDeposit: 'Perps Deposit',
+    PerpsWithdrawal: 'Perps Withdrawal',
+  },
+  TraceOperation: {
+    PerpsOperation: 'perps.operation',
+    PerpsOrderSubmission: 'perps.order_submission',
+    PerpsDeposit: 'perps.deposit',
+    PerpsWithdrawal: 'perps.withdrawal',
+  },
+}));
+
 // Mock successfulFetch for geo location testing
 jest.mock('@metamask/controller-utils', () => {
   const actual = jest.requireActual('@metamask/controller-utils');
@@ -744,6 +762,39 @@ describe('PerpsController', () => {
         expect(mockHyperLiquidProvider.closePosition).toHaveBeenCalledWith(
           closeParams,
         );
+      });
+    });
+
+    it('should track performance when placing order', async () => {
+      const orderParams = {
+        coin: 'ETH',
+        isBuy: true,
+        size: '1.5',
+        orderType: 'market' as const,
+      };
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'test-order-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        await controller.placeOrder(orderParams);
+
+        // Verify trace was called with correct parameters
+        const traceModule = jest.requireMock('../../../../util/trace');
+        expect(traceModule.trace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: expect.stringContaining('Perps Order Execution'),
+            tags: expect.objectContaining({
+              market: 'ETH',
+              leverage: 1,
+            }),
+          }),
+        );
+        expect(traceModule.endTrace).toHaveBeenCalled();
       });
     });
 
@@ -2699,47 +2750,243 @@ describe('PerpsController', () => {
     });
   });
 
-  describe('isFirstTimeUser state and markTutorialCompleted', () => {
-    it('should default to true for first-time users', async () => {
+  describe('Network-specific isFirstTimeUser state and markTutorialCompleted', () => {
+    it('should default to true for both networks for first-time users', async () => {
       await withController(async ({ controller }) => {
         // Assert
-        expect(controller.state.isFirstTimeUser).toBe(true);
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: true,
+          mainnet: true,
+        });
       });
     });
 
-    it('should set isFirstTimeUser to false when markTutorialCompleted is called', async () => {
-      await withController(async ({ controller }) => {
-        // Arrange
-        expect(controller.state.isFirstTimeUser).toBe(true);
+    it('should set testnet isFirstTimeUser to false when markTutorialCompleted is called on testnet', async () => {
+      await withController(
+        async ({ controller }) => {
+          // Arrange - start on testnet
+          controller.state.isTestnet = true;
+          expect(controller.state.isFirstTimeUser.testnet).toBe(true);
+          expect(controller.state.isFirstTimeUser.mainnet).toBe(true);
 
-        // Act
+          // Act
+          controller.markTutorialCompleted();
+
+          // Assert - only testnet should be affected
+          expect(controller.state.isFirstTimeUser.testnet).toBe(false);
+          expect(controller.state.isFirstTimeUser.mainnet).toBe(true);
+        },
+        { state: { isTestnet: true } },
+      );
+    });
+
+    it('should set mainnet isFirstTimeUser to false when markTutorialCompleted is called on mainnet', async () => {
+      await withController(
+        async ({ controller }) => {
+          // Arrange - start on mainnet
+          controller.state.isTestnet = false;
+          expect(controller.state.isFirstTimeUser.testnet).toBe(true);
+          expect(controller.state.isFirstTimeUser.mainnet).toBe(true);
+
+          // Act
+          controller.markTutorialCompleted();
+
+          // Assert - only mainnet should be affected
+          expect(controller.state.isFirstTimeUser.testnet).toBe(true);
+          expect(controller.state.isFirstTimeUser.mainnet).toBe(false);
+        },
+        { state: { isTestnet: false } },
+      );
+    });
+
+    it('should correctly identify first-time status per network', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange - initial state both networks are first-time
+        await controller.toggleTestnet(); // Switch to testnet
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(true);
+
+        await controller.toggleTestnet(); // Switch to mainnet
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(true);
+
+        // Act - complete tutorial on testnet only
+        await controller.toggleTestnet(); // Switch to testnet
         controller.markTutorialCompleted();
 
-        // Assert
-        expect(controller.state.isFirstTimeUser).toBe(false);
+        // Assert - testnet is no longer first-time, mainnet still is
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(false);
+
+        await controller.toggleTestnet(); // Switch to mainnet
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(true);
       });
     });
 
-    it('should persist isFirstTimeUser state', async () => {
-      // First controller instance
+    it('should handle network switching correctly for first-time status', async () => {
       await withController(async ({ controller }) => {
-        // Arrange - verify initial state
-        expect(controller.state.isFirstTimeUser).toBe(true);
-
-        // Act - mark tutorial as completed
+        // Arrange - complete tutorial on both networks
+        await controller.toggleTestnet(); // Switch to testnet
         controller.markTutorialCompleted();
-        expect(controller.state.isFirstTimeUser).toBe(false);
+
+        await controller.toggleTestnet(); // Switch to mainnet
+        controller.markTutorialCompleted();
+
+        // Assert - both networks should be marked as not first-time
+        await controller.toggleTestnet(); // Switch to testnet
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(false);
+
+        await controller.toggleTestnet(); // Switch to mainnet
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(false);
+
+        // Final state check
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
       });
+    });
+
+    it('should persist network-specific isFirstTimeUser state', async () => {
+      // First controller instance - complete tutorial on testnet only
+      await withController(
+        async ({ controller }) => {
+          controller.state.isTestnet = true;
+          controller.markTutorialCompleted();
+          expect(controller.state.isFirstTimeUser.testnet).toBe(false);
+          expect(controller.state.isFirstTimeUser.mainnet).toBe(true);
+        },
+        { state: { isTestnet: true } },
+      );
 
       // Second controller instance should have persisted state
       await withController(
         async ({ controller }) => {
           // Assert - state should be persisted
-          expect(controller.state.isFirstTimeUser).toBe(false);
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: false,
+            mainnet: true,
+          });
         },
         {
           // Use same state to simulate persistence
-          state: { isFirstTimeUser: false },
+          state: {
+            isFirstTimeUser: {
+              testnet: false,
+              mainnet: true,
+            },
+          },
+        },
+      );
+    });
+  });
+
+  describe('first order notification tracking', () => {
+    it('should initialize with hasPlacedFirstOrder as false for both networks', () => {
+      withController(({ controller }) => {
+        expect(controller.state.hasPlacedFirstOrder).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should mark hasPlacedFirstOrder as true for mainnet when markFirstOrderCompleted is called', () => {
+      withController(({ controller }) => {
+        expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(false);
+        expect(controller.state.hasPlacedFirstOrder.testnet).toBe(false);
+
+        controller.markFirstOrderCompleted();
+
+        expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(true);
+        expect(controller.state.hasPlacedFirstOrder.testnet).toBe(false);
+      });
+    });
+
+    it('should mark hasPlacedFirstOrder as true for testnet when markFirstOrderCompleted is called on testnet', () => {
+      withController(
+        ({ controller }) => {
+          expect(controller.state.hasPlacedFirstOrder.testnet).toBe(false);
+          expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(false);
+
+          controller.markFirstOrderCompleted();
+
+          expect(controller.state.hasPlacedFirstOrder.testnet).toBe(true);
+          expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(false);
+        },
+        { state: { isTestnet: true } },
+      );
+    });
+
+    it('should persist hasPlacedFirstOrder state between controller instances', () => {
+      // Test with initial state having hasPlacedFirstOrder set for mainnet
+      withController(
+        ({ controller }) => {
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: false,
+            mainnet: true,
+          });
+        },
+        {
+          state: {
+            hasPlacedFirstOrder: {
+              testnet: false,
+              mainnet: true,
+            },
+          },
+        },
+      );
+    });
+
+    it('should maintain hasPlacedFirstOrder state after calling markFirstOrderCompleted multiple times', () => {
+      withController(({ controller }) => {
+        expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(false);
+
+        controller.markFirstOrderCompleted();
+        expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(true);
+
+        // Call again - should remain true
+        controller.markFirstOrderCompleted();
+        expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(true);
+      });
+    });
+
+    it('should track first order independently for mainnet and testnet', async () => {
+      // First controller instance - mark mainnet as completed
+      await withController(
+        async ({ controller }) => {
+          controller.markFirstOrderCompleted();
+          expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(true);
+          expect(controller.state.hasPlacedFirstOrder.testnet).toBe(false);
+        },
+        { state: { isTestnet: false } },
+      );
+
+      // Second controller instance - mark testnet as completed
+      await withController(
+        async ({ controller }) => {
+          controller.state.isTestnet = true;
+          controller.markFirstOrderCompleted();
+          expect(controller.state.hasPlacedFirstOrder.testnet).toBe(true);
+          expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(false);
+        },
+        { state: { isTestnet: true } },
+      );
+
+      // Third controller instance should have persisted state
+      await withController(
+        async ({ controller }) => {
+          // Assert - state should be persisted
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+        },
+        {
+          // Use same state to simulate persistence
+          state: {
+            hasPlacedFirstOrder: {
+              testnet: true,
+              mainnet: true,
+            },
+          },
         },
       );
     });
