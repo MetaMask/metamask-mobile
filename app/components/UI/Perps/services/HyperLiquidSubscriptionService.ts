@@ -73,6 +73,7 @@ export class HyperLiquidSubscriptionService {
   private webData2SubscriptionPromise?: Promise<void>;
   private positionSubscriberCount = 0;
   private orderSubscriberCount = 0;
+  private accountSubscriberCount = 0;
   private cachedPositions: Position[] = [];
   private cachedOrders: Order[] = [];
   private cachedAccount: AccountState | null = null;
@@ -394,7 +395,9 @@ export class HyperLiquidSubscriptionService {
    */
   private cleanupSharedWebData2Subscription(): void {
     const totalSubscribers =
-      this.positionSubscriberCount + this.orderSubscriberCount;
+      this.positionSubscriberCount +
+      this.orderSubscriberCount +
+      this.accountSubscriberCount;
 
     if (totalSubscribers <= 0 && this.sharedWebData2Subscription) {
       this.sharedWebData2Subscription.unsubscribe().catch((error: Error) => {
@@ -404,6 +407,7 @@ export class HyperLiquidSubscriptionService {
       this.webData2SubscriptionPromise = undefined;
       this.positionSubscriberCount = 0;
       this.orderSubscriberCount = 0;
+      this.accountSubscriberCount = 0;
       this.cachedPositions = [];
       this.cachedOrders = [];
       this.cachedAccount = null;
@@ -556,6 +560,9 @@ export class HyperLiquidSubscriptionService {
       callback,
     );
 
+    // Increment account subscriber count
+    this.accountSubscriberCount++;
+
     // Immediately provide cached data if available
     if (this.cachedAccount) {
       callback(this.cachedAccount);
@@ -568,7 +575,8 @@ export class HyperLiquidSubscriptionService {
 
     return () => {
       unsubscribe();
-      // Note: We don't cleanup webData2 here since it's shared with positions/orders
+      this.accountSubscriberCount--;
+      this.cleanupSharedWebData2Subscription();
     };
   }
 
