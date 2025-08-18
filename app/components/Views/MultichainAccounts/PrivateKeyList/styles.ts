@@ -16,6 +16,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexGrow: 1,
       flexDirection: 'row',
       marginBottom: 50,
+      maxHeight: '75%',
     },
 
     header: {
