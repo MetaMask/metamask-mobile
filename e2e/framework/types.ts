@@ -165,7 +165,7 @@ export interface TestSpecificMock {
 }
 
 export interface MockApiEndpoint {
-  urlEndpoint: string;
+  urlEndpoint: string | RegExp;
   response: unknown;
   responseCode: number;
 }
@@ -197,6 +197,7 @@ export interface WithFixturesOptions {
   languageAndLocale?: LanguageAndLocale;
   permissions?: Record<string, unknown>;
   mockServerInstance?: Mockttp;
+  strictMockMode?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   endTestfn?: (...args: any[]) => Promise<void>;
 }

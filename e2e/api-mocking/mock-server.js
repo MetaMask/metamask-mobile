@@ -12,17 +12,6 @@ const logger = createLogger({
 });
 
 /**
- * Try to parse response body as JSON, return as-is if not valid JSON
- */
-const safeJsonParser = (responseBody) => {
-  try {
-    return JSON.parse(responseBody);
-  } catch (e) {
-    return responseBody; // Return raw text for non-JSON responses (like SVGs, HTML, etc.)
-  }
-};
-
-/**
  * Utility function to handle direct fetch requests
  * @param {string} url - The URL to fetch from
  * @param {string} method - The HTTP method
@@ -32,9 +21,6 @@ const safeJsonParser = (responseBody) => {
  */
 const handleDirectFetch = async (url, method, headers, requestBody) => {
   try {
-    // For measuring request duration
-    const startTime = Date.now();
-
     const response = await global.fetch(url, {
       method,
       headers,
@@ -42,28 +28,6 @@ const handleDirectFetch = async (url, method, headers, requestBody) => {
     });
 
     const responseBody = await response.text();
-    const duration = Date.now() - startTime;
-
-    // Only used in capture mode
-    if (process.env.CAPTURE_MODE === 'true') {
-      const captureData = {
-        url,
-        method,
-        requestHeaders: headers
-          ? typeof headers.entries === 'function'
-            ? Object.fromEntries(headers.entries())
-            : headers
-          : {},
-        requestBody: requestBody || null,
-        responseStatus: response.status,
-        responseHeaders: Object.fromEntries(response.headers.entries()),
-        responseBody: safeJsonParser(responseBody),
-        timestamp: new Date().toISOString(),
-        duration,
-      };
-
-      logger.info(`CAPTURE_REQUEST: ${JSON.stringify(captureData)}`);
-    }
 
     return {
       statusCode: response.status,
@@ -115,11 +79,17 @@ const isUrlAllowed = (url) => {
  *
  * @param {Object} events - The events to mock, organised by method.
  * @param {number} [port] - Optional port number. If not provided, a free port will be used.
+ * @param {boolean} [strictMockMode] - If true, fails on unmocked requests. If false, logs warnings.
  * @returns {Promise} Resolves to the running mock server.
  */
-export const startMockServer = async (events, port) => {
+export const startMockServer = async (events, port, strictMockMode = false) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
+
+  // Track live requests for strict mock mode
+  const liveRequests = [];
+  mockServer._strictMockMode = strictMockMode;
+  mockServer._liveRequests = liveRequests;
 
   try {
     await mockServer.start(port);
@@ -144,14 +114,19 @@ export const startMockServer = async (events, port) => {
 
       // Find matching mock event
       const methodEvents = events[method] || [];
-      const matchingEvent = methodEvents.find(
-        (event) => event.urlEndpoint === urlEndpoint,
-      );
+      const matchingEvent = methodEvents.find((event) => {
+        // Regex matching for URL endpoints
+        if (event.urlEndpoint instanceof RegExp) {
+          return event.urlEndpoint.test(urlEndpoint);
+        }
+        // Default to exact string matching
+        return event.urlEndpoint === urlEndpoint;
+      });
 
       if (matchingEvent) {
         logger.info(`Mocking ${method} request to: ${urlEndpoint}`);
         logger.info(`Response status: ${matchingEvent.responseCode}`);
-        logger.debug('Response:', matchingEvent.response);
+        // logger.debug('Response:', matchingEvent.response);
 
         // For POST requests, verify the request body if specified
         if (method === 'POST' && matchingEvent.requestBody) {
@@ -228,6 +203,15 @@ export const startMockServer = async (events, port) => {
         const errorMessage = `Request going to live server: ${updatedUrl}`;
         logger.warn(errorMessage);
         global.liveServerRequest = new Error(errorMessage);
+
+        // Track live request for strict mock mode
+        if (strictMockMode) {
+          liveRequests.push({
+            url: updatedUrl,
+            method,
+            timestamp: new Date().toISOString(),
+          });
+        }
       }
 
       return handleDirectFetch(
@@ -245,6 +229,15 @@ export const startMockServer = async (events, port) => {
       const errorMessage = `Request going to live server: ${request.url}`;
       logger.warn(errorMessage);
       global.liveServerRequest = new Error(errorMessage);
+
+      // Track live request for strict mock mode
+      if (strictMockMode) {
+        liveRequests.push({
+          url: request.url,
+          method: request.method,
+          timestamp: new Date().toISOString(),
+        });
+      }
     }
 
     return handleDirectFetch(
@@ -256,6 +249,27 @@ export const startMockServer = async (events, port) => {
   });
 
   return mockServer;
+};
+
+/**
+ * Validates strict mock mode by checking for live requests
+ * @param {import('mockttp').Mockttp} mockServer
+ * @throws {Error} If in strict mode and live requests were made
+ */
+export const validateStrictMockMode = (mockServer) => {
+  if (mockServer._strictMockMode && mockServer._liveRequests.length > 0) {
+    const requestsSummary = mockServer._liveRequests
+      .map(
+        (req, index) =>
+          `${index + 1}. [${req.method}] ${req.url} (${req.timestamp})`,
+      )
+      .join('\n');
+    throw new Error(
+      `Strict Mock Mode: Test made ${mockServer._liveRequests.length} unmocked request(s):\n${requestsSummary}\n\n` +
+        `These requests need to be mocked before enabling strict mode. ` +
+        `Check your test-specific mocks or add them to the default mocks.`,
+    );
+  }
 };
 
 /**
