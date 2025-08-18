@@ -103,9 +103,9 @@ const PerpsPositionDetailsView: React.FC = () => {
   // }, []);
 
   // TODO: Re-enable when TradingView chart supports gear/settings press
-  // const handleGearPress = useCallback(() => {
-  //   setIsCandlePeriodBottomSheetVisible(true);
-  // }, []);
+  const handleGearPress = useCallback(() => {
+    setIsCandlePeriodBottomSheetVisible(true);
+  }, []);
 
   // Handle position close button click
   const handleCloseClick = useCallback(() => {
@@ -171,7 +171,7 @@ const PerpsPositionDetailsView: React.FC = () => {
           <PerpsTimeDurationSelector
             selectedDuration={selectedDuration}
             onDurationChange={handleDurationChange}
-            onGearPress={() => console.log('foo')}
+            onGearPress={handleGearPress}
             // testID={`${
             //   testID || TradingViewChartSelectorsIDs.CONTAINER
             // }-duration-selector`}
