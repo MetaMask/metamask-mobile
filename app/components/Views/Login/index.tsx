@@ -215,7 +215,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       if (isSeedlessPasswordOutdated) {
         setError(strings('login.seedless_password_outdated'));
         // password outdated, reset biometric password and choice
-        await Authentication.resetPassword();
+        await Authentication.resetPassword().catch((e) => {
+          Logger.error(e);
+        });
       }
 
       const authData = await Authentication.getType();
