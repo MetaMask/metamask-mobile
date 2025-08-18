@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
 import { Text } from 'react-native';
-import { PerpsStreamProvider, usePerpsStream } from './PerpsStreamManager';
+import {
+  PerpsStreamProvider,
+  usePerpsStream,
+  PerpsStreamManager,
+} from './PerpsStreamManager';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PriceUpdate } from '../controllers/types';
@@ -41,11 +45,15 @@ const TestPriceComponent = ({
 describe('PerpsStreamManager', () => {
   let mockSubscribeToPrices: jest.Mock;
   let mockUnsubscribeFromPrices: jest.Mock;
+  let testStreamManager: PerpsStreamManager;
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+
+    // Create a fresh stream manager for each test
+    testStreamManager = new PerpsStreamManager();
 
     // Setup default mocks
     mockSubscribeToPrices = jest.fn();
@@ -62,11 +70,12 @@ describe('PerpsStreamManager', () => {
   afterEach(() => {
     jest.clearAllTimers();
     jest.useRealTimers();
+    jest.clearAllMocks();
   });
 
   it('should render children correctly', () => {
     const { getByText } = render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <Text>Child Component</Text>
       </PerpsStreamProvider>,
     );
@@ -117,7 +126,7 @@ describe('PerpsStreamManager', () => {
     const onUpdate = jest.fn();
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -154,7 +163,7 @@ describe('PerpsStreamManager', () => {
     const onUpdate = jest.fn();
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -232,7 +241,7 @@ describe('PerpsStreamManager', () => {
     const onUpdate = jest.fn();
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -351,7 +360,7 @@ describe('PerpsStreamManager', () => {
     const onUpdate = jest.fn();
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestNoThrottleComponent onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -360,6 +369,9 @@ describe('PerpsStreamManager', () => {
     await waitFor(() => {
       expect(mockSubscribeToPrices).toHaveBeenCalled();
     });
+
+    // Reset the mock call count after initial setup
+    onUpdate.mockClear();
 
     // All updates should be immediate when throttleMs is 0
     act(() => {
@@ -421,7 +433,7 @@ describe('PerpsStreamManager', () => {
     const onUpdate = jest.fn();
 
     const { unmount } = render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -477,7 +489,7 @@ describe('PerpsStreamManager', () => {
     const onUpdate = jest.fn();
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -496,7 +508,7 @@ describe('PerpsStreamManager', () => {
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
 
     const { unmount } = render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent />
       </PerpsStreamProvider>,
     );
@@ -523,7 +535,7 @@ describe('PerpsStreamManager', () => {
     });
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -565,7 +577,7 @@ describe('PerpsStreamManager', () => {
     });
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -669,7 +681,7 @@ describe('PerpsStreamManager', () => {
     };
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestMultipleSubscribers />
       </PerpsStreamProvider>,
     );
@@ -759,7 +771,7 @@ describe('PerpsStreamManager', () => {
     const onUpdate = jest.fn();
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestMultipleSymbols onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -777,7 +789,7 @@ describe('PerpsStreamManager', () => {
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
 
     const { unmount } = render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent />
       </PerpsStreamProvider>,
     );

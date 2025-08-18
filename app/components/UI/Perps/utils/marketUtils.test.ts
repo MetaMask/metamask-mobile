@@ -82,7 +82,8 @@ describe('marketUtils', () => {
       jest.setSystemTime(mockDate);
 
       // Next funding time is in 1 hour 15 minutes 45 seconds
-      const nextFundingTime = mockDate.getTime() + (1 * 60 * 60 + 15 * 60 + 45) * 1000;
+      const nextFundingTime =
+        mockDate.getTime() + (1 * 60 * 60 + 15 * 60 + 45) * 1000;
 
       const result = calculateFundingCountdown({ nextFundingTime });
       expect(result).toBe('01:15:45');
@@ -121,16 +122,18 @@ describe('marketUtils', () => {
     it('should handle different UTC hours correctly', () => {
       // Test each hour of the day
       const testCases = [
-        { hour: 0, expected: '08:00:00' },  // 00:00 -> 08:00
-        { hour: 4, expected: '04:00:00' },  // 04:00 -> 08:00
-        { hour: 8, expected: '08:00:00' },  // 08:00 -> 16:00
+        { hour: 0, expected: '08:00:00' }, // 00:00 -> 08:00
+        { hour: 4, expected: '04:00:00' }, // 04:00 -> 08:00
+        { hour: 8, expected: '08:00:00' }, // 08:00 -> 16:00
         { hour: 12, expected: '04:00:00' }, // 12:00 -> 16:00
         { hour: 16, expected: '08:00:00' }, // 16:00 -> 00:00 (next day)
         { hour: 20, expected: '04:00:00' }, // 20:00 -> 00:00 (next day)
       ];
 
       testCases.forEach(({ hour, expected }) => {
-        const mockDate = new Date(`2024-01-01T${hour.toString().padStart(2, '0')}:00:00.000Z`);
+        const mockDate = new Date(
+          `2024-01-01T${hour.toString().padStart(2, '0')}:00:00.000Z`,
+        );
         jest.setSystemTime(mockDate);
 
         const result = calculateFundingCountdown();

@@ -219,8 +219,9 @@ export class HyperLiquidSubscriptionService {
     }
 
     // Create new subscription promise to prevent race conditions
-    this.webData2SubscriptionPromise = this.createWebData2Subscription(accountId);
-    
+    this.webData2SubscriptionPromise =
+      this.createWebData2Subscription(accountId);
+
     try {
       await this.webData2SubscriptionPromise;
     } catch (error) {

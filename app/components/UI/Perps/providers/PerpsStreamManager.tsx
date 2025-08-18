@@ -328,7 +328,7 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
 }
 
 // Main manager class
-class PerpsStreamManager {
+export class PerpsStreamManager {
   public readonly prices = new PriceStreamChannel();
   public readonly orders = new OrderStreamChannel();
   public readonly positions = new PositionStreamChannel();
@@ -352,8 +352,9 @@ const PerpsStreamContext = createContext<PerpsStreamManager | null>(null);
 
 export const PerpsStreamProvider: React.FC<{
   children: React.ReactNode;
-}> = ({ children }) => (
-  <PerpsStreamContext.Provider value={streamManager}>
+  testStreamManager?: PerpsStreamManager; // Only for testing
+}> = ({ children, testStreamManager }) => (
+  <PerpsStreamContext.Provider value={testStreamManager || streamManager}>
     {children}
   </PerpsStreamContext.Provider>
 );
