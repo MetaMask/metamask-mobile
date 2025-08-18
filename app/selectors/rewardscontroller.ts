@@ -38,11 +38,11 @@ export const selectSubscriptionIdForAccount = createSelector(
     rewardsControllerState: RewardsControllerState,
     address: string,
   ): string | null => {
-    if (!rewardsControllerState?.silentAuth?.accountToSubscription) {
+    if (!rewardsControllerState?.auth?.accountToSubscription) {
       return null;
     }
     return (
-      rewardsControllerState.silentAuth.accountToSubscription[
+      rewardsControllerState.auth.accountToSubscription[
         address.toLowerCase()
       ] || null
     );
