@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 
+import ClipboardManager from '../../../../core/ClipboardManager';
 import { useStyles } from '../../../hooks/useStyles';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import HeaderBase from '../../../../component-library/components/HeaderBase';
@@ -44,6 +45,23 @@ export const AddressList = (props: AddressListProps) => {
         chainId={item.scope}
         networkName={item.networkName}
         address={item.account.address}
+        icons={[
+          {
+            name: IconName.Copy,
+            callback: async () => {
+              // TODO: Add feedback to user that address was copied
+              await ClipboardManager.setString(item.account.address);
+            },
+            testId: '',
+          },
+          {
+            name: IconName.QrCode,
+            callback: () => {
+              // TODO: Add navigation to QR Code screen
+            },
+            testId: '',
+          },
+        ]}
       />
     ),
     [],
