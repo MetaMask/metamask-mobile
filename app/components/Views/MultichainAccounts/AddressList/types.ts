@@ -7,7 +7,6 @@ export interface Props {
     params: {
       title: string;
       groupId: AccountGroupId;
-      revealPrivateKey: boolean;
     };
   };
 }
