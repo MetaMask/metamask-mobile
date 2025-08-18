@@ -19,6 +19,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 'auto',
     alignSelf: 'center',
     marginVertical: 16,
+    width: 343,
+    height: 302,
   },
   description: {
     fontSize: 14,
