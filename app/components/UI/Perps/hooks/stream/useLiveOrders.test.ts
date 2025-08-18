@@ -40,14 +40,14 @@ describe('useLiveOrders', () => {
   });
 
   it('should subscribe to orders on mount', () => {
-    const debounceMs = 2000;
+    const throttleMs = 2000;
     mockSubscribe.mockReturnValue(jest.fn());
 
-    renderHook(() => useLiveOrders({ debounceMs }));
+    renderHook(() => useLiveOrders({ throttleMs }));
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs,
+      throttleMs,
     });
   });
 
@@ -89,18 +89,18 @@ describe('useLiveOrders', () => {
     });
   });
 
-  it('should use default debounce value when not provided', () => {
+  it('should use default throttle value when not provided', () => {
     mockSubscribe.mockReturnValue(jest.fn());
 
     renderHook(() => useLiveOrders());
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs: 500, // Default value for orders
+      throttleMs: 0, // Default value for orders (no throttling for instant updates)
     });
   });
 
-  it('should handle debounce changes', () => {
+  it('should handle throttle changes', () => {
     const mockUnsubscribe1 = jest.fn();
     const mockUnsubscribe2 = jest.fn();
 
@@ -109,25 +109,25 @@ describe('useLiveOrders', () => {
       .mockReturnValueOnce(mockUnsubscribe2);
 
     const { rerender } = renderHook(
-      ({ debounceMs }) => useLiveOrders({ debounceMs }),
+      ({ throttleMs }) => useLiveOrders({ throttleMs }),
       {
-        initialProps: { debounceMs: 500 },
+        initialProps: { throttleMs: 500 },
       },
     );
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs: 500,
+      throttleMs: 500,
     });
 
-    // Change debounce
-    rerender({ debounceMs: 1000 });
+    // Change throttle
+    rerender({ throttleMs: 1000 });
 
-    // Should resubscribe with new debounce
+    // Should resubscribe with new throttle
     expect(mockUnsubscribe1).toHaveBeenCalled();
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs: 1000,
+      throttleMs: 1000,
     });
   });
 

@@ -10,6 +10,9 @@ import {
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import Routes from '../../../../../constants/navigation/Routes';
 
+// Mock PerpsStreamManager
+jest.mock('../../providers/PerpsStreamManager');
+
 // Create mock functions that can be modified during tests
 const mockUsePerpsAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
@@ -650,9 +653,9 @@ describe('PerpsMarketDetailsView', () => {
       // Trigger the refresh
       await refreshControl.props.onRefresh();
 
-      // Should refresh candle data and orders data
+      // Should refresh candle data
+      // Note: Orders refresh automatically via WebSocket, no manual refresh needed
       expect(mockRefreshCandleData).toHaveBeenCalledTimes(1);
-      expect(mockRefreshOrders).toHaveBeenCalledTimes(1);
       // Should not refresh position data when orders tab is active
       expect(mockRefreshPosition).not.toHaveBeenCalled();
     });

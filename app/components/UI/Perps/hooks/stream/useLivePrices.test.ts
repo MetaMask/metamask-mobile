@@ -28,16 +28,16 @@ describe('useLivePrices', () => {
 
   it('should subscribe to prices on mount', () => {
     const symbols = ['BTC-PERP', 'ETH-PERP'];
-    const debounceMs = 1000;
+    const throttleMs = 1000;
 
     mockSubscribeToSymbols.mockReturnValue(jest.fn());
 
-    renderHook(() => useLivePrices({ symbols, debounceMs }));
+    renderHook(() => useLivePrices({ symbols, throttleMs }));
 
     expect(mockSubscribeToSymbols).toHaveBeenCalledWith({
       symbols,
       callback: expect.any(Function),
-      debounceMs,
+      throttleMs,
     });
   });
 
@@ -104,7 +104,7 @@ describe('useLivePrices', () => {
     });
   });
 
-  it('should use default debounce value when not provided', () => {
+  it('should use default throttle value when not provided', () => {
     mockSubscribeToSymbols.mockReturnValue(jest.fn());
 
     renderHook(() => useLivePrices({ symbols: ['BTC-PERP'] }));
@@ -112,7 +112,7 @@ describe('useLivePrices', () => {
     expect(mockSubscribeToSymbols).toHaveBeenCalledWith({
       symbols: ['BTC-PERP'],
       callback: expect.any(Function),
-      debounceMs: 100, // Default value
+      throttleMs: 1000, // Default value (1 second for balanced performance)
     });
   });
 
@@ -134,7 +134,7 @@ describe('useLivePrices', () => {
     expect(mockSubscribeToSymbols).toHaveBeenCalledWith({
       symbols: ['BTC-PERP'],
       callback: expect.any(Function),
-      debounceMs: 100,
+      throttleMs: 1000,
     });
 
     // Change symbols
@@ -145,11 +145,11 @@ describe('useLivePrices', () => {
     expect(mockSubscribeToSymbols).toHaveBeenCalledWith({
       symbols: ['ETH-PERP', 'SOL-PERP'],
       callback: expect.any(Function),
-      debounceMs: 100,
+      throttleMs: 1000,
     });
   });
 
-  it('should handle debounce changes', () => {
+  it('should handle throttle changes', () => {
     const mockUnsubscribe1 = jest.fn();
     const mockUnsubscribe2 = jest.fn();
 
@@ -158,27 +158,27 @@ describe('useLivePrices', () => {
       .mockReturnValueOnce(mockUnsubscribe2);
 
     const { rerender } = renderHook(
-      ({ debounceMs }) => useLivePrices({ symbols: ['BTC-PERP'], debounceMs }),
+      ({ throttleMs }) => useLivePrices({ symbols: ['BTC-PERP'], throttleMs }),
       {
-        initialProps: { debounceMs: 100 },
+        initialProps: { throttleMs: 1000 },
       },
     );
 
     expect(mockSubscribeToSymbols).toHaveBeenCalledWith({
       symbols: ['BTC-PERP'],
       callback: expect.any(Function),
-      debounceMs: 100,
+      throttleMs: 1000,
     });
 
-    // Change debounce
-    rerender({ debounceMs: 500 });
+    // Change throttle
+    rerender({ throttleMs: 500 });
 
-    // Should resubscribe with new debounce
+    // Should resubscribe with new throttle
     expect(mockUnsubscribe1).toHaveBeenCalled();
     expect(mockSubscribeToSymbols).toHaveBeenCalledWith({
       symbols: ['BTC-PERP'],
       callback: expect.any(Function),
-      debounceMs: 500,
+      throttleMs: 500,
     });
   });
 

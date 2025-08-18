@@ -22,6 +22,7 @@ import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletServic
 import {
   adaptAccountStateFromSDK,
   adaptMarketFromSDK,
+  adaptOrderFromSDK,
   adaptPositionFromSDK,
   buildAssetMapping,
   formatHyperLiquidPrice,
@@ -70,6 +71,7 @@ import type {
   Position,
   ReadyToTradeResult,
   SubscribeOrderFillsParams,
+  SubscribeOrdersParams,
   SubscribePositionsParams,
   SubscribePricesParams,
   ToggleTestnetResult,
@@ -1177,62 +1179,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       DevLogger.log('Currently open orders received:', rawOrders);
 
-      // Transform HyperLiquid open orders to abstract Order type
-      const orders: Order[] = (rawOrders || []).map((rawOrder) => {
-        const orderId = rawOrder.oid?.toString() || '';
-        const symbol = rawOrder.coin;
-        const side = rawOrder.side === 'B' ? 'buy' : 'sell';
-        const detailedOrderType = rawOrder.orderType || '';
-        const orderType = detailedOrderType.toLowerCase().includes('limit')
-          ? 'limit'
-          : 'market';
-        const size = rawOrder.sz;
-        const originalSize = rawOrder.origSz || size;
-        const price = rawOrder.limitPx || rawOrder.triggerPx || '0';
-        const isTrigger = rawOrder.isTrigger || false;
-        const reduceOnly = rawOrder.reduceOnly || false;
-
-        // Calculate filled and remaining size
-        const currentSize = parseFloat(size);
-        const origSize = parseFloat(originalSize);
-        const filledSize = origSize - currentSize;
-
-        // Check for TP/SL in child orders
-        let takeProfitPrice: string | undefined;
-        let stopLossPrice: string | undefined;
-
-        if (rawOrder.children && rawOrder.children.length > 0) {
-          rawOrder.children.forEach((child: typeof rawOrder) => {
-            if (child.isTrigger && child.orderType) {
-              if (child.orderType.includes('Take Profit')) {
-                takeProfitPrice = child.triggerPx || child.limitPx;
-              } else if (child.orderType.includes('Stop')) {
-                stopLossPrice = child.triggerPx || child.limitPx;
-              }
-            }
-          });
-        }
-
-        return {
-          orderId,
-          symbol,
-          side,
-          orderType,
-          size,
-          originalSize,
-          price,
-          filledSize: filledSize.toString(),
-          remainingSize: size,
-          status: 'open' as const,
-          timestamp: rawOrder.timestamp,
-          lastUpdated: rawOrder.timestamp,
-          takeProfitPrice,
-          stopLossPrice,
-          detailedOrderType,
-          isTrigger,
-          reduceOnly,
-        };
-      });
+      // Transform HyperLiquid open orders to abstract Order type using adapter
+      const orders: Order[] = (rawOrders || []).map(adaptOrderFromSDK);
 
       return orders;
     } catch (error) {
@@ -1808,6 +1756,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void {
     return this.subscriptionService.subscribeToOrderFills(params);
+  }
+
+  /**
+   * Subscribe to live order updates
+   */
+  subscribeToOrders(params: SubscribeOrdersParams): () => void {
+    return this.subscriptionService.subscribeToOrders(params);
   }
 
   /**

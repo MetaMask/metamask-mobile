@@ -7,6 +7,9 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(() => ({ navigate: jest.fn() })),
 }));
 
+// Mock PerpsStreamManager
+jest.mock('../providers/PerpsStreamManager');
+
 // Mock stream hooks
 jest.mock('../hooks/stream', () => ({
   useLivePrices: jest.fn(() => ({

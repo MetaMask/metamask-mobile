@@ -48,14 +48,14 @@ describe('useLivePositions', () => {
   });
 
   it('should subscribe to positions on mount', () => {
-    const debounceMs = 3000;
+    const throttleMs = 3000;
     mockSubscribe.mockReturnValue(jest.fn());
 
-    renderHook(() => useLivePositions({ debounceMs }));
+    renderHook(() => useLivePositions({ throttleMs }));
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs,
+      throttleMs,
     });
   });
 
@@ -79,8 +79,11 @@ describe('useLivePositions', () => {
 
     const { result } = renderHook(() => useLivePositions());
 
-    // Initially empty
-    expect(result.current).toEqual([]);
+    // Initially empty with loading state
+    expect(result.current).toEqual({
+      positions: [],
+      isInitialLoading: true,
+    });
 
     // Simulate positions update
     const positions: Position[] = [
@@ -93,22 +96,25 @@ describe('useLivePositions', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(positions);
+      expect(result.current).toEqual({
+        positions,
+        isInitialLoading: false,
+      });
     });
   });
 
-  it('should use default debounce value when not provided', () => {
+  it('should use default throttle value when not provided', () => {
     mockSubscribe.mockReturnValue(jest.fn());
 
     renderHook(() => useLivePositions());
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs: 1000, // Default value for positions
+      throttleMs: 0, // Default value for positions (no throttling for instant updates)
     });
   });
 
-  it('should handle debounce changes', () => {
+  it('should handle throttle changes', () => {
     const mockUnsubscribe1 = jest.fn();
     const mockUnsubscribe2 = jest.fn();
 
@@ -117,25 +123,25 @@ describe('useLivePositions', () => {
       .mockReturnValueOnce(mockUnsubscribe2);
 
     const { rerender } = renderHook(
-      ({ debounceMs }) => useLivePositions({ debounceMs }),
+      ({ throttleMs }) => useLivePositions({ throttleMs }),
       {
-        initialProps: { debounceMs: 1000 },
+        initialProps: { throttleMs: 0 },
       },
     );
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs: 1000,
+      throttleMs: 0,
     });
 
-    // Change debounce
-    rerender({ debounceMs: 2000 });
+    // Change throttle
+    rerender({ throttleMs: 2000 });
 
-    // Should resubscribe with new debounce
+    // Should resubscribe with new throttle
     expect(mockUnsubscribe1).toHaveBeenCalled();
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs: 2000,
+      throttleMs: 2000,
     });
   });
 
@@ -153,7 +159,10 @@ describe('useLivePositions', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual([]);
+      expect(result.current).toEqual({
+        positions: [],
+        isInitialLoading: false,
+      });
     });
   });
 
@@ -172,7 +181,10 @@ describe('useLivePositions', () => {
     });
 
     // Should not crash and positions should remain empty
-    expect(result.current).toEqual([]);
+    expect(result.current).toEqual({
+      positions: [],
+      isInitialLoading: true,
+    });
 
     // Send undefined update
     act(() => {
@@ -180,7 +192,10 @@ describe('useLivePositions', () => {
     });
 
     // Should still not crash
-    expect(result.current).toEqual([]);
+    expect(result.current).toEqual({
+      positions: [],
+      isInitialLoading: true,
+    });
 
     // Send valid update to ensure it still works
     const validPositions: Position[] = [mockPosition];
@@ -190,7 +205,10 @@ describe('useLivePositions', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(validPositions);
+      expect(result.current).toEqual({
+        positions: validPositions,
+        isInitialLoading: false,
+      });
     });
   });
 
@@ -210,7 +228,10 @@ describe('useLivePositions', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(firstPositions);
+      expect(result.current).toEqual({
+        positions: firstPositions,
+        isInitialLoading: false,
+      });
     });
 
     // Second update with different positions
@@ -224,8 +245,11 @@ describe('useLivePositions', () => {
     });
 
     await waitFor(() => {
-      expect(result.current).toEqual(secondPositions);
-      expect(result.current).not.toContain(mockPosition);
+      expect(result.current).toEqual({
+        positions: secondPositions,
+        isInitialLoading: false,
+      });
+      expect(result.current.positions).not.toContain(mockPosition);
     });
   });
 
@@ -245,7 +269,7 @@ describe('useLivePositions', () => {
     });
 
     await waitFor(() => {
-      expect(result.current[0].unrealizedPnl).toBe('1000');
+      expect(result.current.positions[0].unrealizedPnl).toBe('1000');
     });
 
     // Update with changed PnL
@@ -260,8 +284,8 @@ describe('useLivePositions', () => {
     });
 
     await waitFor(() => {
-      expect(result.current[0].unrealizedPnl).toBe('2000');
-      expect(result.current[0].positionValue).toBe('52000');
+      expect(result.current.positions[0].unrealizedPnl).toBe('2000');
+      expect(result.current.positions[0].positionValue).toBe('52000');
     });
   });
 });

@@ -176,7 +176,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   // Get real-time prices for popular assets with 5s debounce for portfolio view
   const priceData = useLivePrices({
     symbols: POPULAR_ASSETS,
-    debounceMs: 5000,
+    throttleMs: 5000,
   });
 
   // Parse available balance to check if withdrawal should be enabled

@@ -8,6 +8,9 @@ import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/P
 import { PerpsMarketData } from '../../controllers/types';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 
+// Mock PerpsStreamManager
+jest.mock('../../providers/PerpsStreamManager');
+
 const mockMarket: PerpsMarketData = {
   symbol: 'BTC',
   name: 'Bitcoin',

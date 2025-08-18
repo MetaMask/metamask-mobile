@@ -27,7 +27,7 @@ const TestPriceComponent = ({
       callback: (prices: Record<string, PriceUpdate>) => {
         onUpdate?.(prices);
       },
-      debounceMs: 100,
+      throttleMs: 100,
     });
 
     return () => {
@@ -175,7 +175,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should debounce subsequent updates', async () => {
+  it('should throttle subsequent updates', async () => {
     const onUpdate = jest.fn();
     let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
 
@@ -233,12 +233,12 @@ describe('PerpsStreamManager', () => {
     // Should not be called immediately
     expect(onUpdate).toHaveBeenCalledTimes(1);
 
-    // Advance timers to trigger debounce
+    // Advance timers to trigger throttle
     act(() => {
       jest.advanceTimersByTime(100);
     });
 
-    // Should receive the last update after debounce
+    // Should receive the last update after throttle
     await waitFor(() => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       const lastCall = onUpdate.mock.calls[1][0];
@@ -249,7 +249,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should handle multiple subscribers with different debounce times', async () => {
+  it('should handle multiple subscribers with different throttle times', async () => {
     const onUpdate1 = jest.fn();
     const onUpdate2 = jest.fn();
     let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
@@ -268,7 +268,7 @@ describe('PerpsStreamManager', () => {
           callback: (prices: Record<string, PriceUpdate>) => {
             onUpdate1(prices);
           },
-          debounceMs: 100,
+          throttleMs: 100,
         });
 
         const sub2 = stream.prices.subscribeToSymbols({
@@ -276,7 +276,7 @@ describe('PerpsStreamManager', () => {
           callback: (prices: Record<string, PriceUpdate>) => {
             onUpdate2(prices);
           },
-          debounceMs: 200,
+          throttleMs: 200,
         });
 
         return () => {
@@ -365,7 +365,7 @@ describe('PerpsStreamManager', () => {
           callback: (prices: Record<string, PriceUpdate>) => {
             onUpdate(prices);
           },
-          debounceMs: 100,
+          throttleMs: 100,
         });
 
         return () => {

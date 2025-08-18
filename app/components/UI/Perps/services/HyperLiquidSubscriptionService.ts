@@ -20,13 +20,19 @@ import type {
   PriceUpdate,
   Position,
   OrderFill,
+  Order,
   SubscribePricesParams,
   SubscribePositionsParams,
   SubscribeOrderFillsParams,
+  SubscribeOrdersParams,
 } from '../controllers/types';
-import { adaptPositionFromSDK } from '../utils/hyperLiquidAdapter';
+import {
+  adaptPositionFromSDK,
+  adaptOrderFromSDK,
+} from '../utils/hyperLiquidAdapter';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
+import type { CaipAccountId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 
 /**
@@ -45,6 +51,7 @@ export class HyperLiquidSubscriptionService {
   >();
   private positionSubscribers = new Set<(positions: Position[]) => void>();
   private orderFillSubscribers = new Set<(fills: OrderFill[]) => void>();
+  private orderSubscribers = new Set<(orders: Order[]) => void>();
 
   // Track which subscribers want market data
   private marketDataSubscribers = new Map<
@@ -57,6 +64,13 @@ export class HyperLiquidSubscriptionService {
   private globalActiveAssetSubscriptions = new Map<string, Subscription>();
   private globalL2BookSubscriptions = new Map<string, Subscription>();
   private symbolSubscriberCounts = new Map<string, number>();
+
+  // Shared webData2 subscription for positions and orders
+  private sharedWebData2Subscription?: Subscription;
+  private positionSubscriberCount = 0;
+  private orderSubscriberCount = 0;
+  private cachedPositions: Position[] = [];
+  private cachedOrders: Order[] = [];
 
   // Global price data cache
   private cachedPriceData = new Map<string, PriceUpdate>();
@@ -187,7 +201,163 @@ export class HyperLiquidSubscriptionService {
   }
 
   /**
-   * Subscribe to live position updates
+   * Ensure shared webData2 subscription is active (singleton pattern)
+   * This subscription provides both positions and orders data
+   */
+  private async ensureSharedWebData2Subscription(
+    accountId?: CaipAccountId,
+  ): Promise<void> {
+    if (this.sharedWebData2Subscription) {
+      return;
+    }
+
+    this.clientService.ensureSubscriptionClient(
+      this.walletService.createWalletAdapter(),
+    );
+    const subscriptionClient = this.clientService.getSubscriptionClient();
+
+    if (!subscriptionClient) {
+      throw new Error(strings('perps.errors.subscriptionClientNotInitialized'));
+    }
+
+    const userAddress = await this.walletService.getUserAddressWithDefault(
+      accountId,
+    );
+
+    return new Promise((resolve, reject) => {
+      subscriptionClient
+        .webData2({ user: userAddress }, (data: WsWebData2) => {
+          // Extract and process positions with TP/SL data
+          const positions = data.clearinghouseState.assetPositions
+            .filter((assetPos) => assetPos.position.szi !== '0')
+            .map((assetPos) => adaptPositionFromSDK(assetPos));
+
+          // Extract TP/SL from openOrders for positions
+          const tpslMap = new Map<
+            string,
+            { takeProfitPrice?: string; stopLossPrice?: string }
+          >();
+
+          // Also extract regular orders for order subscribers
+          const orders: Order[] = [];
+
+          (data.openOrders || []).forEach((order) => {
+            // Process trigger orders for TP/SL
+            if (order.triggerPx) {
+              const coin = order.coin;
+              const position = positions.find((p) => p.coin === coin);
+
+              if (position) {
+                const existing = tpslMap.get(coin) || {};
+                const isLong = parseFloat(position.size) > 0;
+
+                // Determine if it's TP or SL based on order type
+                if (order.orderType?.includes('Take Profit')) {
+                  existing.takeProfitPrice = order.triggerPx;
+                } else if (order.orderType?.includes('Stop')) {
+                  existing.stopLossPrice = order.triggerPx;
+                } else {
+                  // Fallback: determine based on trigger price vs entry price
+                  const triggerPrice = parseFloat(order.triggerPx);
+                  const entryPrice = parseFloat(position.entryPrice || '0');
+
+                  if (isLong) {
+                    if (triggerPrice > entryPrice) {
+                      existing.takeProfitPrice = order.triggerPx;
+                    } else {
+                      existing.stopLossPrice = order.triggerPx;
+                    }
+                  } else if (triggerPrice < entryPrice) {
+                    existing.takeProfitPrice = order.triggerPx;
+                  } else {
+                    existing.stopLossPrice = order.triggerPx;
+                  }
+                }
+
+                tpslMap.set(coin, existing);
+              }
+            }
+
+            // Convert ALL open orders to Order format using adapter
+            // We NO LONGER skip TP/SL orders - they should appear in the orders list too
+            // TP/SL orders are both:
+            // 1. Used to populate position TP/SL fields (done above)
+            // 2. Shown as separate orders in the orders list (done here)
+            const convertedOrder = adaptOrderFromSDK(order);
+            orders.push(convertedOrder);
+          });
+
+          // Merge positions with TP/SL data, ensuring fields are always present
+          const positionsWithTPSL = positions.map((position) => {
+            const tpsl = tpslMap.get(position.coin) || {};
+            return {
+              ...position,
+              takeProfitPrice: tpsl.takeProfitPrice || undefined,
+              stopLossPrice: tpsl.stopLossPrice || undefined,
+            };
+          });
+
+          // Check if positions actually changed
+          const positionsChanged =
+            JSON.stringify(positionsWithTPSL) !==
+            JSON.stringify(this.cachedPositions);
+          const ordersChanged =
+            JSON.stringify(orders) !== JSON.stringify(this.cachedOrders);
+
+          // Only update and notify if data actually changed
+          if (positionsChanged) {
+            this.cachedPositions = positionsWithTPSL;
+            this.positionSubscribers.forEach((callback) => {
+              callback(positionsWithTPSL);
+            });
+          }
+
+          if (ordersChanged) {
+            this.cachedOrders = orders;
+            this.orderSubscribers.forEach((callback) => {
+              callback(orders);
+            });
+          }
+        })
+        .then((sub) => {
+          this.sharedWebData2Subscription = sub;
+          DevLogger.log(
+            'Shared webData2 subscription established (single connection for positions + orders)',
+          );
+          resolve();
+        })
+        .catch((error) => {
+          DevLogger.log(
+            'Failed to establish shared webData2 subscription',
+            error,
+          );
+          reject(error);
+        });
+    });
+  }
+
+  /**
+   * Clean up shared webData2 subscription when no longer needed
+   */
+  private cleanupSharedWebData2Subscription(): void {
+    const totalSubscribers =
+      this.positionSubscriberCount + this.orderSubscriberCount;
+
+    if (totalSubscribers <= 0 && this.sharedWebData2Subscription) {
+      this.sharedWebData2Subscription.unsubscribe().catch((error: Error) => {
+        DevLogger.log('Failed to unsubscribe shared webData2', error);
+      });
+      this.sharedWebData2Subscription = undefined;
+      this.positionSubscriberCount = 0;
+      this.orderSubscriberCount = 0;
+      this.cachedPositions = [];
+      this.cachedOrders = [];
+      DevLogger.log('Shared webData2 subscription cleaned up');
+    }
+  }
+
+  /**
+   * Subscribe to live position updates with TP/SL data
    */
   public subscribeToPositions(params: SubscribePositionsParams): () => void {
     const { callback, accountId } = params;
@@ -196,59 +366,23 @@ export class HyperLiquidSubscriptionService {
       callback,
     );
 
-    let subscription: Subscription | undefined;
+    // Increment position subscriber count
+    this.positionSubscriberCount++;
 
-    this.clientService.ensureSubscriptionClient(
-      this.walletService.createWalletAdapter(),
-    );
-    const subscriptionClient = this.clientService.getSubscriptionClient();
-
-    if (subscriptionClient) {
-      this.walletService
-        .getUserAddressWithDefault(accountId)
-        .then((userAddress) => {
-          if (!subscriptionClient) {
-            throw new Error(
-              strings('perps.errors.subscriptionClientNotInitialized'),
-            );
-          }
-
-          return subscriptionClient.webData2(
-            { user: userAddress },
-            (data: WsWebData2) => {
-              if (data.clearinghouseState.assetPositions) {
-                const positions: Position[] =
-                  data.clearinghouseState.assetPositions
-                    .filter((assetPos) => assetPos.position.szi !== '0')
-                    .map((assetPos) => adaptPositionFromSDK(assetPos));
-
-                callback(positions);
-              }
-            },
-          );
-        })
-        .then((sub) => {
-          subscription = sub;
-        })
-        .catch((error) => {
-          DevLogger.log(
-            strings('perps.errors.failedToSubscribePosition'),
-            error,
-          );
-        });
+    // Immediately provide cached data if available
+    if (this.cachedPositions.length > 0) {
+      callback(this.cachedPositions);
     }
+
+    // Ensure shared subscription is active
+    this.ensureSharedWebData2Subscription(accountId).catch((error) => {
+      DevLogger.log(strings('perps.errors.failedToSubscribePosition'), error);
+    });
 
     return () => {
       unsubscribe();
-
-      if (subscription) {
-        subscription.unsubscribe().catch((error: Error) => {
-          DevLogger.log(
-            strings('perps.errors.failedToUnsubscribePosition'),
-            error,
-          );
-        });
-      }
+      this.positionSubscriberCount--;
+      this.cleanupSharedWebData2Subscription();
     };
   }
 
@@ -322,6 +456,37 @@ export class HyperLiquidSubscriptionService {
           );
         });
       }
+    };
+  }
+
+  /**
+   * Subscribe to live order updates
+   * Uses the shared webData2 subscription to avoid duplicate connections
+   */
+  public subscribeToOrders(params: SubscribeOrdersParams): () => void {
+    const { callback, accountId } = params;
+    const unsubscribe = this.createSubscription(
+      this.orderSubscribers,
+      callback,
+    );
+
+    // Increment order subscriber count
+    this.orderSubscriberCount++;
+
+    // Immediately provide cached data if available
+    if (this.cachedOrders.length > 0) {
+      callback(this.cachedOrders);
+    }
+
+    // Ensure shared subscription is active
+    this.ensureSharedWebData2Subscription(accountId).catch((error) => {
+      DevLogger.log(strings('perps.errors.failedToSubscribeOrders'), error);
+    });
+
+    return () => {
+      unsubscribe();
+      this.orderSubscriberCount--;
+      this.cleanupSharedWebData2Subscription();
     };
   }
 

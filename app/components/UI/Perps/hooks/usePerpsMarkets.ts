@@ -85,7 +85,7 @@ export const usePerpsMarkets = (
   // Conditionally subscribe to live prices if enabled
   const livePrices = useLivePrices({
     symbols: enableLivePrices ? marketSymbols : [],
-    debounceMs: livePriceDebounceMs,
+    throttleMs: livePriceDebounceMs,
   });
 
   const fetchMarketData = useCallback(

@@ -33,7 +33,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   unfilledOrders = [],
   onPositionUpdate,
   onActiveTabChange,
-  priceData,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -219,7 +218,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               expanded
               showIcon
               onPositionUpdate={onPositionUpdate}
-              priceData={priceData}
             />
           </View>
         );

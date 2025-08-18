@@ -40,14 +40,14 @@ describe('useLiveFills', () => {
   });
 
   it('should subscribe to fills on mount', () => {
-    const debounceMs = 2000;
+    const throttleMs = 2000;
     mockSubscribe.mockReturnValue(jest.fn());
 
-    renderHook(() => useLiveFills({ debounceMs }));
+    renderHook(() => useLiveFills({ throttleMs }));
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs,
+      throttleMs,
     });
   });
 
@@ -89,18 +89,18 @@ describe('useLiveFills', () => {
     });
   });
 
-  it('should use default debounce value when not provided', () => {
+  it('should use default throttle value when not provided', () => {
     mockSubscribe.mockReturnValue(jest.fn());
 
     renderHook(() => useLiveFills());
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs: 0, // Default value for fills (immediate)
+      throttleMs: 0, // Default value for fills (immediate)
     });
   });
 
-  it('should handle debounce changes', () => {
+  it('should handle throttle changes', () => {
     const mockUnsubscribe1 = jest.fn();
     const mockUnsubscribe2 = jest.fn();
 
@@ -109,25 +109,25 @@ describe('useLiveFills', () => {
       .mockReturnValueOnce(mockUnsubscribe2);
 
     const { rerender } = renderHook(
-      ({ debounceMs }) => useLiveFills({ debounceMs }),
+      ({ throttleMs }) => useLiveFills({ throttleMs }),
       {
-        initialProps: { debounceMs: 2000 },
+        initialProps: { throttleMs: 2000 },
       },
     );
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs: 2000,
+      throttleMs: 2000,
     });
 
-    // Change debounce
-    rerender({ debounceMs: 3000 });
+    // Change throttle
+    rerender({ throttleMs: 3000 });
 
-    // Should resubscribe with new debounce
+    // Should resubscribe with new throttle
     expect(mockUnsubscribe1).toHaveBeenCalled();
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
-      debounceMs: 3000,
+      throttleMs: 3000,
     });
   });
 

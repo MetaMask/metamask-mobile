@@ -741,8 +741,9 @@ describe('HyperLiquidSubscriptionService', () => {
           setTimeout(() => {
             callback({
               clearinghouseState: {
-                // No assetPositions
+                assetPositions: [], // Empty array instead of undefined
               },
+              openOrders: [], // Also need openOrders array
             });
           }, 0);
           return Promise.resolve({

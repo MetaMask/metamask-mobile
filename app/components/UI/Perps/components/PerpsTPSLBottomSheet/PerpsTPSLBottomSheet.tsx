@@ -108,7 +108,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   // Use 1s debounce for TP/SL bottom sheet
   const priceData = useLivePrices({
     symbols: isVisible && asset ? [asset] : [],
-    debounceMs: 1000,
+    throttleMs: 1000,
   });
   const livePrice = priceData[asset]?.price
     ? parseFloat(priceData[asset].price)
