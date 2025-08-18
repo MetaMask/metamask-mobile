@@ -1,3 +1,5 @@
+import { TestSpecificMock } from '../../../framework';
+
 export const SWAPS_FEATURE_FLAG_RESPONSE = {
   ethereum: {
     mobile_active: true,
@@ -161,4 +163,24 @@ export const SWAPS_FEATURE_FLAG_RESPONSE = {
   migrateToV2: { extensionActive: false, mobileActive: false },
   compliance: { merkleScienceMinThreshold: 25000 },
   multiChainAssets: { pollingSeconds: 0 },
+};
+
+/**
+ * Minimal mock data for MetaMask swap API endpoints used in E2E testing.
+ * Returns basic feature flags structure to prevent API failures.
+ * For specific swap tests, add detailed mocks in the test files.
+ */
+export const SWAP_API_MOCKS: TestSpecificMock = {
+  GET: [
+    {
+      urlEndpoint: 'https://swap.dev-api.cx.metamask.io/featureFlags',
+      responseCode: 200,
+      response: SWAPS_FEATURE_FLAG_RESPONSE,
+    },
+    {
+      urlEndpoint: 'https://swap.api.cx.metamask.io/featureFlags',
+      responseCode: 200,
+      response: SWAPS_FEATURE_FLAG_RESPONSE,
+    },
+  ],
 };
