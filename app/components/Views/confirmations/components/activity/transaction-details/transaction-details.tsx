@@ -37,6 +37,9 @@ export function TransactionDetails() {
         <TransactionDetailsDateRow />
         <TransactionDetailDivider />
         <TransactionDetailsPayWithRow />
+        <TransactionDetailsPayWithRow />
+        <TransactionDetailsPayWithRow />
+        <TransactionDetailsPayWithRow />
         <TransactionDetailDivider />
         <TransactionDetailsSummary />
       </Box>
