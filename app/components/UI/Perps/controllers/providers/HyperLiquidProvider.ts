@@ -1403,6 +1403,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
             };
           }
         } catch (error) {
+          // Log the error before falling back
+          DevLogger.log('Failed to get max leverage for symbol', error);
           // If we can't get max leverage, use the default as fallback
           const defaultMaxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
           if (params.leverage < 1 || params.leverage > defaultMaxLeverage) {

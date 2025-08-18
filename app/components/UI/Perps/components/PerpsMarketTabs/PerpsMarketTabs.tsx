@@ -176,6 +176,12 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     );
   }
 
+  const getTabTestId = (tabId: string) => {
+    if (tabId === 'position') return PerpsMarketTabsSelectorsIDs.POSITION_TAB;
+    if (tabId === 'orders') return PerpsMarketTabsSelectorsIDs.ORDERS_TAB;
+    return PerpsMarketTabsSelectorsIDs.STATISTICS_TAB;
+  };
+
   const renderTabBar = () => (
     <View style={styles.tabBar} testID={PerpsMarketTabsSelectorsIDs.TAB_BAR}>
       {tabs.map((tab) => {
@@ -186,13 +192,7 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             style={[styles.tab]}
             onPress={() => handleTabChange(tab.id)}
             activeOpacity={0.7}
-            testID={
-              tab.id === 'position'
-                ? PerpsMarketTabsSelectorsIDs.POSITION_TAB
-                : tab.id === 'orders'
-                ? PerpsMarketTabsSelectorsIDs.ORDERS_TAB
-                : PerpsMarketTabsSelectorsIDs.STATISTICS_TAB
-            }
+            testID={getTabTestId(tab.id)}
           >
             <Text
               variant={TextVariant.BodyMDBold}

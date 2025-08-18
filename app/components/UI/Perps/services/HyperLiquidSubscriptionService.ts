@@ -357,7 +357,7 @@ export class HyperLiquidSubscriptionService {
             'Failed to establish shared webData2 subscription',
             error,
           );
-          reject(error);
+          reject(error instanceof Error ? error : new Error(String(error)));
         });
     });
   }
