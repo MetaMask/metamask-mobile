@@ -71,12 +71,17 @@ export const prepareEVMTransaction = (
     trxnParams.value = BNToHex(toWei(value ?? '0') as unknown as BigNumber);
   } else if (asset.tokenId) {
     // NFT token
-    trxnParams.data = generateTransferData('transferFrom', {
-      fromAddress: from,
-      toAddress: to,
-      tokenId: toHex(asset.tokenId),
-      amount: toHex(value ?? 1),
-    });
+    trxnParams.data = generateTransferData(
+      asset.standard === TokenStandard.ERC721
+        ? 'transferFrom'
+        : 'safeTransferFrom',
+      {
+        fromAddress: from,
+        toAddress: to,
+        tokenId: toHex(asset.tokenId),
+        amount: toHex(value ?? 1),
+      },
+    );
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';
   } else {
