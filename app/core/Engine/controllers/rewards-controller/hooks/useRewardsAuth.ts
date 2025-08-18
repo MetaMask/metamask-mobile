@@ -9,33 +9,26 @@ import {
   useLogoutMutation,
 } from '../services';
 import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
+import { selectSubscriptionIdForAccount } from '../../../../../selectors/rewardscontroller';
 import { handleRewardsErrorMessage } from '../../../../../util/rewards';
 import { getSubscriptionToken } from '../utils/MultiSubscriptionTokenVault';
 import Engine from '../../../../Engine';
 import Logger from '../../../../../util/Logger';
+import { RootState } from '../../../../../reducers';
 
 export const useRewardsAuth = () => {
   const address = useSelector(selectSelectedInternalAccountAddress);
+  const subscriptionId = useSelector((state: RootState) =>
+    address ? selectSubscriptionIdForAccount(state, address) : null,
+  );
   const [optinError, setOptinError] = useState<string | null>(null);
   const [optinLoading, setOptinLoading] = useState<boolean>(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAuthenticating, setIsAuthenticating] = useState<boolean>(false);
-  const [subscriptionId, setSubscriptionId] = useState<string | null>(null);
 
   const [generateChallenge] = useGenerateChallengeMutation();
   const [optin] = useOptinMutation();
   const [logout, logoutResult] = useLogoutMutation();
-
-  // Update subscription ID when address or auth state changes
-  useEffect(() => {
-    if (!address) {
-      setSubscriptionId(null);
-      return;
-    }
-    const id =
-      Engine.context.RewardsController.getSubscriptionIdForAccount(address);
-    setSubscriptionId(id);
-  }, [address, isAuthenticated]);
 
   // Reusable function to check authentication state
   const checkAuthState = useCallback(async () => {
