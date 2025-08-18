@@ -1,5 +1,4 @@
 import React from 'react';
-import { useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import RewardsDashboard from './RewardsDashboard';
 import RewardsTerms from './RewardsTerms';
@@ -15,19 +14,7 @@ interface RewardsNavigatorProps {
 }
 
 const RewardsNavigator: React.FC<RewardsNavigatorProps> = () => {
-  const {
-    isOptIn,
-    isLoading,
-    optinError,
-    clearOptinError,
-    currentAccount,
-    subscriptionId,
-  } = useRewards();
-  const navigation = useNavigation();
-
-  const handleOptIn = () => {
-    navigation.navigate(Routes.REWARDS_TERMS);
-  };
+  const { isOptIn, isLoading, currentAccount, subscriptionId } = useRewards();
 
   // Show loading state or a loading component while checking auth
   if (isLoading) {
@@ -53,17 +40,8 @@ const RewardsNavigator: React.FC<RewardsNavigatorProps> = () => {
           <Stack.Screen
             name={Routes.REWARDS_VIEW}
             options={{ headerShown: false }}
-          >
-            {(props) => (
-              <RewardsView
-                {...props}
-                onOptIn={handleOptIn}
-                optinError={optinError}
-                onClearError={clearOptinError}
-                isLoading={isLoading}
-              />
-            )}
-          </Stack.Screen>
+            component={RewardsView}
+          />
           <Stack.Screen
             name={Routes.REWARDS_TERMS}
             component={RewardsTerms}

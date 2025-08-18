@@ -25,13 +25,7 @@ import {
 import { useDevOnlyLogin } from '../../../core/Engine/controllers/rewards-controller/hooks/useDevOnlyLogin';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-
-interface RewardsHeroProps {
-  onOptIn: () => void;
-  optinError?: string | null;
-  onClearError?: () => void;
-  isLoading?: boolean;
-}
+import { useRewards } from '../../../core/Engine/controllers/rewards-controller/RewardsAuthProvider';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -110,12 +104,7 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-const RewardsHero: React.FC<RewardsHeroProps> = ({
-  onOptIn,
-  optinError,
-  onClearError,
-  isLoading,
-}) => {
+const RewardsHero: React.FC = () => {
   const { colors } = useTheme();
   const navigation = useNavigation();
   const styles = createStyles(colors);
@@ -128,10 +117,15 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({
     },
   });
 
+  const handleOptIn = () => {
+    navigation.navigate(Routes.REWARDS_TERMS);
+  };
+
   const handleDevLogin = useCallback(() => {
     login(devInput);
   }, [devInput, login]);
 
+  const { isLoading, optinError, clearOptinError } = useRewards();
   const { seasonData } = useRewardsSeason(true);
   const name = seasonData?.name || 'Upcoming Season';
   const endDate = seasonData?.endDate;
@@ -163,7 +157,7 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({
           <BannerAlert
             severity={BannerAlertSeverity.Error}
             description={optinError}
-            onClose={onClearError}
+            onClose={clearOptinError}
             style={styles.errorBanner}
           />
         )}
@@ -182,7 +176,7 @@ const RewardsHero: React.FC<RewardsHeroProps> = ({
             label="Sign Up!"
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
-            onPress={onOptIn}
+            onPress={handleOptIn}
             disabled={isSolanaAccount}
             loading={isLoading}
           />

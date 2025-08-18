@@ -26,19 +26,7 @@ const createStyles = (colors: Colors) =>
     },
   });
 
-interface RewardsViewProps {
-  onOptIn: () => void;
-  optinError: string | null;
-  onClearError: () => void;
-  isLoading: boolean;
-}
-
-const RewardsView: React.FC<RewardsViewProps> = ({
-  onOptIn,
-  optinError,
-  onClearError,
-  isLoading,
-}) => {
+const RewardsView: React.FC = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -57,12 +45,7 @@ const RewardsView: React.FC<RewardsViewProps> = ({
   return (
     <SafeAreaView style={styles.wrapper}>
       <ScrollView style={styles.container}>
-        <RewardsHero
-          onOptIn={onOptIn}
-          optinError={optinError || null}
-          onClearError={onClearError}
-          isLoading={isLoading}
-        />
+        <RewardsHero />
       </ScrollView>
     </SafeAreaView>
   );
