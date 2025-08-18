@@ -13,3 +13,17 @@ export const selectIsFirstTimeUser = (
   }
   return state?.isFirstTimeUser?.mainnet ?? true;
 };
+
+/**
+ * Select whether user has ever placed their first successful order
+ * @param state - PerpsController state
+ * @returns boolean indicating if first order was placed
+ */
+export const selectHasPlacedFirstOrder = (
+  state: PerpsControllerState,
+): boolean => {
+  if (state?.isTestnet) {
+    return state?.hasPlacedFirstOrder?.testnet ?? false;
+  }
+  return state?.hasPlacedFirstOrder?.mainnet ?? false;
+};

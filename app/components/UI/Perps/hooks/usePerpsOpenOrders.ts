@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
+import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 import type { Order, GetOrdersParams } from '../controllers/types';
 
 export interface UsePerpsOpenOrdersResult {
@@ -63,6 +64,7 @@ export const usePerpsOpenOrders = (
     skipInitialFetch = false,
   } = options;
 
+  const { isConnected, isInitialized } = usePerpsConnection();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -70,6 +72,22 @@ export const usePerpsOpenOrders = (
 
   const fetchOpenOrders = useCallback(
     async (isRefresh = false): Promise<void> => {
+      // Check if connection is initialized before attempting to fetch
+      if (!isConnected || !isInitialized) {
+        DevLogger.log(
+          'usePerpsOpenOrders: Skipping fetch - connection not ready',
+          {
+            isConnected,
+            isInitialized,
+          },
+        );
+        // Keep loading state true if this is the initial fetch
+        if (!isRefresh && !skipInitialFetch) {
+          setIsLoading(true);
+        }
+        return;
+      }
+
       if (isRefresh) {
         setIsRefreshing(true);
       } else {
@@ -103,7 +121,7 @@ export const usePerpsOpenOrders = (
         setIsRefreshing(false);
       }
     },
-    [params],
+    [params, isConnected, isInitialized, skipInitialFetch],
   );
 
   const refresh = useCallback(
@@ -111,23 +129,29 @@ export const usePerpsOpenOrders = (
     [fetchOpenOrders],
   );
 
-  // Initial data fetch
+  // Initial data fetch when connection is ready
   useEffect(() => {
-    if (!skipInitialFetch) {
+    if (!skipInitialFetch && isConnected && isInitialized) {
       fetchOpenOrders();
     }
-  }, [fetchOpenOrders, skipInitialFetch]);
+  }, [fetchOpenOrders, skipInitialFetch, isConnected, isInitialized]);
 
-  // Polling effect
+  // Polling effect (only when connected)
   useEffect(() => {
-    if (!enablePolling) return;
+    if (!enablePolling || !isConnected || !isInitialized) return;
 
     const intervalId = setInterval(() => {
       fetchOpenOrders(true);
     }, pollingInterval);
 
     return () => clearInterval(intervalId);
-  }, [enablePolling, pollingInterval, fetchOpenOrders]);
+  }, [
+    enablePolling,
+    pollingInterval,
+    fetchOpenOrders,
+    isConnected,
+    isInitialized,
+  ]);
 
   return {
     orders,
