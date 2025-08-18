@@ -1,17 +1,14 @@
-/* eslint-disable import/prefer-default-export */
-
 // External dependencies.
 import { TextVariant } from '../Texts/Text';
 
-// Enums
-export enum HeaderBaseAlign {
-  Left = 'left',
-  Center = 'center',
-}
+// Internal dependencies.
+import { HeaderBaseVariant } from './HeaderBase.types';
 
-// Defaults
-export const DEFAULT_HEADERBASE_TITLE_TEXTVARIANT = TextVariant.HeadingSM;
-export const DEFAULT_HEADERBASE_ALIGN = HeaderBaseAlign.Center;
+// Text variants for different header variants
+export const HEADERBASE_VARIANT_TEXT_VARIANTS = {
+  [HeaderBaseVariant.Display]: TextVariant.HeadingLG,
+  [HeaderBaseVariant.Compact]: TextVariant.HeadingSM,
+};
 
 // Test IDs
 export const HEADERBASE_TEST_ID = 'header';

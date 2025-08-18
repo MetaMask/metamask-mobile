@@ -1,6 +1,5 @@
 import React from 'react';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { AccountGroupType } from '@metamask/account-api';
 import { AccountCell } from './AccountCell';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
@@ -13,16 +12,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-const mockAccountGroup: AccountGroupObject = {
-  type: AccountGroupType.SingleAccount,
-  id: 'keyring:test-group/ethereum' as const,
-  accounts: ['account-1'],
-  metadata: {
-    name: 'Test Account Group',
-    pinned: false,
-    hidden: false,
-  },
-};
+const mockAccountGroup = createMockAccountGroup(
+  'keyring:test-group/ethereum',
+  'Test Account Group',
+  ['account-1'],
+);
 
 const renderAccountCell = (
   props: {

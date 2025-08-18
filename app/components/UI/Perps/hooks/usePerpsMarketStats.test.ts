@@ -93,6 +93,7 @@ describe('usePerpsMarketStats', () => {
       candleData: mockCandleData,
       priceData: mockPriceData.BTC,
       isLoadingHistory: false,
+      refreshCandleData: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -116,6 +117,7 @@ describe('usePerpsMarketStats', () => {
       candleData: null,
       priceData: null,
       isLoadingHistory: true,
+      refreshCandleData: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -138,6 +140,7 @@ describe('usePerpsMarketStats', () => {
       candleData: mockCandleData,
       priceData: mockPriceData.BTC,
       isLoadingHistory: false,
+      refreshCandleData: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -159,6 +162,7 @@ describe('usePerpsMarketStats', () => {
       candleData: mockCandleData,
       priceData: mockPriceData.BTC,
       isLoadingHistory: false,
+      refreshCandleData: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -181,6 +185,7 @@ describe('usePerpsMarketStats', () => {
       candleData: null,
       priceData: null,
       isLoadingHistory: false,
+      refreshCandleData: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -213,6 +218,7 @@ describe('usePerpsMarketStats', () => {
       candleData: mockCandleData,
       priceData: largeNumberPriceData.BTC,
       isLoadingHistory: false,
+      refreshCandleData: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
@@ -238,6 +244,7 @@ describe('usePerpsMarketStats', () => {
       candleData: mockCandleData,
       priceData: negativeFundingData.BTC,
       isLoadingHistory: false,
+      refreshCandleData: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));

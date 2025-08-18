@@ -1,7 +1,9 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 
 import Routes from '../../../../../../constants/navigation/Routes';
+// eslint-disable-next-line import/no-namespace
+import * as AssetSelectionMetrics from '../../../hooks/send/metrics/useAssetSelectionMetrics';
 import { AssetType } from '../../../types/token';
 import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { Asset } from './asset';
@@ -226,5 +228,27 @@ describe('Asset', () => {
     render(<Asset />);
 
     expect(screen.getByText('TabBar')).toBeOnTheScreen();
+  });
+
+  it('uses correct TextFieldSize for search input', () => {
+    const mockSetAssetListSize = jest.fn();
+    const mockSetNoneAssetFilterMethod = jest.fn();
+    const mockSetSearchAssetFilterMethod = jest.fn();
+    jest
+      .spyOn(AssetSelectionMetrics, 'useAssetSelectionMetrics')
+      .mockReturnValue({
+        setAssetListSize: mockSetAssetListSize,
+        setNoneAssetFilterMethod: mockSetNoneAssetFilterMethod,
+        setSearchAssetFilterMethod: mockSetSearchAssetFilterMethod,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+    render(<Asset />);
+
+    const searchInput = screen.getByTestId('search-input');
+    fireEvent.changeText(searchInput, 'Eth');
+    fireEvent.changeText(searchInput, '');
+    fireEvent.changeText(searchInput, 'Eth');
+    expect(mockSetAssetListSize).toHaveBeenCalled();
+    expect(mockSetNoneAssetFilterMethod).toHaveBeenCalled();
   });
 });

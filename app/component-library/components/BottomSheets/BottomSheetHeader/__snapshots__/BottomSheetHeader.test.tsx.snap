@@ -1,12 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`BottomSheetHeader should render snapshot correctly 1`] = `
+exports[`BottomSheetHeader renders snapshot correctly with Compact variant 1`] = `
 <View
   style={
     [
       {
         "backgroundColor": "#ffffff",
         "flexDirection": "row",
+        "gap": 16,
         "padding": 16,
       },
       false,
@@ -17,20 +18,8 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
   <View
     style={
       {
-        "width": undefined,
-      }
-    }
-  >
-    <View
-      onLayout={[Function]}
-    />
-  </View>
-  <View
-    style={
-      {
         "alignItems": "center",
         "flex": 1,
-        "marginHorizontal": 16,
       }
     }
   >
@@ -51,16 +40,91 @@ exports[`BottomSheetHeader should render snapshot correctly 1`] = `
       Sample Header Title
     </Text>
   </View>
+</View>
+`;
+
+exports[`BottomSheetHeader renders snapshot correctly with Display variant 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "gap": 16,
+        "padding": 16,
+      },
+      false,
+    ]
+  }
+  testID="header"
+>
   <View
     style={
       {
-        "width": undefined,
+        "alignItems": "flex-start",
+        "flex": 1,
       }
     }
   >
-    <View
-      onLayout={[Function]}
-    />
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Bold",
+          "fontSize": 24,
+          "letterSpacing": 0,
+          "lineHeight": 32,
+          "textAlign": "left",
+        }
+      }
+      testID="header-title"
+    >
+      Sample Header Title
+    </Text>
+  </View>
+</View>
+`;
+
+exports[`BottomSheetHeader should render snapshot correctly 1`] = `
+<View
+  style={
+    [
+      {
+        "backgroundColor": "#ffffff",
+        "flexDirection": "row",
+        "gap": 16,
+        "padding": 16,
+      },
+      false,
+    ]
+  }
+  testID="header"
+>
+  <View
+    style={
+      {
+        "alignItems": "center",
+        "flex": 1,
+      }
+    }
+  >
+    <Text
+      accessibilityRole="text"
+      style={
+        {
+          "color": "#121314",
+          "fontFamily": "Geist Bold",
+          "fontSize": 16,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+          "textAlign": "center",
+        }
+      }
+      testID="header-title"
+    >
+      Sample Header Title
+    </Text>
   </View>
 </View>
 `;
