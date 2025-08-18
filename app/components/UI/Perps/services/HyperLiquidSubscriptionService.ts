@@ -328,11 +328,13 @@ export class HyperLiquidSubscriptionService {
             };
           });
 
-          // Extract account data from clearinghouseState
+          // Extract account data from clearinghouseState (with null checks)
           const accountState: AccountState = {
-            totalBalance: data.clearinghouseState.marginSummary.accountValue,
-            availableBalance: data.clearinghouseState.withdrawable,
-            marginUsed: data.clearinghouseState.marginSummary.totalMarginUsed,
+            totalBalance:
+              data.clearinghouseState?.marginSummary?.accountValue || '0',
+            availableBalance: data.clearinghouseState?.withdrawable || '0',
+            marginUsed:
+              data.clearinghouseState?.marginSummary?.totalMarginUsed || '0',
             // Calculate unrealized PnL from all positions
             unrealizedPnl: positionsWithTPSL
               .reduce((total, pos) => {

@@ -27,8 +27,8 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
-  // Use live account data with 5 second throttle for balance display
-  const accountState = usePerpsLiveAccount(5000);
+  // Use live account data with 1 second throttle for balance display
+  const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 0 });
 
   // Use the reusable hooks
   const { startPulseAnimation, getAnimatedStyle, stopAnimation } =
@@ -40,10 +40,10 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
 
   // Animate balance changes
   useEffect(() => {
-    if (!accountState) return;
+    if (!perpsAccount) return;
 
     // Use availableBalance since that's what we display in the UI
-    const currentBalance = accountState.availableBalance;
+    const currentBalance = perpsAccount.availableBalance;
 
     // Only animate if balance actually changed (and we have a previous value to compare)
     if (
@@ -62,7 +62,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
     }
 
     previousBalanceRef.current = currentBalance;
-  }, [accountState, startPulseAnimation, compareAndUpdateBalance]);
+  }, [perpsAccount, startPulseAnimation, compareAndUpdateBalance]);
 
   // Cleanup animations on unmount
   useEffect(() => () => stopAnimation(), [stopAnimation]);
@@ -83,7 +83,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
         </Text>
         <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
           <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {formatPerpsFiat(accountState?.availableBalance || '0')}
+            {formatPerpsFiat(perpsAccount?.availableBalance || '0')}
           </Text>
         </Animated.View>
       </View>
@@ -97,5 +97,19 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
     </TouchableOpacity>
   );
 };
+
+// Enable Why Did You Render in development
+// Uncomment to enable WDYR for debugging re-renders
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+//   const { shouldEnableWhyDidYouRender } = require('../../../../../../wdyr');
+//   if (shouldEnableWhyDidYouRender()) {
+//     // @ts-expect-error - whyDidYouRender is added by the WDYR library
+//     PerpsTabControlBar.whyDidYouRender = {
+//       logOnDifferentValues: true,
+//       customName: 'PerpsTabControlBar',
+//     };
+//   }
+// }
 
 export default PerpsTabControlBar;

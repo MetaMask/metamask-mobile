@@ -52,10 +52,11 @@ describe('usePerpsLiveAccount', () => {
     );
   });
 
-  it('should return null initially', () => {
+  it('should return null account initially with loading state', () => {
     const { result } = renderHook(() => usePerpsLiveAccount());
 
-    expect(result.current).toBeNull();
+    expect(result.current.account).toBeNull();
+    expect(result.current.isInitialLoading).toBe(true);
   });
 
   it('should return account data after subscription', async () => {
@@ -65,12 +66,13 @@ describe('usePerpsLiveAccount', () => {
 
     await waitForNextUpdate();
 
-    expect(result.current).toEqual(mockAccount);
+    expect(result.current.account).toEqual(mockAccount);
+    expect(result.current.isInitialLoading).toBe(false);
   });
 
   it('should subscribe with custom throttle time', () => {
     const customThrottle = 5000;
-    renderHook(() => usePerpsLiveAccount(customThrottle));
+    renderHook(() => usePerpsLiveAccount({ throttleMs: customThrottle }));
 
     // Subscription should be called with the custom throttle
     expect(mockSubscribe).toHaveBeenCalledWith({
@@ -86,7 +88,8 @@ describe('usePerpsLiveAccount', () => {
 
     // Wait for initial data
     await waitForNextUpdate();
-    expect(result.current).toEqual(mockAccount);
+    expect(result.current.account).toEqual(mockAccount);
+    expect(result.current.isInitialLoading).toBe(false);
 
     // Simulate account update
     const updatedAccount: AccountState = {
@@ -101,7 +104,8 @@ describe('usePerpsLiveAccount', () => {
     });
 
     // Verify update was applied
-    expect(result.current).toEqual(updatedAccount);
+    expect(result.current.account).toEqual(updatedAccount);
+    expect(result.current.isInitialLoading).toBe(false);
   });
 
   it('should unsubscribe on unmount', () => {
@@ -115,7 +119,7 @@ describe('usePerpsLiveAccount', () => {
   it('should resubscribe when throttle changes', () => {
     const { rerender } = renderHook(
       ({ throttleMs }: { throttleMs: number }) =>
-        usePerpsLiveAccount(throttleMs),
+        usePerpsLiveAccount({ throttleMs }),
       {
         initialProps: { throttleMs: 1000 },
       },

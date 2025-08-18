@@ -10,6 +10,10 @@ export type { UsePerpsLivePricesOptions } from './usePerpsLivePrices';
 export type { UsePerpsLiveOrdersOptions } from './usePerpsLiveOrders';
 export type { UsePerpsLivePositionsOptions } from './usePerpsLivePositions';
 export type { UsePerpsLiveFillsOptions } from './usePerpsLiveFills';
+export type {
+  UsePerpsLiveAccountOptions,
+  UsePerpsLiveAccountReturn,
+} from './usePerpsLiveAccount';
 
 // Re-export types from controllers
 export type {
