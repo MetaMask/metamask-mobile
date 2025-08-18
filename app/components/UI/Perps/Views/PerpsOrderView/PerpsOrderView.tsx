@@ -56,7 +56,6 @@ import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSh
 import PerpsOrderHeader from '../../components/PerpsOrderHeader';
 import PerpsOrderTypeBottomSheet from '../../components/PerpsOrderTypeBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider';
-import { type PerpsToken } from '../../components/PerpsTokenSelector';
 import PerpsTPSLBottomSheet from '../../components/PerpsTPSLBottomSheet';
 import {
   PerpsEventProperties,
@@ -81,10 +80,9 @@ import {
   usePerpsOrderExecution,
   usePerpsOrderFees,
   usePerpsOrderValidation,
-  usePerpsPaymentTokens,
   usePerpsPerformance,
-  usePerpsPrices,
 } from '../../hooks';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
@@ -108,7 +106,8 @@ interface OrderRouteParams {
 }
 
 // Extract the main content into a separate component that uses context
-const PerpsOrderViewContent: React.FC = React.memo(() => {
+// Define component without React.memo first
+const PerpsOrderViewContentBase: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { top } = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -210,6 +209,7 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: {
             market: navigationMarketData,
+            isNavigationFromOrderSuccess: true,
           },
         });
       },
@@ -238,10 +238,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
         });
       },
     });
-
-  const [selectedPaymentToken, setSelectedPaymentToken] =
-    useState<PerpsToken | null>(null);
-
   // Update ref when orderType changes
   useEffect(() => {
     orderTypeRef.current = orderForm.type;
@@ -252,9 +248,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
   const [isLimitPriceVisible, setIsLimitPriceVisible] = useState(false);
   const [isOrderTypeVisible, setIsOrderTypeVisible] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
-
-  const paymentTokens = usePerpsPaymentTokens();
-
   // Calculate estimated fees using the new hook
   const feeResults = usePerpsOrderFees({
     orderType: orderForm.type,
@@ -262,13 +255,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
     isMaker: false, // Conservative estimate for UI display
   });
   const estimatedFees = feeResults.totalFee;
-
-  // Set initial selected token to Hyperliquid USDC (always first in array)
-  useEffect(() => {
-    if (!selectedPaymentToken && paymentTokens.length > 0) {
-      setSelectedPaymentToken(paymentTokens[0]);
-    }
-  }, [paymentTokens, selectedPaymentToken]);
 
   // Tracking refs for one-time events
   const hasTrackedTradingView = useRef(false);
@@ -326,17 +312,11 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
     }
   }, [orderForm.asset, orderForm.direction, track]);
 
-  // Note: Navigation params for order type modal are no longer needed
-
-  // Get real-time price data with debouncing for better performance
-  // TODO: Currently using 100ms debounce as a workaround for multiple subscription interference
-  // When multiple usePerpsPrices hooks subscribe to the same symbol with different debounce values,
-  // they interfere with each other causing some instances to never receive updates.
-  // This will be fixed when we implement the centralized Stream Provider pattern.
-  // See: /temp/perps_websocket_architecture_analysis_v2.md
-  const prices = usePerpsPrices([orderForm.asset], {
-    includeOrderBook: false,
-    debounceMs: 100, // Temporary: Keep at 100ms until Stream Provider refactor
+  // Get real-time price data using new stream architecture
+  // Uses single WebSocket subscription with component-level debouncing
+  const prices = usePerpsLivePrices({
+    symbols: [orderForm.asset],
+    throttleMs: 10000, // 10 seconds for testing the architecture
   });
   const currentPrice = prices[orderForm.asset];
 
@@ -453,7 +433,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
     assetPrice: assetData.price,
     availableBalance,
     marginRequired,
-    selectedPaymentToken,
   });
 
   // Track dependent metrics update performance when amount or leverage changes
@@ -668,7 +647,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
         orderType={orderForm.type}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
       />
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -868,7 +846,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
           </View>
         </View>
       </ScrollView>
-
       {/* Keypad Section - Show when input is focused */}
       {isInputFocused && (
         <View style={styles.bottomSection}>
@@ -928,7 +905,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
           />
         </View>
       )}
-
       {/* Fixed Place Order Button - Hide when keypad is active */}
       {!isInputFocused && (
         <View style={styles.fixedBottomContainer}>
@@ -961,7 +937,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
           />
         </View>
       )}
-
       {/* TP/SL Bottom Sheet */}
       <PerpsTPSLBottomSheet
         isVisible={isTPSLVisible}
@@ -979,7 +954,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
         initialTakeProfitPrice={orderForm.takeProfitPrice}
         initialStopLossPrice={orderForm.stopLossPrice}
       />
-
       {/* Leverage Selector */}
       <PerpsLeverageBottomSheet
         isVisible={isLeverageVisible}
@@ -1020,7 +994,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
         direction={orderForm.direction}
         asset={orderForm.asset}
       />
-
       {/* Limit Price Bottom Sheet */}
       <PerpsLimitPriceBottomSheet
         isVisible={isLimitPriceVisible}
@@ -1033,7 +1006,6 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
         limitPrice={orderForm.limitPrice}
         currentPrice={assetData.price}
       />
-
       {/* Order Type Bottom Sheet */}
       <PerpsOrderTypeBottomSheet
         isVisible={isOrderTypeVisible}
@@ -1061,8 +1033,22 @@ const PerpsOrderViewContent: React.FC = React.memo(() => {
       )}
     </SafeAreaView>
   );
-});
+};
 
+// Enable WDYR tracking BEFORE wrapping with React.memo
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsOrderViewContentBase as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsOrderViewContent',
+  };
+}
+
+// Now wrap with React.memo AFTER setting whyDidYouRender
+const PerpsOrderViewContent = React.memo(PerpsOrderViewContentBase);
+
+// Set display name for debugging
+PerpsOrderViewContent.displayName = 'PerpsOrderViewContent';
 // Main component that wraps content with context providers
 const PerpsOrderView: React.FC = () => {
   const route = useRoute<RouteProp<{ params: OrderRouteParams }, 'params'>>();

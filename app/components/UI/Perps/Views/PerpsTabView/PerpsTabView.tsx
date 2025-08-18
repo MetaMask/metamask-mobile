@@ -1,6 +1,6 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, RefreshControl, ScrollView, View } from 'react-native';
+import { Modal, ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -36,10 +36,10 @@ import {
   usePerpsConnection,
   usePerpsEventTracking,
   usePerpsFirstTimeUser,
-  usePerpsPositions,
   usePerpsTrading,
   usePerpsPerformance,
 } from '../../hooks';
+import { usePerpsLivePositions } from '../../hooks/stream';
 import styleSheet from './PerpsTabView.styles';
 
 interface PerpsTabViewProps {}
@@ -58,15 +58,12 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
-  const {
-    positions,
-    isLoading: isPositionsLoading,
-    isRefreshing,
-    loadPositions,
-  } = usePerpsPositions();
+  // Get real-time positions via WebSocket
+  const { positions, isInitialLoading } = usePerpsLivePositions({
+    throttleMs: 1000, // Update positions every second
+  });
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
-  const isLoading = isPositionsLoading;
   const firstTimeUserIconSize = 48 as unknown as IconSize;
 
   // Start measuring position data load time on mount
@@ -88,7 +85,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   useEffect(() => {
     if (
       !hasTrackedHomescreen.current &&
-      !isLoading &&
+      !isInitialLoading &&
       positions &&
       cachedAccountState?.totalBalance !== undefined
     ) {
@@ -113,16 +110,12 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       hasTrackedHomescreen.current = true;
     }
   }, [
-    isLoading,
+    isInitialLoading,
     positions,
     cachedAccountState?.totalBalance,
     track,
     endMeasure,
   ]);
-
-  const handleRefresh = useCallback(() => {
-    loadPositions();
-  }, [loadPositions]);
 
   const handleManageBalancePress = useCallback(() => {
     setIsBottomSheetVisible(true);
@@ -161,7 +154,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   }, [navigation]);
 
   const renderPositionsSection = () => {
-    if (isLoading) {
+    if (isInitialLoading) {
       return (
         <View style={styles.loadingContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
@@ -254,15 +247,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       ) : (
         <>
           <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
-          <ScrollView
-            style={styles.content}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-          >
+          <ScrollView style={styles.content}>
             <View style={styles.section}>{renderPositionsSection()}</View>
           </ScrollView>
         </>
@@ -306,5 +291,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     </View>
   );
 };
+
+// Enable WDYR tracking in development
+// Uncomment to enable WDYR for debugging re-renders
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   (PerpsTabView as any).whyDidYouRender = {
+//     logOnDifferentValues: true,
+//     customName: 'PerpsTabView',
+//   };
+// }
 
 export default PerpsTabView;
