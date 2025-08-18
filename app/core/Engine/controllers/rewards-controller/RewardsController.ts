@@ -138,12 +138,32 @@ export class RewardsController extends BaseController<
     account: InternalAccount,
     timestamp: number,
   ): Promise<string> {
-    const message = `rewards,${account},${timestamp}`;
+    const message = `rewards,${account.address},${timestamp}`;
 
     const isSolanaAccount = this.#isSolanaAccount(account);
     if (isSolanaAccount) {
-      return 'Solana signature not supported yet';
+      return await this.#signSolanaMessage(account, message);
     }
+
+    return await this.#signEvmMessage(account, message);
+  }
+
+  async #signSolanaMessage(
+    account: InternalAccount,
+    message: string,
+  ): Promise<string> {
+    Logger.log(
+      'RewardsController: Signing Solana message for account',
+      message,
+      account.address,
+    );
+    return 'Solana signature not supported yet';
+  }
+
+  async #signEvmMessage(
+    account: InternalAccount,
+    message: string,
+  ): Promise<string> {
     // Convert message to hex format for signing
     const hexMessage = '0x' + Buffer.from(message, 'utf8').toString('hex');
 
@@ -155,7 +175,10 @@ export class RewardsController extends BaseController<
         from: account.address,
       },
     );
-    Logger.log('RewardsController: Message signed', account, signature);
+    Logger.log(
+      'RewardsController: EVM message signed for account',
+      account.address,
+    );
     return signature;
   }
 

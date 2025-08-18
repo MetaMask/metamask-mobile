@@ -43,7 +43,7 @@ export const rewardsApi = createApi({
       try {
         const rewardsController = Engine.context.RewardsController;
         const selectedAccount =
-          Engine.context.AccountsController.getSelectedAccount();
+          Engine.context.AccountsController.getSelectedMultichainAccount();
 
         if (selectedAccount && rewardsController) {
           const subscriptionId = rewardsController.getSubscriptionIdForAccount(
@@ -96,7 +96,7 @@ export const rewardsApi = createApi({
 
           // Get the current selected account address
           const selectedAccount =
-            Engine.context.AccountsController.getSelectedAccount();
+            Engine.context.AccountsController.getSelectedMultichainAccount();
           if (!selectedAccount?.address) {
             return;
           }
