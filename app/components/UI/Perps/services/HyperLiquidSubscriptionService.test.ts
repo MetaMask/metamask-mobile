@@ -30,6 +30,22 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
     averagePrice: '50000',
     markPrice: '52000',
   })),
+  adaptOrderFromSDK: jest.fn((order: any) => ({
+    orderId: order.oid.toString(),
+    symbol: order.coin,
+    side: order.side === 'B' ? 'buy' : 'sell',
+    orderType: 'limit',
+    size: order.sz,
+    originalSize: order.sz,
+    price: order.limitPx || '0',
+    filledSize: '0',
+    remainingSize: order.sz,
+    status: 'open',
+    timestamp: Date.now(),
+    detailedOrderType: order.orderType || 'Limit',
+    isTrigger: false,
+    reduceOnly: false,
+  })),
 }));
 
 // Mock DevLogger
@@ -435,6 +451,116 @@ describe('HyperLiquidSubscriptionService', () => {
 
       expect(mockSubscriptionClient.userFills).not.toHaveBeenCalled();
       expect(typeof unsubscribe).toBe('function');
+    });
+  });
+
+  describe('Shared WebData2 Subscription', () => {
+    it('should share webData2 subscription between positions and orders', async () => {
+      const positionCallback = jest.fn();
+      const orderCallback = jest.fn();
+
+      // Subscribe to positions first
+      const unsubscribePositions = service.subscribeToPositions({
+        callback: positionCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Subscribe to orders - should reuse same webData2 subscription
+      const unsubscribeOrders = service.subscribeToOrders({
+        callback: orderCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should only call webData2 once for shared subscription
+      expect(mockSubscriptionClient.webData2).toHaveBeenCalledTimes(1);
+
+      // Both callbacks should be called with their respective data
+      expect(positionCallback).toHaveBeenCalled();
+      expect(orderCallback).toHaveBeenCalled();
+
+      // Cleanup
+      unsubscribePositions();
+      unsubscribeOrders();
+    });
+
+    it('should maintain subscription when one subscriber unsubscribes', async () => {
+      const positionCallback1 = jest.fn();
+      const positionCallback2 = jest.fn();
+
+      // Subscribe two position callbacks
+      const unsubscribe1 = service.subscribeToPositions({
+        callback: positionCallback1,
+      });
+
+      const unsubscribe2 = service.subscribeToPositions({
+        callback: positionCallback2,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Unsubscribe first callback
+      unsubscribe1();
+
+      // Second callback should still receive updates
+      mockSubscriptionClient.webData2.mock.calls[0][1]({
+        clearinghouseState: {
+          assetPositions: [{
+            position: { coin: 'BTC', szi: '1.0' },
+          }],
+        },
+        openOrders: [],
+      });
+
+      expect(positionCallback2).toHaveBeenCalled();
+      
+      unsubscribe2();
+    });
+
+    it('should cache positions and orders data', async () => {
+      const positionCallback = jest.fn();
+
+      // Setup webData2 mock to call callback with data
+      mockSubscriptionClient.webData2.mockImplementation((_addr, callback) => {
+        setTimeout(() => {
+          callback({
+            clearinghouseState: {
+              assetPositions: [{
+                position: { coin: 'BTC', szi: '1.0' },
+              }],
+            },
+            openOrders: [{
+              oid: 123,
+              coin: 'BTC',
+              side: 'B',
+              sz: '0.5',
+              limitPx: '50000',
+            }],
+          });
+        }, 0);
+        return Promise.resolve({ unsubscribe: jest.fn() });
+      });
+
+      const unsubscribe = service.subscribeToPositions({
+        callback: positionCallback,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Should receive cached data on new subscription
+      const newCallback = jest.fn();
+      const unsubscribe2 = service.subscribeToPositions({
+        callback: newCallback,
+      });
+
+      // New subscriber should get cached data immediately
+      expect(newCallback).toHaveBeenCalledWith(expect.arrayContaining([
+        expect.objectContaining({ coin: 'BTC' }),
+      ]));
+
+      unsubscribe();
+      unsubscribe2();
     });
   });
 

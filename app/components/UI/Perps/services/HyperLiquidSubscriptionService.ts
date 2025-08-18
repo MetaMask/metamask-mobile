@@ -67,6 +67,7 @@ export class HyperLiquidSubscriptionService {
 
   // Shared webData2 subscription for positions and orders
   private sharedWebData2Subscription?: Subscription;
+  private webData2SubscriptionPromise?: Promise<void>;
   private positionSubscriberCount = 0;
   private orderSubscriberCount = 0;
   private cachedPositions: Position[] = [];
@@ -207,10 +208,34 @@ export class HyperLiquidSubscriptionService {
   private async ensureSharedWebData2Subscription(
     accountId?: CaipAccountId,
   ): Promise<void> {
+    // Return existing subscription if active
     if (this.sharedWebData2Subscription) {
       return;
     }
 
+    // Return existing promise if subscription is being established
+    if (this.webData2SubscriptionPromise) {
+      return this.webData2SubscriptionPromise;
+    }
+
+    // Create new subscription promise to prevent race conditions
+    this.webData2SubscriptionPromise = this.createWebData2Subscription(accountId);
+    
+    try {
+      await this.webData2SubscriptionPromise;
+    } catch (error) {
+      // Clear promise on error so it can be retried
+      this.webData2SubscriptionPromise = undefined;
+      throw error;
+    }
+  }
+
+  /**
+   * Create the actual webData2 subscription
+   */
+  private async createWebData2Subscription(
+    accountId?: CaipAccountId,
+  ): Promise<void> {
     this.clientService.ensureSubscriptionClient(
       this.walletService.createWalletAdapter(),
     );
@@ -348,6 +373,7 @@ export class HyperLiquidSubscriptionService {
         DevLogger.log('Failed to unsubscribe shared webData2', error);
       });
       this.sharedWebData2Subscription = undefined;
+      this.webData2SubscriptionPromise = undefined;
       this.positionSubscriberCount = 0;
       this.orderSubscriberCount = 0;
       this.cachedPositions = [];
@@ -885,6 +911,8 @@ export class HyperLiquidSubscriptionService {
     this.globalAllMidsSubscription = undefined;
     this.globalActiveAssetSubscriptions.clear();
     this.globalL2BookSubscriptions.clear();
+    this.sharedWebData2Subscription = undefined;
+    this.webData2SubscriptionPromise = undefined;
 
     DevLogger.log('HyperLiquid: Subscription service cleared', {
       timestamp: new Date().toISOString(),
