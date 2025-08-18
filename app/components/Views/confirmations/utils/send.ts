@@ -75,6 +75,7 @@ export const prepareEVMTransaction = (
       fromAddress: from,
       toAddress: to,
       tokenId: toHex(asset.tokenId),
+      amount: toHex(value ?? 1),
     });
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';

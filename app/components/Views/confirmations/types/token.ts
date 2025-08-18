@@ -11,6 +11,6 @@ export interface AssetType extends TokenI {
   networkBadgeSource?: ImageSourcePropType;
   tokenId?: string;
   isSelected?: boolean;
-  standard?: string;
+  standard?: TokenStandard;
   description?: string;
 }
