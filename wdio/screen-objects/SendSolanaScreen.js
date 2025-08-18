@@ -58,13 +58,13 @@ class SendSolanaScreen {
   async fillAmountField(amount) {
     const element = await this.amountField;
     await element.fill(amount);
+    const continueButton = await this.continueButton;
+    await continueButton.waitFor({ state: 'visible' });
   }
 
   async tapContinueButton() {
-    const element = await AppwrightSelectors.getElementByText(this._device, 'Continue'); // to make sure that the button becomes clickable
-    expect(element).toBeVisible();
+    await this._device.waitForTimeout(1000); // wait for the spinner to dissapear
     const continueButton = await this.continueButton;
-    expect(continueButton).toBeVisible();
     await continueButton.tap();
   }
 
