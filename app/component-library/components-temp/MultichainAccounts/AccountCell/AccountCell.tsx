@@ -20,7 +20,7 @@ interface AccountCellProps {
   isSelected: boolean;
 }
 
-export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
+const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
   const { navigate } = useNavigation();
 
