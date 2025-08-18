@@ -80,7 +80,7 @@ const PerpsMarketHeader: React.FC<PerpsMarketHeaderProps> = ({
             fallbackPrice={market.price || '0'}
             fallbackChange={market.change24hPercent || '0'}
             testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
-            testIDChange={PerpsMarketHeaderSelectorsIDs.CHANGE}
+            testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
             throttleMs={1000}
           />
         </View>

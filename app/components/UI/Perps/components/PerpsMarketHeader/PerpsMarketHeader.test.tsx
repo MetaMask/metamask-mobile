@@ -32,8 +32,6 @@ describe('PerpsMarketHeader', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsMarketHeader
         market={mockMarket}
-        currentPrice={45000}
-        priceChange24h={2.5}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
       />,
       { state: initialState },
@@ -47,8 +45,6 @@ describe('PerpsMarketHeader', () => {
     const { UNSAFE_getByType } = renderWithProvider(
       <PerpsMarketHeader
         market={mockMarket}
-        currentPrice={45000}
-        priceChange24h={2.5}
         onBackPress={onBackPress}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
       />,
@@ -66,8 +62,6 @@ describe('PerpsMarketHeader', () => {
     const { UNSAFE_getByType } = renderWithProvider(
       <PerpsMarketHeader
         market={mockMarket}
-        currentPrice={45000}
-        priceChange24h={2.5}
         onMorePress={onMorePress}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
       />,

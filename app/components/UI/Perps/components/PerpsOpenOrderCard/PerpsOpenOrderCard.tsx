@@ -71,7 +71,7 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
   // Derive order data for display
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
     // For reduce-only orders (TP/SL), show them as closing positions
-    let direction: string;
+    let direction: OpenOrderCardDerivedData['direction'];
     if (order.reduceOnly || order.isTrigger) {
       // This is a TP/SL order closing a position
       // If side is 'sell', it's closing a long position
