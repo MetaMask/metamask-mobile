@@ -1,20 +1,19 @@
 /* eslint-disable import/no-namespace */
-import React from 'react';
 import {
+  fireEvent,
   render,
   screen,
-  fireEvent,
   waitFor,
-  act,
 } from '@testing-library/react-native';
+import React from 'react';
 import { Animated } from 'react-native';
-import PerpsTabControlBar from './PerpsTabControlBar';
-import * as PerpsHooks from '../../hooks';
 import * as ComponentLibraryHooks from '../../../../../component-library/hooks';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { Position } from '../../controllers';
+import * as PerpsHooks from '../../hooks';
+import PerpsTabControlBar from './PerpsTabControlBar';
 
 // Mock dependencies
+jest.mock('../../providers/PerpsStreamManager');
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(() => ({
     styles: {
@@ -31,6 +30,13 @@ jest.mock('../../hooks', () => ({
   usePerpsTrading: jest.fn(),
   useColorPulseAnimation: jest.fn(),
   useBalanceComparison: jest.fn(),
+}));
+
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+  })),
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
@@ -87,7 +93,6 @@ describe('PerpsTabControlBar', () => {
 
   // Mock implementations
   const mockGetAccountState = jest.fn();
-  const mockSubscribeToPositions = jest.fn();
   const mockStartPulseAnimation = jest.fn();
   const mockStopAnimation = jest.fn();
   const mockCompareAndUpdateBalance = jest.fn();
@@ -125,7 +130,6 @@ describe('PerpsTabControlBar', () => {
         getPositions: jest.fn(),
         getAccountState: mockGetAccountState,
         subscribeToPrices: jest.fn(),
-        subscribeToPositions: mockSubscribeToPositions,
         subscribeToOrderFills: jest.fn(),
         deposit: jest.fn(),
         getDepositRoutes: jest.fn(),
@@ -150,9 +154,6 @@ describe('PerpsTabControlBar', () => {
 
     // Default successful responses
     mockGetAccountState.mockResolvedValue(defaultAccountState);
-    mockSubscribeToPositions.mockReturnValue(() => {
-      /* empty unsubscribe function */
-    });
 
     mockCompareAndUpdateBalance.mockReturnValue('increase');
   });
@@ -242,55 +243,7 @@ describe('PerpsTabControlBar', () => {
     });
   });
 
-  describe('WebSocket Subscription and Polling', () => {
-    it('subscribes to position updates on mount', async () => {
-      render(<PerpsTabControlBar />);
-
-      expect(mockSubscribeToPositions).toHaveBeenCalledWith({
-        callback: expect.any(Function),
-      });
-    });
-
-    it('refreshes balance when position updates are received', async () => {
-      let positionCallback: ((positions: Position[]) => void) | null = null;
-      mockSubscribeToPositions.mockImplementation(({ callback }) => {
-        positionCallback = callback;
-        return () => {
-          /* empty unsubscribe function */
-        };
-      });
-
-      render(<PerpsTabControlBar />);
-
-      await waitFor(() => {
-        expect(mockSubscribeToPositions).toHaveBeenCalled();
-      });
-
-      // Simulate position update
-      await act(async () => {
-        positionCallback?.([
-          { id: '1', symbol: 'BTC' },
-        ] as unknown as Position[]);
-      });
-
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(2); // Initial + position update
-      });
-    });
-
-    it('only calls getAccountState once without position updates', async () => {
-      render(<PerpsTabControlBar />);
-
-      // Fast forward time to ensure no polling occurs
-      act(() => {
-        jest.advanceTimersByTime(60000);
-      });
-
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(1); // Initial load only
-      });
-    });
-  });
+  // WebSocket subscription tests removed - usePerpsLivePositions handles subscriptions internally
 
   describe('Press Handler', () => {
     it('calls onManageBalancePress when pressed', async () => {
@@ -371,16 +324,7 @@ describe('PerpsTabControlBar', () => {
   });
 
   describe('Cleanup and Memory Management', () => {
-    it('cleans up subscription on unmount', async () => {
-      const mockUnsubscribe = jest.fn();
-      mockSubscribeToPositions.mockReturnValue(mockUnsubscribe);
-
-      const { unmount } = render(<PerpsTabControlBar />);
-
-      unmount();
-
-      expect(mockUnsubscribe).toHaveBeenCalled();
-    });
+    // Subscription cleanup test removed - handled by usePerpsLivePositions internally
 
     it('stops animation on unmount', async () => {
       const { unmount } = render(<PerpsTabControlBar />);
@@ -390,13 +334,7 @@ describe('PerpsTabControlBar', () => {
       expect(mockStopAnimation).toHaveBeenCalled();
     });
 
-    it('handles cleanup when subscription returns null', async () => {
-      mockSubscribeToPositions.mockReturnValue(null);
-
-      const { unmount } = render(<PerpsTabControlBar />);
-
-      expect(() => unmount()).not.toThrow();
-    });
+    // Null subscription test removed - no longer applicable
   });
 
   describe('Edge Cases', () => {
@@ -426,42 +364,7 @@ describe('PerpsTabControlBar', () => {
       });
     });
 
-    it('handles multiple rapid balance updates via position changes', async () => {
-      let positionCallback: ((positions: Position[]) => void) | undefined;
-      mockSubscribeToPositions.mockImplementation(({ callback }) => {
-        positionCallback = callback;
-        return jest.fn();
-      });
-
-      render(<PerpsTabControlBar />);
-
-      // Simulate multiple rapid position updates with different values
-      await act(async () => {
-        positionCallback?.([
-          {
-            coin: 'BTC',
-            size: '1.0',
-            entryPrice: '50000',
-            unrealizedPnl: '100',
-          },
-        ] as unknown as Position[]);
-        positionCallback?.([
-          {
-            coin: 'ETH',
-            size: '2.0',
-            entryPrice: '3000',
-            unrealizedPnl: '200',
-          },
-        ] as unknown as Position[]);
-        positionCallback?.([
-          { coin: 'SOL', size: '3.0', entryPrice: '100', unrealizedPnl: '300' },
-        ] as unknown as Position[]);
-      });
-
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalledTimes(4); // Initial + 3 position updates
-      });
-    });
+    // Test removed - position updates handled by usePerpsLivePositions internally
   });
 
   describe('Integration', () => {
