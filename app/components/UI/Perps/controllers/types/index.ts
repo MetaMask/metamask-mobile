@@ -358,7 +358,6 @@ export interface SubscribeAccountParams {
   callback: (account: AccountState) => void;
   accountId?: CaipAccountId; // Optional: defaults to selected account
 }
-
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
