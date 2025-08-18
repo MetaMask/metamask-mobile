@@ -17,7 +17,10 @@ import type { AccountsControllerState } from '@metamask/accounts-controller';
 
 // RootState used by reselect inputs for existing selectors
 import { selectEnabledNetworksByNamespace } from '../networkEnablementController';
-import { selectAccountTreeControllerState } from '../multichainAccounts/accountTreeController';
+import {
+  selectAccountTreeControllerState,
+  selectSelectedAccountGroupId,
+} from '../multichainAccounts/accountTreeController';
 import {
   selectMultichainBalances,
   selectMultichainAssetsRates,
@@ -162,7 +165,6 @@ export const selectBalanceByAccountGroup = (groupId: string) =>
     }
     return wallet.groups[groupId];
   });
-
 export const selectBalanceByWallet = (walletId: string) =>
   createSelector([selectBalanceForAllWallets], (allBalances) => {
     const wallet = allBalances.wallets[walletId] ?? null;
@@ -184,6 +186,27 @@ export const selectBalanceByWallet = (walletId: string) =>
       groups: wallet.groups,
     };
   });
+
+export const selectBalanceBySelectedAccountGroup = createSelector(
+  [selectSelectedAccountGroupId, selectBalanceForAllWallets],
+  (selectedGroupId, allBalances) => {
+    if (!selectedGroupId) {
+      return null;
+    }
+    const walletId = selectedGroupId.split('/')[0];
+    const wallet = allBalances.wallets[walletId] ?? null;
+    const { userCurrency } = allBalances;
+    if (!wallet?.groups[selectedGroupId]) {
+      return {
+        walletId,
+        groupId: selectedGroupId,
+        totalBalanceInUserCurrency: 0,
+        userCurrency,
+      };
+    }
+    return wallet.groups[selectedGroupId];
+  },
+);
 
 // Balance change selectors (period: '1d' | '7d' | '30d')
 export const selectBalanceChangeForAllWallets = (period: BalanceChangePeriod) =>
@@ -274,4 +297,52 @@ export const selectBalancePercentChangeByAccountGroup = (
   createSelector(
     [selectBalanceChangeByAccountGroup(groupId, period)],
     (change) => change.percentChange,
+  );
+
+// Selected-account-group balance change (period: '1d' | '7d' | '30d')
+export const selectBalanceChangeBySelectedAccountGroup = (
+  period: BalanceChangePeriod,
+) =>
+  createSelector(
+    [
+      selectSelectedAccountGroupId,
+      selectAccountTreeStateForBalances,
+      selectAccountsStateForBalances,
+      selectTokenBalancesStateForBalances,
+      selectTokenRatesStateForBalances,
+      selectMultichainAssetsRatesStateForBalances,
+      selectMultichainBalancesStateForBalances,
+      selectTokensStateForBalances,
+      selectCurrencyRateStateForBalances,
+      selectEnabledNetworksByNamespace,
+    ],
+    (
+      selectedGroupId,
+      accountTreeState,
+      accountsState,
+      tokenBalancesState,
+      tokenRatesState,
+      multichainRatesState,
+      multichainBalancesState,
+      tokensState,
+      currencyRateState,
+      enabledNetworkMap,
+    ): BalanceChangeResult | null => {
+      if (!selectedGroupId) {
+        return null;
+      }
+      return calculateBalanceChangeForAccountGroup(
+        accountTreeState,
+        accountsState,
+        tokenBalancesState,
+        tokenRatesState,
+        multichainRatesState,
+        multichainBalancesState,
+        tokensState,
+        currencyRateState,
+        enabledNetworkMap,
+        selectedGroupId,
+        period,
+      );
+    },
   );

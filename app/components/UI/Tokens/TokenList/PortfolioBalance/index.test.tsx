@@ -8,7 +8,7 @@ import Engine from '../../../../../core/Engine';
 import {
   FORMATTED_VALUE_PRICE_TEST_ID,
   FORMATTED_PERCENTAGE_TEST_ID,
-} from '../../../Assets/BalanceChange/constants';
+} from '../../../Assets/components/BalanceChange/constants';
 
 // Mock feature flag selector - will be controlled per test
 const mockSelectMultichainAccountsState2Enabled = jest.fn();

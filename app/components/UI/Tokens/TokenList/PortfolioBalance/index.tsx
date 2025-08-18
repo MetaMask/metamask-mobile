@@ -1,34 +1,22 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import Engine from '../../../../../core/Engine';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import createStyles from '../../styles';
-import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
-import AccountGroupBalanceChange from '../../../Assets/BalanceChange/AccountGroupBalanceChange';
-import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
-import {
-  selectBalanceForAllWallets,
-  selectBalanceByAccountGroup,
-  selectBalanceChangeByAccountGroup,
-} from '../../../../../selectors/assets/balances';
-import { formatWithThreshold } from '../../../../../util/assets';
-import I18n from '../../../../../../locales/i18n';
-import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
-import type { RootState } from '../../../../../reducers';
-import { selectWalletByAccount } from '../../../../../selectors/multichainAccounts/accountTreeController';
-import Loader from '../../../../../component-library/components-temp/Loader/Loader';
-import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
-import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text';
+import AggregatedPercentageCrossChains from '../../../../../component-library/components-temp/Price/AggregatedPercentage/AggregatedPercentageCrossChains';
+import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMultichainBalances';
+import Loader from '../../../../../component-library/components-temp/Loader/Loader';
+import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
+import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 
-export const PortfolioBalance = () => {
+export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -36,67 +24,7 @@ export const PortfolioBalance = () => {
 
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
-  const isMultichainState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
-  const selectedAccount = useSelector(selectSelectedInternalAccount);
-  const derivedWallet = useSelector((state: RootState) =>
-    selectWalletByAccount(state)(selectedAccount?.id as string),
-  );
-
-  const assetsControllersBalance = useSelector(selectBalanceForAllWallets);
-
-  // Try to resolve the correct group id by membership of the selected account
-  // TODO(ASSETS-1125): Temporary resolver
-  // Until the Account Tree exposes a reliable selector for the currently selected
-  // account group id, we resolve `groupId` by:
-  // 1) Finding the group in the current wallet that contains the selected account
-  // 2) Falling back to the first available group from assets-controllers if needed
-  // Long term: replace this with a dedicated "selected account group id" selector
-  // from the Account Tree to remove assumptions about membership/order and delete
-  // this resolver.
-  const groupIdFromMembership = (() => {
-    if (!derivedWallet?.groups || !selectedAccount?.id) return undefined;
-    const entry = Object.entries(derivedWallet.groups).find(([, group]) =>
-      Array.isArray(group?.accounts)
-        ? group.accounts.some((a: string) => a === selectedAccount.id)
-        : false,
-    );
-    return entry?.[0];
-  })();
-
-  // Gather available group ids from assets-controllers for the wallet
-  const availableGroupIds = Object.keys(
-    (derivedWallet?.id &&
-      assetsControllersBalance?.wallets?.[derivedWallet.id]?.groups) ||
-      {},
-  );
-
-  const resolvedGroupId =
-    groupIdFromMembership && availableGroupIds.includes(groupIdFromMembership)
-      ? groupIdFromMembership
-      : availableGroupIds[0];
-
-  const selectBalanceForResolvedGroup = useMemo(
-    () =>
-      resolvedGroupId ? selectBalanceByAccountGroup(resolvedGroupId) : null,
-    [resolvedGroupId],
-  );
-  const resolvedGroupBalance = useSelector((state: RootState) =>
-    selectBalanceForResolvedGroup ? selectBalanceForResolvedGroup(state) : null,
-  );
-
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const selectChangeForResolvedGroup = useMemo(
-    () =>
-      resolvedGroupId
-        ? selectBalanceChangeByAccountGroup(resolvedGroupId, '1d')
-        : null,
-    [resolvedGroupId],
-  );
-  const portfolioChange1d = useSelector((state: RootState) =>
-    selectChangeForResolvedGroup ? selectChangeForResolvedGroup(state) : null,
-  );
 
   const renderAggregatedPercentage = () => {
     if (
@@ -105,19 +33,6 @@ export const PortfolioBalance = () => {
       selectedAccountMultichainBalance?.totalFiatBalance === undefined
     ) {
       return null;
-    }
-
-    if (isMultichainState2Enabled && portfolioChange1d) {
-      return (
-        <AccountGroupBalanceChange
-          privacyMode={privacyMode}
-          amountChangeInUserCurrency={
-            portfolioChange1d.amountChangeInUserCurrency
-          }
-          percentChange={portfolioChange1d.percentChange}
-          userCurrency={portfolioChange1d.userCurrency}
-        />
-      );
     }
 
     if (!isEvmSelected) {
@@ -142,22 +57,6 @@ export const PortfolioBalance = () => {
     [PreferencesController],
   );
 
-  const selectedDisplay = (() => {
-    if (isMultichainState2Enabled) {
-      if (resolvedGroupBalance) {
-        const value = resolvedGroupBalance.totalBalanceInUserCurrency;
-        const currency = resolvedGroupBalance.userCurrency;
-        return formatWithThreshold(value, 0.01, I18n.locale, {
-          style: 'currency',
-          currency: currency.toUpperCase(),
-        });
-      }
-      // When feature flag is ON but aggregated data not ready, show loader
-      return undefined;
-    }
-    // Feature flag OFF uses legacy display
-    return selectedAccountMultichainBalance?.displayBalance;
-  })();
   return (
     <View style={styles.portfolioBalance}>
       <View>
@@ -173,7 +72,7 @@ export const PortfolioBalance = () => {
                 testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
                 variant={TextVariant.DisplayLG}
               >
-                {selectedDisplay}
+                {selectedAccountMultichainBalance.displayBalance}
               </SensitiveText>
             </View>
 
@@ -187,4 +86,4 @@ export const PortfolioBalance = () => {
       </View>
     </View>
   );
-};
+});

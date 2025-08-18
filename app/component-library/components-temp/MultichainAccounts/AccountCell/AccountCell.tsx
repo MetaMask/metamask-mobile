@@ -1,6 +1,7 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import { useSelector } from 'react-redux';
 import { useStyles } from '../../../hooks';
 import styleSheet from './AccountCell.styles';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
@@ -12,6 +13,9 @@ import {
 } from '../../../../components/UI/Box/box.types';
 import Icon, { IconName, IconSize } from '../../../components/Icons/Icon';
 import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountCell.selectors';
+import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
+import { formatWithThreshold } from '../../../../util/assets';
+import I18n from '../../../../../locales/i18n';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
@@ -20,6 +24,23 @@ interface AccountCellProps {
 
 export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
+
+  const selectBalanceForGroup = useMemo(
+    () => selectBalanceByAccountGroup(accountGroup.id),
+    [accountGroup.id],
+  );
+  const groupBalance = useSelector(selectBalanceForGroup);
+  const displayBalance = useMemo(() => {
+    if (!groupBalance) {
+      return undefined;
+    }
+    const value = groupBalance.totalBalanceInUserCurrency;
+    const currency = groupBalance.userCurrency;
+    return formatWithThreshold(value, 0.01, I18n.locale, {
+      style: 'currency',
+      currency: currency.toUpperCase(),
+    });
+  }, [groupBalance]);
 
   return (
     <Box
@@ -54,10 +75,7 @@ export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
           color={TextColor.Default}
           testID={AccountCellIds.BALANCE}
         >
-          {
-            // TODO: REPLACE WITH ACTUAL BALANCE
-            '$1234567890.00'
-          }
+          {displayBalance}
         </Text>
         <TouchableOpacity
           testID={AccountCellIds.MENU}

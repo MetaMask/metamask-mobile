@@ -101,6 +101,8 @@ import { ButtonVariants } from '../../../component-library/components/Buttons/Bu
 import { useAccountName } from '../../hooks/useAccountName';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroupBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
@@ -717,6 +719,10 @@ const Wallet = ({
 
   const isCardholder = useSelector(selectIsCardholder);
 
+  const isMultichainAccountsState2Enabled = useSelector(
+    selectMultichainAccountsState2Enabled,
+  );
+
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
@@ -962,7 +968,11 @@ const Wallet = ({
           </View>
         ) : null}
         <>
-          <PortfolioBalance />
+          {isMultichainAccountsState2Enabled ? (
+            <AccountGroupBalance />
+          ) : (
+            <PortfolioBalance />
+          )}
           <AssetDetailsActions
             displayFundButton={displayFundButton}
             displaySwapsButton={displaySwapsButton}
@@ -995,6 +1005,7 @@ const Wallet = ({
       basicFunctionalityEnabled,
       defiEnabled,
       isEvmSelected,
+      isMultichainAccountsState2Enabled,
       turnOnBasicFunctionality,
       onChangeTab,
       navigation,
