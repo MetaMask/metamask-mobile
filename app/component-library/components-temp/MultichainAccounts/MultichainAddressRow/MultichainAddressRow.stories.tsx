@@ -8,7 +8,7 @@ import {
   SAMPLE_ICONS,
   SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS,
 } from './MultichainAddressRow.constants';
-import { Icon } from '../../../components/Icons/Icon';
+import { Icon } from './MultichainAddressRow.types';
 
 const MultichainAddressRowMeta = {
   title: 'Component Library / MultichainAccounts',
