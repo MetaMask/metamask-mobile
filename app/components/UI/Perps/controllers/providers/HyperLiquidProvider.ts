@@ -1303,9 +1303,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const infoClient = this.clientService.getInfoClient();
 
       // Fetch all required data in parallel for better performance
-      const [perpsMeta, allMids] = await Promise.all([
+      const [perpsMeta, allMids, predictedFundings] = await Promise.all([
         infoClient.meta(),
         infoClient.allMids(),
+        infoClient.predictedFundings(),
       ]);
 
       if (!perpsMeta?.universe || !allMids) {
@@ -1321,6 +1322,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         universe: perpsMeta.universe,
         assetCtxs,
         allMids,
+        predictedFundings,
       });
     } catch (error) {
       DevLogger.log('Error getting market data with prices:', error);

@@ -20,6 +20,8 @@ import FundingCountdown from '../FundingCountdown';
 const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
   marketStats,
   onTooltipPress,
+  nextFundingTime,
+  fundingIntervalHours,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -124,6 +126,8 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             <FundingCountdown
               variant={TextVariant.BodyXS}
               color={TextColor.Alternative}
+              nextFundingTime={nextFundingTime}
+              fundingIntervalHours={fundingIntervalHours}
               testID={
                 PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_COUNTDOWN
               }

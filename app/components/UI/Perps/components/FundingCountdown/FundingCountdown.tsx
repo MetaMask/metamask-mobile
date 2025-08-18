@@ -9,22 +9,37 @@ interface FundingCountdownProps {
   variant?: TextVariant;
   color?: TextColor;
   testID?: string;
+  /**
+   * Next funding time in milliseconds since epoch (optional, market-specific)
+   */
+  nextFundingTime?: number;
+  /**
+   * Funding interval in hours (optional, market-specific)
+   */
+  fundingIntervalHours?: number;
 }
 
 /**
  * Isolated countdown component that updates every second
- * without causing parent re-renders
+ * without causing parent re-renders.
+ * Supports market-specific funding times when provided.
  */
 const FundingCountdown: React.FC<FundingCountdownProps> = ({
   variant = TextVariant.BodySM,
   color = TextColor.Default,
   testID,
+  nextFundingTime,
+  fundingIntervalHours,
 }) => {
-  const [countdown, setCountdown] = useState(() => calculateFundingCountdown());
+  const [countdown, setCountdown] = useState(() =>
+    calculateFundingCountdown({ nextFundingTime, fundingIntervalHours }),
+  );
 
   useEffect(() => {
     const updateCountdown = () => {
-      setCountdown(calculateFundingCountdown());
+      setCountdown(
+        calculateFundingCountdown({ nextFundingTime, fundingIntervalHours }),
+      );
     };
 
     // Update immediately
@@ -34,7 +49,7 @@ const FundingCountdown: React.FC<FundingCountdownProps> = ({
     const interval = setInterval(updateCountdown, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [nextFundingTime, fundingIntervalHours]);
 
   return (
     <Text variant={variant} color={color} testID={testID}>

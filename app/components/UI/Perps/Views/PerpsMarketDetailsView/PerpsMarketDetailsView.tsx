@@ -375,6 +375,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               unfilledOrders={openOrders}
               onPositionUpdate={refreshPosition}
               onActiveTabChange={setActiveTabId}
+              nextFundingTime={market?.nextFundingTime}
+              fundingIntervalHours={market?.fundingIntervalHours}
             />
           </View>
 

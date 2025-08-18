@@ -33,6 +33,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   unfilledOrders = [],
   onPositionUpdate,
   onActiveTabChange,
+  nextFundingTime,
+  fundingIntervalHours,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -166,6 +168,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
         <PerpsMarketStatisticsCard
           marketStats={marketStats}
           onTooltipPress={handleTooltipPress}
+          nextFundingTime={nextFundingTime}
+          fundingIntervalHours={fundingIntervalHours}
         />
         {renderTooltipModal()}
       </Animated.View>
@@ -231,6 +235,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
             <PerpsMarketStatisticsCard
               marketStats={marketStats}
               onTooltipPress={handleTooltipPress}
+              nextFundingTime={nextFundingTime}
+              fundingIntervalHours={fundingIntervalHours}
             />
           </View>
         );

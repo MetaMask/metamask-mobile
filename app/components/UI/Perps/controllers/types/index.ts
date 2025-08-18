@@ -143,6 +143,14 @@ export interface PerpsMarketData {
    * Trading volume as formatted string (e.g., '$1.2B', '$850M')
    */
   volume: string;
+  /**
+   * Next funding time in milliseconds since epoch (optional, market-specific)
+   */
+  nextFundingTime?: number;
+  /**
+   * Funding interval in hours (optional, market-specific)
+   */
+  fundingIntervalHours?: number;
 }
 
 export interface ToggleTestnetResult {
