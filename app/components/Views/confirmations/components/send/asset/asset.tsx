@@ -39,13 +39,13 @@ export const Asset = () => {
   }, [searchQuery, setNoneAssetFilterMethod, setSearchAssetFilterMethod]);
 
   return (
-    <Box twClassName="flex-1 px-4">
-      <Box twClassName="w-full py-2">
+    <Box twClassName="flex-1">
+      <Box twClassName="w-full px-4 py-2">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Search"
-          size={TextFieldSize.Md}
+          size={TextFieldSize.Lg}
           showClearButton={searchQuery.length > 0}
           onPressClearButton={clearSearch}
         />
