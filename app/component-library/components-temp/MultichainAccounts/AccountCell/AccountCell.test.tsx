@@ -3,6 +3,7 @@ import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountCell } from './AccountCell';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
+import { createMockAccountGroup } from '../test-utils';
 
 // Mock navigation
 const mockNavigate = jest.fn();
