@@ -144,7 +144,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     setOrderType,
     handlePercentageAmount,
     handleMaxAmount,
-    handleMinAmount,
     calculations,
   } = usePerpsOrderContext();
 
@@ -525,10 +524,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     handleMaxAmount();
   };
 
-  const handleMinPress = () => {
-    handleMinAmount();
-  };
-
   const handleDonePress = () => {
     setIsInputFocused(false);
   };
@@ -867,31 +862,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
-              label="75%"
-              onPress={() => handlePercentagePress(0.75)}
-              style={styles.percentageButton}
-            />
-          </View>
-
-          <View style={styles.percentageButtonsContainer}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="Min"
-              onPress={handleMinPress}
-              style={styles.percentageButton}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label={strings('perps.deposit.max_button')}
+              label="Max"
               onPress={handleMaxPress}
               style={styles.percentageButton}
             />
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
-              label={strings('perps.deposit.done_button')}
+              label="Done"
               onPress={handleDonePress}
               style={styles.percentageButton}
             />
@@ -902,6 +880,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             onChange={handleKeypadChange}
             currency="USD"
             decimals={0}
+            style={styles.keypad}
           />
         </View>
       )}

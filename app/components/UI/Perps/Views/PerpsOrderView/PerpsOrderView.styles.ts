@@ -68,20 +68,21 @@ const createStyles = (colors: Colors) =>
       marginBottom: 12,
     },
     bottomSection: {
-      paddingHorizontal: 24,
-      paddingVertical: 24,
+      backgroundColor: colors.background.default,
     },
     percentageButtonsContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingHorizontal: 24,
-      marginBottom: 16,
-      gap: 12,
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+      gap: 8,
     },
     percentageButton: {
       flex: 1,
+      minWidth: 0, // Ensures buttons can shrink properly
     },
     keypad: {
+      paddingHorizontal: 16,
       backgroundColor: colors.background.default,
     },
   });
