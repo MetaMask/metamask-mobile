@@ -136,20 +136,6 @@ exports[`PerpsView should render correctly in connected state 1`] = `
           Transactions History
         </Text>
       </TouchableOpacity>
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-      >
-        <Text
-          accessibilityRole="text"
-        >
-          🔍 Debug: REST vs WebSocket Comparison
-        </Text>
-      </TouchableOpacity>
     </View>
     <View
       style={{}}
@@ -560,20 +546,6 @@ exports[`PerpsView should render correctly when initializing 1`] = `
           accessibilityRole="text"
         >
           Transactions History
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        accessibilityRole="button"
-        accessible={true}
-        activeOpacity={1}
-        onPress={[Function]}
-        onPressIn={[Function]}
-        onPressOut={[Function]}
-      >
-        <Text
-          accessibilityRole="text"
-        >
-          🔍 Debug: REST vs WebSocket Comparison
         </Text>
       </TouchableOpacity>
     </View>

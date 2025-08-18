@@ -159,7 +159,6 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
-      priceData: largeNumberPriceData.BTC,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -185,7 +184,6 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
-      priceData: negativeFundingData.BTC,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });

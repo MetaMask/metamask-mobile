@@ -151,10 +151,7 @@ const PerpsPositionsView: React.FC = () => {
         <View style={styles.headerPlaceholder} />
       </View>
 
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}
-      >
+      <ScrollView style={styles.container}>
         {/* Account Summary */}
         <View style={styles.accountSummary}>
           <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
