@@ -251,7 +251,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
-                        title: 'Take Profit'
+                        title: 'TP'
                     });
                     
                     // Store reference for future removal
@@ -280,7 +280,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
-                        title: 'Stop Loss'
+                        title: 'SL'
                     });
                     
                     // Store reference for future removal
@@ -309,7 +309,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                         lineWidth: 1,
                         lineStyle: 2, // Dashed
                         axisLabelVisible: true,
-                        title: 'Liquidation'
+                        title: 'Liq'
                     });
                     
                     // Store reference for future removal
