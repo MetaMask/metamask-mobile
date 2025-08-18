@@ -1161,8 +1161,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
       DevLogger.log(
-        'Getting currently open orders via HyperLiquid SDK:',
-        params,
+        'Getting currently open orders via HyperLiquid SDK',
+        params || '(no params)',
       );
       await this.ensureReady();
 
@@ -1334,7 +1334,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const infoClient = this.clientService.getInfoClient();
       const meta = await infoClient.meta();
-      return meta.universe.map((asset) => adaptMarketFromSDK(asset));
+      const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
+
+      return markets;
     } catch (error) {
       DevLogger.log('Error getting markets:', error);
       return [];
@@ -1869,7 +1871,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       try {
         await this.walletService.getCurrentAccountId();
         accountConnected = true;
-      } catch {
+      } catch (error) {
+        DevLogger.log('Account not connected:', error);
         accountConnected = false;
       }
 
