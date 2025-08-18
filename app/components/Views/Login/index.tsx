@@ -197,7 +197,15 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
+    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return () => {
+      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
+  useEffect(() => {
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtxFromRoute) {
       passwordLoginAttemptTraceCtxRef.current = trace({
@@ -206,11 +214,9 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
         parentContext: onboardingTraceCtxFromRoute,
       });
     }
+  }, [route.params?.onboardingTraceCtx]);
 
-    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
-
-    BackHandler.addEventListener('hardwareBackPress', handleBackPress);
-
+  useEffect(() => {
     const getUserAuthPreferences = async () => {
       if (isSeedlessPasswordOutdated) {
         setError(strings('login.seedless_password_outdated'));
@@ -253,12 +259,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
     };
 
     getUserAuthPreferences();
-
-    return () => {
-      BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSeedlessPasswordOutdated]);
+  }, [isSeedlessPasswordOutdated, route?.params?.locked]);
 
   const handleVaultCorruption = async () => {
     const LOGIN_VAULT_CORRUPTION_TAG = 'Login/ handleVaultCorruption:';
