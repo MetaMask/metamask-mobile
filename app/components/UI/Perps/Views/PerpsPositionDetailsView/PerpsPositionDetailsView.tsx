@@ -83,7 +83,6 @@ const PerpsPositionDetailsView: React.FC = () => {
     coin: position?.coin || '',
     selectedDuration: TimeDuration.ONE_HOUR, // Time duration (1hr, 1D, 1W, etc.) - hardcoded for TradingView
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
-    candleCount: 45, // Number of candles to fetch for zoom functionality - hardcoded for TradingView
   });
 
   const handleDurationChange = useCallback((newDuration: TimeDuration) => {

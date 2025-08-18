@@ -220,6 +220,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         window.chart = null;
         window.candlestickSeries = null;
         window.isInitialDataLoad = true; // Track if this is the first data load
+        window.lastDataKey = null; // Track the last dataset to avoid unnecessary autoscaling
         
         // Step 1: Load TradingView library dynamically
         function loadTradingView() {
@@ -472,14 +473,16 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                             if (window.candlestickSeries) {
                                 window.candlestickSeries.setData(message.data);
                                 
-                                // Only fit content on initial load, preserve user zoom afterwards
-                                if (window.isInitialDataLoad) {
-                                    console.log('📊 TradingView: Initial data load - fitting content to show all data');
+                                // Check if this is truly new data (different source/period) or just a rerender
+                                const currentDataKey = message.source + '_' + (message.data?.length || 0);
+                                const shouldAutoscale = window.isInitialDataLoad || (window.lastDataKey !== currentDataKey);
+                                
+                                if (shouldAutoscale) {
                                     window.chart.timeScale().fitContent();
-                                    window.isInitialDataLoad = false;
-                                } else {
-                                    console.log('📊 TradingView: Data updated - preserving user zoom level');
+                                    window.lastDataKey = currentDataKey;
                                 }
+                                
+                                window.isInitialDataLoad = false;
                             } else {
                                 console.error('📊 TradingView: Failed to create candlestick series');
                             }

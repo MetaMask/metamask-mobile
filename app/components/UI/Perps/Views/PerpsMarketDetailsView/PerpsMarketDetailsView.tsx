@@ -4,7 +4,7 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useState, useMemo } from 'react';
+import React, { useCallback, useState } from 'react';
 import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
@@ -38,7 +38,6 @@ import {
   getDefaultCandlePeriodForDuration,
   TimeDuration,
   CandlePeriod,
-  calculateCandleCount,
 } from '../../constants/chartConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
@@ -72,14 +71,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
-  // Calculate candle count based on selected duration and candle period
-  const candleCount = useMemo(
-    () =>
-      // Use the existing calculateCandleCount utility which already has the right logic
-      // This calculates: time_range / candle_period with reasonable limits
-      calculateCandleCount(selectedDuration, selectedCandlePeriod),
-    [selectedDuration, selectedCandlePeriod],
-  );
+
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
@@ -88,14 +80,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     coin: market?.symbol || '',
     selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
-    candleCount, // Number of candles to fetch for zoom functionality
   });
   // Note: isLoadingHistory available if needed: const { candleData, isLoadingHistory } = usePerpsPositionData...
 
   const handleDurationChange = useCallback((newDuration: TimeDuration) => {
     setSelectedDuration(newDuration);
-    // Note: Keep the current candle period - don't auto-change it
-    // User can independently control candle period via gear icon settings
+    // Auto-select the appropriate default candle period for this duration
+    const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
+    setSelectedCandlePeriod(defaultPeriod);
   }, []);
 
   const handleCandlePeriodChange = useCallback((newPeriod: CandlePeriod) => {
