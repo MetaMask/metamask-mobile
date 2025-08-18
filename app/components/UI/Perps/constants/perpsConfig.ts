@@ -52,3 +52,23 @@ export const VALIDATION_THRESHOLDS = {
   // Minimum percentage for partial position close warning
   SMALL_CLOSE_PERCENTAGE_WARNING: 10, // Warn if closing <10% of position
 } as const;
+
+/**
+ * Performance optimization constants
+ * These values control debouncing and throttling for better performance
+ */
+export const PERFORMANCE_CONFIG = {
+  // Price updates debounce delay (milliseconds)
+  // Batches rapid WebSocket price updates to reduce re-renders
+  PRICE_UPDATE_DEBOUNCE_MS: 1000,
+
+  // Order validation debounce delay (milliseconds)
+  // Prevents excessive validation calls during rapid form input changes
+  VALIDATION_DEBOUNCE_MS: 1000,
+} as const;
+
+/**
+ * Perps notifications feature flag (temporary hard-coded flag)
+ * This flag controls whether the perps notifications feature logic is enabled
+ */
+export const PERPS_NOTIFICATIONS_FEATURE_ENABLED = false;

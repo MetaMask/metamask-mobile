@@ -314,6 +314,7 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
 
 export const PerpsOrderViewSelectorsIDs = {
   BOTTOM_SHEET_TOOLTIP: 'perps-order-view-bottom-sheet-tooltip',
+  NOTIFICATION_TOOLTIP: 'perps-order-view-notification-tooltip',
   LEVERAGE_INFO_ICON: 'perps-order-view-leverage-info-icon',
   MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
