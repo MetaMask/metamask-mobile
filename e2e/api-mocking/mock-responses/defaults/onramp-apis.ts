@@ -12,5 +12,10 @@ export const ONRAMP_API_MOCKS: TestSpecificMock = {
       responseCode: 200,
       response: 'US',
     },
+    {
+      urlEndpoint: 'https://on-ramp.api.cx.metamask.io/geolocation',
+      responseCode: 200,
+      response: 'US',
+    },
   ],
 };
