@@ -26,43 +26,59 @@ const PerpsTimeDurationSelector: React.FC<PerpsTimeDurationSelectorProps> = ({
 }) => {
   const { styles } = useStyles(timeDurationSelectorStyleSheet, {});
 
+  // Debug: Check if selectedDuration changes
+  React.useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log(
+      '🎯 PerpsTimeDurationSelector selectedDuration changed to:',
+      selectedDuration,
+    );
+  }, [selectedDuration]);
+
+  console.log(selectedDuration);
+
   return (
     <Box style={styles.container} testID={testID}>
       {/* Time Duration Buttons */}
       <Box style={styles.durationButtonsContainer}>
-        {TIME_DURATIONS.map((duration) => (
-          <Pressable
-            key={duration.value}
-            style={({ pressed }) => [
-              styles.durationButton,
-              selectedDuration.toLowerCase() === duration.value.toLowerCase()
-                ? styles.durationButtonActive
-                : styles.durationButtonInactive,
-              pressed && styles.durationButtonPressed,
-            ]}
-            onPress={() => onDurationChange?.(duration.value)}
-            testID={
-              testID
-                ? getPerpsTimeDurationSelector.durationButton(
-                    testID,
-                    duration.value,
-                  )
-                : undefined
-            }
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              style={[
-                styles.durationButtonText,
-                selectedDuration.toLowerCase() === duration.value.toLowerCase()
-                  ? styles.durationButtonTextActive
-                  : styles.durationButtonTextInactive,
+        {TIME_DURATIONS.map((duration) => {
+          const isSelected =
+            selectedDuration.toLowerCase() === duration.value.toLowerCase();
+
+          return (
+            <Pressable
+              key={duration.value}
+              style={({ pressed }) => [
+                styles.durationButton,
+                isSelected
+                  ? styles.durationButtonActive
+                  : styles.durationButtonInactive,
+                pressed && styles.durationButtonPressed,
               ]}
+              onPress={() => onDurationChange?.(duration.value)}
+              testID={
+                testID
+                  ? getPerpsTimeDurationSelector.durationButton(
+                      testID,
+                      duration.value,
+                    )
+                  : undefined
+              }
             >
-              {duration.label}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                variant={TextVariant.BodySm}
+                style={[
+                  styles.durationButtonText,
+                  isSelected
+                    ? styles.durationButtonTextActive
+                    : styles.durationButtonTextInactive,
+                ]}
+              >
+                {duration.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </Box>
 
       {/* Gear Icon */}

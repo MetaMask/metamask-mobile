@@ -13,6 +13,13 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
 import type { CandleData } from '../../types';
 import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import PerpsTimeDurationSelector from '../PerpsTimeDurationSelector/PerpsTimeDurationSelector';
+import {
+  DURATION_CANDLE_PERIODS,
+  CandlePeriod,
+  TimeDuration,
+  TimeDuration as TD,
+} from '../../constants/chartConfig';
 
 // TP/SL Lines interface
 export interface TPSLLines {
@@ -23,6 +30,9 @@ export interface TPSLLines {
   currentPrice?: string;
 }
 
+// Re-export TimeDuration for convenience
+export type { TimeDuration } from '../../constants/chartConfig';
+
 interface TradingViewChartProps {
   candleData?: CandleData | null;
   height?: number;
@@ -30,6 +40,10 @@ interface TradingViewChartProps {
   onChartReady?: () => void;
   testID?: string;
   showSampleDataWhenEmpty?: boolean; // For debugging purposes
+  selectedDuration?: TimeDuration | string;
+  onDurationChange?: (duration: TimeDuration) => void;
+  onGearPress?: () => void;
+  showDurationSelector?: boolean; // Allow hiding duration selector
 }
 
 const TradingViewChart: React.FC<TradingViewChartProps> = ({
@@ -39,6 +53,10 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   onChartReady,
   testID,
   showSampleDataWhenEmpty = true, // Enable by default for debugging
+  selectedDuration = '1d',
+  onDurationChange,
+  onGearPress,
+  showDurationSelector = true,
 }) => {
   /* eslint-disable no-console */
   // Temporarily disable console warnings for debugging
@@ -46,6 +64,104 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   const webViewRef = useRef<WebView>(null);
   const [isChartReady, setIsChartReady] = useState(false);
   const [webViewError, setWebViewError] = useState<string | null>(null);
+
+  // Get candle period based on selected duration
+  const getCurrentCandlePeriod = useCallback(
+    (duration: TimeDuration | string): CandlePeriod => {
+      // Convert string to TimeDuration enum if needed
+      const durationKey = duration as TimeDuration;
+
+      // Get the default candle period for this duration
+      const durationConfig = DURATION_CANDLE_PERIODS[durationKey];
+      if (durationConfig) {
+        return durationConfig.default;
+      }
+
+      // Fallback defaults
+      switch (duration) {
+        case TD.ONE_HOUR:
+        case '1hr':
+          return CandlePeriod.ONE_MINUTE; // 60 candles
+        case TD.ONE_DAY:
+        case '1d':
+          return CandlePeriod.ONE_HOUR; // 24 candles
+        default:
+          return CandlePeriod.ONE_MINUTE;
+      }
+    },
+    [],
+  );
+
+  // Calculate number of candles based on duration and period
+  const getCandleCount = useCallback(
+    (duration: TimeDuration | string, period: CandlePeriod): number => {
+      switch (duration) {
+        case TD.ONE_HOUR:
+        case '1hr':
+          return period === CandlePeriod.ONE_MINUTE ? 60 : 60;
+        case TD.ONE_DAY:
+        case '1d':
+          return period === CandlePeriod.ONE_HOUR ? 24 : 24;
+        default:
+          return 60; // Default fallback
+      }
+    },
+    [],
+  );
+
+  // Note: currentCandlePeriod calculation available if needed later
+  // const currentCandlePeriod = useMemo(() =>
+  //   getCurrentCandlePeriod(selectedDuration),
+  //   [selectedDuration, getCurrentCandlePeriod]
+  // );
+
+  // Send interval update to WebView
+  const sendIntervalUpdate = useCallback(
+    (duration: TimeDuration | string) => {
+      if (!webViewRef.current || !isChartReady) {
+        console.log(
+          '🔍 Chart not ready yet, interval update will be sent when ready',
+        );
+        return;
+      }
+
+      const period = getCurrentCandlePeriod(duration);
+      const count = getCandleCount(duration, period);
+
+      const message = {
+        type: 'UPDATE_INTERVAL',
+        duration,
+        candlePeriod: period,
+        candleCount: count,
+        timestamp: new Date().toISOString(),
+      };
+
+      console.log('📊 Sending interval update to chart:', message);
+      webViewRef.current.postMessage(JSON.stringify(message));
+    },
+    [isChartReady, getCurrentCandlePeriod, getCandleCount],
+  );
+
+  // Handle duration change
+  const handleDurationChange = useCallback(
+    (duration: TimeDuration) => {
+      console.log('🔄 Duration changed to:', duration);
+      sendIntervalUpdate(duration);
+      onDurationChange?.(duration);
+    },
+    [sendIntervalUpdate, onDurationChange],
+  );
+
+  // Send initial interval when chart becomes ready
+  useEffect(() => {
+    if (isChartReady) {
+      console.log(
+        '📊 Chart ready, sending initial interval:',
+        selectedDuration,
+      );
+      sendIntervalUpdate(selectedDuration);
+    }
+  }, [isChartReady, selectedDuration, sendIntervalUpdate]);
 
   // WORKING TradingView implementation - building on verified WebView foundation
   const htmlContent = useMemo(
@@ -355,6 +471,31 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                             window.updatePriceLines(message.lines);
                         }
                         break;
+                        
+                    case 'UPDATE_INTERVAL':
+                        console.log('📊 TradingView: Received interval update:', {
+                            duration: message.duration,
+                            candlePeriod: message.candlePeriod,
+                            candleCount: message.candleCount
+                        });
+                        
+                        // For now, just log the interval change
+                        // In a real implementation, you would:
+                        // 1. Request new data with the specified candle period
+                        // 2. Update the chart with the new candle count/period
+                        // 3. Possibly adjust time scale settings
+                        
+                        // Send confirmation back to React Native
+                        if (window.ReactNativeWebView) {
+                            window.ReactNativeWebView.postMessage(JSON.stringify({
+                                type: 'INTERVAL_UPDATED',
+                                duration: message.duration,
+                                candlePeriod: message.candlePeriod,
+                                candleCount: message.candleCount,
+                                timestamp: new Date().toISOString()
+                            }));
+                        }
+                        break;
                 }
             } catch (error) {
                 console.error('📊 TradingView: Message handling error:', error);
@@ -410,6 +551,14 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
               created: message.created,
               skipped: message.skipped,
               prices: message.priceValues,
+              timestamp: new Date(message.timestamp).toLocaleTimeString(),
+            });
+            break;
+          case 'INTERVAL_UPDATED':
+            console.log('✅ Chart interval updated successfully:', {
+              duration: message.duration,
+              candlePeriod: message.candlePeriod,
+              candleCount: message.candleCount,
               timestamp: new Date(message.timestamp).toLocaleTimeString(),
             });
             break;
@@ -556,45 +705,50 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
   return (
     <Box
-      twClassName="bg-default overflow-hidden rounded-lg"
-      style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
+      twClassName="bg-default rounded-lg"
       testID={testID || TradingViewChartSelectorsIDs.CONTAINER}
     >
-      <WebView
-        ref={webViewRef}
-        source={{ html: htmlContent }}
-        style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
-        // injectedJavaScript={injectedJavaScript}
-        onMessage={handleWebViewMessage}
-        onError={handleWebViewError}
-        onHttpError={(syntheticEvent) => {
-          const { nativeEvent } = syntheticEvent;
-          console.error('TradingViewChart: HTTP Error:', nativeEvent);
-        }}
-        onLoadStart={() =>
-          console.log('TradingViewChart: WebView load started')
-        }
-        onLoadEnd={() => console.log('TradingViewChart: WebView load ended')}
-        onLoad={() => {
-          console.log(
-            'TradingViewChart: WebView loaded - ready to communicate',
-          );
-        }}
-        javaScriptEnabled
-        domStorageEnabled
-        scrollEnabled={false}
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        scalesPageToFit={false}
-        startInLoadingState={false}
-        allowsInlineMediaPlayback={false}
-        mediaPlaybackRequiresUserAction={false}
-        mixedContentMode="compatibility"
-        testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
-        // Enable debugging (you can set this to false in production)
-        webviewDebuggingEnabled={__DEV__}
-      />
+      {/* Chart WebView */}
+      <Box
+        twClassName="overflow-hidden rounded-lg"
+        style={{ height, width: '100%', minHeight: height }} // eslint-disable-line react-native/no-inline-styles
+      >
+        <WebView
+          ref={webViewRef}
+          source={{ html: htmlContent }}
+          style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
+          // injectedJavaScript={injectedJavaScript}
+          onMessage={handleWebViewMessage}
+          onError={handleWebViewError}
+          onHttpError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            console.error('TradingViewChart: HTTP Error:', nativeEvent);
+          }}
+          onLoadStart={() =>
+            console.log('TradingViewChart: WebView load started')
+          }
+          onLoadEnd={() => console.log('TradingViewChart: WebView load ended')}
+          onLoad={() => {
+            console.log(
+              'TradingViewChart: WebView loaded - ready to communicate',
+            );
+          }}
+          javaScriptEnabled
+          domStorageEnabled
+          scrollEnabled={false}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          scalesPageToFit={false}
+          startInLoadingState={false}
+          allowsInlineMediaPlayback={false}
+          mediaPlaybackRequiresUserAction={false}
+          mixedContentMode="compatibility"
+          testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
+          // Enable debugging (you can set this to false in production)
+          webviewDebuggingEnabled={__DEV__}
+        />
+      </Box>
     </Box>
   );
 };

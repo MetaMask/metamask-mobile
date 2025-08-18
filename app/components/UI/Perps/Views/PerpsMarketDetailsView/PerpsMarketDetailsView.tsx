@@ -44,6 +44,7 @@ import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types
 import PerpsBottomSheetTooltip, {
   PerpsTooltipContentKey,
 } from '../../components/PerpsBottomSheetTooltip';
+import PerpsTimeDurationSelector from '../../components/PerpsTimeDurationSelector/PerpsTimeDurationSelector';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
 }
@@ -70,17 +71,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
-  const [candleCount, setCandleCount] = useState<number>(45); // Default zoom level: 45 candles
+  const [candleCount] = useState<number>(45); // Default zoom level: 45 candles
+  // Note: setCandleCount available if needed: const [candleCount, setCandleCount] = useState<number>(45);
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
   // Get candlestick data
-  const { candleData, isLoadingHistory } = usePerpsPositionData({
+  const { candleData } = usePerpsPositionData({
     coin: market?.symbol || '',
     selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
     candleCount, // Number of candles to fetch for zoom functionality
   });
+  // Note: isLoadingHistory available if needed: const { candleData, isLoadingHistory } = usePerpsPositionData...
 
   const handleDurationChange = useCallback((newDuration: TimeDuration) => {
     setSelectedDuration(newDuration);
@@ -97,9 +100,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     setIsCandlePeriodBottomSheetVisible(true);
   }, []);
 
-  const handleZoomChange = useCallback((newCandleCount: number) => {
-    setCandleCount(newCandleCount);
-  }, []);
+  // Note: handleZoomChange available if needed for zoom functionality
+  // const handleZoomChange = useCallback((newCandleCount: number) => {
+  //   setCandleCount(newCandleCount);
+  // }, []);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -175,7 +179,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           <TradingViewChart
             candleData={candleData}
             height={350}
-            testID={PerpsMarketDetailsViewSelectorsIDs.TRADINGVIEW_CHART}
+            selectedDuration={selectedDuration}
+            onDurationChange={handleDurationChange}
+            onGearPress={handleGearPress}
+            showDurationSelector
+            testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+          />
+          <PerpsTimeDurationSelector
+            selectedDuration={selectedDuration}
+            onDurationChange={handleDurationChange}
+            onGearPress={() => console.log('foo')}
+            // testID={`${
+            //   testID || TradingViewChartSelectorsIDs.CONTAINER
+            // }-duration-selector`}
           />
         </View>
 

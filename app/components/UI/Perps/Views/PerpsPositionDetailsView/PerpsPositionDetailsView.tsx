@@ -32,6 +32,7 @@ import {
   TimeDuration,
   CandlePeriod,
 } from '../../constants/chartConfig';
+import PerpsTimeDurationSelector from '../../components/PerpsTimeDurationSelector';
 
 interface PositionDetailsRouteParams {
   position: Position;
@@ -61,6 +62,9 @@ const PerpsPositionDetailsView: React.FC = () => {
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
   ] = useState(false);
+  const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
+    TimeDuration.ONE_HOUR,
+  );
   // TODO: Re-enable when TradingView chart supports zoom functionality
   // const [candleCount, setCandleCount] = useState<number>(45); // Default zoom level: 45 candles
   const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
@@ -82,13 +86,12 @@ const PerpsPositionDetailsView: React.FC = () => {
     candleCount: 45, // Number of candles to fetch for zoom functionality - hardcoded for TradingView
   });
 
-  // TODO: Re-enable when TradingView chart supports duration changes
-  // const handleDurationChange = useCallback((newDuration: TimeDuration) => {
-  //   setSelectedDuration(newDuration);
-  //   // Auto-update candle period to the appropriate default for the new duration
-  //   const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
-  //   setSelectedCandlePeriod(defaultPeriod);
-  // }, []);
+  const handleDurationChange = useCallback((newDuration: TimeDuration) => {
+    setSelectedDuration(newDuration);
+    // Auto-update candle period to the appropriate default for the new duration
+    const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
+    setSelectedCandlePeriod(defaultPeriod);
+  }, []);
 
   const handleCandlePeriodChange = useCallback((newPeriod: CandlePeriod) => {
     setSelectedCandlePeriod(newPeriod);
@@ -164,6 +167,14 @@ const PerpsPositionDetailsView: React.FC = () => {
                 priceData?.price || position.entryPrice || undefined,
             }}
             testID={PerpsPositionDetailsViewSelectorsIDs.TRADINGVIEW_CHART}
+          />
+          <PerpsTimeDurationSelector
+            selectedDuration={selectedDuration}
+            onDurationChange={handleDurationChange}
+            onGearPress={() => console.log('foo')}
+            // testID={`${
+            //   testID || TradingViewChartSelectorsIDs.CONTAINER
+            // }-duration-selector`}
           />
         </View>
 
