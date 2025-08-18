@@ -29,6 +29,7 @@ import { StyleSheet } from 'react-native';
 import { useTokens } from '../../hooks/useTokens';
 import { BridgeToken, BridgeViewMode } from '../../types';
 import { PopularList } from '../../../../../util/networks/customNetworks';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -68,8 +69,16 @@ export const BridgeDestTokenSelector: React.FC = () => {
       }
 
       // Open the asset details screen as a bottom sheet
-      const handleInfoButtonPress = () =>
+      const handleInfoButtonPress = () => {
+        // close the previous assets details screen
+        navigation.navigate(Routes.WALLET.HOME, {
+          screen: Routes.WALLET.TAB_STACK_FLOW,
+          params: {
+            screen: Routes.WALLET_VIEW,
+          },
+        });
         navigation.navigate('Asset', { ...item });
+      };
 
       // If the user hasn't added the network, it won't be in the networkConfigurations object
       // So we use the PopularList to get the network name

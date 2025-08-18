@@ -164,8 +164,18 @@ describe('BridgeDestTokenSelector', () => {
     // Press the info button
     fireEvent.press(infoButton);
 
-    // Verify navigation to Asset screen with the correct token params
-    expect(mockNavigate).toHaveBeenCalledWith(
+    // Verify the two-step navigation pattern
+    // First navigation should close existing asset details screen
+    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.WALLET.HOME, {
+      screen: Routes.WALLET.TAB_STACK_FLOW,
+      params: {
+        screen: Routes.WALLET_VIEW,
+      },
+    });
+
+    // Second navigation should open the new Asset screen with token params
+    expect(mockNavigate).toHaveBeenNthCalledWith(
+      2,
       'Asset',
       expect.objectContaining({
         address: ethToken2Address,
@@ -179,6 +189,55 @@ describe('BridgeDestTokenSelector', () => {
         tokenFiatAmount: 200000,
       }),
     );
+
+    // Verify that navigation was called exactly twice
+    expect(mockNavigate).toHaveBeenCalledTimes(2);
+  });
+
+  it('renders info button with correct properties', async () => {
+    const { getAllByTestId, getByText } = renderScreen(
+      BridgeDestTokenSelector,
+      {
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+      },
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(getByText('HELLO')).toBeTruthy();
+    });
+
+    // Get all info buttons
+    const infoButtons = getAllByTestId('token-info-button');
+
+    // Should have info buttons for each token
+    expect(infoButtons.length).toBeGreaterThan(0);
+
+    // Each info button should be rendered with correct testID
+    infoButtons.forEach((button) => {
+      expect(button).toBeTruthy();
+      expect(button.props.testID).toBe('token-info-button');
+    });
+  });
+
+  it('renders tokens with network badges correctly', async () => {
+    const { getByText, getAllByTestId } = renderScreen(
+      BridgeDestTokenSelector,
+      {
+        name: Routes.BRIDGE.MODALS.DEST_TOKEN_SELECTOR,
+      },
+      { state: initialState },
+    );
+
+    await waitFor(() => {
+      expect(getByText('HELLO')).toBeTruthy();
+      expect(getByText('TOKEN1')).toBeTruthy();
+      expect(getByText('ETH')).toBeTruthy();
+    });
+
+    // Should have network badges for each token
+    const networkBadges = getAllByTestId('badgenetwork');
+    expect(networkBadges.length).toBeGreaterThan(0);
   });
 
   it('handles close button correctly', () => {
