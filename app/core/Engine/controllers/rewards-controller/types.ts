@@ -171,7 +171,7 @@ export enum RewardClaimStatus {
 /**
  * State for the RewardsController
  */
-export interface SilentAuthState {
+export interface AuthState {
   lastAuthenticatedAccount: string | null;
   accountToSubscription: Record<string, string>; // account address -> subscriptionId
   lastAuthTime: number;
@@ -183,7 +183,7 @@ export type RewardsControllerState = {
   devOnlyLoginAddress: string | null;
   // UI state
   lastUpdated: number | null;
-  silentAuth: SilentAuthState;
+  auth: AuthState;
 };
 
 /**

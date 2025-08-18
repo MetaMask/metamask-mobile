@@ -1,7 +1,7 @@
 import { BaseController } from '@metamask/base-controller';
 import type {
   RewardsControllerState,
-  SilentAuthState,
+  AuthState,
   LoginResponseDto,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
@@ -13,6 +13,7 @@ import AppConstants from '../../../AppConstants';
 import ReduxService from '../../../redux';
 import { rewardsApi } from './services/rewardsApi';
 import Logger from '../../../../util/Logger';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 // Re-export the messenger type for convenience
 export type { RewardsControllerMessenger };
@@ -28,7 +29,7 @@ const GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
 const metadata = {
   devOnlyLoginAddress: { persist: true, anonymous: false },
   lastUpdated: { persist: true, anonymous: false },
-  silentAuth: {
+  auth: {
     persist: true,
     anonymous: false,
   },
@@ -37,7 +38,7 @@ const metadata = {
 /**
  * Get the default silent auth state
  */
-const getDefaultSilentAuthState = (): SilentAuthState => ({
+const getDefaultAuthState = (): AuthState => ({
   lastAuthenticatedAccount: null,
   accountToSubscription: {},
   lastAuthTime: 0,
@@ -49,7 +50,7 @@ const getDefaultSilentAuthState = (): SilentAuthState => ({
 export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   devOnlyLoginAddress: null,
   lastUpdated: null,
-  silentAuth: getDefaultSilentAuthState(),
+  auth: getDefaultAuthState(),
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -134,11 +135,15 @@ export class RewardsController extends BaseController<
    * Sign a message for rewards authentication
    */
   async #signRewardsMessage(
-    account: string,
+    account: InternalAccount,
     timestamp: number,
   ): Promise<string> {
     const message = `rewards,${account},${timestamp}`;
 
+    const isSolanaAccount = this.#isSolanaAccount(account);
+    if (isSolanaAccount) {
+      return 'Solana signature not supported yet';
+    }
     // Convert message to hex format for signing
     const hexMessage = '0x' + Buffer.from(message, 'utf8').toString('hex');
 
@@ -147,10 +152,10 @@ export class RewardsController extends BaseController<
       'KeyringController:signPersonalMessage',
       {
         data: hexMessage,
-        from: account,
+        from: account.address,
       },
     );
-
+    Logger.log('RewardsController: Message signed', account, signature);
     return signature;
   }
 
@@ -172,11 +177,12 @@ export class RewardsController extends BaseController<
 
     try {
       const selectedAccount = this.messagingSystem.call(
-        'AccountsController:getSelectedAccount',
+        'AccountsController:getSelectedMultichainAccount',
       );
+      Logger.log('RewardsController: selectedAccount', selectedAccount);
 
       if (selectedAccount?.address) {
-        await this.#performSilentAuth(selectedAccount.address);
+        await this.#performSilentAuth(selectedAccount);
       }
     } catch (error) {
       // Silent failure - don't throw errors for background authentication
@@ -185,24 +191,30 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Check if account is Solana account
+   */
+  #isSolanaAccount(account: InternalAccount): boolean {
+    return account.type === 'solana:data-account';
+  }
+
+  /**
    * Check if silent authentication should be skipped
    */
   #shouldSkipSilentAuth(address: string): boolean {
     const now = Date.now();
-    const { silentAuth } = this.state;
-    const timeSinceLastAuth = now - silentAuth.lastAuthTime;
+    const { auth } = this.state;
+    const timeSinceLastAuth = now - auth.lastAuthTime;
 
     // Skip if within grace period and same account
     if (
-      silentAuth.lastAuthenticatedAccount === address &&
+      auth.lastAuthenticatedAccount === address &&
       timeSinceLastAuth < GRACE_PERIOD_MS
     ) {
       return true;
     }
 
     // Skip if this account already has a valid subscription
-    const subscriptionId =
-      silentAuth.accountToSubscription[address.toLowerCase()];
+    const subscriptionId = auth.accountToSubscription[address.toLowerCase()];
     if (subscriptionId && timeSinceLastAuth < GRACE_PERIOD_MS) {
       return true; // Account belongs to a known subscription, skip auth
     }
@@ -213,7 +225,8 @@ export class RewardsController extends BaseController<
   /**
    * Perform silent authentication for the given address
    */
-  async #performSilentAuth(address: string): Promise<void> {
+  async #performSilentAuth(account: InternalAccount): Promise<void> {
+    const address = account.address;
     const shouldSkip = this.#shouldSkipSilentAuth(address);
     Logger.log('RewardsController: Should skip auth?', shouldSkip);
 
@@ -230,7 +243,7 @@ export class RewardsController extends BaseController<
 
       let signature;
       try {
-        signature = await this.#signRewardsMessage(address, timestamp);
+        signature = await this.#signRewardsMessage(account, timestamp);
       } catch (signError) {
         Logger.log(
           'RewardsController: Failed to generate signature:',
@@ -290,13 +303,13 @@ export class RewardsController extends BaseController<
 
         // Update account to subscription mapping for all accounts in this subscription
         (subscription?.accounts || []).forEach((accountAddress) => {
-          state.silentAuth.accountToSubscription[
+          state.auth.accountToSubscription[
             accountAddress.address.toLowerCase()
           ] = subscription.id;
         });
 
-        state.silentAuth.lastAuthenticatedAccount = address;
-        state.silentAuth.lastAuthTime = currentTime;
+        state.auth.lastAuthenticatedAccount = address;
+        state.auth.lastAuthTime = currentTime;
       });
     } catch (error: unknown) {
       Logger.log('RewardsController: Silent auth error:', error);
@@ -314,10 +327,10 @@ export class RewardsController extends BaseController<
         // Update state so that we remember this account is not opted in
         this.update((state) => {
           // Remove this account from any existing subscription mappings
-          delete state.silentAuth.accountToSubscription[address.toLowerCase()];
+          delete state.auth.accountToSubscription[address.toLowerCase()];
 
-          state.silentAuth.lastAuthenticatedAccount = address;
-          state.silentAuth.lastAuthTime = Date.now();
+          state.auth.lastAuthenticatedAccount = address;
+          state.auth.lastAuthTime = Date.now();
         });
       }
       // For other errors, we don't update the state to allow retries
@@ -347,13 +360,12 @@ export class RewardsController extends BaseController<
 
       // Update account to subscription mapping for all accounts in this subscription
       (subscription?.accounts || []).forEach((accountAddress) => {
-        state.silentAuth.accountToSubscription[
-          accountAddress.address.toLowerCase()
-        ] = subscription.id;
+        state.auth.accountToSubscription[accountAddress.address.toLowerCase()] =
+          subscription.id;
       });
 
-      state.silentAuth.lastAuthenticatedAccount = address;
-      state.silentAuth.lastAuthTime = currentTime;
+      state.auth.lastAuthenticatedAccount = address;
+      state.auth.lastAuthTime = currentTime;
     });
 
     // Notify all registered callbacks about the account opt-in
@@ -370,19 +382,19 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Get the current silent authentication state
+   * Get the current authentication state
    */
-  getSilentAuthState(): SilentAuthState {
-    return this.state.silentAuth;
+  getAuthState(): AuthState {
+    return this.state.auth;
   }
 
   /**
    * Reset silent authentication state and clear all tokens
    */
-  async resetSilentAuthState(): Promise<void> {
+  async resetAuthState(): Promise<void> {
     await resetAllSubscriptionTokens();
     this.update((state) => {
-      state.silentAuth = getDefaultSilentAuthState();
+      state.auth = getDefaultAuthState();
     });
   }
 
@@ -390,9 +402,7 @@ export class RewardsController extends BaseController<
    * Get the subscription ID for a given account address
    */
   getSubscriptionIdForAccount(address: string): string | null {
-    return (
-      this.state.silentAuth.accountToSubscription[address.toLowerCase()] || null
-    );
+    return this.state.auth.accountToSubscription[address.toLowerCase()] || null;
   }
 
   /**

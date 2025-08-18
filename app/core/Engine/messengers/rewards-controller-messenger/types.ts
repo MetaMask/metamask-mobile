@@ -1,5 +1,5 @@
 import {
-  AccountsControllerGetSelectedAccountAction,
+  AccountsControllerGetSelectedMultichainAccountAction,
   AccountsControllerSelectedAccountChangeEvent,
 } from '@metamask/accounts-controller';
 import {
@@ -15,7 +15,7 @@ import {
  * Actions that the RewardsController messenger can handle
  */
 export type RewardsControllerMessengerActions =
-  | AccountsControllerGetSelectedAccountAction
+  | AccountsControllerGetSelectedMultichainAccountAction
   | KeyringControllerSignPersonalMessageAction;
 
 /**

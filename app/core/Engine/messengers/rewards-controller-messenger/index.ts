@@ -23,7 +23,7 @@ export function getRewardsControllerMessenger(
   return messenger.getRestricted({
     name,
     allowedActions: [
-      'AccountsController:getSelectedAccount',
+      'AccountsController:getSelectedMultichainAccount',
       'KeyringController:signPersonalMessage',
     ],
     allowedEvents: [

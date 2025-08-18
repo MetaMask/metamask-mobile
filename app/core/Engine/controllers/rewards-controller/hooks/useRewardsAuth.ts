@@ -1,6 +1,5 @@
 import { useCallback, useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { toHex } from '@metamask/controller-utils';
 
 import {
@@ -95,7 +94,6 @@ export const useRewardsAuth = () => {
 
   const handleLogout = useCallback(async () => {
     logout();
-    await AsyncStorage.clear();
     Engine.context.RewardsController.setDevOnlyLoginAddress(null);
   }, [logout]);
 
