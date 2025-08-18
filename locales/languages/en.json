@@ -5204,6 +5204,17 @@
       "addresses": "Addresses",
       "receiving_address": "Receiving address"
     },
+    "private_key_list": {
+      "list_title": "Private keys",
+      "warning_title": "Don't share your private key",
+      "warning_description": "This key grants full control of your account for the associated chain.",
+      "learn_more": "Learn more",
+      "enter_password": "Enter your password",
+      "password_placeholder": "Password",
+      "wrong_password": "Wrong password",
+      "continue": "Continue",
+      "cancel": "Cancel"
+    },
     "accounts_list": {
       "details": "Details"
     },

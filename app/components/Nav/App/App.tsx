@@ -157,6 +157,7 @@ import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
 import { AddressList as MultichainAccountAddressList } from '../../Views/MultichainAccounts/AddressList';
+import { PrivateKeyList as MultichainAccountPrivateKeyList } from '../../Views/MultichainAccounts/PrivateKeyList';
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
@@ -730,6 +731,20 @@ const MultichainAddressList = () => {
   );
 };
 
+const MultichainPrivateKeyList = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator screenOptions={clearStackNavigatorOptions} mode={'modal'}>
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
+        component={MultichainAccountPrivateKeyList}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const ModalConfirmationRequest = () => (
   <Stack.Navigator
     screenOptions={{
@@ -866,6 +881,10 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
           component={MultichainAddressList}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
+          component={MultichainPrivateKeyList}
         />
         <Stack.Screen
           name={Routes.SOLANA_NEW_FEATURE_CONTENT}
