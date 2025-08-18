@@ -18,7 +18,7 @@ export interface SendContextType {
   fromAccount: InternalAccount;
   from: string;
   to?: string;
-  updateAsset: (asset: AssetType) => void;
+  updateAsset: (asset?: AssetType) => void;
   updateTo: (to: string) => void;
   updateValue: (value: string) => void;
   value?: string;

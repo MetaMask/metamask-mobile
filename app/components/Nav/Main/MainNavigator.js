@@ -577,9 +577,9 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       <Tab.Screen
-        name={Routes.TRANSACTIONS_VIEW}
-        options={options.activity}
-        component={TransactionsHome}
+        name={Routes.BROWSER.HOME}
+        options={options.browser}
+        component={BrowserFlow}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
       <Tab.Screen
@@ -588,9 +588,9 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       <Tab.Screen
-        name={Routes.BROWSER.HOME}
-        options={options.browser}
-        component={BrowserFlow}
+        name={Routes.TRANSACTIONS_VIEW}
+        options={options.activity}
+        component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
 
