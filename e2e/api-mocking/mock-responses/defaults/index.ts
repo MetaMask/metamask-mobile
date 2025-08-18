@@ -15,7 +15,7 @@ import { WALLETCONNECT_MOCKS } from './walletconnect';
 import { METAMETRICS_API_MOCKS } from './metametrics-test';
 import { DEFAULT_ACCOUNTS_MOCK } from './accounts';
 import { getAuthMocks } from '../auth-mocks';
-import { EMPTY_USER_STORAGE_MOCK } from './user-storage';
+import { USER_STORAGE_MOCK } from './user-storage';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -32,7 +32,7 @@ export const DEFAULT_MOCKS = {
     ...(TOKEN_API_MOCKS.GET || []),
     ...(DEFI_ADAPTERS_MOCKS.GET || []),
     ...(DEFAULT_ACCOUNTS_MOCK.GET || []),
-    ...(EMPTY_USER_STORAGE_MOCK.GET || []),
+    ...(USER_STORAGE_MOCK.GET || []),
     {
       urlEndpoint:
         /^https:\/\/dweb\.link\/ipfs\/[a-zA-Z0-9]+#x-ipfs-companion-no-redirect$/,
@@ -76,7 +76,7 @@ export const DEFAULT_MOCKS = {
       },
     },
   ],
-  PUT: [],
+  PUT: [...(USER_STORAGE_MOCK.PUT || [])],
   DELETE: [],
   PATCH: [],
 };
