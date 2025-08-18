@@ -5,6 +5,9 @@ import { defineConfig, Platform } from 'appwright';
 export default defineConfig({
   testMatch: '**/tests/performance/*.spec.js',
   timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
+  expect: {
+    timeout: 30 * 1000, //30 seconds
+  },
   reporter: [
     // The default HTML reporter from Appwright
     [

@@ -12,7 +12,7 @@ import {
 import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
 import { SendViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendView.selectors.js';
-import { expect as appwrightExpect } from 'appwright';
+import { expect as appwrightExpect, expect } from 'appwright';
 
 class SendSolanaScreen {
   get device() {
@@ -61,8 +61,11 @@ class SendSolanaScreen {
   }
 
   async tapContinueButton() {
-    const element = await this.continueButton;
-    await element.tap();
+    const element = await AppwrightSelectors.getElementByText(this._device, 'Continue'); // to make sure that the button becomes clickable
+    expect(element).toBeVisible();
+    const continueButton = await this.continueButton;
+    expect(continueButton).toBeVisible();
+    await continueButton.tap();
   }
 
   async tapCancelButton() {
