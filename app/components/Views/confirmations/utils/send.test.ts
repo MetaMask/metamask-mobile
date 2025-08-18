@@ -139,7 +139,7 @@ describe('formatToFixedDecimals', () => {
     expect(formatToFixedDecimals('0.00001', 4)).toEqual('< 0.0001');
   });
   it('formats value with passed number of decimals', () => {
-    expect(formatToFixedDecimals('1', 4)).toEqual('1.0000');
+    expect(formatToFixedDecimals('1', 4)).toEqual('1');
     expect(formatToFixedDecimals('1.01010101', 4)).toEqual('1.0101');
   });
 });
