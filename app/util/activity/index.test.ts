@@ -142,7 +142,7 @@ describe('Activity utils :: sortTransactions', () => {
 
 describe('Activity utils :: filterByAddressAndNetwork', () => {
   it('should return true if the transaction meets the condition of address, network, and status', () => {
-    const chainId = '1';
+    const chainId = '0x1';
     const transaction = {
       chainId,
       status: TX_SUBMITTED,
@@ -165,7 +165,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
   });
 
   it('should return true if the transaction meets the condition for a transfer with a matching token', () => {
-    const chainId = '1';
+    const chainId = '0x1';
     const transaction = {
       chainId,
       status: TX_SUBMITTED,
@@ -285,7 +285,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
 
   it('should return true when tokenNetworkFilter length is not equal to 1 (forcing chain condition to true) even if chain ids do not match', () => {
     const transaction = {
-      chainId: '4', // Different than provided chainId
+      chainId: '0x2', // Different than provided chainId
       status: TX_SUBMITTED,
       txParams: {
         from: TEST_ADDRESS_ONE,
