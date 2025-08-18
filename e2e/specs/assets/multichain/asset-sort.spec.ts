@@ -13,12 +13,58 @@ import { CustomNetworks } from '../../../resources/networks.e2e';
 import ImportTokensView from '../../../pages/wallet/ImportTokenFlow/ImportTokensView';
 import TestHelpers from '../../../helpers';
 import { getFixturesServerPort } from '../../../framework/fixtures/FixtureUtils';
+import { MockApiEndpoint } from '../../../framework';
 
 const AAVE_TENDERLY_MAINNET_DETAILS = {
   address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
   symbol: 'AAVE',
   decimals: 18,
   name: 'Aave',
+};
+
+const TOKEN_RESPONSE: MockApiEndpoint = {
+  urlEndpoint: `https://token.api.cx.metamask.io/token/1?address=${AAVE_TENDERLY_MAINNET_DETAILS.address}`,
+  response: {
+    address: `${AAVE_TENDERLY_MAINNET_DETAILS.address}`,
+    symbol: 'AAVE',
+    decimals: 18,
+    name: 'Aave',
+    iconUrl:
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1/0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9.png',
+    type: 'erc20',
+    aggregators: [
+      'uniswapLabs',
+      'metamask',
+      'aave',
+      'cmc',
+      'coinGecko',
+      'coinMarketCap',
+      'openSwap',
+      'zerion',
+      'oneInch',
+      'liFi',
+      'xSwap',
+      'socket',
+      'squid',
+      'rango',
+      'sonarwatch',
+      'sushiSwap',
+      'pmm',
+      'bancor',
+    ],
+    occurrences: 18,
+    erc20Permit: true,
+    storage: {
+      balance: 0,
+      approval: 1,
+    },
+    fees: {
+      avgFee: 0,
+      maxFee: 0,
+      minFee: 0,
+    },
+  },
+  responseCode: 200,
 };
 
 describe(SmokeNetworkAbstractions('Import Tokens'), () => {
@@ -36,6 +82,10 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .withNetworkController(CustomNetworks.Tenderly.Mainnet)
           .build(),
         restartDevice: true,
+        strictMockMode: true,
+        testSpecificMock: {
+          GET: [TOKEN_RESPONSE],
+        },
       },
       async () => {
         await loginToApp();
@@ -64,6 +114,10 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
+        strictMockMode: true,
+        testSpecificMock: {
+          GET: [TOKEN_RESPONSE],
+        },
       },
       async () => {
         await loginToApp();
@@ -99,6 +153,10 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .withTokens([AAVE_TENDERLY_MAINNET_DETAILS])
           .build(),
         restartDevice: true,
+        strictMockMode: true,
+        testSpecificMock: {
+          GET: [TOKEN_RESPONSE],
+        },
       },
       async () => {
         await loginToApp();
