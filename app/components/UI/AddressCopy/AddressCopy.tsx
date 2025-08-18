@@ -39,21 +39,26 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   );
   const selectedAccountGroupId = useSelector(selectSelectedAccountGroupId);
 
-  const handleShowAlert = (config: {
-    isVisible: boolean;
-    autodismiss: number;
-    content: string;
-    data: { msg: string };
-  }) => dispatch(showAlert(config));
+  const handleShowAlert = useCallback(
+    (config: {
+      isVisible: boolean;
+      autodismiss: number;
+      content: string;
+      data: { msg: string };
+    }) => dispatch(showAlert(config)),
+    [dispatch],
+  );
 
-  const handleProtectWalletModalVisible = () =>
-    dispatch(protectWalletModalVisible());
+  const handleProtectWalletModalVisible = useCallback(
+    () => dispatch(protectWalletModalVisible()),
+    [dispatch],
+  );
 
   /**
    * A string that represents the selected address
    */
 
-  const copyAccountToClipboard = async () => {
+  const copyAccountToClipboard = useCallback(async () => {
     await ClipboardManager.setString(
       getFormattedAddressFromInternalAccount(account),
     );
@@ -68,7 +73,13 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.WALLET_COPIED_ADDRESS).build(),
     );
-  };
+  }, [
+    account,
+    createEventBuilder,
+    handleProtectWalletModalVisible,
+    handleShowAlert,
+    trackEvent,
+  ]);
 
   const navigateToAddressList = useCallback(() => {
     navigate(Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST, {
@@ -77,13 +88,17 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
     });
   }, [navigate, selectedAccountGroupId]);
 
-  const handleOnPress = () => {
+  const handleOnPress = useCallback(() => {
     if (isMultichainAccountsState2Enabled) {
       navigateToAddressList();
     } else {
       copyAccountToClipboard();
     }
-  };
+  }, [
+    copyAccountToClipboard,
+    isMultichainAccountsState2Enabled,
+    navigateToAddressList,
+  ]);
 
   return (
     <View style={styles.address}>
