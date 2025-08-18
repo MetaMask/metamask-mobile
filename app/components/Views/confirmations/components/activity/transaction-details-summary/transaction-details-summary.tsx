@@ -5,6 +5,7 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import Icon, {
+  IconColor,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
 import {
@@ -53,7 +54,7 @@ function SummaryLine({ isLast }: { isLast: boolean }) {
           <Icon name={IconName.CircleX} />
           <Text variant={TextVariant.BodyMD}>Bridge from ETH to Arbitrum</Text>
         </Box>
-        <Icon name={IconName.Arrow2UpRight} />
+        <Icon name={IconName.Arrow2UpRight} color={IconColor.Alternative} />
       </Box>
       <Box flexDirection={FlexDirection.Row}>
         <Box style={styles.divider} />
