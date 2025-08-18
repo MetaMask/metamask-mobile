@@ -8,6 +8,7 @@ import {
   SAMPLE_ICONS,
   SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS,
 } from './MultichainAddressRow.constants';
+import { Icon } from '../../../components/Icons/Icon';
 
 const MultichainAddressRowMeta = {
   title: 'Component Library / MultichainAccounts',
@@ -35,6 +36,7 @@ export const MultichainAddressRow = {
     chainId: CaipChainId;
     networkName: string;
     address: string;
+    icons: Icon[];
   }) => (
     <View
       style={{
@@ -48,7 +50,7 @@ export const MultichainAddressRow = {
         chainId={args.chainId}
         networkName={args.networkName}
         address={args.address}
-        icons={icons}
+        icons={args.icons}
       />
     </View>
   ),

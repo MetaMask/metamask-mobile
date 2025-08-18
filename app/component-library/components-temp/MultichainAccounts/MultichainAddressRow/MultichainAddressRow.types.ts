@@ -3,7 +3,7 @@ import { CaipChainId } from '@metamask/utils';
 
 import { IconName } from '../../../components/Icons/Icon';
 
-interface Icon {
+export interface Icon {
   /**
    * Icon name to display
    */
