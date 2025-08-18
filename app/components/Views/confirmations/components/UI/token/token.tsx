@@ -40,7 +40,7 @@ export function Token({ asset, onPress }: TokenProps) {
       }
       onPress={handlePress}
     >
-      <Box twClassName="flex-1 flex-row items-center">
+      <Box twClassName="flex-row items-center px-4">
         <Box twClassName="h-12 justify-center">
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}
@@ -73,7 +73,7 @@ export function Token({ asset, onPress }: TokenProps) {
           </BadgeWrapper>
         </Box>
 
-        <Box twClassName="ml-4 flex-1 h-12 justify-center">
+        <Box twClassName="ml-4 h-12 justify-center">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
@@ -86,9 +86,25 @@ export function Token({ asset, onPress }: TokenProps) {
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
-            {asset.balance} {asset.symbol}
+            {asset.symbol}
           </Text>
         </Box>
+      </Box>
+      <Box twClassName="px-4 h-12 justify-center items-end">
+        <Text
+          variant={TextVariant.BodyMd}
+          fontWeight={FontWeight.Medium}
+          numberOfLines={1}
+        >
+          $4,000.00
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          numberOfLines={1}
+        >
+          {asset.balance} {asset.symbol}
+        </Text>
       </Box>
     </Pressable>
   );

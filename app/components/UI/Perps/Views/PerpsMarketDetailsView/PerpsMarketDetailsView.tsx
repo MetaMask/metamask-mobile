@@ -4,7 +4,13 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
 import { SafeAreaView, ScrollView, View, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
@@ -19,7 +25,10 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
@@ -29,6 +38,7 @@ import type {
 } from '../../controllers/types';
 import { usePerpsPositionData } from '../../hooks/usePerpsPositionData';
 import { usePerpsMarketStats } from '../../hooks/usePerpsMarketStats';
+import { useHasExistingPosition } from '../../hooks/useHasExistingPosition';
 import {
   getDefaultCandlePeriodForDuration,
   TimeDuration,
@@ -36,26 +46,49 @@ import {
 } from '../../constants/chartConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
 import { useSelector } from 'react-redux';
 import { selectPerpsProvider } from '../../selectors/perpsController';
 import { capitalize } from '../../../../../util/general';
 import {
-  useHasExistingPosition,
   usePerpsAccount,
   usePerpsConnection,
   usePerpsOpenOrders,
+  usePerpsPerformance,
+  usePerpsTrading,
 } from '../../hooks';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
+import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
+import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
+import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
+  isNavigationFromOrderSuccess?: boolean;
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market } = route.params || {};
+  const { market, isNavigationFromOrderSuccess } = route.params || {};
   const { top } = useSafeAreaInsets();
+  const { track } = usePerpsEventTracking();
+
+  // Track screen load time
+  const { startMeasure, endMeasure } = usePerpsPerformance();
+  const hasTrackedAssetView = useRef(false);
+
+  // Start measuring screen load time on mount
+  useEffect(() => {
+    startMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
+    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
+  }, [startMeasure]);
 
   const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
     TimeDuration.ONE_DAY,
@@ -76,6 +109,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const account = usePerpsAccount();
 
   const { isConnected } = usePerpsConnection();
+  const { depositWithConfirmation } = usePerpsTrading();
 
   // Get currently open orders for this market
   const { orders: ordersData, refresh: refreshOrders } = usePerpsOpenOrders({
@@ -116,16 +150,63 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     loadOnMount: true,
   });
 
-  const handleDurationChange = useCallback((newDuration: TimeDuration) => {
-    setSelectedDuration(newDuration);
-    // Auto-update candle period to the appropriate default for the new duration
-    const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
-    setSelectedCandlePeriod(defaultPeriod);
-  }, []);
+  // Track screen load and position data loaded
+  useEffect(() => {
+    if (
+      market &&
+      marketStats &&
+      !isLoadingHistory &&
+      !hasTrackedAssetView.current
+    ) {
+      // Track asset screen loaded
+      endMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
 
-  const handleCandlePeriodChange = useCallback((newPeriod: CandlePeriod) => {
-    setSelectedCandlePeriod(newPeriod);
-  }, []);
+      // Track asset screen viewed event - only once
+      track(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED, {
+        [PerpsEventProperties.ASSET]: market.symbol,
+        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
+      });
+
+      hasTrackedAssetView.current = true;
+    }
+  }, [market, marketStats, isLoadingHistory, track, endMeasure]);
+
+  useEffect(() => {
+    if (!isLoadingPosition && market) {
+      // Track position data loaded for asset screen
+      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
+    }
+  }, [isLoadingPosition, market, endMeasure]);
+
+  const handleDurationChange = useCallback(
+    (newDuration: TimeDuration) => {
+      setSelectedDuration(newDuration);
+      // Auto-update candle period to the appropriate default for the new duration
+      const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
+      setSelectedCandlePeriod(defaultPeriod);
+
+      // Track chart time series change
+      track(MetaMetricsEvents.PERPS_CHART_TIME_SERIE_CHANGED, {
+        [PerpsEventProperties.ASSET]: market?.symbol || '',
+        [PerpsEventProperties.TIME_SERIE_SELECTED]: newDuration,
+      });
+    },
+    [market, track],
+  );
+
+  const handleCandlePeriodChange = useCallback(
+    (newPeriod: CandlePeriod) => {
+      setSelectedCandlePeriod(newPeriod);
+
+      // Track chart interaction
+      track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
+        [PerpsEventProperties.ASSET]: market?.symbol || '',
+        [PerpsEventProperties.INTERACTION_TYPE]: 'candle_period_change',
+        [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
+      });
+    },
+    [market, track],
+  );
 
   const handleGearPress = useCallback(() => {
     setIsCandlePeriodBottomSheetVisible(true);
@@ -176,6 +257,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     refreshCandleData,
   ]);
 
+  // Check if notifications feature is enabled once
+  const isNotificationsEnabled = isNotificationsFeatureEnabled();
+
   const handleBackPress = () => {
     navigation.goBack();
   };
@@ -195,7 +279,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   };
 
   const handleAddFundsPress = () => {
-    navigation.navigate(Routes.PERPS.DEPOSIT);
+    // Navigate immediately to confirmations screen for instant UI response
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    });
+
+    // Initialize deposit in the background without blocking
+    depositWithConfirmation().catch((error) => {
+      console.error('Failed to initialize deposit:', error);
+    });
   };
 
   // Determine if any action buttons will be visible
@@ -365,6 +457,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           testID={PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET}
         />
       )}
+
+      {/* Notification Tooltip - Shows after first successful order */}
+      {isNotificationsEnabled &&
+        PERPS_NOTIFICATIONS_FEATURE_ENABLED &&
+        isNavigationFromOrderSuccess && (
+          <PerpsNotificationTooltip
+            orderSuccess={isNavigationFromOrderSuccess}
+            testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
+          />
+        )}
     </SafeAreaView>
   );
 };

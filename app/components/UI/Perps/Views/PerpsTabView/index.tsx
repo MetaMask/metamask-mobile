@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
+import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 import PerpsTabView from './PerpsTabView';
 
 interface PerpsTabViewWithProviderProps {
@@ -9,14 +10,16 @@ interface PerpsTabViewWithProviderProps {
 }
 
 /**
- * PerpsTabView wrapped with PerpsConnectionProvider
- * This ensures the usePerpsConnection hook works properly when used in the main wallet tab view
+ * PerpsTabView wrapped with both PerpsConnectionProvider and PerpsStreamProvider
+ * This ensures the usePerpsConnection and usePerpsStream hooks work properly when used in the main wallet tab view
  */
 const PerpsTabViewWithProvider: React.FC<PerpsTabViewWithProviderProps> = (
   props,
 ) => (
   <PerpsConnectionProvider>
-    <PerpsTabView {...props} />
+    <PerpsStreamProvider>
+      <PerpsTabView {...props} />
+    </PerpsStreamProvider>
   </PerpsConnectionProvider>
 );
 
