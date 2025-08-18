@@ -5,6 +5,7 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import { CaipChainId, toCaipChainId } from '@metamask/utils';
 
 import { useStyles } from '../../../hooks';
+import { IconName } from '../../../components/Icons/Icon';
 import styleSheet from './MultichainAddressRowsList.styles';
 import Text, { TextVariant, TextColor } from '../../../components/Texts/Text';
 import TextFieldSearch from '../../../components/Form/TextFieldSearch';
@@ -23,6 +24,10 @@ import {
   MULTICHAIN_ADDRESS_ROWS_LIST_EMPTY_MESSAGE_TEST_ID,
   MULTICHAIN_ADDRESS_ROWS_LIST_SEARCH_TEST_ID,
 } from './MultichainAddressRowsList.constants';
+import {
+  MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
+  MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
+} from '../MultichainAddressRow/MultichainAddressRow.constants';
 
 export interface MultichainAddressRowsListProps {
   accounts?: InternalAccount[];
@@ -109,6 +114,22 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
         chainId={item.chainId}
         networkName={item.networkName}
         address={item.address}
+        icons={[
+          {
+            name: IconName.Copy,
+            callback: () => {
+              // Do nothing
+            },
+            testId: MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
+          },
+          {
+            name: IconName.QrCode,
+            callback: () => {
+              // Do nothing
+            },
+            testId: MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
+          },
+        ]}
       />
     ),
     [],
