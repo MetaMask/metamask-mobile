@@ -10,7 +10,11 @@ import {
   formatVolume,
   HyperLiquidMarketData,
 } from './marketDataTransform';
-import { AllMids, PerpsAssetCtx } from '@deeeed/hyperliquid-node20';
+import {
+  AllMids,
+  PerpsAssetCtx,
+  PredictedFunding,
+} from '@deeeed/hyperliquid-node20';
 
 // Helper function to create mock asset context with all required properties
 const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({
@@ -214,6 +218,7 @@ describe('marketDataTransform', () => {
               [
                 'HyperLiquid',
                 {
+                  fundingRate: '0.001',
                   nextFundingTime: 1234567890000,
                   fundingIntervalHours: 8,
                 },
@@ -261,7 +266,7 @@ describe('marketDataTransform', () => {
           universe: [mockUniverseAsset],
           assetCtxs: [mockAssetCtx],
           allMids: mockAllMids,
-          ...testCase,
+          predictedFundings: testCase.predictedFundings as PredictedFunding[],
         };
 
         // Act & Assert - should not throw

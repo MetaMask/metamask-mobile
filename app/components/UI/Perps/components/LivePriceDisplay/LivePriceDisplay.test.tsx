@@ -3,39 +3,14 @@ import { render } from '@testing-library/react-native';
 import LivePriceDisplay from './LivePriceDisplay';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatPrice, formatPercentage } from '../../utils/formatUtils';
+import {
+  TextVariant,
+  TextColor,
+} from '../../../../../component-library/components/Texts/Text';
 
 // Mock dependencies
 jest.mock('../../hooks/stream');
 jest.mock('../../utils/formatUtils');
-
-// Mock the Text component to avoid theme issues
-jest.mock('../../../../../component-library/components/Texts/Text', () => {
-  const ReactActual = jest.requireActual('react');
-  const { Text: RNText } = jest.requireActual('react-native');
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-shadow
-  const Text = ({ children, testID, color, variant, ...props }: any) =>
-    ReactActual.createElement(
-      RNText,
-      { testID, color, variant, ...props },
-      children,
-    );
-
-  return {
-    __esModule: true,
-    default: Text,
-    TextVariant: {
-      BodyMD: 'BodyMD',
-      BodySM: 'BodySM',
-      BodyLG: 'BodyLG',
-    },
-    TextColor: {
-      Default: 'Default',
-      Success: 'Success',
-      Error: 'Error',
-      Primary: 'Primary',
-    },
-  };
-});
 
 describe('LivePriceDisplay', () => {
   const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
@@ -57,8 +32,10 @@ describe('LivePriceDisplay', () => {
   it('should render with live price data', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       BTC: {
+        coin: 'BTC',
         price: '50000',
         percentChange24h: '5.5',
+        timestamp: Date.now(),
       },
     });
 
@@ -82,8 +59,10 @@ describe('LivePriceDisplay', () => {
   it('should render price with change when showChange is true', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       ETH: {
+        coin: 'ETH',
         price: '3000',
         percentChange24h: '-2.5',
+        timestamp: Date.now(),
       },
     });
 
@@ -96,8 +75,10 @@ describe('LivePriceDisplay', () => {
   it('should render price without change when showChange is false', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       SOL: {
+        coin: 'SOL',
         price: '100',
         percentChange24h: '10',
+        timestamp: Date.now(),
       },
     });
 
@@ -112,8 +93,10 @@ describe('LivePriceDisplay', () => {
   it('should use custom throttle value', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       DOGE: {
+        coin: 'DOGE',
         price: '0.1',
         percentChange24h: '0',
+        timestamp: Date.now(),
       },
     });
 
@@ -128,8 +111,10 @@ describe('LivePriceDisplay', () => {
   it('should apply custom text styles', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       AVAX: {
+        coin: 'AVAX',
         price: '25',
         percentChange24h: '0',
+        timestamp: Date.now(),
       },
     });
 
@@ -137,50 +122,56 @@ describe('LivePriceDisplay', () => {
       <LivePriceDisplay
         symbol="AVAX"
         testID="custom-price"
-        variant="BodyLG"
-        color="Primary"
+        variant={TextVariant.BodyLGMedium}
+        color={TextColor.Primary}
       />,
     );
 
     const priceElement = getByTestId('custom-price');
     expect(priceElement).toBeTruthy();
-    expect(priceElement.props.variant).toBe('BodyLG');
-    expect(priceElement.props.color).toBe('Primary');
+    expect(priceElement.props.variant).toBe(TextVariant.BodyLGMedium);
+    expect(priceElement.props.color).toBe(TextColor.Primary);
   });
 
   it('should handle positive price change color', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       UNI: {
+        coin: 'UNI',
         price: '10',
         percentChange24h: '15',
+        timestamp: Date.now(),
       },
     });
 
     const { getByText } = render(<LivePriceDisplay symbol="UNI" showChange />);
 
     const changeText = getByText('15%');
-    expect(changeText.props.color).toBe('Success');
+    expect(changeText.props.color).toBe(TextColor.Success);
   });
 
   it('should handle negative price change color', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       LINK: {
+        coin: 'LINK',
         price: '15',
         percentChange24h: '-8',
+        timestamp: Date.now(),
       },
     });
 
     const { getByText } = render(<LivePriceDisplay symbol="LINK" showChange />);
 
     const changeText = getByText('-8%');
-    expect(changeText.props.color).toBe('Error');
+    expect(changeText.props.color).toBe(TextColor.Error);
   });
 
   it('should handle zero price change', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       MATIC: {
+        coin: 'MATIC',
         price: '1',
         percentChange24h: '0',
+        timestamp: Date.now(),
       },
     });
 
@@ -189,13 +180,15 @@ describe('LivePriceDisplay', () => {
     );
 
     const changeText = getByText('0%');
-    expect(changeText.props.color).toBe('Success'); // Zero is considered positive
+    expect(changeText.props.color).toBe(TextColor.Success); // Zero is considered positive
   });
 
   it('should handle missing percentChange24h', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       DOT: {
+        coin: 'DOT',
         price: '5',
+        timestamp: Date.now(),
         // percentChange24h is missing
       },
     });

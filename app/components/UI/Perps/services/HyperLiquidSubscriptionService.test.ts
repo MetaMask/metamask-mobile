@@ -581,37 +581,39 @@ describe('HyperLiquidSubscriptionService', () => {
       const positionCallback = jest.fn();
 
       // Setup webData2 mock to call callback with data
-      mockSubscriptionClient.webData2.mockImplementation((_addr, callback) => {
-        setTimeout(() => {
-          callback({
-            clearinghouseState: {
-              assetPositions: [
+      mockSubscriptionClient.webData2.mockImplementation(
+        (_addr: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              clearinghouseState: {
+                assetPositions: [
+                  {
+                    position: { szi: '1.0' },
+                    coin: 'BTC',
+                  },
+                ],
+              },
+              openOrders: [
                 {
-                  position: { szi: '1.0' },
+                  oid: 123,
                   coin: 'BTC',
+                  side: 'B',
+                  sz: '0.5',
+                  origSz: '0.5',
+                  limitPx: '50000',
+                  orderType: 'Limit',
+                  timestamp: Date.now(),
+                  isTrigger: false,
+                  reduceOnly: false,
                 },
               ],
-            },
-            openOrders: [
-              {
-                oid: 123,
-                coin: 'BTC',
-                side: 'B',
-                sz: '0.5',
-                origSz: '0.5',
-                limitPx: '50000',
-                orderType: 'Limit',
-                timestamp: Date.now(),
-                isTrigger: false,
-                reduceOnly: false,
-              },
-            ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
           });
-        }, 0);
-        return Promise.resolve({
-          unsubscribe: jest.fn().mockResolvedValue(undefined),
-        });
-      });
+        },
+      );
 
       const unsubscribe = service.subscribeToPositions({
         callback: positionCallback,

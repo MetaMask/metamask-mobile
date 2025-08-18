@@ -140,6 +140,12 @@ describe('hyperLiquidAdapter', () => {
         timestamp: 1234567890000,
         isTrigger: false,
         reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
       };
 
       const result = adaptOrderFromSDK(frontendOrder);
@@ -174,6 +180,12 @@ describe('hyperLiquidAdapter', () => {
         timestamp: 1234567890000,
         isTrigger: false,
         reduceOnly: true,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
       };
 
       const result = adaptOrderFromSDK(frontendOrder);
@@ -207,6 +219,13 @@ describe('hyperLiquidAdapter', () => {
         timestamp: 1234567890000,
         isTrigger: false,
         reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        limitPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
       };
 
       const result = adaptOrderFromSDK(frontendOrder);
@@ -241,6 +260,12 @@ describe('hyperLiquidAdapter', () => {
         timestamp: 1234567890000,
         isTrigger: true,
         reduceOnly: true,
+        triggerCondition: '',
+        limitPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
       };
 
       const result = adaptOrderFromSDK(frontendOrder);
@@ -275,6 +300,11 @@ describe('hyperLiquidAdapter', () => {
         timestamp: 1234567890000,
         isTrigger: false,
         reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
         children: [
           {
             oid: 22223,
@@ -287,6 +317,12 @@ describe('hyperLiquidAdapter', () => {
             timestamp: 1234567890001,
             isTrigger: true,
             reduceOnly: true,
+            triggerCondition: '',
+            limitPx: '',
+            children: [],
+            isPositionTpsl: true,
+            tif: null,
+            cloid: null,
           },
           {
             oid: 22224,
@@ -295,10 +331,16 @@ describe('hyperLiquidAdapter', () => {
             sz: '100',
             origSz: '100',
             triggerPx: '8',
-            orderType: 'Stop Loss',
+            orderType: 'Stop Market', // 'Stop Loss' is not a valid OrderType
             timestamp: 1234567890002,
             isTrigger: true,
             reduceOnly: true,
+            triggerCondition: '',
+            limitPx: '',
+            children: [],
+            isPositionTpsl: true,
+            tif: null,
+            cloid: null,
           },
         ],
       };
@@ -337,6 +379,12 @@ describe('hyperLiquidAdapter', () => {
         timestamp: 1234567890000,
         isTrigger: false,
         reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
       };
 
       const result = adaptOrderFromSDK(frontendOrder);
@@ -370,6 +418,13 @@ describe('hyperLiquidAdapter', () => {
         timestamp: 1234567890000,
         isTrigger: false,
         reduceOnly: false,
+        origSz: '500',
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
       };
 
       const result = adaptOrderFromSDK(frontendOrder);
@@ -399,11 +454,17 @@ describe('hyperLiquidAdapter', () => {
         side: 'B',
         sz: '20',
         origSz: '20',
-        orderType: 'Limit at 5.5',
+        orderType: 'Limit', // 'Limit at 5.5' is not a valid OrderType
         limitPx: '5.5',
         timestamp: 1234567890000,
         isTrigger: false,
         reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
       };
 
       const result = adaptOrderFromSDK(frontendOrder);
@@ -424,6 +485,11 @@ describe('hyperLiquidAdapter', () => {
         timestamp: 1234567890000,
         isTrigger: false,
         reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
         children: [
           {
             oid: 66667,
@@ -436,6 +502,12 @@ describe('hyperLiquidAdapter', () => {
             timestamp: 1234567890001,
             isTrigger: true,
             reduceOnly: true,
+            triggerCondition: '',
+            triggerPx: '',
+            children: [],
+            isPositionTpsl: true,
+            tif: null,
+            cloid: null,
           },
         ],
       };

@@ -13,7 +13,6 @@ import Text, {
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './PerpsMarketStatisticsCard.styles';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
-// TODO: Consider renaming to PerpsMarketStatisticsCard since it isn't tied to a specific view anymore
 import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import FundingCountdown from '../FundingCountdown';
 
