@@ -3,12 +3,10 @@ import React from 'react';
 import { View } from 'react-native';
 import { CaipChainId } from '@metamask/utils';
 import { mockTheme } from '../../../../util/theme';
-import { IconName } from '../../../components/Icons/Icon';
 import { default as MultichainAddressRowComponent } from './MultichainAddressRow';
 import {
+  SAMPLE_ICONS,
   SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS,
-  MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
-  MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from './MultichainAddressRow.constants';
 
 const MultichainAddressRowMeta = {
@@ -29,23 +27,6 @@ const MultichainAddressRowMeta = {
     },
   },
 };
-
-const icons = [
-  {
-    name: IconName.Copy,
-    callback: () => {
-      // Do nothing
-    },
-    testId: MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
-  },
-  {
-    name: IconName.QrCode,
-    callback: () => {
-      // Do nothing
-    },
-    testId: MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
-  },
-];
 
 export default MultichainAddressRowMeta;
 
@@ -87,7 +68,7 @@ export const WithLongNetworkName = {
         chainId={args.chainId || '0x1'}
         networkName="Very Long Network Name That Might Wrap"
         address={args.address}
-        icons={icons}
+        icons={SAMPLE_ICONS}
       />
     </View>
   ),
@@ -107,7 +88,7 @@ export const WithCustomNetwork = {
         chainId="eip155:137"
         networkName="Polygon Mainnet"
         address="0xabcdefabcdefabcdefabcdefabcdefabcdefabcd"
-        icons={icons}
+        icons={SAMPLE_ICONS}
       />
     </View>
   ),
