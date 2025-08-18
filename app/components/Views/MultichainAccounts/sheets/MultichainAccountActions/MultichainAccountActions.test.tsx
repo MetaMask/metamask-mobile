@@ -59,18 +59,6 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-// Mock strings
-jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
-    const stringMap: Record<string, string> = {
-      'account_details.title': 'Account details',
-      'account_actions.rename_account': 'Rename account',
-      'account_actions.addresses': 'Addresses',
-    };
-    return stringMap[key] || key;
-  },
-}));
-
 // Mock react-native-safe-area-context
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -98,7 +86,7 @@ describe('MultichainAccountActions', () => {
   it('renders account actions menu with correct options', () => {
     const { getByText } = renderWithProvider(<MultichainAccountActions />);
 
-    expect(getByText('Account details')).toBeTruthy();
+    expect(getByText('Account Details')).toBeTruthy();
     expect(getByText('Rename account')).toBeTruthy();
     expect(getByText('Addresses')).toBeTruthy();
   });
