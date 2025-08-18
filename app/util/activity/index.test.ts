@@ -159,9 +159,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      chainId,
-      chainId,
-      [{ '0x1': true }],
+      ['0x1'],
     );
     expect(result).toEqual(true);
   });
@@ -186,9 +184,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      chainId,
-      chainId,
-      [{ '0x1': true }],
+      ['0x1'],
     );
     expect(result).toEqual(true);
   });
@@ -211,15 +207,12 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_THREE,
-      chainId,
-      chainId,
-      [{ '0x1': true }],
+      ['0x1'],
     );
     expect(result).toEqual(false);
   });
 
   it('should return false if the transaction does not meet the chain condition', () => {
-    const chainId = '1';
     const transaction = {
       chainId: '4',
       status: TX_SUBMITTED,
@@ -236,9 +229,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      chainId,
-      chainId,
-      [{ '0x1': true }],
+      ['0x1'],
     );
     expect(result).toEqual(false);
   });
@@ -264,9 +255,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      chainId,
-      chainId,
-      [{ '0x1': true }],
+      ['0x1'],
     );
     expect(result).toEqual(false);
   });
@@ -289,15 +278,12 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      chainId,
-      chainId,
-      [{ '0x1': true }],
+      ['0x1'],
     );
     expect(result).toEqual(false);
   });
 
   it('should return true when tokenNetworkFilter length is not equal to 1 (forcing chain condition to true) even if chain ids do not match', () => {
-    const chainId = '1';
     const transaction = {
       chainId: '4', // Different than provided chainId
       status: TX_SUBMITTED,
@@ -315,9 +301,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      chainId,
-      chainId,
-      [{ '0x1': true }, { '0x2': true }],
+      ['0x1', '0x2'],
     );
     // Despite chainId mismatch, the condition becomes true
     expect(result).toEqual(true);
