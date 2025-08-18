@@ -5,7 +5,7 @@ import { useSolanaToAddressValidation } from './solana/useSolanaToAddressValidat
 
 // todo: to address validation assumees `to` is the input from the user
 // depending on implementation we may need to have 2 fields for recipient `toInput` and `toResolved`
-export const useToAddressValidation = () => {
+export const useToAddressValidation = (addressInputToValidate: string) => {
   const { isEvmSendType, isSolanaSendType } = useSendType();
   const { validateEvmToAddress } = useEvmToAddressValidation();
   const { validateSolanaToAddress } = useSolanaToAddressValidation();
@@ -15,10 +15,10 @@ export const useToAddressValidation = () => {
     warning?: string;
   }>(async () => {
     if (isEvmSendType) {
-      return await validateEvmToAddress();
+      return await validateEvmToAddress(addressInputToValidate);
     }
     if (isSolanaSendType) {
-      return validateSolanaToAddress();
+      return validateSolanaToAddress(addressInputToValidate);
     }
     return {};
   }, [
@@ -26,6 +26,7 @@ export const useToAddressValidation = () => {
     isSolanaSendType,
     validateEvmToAddress,
     validateSolanaToAddress,
+    addressInputToValidate,
   ]);
 
   const { error: toAddressError, warning: toAddressWarning } = value ?? {};

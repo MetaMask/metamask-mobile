@@ -64,6 +64,14 @@ jest.mock('../PerpsSlider/PerpsSlider', () => {
   };
 });
 
+// Mock stream hooks
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({
+    BTC: { price: '45000' },
+    ETH: { price: '2500' },
+  })),
+}));
+
 jest.mock('../../hooks', () => ({
   usePerpsPrices: jest.fn(() => ({
     BTC: { price: '45000' },
