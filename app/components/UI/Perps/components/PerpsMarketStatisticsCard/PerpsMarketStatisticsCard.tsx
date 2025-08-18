@@ -126,6 +126,7 @@ const PerpsMarketStatisticsCard: React.FC<PerpsMarketStatisticsCardProps> = ({
             <FundingCountdown
               variant={TextVariant.BodyXS}
               color={TextColor.Alternative}
+              style={styles.fundingCountdown}
               nextFundingTime={nextFundingTime}
               fundingIntervalHours={fundingIntervalHours}
               testID={

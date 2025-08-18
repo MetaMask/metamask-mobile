@@ -1,4 +1,5 @@
 import React, { useState, useEffect, memo } from 'react';
+import type { TextStyle } from 'react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -8,6 +9,7 @@ import { calculateFundingCountdown } from '../../utils/marketUtils';
 interface FundingCountdownProps {
   variant?: TextVariant;
   color?: TextColor;
+  style?: TextStyle;
   testID?: string;
   /**
    * Next funding time in milliseconds since epoch (optional, market-specific)
@@ -27,6 +29,7 @@ interface FundingCountdownProps {
 const FundingCountdown: React.FC<FundingCountdownProps> = ({
   variant = TextVariant.BodySM,
   color = TextColor.Default,
+  style,
   testID,
   nextFundingTime,
   fundingIntervalHours,
@@ -52,7 +55,7 @@ const FundingCountdown: React.FC<FundingCountdownProps> = ({
   }, [nextFundingTime, fundingIntervalHours]);
 
   return (
-    <Text variant={variant} color={color} testID={testID}>
+    <Text variant={variant} color={color} style={style} testID={testID}>
       ({countdown})
     </Text>
   );

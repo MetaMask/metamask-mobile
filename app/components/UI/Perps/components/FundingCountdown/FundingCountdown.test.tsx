@@ -83,4 +83,16 @@ describe('FundingCountdown', () => {
     expect(getByTestId('funding-countdown-test')).toBeTruthy();
     expect(getByText('(00:59:59)')).toBeTruthy();
   });
+
+  it('should accept and apply style prop', () => {
+    mockCalculateFundingCountdown.mockReturnValue('00:59:59');
+
+    const customStyle = { marginLeft: 10, fontSize: 20 };
+    const { getByTestId } = render(
+      <FundingCountdown testID="styled-countdown" style={customStyle} />,
+    );
+
+    const element = getByTestId('styled-countdown');
+    expect(element.props.style).toEqual(expect.objectContaining(customStyle));
+  });
 });
