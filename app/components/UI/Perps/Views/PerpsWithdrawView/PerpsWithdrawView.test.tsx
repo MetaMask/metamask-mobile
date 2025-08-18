@@ -287,16 +287,8 @@ describe('PerpsWithdrawView', () => {
       engine: {
         backgroundState: {
           ...backgroundState,
-          AccountsController: {
-            internalAccounts: {
-              selectedAccount: 'account1',
-              accounts: {
-                account1: {
-                  address: '0x1234567890abcdef',
-                },
-              },
-            },
-          },
+          // Note: PerpsWithdrawView now uses selectSelectedInternalAccountByScope selector
+          // which is mocked separately in the useWithdrawTokens hook, so no AccountsController state needed here
           TokenListController: {
             tokenList: {
               [`${ARBITRUM_MAINNET_CHAIN_ID}_${ZERO_ADDRESS}`]: {

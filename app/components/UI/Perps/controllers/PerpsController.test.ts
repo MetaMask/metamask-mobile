@@ -43,12 +43,15 @@ jest.mock('@metamask/utils', () => ({
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
-    AccountsController: {
-      getSelectedAccount: jest.fn().mockReturnValue({
-        address: '0x1234567890123456789012345678901234567890',
-        id: 'mock-account-id',
-        metadata: { name: 'Test Account' },
-      }),
+    AccountTreeController: {
+      getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+        {
+          address: '0x1234567890123456789012345678901234567890',
+          id: 'mock-account-id',
+          type: 'eip155:eoa',
+          metadata: { name: 'Test Account' },
+        },
+      ]),
     },
     NetworkController: {
       state: {
@@ -166,7 +169,9 @@ describe('PerpsController', () => {
     options: {
       state?: Partial<PerpsControllerState>;
       mocks?: {
-        getSelectedAccount?: jest.MockedFunction<() => unknown>;
+        getAccountsFromSelectedAccountGroup?: jest.MockedFunction<
+          () => unknown[]
+        >;
         getNetworkState?: jest.MockedFunction<() => unknown>;
       };
     } = {},
@@ -175,16 +180,8 @@ describe('PerpsController', () => {
 
     const messenger = new Messenger<any, any>();
 
-    // Register mock external actions
-    messenger.registerActionHandler(
-      'AccountsController:getSelectedAccount',
-      mocks.getSelectedAccount ??
-        jest.fn().mockReturnValue({
-          id: 'mock-account-id',
-          address: '0x1234567890123456789012345678901234567890',
-          metadata: { name: 'Test Account' },
-        }),
-    );
+    // Note: PerpsController now uses AccountTreeController directly via Engine.context
+    // No messenger action registration needed for AccountTreeController
 
     messenger.registerActionHandler(
       'NetworkController:getState',
@@ -196,12 +193,8 @@ describe('PerpsController', () => {
 
     const restrictedMessenger = messenger.getRestricted({
       name: 'PerpsController',
-      allowedActions: [
-        'AccountsController:getSelectedAccount' as never,
-        'NetworkController:getState' as never,
-      ],
+      allowedActions: ['NetworkController:getState' as never],
       allowedEvents: [
-        'AccountsController:selectedAccountChange' as never,
         'NetworkController:stateChange' as never,
         'TransactionController:transactionSubmitted' as never,
         'TransactionController:transactionConfirmed' as never,

@@ -41,10 +41,16 @@ import {
   usePerpsPerformance,
 } from '../../hooks';
 import styleSheet from './PerpsTabView.styles';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
+import { useSelector } from 'react-redux';
 
 interface PerpsTabViewProps {}
 
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
+  const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:1',
+  );
+
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const { getAccountState, depositWithConfirmation } = usePerpsTrading();
@@ -74,7 +80,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
   }, [startMeasure]);
 
-  // Automatically load account state on mount and when network changes
+  // Automatically load account state on mount and when network or account changes
   useEffect(() => {
     // Only load account state if we're connected and initialized
     if (isConnected && isInitialized) {
@@ -82,7 +88,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       // and stored in the controller's state
       getAccountState();
     }
-  }, [getAccountState, isConnected, isInitialized]);
+  }, [getAccountState, isConnected, isInitialized, selectedEvmAccount]);
 
   // Track homescreen tab viewed - only once when positions and account are loaded
   useEffect(() => {
