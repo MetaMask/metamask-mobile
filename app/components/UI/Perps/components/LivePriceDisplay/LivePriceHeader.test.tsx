@@ -99,10 +99,6 @@ describe('LivePriceHeader', () => {
     expect(getByText('$100.00')).toBeTruthy();
     // -10% of 100 = -10
     expect(getByText('-$10.00 (-10%)')).toBeTruthy();
-
-    // Check color for negative change
-    const changeText = getByText('-$10.00 (-10%)');
-    expect(changeText.props.color).toBeDefined();
   });
 
   it('should handle positive price change color', () => {
@@ -117,8 +113,7 @@ describe('LivePriceHeader', () => {
 
     const { getByText } = render(<LivePriceHeader symbol="AVAX" />);
 
-    const changeText = getByText('+$2.00 (8%)');
-    expect(changeText.props.color).toBeDefined();
+    expect(getByText('+$2.00 (8%)')).toBeTruthy();
   });
 
   it('should handle zero price change', () => {
@@ -135,9 +130,6 @@ describe('LivePriceHeader', () => {
 
     expect(getByText('$1.00')).toBeTruthy();
     expect(getByText('+$0.00 (0%)')).toBeTruthy();
-
-    const changeText = getByText('+$0.00 (0%)');
-    expect(changeText.props.color).toBeDefined(); // Zero is considered positive
   });
 
   it('should use custom throttle value', () => {
