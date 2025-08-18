@@ -18,6 +18,7 @@ import {
   useColorPulseAnimation,
   useBalanceComparison,
 } from '../../hooks';
+import { usePerpsLivePositions } from '../../hooks/stream';
 import { AccountState } from '../../controllers';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { formatPerpsFiat } from '../../utils/formatUtils';
@@ -37,7 +38,7 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
     unrealizedPnl: '',
   });
 
-  const { getAccountState, subscribeToPositions } = usePerpsTrading();
+  const { getAccountState } = usePerpsTrading();
 
   // Use the reusable hooks
   const { startPulseAnimation, getAnimatedStyle, stopAnimation } =
@@ -78,54 +79,47 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   // Track last positions hash to detect actual changes
   const lastPositionsHashRef = useRef<string>('');
 
-  // Auto-refresh setup with WebSocket subscription + polling fallback
+  // Use StreamManager for real-time position updates
+  const { positions } = usePerpsLivePositions({
+    throttleMs: 2000, // Check every 2 seconds for balance updates
+  });
+
+  // Auto-refresh balance when positions change
   useEffect(() => {
     // Initial load
     getAccountBalance();
+  }, [getAccountBalance]);
 
-    // Set up WebSocket subscription for real-time position updates
-    let unsubscribePositions: (() => void) | null = null;
+  // Monitor position changes and refresh balance
+  useEffect(() => {
+    // Create a simple hash of positions to detect actual changes
+    const positionsHash = JSON.stringify(
+      positions.map((p) => ({
+        coin: p.coin,
+        size: p.size,
+        entryPrice: p.entryPrice,
+        unrealizedPnl: p.unrealizedPnl,
+      })),
+    );
 
-    try {
-      unsubscribePositions = subscribeToPositions({
-        callback: (positions) => {
-          // Create a simple hash of positions to detect actual changes
-          const positionsHash = JSON.stringify(
-            positions.map((p) => ({
-              coin: p.coin,
-              size: p.size,
-              entryPrice: p.entryPrice,
-              unrealizedPnl: p.unrealizedPnl,
-            })),
-          );
-
-          // Only refresh if positions actually changed
-          if (positionsHash !== lastPositionsHashRef.current) {
-            DevLogger.log(
-              'PerpsTabControlBar: Position change detected, refreshing balance',
-            );
-            lastPositionsHashRef.current = positionsHash;
-            getAccountBalance();
-          }
-        },
-      });
-    } catch (error) {
+    // Only refresh if positions actually changed
+    if (
+      positionsHash !== lastPositionsHashRef.current &&
+      lastPositionsHashRef.current !== ''
+    ) {
       DevLogger.log(
-        'PerpsTabControlBar: Failed to subscribe to positions, using polling only',
-        error,
+        'PerpsTabControlBar: Position change detected, refreshing balance',
       );
+      lastPositionsHashRef.current = positionsHash;
+      getAccountBalance();
+    } else if (lastPositionsHashRef.current === '') {
+      // First time, just store the hash
+      lastPositionsHashRef.current = positionsHash;
     }
+  }, [positions, getAccountBalance]);
 
-    return () => {
-      // Cleanup WebSocket subscription
-      if (unsubscribePositions) {
-        unsubscribePositions();
-      }
-
-      // Cleanup animations
-      stopAnimation();
-    };
-  }, [getAccountBalance, subscribeToPositions, stopAnimation]);
+  // Cleanup animations on unmount
+  useEffect(() => () => stopAnimation(), [stopAnimation]);
 
   const handlePress = () => {
     onManageBalancePress?.();

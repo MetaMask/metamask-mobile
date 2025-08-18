@@ -26,7 +26,7 @@ import {
   usePerpsOrderFees,
   usePerpsClosePositionValidation,
 } from '../../hooks';
-import { useLivePrices } from '../../hooks/stream';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
 import PerpsSlider from '../PerpsSlider/PerpsSlider';
 import { createStyles } from './PerpsClosePositionBottomSheet.styles';
@@ -80,9 +80,9 @@ const PerpsClosePositionBottomSheet: React.FC<
   const [limitPriceInputFocused, setLimitPriceInputFocused] = useState(false);
 
   // Subscribe to real-time price with 1s debounce for position closing
-  const priceData = useLivePrices({
+  const priceData = usePerpsLivePrices({
     symbols: isVisible ? [position.coin] : [],
-    debounceMs: 1000,
+    throttleMs: 1000,
   });
   const currentPrice = priceData[position.coin]?.price
     ? parseFloat(priceData[position.coin].price)

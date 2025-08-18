@@ -1,6 +1,5 @@
 import React, { createContext, useContext } from 'react';
 import Engine from '../../../../core/Engine';
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type {
   PriceUpdate,
   Position,
@@ -12,7 +11,7 @@ import type {
 interface StreamSubscription<T> {
   id: string;
   callback: (data: T) => void;
-  debounceMs: number;
+  throttleMs?: number;
   timer?: NodeJS.Timeout;
   pendingUpdate?: T;
   hasReceivedFirstUpdate?: boolean; // Track if subscriber has received first update
@@ -28,46 +27,40 @@ class StreamChannel<T> {
     this.subscribers.forEach((subscriber) => {
       // Check if this is the first update for this subscriber
       if (!subscriber.hasReceivedFirstUpdate) {
-        DevLogger.log(
-          `StreamChannel: First update for subscriber ${subscriber.id}, executing immediately`,
-        );
         subscriber.callback(updates);
         subscriber.hasReceivedFirstUpdate = true;
-        return; // Don't set up debounce for the first update
+        return; // Don't set up throttle for the first update
       }
 
-      // For subsequent updates, use debounce logic
+      // If no throttling (throttleMs is 0 or undefined), notify immediately
+      if (!subscriber.throttleMs) {
+        subscriber.callback(updates);
+        return;
+      }
+
+      // For subsequent updates with throttling, use throttle logic
       // Store pending update
       subscriber.pendingUpdate = updates;
 
       // Only set timer if one isn't already running
       if (!subscriber.timer) {
-        DevLogger.log(
-          `StreamChannel: Setting ${subscriber.debounceMs}ms timer for subscriber ${subscriber.id}`,
-        );
         subscriber.timer = setTimeout(() => {
           if (subscriber.pendingUpdate) {
-            DevLogger.log(
-              `StreamChannel: Executing callback for subscriber ${subscriber.id} after ${subscriber.debounceMs}ms`,
-            );
             subscriber.callback(subscriber.pendingUpdate);
             subscriber.pendingUpdate = undefined;
             subscriber.timer = undefined;
           }
-        }, subscriber.debounceMs);
+        }, subscriber.throttleMs);
       }
     });
   }
 
   subscribe(params: {
     callback: (data: T) => void;
-    debounceMs: number;
+    throttleMs?: number;
   }): () => void {
     const id = Math.random().toString(36);
 
-    DevLogger.log(
-      `StreamChannel: New subscriber ${id} with ${params.debounceMs}ms debounce`,
-    );
     const subscription: StreamSubscription<T> = {
       id,
       ...params,
@@ -78,7 +71,6 @@ class StreamChannel<T> {
     // Give immediate cached data if available
     const cached = this.getCachedData();
     if (cached) {
-      DevLogger.log(`StreamChannel: Providing cached data to subscriber ${id}`);
       params.callback(cached);
       // Mark as having received first update since we provided cached data
       subscription.hasReceivedFirstUpdate = true;
@@ -88,7 +80,6 @@ class StreamChannel<T> {
     this.connect();
 
     return () => {
-      DevLogger.log(`StreamChannel: Removing subscriber ${id}`);
       const sub = this.subscribers.get(id);
       if (sub?.timer) {
         clearTimeout(sub.timer);
@@ -97,15 +88,13 @@ class StreamChannel<T> {
 
       // Disconnect if no subscribers
       if (this.subscribers.size === 0) {
-        DevLogger.log('StreamChannel: No subscribers left, disconnecting');
         this.disconnect();
       }
     };
   }
 
   protected connect() {
-    // Template method for establishing WebSocket connections
-    // Each stream type overrides this with specific subscription logic
+    // Override in subclasses
   }
 
   protected disconnect() {
@@ -116,8 +105,7 @@ class StreamChannel<T> {
   }
 
   protected getCachedData(): T | null {
-    // Template method for retrieving cached data for new subscribers
-    // Each stream type overrides this to return their specific cached format
+    // Override in subclasses
     return null;
   }
 }
@@ -130,7 +118,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 
   protected connect() {
     if (this.wsSubscription) {
-      DevLogger.log('PriceStream: Already connected');
       return;
     }
 
@@ -138,13 +125,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     const allSymbols = Array.from(this.symbols);
 
     if (allSymbols.length === 0) {
-      DevLogger.log('PriceStream: No symbols to subscribe to yet');
       return;
     }
-
-    DevLogger.log('PriceStream: Establishing WebSocket subscription', {
-      symbols: allSymbols,
-    });
 
     this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
       symbols: allSymbols, // Subscribe to specific symbols
@@ -173,7 +155,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         this.notifySubscribers(priceMap);
       },
     });
-    DevLogger.log('PriceStream: WebSocket subscription established');
   }
 
   protected getCachedData(): Record<string, PriceUpdate> | null {
@@ -188,7 +169,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   subscribeToSymbols(params: {
     symbols: string[];
     callback: (prices: Record<string, PriceUpdate>) => void;
-    debounceMs: number;
+    throttleMs?: number;
   }): () => void {
     // Track new symbols
     const newSymbols: string[] = [];
@@ -199,16 +180,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
       this.symbols.add(s);
     });
 
-    DevLogger.log(
-      `PriceStream: Component subscribing to symbols with ${params.debounceMs}ms debounce`,
-      { symbols: params.symbols, newSymbols },
-    );
-
     // If we have new symbols and WebSocket is already connected, we need to reconnect
     if (newSymbols.length > 0 && this.wsSubscription) {
-      DevLogger.log(
-        'PriceStream: New symbols detected, reconnecting WebSocket',
-      );
       this.disconnect();
       this.connect();
     }
@@ -222,51 +195,73 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
             filtered[symbol] = allPrices[symbol];
           }
         });
-        DevLogger.log(
-          `PriceStream: Sending filtered prices to component (${params.debounceMs}ms debounce)`,
-          {
-            symbols: Object.keys(filtered),
-            count: Object.keys(filtered).length,
-          },
-        );
         params.callback(filtered);
       },
-      debounceMs: params.debounceMs,
+      throttleMs: params.throttleMs,
     });
   }
 }
 
 // Specific channel for orders
 class OrderStreamChannel extends StreamChannel<Order[]> {
+  private prewarmUnsubscribe?: () => void;
+
   protected connect() {
     if (this.wsSubscription) return;
 
-    // For now, we'll use polling until WebSocket is available
-    // This will be replaced with actual WebSocket subscription
-    const controller = Engine.context.PerpsController;
-    const pollInterval = setInterval(async () => {
-      try {
-        const orders = await controller.getOrders();
+    // This calls HyperLiquidSubscriptionService.subscribeToOrders which uses shared webData2
+    this.wsSubscription = Engine.context.PerpsController.subscribeToOrders({
+      callback: (orders: Order[]) => {
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
-      } catch (error) {
-        // Handle error silently
-      }
-    }, 5000);
-
-    this.wsSubscription = () => clearInterval(pollInterval);
+      },
+    });
   }
 
   protected getCachedData() {
     return this.cache.get('orders') || [];
   }
+
+  /**
+   * Pre-warm the channel by creating a persistent subscription
+   * This keeps the WebSocket connection alive and caches data continuously
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public prewarm(): () => void {
+    if (this.prewarmUnsubscribe) {
+      return this.prewarmUnsubscribe;
+    }
+
+    // Create a real subscription with no-op callback to keep connection alive
+    this.prewarmUnsubscribe = this.subscribe({
+      callback: () => {
+        // No-op callback - just keeps the connection alive for caching
+      },
+      throttleMs: 0, // No throttle for pre-warm
+    });
+
+    return this.prewarmUnsubscribe;
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+    }
+  }
 }
 
 // Specific channel for positions
 class PositionStreamChannel extends StreamChannel<Position[]> {
+  private prewarmUnsubscribe?: () => void;
+
   protected connect() {
     if (this.wsSubscription) return;
 
+    // This calls HyperLiquidSubscriptionService.subscribeToPositions which uses shared webData2
     this.wsSubscription = Engine.context.PerpsController.subscribeToPositions({
       callback: (positions: Position[]) => {
         this.cache.set('positions', positions);
@@ -277,6 +272,37 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
   protected getCachedData() {
     return this.cache.get('positions') || [];
+  }
+
+  /**
+   * Pre-warm the channel by creating a persistent subscription
+   * This keeps the WebSocket connection alive and caches data continuously
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public prewarm(): () => void {
+    if (this.prewarmUnsubscribe) {
+      return this.prewarmUnsubscribe;
+    }
+
+    // Create a real subscription with no-op callback to keep connection alive
+    this.prewarmUnsubscribe = this.subscribe({
+      callback: () => {
+        // No-op callback - just keeps the connection alive for caching
+      },
+      throttleMs: 0, // No throttle for pre-warm
+    });
+
+    return this.prewarmUnsubscribe;
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+    }
   }
 }
 
@@ -302,7 +328,7 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
 }
 
 // Main manager class
-class PerpsStreamManager {
+export class PerpsStreamManager {
   public readonly prices = new PriceStreamChannel();
   public readonly orders = new OrderStreamChannel();
   public readonly positions = new PositionStreamChannel();
@@ -318,13 +344,17 @@ class PerpsStreamManager {
 // Singleton instance
 const streamManager = new PerpsStreamManager();
 
+// Export singleton for pre-warming in PerpsConnectionManager
+export const getStreamManagerInstance = () => streamManager;
+
 // Context
 const PerpsStreamContext = createContext<PerpsStreamManager | null>(null);
 
 export const PerpsStreamProvider: React.FC<{
   children: React.ReactNode;
-}> = ({ children }) => (
-  <PerpsStreamContext.Provider value={streamManager}>
+  testStreamManager?: PerpsStreamManager; // Only for testing
+}> = ({ children, testStreamManager }) => (
+  <PerpsStreamContext.Provider value={testStreamManager || streamManager}>
     {children}
   </PerpsStreamContext.Provider>
 );
