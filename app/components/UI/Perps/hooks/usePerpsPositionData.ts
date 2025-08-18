@@ -65,65 +65,22 @@ export const usePerpsPositionData = ({
       customCandleCount ??
       calculateCandleCount(selectedDuration, selectedInterval);
 
-    // Calculate the target time range based on selected duration
-    const now = Date.now();
-    const targetTimeRange = (() => {
-      switch (selectedDuration) {
-        case TimeDuration.ONE_HOUR:
-          return 60 * 60 * 1000; // 1 hour in ms
-        case TimeDuration.ONE_DAY:
-          return 24 * 60 * 60 * 1000; // 1 day in ms
-        case TimeDuration.ONE_WEEK:
-          return 7 * 24 * 60 * 60 * 1000; // 1 week in ms
-        case TimeDuration.ONE_MONTH:
-          return 30 * 24 * 60 * 60 * 1000; // 30 days in ms
-        case TimeDuration.YEAR_TO_DATE:
-          return 365 * 24 * 60 * 60 * 1000; // 1 year in ms
-        case TimeDuration.MAX:
-          return 2 * 365 * 24 * 60 * 60 * 1000; // 2 years in ms
-        default:
-          return 24 * 60 * 60 * 1000; // Default to 1 day
-      }
-    })();
-
-    // Fetch more candles than needed to account for gaps in trading
-    // This ensures we get enough data to cover the full time range
-    const fetchCandleCount = Math.min(750, baseCandleCount * 3); // 3x for gaps
-
     DevLogger.log(
-      `Fetching ${fetchCandleCount} candles for ${selectedDuration} (target: ${
-        targetTimeRange / 1000 / 60
-      } minutes) with ${selectedInterval} period`,
+      `Fetching ${baseCandleCount} candles for ${selectedDuration} with ${selectedInterval} period`,
     );
 
     const historicalData =
       await Engine.context.PerpsController.fetchHistoricalCandles(
         coin,
         selectedInterval,
-        fetchCandleCount,
+        baseCandleCount,
       );
 
-    // Filter candles to only include ones within the target time range
-    const cutoffTime = now - targetTimeRange;
-
     DevLogger.log(
-      `Received ${
-        historicalData?.candles?.length || 0
-      } total candles, filtering to past ${selectedDuration}`,
+      `Received ${historicalData?.candles?.length || 0} total candles`,
     );
 
-    const filteredCandles =
-      historicalData?.candles?.filter((candle) => candle.time >= cutoffTime) ??
-      [];
-
-    DevLogger.log(
-      `After time filtering: ${filteredCandles.length} candles from the past ${selectedDuration}`,
-    );
-
-    return {
-      ...historicalData,
-      candles: filteredCandles,
-    };
+    return historicalData;
   }, [coin, selectedDuration, selectedInterval, customCandleCount]);
 
   const subscribeToPriceUpdates = useCallback(() => {
