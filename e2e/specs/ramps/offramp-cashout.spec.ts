@@ -4,12 +4,12 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokeTrade } from '../../tags';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import Assertions from '../../framework/Assertions';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
 import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../fixtures/utils';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
   EventPayload,
@@ -69,8 +69,8 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
       },
       async () => {
         await loginToApp();
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSellButton();
+        await WalletView.tapWalletFundButton();
+        await FundActionMenu.tapSellButton();
         await SellGetStartedView.tapGetStartedButton();
         await Assertions.expectTextNotDisplayed('SEPA Bank Transfer');
         await BuildQuoteView.tapPaymentMethodDropdown('Debit or Credit');

@@ -1,224 +1,533 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`TabBar renders correctly 1`] = `
-[
+<View>
   <View
     style={
-      {
-        "backgroundColor": "#ffffff",
-        "flexBasis": 1,
-        "shadowColor": "#3f434a66",
-        "shadowOffset": {
-          "height": 4,
-          "width": 0,
+      [
+        {
+          "alignItems": "center",
+          "backgroundColor": "#ffffff",
+          "borderColor": "#b7bbc866",
+          "borderTopWidth": 1,
+          "columnGap": 8,
+          "display": "flex",
+          "flexDirection": "row",
+          "paddingLeft": 8,
+          "paddingRight": 8,
+          "paddingTop": 12,
+          "width": "100%",
         },
-        "shadowOpacity": 1,
-        "shadowRadius": 8,
-      }
-    }
-  />,
-  <View
-    style={
-      {
-        "alignItems": "center",
-        "backgroundColor": "#ffffff",
-        "flexDirection": "row",
-        "height": 48,
-        "marginBottom": 0,
-        "paddingHorizontal": 16,
-      }
+        [
+          {
+            "paddingBottom": 0,
+          },
+        ],
+      ]
     }
   >
-    <TouchableOpacity
-      onPress={[Function]}
+    <View
       style={
         {
-          "alignItems": "center",
-          "flex": 1,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
-      testID="tab-bar-item-Wallet"
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 20,
-            "height": 40,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "width": 40,
-          }
+          [
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+            {
+              "alignItems": "center",
+              "justifyContent": "center",
+            },
+          ]
         }
       >
-        <SvgMock
-          color="#4459ff"
-          fill="currentColor"
-          height={24}
-          name="Wallet"
-          style={
+        <View
+          accessibilityLabel="Home"
+          accessibilityRole="button"
+          accessibilityState={
             {
-              "height": 24,
-              "width": 24,
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
             }
           }
-          width={24}
-        />
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "justifyContent": "center",
+              "paddingBottom": 4,
+              "paddingLeft": 8,
+              "paddingRight": 8,
+              "paddingTop": 4,
+            }
+          }
+          testID="tab-bar-item-Wallet"
+        >
+          <SvgMock
+            color="#121314"
+            fill="currentColor"
+            height={24}
+            name="Home"
+            style={
+              {
+                "height": 24,
+                "width": 24,
+              }
+            }
+            width={24}
+          />
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "color": "#121314",
+                "fontFamily": "Geist Medium",
+                "fontSize": 12,
+                "letterSpacing": 0.25,
+                "lineHeight": 20,
+                "marginTop": 4,
+              }
+            }
+          >
+            Home
+          </Text>
+        </View>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
       style={
         {
-          "alignItems": "center",
-          "flex": 1,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
-      testID="tab-bar-item-Activity"
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 20,
-            "height": 40,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "width": 40,
-          }
+          [
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+            {
+              "alignItems": "center",
+              "justifyContent": "center",
+            },
+          ]
         }
       >
-        <SvgMock
-          color="#b7bbc8"
-          fill="currentColor"
-          height={24}
-          name="Activity"
-          style={
+        <View
+          accessibilityLabel="Browser"
+          accessibilityRole="button"
+          accessibilityState={
             {
-              "height": 24,
-              "width": 24,
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
             }
           }
-          width={24}
-        />
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "justifyContent": "center",
+              "paddingBottom": 4,
+              "paddingLeft": 8,
+              "paddingRight": 8,
+              "paddingTop": 4,
+            }
+          }
+          testID="tab-bar-item-Browser"
+        >
+          <SvgMock
+            color="#686e7d"
+            fill="currentColor"
+            height={24}
+            name="Explore"
+            style={
+              {
+                "height": 24,
+                "width": 24,
+              }
+            }
+            width={24}
+          />
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Medium",
+                "fontSize": 12,
+                "letterSpacing": 0.25,
+                "lineHeight": 20,
+                "marginTop": 4,
+              }
+            }
+          >
+            Browser
+          </Text>
+        </View>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
       style={
         {
-          "alignItems": "center",
-          "flex": 1,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
-      testID="tab-bar-item-Actions"
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "#4459ff",
-            "borderRadius": 16,
-            "height": 32,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "width": 32,
-          }
+          [
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+            {
+              "alignItems": "center",
+              "justifyContent": "center",
+            },
+          ]
         }
       >
-        <SvgMock
-          color="#ffffff"
-          fill="currentColor"
-          height={20}
-          name="SwapVertical"
-          style={
+        <View
+          accessibilityLabel=""
+          accessibilityRole="button"
+          accessibilityState={
             {
-              "height": 20,
-              "width": 20,
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
             }
           }
-          width={20}
-        />
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "#4459ff",
+              "borderRadius": 9999,
+              "height": 45,
+              "justifyContent": "center",
+              "paddingBottom": 4,
+              "paddingLeft": 8,
+              "paddingRight": 8,
+              "paddingTop": 4,
+              "width": 45,
+            }
+          }
+          testID="tab-bar-item-Actions"
+        >
+          <SvgMock
+            color="#ffffff"
+            fill="currentColor"
+            height={20}
+            name="SwapVertical"
+            style={
+              {
+                "height": 20,
+                "width": 20,
+              }
+            }
+            width={20}
+          />
+        </View>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
       style={
         {
-          "alignItems": "center",
-          "flex": 1,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
-      testID="tab-bar-item-Browser"
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 20,
-            "height": 40,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "width": 40,
-          }
+          [
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+            {
+              "alignItems": "center",
+              "justifyContent": "center",
+            },
+          ]
         }
       >
-        <SvgMock
-          color="#b7bbc8"
-          fill="currentColor"
-          height={24}
-          name="Explore"
-          style={
+        <View
+          accessibilityLabel="Activity"
+          accessibilityRole="button"
+          accessibilityState={
             {
-              "height": 24,
-              "width": 24,
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
             }
           }
-          width={24}
-        />
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "justifyContent": "center",
+              "paddingBottom": 4,
+              "paddingLeft": 8,
+              "paddingRight": 8,
+              "paddingTop": 4,
+            }
+          }
+          testID="tab-bar-item-Activity"
+        >
+          <SvgMock
+            color="#686e7d"
+            fill="currentColor"
+            height={24}
+            name="Activity"
+            style={
+              {
+                "height": 24,
+                "width": 24,
+              }
+            }
+            width={24}
+          />
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Medium",
+                "fontSize": 12,
+                "letterSpacing": 0.25,
+                "lineHeight": 20,
+                "marginTop": 4,
+              }
+            }
+          >
+            Activity
+          </Text>
+        </View>
       </View>
-    </TouchableOpacity>
-    <TouchableOpacity
-      onPress={[Function]}
+    </View>
+    <View
       style={
         {
-          "alignItems": "center",
-          "flex": 1,
+          "flexBasis": "0%",
+          "flexGrow": 1,
+          "flexShrink": 1,
         }
       }
-      testID="tab-bar-item-Setting"
     >
       <View
         style={
-          {
-            "alignItems": "center",
-            "backgroundColor": "transparent",
-            "borderRadius": 20,
-            "height": 40,
-            "justifyContent": "center",
-            "overflow": "hidden",
-            "width": 40,
-          }
+          [
+            {
+              "transform": [
+                {
+                  "scale": 1,
+                },
+              ],
+            },
+            {
+              "alignItems": "center",
+              "justifyContent": "center",
+            },
+          ]
         }
       >
-        <SvgMock
-          color="#b7bbc8"
-          fill="currentColor"
-          height={24}
-          name="Setting"
-          style={
+        <View
+          accessibilityLabel="Settings"
+          accessibilityRole="button"
+          accessibilityState={
             {
-              "height": 24,
-              "width": 24,
+              "busy": undefined,
+              "checked": undefined,
+              "disabled": undefined,
+              "expanded": undefined,
+              "selected": undefined,
             }
           }
-          width={24}
-        />
+          accessibilityValue={
+            {
+              "max": undefined,
+              "min": undefined,
+              "now": undefined,
+              "text": undefined,
+            }
+          }
+          accessible={true}
+          collapsable={false}
+          focusable={true}
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onResponderGrant={[Function]}
+          onResponderMove={[Function]}
+          onResponderRelease={[Function]}
+          onResponderTerminate={[Function]}
+          onResponderTerminationRequest={[Function]}
+          onStartShouldSetResponder={[Function]}
+          style={
+            {
+              "alignItems": "center",
+              "backgroundColor": "transparent",
+              "justifyContent": "center",
+              "paddingBottom": 4,
+              "paddingLeft": 8,
+              "paddingRight": 8,
+              "paddingTop": 4,
+            }
+          }
+          testID="tab-bar-item-Setting"
+        >
+          <SvgMock
+            color="#686e7d"
+            fill="currentColor"
+            height={24}
+            name="Setting"
+            style={
+              {
+                "height": 24,
+                "width": 24,
+              }
+            }
+            width={24}
+          />
+          <Text
+            accessibilityRole="text"
+            numberOfLines={1}
+            style={
+              {
+                "color": "#686e7d",
+                "fontFamily": "Geist Medium",
+                "fontSize": 12,
+                "letterSpacing": 0.25,
+                "lineHeight": 20,
+                "marginTop": 4,
+              }
+            }
+          >
+            Settings
+          </Text>
+        </View>
       </View>
-    </TouchableOpacity>
-  </View>,
-]
+    </View>
+  </View>
+</View>
 `;

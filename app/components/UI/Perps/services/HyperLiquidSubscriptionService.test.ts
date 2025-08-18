@@ -39,6 +39,25 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock trace utilities
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PerpsMarketDataUpdate: 'Perps Market Data Update',
+    PerpsWebSocketConnected: 'Perps WebSocket Connected',
+    PerpsWebSocketDisconnected: 'Perps WebSocket Disconnected',
+  },
+  TraceOperation: {
+    PerpsMarketData: 'perps.market_data',
+  },
+}));
+
+// Mock Sentry
+jest.mock('@sentry/react-native', () => ({
+  setMeasurement: jest.fn(),
+}));
+
 describe('HyperLiquidSubscriptionService', () => {
   let service: HyperLiquidSubscriptionService;
   let mockClientService: jest.Mocked<HyperLiquidClientService>;
@@ -129,6 +148,7 @@ describe('HyperLiquidSubscriptionService', () => {
     mockClientService = {
       ensureSubscriptionClient: jest.fn(),
       getSubscriptionClient: jest.fn(() => mockSubscriptionClient),
+      isTestnetMode: jest.fn(() => false),
     } as any;
 
     // Mock wallet service
@@ -551,6 +571,69 @@ describe('HyperLiquidSubscriptionService', () => {
       expect(mockCallback).toHaveBeenCalled();
 
       unsubscribe();
+    });
+  });
+
+  describe('WebSocket Monitoring', () => {
+    it('should track WebSocket connection and performance', async () => {
+      const mockCallback = jest.fn();
+
+      service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+      });
+
+      // Wait for subscription to be established
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Verify WebSocket connection tracking
+      const traceModule = jest.requireMock('../../../../util/trace');
+      expect(traceModule.trace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Perps WebSocket Connected',
+          op: 'perps.market_data',
+        }),
+      );
+
+      // Verify performance measurements
+    });
+
+    it('should calculate subscription duration correctly using performance.now()', async () => {
+      const mockCallback = jest.fn();
+      const traceModule = jest.requireMock('../../../../util/trace');
+
+      // Clear previous calls
+      traceModule.endTrace.mockClear();
+
+      const unsubscribe = service.subscribeToPrices({
+        symbols: ['BTC'],
+        callback: mockCallback,
+      });
+
+      // Wait a bit to simulate subscription time
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Unsubscribe to trigger endTrace
+      unsubscribe();
+
+      // Verify endTrace was called with correct duration calculation
+      expect(traceModule.endTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Perps Market Data Update',
+          data: expect.objectContaining({
+            subscription_duration_ms: expect.any(Number),
+            symbols_count: 1,
+          }),
+        }),
+      );
+
+      // The duration should be a positive number (not negative from Date.now() - performance.now())
+      const endTraceCall = traceModule.endTrace.mock.calls[0][0];
+      expect(endTraceCall.data.subscription_duration_ms).toBeGreaterThan(0);
+      // Should be at least 50ms since we waited that long
+      expect(endTraceCall.data.subscription_duration_ms).toBeGreaterThanOrEqual(
+        40,
+      ); // Allow some margin
     });
   });
 

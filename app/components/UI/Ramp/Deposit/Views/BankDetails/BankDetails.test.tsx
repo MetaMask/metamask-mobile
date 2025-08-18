@@ -7,6 +7,7 @@ import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import initialRootState from '../../../../../../util/test/initial-root-state';
 import { StackActions } from '@react-navigation/native';
 import Logger from '../../../../../../util/Logger';
+import { endTrace } from '../../../../../../util/trace';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -39,6 +40,7 @@ const mockOrderData = {
           { name: 'Last Name (Beneficiary)', value: 'doe' },
           { name: 'Account Number', value: '1234567890' },
           { name: 'Bank Name', value: 'test bank' },
+          { name: 'Recipient Address', value: '456 recipient street' },
           { name: 'Bank Address', value: '123 bank street' },
         ],
       },
@@ -110,6 +112,11 @@ jest.mock('../../../index', () => ({
   processFiatOrder: mockProcessFiatOrder,
 }));
 
+jest.mock('../../../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../../../util/trace'),
+  endTrace: jest.fn(),
+}));
+
 function render(Component: React.ComponentType) {
   return renderScreen(
     Component,
@@ -171,6 +178,19 @@ describe('BankDetails Component', () => {
     fireEvent.press(screen.getByText('Show bank information'));
 
     expect(screen.getByText('Hide bank information')).toBeTruthy();
+  });
+
+  it('displays beneficiary address when bank information is shown', () => {
+    render(BankDetails);
+
+    // Initially beneficiary address should not be visible
+    expect(screen.queryByText('456 Recipient Street')).toBeNull();
+
+    // Show bank information
+    fireEvent.press(screen.getByText('Show bank information'));
+
+    // Beneficiary address should now be visible
+    expect(screen.getByText('456 Recipient Street')).toBeTruthy();
   });
 
   it('calls setOptions with correct title when component mounts', () => {
@@ -278,5 +298,32 @@ describe('BankDetails Component', () => {
     fireEvent.press(screen.getByText('Cancel order'));
     expect(mockCancelOrder).toHaveBeenCalled();
     expect(mockLoggerError).toHaveBeenCalled();
+  });
+
+  it('should call endTrace three times when component mounts', () => {
+    const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+    mockEndTrace.mockClear();
+
+    render(BankDetails);
+
+    expect(mockEndTrace).toHaveBeenCalledTimes(3);
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Load Deposit Experience',
+      data: {
+        destination: 'BankDetails',
+      },
+    });
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Continue Flow',
+      data: {
+        destination: 'BankDetails',
+      },
+    });
+    expect(mockEndTrace).toHaveBeenCalledWith({
+      name: 'Deposit Input OTP',
+      data: {
+        destination: 'BankDetails',
+      },
+    });
   });
 });

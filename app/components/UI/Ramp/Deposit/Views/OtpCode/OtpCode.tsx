@@ -34,6 +34,7 @@ import Button, {
 import Logger from '../../../../../../util/Logger';
 import useAnalytics from '../../../hooks/useAnalytics';
 import { createBuildQuoteNavDetails } from '../../../Deposit/Views/BuildQuote/BuildQuote';
+import { trace, TraceName } from '../../../../../../util/trace';
 
 export interface OtpCodeParams {
   email: string;
@@ -166,6 +167,10 @@ const OtpCode = () => {
       try {
         setIsLoading(true);
         setError(null);
+
+        trace({
+          name: TraceName.DepositInputOtp,
+        });
 
         const response = await submitCode();
 

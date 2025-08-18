@@ -1,13 +1,13 @@
 import { SmokeConfirmationsRedesigned } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import {
   SEND_ETH_SIMULATION_MOCK,
   SIMULATION_ENABLED_NETWORKS_MOCK,
 } from '../../../api-mocking/mock-responses/simulations';
 import Assertions from '../../../framework/Assertions';
-import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../../pages/wallet/WalletView';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
@@ -48,8 +48,7 @@ describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
       async () => {
         await loginToApp();
 
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSendButton();
+        await WalletView.tapWalletSendButton();
 
         await SendView.inputAddress(RECIPIENT);
         await SendView.tapNextButton();

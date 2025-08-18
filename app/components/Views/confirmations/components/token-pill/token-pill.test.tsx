@@ -1,5 +1,5 @@
 import React from 'react';
-import { TokenPill } from './token-pill';
+import { TokenPill, TokenPillProps } from './token-pill';
 import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -17,8 +17,8 @@ const STATE_MOCK = {
   },
 };
 
-function render({ address, chainId }: { address: Hex; chainId: Hex }) {
-  return renderWithProvider(<TokenPill address={address} chainId={chainId} />, {
+function render(props: TokenPillProps) {
+  return renderWithProvider(<TokenPill {...props} />, {
     state: STATE_MOCK,
   });
 }
@@ -73,5 +73,15 @@ describe('TokenPill', () => {
     });
 
     expect(queryByTestId('token-pill-symbol')).toBeNull();
+  });
+
+  it('renders arrow if showArrow is true', () => {
+    const { getByTestId } = render({
+      address: ADDRESS_MOCK,
+      chainId: CHAIN_ID_MOCK,
+      showArrow: true,
+    });
+
+    expect(getByTestId('token-pill-arrow')).toBeDefined();
   });
 });

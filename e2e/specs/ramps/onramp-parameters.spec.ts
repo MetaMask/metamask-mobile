@@ -1,6 +1,6 @@
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
@@ -13,7 +13,7 @@ import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../fixtures/utils';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
@@ -41,8 +41,8 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
     },
     async () => {
       await loginToApp();
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapBuyButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await testFn();
     },

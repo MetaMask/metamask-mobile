@@ -14,10 +14,10 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
-import Keypad from '../../../Ramp/Aggregator/components/Keypad';
+import Keypad from '../../../../Base/Keypad';
 import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
-import { usePerpsPrices } from '../../hooks/usePerpsPrices';
+import { useLivePrices } from '../../hooks/stream';
 import { ORDER_BOOK_SPREAD } from '../../constants/hyperLiquidConfig';
 
 interface PerpsLimitPriceBottomSheetProps {
@@ -44,8 +44,12 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   // Initialize with initial limit price or empty to show placeholder
   const [limitPrice, setLimitPrice] = useState(initialLimitPrice || '');
 
-  // Get real-time price data but memoize to prevent re-renders
-  const priceData = usePerpsPrices([asset], true); // Include order book for limit orders
+  // Get real-time price data with 500ms debounce for limit price bottom sheet
+  // Only subscribe when visible
+  const priceData = useLivePrices({
+    symbols: isVisible ? [asset] : [],
+    debounceMs: 500,
+  });
   const currentPriceData = priceData[asset];
 
   // Store price data in state to control when it updates
@@ -265,7 +269,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             onChange={handleKeypadChange}
             currency="USD"
             decimals={2}
-            style={styles.keypad}
           />
         </View>
       </View>
@@ -278,6 +281,15 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 };
 
 PerpsLimitPriceBottomSheet.displayName = 'PerpsLimitPriceBottomSheet';
+
+// Enable WDYR tracking in development
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsLimitPriceBottomSheet as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsLimitPriceBottomSheet',
+  };
+}
 
 export default memo(PerpsLimitPriceBottomSheet, (prevProps, nextProps) => {
   // If bottom sheet is not visible in both states, skip re-render
