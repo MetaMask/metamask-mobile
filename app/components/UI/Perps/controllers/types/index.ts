@@ -354,6 +354,11 @@ export interface SubscribeOrdersParams {
   includeHistory?: boolean; // Optional: include filled/canceled orders
 }
 
+export interface SubscribeAccountParams {
+  callback: (account: AccountState) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -494,6 +499,7 @@ export interface IPerpsProvider {
   subscribeToPositions(params: SubscribePositionsParams): () => void;
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void;
   subscribeToOrders(params: SubscribeOrdersParams): () => void;
+  subscribeToAccount(params: SubscribeAccountParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

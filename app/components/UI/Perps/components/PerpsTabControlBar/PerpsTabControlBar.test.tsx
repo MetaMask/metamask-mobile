@@ -37,6 +37,7 @@ jest.mock('../../hooks/stream', () => ({
     positions: [],
     isInitialLoading: false,
   })),
+  usePerpsLiveAccount: jest.fn(() => null),
 }));
 
 jest.mock('../../utils/formatUtils', () => ({
@@ -164,10 +165,15 @@ describe('PerpsTabControlBar', () => {
 
   describe('Component Rendering', () => {
     it('renders correctly with all elements', async () => {
+      // Mock usePerpsLiveAccount to return null initially (loading state)
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue(null);
+
       render(<PerpsTabControlBar />);
 
       expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
-      expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Initial balance
+      expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Initial balance when no data
 
       // Find TouchableOpacity by its content
       const touchableOpacity = screen.getByText('Perp account balance').parent
@@ -176,16 +182,15 @@ describe('PerpsTabControlBar', () => {
     });
 
     it('displays formatted balance when data is loaded', async () => {
+      // Mock usePerpsLiveAccount to return account data
+      jest
+        .mocked(jest.requireMock('../../hooks/stream').usePerpsLiveAccount)
+        .mockReturnValue(defaultAccountState);
+
       render(<PerpsTabControlBar />);
 
-      // Wait for the initial data load
-      await waitFor(() => {
-        expect(mockGetAccountState).toHaveBeenCalled();
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('$800.25')).toBeOnTheScreen();
-      });
+      // Should display the available balance from account state
+      expect(screen.getByText('$800.25')).toBeOnTheScreen();
     });
 
     it('renders without onManageBalancePress prop', async () => {
