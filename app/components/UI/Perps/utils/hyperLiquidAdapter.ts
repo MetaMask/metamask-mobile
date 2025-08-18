@@ -5,10 +5,12 @@ import type {
   SpotClearinghouseState,
 } from '@deeeed/hyperliquid-node20/esm/src/types/info/accounts';
 import type { PerpsUniverse } from '@deeeed/hyperliquid-node20/esm/src/types/info/assets';
+import type { FrontendOrder } from '@deeeed/hyperliquid-node20/esm/src/types/info/orders';
 import { isHexString } from '@metamask/utils';
 import type {
   AccountState,
   MarketInfo,
+  Order,
   OrderParams as PerpsOrderParams,
   Position,
 } from '../controllers/types';
@@ -82,6 +84,90 @@ export function adaptPositionFromSDK(assetPosition: AssetPosition): Position {
     returnOnEquity: pos.returnOnEquity,
     cumulativeFunding: pos.cumFunding,
   };
+}
+
+/**
+ * Transform HyperLiquid SDK order to MetaMask Perps API format
+ * Handles both REST API responses (FrontendOrder) and WebSocket data formats
+ * @param rawOrder - Raw order data from HyperLiquid SDK (frontendOpenOrders or webData2)
+ * @returns MetaMask Perps API order object
+ */
+export function adaptOrderFromSDK(rawOrder: FrontendOrder): Order {
+  // Extract basic fields with appropriate conversions
+  const orderId = rawOrder.oid.toString();
+  const symbol = rawOrder.coin;
+
+  // Convert side: HyperLiquid uses 'B' for Buy and 'A' for Ask (Sell)
+  const side: 'buy' | 'sell' = rawOrder.side === 'B' ? 'buy' : 'sell';
+
+  // Get detailed order type from API
+  const detailedOrderType = rawOrder.orderType;
+
+  // Determine if this is a trigger order (TP/SL)
+  const isTrigger = rawOrder.isTrigger;
+  const reduceOnly = rawOrder.reduceOnly;
+
+  // Determine basic order type
+  let orderType: 'limit' | 'market' = 'market';
+  if (detailedOrderType.toLowerCase().includes('limit') || rawOrder.limitPx) {
+    orderType = 'limit';
+  }
+
+  // For trigger orders (TP/SL), use triggerPx as the price
+  const price = rawOrder.limitPx || rawOrder.triggerPx || '0';
+
+  // Sizes
+  const size = rawOrder.sz;
+  const originalSize = rawOrder.origSz || size;
+
+  // Calculate filled and remaining size
+  const currentSize = parseFloat(size);
+  const origSize = parseFloat(originalSize);
+  const filledSize = origSize - currentSize;
+
+  // Check for TP/SL in child orders (REST API feature)
+  let takeProfitPrice: string | undefined;
+  let stopLossPrice: string | undefined;
+
+  if (rawOrder.children && rawOrder.children.length > 0) {
+    rawOrder.children.forEach((child) => {
+      if (child.isTrigger && child.orderType) {
+        if (child.orderType.includes('Take Profit')) {
+          takeProfitPrice = child.triggerPx || child.limitPx;
+        } else if (child.orderType.includes('Stop')) {
+          stopLossPrice = child.triggerPx || child.limitPx;
+        }
+      }
+    });
+  }
+
+  // Build the order object
+  const order: Order = {
+    orderId,
+    symbol,
+    side,
+    orderType,
+    size,
+    originalSize,
+    price,
+    filledSize: filledSize.toString(),
+    remainingSize: size,
+    status: 'open' as const, // All orders from frontendOpenOrders/webData2 are open
+    timestamp: rawOrder.timestamp,
+    detailedOrderType,
+    isTrigger,
+    reduceOnly,
+  };
+
+  // Add optional fields if they exist
+  if (takeProfitPrice) {
+    order.takeProfitPrice = takeProfitPrice;
+  }
+  if (stopLossPrice) {
+    order.stopLossPrice = stopLossPrice;
+  }
+
+  return order;
 }
 
 /**

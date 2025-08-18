@@ -59,10 +59,10 @@ import { capitalize } from '../../../../../util/general';
 import {
   usePerpsAccount,
   usePerpsConnection,
-  usePerpsOpenOrders,
   usePerpsPerformance,
   usePerpsTrading,
 } from '../../hooks';
+import { usePerpsLiveOrders } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
@@ -108,15 +108,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const account = usePerpsAccount();
 
-  const { isConnected } = usePerpsConnection();
+  usePerpsConnection();
   const { depositWithConfirmation } = usePerpsTrading();
 
-  // Get currently open orders for this market
-  const { orders: ordersData, refresh: refreshOrders } = usePerpsOpenOrders({
-    skipInitialFetch: !isConnected,
-    enablePolling: true,
-    pollingInterval: 5000, // Poll every 5 seconds for real-time updates
-  });
+  // Get real-time open orders via WebSocket
+  const ordersData = usePerpsLiveOrders(); // Instant updates (no debouncing)
 
   // Filter orders for the current market
   const openOrders = useMemo(() => {
@@ -133,7 +129,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
   // Get candlestick data
-  const { candleData, isLoadingHistory, priceData, refreshCandleData } =
+  const { candleData, isLoadingHistory, refreshCandleData } =
     usePerpsPositionData({
       coin: market?.symbol || '',
       selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
@@ -228,8 +224,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           break;
 
         case 'orders':
-          // Refresh orders data
-          await refreshOrders();
+          // Orders update automatically via WebSocket, no refresh needed
           break;
 
         case 'statistics':
@@ -251,7 +246,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [
     activeTabId,
     refreshPosition,
-    refreshOrders,
     marketStats,
     candleData,
     refreshCandleData,
@@ -328,8 +322,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       <View>
         <PerpsMarketHeader
           market={market}
-          currentPrice={marketStats.currentPrice}
-          priceChange24h={marketStats.priceChange24h}
           onBackPress={handleBackPress}
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
@@ -383,7 +375,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               unfilledOrders={openOrders}
               onPositionUpdate={refreshPosition}
               onActiveTabChange={setActiveTabId}
-              priceData={priceData}
+              nextFundingTime={market?.nextFundingTime}
+              fundingIntervalHours={market?.fundingIntervalHours}
             />
           </View>
 
@@ -470,5 +463,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     </SafeAreaView>
   );
 };
+
+// Enable Why Did You Render in development
+// Uncomment to enable WDYR for debugging re-renders
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+//   const { shouldEnableWhyDidYouRender } = require('../../../../../../wdyr');
+//   if (shouldEnableWhyDidYouRender()) {
+//     // @ts-expect-error - whyDidYouRender is added by the WDYR library
+//     PerpsMarketDetailsView.whyDidYouRender = {
+//       logOnDifferentValues: true,
+//       customName: 'PerpsMarketDetailsView',
+//     };
+//   }
+// }
 
 export default PerpsMarketDetailsView;

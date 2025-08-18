@@ -39,7 +39,7 @@ import {
   usePerpsNetworkConfig,
   usePerpsTrading,
 } from '../hooks';
-import { useLivePrices } from '../hooks/stream';
+import { usePerpsLivePrices } from '../hooks/stream';
 
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
@@ -173,10 +173,10 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     resetError,
   } = usePerpsConnection();
 
-  // Get real-time prices for popular assets with 5s debounce for portfolio view
-  const priceData = useLivePrices({
+  // Get real-time prices for popular assets with 5s throttle for portfolio view
+  const priceData = usePerpsLivePrices({
     symbols: POPULAR_ASSETS,
-    debounceMs: 5000,
+    throttleMs: 5000,
   });
 
   // Parse available balance to check if withdrawal should be enabled

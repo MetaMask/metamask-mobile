@@ -82,7 +82,7 @@ import {
   usePerpsOrderValidation,
   usePerpsPerformance,
 } from '../../hooks';
-import { useLivePrices } from '../../hooks/stream';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
@@ -314,9 +314,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   // Get real-time price data using new stream architecture
   // Uses single WebSocket subscription with component-level debouncing
-  const prices = useLivePrices({
+  const prices = usePerpsLivePrices({
     symbols: [orderForm.asset],
-    debounceMs: 10000, // 10 seconds for testing the architecture
+    throttleMs: 10000, // 10 seconds for testing the architecture
   });
   const currentPrice = prices[orderForm.asset];
 

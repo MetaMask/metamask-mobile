@@ -13,6 +13,9 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+// Mock PerpsStreamManager
+jest.mock('../../providers/PerpsStreamManager');
+
 // Mock PerpsConnectionProvider
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
@@ -31,7 +34,6 @@ jest.mock('../../providers/PerpsConnectionProvider', () => ({
 // Mock hooks
 jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
-  usePerpsPositions: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsFirstTimeUser: jest.fn(),
   usePerpsAccount: jest.fn(),
@@ -43,6 +45,14 @@ jest.mock('../../hooks', () => ({
     endMeasure: jest.fn(),
     measure: jest.fn(),
     measureAsync: jest.fn(),
+  })),
+}));
+
+// Mock stream hooks
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
   })),
 }));
 
@@ -150,8 +160,8 @@ describe('PerpsTabView', () => {
 
   const mockUsePerpsConnection =
     jest.requireMock('../../hooks').usePerpsConnection;
-  const mockUsePerpsPositions =
-    jest.requireMock('../../hooks').usePerpsPositions;
+  const mockUsePerpsLivePositions =
+    jest.requireMock('../../hooks/stream').usePerpsLivePositions;
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
@@ -188,11 +198,9 @@ describe('PerpsTabView', () => {
       isInitialized: true,
     });
 
-    mockUsePerpsPositions.mockReturnValue({
+    mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
-      isLoading: false,
-      isRefreshing: false,
-      loadPositions: jest.fn(),
+      isInitialLoading: false,
     });
 
     mockUsePerpsTrading.mockReturnValue({
@@ -248,11 +256,9 @@ describe('PerpsTabView', () => {
     });
 
     it('should render loading state when positions are loading', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
-        isLoading: true,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: true,
       });
 
       render(<PerpsTabView />);
@@ -263,11 +269,9 @@ describe('PerpsTabView', () => {
     });
 
     it('should render empty state when no positions exist', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -281,11 +285,9 @@ describe('PerpsTabView', () => {
     });
 
     it('should render positions when they exist', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -305,11 +307,9 @@ describe('PerpsTabView', () => {
         { ...mockPosition, coin: 'SOL', size: '50.0' },
       ];
 
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions,
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -420,7 +420,7 @@ describe('PerpsTabView', () => {
 
     it('should have pull-to-refresh functionality configured', async () => {
       const mockLoadPositions = jest.fn();
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isLoading: false,
         isRefreshing: false,
@@ -510,11 +510,9 @@ describe('PerpsTabView', () => {
 
   describe('State Management', () => {
     it('should handle refresh state correctly', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
-        isLoading: false,
-        isRefreshing: true,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -561,11 +559,9 @@ describe('PerpsTabView', () => {
         stopLossPrice: undefined,
       };
 
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [incompletePosition],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       expect(() => render(<PerpsTabView />)).not.toThrow();
@@ -573,11 +569,9 @@ describe('PerpsTabView', () => {
     });
 
     it('should handle empty positions array correctly', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -625,7 +619,7 @@ describe('PerpsTabView', () => {
       // Mock console.error to avoid noise in tests
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      mockUsePerpsPositions.mockImplementation(() => {
+      mockUsePerpsLivePositions.mockImplementation(() => {
         throw new Error('Hook error');
       });
 
@@ -644,11 +638,9 @@ describe('PerpsTabView', () => {
     });
 
     it('should render text with proper variants and colors', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -667,11 +659,9 @@ describe('PerpsTabView', () => {
         size: `${i + 1}.0`,
       }));
 
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: manyPositions,
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       const startTime = performance.now();
@@ -689,7 +679,7 @@ describe('PerpsTabView', () => {
 
       // Simulate rapid state changes
       for (let i = 0; i < 5; i++) {
-        mockUsePerpsPositions.mockReturnValue({
+        mockUsePerpsLivePositions.mockReturnValue({
           positions: i % 2 === 0 ? [] : [mockPosition],
           isLoading: i % 3 === 0,
           isRefreshing: i % 4 === 0,
@@ -710,8 +700,8 @@ describe('PerpsTabViewWithProvider', () => {
     // Setup mocks for wrapped component tests
     const mockUsePerpsConnection = jest.requireMock('../../hooks')
       .usePerpsConnection as jest.Mock;
-    const mockUsePerpsPositions = jest.requireMock('../../hooks')
-      .usePerpsPositions as jest.Mock;
+    const mockUsePerpsLivePositions = jest.requireMock('../../hooks/stream')
+      .usePerpsLivePositions as jest.Mock;
     const mockUsePerpsTrading = jest.requireMock('../../hooks')
       .usePerpsTrading as jest.Mock;
     const mockUsePerpsFirstTimeUser = jest.requireMock('../../hooks')
@@ -725,11 +715,9 @@ describe('PerpsTabViewWithProvider', () => {
       isInitialized: true,
     });
 
-    mockUsePerpsPositions.mockReturnValue({
+    mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
-      isLoading: false,
-      isRefreshing: false,
-      loadPositions: jest.fn(),
+      isInitialLoading: false,
     });
 
     mockUsePerpsTrading.mockReturnValue({
