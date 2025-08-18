@@ -12,9 +12,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-// Mock PerpsStreamManager
-jest.mock('../../providers/PerpsStreamManager');
-
 // Mock PerpsConnectionProvider
 jest.mock('../../providers/PerpsConnectionProvider', () => ({
   PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
@@ -45,10 +42,6 @@ jest.mock('../../hooks', () => ({
     measure: jest.fn(),
     measureAsync: jest.fn(),
   })),
-}));
-
-// Mock stream hooks
-jest.mock('../../hooks/stream', () => ({
   usePerpsLivePositions: jest.fn(() => ({
     positions: [],
     isInitialLoading: false,
@@ -102,7 +95,7 @@ describe('PerpsTabView', () => {
   const mockUsePerpsConnection =
     jest.requireMock('../../hooks').usePerpsConnection;
   const mockUsePerpsLivePositions =
-    jest.requireMock('../../hooks/stream').usePerpsLivePositions;
+    jest.requireMock('../../hooks').usePerpsLivePositions;
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
@@ -557,7 +550,7 @@ describe('PerpsTabViewWithProvider', () => {
     // Setup mocks for wrapped component tests
     const mockUsePerpsConnection = jest.requireMock('../../hooks')
       .usePerpsConnection as jest.Mock;
-    const mockUsePerpsLivePositions = jest.requireMock('../../hooks/stream')
+    const mockUsePerpsLivePositions = jest.requireMock('../../hooks')
       .usePerpsLivePositions as jest.Mock;
     const mockUsePerpsTrading = jest.requireMock('../../hooks')
       .usePerpsTrading as jest.Mock;
