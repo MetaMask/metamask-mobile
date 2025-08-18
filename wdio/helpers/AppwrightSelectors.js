@@ -73,7 +73,7 @@ export default class AppwrightSelectors {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
     
-    throw new Error(`Element not found after ${maxAttempts} scroll attempts`);
+    throw new Error(`Element not found after 5 scroll attempts`);
   
   }
 }

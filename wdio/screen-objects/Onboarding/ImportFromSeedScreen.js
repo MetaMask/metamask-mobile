@@ -129,9 +129,18 @@ class ImportFromSeedScreen {
         if (isIOS) {
           const element = await AppwrightSelectors.getElementByID(this.device, 'import-button');
           await element.tap();
+          await element.waitUntil(async () => { 
+            const isVisible = await element.isVisible();
+            return !isVisible; // wait until the element is not visible
+          }, { timeout: 30000 });
         } else {
           const element = await AppwrightSelectors.getElementByText(this.device, 'Continue');
           await element.tap();
+          const screenTitle = await this.screenTitle;
+          await screenTitle.waitUntil(async () => {
+            const isVisible = await screenTitle.isVisible();
+            return !isVisible;
+          }, { timeout: 50000 });
         }
       }
     }
