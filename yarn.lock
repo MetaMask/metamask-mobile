@@ -6235,10 +6235,8 @@
     "@toruslabs/http-helpers" "^8.1.1"
     bn.js "^5.2.1"
 
-"@metamask/transaction-controller@^59.2.0":
+"@metamask/transaction-controller@file:.yalc/@metamask/transaction-controller":
   version "59.2.0"
-  resolved "https://registry.yarnpkg.com/@metamask/transaction-controller/-/transaction-controller-59.2.0.tgz#81b02318a3c4bf76eb06aa6ace833d4821ff3deb"
-  integrity sha512-b47gBy7v+Xp8PDM09uOR/dincsE0/sYjMVRxk1z+agcTtyXp8GvcqSTnkAlLWP1rLlAMxrj3FJu+QJaCXAR6bA==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
     "@ethereumjs/tx" "^5.4.0"
@@ -6248,7 +6246,7 @@
     "@ethersproject/providers" "^5.7.0"
     "@ethersproject/wallet" "^5.7.0"
     "@metamask/base-controller" "^8.1.0"
-    "@metamask/controller-utils" "^11.11.0"
+    "@metamask/controller-utils" "^11.12.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/nonce-tracker" "^6.0.0"

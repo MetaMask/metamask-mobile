@@ -10,6 +10,8 @@ import { TransactionDetailsStatusRow } from '../transaction-details-status-row/t
 import { useNavigation } from '@react-navigation/native';
 import { getNavigationOptionsTitle } from '../../../../../UI/Navbar';
 import { useTheme } from '../../../../../../util/theme';
+import { TransactionDetailsPayWithRow } from '../transaction-details-pay-with-row/transaction-details-pay-with-row';
+import { TransactionDetailsSummary } from '../transaction-details-summary/transaction-details-summary';
 
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
@@ -34,8 +36,9 @@ export function TransactionDetails() {
         <TransactionDetailsStatusRow />
         <TransactionDetailsDateRow />
         <TransactionDetailDivider />
-        <TransactionDetailsDateRow />
-        <TransactionDetailsDateRow />
+        <TransactionDetailsPayWithRow />
+        <TransactionDetailDivider />
+        <TransactionDetailsSummary />
       </Box>
     </ScreenView>
   );
