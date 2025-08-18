@@ -41,19 +41,19 @@ jest.mock('react-native-gesture-handler', () => {
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
+import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
   usePerpsAccount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsNetwork,
+  usePerpsOrderExecution,
+  usePerpsOrderValidation,
   usePerpsPrices,
   usePerpsTrading,
-  usePerpsOrderValidation,
-  usePerpsOrderExecution,
 } from '../../hooks';
-import PerpsOrderView from './PerpsOrderView';
-import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
+import PerpsOrderView from './PerpsOrderView';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -260,6 +260,39 @@ jest.mock('../../components/PerpsSlider', () => ({
     );
   },
 }));
+
+// Mock notifications utility
+jest.mock('../../../../../util/notifications', () => ({
+  ...jest.requireActual('../../../../../util/notifications'),
+  isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
+// Mock PerpsNotificationTooltip
+jest.mock('../../components/PerpsNotificationTooltip', () => {
+  const MockReact = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ({
+      orderSuccess,
+      onComplete,
+      testID,
+    }: {
+      orderSuccess: boolean;
+      onComplete: () => void;
+      testID: string;
+    }) =>
+      orderSuccess
+        ? MockReact.createElement(
+            'View',
+            {
+              testID,
+              onPress: onComplete,
+            },
+            'Notification Tooltip',
+          )
+        : null,
+  };
+});
 
 // Mock network utils - these are external utilities that should be mocked
 jest.mock('../../../../../util/networks', () => ({

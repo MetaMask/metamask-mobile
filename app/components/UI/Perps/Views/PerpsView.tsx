@@ -173,7 +173,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
     resetError,
   } = usePerpsConnection();
 
-  // Get real-time prices for popular assets with 5s debounce for portfolio view
+  // Get real-time prices for popular assets with 5s throttle for portfolio view
   const priceData = useLivePrices({
     symbols: POPULAR_ASSETS,
     throttleMs: 5000,

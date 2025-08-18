@@ -209,6 +209,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
           screen: Routes.PERPS.MARKET_DETAILS,
           params: {
             market: navigationMarketData,
+            isNavigationFromOrderSuccess: true,
           },
         });
       },
@@ -237,11 +238,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
         });
       },
     });
-  // Update ref when orderType changes
-  useEffect(() => {
-    orderTypeRef.current = orderForm.type;
-  }, [orderForm.type]);
-
   // Update ref when orderType changes
   useEffect(() => {
     orderTypeRef.current = orderForm.type;
@@ -651,7 +647,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
         orderType={orderForm.type}
         onOrderTypePress={() => setIsOrderTypeVisible(true)}
       />
-
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollViewContent}
@@ -851,7 +846,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           </View>
         </View>
       </ScrollView>
-
       {/* Keypad Section - Show when input is focused */}
       {isInputFocused && (
         <View style={styles.bottomSection}>
@@ -911,7 +905,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           />
         </View>
       )}
-
       {/* Fixed Place Order Button - Hide when keypad is active */}
       {!isInputFocused && (
         <View style={styles.fixedBottomContainer}>
@@ -944,7 +937,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           />
         </View>
       )}
-
       {/* TP/SL Bottom Sheet */}
       <PerpsTPSLBottomSheet
         isVisible={isTPSLVisible}
@@ -962,7 +954,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
         initialTakeProfitPrice={orderForm.takeProfitPrice}
         initialStopLossPrice={orderForm.stopLossPrice}
       />
-
       {/* Leverage Selector */}
       <PerpsLeverageBottomSheet
         isVisible={isLeverageVisible}
@@ -1003,7 +994,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
         direction={orderForm.direction}
         asset={orderForm.asset}
       />
-
       {/* Limit Price Bottom Sheet */}
       <PerpsLimitPriceBottomSheet
         isVisible={isLimitPriceVisible}
@@ -1016,7 +1006,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
         limitPrice={orderForm.limitPrice}
         currentPrice={assetData.price}
       />
-
       {/* Order Type Bottom Sheet */}
       <PerpsOrderTypeBottomSheet
         isVisible={isOrderTypeVisible}

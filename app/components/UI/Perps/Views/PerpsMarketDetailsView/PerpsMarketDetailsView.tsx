@@ -25,7 +25,10 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
@@ -61,15 +64,19 @@ import {
 } from '../../hooks';
 import { usePerpsLiveOrders } from '../../hooks/stream';
 import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
+import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
+import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
+import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
+  isNavigationFromOrderSuccess?: boolean;
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market } = route.params || {};
+  const { market, isNavigationFromOrderSuccess } = route.params || {};
   const { top } = useSafeAreaInsets();
   const { track } = usePerpsEventTracking();
 
@@ -243,6 +250,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     candleData,
     refreshCandleData,
   ]);
+
+  // Check if notifications feature is enabled once
+  const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -438,6 +448,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           testID={PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET}
         />
       )}
+
+      {/* Notification Tooltip - Shows after first successful order */}
+      {isNotificationsEnabled &&
+        PERPS_NOTIFICATIONS_FEATURE_ENABLED &&
+        isNavigationFromOrderSuccess && (
+          <PerpsNotificationTooltip
+            orderSuccess={isNavigationFromOrderSuccess}
+            testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
+          />
+        )}
     </SafeAreaView>
   );
 };

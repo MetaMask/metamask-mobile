@@ -1213,7 +1213,12 @@
       },
       "perps_geo_block": {
         "title": "Perps geo block",
-        "content": "Perps trading isn’t available in your location due to local restrictions or sanctions."
+        "content": "Perps trading isn't available in your location due to local restrictions or sanctions."
+      },
+      "notifications": {
+        "title": "Turn on notifications",
+        "description": "Get notified about important perps trading events like order fills, liquidations, and market updates.",
+        "turn_on_button": "Turn on"
       },
       "got_it_button": "Got it"
     },
@@ -1916,7 +1921,8 @@
       "snaps_title": "Snaps",
       "snaps_desc": "New features and updates",
       "products_announcements_title": "Product announcements",
-      "products_announcements_desc": "New products and features"
+      "products_announcements_desc": "New products and features",
+      "perps_title": "Perps trading"
     },
     "contacts_title": "Contacts",
     "contacts_desc": "Add, edit, remove, and manage your accounts",
