@@ -71,10 +71,14 @@ export function transformMarketData(
       // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
       if (fundingData && fundingData[1] && fundingData[1].length > 0) {
         // Get the first exchange's funding data (usually HyperLiquid itself)
-        const [, exchangeData] = fundingData[1][0];
-        if (exchangeData) {
-          nextFundingTime = exchangeData.nextFundingTime;
-          fundingIntervalHours = exchangeData.fundingIntervalHours;
+        // Safely check if the first element is an array with at least 2 elements
+        const firstExchange = fundingData[1][0];
+        if (Array.isArray(firstExchange) && firstExchange.length >= 2) {
+          const exchangeData = firstExchange[1];
+          if (exchangeData) {
+            nextFundingTime = exchangeData.nextFundingTime;
+            fundingIntervalHours = exchangeData.fundingIntervalHours;
+          }
         }
       }
     }

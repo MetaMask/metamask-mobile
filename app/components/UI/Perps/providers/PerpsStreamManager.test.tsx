@@ -60,6 +60,7 @@ describe('PerpsStreamManager', () => {
   });
 
   afterEach(() => {
+    jest.clearAllTimers();
     jest.useRealTimers();
   });
 
@@ -95,12 +96,17 @@ describe('PerpsStreamManager', () => {
     // Setup mock subscription that will trigger updates
     mockSubscribeToPrices.mockImplementation(
       (params: { callback: (updates: PriceUpdate[]) => void }) => {
-        // Simulate immediate cached data
-        const cachedData = [
+        // Simulate immediate cached data with all required fields
+        const cachedData: PriceUpdate[] = [
           {
             coin: 'BTC-PERP',
             price: '50000',
             percentChange24h: '5',
+            timestamp: Date.now(),
+            bestBid: '49900',
+            bestAsk: '50100',
+            spread: '200',
+            markPrice: '50050',
           },
         ];
         params.callback(cachedData);
@@ -120,9 +126,17 @@ describe('PerpsStreamManager', () => {
     await waitFor(() => {
       expect(onUpdate).toHaveBeenCalledWith({
         'BTC-PERP': {
+          coin: 'BTC-PERP',
           price: '50000',
           timestamp: expect.any(Number),
           percentChange24h: '5',
+          bestBid: '49900',
+          bestAsk: '50100',
+          spread: '200',
+          markPrice: '50050',
+          funding: undefined,
+          openInterest: undefined,
+          volume24h: undefined,
         },
       });
     });
@@ -157,6 +171,7 @@ describe('PerpsStreamManager', () => {
           coin: 'BTC-PERP',
           price: '50000',
           percentChange24h: '5',
+          timestamp: Date.now(),
         },
       ]);
     });
@@ -172,6 +187,7 @@ describe('PerpsStreamManager', () => {
           coin: 'BTC-PERP',
           price: '50100',
           percentChange24h: '5.1',
+          timestamp: Date.now(),
         },
       ]);
     });
@@ -188,9 +204,17 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       expect(onUpdate).toHaveBeenLastCalledWith({
         'BTC-PERP': {
+          coin: 'BTC-PERP',
           price: '50100',
           timestamp: expect.any(Number),
           percentChange24h: '5.1',
+          bestBid: undefined,
+          bestAsk: undefined,
+          spread: undefined,
+          markPrice: undefined,
+          funding: undefined,
+          openInterest: undefined,
+          volume24h: undefined,
         },
       });
     });
@@ -225,6 +249,7 @@ describe('PerpsStreamManager', () => {
           coin: 'BTC-PERP',
           price: '50000',
           percentChange24h: '5',
+          timestamp: Date.now(),
         },
       ]);
     });
@@ -240,6 +265,7 @@ describe('PerpsStreamManager', () => {
           coin: 'BTC-PERP',
           price: '50100',
           percentChange24h: '5.1',
+          timestamp: Date.now(),
         },
       ]);
       controllerCallback?.([
@@ -247,6 +273,7 @@ describe('PerpsStreamManager', () => {
           coin: 'BTC-PERP',
           price: '50200',
           percentChange24h: '5.2',
+          timestamp: Date.now(),
         },
       ]);
       controllerCallback?.([
@@ -254,6 +281,7 @@ describe('PerpsStreamManager', () => {
           coin: 'BTC-PERP',
           price: '50300',
           percentChange24h: '5.3',
+          timestamp: Date.now(),
         },
       ]);
     });
@@ -271,9 +299,17 @@ describe('PerpsStreamManager', () => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       expect(onUpdate).toHaveBeenLastCalledWith({
         'BTC-PERP': {
+          coin: 'BTC-PERP',
           price: '50300',
           timestamp: expect.any(Number),
           percentChange24h: '5.3',
+          bestBid: undefined,
+          bestAsk: undefined,
+          spread: undefined,
+          markPrice: undefined,
+          funding: undefined,
+          openInterest: undefined,
+          volume24h: undefined,
         },
       });
     });
