@@ -81,13 +81,13 @@ const PerpsPositionDetailsView: React.FC = () => {
   });
   const { candleData, priceData } = usePerpsPositionData({
     coin: position?.coin || '',
-    selectedDuration: TimeDuration.ONE_HOUR, // Time duration (1hr, 1D, 1W, etc.) - hardcoded for TradingView
+    selectedDuration, // Time duration (1hr, 1D, 1W, etc.) - now uses dynamic state
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
   });
 
   const handleDurationChange = useCallback((newDuration: TimeDuration) => {
     setSelectedDuration(newDuration);
-    // Auto-update candle period to the appropriate default for the new duration
+    // Auto-select the appropriate default candle period for this duration
     const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
     setSelectedCandlePeriod(defaultPeriod);
   }, []);
@@ -233,7 +233,7 @@ const PerpsPositionDetailsView: React.FC = () => {
           isVisible
           onClose={() => setIsCandlePeriodBottomSheetVisible(false)}
           selectedPeriod={selectedCandlePeriod}
-          selectedDuration={TimeDuration.ONE_HOUR}
+          selectedDuration={selectedDuration}
           onPeriodChange={handleCandlePeriodChange}
           testID={
             PerpsPositionDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOMSHEET

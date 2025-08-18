@@ -178,8 +178,23 @@ export const CANDLE_PERIODS = [
 /**
  * Get available candle periods for a specific duration
  */
-export const getCandlePeriodsForDuration = (duration: TimeDuration | string) =>
-  DURATION_CANDLE_PERIODS[duration as TimeDuration]?.periods || [];
+export const getCandlePeriodsForDuration = (
+  duration: TimeDuration | string,
+) => {
+  const periods =
+    DURATION_CANDLE_PERIODS[duration as TimeDuration]?.periods || [];
+
+  // Debug: Log the function call
+  // eslint-disable-next-line no-console
+  console.log('🔧 getCandlePeriodsForDuration:', {
+    inputDuration: duration,
+    foundConfig: !!DURATION_CANDLE_PERIODS[duration as TimeDuration],
+    periodsCount: periods.length,
+    periodsLabels: periods.map((p) => p.label).join(', '),
+  });
+
+  return periods;
+};
 
 /**
  * Get the default candle period for a specific duration
