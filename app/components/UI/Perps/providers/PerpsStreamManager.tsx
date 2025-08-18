@@ -5,6 +5,7 @@ import type {
   Position,
   Order,
   OrderFill,
+  AccountState,
 } from '../controllers/types';
 
 // Generic subscription parameters
@@ -327,16 +328,69 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
   }
 }
 
+// Specific channel for account state
+class AccountStreamChannel extends StreamChannel<AccountState> {
+  private prewarmUnsubscribe?: () => void;
+
+  protected connect() {
+    if (this.wsSubscription) return;
+
+    this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
+      callback: (account: AccountState) => {
+        // Use base cache Map with consistent key
+        this.cache.set('account', account);
+        this.notifySubscribers(account);
+      },
+    });
+  }
+
+  protected getCachedData(): AccountState | null {
+    // Return cached data for instant display
+    return this.cache.get('account') || null;
+  }
+
+  /**
+   * Pre-warm the channel by creating a persistent subscription
+   * This keeps the WebSocket connection alive and caches data continuously
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public prewarm(): () => void {
+    if (this.prewarmUnsubscribe) {
+      return this.prewarmUnsubscribe;
+    }
+
+    // Create a real subscription with no-op callback to keep connection alive
+    this.prewarmUnsubscribe = this.subscribe({
+      callback: () => {
+        // No-op callback - just keeps the connection alive for caching
+      },
+      throttleMs: 0, // No throttle for pre-warm
+    });
+
+    return this.prewarmUnsubscribe;
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+    }
+  }
+}
+
 // Main manager class
 class PerpsStreamManager {
   public readonly prices = new PriceStreamChannel();
   public readonly orders = new OrderStreamChannel();
   public readonly positions = new PositionStreamChannel();
   public readonly fills = new FillStreamChannel();
+  public readonly account = new AccountStreamChannel();
 
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();
-  // public readonly accountState = new AccountStreamChannel();
   // public readonly orderBook = new OrderBookStreamChannel();
   // public readonly trades = new TradeStreamChannel();
 }

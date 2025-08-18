@@ -21,10 +21,12 @@ import type {
   Position,
   OrderFill,
   Order,
+  AccountState,
   SubscribePricesParams,
   SubscribePositionsParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
+  SubscribeAccountParams,
 } from '../controllers/types';
 import {
   adaptPositionFromSDK,
@@ -52,6 +54,7 @@ export class HyperLiquidSubscriptionService {
   private positionSubscribers = new Set<(positions: Position[]) => void>();
   private orderFillSubscribers = new Set<(fills: OrderFill[]) => void>();
   private orderSubscribers = new Set<(orders: Order[]) => void>();
+  private accountSubscribers = new Set<(account: AccountState) => void>();
 
   // Track which subscribers want market data
   private marketDataSubscribers = new Map<
@@ -71,6 +74,7 @@ export class HyperLiquidSubscriptionService {
   private orderSubscriberCount = 0;
   private cachedPositions: Position[] = [];
   private cachedOrders: Order[] = [];
+  private cachedAccount: AccountState | null = null;
 
   // Global price data cache
   private cachedPriceData = new Map<string, PriceUpdate>();
@@ -297,12 +301,28 @@ export class HyperLiquidSubscriptionService {
             };
           });
 
-          // Check if positions actually changed
+          // Extract account data from clearinghouseState
+          const accountState: AccountState = {
+            totalBalance: data.clearinghouseState.marginSummary.accountValue,
+            availableBalance: data.clearinghouseState.withdrawable,
+            marginUsed: data.clearinghouseState.marginSummary.totalMarginUsed,
+            // Calculate unrealized PnL from all positions
+            unrealizedPnl: positionsWithTPSL
+              .reduce((total, pos) => {
+                const pnl = parseFloat(pos.unrealizedPnl || '0');
+                return total + pnl;
+              }, 0)
+              .toString(),
+          };
+
+          // Check if data actually changed
           const positionsChanged =
             JSON.stringify(positionsWithTPSL) !==
             JSON.stringify(this.cachedPositions);
           const ordersChanged =
             JSON.stringify(orders) !== JSON.stringify(this.cachedOrders);
+          const accountChanged =
+            JSON.stringify(accountState) !== JSON.stringify(this.cachedAccount);
 
           // Only update and notify if data actually changed
           if (positionsChanged) {
@@ -316,6 +336,13 @@ export class HyperLiquidSubscriptionService {
             this.cachedOrders = orders;
             this.orderSubscribers.forEach((callback) => {
               callback(orders);
+            });
+          }
+
+          if (accountChanged) {
+            this.cachedAccount = accountState;
+            this.accountSubscribers.forEach((callback) => {
+              callback(accountState);
             });
           }
         })
@@ -352,6 +379,7 @@ export class HyperLiquidSubscriptionService {
       this.orderSubscriberCount = 0;
       this.cachedPositions = [];
       this.cachedOrders = [];
+      this.cachedAccount = null;
       DevLogger.log('Shared webData2 subscription cleaned up');
     }
   }
@@ -487,6 +515,33 @@ export class HyperLiquidSubscriptionService {
       unsubscribe();
       this.orderSubscriberCount--;
       this.cleanupSharedWebData2Subscription();
+    };
+  }
+
+  /**
+   * Subscribe to live account updates
+   * Uses the shared webData2 subscription to avoid duplicate connections
+   */
+  public subscribeToAccount(params: SubscribeAccountParams): () => void {
+    const { callback, accountId } = params;
+    const unsubscribe = this.createSubscription(
+      this.accountSubscribers,
+      callback,
+    );
+
+    // Immediately provide cached data if available
+    if (this.cachedAccount) {
+      callback(this.cachedAccount);
+    }
+
+    // Ensure shared subscription is active (reuses existing connection)
+    this.ensureSharedWebData2Subscription(accountId).catch((error) => {
+      DevLogger.log(strings('perps.errors.failedToSubscribeAccount'), error);
+    });
+
+    return () => {
+      unsubscribe();
+      // Note: We don't cleanup webData2 here since it's shared with positions/orders
     };
   }
 
@@ -873,6 +928,8 @@ export class HyperLiquidSubscriptionService {
     this.priceSubscribers.clear();
     this.positionSubscribers.clear();
     this.orderFillSubscribers.clear();
+    this.orderSubscribers.clear();
+    this.accountSubscribers.clear();
     this.marketDataSubscribers.clear();
 
     // Clear cached data

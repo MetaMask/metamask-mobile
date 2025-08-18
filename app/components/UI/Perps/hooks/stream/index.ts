@@ -3,6 +3,7 @@ export { usePerpsLivePrices } from './usePerpsLivePrices';
 export { usePerpsLiveOrders } from './usePerpsLiveOrders';
 export { usePerpsLivePositions } from './usePerpsLivePositions';
 export { usePerpsLiveFills } from './usePerpsLiveFills';
+export { usePerpsLiveAccount } from './usePerpsLiveAccount';
 
 // Export types for convenience
 export type { UsePerpsLivePricesOptions } from './usePerpsLivePrices';
@@ -16,4 +17,5 @@ export type {
   Order,
   Position,
   OrderFill,
+  AccountState,
 } from '../../controllers/types';
