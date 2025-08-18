@@ -17,7 +17,7 @@ import { useTheme } from '../../../../../util/theme';
 import Keypad from '../../../../Base/Keypad';
 import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
-import { useLivePrices } from '../../hooks/stream';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import { ORDER_BOOK_SPREAD } from '../../constants/hyperLiquidConfig';
 
 interface PerpsLimitPriceBottomSheetProps {
@@ -46,7 +46,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   // Get real-time price data with 1000ms throttle for limit price bottom sheet
   // Only subscribe when visible
-  const priceData = useLivePrices({
+  const priceData = usePerpsLivePrices({
     symbols: isVisible ? [asset] : [],
     throttleMs: 1000,
   });

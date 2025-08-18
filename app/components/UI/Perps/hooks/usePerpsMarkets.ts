@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import type { PerpsMarketData } from '../controllers/types';
-import { useLivePrices } from './stream';
+import { usePerpsLivePrices } from './stream';
 
 export interface UsePerpsMarketsResult {
   /**
@@ -83,7 +83,7 @@ export const usePerpsMarkets = (
   );
 
   // Conditionally subscribe to live prices if enabled
-  const livePrices = useLivePrices({
+  const livePrices = usePerpsLivePrices({
     symbols: enableLivePrices ? marketSymbols : [],
     throttleMs: livePriceDebounceMs,
   });

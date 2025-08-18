@@ -25,7 +25,7 @@ import { strings } from '../../../../../../locales/i18n';
 import type { Position } from '../../controllers/types';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
 import { usePerpsPerformance } from '../../hooks';
-import { useLivePrices } from '../../hooks/stream';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   PerpsEventProperties,
@@ -106,7 +106,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
   // Subscribe to real-time price only when visible and we have an asset
   // Use 1s debounce for TP/SL bottom sheet
-  const priceData = useLivePrices({
+  const priceData = usePerpsLivePrices({
     symbols: isVisible && asset ? [asset] : [],
     throttleMs: 1000,
   });

@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { useLiveOrders } from './index';
+import { usePerpsLiveOrders } from './index';
 import type { Order } from '../../controllers/types';
 
 // Mock the stream provider
@@ -16,7 +16,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
     children,
 }));
 
-describe('useLiveOrders', () => {
+describe('usePerpsLiveOrders', () => {
   const mockOrder: Order = {
     orderId: 'order-1',
     symbol: 'BTC-PERP',
@@ -43,7 +43,7 @@ describe('useLiveOrders', () => {
     const throttleMs = 2000;
     mockSubscribe.mockReturnValue(jest.fn());
 
-    renderHook(() => useLiveOrders({ throttleMs }));
+    renderHook(() => usePerpsLiveOrders({ throttleMs }));
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
@@ -55,7 +55,7 @@ describe('useLiveOrders', () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribe.mockReturnValue(mockUnsubscribe);
 
-    const { unmount } = renderHook(() => useLiveOrders());
+    const { unmount } = renderHook(() => usePerpsLiveOrders());
 
     unmount();
 
@@ -69,7 +69,7 @@ describe('useLiveOrders', () => {
       return jest.fn();
     });
 
-    const { result } = renderHook(() => useLiveOrders());
+    const { result } = renderHook(() => usePerpsLiveOrders());
 
     // Initially empty
     expect(result.current).toEqual([]);
@@ -92,7 +92,7 @@ describe('useLiveOrders', () => {
   it('should use default throttle value when not provided', () => {
     mockSubscribe.mockReturnValue(jest.fn());
 
-    renderHook(() => useLiveOrders());
+    renderHook(() => usePerpsLiveOrders());
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
@@ -109,7 +109,7 @@ describe('useLiveOrders', () => {
       .mockReturnValueOnce(mockUnsubscribe2);
 
     const { rerender } = renderHook(
-      ({ throttleMs }) => useLiveOrders({ throttleMs }),
+      ({ throttleMs }) => usePerpsLiveOrders({ throttleMs }),
       {
         initialProps: { throttleMs: 500 },
       },
@@ -138,7 +138,7 @@ describe('useLiveOrders', () => {
       return jest.fn();
     });
 
-    const { result } = renderHook(() => useLiveOrders());
+    const { result } = renderHook(() => usePerpsLiveOrders());
 
     act(() => {
       capturedCallback([]);
@@ -156,7 +156,7 @@ describe('useLiveOrders', () => {
       return jest.fn();
     });
 
-    const { result } = renderHook(() => useLiveOrders());
+    const { result } = renderHook(() => usePerpsLiveOrders());
 
     // Send null update (should be handled gracefully)
     act(() => {
@@ -193,7 +193,7 @@ describe('useLiveOrders', () => {
       return jest.fn();
     });
 
-    const { result } = renderHook(() => useLiveOrders());
+    const { result } = renderHook(() => usePerpsLiveOrders());
 
     // First update
     const firstOrders: Order[] = [mockOrder];

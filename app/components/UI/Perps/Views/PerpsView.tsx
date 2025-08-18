@@ -39,7 +39,7 @@ import {
   usePerpsNetworkConfig,
   usePerpsTrading,
 } from '../hooks';
-import { useLivePrices } from '../hooks/stream';
+import { usePerpsLivePrices } from '../hooks/stream';
 
 // Import connection components
 import PerpsConnectionErrorView from '../components/PerpsConnectionErrorView';
@@ -174,7 +174,7 @@ const PerpsView: React.FC<PerpsViewProps> = () => {
   } = usePerpsConnection();
 
   // Get real-time prices for popular assets with 5s throttle for portfolio view
-  const priceData = useLivePrices({
+  const priceData = usePerpsLivePrices({
     symbols: POPULAR_ASSETS,
     throttleMs: 5000,
   });

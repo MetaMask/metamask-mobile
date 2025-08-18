@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { useLivePositions } from './index';
+import { usePerpsLivePositions } from './index';
 import type { Position } from '../../controllers/types';
 
 // Mock the stream provider
@@ -16,7 +16,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
     children,
 }));
 
-describe('useLivePositions', () => {
+describe('usePerpsLivePositions', () => {
   const mockPosition: Position = {
     coin: 'BTC-PERP',
     size: '1.0',
@@ -51,7 +51,7 @@ describe('useLivePositions', () => {
     const throttleMs = 3000;
     mockSubscribe.mockReturnValue(jest.fn());
 
-    renderHook(() => useLivePositions({ throttleMs }));
+    renderHook(() => usePerpsLivePositions({ throttleMs }));
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
@@ -63,7 +63,7 @@ describe('useLivePositions', () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribe.mockReturnValue(mockUnsubscribe);
 
-    const { unmount } = renderHook(() => useLivePositions());
+    const { unmount } = renderHook(() => usePerpsLivePositions());
 
     unmount();
 
@@ -77,7 +77,7 @@ describe('useLivePositions', () => {
       return jest.fn();
     });
 
-    const { result } = renderHook(() => useLivePositions());
+    const { result } = renderHook(() => usePerpsLivePositions());
 
     // Initially empty with loading state
     expect(result.current).toEqual({
@@ -106,7 +106,7 @@ describe('useLivePositions', () => {
   it('should use default throttle value when not provided', () => {
     mockSubscribe.mockReturnValue(jest.fn());
 
-    renderHook(() => useLivePositions());
+    renderHook(() => usePerpsLivePositions());
 
     expect(mockSubscribe).toHaveBeenCalledWith({
       callback: expect.any(Function),
@@ -123,7 +123,7 @@ describe('useLivePositions', () => {
       .mockReturnValueOnce(mockUnsubscribe2);
 
     const { rerender } = renderHook(
-      ({ throttleMs }) => useLivePositions({ throttleMs }),
+      ({ throttleMs }) => usePerpsLivePositions({ throttleMs }),
       {
         initialProps: { throttleMs: 0 },
       },
@@ -152,7 +152,7 @@ describe('useLivePositions', () => {
       return jest.fn();
     });
 
-    const { result } = renderHook(() => useLivePositions());
+    const { result } = renderHook(() => usePerpsLivePositions());
 
     act(() => {
       capturedCallback([]);
@@ -173,7 +173,7 @@ describe('useLivePositions', () => {
       return jest.fn();
     });
 
-    const { result } = renderHook(() => useLivePositions());
+    const { result } = renderHook(() => usePerpsLivePositions());
 
     // Send null update (should be handled gracefully)
     act(() => {
@@ -219,7 +219,7 @@ describe('useLivePositions', () => {
       return jest.fn();
     });
 
-    const { result } = renderHook(() => useLivePositions());
+    const { result } = renderHook(() => usePerpsLivePositions());
 
     // First update
     const firstPositions: Position[] = [mockPosition];
@@ -260,7 +260,7 @@ describe('useLivePositions', () => {
       return jest.fn();
     });
 
-    const { result } = renderHook(() => useLivePositions());
+    const { result } = renderHook(() => usePerpsLivePositions());
 
     // Initial position
     const initialPosition: Position = { ...mockPosition };

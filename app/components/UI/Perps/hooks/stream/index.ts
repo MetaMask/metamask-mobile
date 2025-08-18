@@ -17,10 +17,3 @@ export type {
   Position,
   OrderFill,
 } from '../../controllers/types';
-
-// Legacy exports for backward compatibility during migration
-// TODO: Remove these after all components are migrated
-export { usePerpsLivePrices as useLivePrices } from './usePerpsLivePrices';
-export { usePerpsLiveOrders as useLiveOrders } from './usePerpsLiveOrders';
-export { usePerpsLivePositions as useLivePositions } from './usePerpsLivePositions';
-export { usePerpsLiveFills as useLiveFills } from './usePerpsLiveFills';

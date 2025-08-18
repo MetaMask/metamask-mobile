@@ -30,7 +30,7 @@ jest.mock('../providers/PerpsConnectionProvider', () => ({
 
 // Mock stream hooks
 jest.mock('./stream', () => ({
-  useLivePrices: jest.fn(() => ({})),
+  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 // Mock data

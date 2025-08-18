@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import React from 'react';
-import { useLivePrices } from './index';
+import { usePerpsLivePrices } from './index';
 import type { PriceUpdate } from '../../controllers/types';
 
 // Mock the stream provider
@@ -16,7 +16,7 @@ jest.mock('../../providers/PerpsStreamManager', () => ({
     children,
 }));
 
-describe('useLivePrices', () => {
+describe('usePerpsLivePrices', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
@@ -32,7 +32,7 @@ describe('useLivePrices', () => {
 
     mockSubscribeToSymbols.mockReturnValue(jest.fn());
 
-    renderHook(() => useLivePrices({ symbols, throttleMs }));
+    renderHook(() => usePerpsLivePrices({ symbols, throttleMs }));
 
     expect(mockSubscribeToSymbols).toHaveBeenCalledWith({
       symbols,
@@ -46,7 +46,7 @@ describe('useLivePrices', () => {
     mockSubscribeToSymbols.mockReturnValue(mockUnsubscribe);
 
     const { unmount } = renderHook(() =>
-      useLivePrices({ symbols: ['BTC-PERP'] }),
+      usePerpsLivePrices({ symbols: ['BTC-PERP'] }),
     );
 
     unmount();
@@ -63,7 +63,7 @@ describe('useLivePrices', () => {
     });
 
     const { result } = renderHook(() =>
-      useLivePrices({ symbols: ['BTC-PERP', 'ETH-PERP'] }),
+      usePerpsLivePrices({ symbols: ['BTC-PERP', 'ETH-PERP'] }),
     );
 
     // Initially empty
@@ -107,7 +107,7 @@ describe('useLivePrices', () => {
   it('should use default throttle value when not provided', () => {
     mockSubscribeToSymbols.mockReturnValue(jest.fn());
 
-    renderHook(() => useLivePrices({ symbols: ['BTC-PERP'] }));
+    renderHook(() => usePerpsLivePrices({ symbols: ['BTC-PERP'] }));
 
     expect(mockSubscribeToSymbols).toHaveBeenCalledWith({
       symbols: ['BTC-PERP'],
@@ -125,7 +125,7 @@ describe('useLivePrices', () => {
       .mockReturnValueOnce(mockUnsubscribe2);
 
     const { rerender } = renderHook(
-      ({ symbols }) => useLivePrices({ symbols }),
+      ({ symbols }) => usePerpsLivePrices({ symbols }),
       {
         initialProps: { symbols: ['BTC-PERP'] },
       },
@@ -158,7 +158,8 @@ describe('useLivePrices', () => {
       .mockReturnValueOnce(mockUnsubscribe2);
 
     const { rerender } = renderHook(
-      ({ throttleMs }) => useLivePrices({ symbols: ['BTC-PERP'], throttleMs }),
+      ({ throttleMs }) =>
+        usePerpsLivePrices({ symbols: ['BTC-PERP'], throttleMs }),
       {
         initialProps: { throttleMs: 1000 },
       },
@@ -185,7 +186,7 @@ describe('useLivePrices', () => {
   it('should handle empty symbols array', () => {
     mockSubscribeToSymbols.mockReturnValue(jest.fn());
 
-    const { result } = renderHook(() => useLivePrices({ symbols: [] }));
+    const { result } = renderHook(() => usePerpsLivePrices({ symbols: [] }));
 
     expect(result.current).toEqual({});
     // Should not subscribe with empty array
@@ -201,7 +202,7 @@ describe('useLivePrices', () => {
     });
 
     const { result } = renderHook(() =>
-      useLivePrices({ symbols: ['BTC-PERP', 'ETH-PERP', 'SOL-PERP'] }),
+      usePerpsLivePrices({ symbols: ['BTC-PERP', 'ETH-PERP', 'SOL-PERP'] }),
     );
 
     // Add prices one by one
@@ -266,7 +267,7 @@ describe('useLivePrices', () => {
     mockSubscribeToSymbols.mockImplementation(() => unsubscribes[index++]);
 
     const { rerender } = renderHook(
-      ({ symbols }) => useLivePrices({ symbols }),
+      ({ symbols }) => usePerpsLivePrices({ symbols }),
       {
         initialProps: { symbols: ['BTC-PERP'] },
       },
@@ -295,7 +296,7 @@ describe('useLivePrices', () => {
     });
 
     const { result } = renderHook(() =>
-      useLivePrices({ symbols: ['BTC-PERP'] }),
+      usePerpsLivePrices({ symbols: ['BTC-PERP'] }),
     );
 
     // Send null update (should be handled gracefully)
@@ -339,7 +340,7 @@ describe('useLivePrices', () => {
     });
 
     const { result, rerender } = renderHook(
-      ({ symbols }) => useLivePrices({ symbols }),
+      ({ symbols }) => usePerpsLivePrices({ symbols }),
       {
         initialProps: { symbols: ['BTC-PERP', 'ETH-PERP'] },
       },
