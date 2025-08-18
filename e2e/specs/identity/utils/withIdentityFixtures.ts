@@ -12,7 +12,6 @@ import {
   UserStorageMockttpControllerOverrides,
 } from './user-storage/userStorageMockttpController';
 import { Mockttp } from 'mockttp';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { TestSpecificMock } from '../../../framework/types';
 
 export interface IdentityFixtureOptions {
@@ -25,6 +24,7 @@ export interface IdentityFixtureOptions {
   >;
   sharedUserStorageController?: UserStorageMockttpController;
   mockBalancesAccounts?: string[];
+  strictMockMode?: boolean;
 }
 
 export interface IdentityTestContext {
@@ -39,9 +39,7 @@ export async function withIdentityFixtures(
   const {
     fixture = new FixtureBuilder().withBackupAndSyncSettings().build(),
     restartDevice = true,
-    testSpecificMock = {
-      POST: [mockEvents.POST.segmentTrack],
-    },
+    testSpecificMock,
     mockBalancesAccounts = [],
     userStorageFeatures = [
       USER_STORAGE_FEATURE_NAMES.accounts,
@@ -49,6 +47,7 @@ export async function withIdentityFixtures(
     ],
     userStorageOverrides,
     sharedUserStorageController,
+    strictMockMode = false,
   } = options;
 
   await withFixtures(
@@ -56,6 +55,7 @@ export async function withIdentityFixtures(
       fixture,
       restartDevice,
       testSpecificMock,
+      strictMockMode,
     },
     async ({ mockServer }) => {
       if (!mockServer) {
