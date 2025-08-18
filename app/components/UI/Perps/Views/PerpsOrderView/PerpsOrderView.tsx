@@ -862,14 +862,14 @@ const PerpsOrderViewContentBase: React.FC = () => {
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
-              label="Max"
+              label={strings('perps.deposit.max_button')}
               onPress={handleMaxPress}
               style={styles.percentageButton}
             />
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
-              label="Done"
+              label={strings('perps.deposit.done_button')}
               onPress={handleDonePress}
               style={styles.percentageButton}
             />
