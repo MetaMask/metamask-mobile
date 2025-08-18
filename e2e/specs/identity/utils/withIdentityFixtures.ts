@@ -1,7 +1,6 @@
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import {
-  mockAuthServices,
   createUserStorageController,
   setupAccountMockedBalances,
 } from './mocks';
@@ -61,9 +60,6 @@ export async function withIdentityFixtures(
       if (!mockServer) {
         throw new Error('Mock server is not defined');
       }
-
-      // mock auth services
-      await mockAuthServices(mockServer);
       if (mockBalancesAccounts.length > 0) {
         await setupAccountMockedBalances(mockServer, mockBalancesAccounts);
       }

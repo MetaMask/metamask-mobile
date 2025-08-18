@@ -39,6 +39,7 @@ describe(SmokeIdentity('Account syncing - Accounts with Balances'), () => {
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         sharedUserStorageController,
+        strictMockMode: true,
       },
       async ({ mockServer: _mockServer, userStorageMockttpController }) => {
         const { prepareEventsEmittedCounter } = arrangeTestUtils(
@@ -74,6 +75,7 @@ describe(SmokeIdentity('Account syncing - Accounts with Balances'), () => {
         sharedUserStorageController,
         fixture: onboardingFixture,
         mockBalancesAccounts: balancesAccounts,
+        strictMockMode: true,
       },
       async () => {
         await importWalletWithRecoveryPhrase({
