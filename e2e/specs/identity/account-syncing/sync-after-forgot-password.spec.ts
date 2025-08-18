@@ -35,6 +35,7 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         sharedUserStorageController,
+        strictMockMode: true,
       },
       async () => {
         await loginToApp();
@@ -66,6 +67,7 @@ describe(SmokeIdentity('Account syncing - Forgot Password Flow'), () => {
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
+        strictMockMode: true,
       },
       async ({ userStorageMockttpController, mockServer }) => {
         await CreateNewWallet();
