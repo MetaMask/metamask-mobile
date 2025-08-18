@@ -26,17 +26,6 @@ const PerpsTimeDurationSelector: React.FC<PerpsTimeDurationSelectorProps> = ({
 }) => {
   const { styles } = useStyles(timeDurationSelectorStyleSheet, {});
 
-  // Debug: Check if selectedDuration changes
-  React.useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log(
-      '🎯 PerpsTimeDurationSelector selectedDuration changed to:',
-      selectedDuration,
-    );
-  }, [selectedDuration]);
-
-  console.log(selectedDuration);
-
   return (
     <Box style={styles.container} testID={testID}>
       {/* Time Duration Buttons */}
