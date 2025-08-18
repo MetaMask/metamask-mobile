@@ -164,11 +164,15 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             
             // Create new candlestick series
             window.candlestickSeries = window.chart.addSeries(window.LightweightCharts.CandlestickSeries, {
-                upColor: '#26a69a',
-                downColor: '#ef5350',
+                upColor: '#BAF24A',
+                downColor: '#FF7584',
                 borderVisible: false,
-                wickUpColor: '#26a69a',
-                wickDownColor: '#ef5350',
+                wickUpColor: '#BAF24A',
+                wickDownColor: '#FF7584',
+                priceLineColor: '#FFF',
+                priceLineWidth: 1,
+                lastValueVisible: true,
+                title: 'Current',
             });
             
             console.log('📊 TradingView: Candlestick series created successfully');
@@ -185,6 +189,137 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             }
         });
         
+        // Store price lines for management
+        window.priceLines = {
+            entryPrice: null,
+            liquidationPrice: null, 
+            takeProfitPrice: null,
+            stopLossPrice: null,
+            currentPrice: null
+        };
+        
+        window.updatePriceLines = function(lines) {
+            if (!window.candlestickSeries) {
+                return;
+            }
+            
+            // Remove existing entry line if it exists
+            if (window.priceLines.entryPrice) {
+                try {
+                    window.candlestickSeries.removePriceLine(window.priceLines.entryPrice);
+                } catch (error) {
+                    // Silent error handling
+                }
+                window.priceLines.entryPrice = null;
+            }
+            
+            // Create new entry line if price is valid
+            if (lines.entryPrice && !isNaN(parseFloat(lines.entryPrice))) {
+                try {
+                    const priceLine = window.candlestickSeries.createPriceLine({
+                        price: parseFloat(lines.entryPrice),
+                        color: '#CCC', // Light Gray
+                        lineWidth: 1,
+                        lineStyle: 2, // Dashed
+                        axisLabelVisible: true,
+                        title: 'Entry'
+                    });
+                    
+                    // Store reference for future removal
+                    window.priceLines.entryPrice = priceLine;
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            
+            // Remove existing take profit line if it exists
+            if (window.priceLines.takeProfitPrice) {
+                try {
+                    window.candlestickSeries.removePriceLine(window.priceLines.takeProfitPrice);
+                } catch (error) {
+                    // Silent error handling
+                }
+                window.priceLines.takeProfitPrice = null;
+            }
+            
+            // Create new take profit line if price is valid
+            if (lines.takeProfitPrice && !isNaN(parseFloat(lines.takeProfitPrice))) {
+                try {
+                    const priceLine = window.candlestickSeries.createPriceLine({
+                        price: parseFloat(lines.takeProfitPrice),
+                        color: '#BAF24A', // Light Green
+                        lineWidth: 1,
+                        lineStyle: 2, // Dashed
+                        axisLabelVisible: true,
+                        title: 'Take Profit'
+                    });
+                    
+                    // Store reference for future removal
+                    window.priceLines.takeProfitPrice = priceLine;
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            
+            // Remove existing stop loss line if it exists
+            if (window.priceLines.stopLossPrice) {
+                try {
+                    window.candlestickSeries.removePriceLine(window.priceLines.stopLossPrice);
+                } catch (error) {
+                    // Silent error handling
+                }
+                window.priceLines.stopLossPrice = null;
+            }
+            
+            // Create new stop loss line if price is valid
+            if (lines.stopLossPrice && !isNaN(parseFloat(lines.stopLossPrice))) {
+                try {
+                    const priceLine = window.candlestickSeries.createPriceLine({
+                        price: parseFloat(lines.stopLossPrice),
+                        color: '#484848', // Dark Gray
+                        lineWidth: 1,
+                        lineStyle: 2, // Dashed
+                        axisLabelVisible: true,
+                        title: 'Stop Loss'
+                    });
+                    
+                    // Store reference for future removal
+                    window.priceLines.stopLossPrice = priceLine;
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+            
+            // Remove existing liquidation line if it exists
+            if (window.priceLines.liquidationPrice) {
+                try {
+                    window.candlestickSeries.removePriceLine(window.priceLines.liquidationPrice);
+                } catch (error) {
+                    // Silent error handling
+                }
+                window.priceLines.liquidationPrice = null;
+            }
+            
+            // Create new liquidation line if price is valid
+            if (lines.liquidationPrice && !isNaN(parseFloat(lines.liquidationPrice))) {
+                try {
+                    const priceLine = window.candlestickSeries.createPriceLine({
+                        price: parseFloat(lines.liquidationPrice),
+                        color: '#FF7584', // Pink/Light Red
+                        lineWidth: 1,
+                        lineStyle: 2, // Dashed
+                        axisLabelVisible: true,
+                        title: 'Liquidation'
+                    });
+                    
+                    // Store reference for future removal
+                    window.priceLines.liquidationPrice = priceLine;
+                } catch (error) {
+                    // Silent error handling
+                }
+            }
+        };
+
         // Message handling from React Native
         window.addEventListener('message', function(event) {
             try {
@@ -212,6 +347,12 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                             } else {
                                 console.error('📊 TradingView: Failed to create candlestick series');
                             }
+                        }
+                        break;
+                        
+                    case 'ADD_AUXILIARY_LINES':
+                        if (window.chart && message.lines) {
+                            window.updatePriceLines(message.lines);
                         }
                         break;
                 }
@@ -253,19 +394,26 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   // Handle messages from WebView
   const handleWebViewMessage = useCallback(
     (event: WebViewMessageEvent) => {
-      console.log('🔄 BASIC TEST: handleWebViewMessage called');
       try {
         const message = JSON.parse(event.nativeEvent.data);
 
         switch (message.type) {
-          case 'BASIC_WEBVIEW_SUCCESS':
-            setIsChartReady(true); // Just to enable further testing
-            break;
           case 'CHART_READY':
             console.log('📊 TradingViewChart: Chart is ready and loaded!');
             setIsChartReady(true);
             onChartReady?.();
             break;
+          case 'PRICE_LINES_UPDATE':
+            console.log('📊 Price Lines Update:', {
+              approach: message.approach,
+              removed: message.removed,
+              created: message.created,
+              skipped: message.skipped,
+              prices: message.priceValues,
+              timestamp: new Date(message.timestamp).toLocaleTimeString(),
+            });
+            break;
+
           case 'WEBVIEW_TEST':
             console.log(
               'TradingViewChart: WebView test message received:',
