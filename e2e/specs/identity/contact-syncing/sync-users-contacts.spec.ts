@@ -27,12 +27,16 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
     sharedUserStorageController = createUserStorageController();
   });
 
-  it('syncs new contacts and retrieves them after importing the same SRP', async () => {
+  it('syncs users contacts and retrieves them after importing the same SRP', async () => {
     await withIdentityFixtures(
       {
-        userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.addressBook],
+        userStorageFeatures: [
+          USER_STORAGE_FEATURE_NAMES.addressBook,
+          USER_STORAGE_FEATURE_NAMES.accounts,
+        ],
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         sharedUserStorageController,
+        strictMockMode: true,
       },
       async ({ userStorageMockttpController }) => {
         await importWalletWithRecoveryPhrase({
@@ -41,7 +45,6 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
         });
 
         await TabBarComponent.tapSettings();
-        await TestHelpers.delay(2000);
         await Assertions.expectElementToBeVisible(
           SettingsView.contactsSettingsButton,
         );
@@ -54,14 +57,11 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
           userStorageMockttpController,
         );
 
-        await TestHelpers.delay(2000);
-
         await AddContactView.typeInName(NEW_CONTACT_NAME);
         await AddContactView.typeInAddress(NEW_CONTACT_ADDRESS);
         await AddContactView.tapAddContactButton();
-        await TestHelpers.delay(2000);
         await Assertions.expectElementToBeVisible(ContactsView.container);
-        await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
+        await ContactsView.expectContactIsVisible(NEW_CONTACT_NAME);
 
         // Verify contact was synced
         await waitUntilSyncedElementsNumberEquals(
@@ -73,9 +73,13 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
 
     await withIdentityFixtures(
       {
-        userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.addressBook],
+        userStorageFeatures: [
+          USER_STORAGE_FEATURE_NAMES.addressBook,
+          USER_STORAGE_FEATURE_NAMES.accounts,
+        ],
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         sharedUserStorageController,
+        strictMockMode: true,
       },
       async () => {
         await importWalletWithRecoveryPhrase({
@@ -84,15 +88,13 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
         });
 
         await TabBarComponent.tapSettings();
-        await TestHelpers.delay(2000);
         await Assertions.expectElementToBeVisible(
           SettingsView.contactsSettingsButton,
         );
         await SettingsView.tapContacts();
         await Assertions.expectElementToBeVisible(ContactsView.container);
-        await TestHelpers.delay(4000);
 
-        await ContactsView.isContactAliasVisible(NEW_CONTACT_NAME);
+        await ContactsView.expectContactIsVisible(NEW_CONTACT_NAME);
       },
     );
   });
