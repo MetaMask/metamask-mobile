@@ -1,22 +1,22 @@
-import { SmokeWalletPlatform } from '../../tags';
-import { loginToApp } from '../../viewHelper';
-import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import ExternalSites from '../../resources/externalsites.json';
-import Browser from '../../pages/Browser/BrowserView';
-import EnsWebsite from '../../pages/Browser/ExternalWebsites/EnsWebsite.ts';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import Assertions from '../../framework/Assertions';
-import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet.ts';
-import RedirectWebsite from '../../pages/Browser/ExternalWebsites/RedirectWebsite.ts';
-import UniswapWebsite from '../../pages/Browser/ExternalWebsites/UniswapWebsite.ts';
-import OpenseaWebsite from '../../pages/Browser/ExternalWebsites/OpenseaWebsite.ts';
-import PancakeSwapWebsite from '../../pages/Browser/ExternalWebsites/PancakeSwapWebsite.ts';
-import DownloadFile from '../../pages/Browser/DownloadFile.ts';
-import DownloadFileWebsite from '../../pages/Browser/ExternalWebsites/DownloadFileWebsite.ts';
-import TestHelpers from '../../helpers';
-import CameraWebsite from '../../pages/Browser/ExternalWebsites/Security/CameraWebsite.ts';
-import HistoryDisclosureWebsite from '../../pages/Browser/ExternalWebsites/Security/HistoryDisclosureWebsite.ts';
+import { SmokeWalletPlatform } from '../../../tags.js';
+import { loginToApp } from '../../../viewHelper.ts';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder.ts';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper.ts';
+import ExternalSites from '../../../resources/externalsites.json';
+import Browser from '../../../pages/Browser/BrowserView.ts';
+import EnsWebsite from '../../../pages/Browser/ExternalWebsites/EnsWebsite.ts';
+import TabBarComponent from '../../../pages/wallet/TabBarComponent.ts';
+import Assertions from '../../../framework/Assertions.ts';
+import ConnectBottomSheet from '../../../pages/Browser/ConnectBottomSheet.ts';
+import RedirectWebsite from '../../../pages/Browser/ExternalWebsites/RedirectWebsite.ts';
+import UniswapWebsite from '../../../pages/Browser/ExternalWebsites/UniswapWebsite.ts';
+import OpenseaWebsite from '../../../pages/Browser/ExternalWebsites/OpenseaWebsite.ts';
+import PancakeSwapWebsite from '../../../pages/Browser/ExternalWebsites/PancakeSwapWebsite.ts';
+import DownloadFile from '../../../pages/Browser/DownloadFile.ts';
+import DownloadFileWebsite from '../../../pages/Browser/ExternalWebsites/DownloadFileWebsite.ts';
+import TestHelpers from '../../../helpers.js';
+import CameraWebsite from '../../../pages/Browser/ExternalWebsites/Security/CameraWebsite.ts';
+import HistoryDisclosureWebsite from '../../../pages/Browser/ExternalWebsites/Security/HistoryDisclosureWebsite.ts';
 
 const getHostFromURL = (url: string): string => {
   try {
