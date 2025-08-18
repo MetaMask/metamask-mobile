@@ -18,6 +18,7 @@ import { useTransactionMetadataRequest } from './transactions/useTransactionMeta
 import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
 import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
 import { TransactionType } from '@metamask/transaction-controller';
+import { useTransactionPayToken } from './pay/useTransactionPayToken';
 
 export const useConfirmActions = () => {
   const {
@@ -33,12 +34,10 @@ export const useConfirmActions = () => {
   } = useQRHardwareContext();
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
+  const { payToken } = useTransactionPayToken();
 
-  const {
-    chainId,
-    id: transactionId,
-    type,
-  } = useTransactionMetadataRequest() ?? {};
+  const transactionMetadata = useTransactionMetadataRequest();
+  const { chainId, id: transactionId, type } = transactionMetadata ?? {};
 
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
     selectShouldUseSmartTransaction(state, chainId),
@@ -87,11 +86,25 @@ export const useConfirmActions = () => {
       setScannerVisible(true);
       return;
     }
-    await onRequestConfirm({
-      waitForResult,
-      deleteAfterResult: true,
-      handleErrors: false,
-    });
+
+    const updatedTransactionMetadata =
+      isTransactionReq && payToken
+        ? {
+            ...transactionMetadata,
+            metamaskPay: {
+              tokenAddress: payToken.address,
+            },
+          }
+        : undefined;
+
+    await onRequestConfirm(
+      {
+        waitForResult,
+        deleteAfterResult: true,
+        handleErrors: false,
+      },
+      updatedTransactionMetadata,
+    );
 
     if (isFullScreenConfirmation && type === TransactionType.perpsDeposit) {
       navigation.navigate(Routes.WALLET_VIEW);
@@ -121,7 +134,9 @@ export const useConfirmActions = () => {
     navigation,
     onRequestConfirm,
     openLedgerSignModal,
+    payToken,
     setScannerVisible,
+    transactionMetadata,
     waitForResult,
     type,
   ]);
