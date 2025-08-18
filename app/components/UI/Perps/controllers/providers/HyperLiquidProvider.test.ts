@@ -2475,12 +2475,13 @@ describe('HyperLiquidProvider', () => {
         expect(result).toEqual([]);
       });
 
-      it('should handle metaAndAssetCtxs call successfully', async () => {
+      it('should handle meta and predictedFundings calls successfully', async () => {
         mockClientService.getInfoClient = jest.fn().mockReturnValue({
           meta: jest.fn().mockResolvedValue({
             universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }],
           }),
           allMids: jest.fn().mockResolvedValue({ BTC: '50000' }),
+          predictedFundings: jest.fn().mockResolvedValue([]),
           metaAndAssetCtxs: jest.fn().mockResolvedValue([
             { universe: [{ name: 'BTC', szDecimals: 3, maxLeverage: 50 }] },
             [
@@ -2496,8 +2497,9 @@ describe('HyperLiquidProvider', () => {
         const result = await provider.getMarketDataWithPrices();
 
         expect(Array.isArray(result)).toBe(true);
+        expect(mockClientService.getInfoClient().meta).toHaveBeenCalled();
         expect(
-          mockClientService.getInfoClient().metaAndAssetCtxs,
+          mockClientService.getInfoClient().predictedFundings,
         ).toHaveBeenCalled();
       });
     });
