@@ -1192,7 +1192,7 @@ workflows:
           title: Pull Android build
       - script@1:
           title: Copy Android build for Detox
-          # run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1321,6 +1321,7 @@ workflows:
           title: Pull Android build
       - script@1:
           title: Copy Android build for Detox
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1481,7 +1482,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
-          # run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1782,7 +1783,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
-          # run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
@@ -1933,6 +1934,7 @@ workflows:
           title: Pull iOS build
       - script@1:
           title: Copy iOS build for Detox
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "false"}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
