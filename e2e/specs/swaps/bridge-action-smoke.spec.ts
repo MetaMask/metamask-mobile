@@ -89,24 +89,22 @@ describe(SmokeTrade('Bridge functionality'), () => {
 
     await TabBarComponent.tapWallet();
     await WalletView.tapIdenticon();
-    await Assertions.expectElementToBeVisible(
-      AccountListBottomSheet.accountList,
-    );
+    await Assertions.checkIfVisible(AccountListBottomSheet.accountList);
     await AccountListBottomSheet.tapAddAccountButton();
     await AddAccountBottomSheet.tapAddSolanaAccount();
     await AddNewHdAccountComponent.tapConfirm();
-    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
+    await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.expectElementToNotBeVisible(
+    await Assertions.checkIfNotVisible(
       NetworkEducationModal.container as DetoxElement,
     );
-    await Assertions.expectElementToBeVisible(WalletView.container);
+    await Assertions.checkIfVisible(WalletView.container);
 
     await WalletView.tapNetworksButtonOnNavBar();
     await NetworkListModal.changeNetworkTo('Localhost', false);
-    await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
+    await Assertions.checkIfVisible(NetworkEducationModal.container);
     await NetworkEducationModal.tapGotItButton();
-    await Assertions.expectElementToNotBeVisible(
+    await Assertions.checkIfNotVisible(
       NetworkEducationModal.container as DetoxElement,
     );
     await Assertions.checkIfVisible(WalletView.container);
@@ -119,8 +117,8 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.selectNetwork('Solana');
     await QuoteView.tapToken(destChainId, 'SOL');
     await QuoteView.enterAmount('1');
-    await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel);
-    await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
+    await Assertions.checkIfVisible(QuoteView.networkFeeLabel);
+    await Assertions.checkIfVisible(QuoteView.confirmBridge);
     await QuoteView.tapConfirmBridge();
 
     // Gather the events from this test to assert later in another test
@@ -368,8 +366,9 @@ describe(SmokeTrade('Bridge functionality'), () => {
     const destChainId = '0x2105';
 
     await TabBarComponent.tapWallet();
-    await Assertions.expectElementToBeVisible(WalletView.container);
-    await WalletView.tapWalletSwapButton();
+    await Assertions.checkIfVisible(WalletView.container);
+    await TabBarComponent.tapActions();
+    await WalletActionsBottomSheet.tapSwapButton();
     await device.disableSynchronization();
     await QuoteView.tapDestinationToken();
     await TestHelpers.delay(2000); // wait until tokens are displayed
@@ -410,13 +409,13 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await QuoteView.selectNetwork('OP Mainnet');
     await QuoteView.tapToken(destChainId, 'ETH');
     await QuoteView.enterAmount('1');
-    await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel);
-    await Assertions.expectElementToBeVisible(QuoteView.confirmBridge);
+    await Assertions.checkIfVisible(QuoteView.networkFeeLabel);
+    await Assertions.checkIfVisible(QuoteView.confirmBridge);
     await QuoteView.tapConfirmBridge();
 
     // Check the bridge activity completed
-    await Assertions.expectElementToBeVisible(ActivitiesView.title);
-    await Assertions.expectElementToBeVisible(
+    await Assertions.checkIfVisible(ActivitiesView.title);
+    await Assertions.checkIfVisible(
       ActivitiesView.bridgeActivityTitle('Optimism'),
     );
 

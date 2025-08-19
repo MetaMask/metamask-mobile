@@ -11,7 +11,7 @@ import {
   stopFixtureServer,
 } from '../../framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers';
-import FixtureServer from '../../framework/FixtureServer';
+import FixtureServer from '../../framework/fixtures/FixtureServer';
 import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
 import { Regression } from '../../tags';
 import Assertions from '../../framework/Assertions';

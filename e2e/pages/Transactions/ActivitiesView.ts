@@ -37,6 +37,10 @@ class ActivitiesView {
     return Matchers.getElementByText(ActivitiesViewSelectorsText.STAKING_CLAIM);
   }
 
+  get approveActivity(): DetoxElement {
+    return Matchers.getElementByText(ActivitiesViewSelectorsText.APPROVE);
+  }
+
   transactionStatus(row: number): DetoxElement {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }
@@ -80,11 +84,6 @@ class ActivitiesView {
   bridgeActivityTitle(destNetwork: string): DetoxElement {
     return Matchers.getElementByText(
       this.generateBridgeActivityLabel(destNetwork),
-    );
-  }
-  tokenApprovalActivity(sourceToken: string): DetoxElement {
-    return Matchers.getElementByText(
-      this.generateApprovedTokenActivityLabel(sourceToken),
     );
   }
 
