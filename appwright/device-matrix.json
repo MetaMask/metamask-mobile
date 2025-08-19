@@ -13,23 +13,29 @@
       "description": "High-end Google flagship device with Android 14"
     },
     {
-      "name": "Samsung Galaxy A52",
-      "os_version": "11.0",
-      "category": "medium",
+      "name": "Samsung Galaxy A35",
+      "os_version": "14.0",
+      "category": "low",
       "description": "Mid-range Samsung device with Android 12 (Snapdragon 778G, 8 cores, ~2.4 GHz, 6 GB RAM)"
     }
   ],
   "ios_devices": [
     {
-      "name": "iPhone 14 Pro Max",
-      "os_version": "16",
+      "name": "iPhone 16 Pro Max",
+      "os_version": "18",
       "category": "high",
-      "description": "High-end iPhone 14 Pro Max with iOS 16"
+      "description": "High-end iPhone 16 Pro Max with iOS 18"
     },
     {
-      "name": "iPhone 12 Pro",
-      "os_version": "17",
+      "name": "iPhone 14",
+      "os_version": "18",
       "category": "medium",
+      "description": "Medium iPhone 14."
+    },
+    {
+      "name": "iPhone 12",
+      "os_version": "17",
+      "category": "low",
       "description": "Medium iPhone 12."
     }
   ],

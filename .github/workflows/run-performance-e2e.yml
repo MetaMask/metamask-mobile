@@ -295,6 +295,7 @@ jobs:
   android-tests:
     name: Android Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: trigger-qa-builds-and-upload
     strategy:
       fail-fast: false
@@ -400,6 +401,7 @@ jobs:
   ios-tests:
     name: iOS Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     needs: trigger-qa-builds-and-upload
     strategy:
       fail-fast: false
