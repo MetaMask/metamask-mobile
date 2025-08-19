@@ -44,7 +44,6 @@ jest.mock('../UI/token/token', () => {
   };
 });
 
-// Move this to the top level, before any describe blocks
 const mockTokens: AssetType[] = [
   {
     address: '0x1234567890123456789012345678901234567890',
@@ -78,9 +77,23 @@ const mockTokens: AssetType[] = [
   },
 ];
 
-describe('TokenList', () => {
-  // Remove the mockTokens definition from here since it's now at the top
+const manyTokens: AssetType[] = Array.from({ length: 25 }, (_, i) => ({
+  address: `0x${i.toString().padStart(40, '0')}`,
+  aggregators: [],
+  balance: '1.0',
+  balanceFiat: '$1.00',
+  chainId: '0x1',
+  decimals: 18,
+  image: `https://example.com/token${i}.png`,
+  isETH: false,
+  isNative: false,
+  logo: `https://example.com/token${i}.png`,
+  name: `Token ${i}`,
+  symbol: `TKN${i}`,
+  ticker: `TKN${i}`,
+}));
 
+describe('TokenList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -188,35 +201,14 @@ describe('TokenList', () => {
 
     expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[1], '1');
   });
-});
-
-describe('TokenList - New Additions', () => {
-  // Test data for pagination
-  const manyTokens: AssetType[] = Array.from({ length: 25 }, (_, i) => ({
-    address: `0x${i.toString().padStart(40, '0')}`,
-    aggregators: [],
-    balance: '1.0',
-    balanceFiat: '$1.00',
-    chainId: '0x1',
-    decimals: 18,
-    image: `https://example.com/token${i}.png`,
-    isETH: false,
-    isNative: false,
-    logo: `https://example.com/token${i}.png`,
-    name: `Token ${i}`,
-    symbol: `TKN${i}`,
-    ticker: `TKN${i}`,
-  }));
 
   describe('pagination functionality', () => {
     it('shows only first 20 tokens initially', () => {
       const { queryByTestId } = render(<TokenList tokens={manyTokens} />);
 
-      // Should show first 20 tokens
       expect(queryByTestId('token-TKN0')).toBeOnTheScreen();
       expect(queryByTestId('token-TKN19')).toBeOnTheScreen();
 
-      // Should not show tokens beyond 20
       expect(queryByTestId('token-TKN20')).toBeNull();
       expect(queryByTestId('token-TKN24')).toBeNull();
     });
@@ -238,13 +230,10 @@ describe('TokenList - New Additions', () => {
         <TokenList tokens={manyTokens} />,
       );
 
-      // Initially token 20 should not be visible
       expect(queryByTestId('token-TKN20')).toBeNull();
 
-      // Press show more
       fireEvent.press(getByText('Show more tokens'));
 
-      // Now tokens 20-39 should be visible
       expect(queryByTestId('token-TKN20')).toBeOnTheScreen();
       expect(queryByTestId('token-TKN24')).toBeOnTheScreen();
     });
@@ -254,15 +243,11 @@ describe('TokenList - New Additions', () => {
         <TokenList tokens={manyTokens} />,
       );
 
-      // Press show more to show all tokens (25 total, 20 initially + 20 more = 40, so all 25 visible)
       fireEvent.press(getByText('Show more tokens'));
 
-      // Button should be hidden now
       expect(queryByText('Show more tokens')).toBeNull();
     });
   });
-
-  // Fix the failing tests by using the actual translated text instead of i18n keys
 
   describe('empty state with active filters', () => {
     const mockOnClearFilters = jest.fn();
@@ -348,10 +333,8 @@ describe('TokenList - New Additions', () => {
         />,
       );
 
-      // Should show filtered empty state
       expect(getByText('No tokens match your filters')).toBeOnTheScreen();
 
-      // Should not show general empty state
       expect(queryByText('No tokens available')).toBeNull();
     });
 
@@ -364,11 +347,9 @@ describe('TokenList - New Additions', () => {
         />,
       );
 
-      // Should show tokens
       expect(getByTestId('token-ETH')).toBeOnTheScreen();
       expect(getByTestId('token-USDC')).toBeOnTheScreen();
 
-      // Should not show any empty states
       expect(queryByText('No tokens match your filters')).toBeNull();
       expect(queryByText('No tokens available')).toBeNull();
     });

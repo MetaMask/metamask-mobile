@@ -77,7 +77,6 @@ jest.mock(
   },
 );
 
-// Update the TokenList mock to handle new props
 jest.mock('../../token-list', () => ({
   TokenList: ({
     tokens,
@@ -106,7 +105,6 @@ jest.mock('../../token-list', () => ({
   },
 }));
 
-// Fix the NetworkFilter mock to properly simulate state changes
 jest.mock('../../network-filter', () => ({
   NetworkFilter: ({
     tokens,
