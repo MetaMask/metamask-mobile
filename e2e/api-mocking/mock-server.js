@@ -258,14 +258,28 @@ export const startMockServer = async (events, port, strictMockMode = false) => {
  */
 export const validateStrictMockMode = (mockServer) => {
   if (mockServer._strictMockMode && mockServer._liveRequests.length > 0) {
-    const requestsSummary = mockServer._liveRequests
+    // Get unique requests by method + URL combination
+    const uniqueRequests = Array.from(
+      new Map(
+        mockServer._liveRequests.map((req) => [
+          `${req.method} ${req.url}`,
+          req,
+        ]),
+      ).values(),
+    );
+
+    const requestsSummary = uniqueRequests
       .map(
         (req, index) =>
           `${index + 1}. [${req.method}] ${req.url} (${req.timestamp})`,
       )
       .join('\n');
+
+    const totalCount = mockServer._liveRequests.length;
+    const uniqueCount = uniqueRequests.length;
+
     throw new Error(
-      `Strict Mock Mode: Test made ${mockServer._liveRequests.length} unmocked request(s):\n${requestsSummary}\n\n` +
+      `Strict Mock Mode: Test made ${totalCount} unmocked request(s) (${uniqueCount} unique):\n${requestsSummary}\n\n` +
         `These requests need to be mocked before enabling strict mode. ` +
         `Check your test-specific mocks or add them to the default mocks.`,
     );

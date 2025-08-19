@@ -371,7 +371,10 @@ export const createMockAPIServer = async (
   mockServerInstance?: Mockttp,
   testSpecificMock?: TestSpecificMock,
   strictMockMode: boolean = false,
-) => {
+): Promise<{
+  mockServer: Mockttp & { _strictMockMode?: boolean; _liveRequests?: string };
+  mockServerPort: number;
+}> => {
   // Handle mock server
   let mockServer: Mockttp | undefined;
   let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
@@ -546,7 +549,7 @@ export async function withFixtures(
     throw error;
   } finally {
     // Validate strict mock mode before cleanup
-    if (mockServer && strictMockMode) {
+    if ((mockServer && strictMockMode) || mockServer?._strictMockMode) {
       validateStrictMockMode(mockServer);
     }
 

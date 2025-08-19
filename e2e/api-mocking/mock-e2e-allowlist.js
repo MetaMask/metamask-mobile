@@ -9,10 +9,10 @@ export const ALLOWLISTED_HOSTS = [
   'api.tenderly.co',
   'rpc.tenderly.co',
   'virtual.mainnet.rpc.tenderly.co',
-  'pulse.walletconnect.org',
   '*.infura.io',
   'carrot.megaeth.com',
   'testnet-rpc.monad.xyz',
+  'on-ramp-cache.uat-api.cx.metamask.io',
 ];
 
 export const ALLOWLISTED_URLS = [
@@ -20,4 +20,11 @@ export const ALLOWLISTED_URLS = [
   'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
   'https://clients3.google.com/generate_204',
   'https://api.avax.network/ext/bc/C/rpc',
+  // Token SVGs in notifications list
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/usdc.svg',
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/shib.svg',
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/usdt.svg',
+  'https://token.api.cx.metamask.io/assets/nativeCurrencyLogos/ethereum.svg',
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/stETH.svg',
+  'https://raw.githubusercontent.com/MetaMask/contract-metadata/master/images/rETH.svg',
 ];
