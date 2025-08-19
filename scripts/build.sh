@@ -128,7 +128,7 @@ checkParameters(){
 			;;
 		*)
 			# Invalid environment - exit with error
-			printError "METAMASK_ENVIRONMENT "${METAMASK_ENVIRONMENT}" is not valid. Please set it to one of the following: ${VALID_METAMASK_ENVIRONMENTS}"
+			printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not valid. Please set it to one of the following: ${VALID_METAMASK_ENVIRONMENTS}"
 			exit 1
 	esac
 	
@@ -601,7 +601,7 @@ buildAndroid() {
   	elif [ "$MODE" == "debugE2E" ] ; then
 		buildAndroidRunE2E
 	else
-		printError "METAMASK_ENVIRONMENT "${METAMASK_ENVIRONMENT}" is not recognized."
+		printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not recognized."
 		exit 1
 	fi
 }
@@ -660,7 +660,7 @@ buildIos() {
 	elif [ "$MODE" == "flaskDebugE2E" ] ; then
 			buildIosFlaskSimulatorE2E
 	else
-		printError "METAMASK_ENVIRONMENT "${METAMASK_ENVIRONMENT}" is not recognized"
+		printError "METAMASK_ENVIRONMENT '${METAMASK_ENVIRONMENT}' is not recognized"
 		exit 1
 	fi
 }
