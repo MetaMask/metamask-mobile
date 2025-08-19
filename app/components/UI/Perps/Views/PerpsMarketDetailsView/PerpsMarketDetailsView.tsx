@@ -351,6 +351,17 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               height={350}
               selectedDuration={selectedDuration}
               selectedCandlePeriod={selectedCandlePeriod}
+              tpslLines={
+                existingPosition
+                  ? {
+                      entryPrice: existingPosition.entryPrice,
+                      takeProfitPrice: existingPosition.takeProfitPrice,
+                      stopLossPrice: existingPosition.stopLossPrice,
+                      liquidationPrice:
+                        existingPosition.liquidationPrice || undefined,
+                    }
+                  : undefined
+              }
               testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
             />
 
