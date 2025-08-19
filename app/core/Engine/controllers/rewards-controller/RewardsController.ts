@@ -25,7 +25,7 @@ export type { RewardsControllerMessenger };
 const controllerName = 'RewardsController';
 
 // Silent authentication constants
-const GRACE_PERIOD_MS = 1000 * 60 * 10; // 10 minutes
+const GRACE_PERIOD_MS = 1000; // 10 minutes
 
 /**
  * State metadata for the RewardsController
@@ -87,6 +87,21 @@ export class RewardsController extends BaseController<
         ...state,
       },
     });
+
+    this.#initializeEventSubscriptions();
+  }
+  /**
+   * Initialize event subscriptions based on feature flag state
+   */
+  #initializeEventSubscriptions(): void {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+
+    if (!rewardsEnabled) {
+      Logger.log(
+        'RewardsController: Feature flag disabled, skipping event subscriptions',
+      );
+      return;
+    }
 
     // Subscribe to account changes for silent authentication
     this.messagingSystem.subscribe(
@@ -173,15 +188,6 @@ export class RewardsController extends BaseController<
    * Handle authentication triggers (account changes, keyring unlock)
    */
   async #handleAuthenticationTrigger(reason?: string): Promise<void> {
-    // Check if rewards feature flag is enabled
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
-    if (!rewardsEnabled) {
-      Logger.log(
-        'RewardsController: Rewards feature flag disabled, skipping authentication trigger',
-      );
-      return;
-    }
-
     Logger.log('RewardsController: handleAuthenticationTrigger', reason);
     Logger.log('RewardsController: Clearing cache');
     // Clear global cache
