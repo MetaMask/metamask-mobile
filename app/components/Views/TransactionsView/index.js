@@ -121,7 +121,7 @@ const TransactionsView = ({
 
         if (updatedTx.insertImportTime) accountAddedTimeInsertPointFound = true;
 
-        switch (updatedTx.status) {
+        switch (tx.status) {
           case TX_SUBMITTED:
           case TX_SIGNED:
           case TX_UNAPPROVED:
@@ -296,7 +296,12 @@ const mapStateToProps = (state) => {
     transactions: allTransactions,
     networkType: selectProviderType(state),
     chainId,
-    tokenNetworkFilter: selectEVMEnabledNetworks(state),
+    tokenNetworkFilter: isRemoveGlobalNetworkSelectorEnabled()
+      ? selectEVMEnabledNetworks(state).reduce(
+          (acc, network) => ({ ...acc, [network]: true }),
+          {},
+        )
+      : selectTokenNetworkFilter(state),
   };
 };
 

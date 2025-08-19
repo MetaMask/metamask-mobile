@@ -78,7 +78,7 @@ export const filterByAddressAndNetwork = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   tokens: any[],
   selectedAddress: string,
-  tokenNetworkFilter: string[],
+  tokenNetworkFilter: { [key: string]: boolean },
 ): boolean => {
   const {
     txParams: { from, to },
@@ -86,7 +86,7 @@ export const filterByAddressAndNetwork = (
     transferInformation,
   } = tx;
 
-  const condition = tokenNetworkFilter.includes(tx.chainId);
+  const condition = Object.keys(tokenNetworkFilter).includes(tx.chainId);
 
   if (
     isFromOrToSelectedAddress(from, to, selectedAddress) &&

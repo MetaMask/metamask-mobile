@@ -159,7 +159,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      ['0x1'],
+      { '0x1': true },
     );
     expect(result).toEqual(true);
   });
@@ -184,13 +184,13 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      ['0x1'],
+      { '0x1': true },
     );
     expect(result).toEqual(true);
   });
 
   it('should return false if the transaction does not meet the address condition', () => {
-    const chainId = '1';
+    const chainId = '0x1';
     const transaction = {
       chainId,
       status: TX_SUBMITTED,
@@ -207,7 +207,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_THREE,
-      ['0x1'],
+      { '0x1': true },
     );
     expect(result).toEqual(false);
   });
@@ -229,13 +229,13 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      ['0x1'],
+      { '0x1': true },
     );
     expect(result).toEqual(false);
   });
 
   it('should return false if the transaction does not meet the token condition for transfers', () => {
-    const chainId = '1';
+    const chainId = '0x1';
     const transaction = {
       chainId,
       status: TX_SUBMITTED,
@@ -255,13 +255,13 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      ['0x1'],
+      { '0x1': true },
     );
     expect(result).toEqual(false);
   });
 
   it('should return false if transaction status is TX_UNAPPROVED', () => {
-    const chainId = '1';
+    const chainId = '0x1';
     const transaction = {
       chainId,
       status: TX_UNAPPROVED,
@@ -278,7 +278,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      ['0x1'],
+      { '0x1': true },
     );
     expect(result).toEqual(false);
   });
@@ -301,7 +301,7 @@ describe('Activity utils :: filterByAddressAndNetwork', () => {
       transaction,
       tokens,
       TEST_ADDRESS_ONE,
-      ['0x1', '0x2'],
+      { '0x1': true, '0x2': true },
     );
     // Despite chainId mismatch, the condition becomes true
     expect(result).toEqual(true);
