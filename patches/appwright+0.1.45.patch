@@ -14,7 +14,7 @@ index a51913b..a6c159e 100644
      use: {
          // TODO: Use this for actions
 diff --git a/node_modules/appwright/dist/providers/browserstack/index.js b/node_modules/appwright/dist/providers/browserstack/index.js
-index 638c5df..202515a 100644
+index 638c5df..fc8aa1d 100644
 --- a/node_modules/appwright/dist/providers/browserstack/index.js
 +++ b/node_modules/appwright/dist/providers/browserstack/index.js
 @@ -242,6 +242,7 @@ class BrowserStackDeviceProvider {
@@ -25,7 +25,7 @@ index 638c5df..202515a 100644
                      networkLogs: true,
                      appiumVersion: "2.6.0",
                      enableCameraImageInjection: this.project.use.device?.enableCameraImageInjection,
-@@ -250,16 +251,17 @@ class BrowserStackDeviceProvider {
+@@ -250,7 +251,7 @@ class BrowserStackDeviceProvider {
                      osVersion: this.project.use.device.osVersion,
                      platformName: platformName,
                      deviceOrientation: this.project.use.device?.orientation,
@@ -33,11 +33,8 @@ index 638c5df..202515a 100644
 +                    buildName: process.env.BROWSERSTACK_BUILD_NAME || `${projectName} ${platformName}`,
                      sessionName: `${projectName} ${platformName} test`,
                      buildIdentifier: process.env.GITHUB_ACTIONS === "true"
--                        ? `CI ${process.env.GITHUB_RUN_ID}`
-+                        ? ``
-                         : process.env.USER,
-                 },
-                 "appium:autoGrantPermissions": true,
+                         ? `CI ${process.env.GITHUB_RUN_ID}`
+@@ -260,6 +261,7 @@ class BrowserStackDeviceProvider {
                  "appium:app": process.env[envVarKey],
                  "appium:autoAcceptAlerts": true,
                  "appium:fullReset": true,
