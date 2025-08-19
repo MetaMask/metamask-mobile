@@ -8,6 +8,7 @@ import {
   AssetSelectorElement,
   AccountSelectorElement,
   DropdownElement,
+  RadioGroupElement,
 } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { getPrimaryChildElementIndex, mapToTemplate } from '../utils';
@@ -18,6 +19,7 @@ import { constructInputProps } from './input';
 import { assetSelector as assetSelectorFn } from './asset-selector';
 import { accountSelector as accountSelectorFn } from './account-selector';
 import { dropdown as dropdownFn } from './dropdown';
+import { radioGroup as radioGroupFn } from './radioGroup';
 
 export const field: UIComponentFactory<FieldElement> = ({
   element: e,
@@ -215,6 +217,25 @@ export const field: UIComponentFactory<FieldElement> = ({
           id: dropdown.props.name,
           label: e.props.label,
           name: dropdown.props.name,
+          form,
+          error: e.props.error,
+          disabled: child.props.disabled,
+        },
+      };
+    }
+
+    case 'RadioGroup': {
+      const radioGroup = child as RadioGroupElement;
+      const radioGroupMapped = radioGroupFn({
+        element: radioGroup,
+      } as UIComponentParams<RadioGroupElement>);
+      return {
+        element: 'SnapUIRadioGroup',
+        props: {
+          ...radioGroupMapped.props,
+          id: radioGroup.props.name,
+          label: e.props.label,
+          name: radioGroup.props.name,
           form,
           error: e.props.error,
           disabled: child.props.disabled,

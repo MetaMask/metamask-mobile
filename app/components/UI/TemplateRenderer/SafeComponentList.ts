@@ -37,6 +37,7 @@ import { SnapUIInfoRow } from '../../Snaps/SnapUIInfoRow/SnapUIInfoRow';
 import { SnapUIAssetSelector } from '../../Snaps/SnapUIAssetSelector/SnapUIAssetSelector';
 import { SnapUICopyable } from '../../Snaps/SnapUICopyable/SnapUICopyable';
 import { SnapUIAccountSelector } from '../../Snaps/SnapUIAccountSelector/SnapUIAccountSelector';
+import { SnapUIRadioGroup } from '../../Snaps/SnapUIRadioGroup/SnapUIRadioGroup';
 
 export const safeComponentList = {
   BottomSheetFooter,
@@ -62,6 +63,7 @@ export const safeComponentList = {
   SnapUIButton,
   SnapUICheckbox,
   SnapUIDropdown,
+  SnapUIRadioGroup,
   SnapUIAvatar,
   SnapUIAddress,
   SnapUIBanner,
