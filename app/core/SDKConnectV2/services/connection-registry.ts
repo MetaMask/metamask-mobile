@@ -19,7 +19,7 @@ export class ConnectionRegistry {
   constructor(
     private readonly hostapp: IHostApplicationAdapter,
     private readonly store: IConnectionStore,
-  ) { }
+  ) {}
 
   /**
    * The primary entry point for handling a new connection request from a
