@@ -16,6 +16,7 @@ import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Pe
 
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import { createIntervalUpdateMessage } from './utils/chartCalculations';
 
 // TP/SL Lines interface
 export interface TPSLLines {
@@ -57,75 +58,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   const [isChartReady, setIsChartReady] = useState(false);
   const [webViewError, setWebViewError] = useState<string | null>(null);
 
-  // Calculate number of candles based on time range (duration) and candle period
-  // Duration = how far back in time to look (1hr, 1D, 1W, etc.)
-  // Period = granularity of each candle (1m, 5m, 1h, etc.)
-  const getCandleCount = useCallback(
-    (duration: TimeDuration | string, period: CandlePeriod): number => {
-      // Convert duration to total minutes
-      const durationMinutes = (() => {
-        switch (duration) {
-          case TimeDuration.ONE_HOUR:
-            return 60; // 1 hour
-          case TimeDuration.ONE_DAY:
-            return 60 * 24; // 1 day
-          case TimeDuration.ONE_WEEK:
-            return 60 * 24 * 7; // 1 week
-          case TimeDuration.ONE_MONTH:
-            return 60 * 24 * 30; // 1 month (30 days)
-          case TimeDuration.YEAR_TO_DATE:
-            return 60 * 24 * 365; // 1 year
-          case TimeDuration.MAX:
-            return 60 * 24 * 365 * 2; // 2 years max
-          default:
-            return 60 * 24; // Default to 1 day
-        }
-      })();
-
-      // Convert candle period to minutes
-      const periodMinutes = (() => {
-        switch (period) {
-          case CandlePeriod.ONE_MINUTE:
-            return 1;
-          case CandlePeriod.THREE_MINUTES:
-            return 3;
-          case CandlePeriod.FIVE_MINUTES:
-            return 5;
-          case CandlePeriod.FIFTEEN_MINUTES:
-            return 15;
-          case CandlePeriod.THIRTY_MINUTES:
-            return 30;
-          case CandlePeriod.ONE_HOUR:
-            return 60;
-          case CandlePeriod.TWO_HOURS:
-            return 120;
-          case CandlePeriod.FOUR_HOURS:
-            return 240;
-          case CandlePeriod.EIGHT_HOURS:
-            return 480;
-          case CandlePeriod.TWELVE_HOURS:
-            return 720;
-          case CandlePeriod.ONE_DAY:
-            return 1440; // 24 * 60
-          case CandlePeriod.THREE_DAYS:
-            return 4320; // 3 * 24 * 60
-          case CandlePeriod.ONE_WEEK:
-            return 10080; // 7 * 24 * 60
-          case CandlePeriod.ONE_MONTH:
-            return 43200; // 30 * 24 * 60
-          default:
-            return 60; // Default to 1 hour
-        }
-      })();
-
-      // Calculate number of candles: time_range / candle_period
-      const candleCount = Math.ceil(durationMinutes / periodMinutes);
-
-      // Cap at reasonable limits for performance and UX
-      return Math.min(Math.max(candleCount, 10), 500);
-    },
-    [],
-  );
+  // Note: getCandleCount logic moved to utils/chartCalculations.ts for better testability
 
   // Send interval update to WebView
   // Note: This is mainly for debugging/logging. The actual data fetching
@@ -141,20 +74,12 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
       // Use provided candle period or fallback to a default
       const period = candlePeriod || CandlePeriod.ONE_HOUR;
-      const count = getCandleCount(duration, period);
-
-      const message = {
-        type: 'UPDATE_INTERVAL',
-        duration,
-        candlePeriod: period,
-        candleCount: count,
-        timestamp: new Date().toISOString(),
-      };
+      const message = createIntervalUpdateMessage(duration, period);
 
       console.log('📊 Sending interval update to chart:', message);
       webViewRef.current.postMessage(JSON.stringify(message));
     },
-    [isChartReady, getCandleCount],
+    [isChartReady],
   );
 
   // Send initial interval when chart becomes ready
