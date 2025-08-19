@@ -184,7 +184,7 @@ export function selectMultichainAssetsMetadata(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
 }
 
-export function selectMultichainAssetsRatesState(state: RootState) {
+function selectMultichainAssetsRatesState(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
     .conversionRates;
 }
@@ -192,6 +192,7 @@ export function selectMultichainAssetsRatesState(state: RootState) {
 export const selectMultichainAssetsRates = createDeepEqualSelector(
   selectMultichainAssetsRatesState,
   (conversionRates) => conversionRates,
+  { devModeChecks: { identityFunctionCheck: 'never' } },
 );
 
 export function selectMultichainHistoricalPrices(state: RootState) {

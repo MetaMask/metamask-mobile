@@ -1,44 +1,84 @@
-import React from 'react';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { Box, Text } from '@metamask/design-system-react-native';
+import React, { useEffect } from 'react';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
-import Routes from '../../../../../../constants/navigation/Routes';
-import TabBar from '../../../../../../component-library/components-temp/TabBar/TabBar';
+import { strings } from '../../../../../../../locales/i18n';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import { TextFieldSize } from '../../../../../../component-library/components/Form/TextField/TextField.types';
+import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
 import { useSelectedEVMAccountTokens } from '../../../hooks/send/evm/useSelectedEVMAccountTokens';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
-import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { TokenList } from '../../token-list';
 
 export const Asset = () => {
   const tokens = useSelectedEVMAccountTokens();
   const { searchQuery, setSearchQuery, filteredTokens, clearSearch } =
     useTokenSearch(tokens);
-  useSendNavbar({ currentRoute: Routes.SEND.ASSET });
+  const {
+    setAssetListSize,
+    setNoneAssetFilterMethod,
+    setSearchAssetFilterMethod,
+  } = useAssetSelectionMetrics();
+
+  useEffect(() => {
+    setAssetListSize(
+      filteredTokens?.length ? filteredTokens?.length.toString() : '',
+    );
+  }, [filteredTokens, setAssetListSize]);
+
+  useEffect(() => {
+    if (searchQuery.length) {
+      setSearchAssetFilterMethod();
+    } else {
+      setNoneAssetFilterMethod();
+    }
+  }, [searchQuery, setNoneAssetFilterMethod, setSearchAssetFilterMethod]);
 
   return (
-    <Box twClassName="flex-1 px-4">
-      <Box twClassName="w-full py-2">
+    <Box twClassName="flex-1">
+      <Box twClassName="w-full px-4 py-2">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholder="Search"
-          size={TextFieldSize.Md}
+          placeholder={strings('send.search_tokens_and_nfts')}
+          size={TextFieldSize.Lg}
           showClearButton={searchQuery.length > 0}
           onPressClearButton={clearSearch}
         />
       </Box>
-      <ScrollableTabView renderTabBar={() => <TabBar />}>
-        <Box key="token-tab" {...{ tabLabel: 'Tokens' }} twClassName="flex-1">
-          <TokenList tokens={filteredTokens} />
-        </Box>
-        <Box key="nft-tab" {...{ tabLabel: 'NFTs' }} twClassName="flex-1">
-          <Text>
-            NFTs - will be implemented in separate PR - Intentional empty
-          </Text>
-        </Box>
-      </ScrollableTabView>
+      <ScrollView>
+        <Text
+          twClassName="m-4"
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          fontWeight={FontWeight.Medium}
+        >
+          {strings('send.tokens')}
+        </Text>
+        <TokenList tokens={filteredTokens} />
+        <Text
+          twClassName="m-4"
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          fontWeight={FontWeight.Medium}
+        >
+          {strings('send.nfts')}
+        </Text>
+        <Text
+          twClassName="ml-4"
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          fontWeight={FontWeight.Regular}
+        >
+          NFTs implementation coming soon.
+        </Text>
+      </ScrollView>
     </Box>
   );
 };
