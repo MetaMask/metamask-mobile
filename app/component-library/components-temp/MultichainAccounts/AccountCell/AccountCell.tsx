@@ -1,7 +1,8 @@
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useNavigation } from '@react-navigation/native';
 import { useStyles } from '../../../hooks';
 import styleSheet from './AccountCell.styles';
 import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
@@ -16,14 +17,22 @@ import { AccountCellIds } from '../../../../../e2e/selectors/MultichainAccounts/
 import { selectBalanceByAccountGroup } from '../../../../selectors/assets/balances';
 import { formatWithThreshold } from '../../../../util/assets';
 import I18n from '../../../../../locales/i18n';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface AccountCellProps {
   accountGroup: AccountGroupObject;
   isSelected: boolean;
 }
 
-export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
+const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
   const { styles } = useStyles(styleSheet, { isSelected });
+  const { navigate } = useNavigation();
+
+  const handleMenuPress = useCallback(() => {
+    navigate(Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS, {
+      accountGroup,
+    });
+  }, [navigate, accountGroup]);
 
   const selectBalanceForGroup = useMemo(
     () => selectBalanceByAccountGroup(accountGroup.id),
@@ -80,6 +89,7 @@ export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
         <TouchableOpacity
           testID={AccountCellIds.MENU}
           style={styles.menuButton}
+          onPress={handleMenuPress}
         >
           <Icon
             name={IconName.MoreVertical}
@@ -91,3 +101,5 @@ export const AccountCell = ({ accountGroup, isSelected }: AccountCellProps) => {
     </Box>
   );
 };
+
+export default React.memo(AccountCell);
