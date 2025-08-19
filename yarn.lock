@@ -5526,6 +5526,25 @@
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
 
+"@metamask/mobile-wallet-protocol-core@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-core/-/mobile-wallet-protocol-core-0.0.6.tgz#5112cd91c571e8c9e97769606cb76cff6383cc96"
+  integrity sha512-/RQwH1IoUTrhIgTn9P+XaWdD6R+JdtqiFGrs0A/D0EBoLV8jWtBhFzBIOzaNDKMGoKR6y3uSvDCDAj3V1tCz7g==
+  dependencies:
+    centrifuge "^5.3.5"
+    eciesjs "^0.4.15"
+    eventemitter3 "^5.0.1"
+    uuid "^11.1.0"
+
+"@metamask/mobile-wallet-protocol-wallet-client@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-wallet-client/-/mobile-wallet-protocol-wallet-client-0.0.6.tgz#5862bd975788f27b94f528882726e7aefedeea03"
+  integrity sha512-W/iRXuMvpImAlJLZ8BxtJp3raQZaPB8cR+gBY3Irtb+CUMclmuQL0mlLHs2tz0hLunhXd8rSRrI6W1T0AT4H6A==
+  dependencies:
+    "@metamask/mobile-wallet-protocol-core" "^0.0.6"
+    "@metamask/utils" "^9.1.0"
+    uuid "^11.1.0"
+
 "@metamask/multichain-account-service@^0.4.0":
   version "0.4.0"
   resolved "https://registry.yarnpkg.com/@metamask/multichain-account-service/-/multichain-account-service-0.4.0.tgz#c00b17b352438454c3e8fa0ab50187ccc4a6f7dd"
@@ -6374,7 +6393,7 @@
     semver "^7.5.4"
     uuid "^9.0.1"
 
-"@metamask/utils@^9.0.0", "@metamask/utils@^9.2.1":
+"@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0", "@metamask/utils@^9.2.1":
   version "9.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-9.3.0.tgz#4726bd7f5d6a43ea8425b6d663ab9207f617c2d1"
   integrity sha512-w8CVbdkDrVXFJbfBSlDfafDR6BAkpDmv1bC1UJVCoVny5tW2RKAdn9i68Xf7asYT4TnUhl/hN4zfUiKQq9II4g==
@@ -16234,7 +16253,7 @@ cbor-sync@^1.0.4:
   resolved "https://registry.yarnpkg.com/cbor-sync/-/cbor-sync-1.0.4.tgz#5a11a1ab75c2a14d1af1b237fd84aa8c1593662f"
   integrity sha512-GWlXN4wiz0vdWWXBU71Dvc1q3aBo0HytqwAZnXF1wOwjqNnDWA1vZ1gDMFLlqohak31VQzmhiYfiCX5QSSfagA==
 
-centrifuge@^5.4.0:
+centrifuge@^5.3.5:
   version "5.4.0"
   resolved "https://registry.yarnpkg.com/centrifuge/-/centrifuge-5.4.0.tgz#b84c140937b780288fb2bace35666362565fa209"
   integrity sha512-XFRaOkljFN8GvN0Z+8g/nhlTf93PIF9nz9eWXuZ/OfviUkXuQfNpGzzQMAWMrrPnQCqVNXEK8WxJbproT2TSnw==
