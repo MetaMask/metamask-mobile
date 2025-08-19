@@ -46,6 +46,7 @@ jest.mock('../../hooks', () => ({
     positions: [],
     isInitialLoading: false,
   })),
+  usePerpsDepositStatus: jest.fn(() => undefined),
 }));
 
 // Mock components

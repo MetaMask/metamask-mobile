@@ -13,7 +13,11 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsTabControlBar.styles';
-import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
+import {
+  useColorPulseAnimation,
+  useBalanceComparison,
+  usePerpsDepositStatus,
+} from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { formatPerpsFiat } from '../../utils/formatUtils';
@@ -29,6 +33,9 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
 
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
+
+  // Enable deposit status monitoring (for toasts)
+  usePerpsDepositStatus();
 
   // Use the reusable hooks
   const { startPulseAnimation, getAnimatedStyle, stopAnimation } =
@@ -81,11 +88,13 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
         >
           {strings('perps.perp_account_balance')}
         </Text>
-        <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {formatPerpsFiat(perpsAccount?.availableBalance || '0')}
-          </Text>
-        </Animated.View>
+        <View style={styles.balanceRow}>
+          <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
+            <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+              {formatPerpsFiat(perpsAccount?.availableBalance || '0')}
+            </Text>
+          </Animated.View>
+        </View>
       </View>
       <View style={styles.arrowContainer}>
         <Icon

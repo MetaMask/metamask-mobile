@@ -35,6 +35,7 @@ import {
   usePerpsTrading,
   usePerpsPerformance,
   usePerpsLivePositions,
+  usePerpsDepositStatus,
 } from '../../hooks';
 import styleSheet from './PerpsTabView.styles';
 
@@ -47,6 +48,9 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { isConnected, isInitialized } = usePerpsConnection();
   const { track } = usePerpsEventTracking();
   const cachedAccountState = usePerpsAccount();
+
+  // Enable deposit status monitoring and toasts
+  usePerpsDepositStatus();
 
   const hasTrackedHomescreen = useRef(false);
   const { startMeasure, endMeasure } = usePerpsPerformance();

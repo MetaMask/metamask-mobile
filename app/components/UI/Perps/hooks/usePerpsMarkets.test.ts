@@ -76,7 +76,6 @@ const mockProvider = {
   toggleTestnet: jest.fn(),
   initialize: jest.fn(),
   isReadyToTrade: jest.fn(),
-  deposit: jest.fn(),
   validateDeposit: jest.fn(),
   calculateLiquidationPrice: jest.fn(),
   calculateMaintenanceMargin: jest.fn(),
