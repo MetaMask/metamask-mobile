@@ -2,12 +2,11 @@
 export {
   rewardsApi,
   useGenerateChallengeMutation,
-  useLoginMutation,
+  useOptinMutation,
   useLogoutMutation,
   useDevOnlyLoginMutation,
   useGetSubscriptionQuery,
   useJoinSubscriptionMutation,
-  useGetAccountLifetimeSpendQuery,
   useGetTokenPricesQuery,
   useGetSeasonQuery,
   useGetSeasonStatusQuery,

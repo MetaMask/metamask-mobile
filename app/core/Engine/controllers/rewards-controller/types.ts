@@ -21,6 +21,11 @@ export interface LoginDto {
   signature: string;
 }
 
+export interface LoginResponseDto {
+  sessionId: string;
+  subscription: SubscriptionDto;
+}
+
 export interface JoinSubscriptionDto {
   challengeId: string;
   signature: string;
@@ -77,11 +82,6 @@ export interface CursorPaginatedResultsDto<T> {
   cursor?: string;
   has_more: boolean;
   total_results?: number;
-}
-
-export interface AccountLifeTimeSpendDto {
-  tier: string;
-  pointsMultiplier: number;
 }
 
 export interface SeasonTierDto {
@@ -171,11 +171,19 @@ export enum RewardClaimStatus {
 /**
  * State for the RewardsController
  */
+export interface AuthState {
+  lastAuthenticatedAccount: string | null;
+  accountToSubscription: Record<string, string>; // account address -> subscriptionId
+  lastAuthTime: number;
+  [key: string]: string | string[] | number | null | Record<string, string>;
+}
+
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type RewardsControllerState = {
   devOnlyLoginAddress: string | null;
   // UI state
   lastUpdated: number | null;
+  auth: AuthState;
 };
 
 /**
