@@ -10,6 +10,7 @@ import LoginView from '../../pages/wallet/LoginView';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
 
 const NEW_ACCOUNT_NAME = 'Edited Name';
 const NEW_IMPORTED_ACCOUNT_NAME = 'New Imported Account';
@@ -25,6 +26,11 @@ describe(Regression('Change Account Name'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
+        testSpecificMock: {
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
+          ],
+        },
       },
       async () => {
         await loginToApp();
@@ -71,6 +77,11 @@ describe(Regression('Change Account Name'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
+        testSpecificMock: {
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
+          ],
+        },
       },
       async () => {
         await loginToApp();

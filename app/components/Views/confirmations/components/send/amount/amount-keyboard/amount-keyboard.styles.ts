@@ -13,9 +13,9 @@ export const styleSheet = (params: {
 
   return StyleSheet.create({
     continueButton: {
-      color: continueDisabled
+      backgroundColor: continueDisabled
         ? theme.colors.error.default
-        : theme.colors.text.default,
+        : theme.colors.primary.default,
       marginBottom: 6,
     },
   });

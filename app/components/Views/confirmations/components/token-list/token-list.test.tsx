@@ -2,6 +2,8 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ImageSourcePropType } from 'react-native';
 
+// eslint-disable-next-line import/no-namespace
+import * as AssetSelectionMetrics from '../../hooks/send/metrics/useAssetSelectionMetrics';
 import { TokenList } from './token-list';
 import { AssetType } from '../../types/token';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -39,22 +41,6 @@ jest.mock('../UI/token/token', () => {
         <Text>{asset.symbol}</Text>
       </Pressable>
     ),
-  };
-});
-
-jest.mock('@shopify/flash-list', () => {
-  const { View } = jest.requireActual('react-native');
-
-  return {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    FlashList: ({ data, renderItem, keyExtractor }: any) => {
-      const items = data.map((item: AssetType, index: number) => (
-        <View key={keyExtractor(item)} testID={`flashlist-item-${index}`}>
-          {renderItem({ item })}
-        </View>
-      ));
-      return <View testID="flashlist">{items}</View>;
-    },
   };
 });
 
@@ -99,19 +85,6 @@ describe('TokenList', () => {
   it('renders the component with tokens', () => {
     const { getByTestId } = render(<TokenList tokens={mockTokens} />);
 
-    expect(getByTestId('flashlist')).toBeOnTheScreen();
-  });
-
-  it('renders correct number of tokens', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    expect(getByTestId('flashlist-item-0')).toBeOnTheScreen();
-    expect(getByTestId('flashlist-item-1')).toBeOnTheScreen();
-  });
-
-  it('renders Token components with correct props', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
     expect(getByTestId('token-ETH')).toBeOnTheScreen();
     expect(getByTestId('token-USDC')).toBeOnTheScreen();
   });
@@ -128,6 +101,22 @@ describe('TokenList', () => {
     expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
   });
 
+  it('calls required metrics function when token is pressed', () => {
+    const mockCaptureAssetSelected = jest.fn();
+    jest
+      .spyOn(AssetSelectionMetrics, 'useAssetSelectionMetrics')
+      .mockReturnValue({
+        captureAssetSelected: mockCaptureAssetSelected,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+
+    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
+
+    fireEvent.press(getByTestId('token-ETH'));
+
+    expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[0], '0');
+  });
+
   it('calls updateAsset and gotToSendScreen when second token is pressed', () => {
     const { getByTestId } = render(<TokenList tokens={mockTokens} />);
 
@@ -140,24 +129,17 @@ describe('TokenList', () => {
     expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
   });
 
-  it('generates correct key for each token', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    expect(getByTestId('flashlist-item-0')).toBeOnTheScreen();
-    expect(getByTestId('flashlist-item-1')).toBeOnTheScreen();
-  });
-
   it('renders empty list when no tokens provided', () => {
-    const { getByTestId } = render(<TokenList tokens={[]} />);
+    const { queryByTestId } = render(<TokenList tokens={[]} />);
 
-    expect(getByTestId('flashlist')).toBeOnTheScreen();
+    expect(queryByTestId('token-ETH')).toBeNull();
+    expect(queryByTestId('token-USDC')).toBeNull();
   });
 
   it('renders with single token', () => {
     const singleToken = [mockTokens[0]];
     const { getByTestId } = render(<TokenList tokens={singleToken} />);
 
-    expect(getByTestId('flashlist-item-0')).toBeOnTheScreen();
     expect(getByTestId('token-ETH')).toBeOnTheScreen();
   });
 
@@ -186,5 +168,21 @@ describe('TokenList', () => {
 
     expect(mockUpdateAsset).toHaveBeenCalled();
     expect(mockGotToSendScreen).toHaveBeenCalled();
+  });
+
+  it('calls captureAssetSelected with correct position for second token', () => {
+    const mockCaptureAssetSelected = jest.fn();
+    jest
+      .spyOn(AssetSelectionMetrics, 'useAssetSelectionMetrics')
+      .mockReturnValue({
+        captureAssetSelected: mockCaptureAssetSelected,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+
+    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
+
+    fireEvent.press(getByTestId('token-USDC'));
+
+    expect(mockCaptureAssetSelected).toHaveBeenCalledWith(mockTokens[1], '1');
   });
 });

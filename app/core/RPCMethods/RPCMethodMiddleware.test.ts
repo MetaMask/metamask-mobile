@@ -186,8 +186,6 @@ function getMinimalOptions() {
     // Show autocomplete
     fromHomepage: { current: false },
     toggleUrlModal: jest.fn(),
-    // Wizard
-    wizardScrollAdjusted: { current: false },
     // For the browser
     tabId: '' as const,
     // For WalletConnect

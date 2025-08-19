@@ -20,9 +20,9 @@ describe('usePerpsDepositMinimumAlert', () => {
   });
 
   it('returns alert if token amount less than minimum', () => {
-    useTokenAmountMock.mockReturnValue({ usdValue: '9.99' } as ReturnType<
-      typeof useTokenAmount
-    >);
+    useTokenAmountMock.mockReturnValue({
+      amountUnformatted: '9.99',
+    } as ReturnType<typeof useTokenAmount>);
 
     const { result } = runHook();
 
@@ -38,9 +38,9 @@ describe('usePerpsDepositMinimumAlert', () => {
   });
 
   it('returns no alert if token amount greater than minimum', () => {
-    useTokenAmountMock.mockReturnValue({ usdValue: '10.01' } as ReturnType<
-      typeof useTokenAmount
-    >);
+    useTokenAmountMock.mockReturnValue({
+      amountUnformatted: '10.01',
+    } as ReturnType<typeof useTokenAmount>);
 
     const { result } = runHook();
 

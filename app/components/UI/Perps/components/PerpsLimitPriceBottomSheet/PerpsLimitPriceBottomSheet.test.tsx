@@ -1,5 +1,5 @@
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsLimitPriceBottomSheet from './PerpsLimitPriceBottomSheet';
 
 // Mock dependencies - only what's absolutely necessary
@@ -57,9 +57,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
 }));
 
-// Mock usePerpsPrices hook
-jest.mock('../../hooks/usePerpsPrices', () => ({
-  usePerpsPrices: jest.fn(),
+// Mock stream hooks
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
 }));
 
 // Mock usePerpsConnection hook
@@ -262,23 +262,13 @@ describe('PerpsLimitPriceBottomSheet', () => {
     currentPrice: 3000,
   };
 
-  const mockPriceData = {
-    ETH: {
-      price: '3000.00',
-      markPrice: '3001.00',
-      bestBid: '2995.00',
-      bestAsk: '3005.00',
-      change24h: 2.5,
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseTheme.mockReturnValue(mockTheme);
 
-    // Mock usePerpsPrices hook
-    const { usePerpsPrices } = jest.requireMock('../../hooks/usePerpsPrices');
-    usePerpsPrices.mockReturnValue(mockPriceData);
+    // Mock usePerpsLivePrices hook to return empty by default
+    const { usePerpsLivePrices } = jest.requireMock('../../hooks/stream');
+    usePerpsLivePrices.mockReturnValue({});
 
     // Mock usePerpsConnection hook
     const { usePerpsConnection } = jest.requireMock('../../hooks/index');
@@ -323,8 +313,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
       // Assert
       expect(screen.getByText('$3000.00')).toBeOnTheScreen(); // Current price
-      expect(screen.getByText('$3005.00')).toBeOnTheScreen(); // Ask price
-      expect(screen.getByText('$2995.00')).toBeOnTheScreen(); // Bid price
+      expect(screen.getByText('$3000.30')).toBeOnTheScreen(); // Ask price (3000 * 1.0001)
+      expect(screen.getByText('$2999.70')).toBeOnTheScreen(); // Bid price (3000 * 0.9999)
     });
 
     it('displays placeholder when no limit price is set', () => {
@@ -371,8 +361,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
   describe('Price Data Integration', () => {
     it('uses real-time price data when available', () => {
       // Arrange - Mock returns real-time data
-      const { usePerpsPrices } = jest.requireMock('../../hooks/usePerpsPrices');
-      usePerpsPrices.mockReturnValue({
+      const { usePerpsLivePrices } = jest.requireMock('../../hooks/stream');
+      usePerpsLivePrices.mockReturnValue({
         ETH: {
           price: '3200.00',
           markPrice: '3201.00',
@@ -392,8 +382,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
     it('falls back to passed current price when real-time data unavailable', () => {
       // Arrange - Mock returns no real-time data
-      const { usePerpsPrices } = jest.requireMock('../../hooks/usePerpsPrices');
-      usePerpsPrices.mockReturnValue({});
+      const { usePerpsLivePrices } = jest.requireMock('../../hooks/stream');
+      usePerpsLivePrices.mockReturnValue({});
 
       // Act
       render(<PerpsLimitPriceBottomSheet {...defaultProps} />);
@@ -405,8 +395,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
     it('displays unavailable prices when no data', () => {
       // Arrange
       const propsWithoutPrice = { ...defaultProps, currentPrice: 0 };
-      const { usePerpsPrices } = jest.requireMock('../../hooks/usePerpsPrices');
-      usePerpsPrices.mockReturnValue({});
+      const { usePerpsLivePrices } = jest.requireMock('../../hooks/stream');
+      usePerpsLivePrices.mockReturnValue({});
 
       // Act
       render(<PerpsLimitPriceBottomSheet {...propsWithoutPrice} />);
@@ -417,8 +407,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
 
     it('calculates default bid/ask spreads when order book data unavailable', () => {
       // Arrange - Mock returns only basic price data
-      const { usePerpsPrices } = jest.requireMock('../../hooks/usePerpsPrices');
-      usePerpsPrices.mockReturnValue({
+      const { usePerpsLivePrices } = jest.requireMock('../../hooks/stream');
+      usePerpsLivePrices.mockReturnValue({
         ETH: {
           price: '3000.00',
           markPrice: '3001.00',

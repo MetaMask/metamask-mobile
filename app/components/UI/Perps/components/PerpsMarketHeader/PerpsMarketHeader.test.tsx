@@ -8,6 +8,9 @@ import { PerpsMarketHeaderSelectorsIDs } from '../../../../../../e2e/selectors/P
 import { PerpsMarketData } from '../../controllers/types';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
 
+// Mock PerpsStreamManager
+jest.mock('../../providers/PerpsStreamManager');
+
 const mockMarket: PerpsMarketData = {
   symbol: 'BTC',
   name: 'Bitcoin',
@@ -29,8 +32,6 @@ describe('PerpsMarketHeader', () => {
     const { getByTestId } = renderWithProvider(
       <PerpsMarketHeader
         market={mockMarket}
-        currentPrice={45000}
-        priceChange24h={2.5}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
       />,
       { state: initialState },
@@ -44,8 +45,6 @@ describe('PerpsMarketHeader', () => {
     const { UNSAFE_getByType } = renderWithProvider(
       <PerpsMarketHeader
         market={mockMarket}
-        currentPrice={45000}
-        priceChange24h={2.5}
         onBackPress={onBackPress}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
       />,
@@ -63,8 +62,6 @@ describe('PerpsMarketHeader', () => {
     const { UNSAFE_getByType } = renderWithProvider(
       <PerpsMarketHeader
         market={mockMarket}
-        currentPrice={45000}
-        priceChange24h={2.5}
         onMorePress={onMorePress}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
       />,

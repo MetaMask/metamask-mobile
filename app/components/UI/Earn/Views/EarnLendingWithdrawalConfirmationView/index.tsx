@@ -412,7 +412,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
       trace({
         name: TraceName.EarnWithdrawConfirmationScreen,
         data: {
-          chainId: outputToken?.chainId || '',
+          chainId: outputToken.chainId,
           experience: EARN_EXPERIENCES.STABLECOIN_LENDING,
         },
       });
@@ -428,6 +428,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
 
       const txRes = await Engine.context.EarnController.executeLendingWithdraw({
         amount: amountTokenMinimalUnitToSend,
+        chainId: outputToken.chainId,
         protocol: outputToken.experience?.market?.protocol,
         underlyingTokenAddress:
           outputToken.experience?.market?.underlying?.address,
