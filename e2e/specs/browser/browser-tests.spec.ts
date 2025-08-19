@@ -162,8 +162,7 @@ describe(SmokeWalletPlatform('Browser Tests'), () => {
     });
   });
 
-  //Skipped due to changes on Opensea website that requires the test to be fixed
-  it.skip('Should connect to Opensea', async () => {
+  it('Should connect to Opensea', async () => {
     await withBrowser(async () => {
       await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
         description: 'Browser screen is visible',
