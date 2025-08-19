@@ -21,13 +21,12 @@ import Icon, {
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import { useNavigation } from '@react-navigation/native';
-
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
   onButtonPress?: () => void;
   title: string | React.ReactNode;
   description: string | React.ReactNode;
-  customButton: React.ReactNode;
+  customButton?: React.ReactNode;
   type: 'success' | 'error';
   icon?: IconName;
   secondaryButtonLabel?: string;

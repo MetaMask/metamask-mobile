@@ -10,7 +10,11 @@ import {
   formatVolume,
   HyperLiquidMarketData,
 } from './marketDataTransform';
-import { AllMids, PerpsAssetCtx } from '@deeeed/hyperliquid-node20';
+import {
+  AllMids,
+  PerpsAssetCtx,
+  PredictedFunding,
+} from '@deeeed/hyperliquid-node20';
 
 // Helper function to create mock asset context with all required properties
 const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({
@@ -199,6 +203,97 @@ describe('marketDataTransform', () => {
       expect(result).toHaveLength(2);
       expect(result[0].volume).toBe('$1B'); // Has context
       expect(result[1].volume).toBe('$0'); // No context
+    });
+
+    it('handles predicted funding data correctly', () => {
+      // Arrange
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [mockUniverseAsset],
+        assetCtxs: [mockAssetCtx],
+        allMids: mockAllMids,
+        predictedFundings: [
+          [
+            'BTC',
+            [
+              [
+                'HyperLiquid',
+                {
+                  fundingRate: '0.001',
+                  nextFundingTime: 1234567890000,
+                  fundingIntervalHours: 8,
+                },
+              ],
+            ],
+          ],
+        ],
+      };
+
+      // Act
+      const result = transformMarketData(hyperLiquidData);
+
+      // Assert
+      expect(result[0].nextFundingTime).toBe(1234567890000);
+      expect(result[0].fundingIntervalHours).toBe(8);
+    });
+
+    it('handles malformed funding data without crashing', () => {
+      // Arrange - Test various edge cases that could cause destructuring errors
+      const testCases = [
+        // Case 1: fundingData[1][0] is not an array
+        {
+          predictedFundings: [['BTC', ['not-an-array']]],
+        },
+        // Case 2: fundingData[1][0] is an array with less than 2 elements
+        {
+          predictedFundings: [['BTC', [['HyperLiquid']]]],
+        },
+        // Case 3: fundingData[1][0] is null
+        {
+          predictedFundings: [['BTC', [null]]],
+        },
+        // Case 4: fundingData[1] is empty array
+        {
+          predictedFundings: [['BTC', []]],
+        },
+        // Case 5: fundingData[1] is undefined
+        {
+          predictedFundings: [['BTC', undefined]],
+        },
+      ];
+
+      testCases.forEach((testCase) => {
+        const hyperLiquidData: HyperLiquidMarketData = {
+          universe: [mockUniverseAsset],
+          assetCtxs: [mockAssetCtx],
+          allMids: mockAllMids,
+          predictedFundings: testCase.predictedFundings as PredictedFunding[],
+        };
+
+        // Act & Assert - should not throw
+        expect(() => {
+          const result = transformMarketData(hyperLiquidData);
+          // Should return result without funding data
+          expect(result[0].nextFundingTime).toBeUndefined();
+          expect(result[0].fundingIntervalHours).toBeUndefined();
+        }).not.toThrow();
+      });
+    });
+
+    it('handles missing predicted funding gracefully', () => {
+      // Arrange
+      const hyperLiquidData: HyperLiquidMarketData = {
+        universe: [mockUniverseAsset],
+        assetCtxs: [mockAssetCtx],
+        allMids: mockAllMids,
+        // No predictedFundings field
+      };
+
+      // Act
+      const result = transformMarketData(hyperLiquidData);
+
+      // Assert
+      expect(result[0].nextFundingTime).toBeUndefined();
+      expect(result[0].fundingIntervalHours).toBeUndefined();
     });
   });
 

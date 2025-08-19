@@ -109,7 +109,7 @@ exports[`SnapUIForm will render 1`] = `
                       onFocus={[Function]}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#121314",
@@ -297,7 +297,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       onFocus={[Function]}
                       style={
                         {
-                          "backgroundColor": "#ffffff",
+                          "backgroundColor": "inherit",
                           "borderColor": "transparent",
                           "borderWidth": 1,
                           "color": "#121314",
@@ -775,6 +775,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "flexDirection": "row",
+                                "gap": 16,
                                 "padding": 16,
                               },
                               false,
@@ -831,7 +832,6 @@ exports[`SnapUIForm will render with fields 1`] = `
                               {
                                 "alignItems": "center",
                                 "flex": 1,
-                                "marginHorizontal": 16,
                               }
                             }
                           >

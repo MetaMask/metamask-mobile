@@ -1,0 +1,168 @@
+# This workflow runs API specs tests on iOS simulator.
+# API specs are backend API integration tests that use iOS simulator but don't require mobile app UI.
+
+name: API Specs E2E Tests
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  api-specs-ios:
+    name: "api-specs-ios"
+    if: false
+    runs-on: macos-latest-xlarge
+    continue-on-error: true
+
+    env:
+      METAMASK_ENVIRONMENT: 'local'
+      METAMASK_BUILD_TYPE: 'main'
+      MM_TEST_WALLET_SRP: ${{ secrets.MM_TEST_WALLET_SRP }}
+      SEGMENT_WRITE_KEY_QA: ${{ secrets.SEGMENT_WRITE_KEY_QA }}
+      SEGMENT_PROXY_URL_QA: ${{ secrets.SEGMENT_PROXY_URL_QA }}
+      SEGMENT_DELETE_API_SOURCE_ID_QA: ${{ secrets.SEGMENT_DELETE_API_SOURCE_ID_QA }}
+      MAIN_IOS_GOOGLE_CLIENT_ID_UAT: ${{ secrets.MAIN_IOS_GOOGLE_CLIENT_ID_UAT }}
+      MAIN_IOS_GOOGLE_REDIRECT_URI_UAT: ${{ secrets.MAIN_IOS_GOOGLE_REDIRECT_URI_UAT }}
+      SEGMENT_REGULATIONS_ENDPOINT_QA: ${{ secrets.SEGMENT_REGULATIONS_ENDPOINT_QA }}
+      MM_SENTRY_DSN_TEST: ${{ secrets.MM_SENTRY_DSN_TEST }}
+      MM_SOLANA_E2E_TEST_SRP: ${{ secrets.MM_SOLANA_E2E_TEST_SRP }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref }}
+          clean: true
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.18.0'
+          cache: 'yarn'
+          
+      - name: Enable Corepack and setup Yarn
+        run: |
+          corepack enable
+          corepack prepare yarn@1.22.22 --activate
+
+      - name: Install JavaScript dependencies
+        run: yarn install --frozen-lockfile
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+
+      - name: Install Detox CLI
+        run: yarn global add detox-cli
+
+      - name: Setup Xcode
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
+      - name: Install applesimutils for iOS simulator control
+        run: |
+          echo "Installing applesimutils for Detox iOS simulator control..."
+          brew tap wix/brew && brew install applesimutils
+          echo "✅ applesimutils installed"
+
+      - name: Build Detox framework cache for API specs
+        run: |
+          echo "🔧 Building Detox framework cache specifically for API specs..."
+          
+          # Clean any existing cache first
+          yarn detox clean-framework-cache
+          
+          # Build fresh framework cache
+          yarn detox build-framework-cache
+          
+          # Verify the framework was built successfully
+          if [[ -d ~/Library/Detox/ios/framework ]]; then
+            echo "✅ Detox framework cache built successfully"
+            find ~/Library/Detox/ios/framework/ -maxdepth 1 -exec ls -la {} \;
+          else
+            echo "❌ Failed to build Detox framework cache"
+            exit 1
+          fi
+
+      - name: Setup pre-built QA app for API specs
+        run: |
+          echo "🚀 Setting up pre-built QA app for API specs..."
+
+          # Base URL for artifacts  
+          base_url="https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/test5"
+
+          # Create required directory
+          mkdir -p ios/build/Build/Products/Release-iphonesimulator/
+
+          echo "📥 Downloading iOS QA app..."
+
+          # Download Release-iphonesimulator.zip
+          if curl -L --fail -o /tmp/Release-iphonesimulator.zip "${base_url}/Release-iphonesimulator.zip"; then
+            echo "✅ Downloaded Release-iphonesimulator.zip"
+            echo "📦 Extracting iOS QA app..."
+
+            # Extract preserving directory structure
+            cd ios/build/Build/Products/Release-iphonesimulator/
+            unzip -o /tmp/Release-iphonesimulator.zip "MetaMask-QA.app/*"
+            cd - > /dev/null
+
+            # Set proper permissions for the app bundle
+            chmod -R 755 "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/" 2>/dev/null || true
+
+          else
+            echo "❌ Failed to download iOS QA app artifacts"
+            exit 1
+          fi
+
+          # Verify setup
+          if [[ -f "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/Info.plist" ]]; then
+            echo "✅ iOS QA app ready for API specs"
+            echo "📋 App bundle contents:"
+            find "ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app/" -maxdepth 1 -exec ls -la {} \; | head -10
+          else
+            echo "❌ iOS QA app setup failed - Info.plist not found"
+            echo "📋 Directory contents:"
+            find "ios/build/Build/Products/Release-iphonesimulator/" -maxdepth 1 -exec ls -la {} \; 2>/dev/null || true
+            exit 1
+          fi
+
+      - name: Clean environment before API specs
+        run: |
+          echo "🧹 Cleaning environment before API specs tests..."
+          
+          # Clean up any lock files
+          find . -name "*.lock" -type f -delete 2>/dev/null || true
+          
+          # Reset Detox lock file
+          yarn detox reset-lock-file
+          
+          # Clean any hanging processes
+          pkill -f "Metro\|node\|npm" 2>/dev/null || true
+          
+          echo "✅ Environment cleaned and ready for API specs"
+
+      - name: Run API Specs tests
+        run: |
+          echo "🚀 Running API specs tests..."
+          echo "Using Detox configuration: ios.sim.apiSpecs"
+          
+          # Run API specs with retries
+          yarn test:api-specs --retries 1
+          
+          echo "✅ API specs tests completed"
+
+      - name: Upload API specs test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-specs-test-results
+          path: e2e/reports/
+          retention-days: 7
+      
+      - name: Upload API specs screenshots
+        if: failure() || cancelled()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-specs-screenshots
+          path: artifacts/
+          retention-days: 7 

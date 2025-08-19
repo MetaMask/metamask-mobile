@@ -74,8 +74,8 @@ exports[`AccountPermissions renders correctly 1`] = `
           {
             "backgroundColor": "#ffffff",
             "borderColor": "#b7bbc866",
-            "borderTopLeftRadius": 8,
-            "borderTopRightRadius": 8,
+            "borderTopLeftRadius": 24,
+            "borderTopRightRadius": 24,
             "borderWidth": 1,
             "maxHeight": 0,
             "overflow": "hidden",
@@ -307,7 +307,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                         style={
                           {
                             "backgroundColor": "#ffffff",
-                            "borderRadius": 16,
+                            "borderRadius": 8,
                             "height": 32,
                             "marginRight": 16,
                             "overflow": "hidden",
@@ -328,7 +328,9 @@ exports[`AccountPermissions renders correctly 1`] = `
                                 "height": 32,
                                 "width": 32,
                               },
-                              undefined,
+                              {
+                                "borderRadius": 8,
+                              },
                             ]
                           }
                         >
@@ -469,25 +471,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                         >
                           Account 1
                         </Text>
-                        <TouchableOpacity
-                          accessibilityState={
-                            {
-                              "busy": undefined,
-                              "checked": undefined,
-                              "disabled": undefined,
-                              "expanded": undefined,
-                              "selected": undefined,
-                            }
-                          }
-                          accessible={true}
-                          focusable={false}
-                          onClick={[Function]}
-                          onResponderGrant={[Function]}
-                          onResponderMove={[Function]}
-                          onResponderRelease={[Function]}
-                          onResponderTerminate={[Function]}
-                          onResponderTerminationRequest={[Function]}
-                          onStartShouldSetResponder={[Function]}
+                        <View
                           style={
                             {
                               "alignItems": "flex-start",
@@ -512,7 +496,7 @@ exports[`AccountPermissions renders correctly 1`] = `
                           >
                             0xC4955...4D272
                           </Text>
-                        </TouchableOpacity>
+                        </View>
                       </View>
                       <View
                         style={
@@ -781,7 +765,7 @@ exports[`AccountPermissions renders correctly 1`] = `
           {
             "alignItems": "center",
             "alignSelf": "stretch",
-            "backgroundColor": "#3c4d9d1a",
+            "backgroundColor": "#3c4d9d0f",
             "borderColor": "transparent",
             "borderRadius": 12,
             "borderWidth": 1,

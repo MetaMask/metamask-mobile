@@ -54,7 +54,7 @@ const KycProcessing = () => {
     quote.network,
   );
 
-  const { handleApprovedKycFlow } = useDepositRouting({
+  const { routeAfterAuthentication } = useDepositRouting({
     cryptoCurrencyChainId: cryptoCurrency?.chainId || '',
     paymentMethodId: quote.paymentMethod,
   });
@@ -92,20 +92,16 @@ const KycProcessing = () => {
     return () => stopPolling();
   }, [kycForms, startPolling, stopPolling]);
 
-  const handleRetryVerification = useCallback(() => {
-    // TODO: Implement retry logic for KYC verification?
-  }, []);
-
   const handleContinue = useCallback(async () => {
     try {
-      await handleApprovedKycFlow(quote);
+      await routeAfterAuthentication(quote);
     } catch (error) {
       Logger.error(error as Error, {
         message: 'KycProcessing::handleContinue error',
         quote,
       });
     }
-  }, [handleApprovedKycFlow, quote]);
+  }, [routeAfterAuthentication, quote]);
 
   const error = userDetailsError || kycFormsError;
   const hasPendingForms = kycForms && kycForms.forms.length > 0;
@@ -157,7 +153,7 @@ const KycProcessing = () => {
           <ScreenLayout.Content style={styles.footerContent}>
             <Button
               size={ButtonSize.Lg}
-              onPress={handleRetryVerification}
+              onPress={handleContinue}
               label={strings('deposit.kyc_processing.error_button')}
               variant={ButtonVariants.Primary}
               width={ButtonWidthTypes.Full}

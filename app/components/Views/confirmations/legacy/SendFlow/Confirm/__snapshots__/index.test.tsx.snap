@@ -525,7 +525,7 @@ exports[`Confirm should render correctly 1`] = `
                                       style={
                                         {
                                           "backgroundColor": "#ffffff",
-                                          "borderRadius": 16,
+                                          "borderRadius": 8,
                                           "height": 32,
                                           "overflow": "hidden",
                                           "width": 32,
@@ -545,7 +545,9 @@ exports[`Confirm should render correctly 1`] = `
                                               "height": 32,
                                               "width": 32,
                                             },
-                                            undefined,
+                                            {
+                                              "borderRadius": 8,
+                                            },
                                           ]
                                         }
                                       >
@@ -755,7 +757,7 @@ exports[`Confirm should render correctly 1`] = `
                                       }
                                     }
                                   >
-                                    Ethereum Network default RPC
+                                    Ethereum Main Network
                                   </Text>
                                   <View
                                     style={

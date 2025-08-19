@@ -385,8 +385,8 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -435,6 +435,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -458,7 +459,6 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -584,7 +584,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                                   placeholder="Search by country"
                                   style={
                                     {
-                                      "backgroundColor": "#ffffff",
+                                      "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
@@ -685,7 +685,7 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "maxHeight": 533.6,
+                                "height": 533.6,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}
@@ -1517,8 +1517,8 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -1567,6 +1567,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -1590,7 +1591,6 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -1716,7 +1716,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                                   placeholder="Search by country"
                                   style={
                                     {
-                                      "backgroundColor": "#ffffff",
+                                      "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
@@ -1806,7 +1806,7 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "maxHeight": 533.6,
+                                "height": 533.6,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}
@@ -2237,8 +2237,8 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -2287,6 +2287,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -2310,7 +2311,6 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -2436,7 +2436,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                                   placeholder="Search by country"
                                   style={
                                     {
-                                      "backgroundColor": "#ffffff",
+                                      "backgroundColor": "inherit",
                                       "borderColor": "transparent",
                                       "borderWidth": 1,
                                       "color": "#121314",
@@ -2541,7 +2541,7 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             stickyHeaderIndices={[]}
                             style={
                               {
-                                "maxHeight": 533.6,
+                                "height": 533.6,
                               }
                             }
                             viewabilityConfigCallbackPairs={[]}

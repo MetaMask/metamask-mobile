@@ -16,17 +16,28 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingHorizontal: 16,
       paddingVertical: 8,
-      marginVertical: 16,
     },
-    headerSpacer: {
-      width: 24,
+    headerTitleContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
     headerTitle: {
-      flex: 1,
-      textAlign: 'center',
+      textAlign: 'left',
     },
-    closeButton: {
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    titleButtonsRightContainer: {
+      flexDirection: 'row',
+    },
+    tutorialButton: {
       padding: 4,
+    },
+    searchButton: {
+      padding: 4,
+      marginRight: 4,
     },
     listContainer: {
       flex: 1,
@@ -73,8 +84,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     skeletonAvatar: {
-      width: 40,
-      height: 40,
       borderRadius: 20,
       marginRight: 16,
     },
@@ -87,19 +96,13 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 6,
     },
     skeletonTokenSymbol: {
-      width: 60,
-      height: 16,
       borderRadius: 4,
       marginRight: 8,
     },
     skeletonLeverage: {
-      width: 30,
-      height: 14,
       borderRadius: 4,
     },
     skeletonVolume: {
-      width: 80,
-      height: 12,
       borderRadius: 4,
     },
     skeletonRightSection: {
@@ -107,14 +110,10 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
     },
     skeletonPrice: {
-      width: 90,
-      height: 16,
       borderRadius: 4,
       marginBottom: 6,
     },
     skeletonChange: {
-      width: 70,
-      height: 14,
       borderRadius: 4,
     },
     animatedListContainer: {
@@ -122,7 +121,11 @@ const styleSheet = (params: { theme: Theme }) => {
       paddingHorizontal: 16,
     },
     searchContainer: {
-      paddingHorizontal: 16,
+      marginHorizontal: 16,
+      marginTop: 16,
+      borderWidth: 1,
+      borderColor: colors.border.muted,
+      borderRadius: 12,
     },
     searchInputContainer: {
       flexDirection: 'row',
@@ -130,7 +133,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.muted,
       borderRadius: 12,
       paddingHorizontal: 16,
-      paddingVertical: 12,
+      paddingVertical: 10,
     },
     searchIcon: {
       marginRight: 10,

@@ -184,7 +184,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   secureTextEntry={true}
                   style={
                     {
-                      "backgroundColor": "#ffffff",
+                      "backgroundColor": "inherit",
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
@@ -292,7 +292,7 @@ exports[`ChoosePassword render matches snapshot 1`] = `
                   secureTextEntry={true}
                   style={
                     {
-                      "backgroundColor": "#ffffff",
+                      "backgroundColor": "inherit",
                       "borderColor": "transparent",
                       "borderWidth": 1,
                       "color": "#121314",
@@ -516,7 +516,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessible={true}
               activeOpacity={1}
               disabled={true}
-              onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={

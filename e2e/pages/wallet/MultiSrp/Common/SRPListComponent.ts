@@ -1,8 +1,8 @@
 import { SRPListSelectorsIDs } from '../../../../selectors/MultiSRP/SRPList.selectors';
-import Matchers from '../../../../utils/Matchers';
+import Matchers from '../../../../framework/Matchers';
 
 class SRPListComponent {
-  get srpList() {
+  get srpList(): DetoxElement {
     return Matchers.getElementByID(SRPListSelectorsIDs.SRP_LIST);
   }
 }
