@@ -1,17 +1,23 @@
+import { useMemo } from 'react';
+import useChainIdsWithBalance from './useChainIdsWithBalance';
+import { useIsCardholder } from '../../../Card/hooks/useIsCardholder';
 import {
   SUPPORTED_DEPOSIT_TOKENS,
   CONDITIONALLY_SUPPORTED_DEPOSIT_TOKENS,
 } from '../constants';
-import useChainIdsWithBalance from './useChainIdsWithBalance';
-import { useMemo } from 'react';
+import { LINEA_MAINNET } from '../constants/networks';
 
 function useSupportedTokens() {
   const chainIdsWithBalance = useChainIdsWithBalance();
+  const isCardholder = useIsCardholder();
 
   const supportedTokens = useMemo(() => {
     const initialSupportedTokens = [...SUPPORTED_DEPOSIT_TOKENS];
     for (const token of CONDITIONALLY_SUPPORTED_DEPOSIT_TOKENS) {
-      if (chainIdsWithBalance.includes(token.chainId)) {
+      if (
+        chainIdsWithBalance.includes(token.chainId) ||
+        (isCardholder && token.chainId === LINEA_MAINNET.chainId)
+      ) {
         initialSupportedTokens.push(token);
       }
     }
@@ -19,7 +25,7 @@ function useSupportedTokens() {
     return initialSupportedTokens.sort((a, b) =>
       a.symbol.localeCompare(b.symbol),
     );
-  }, [chainIdsWithBalance]);
+  }, [chainIdsWithBalance, isCardholder]);
 
   return supportedTokens;
 }

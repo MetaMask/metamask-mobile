@@ -200,6 +200,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1312,6 +1313,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -2424,6 +2426,7 @@ exports[`Wallet should render correctly 1`] = `
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3536,6 +3539,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -4648,6 +4652,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",

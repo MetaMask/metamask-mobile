@@ -184,15 +184,6 @@ export const getCandlePeriodsForDuration = (
   const periods =
     DURATION_CANDLE_PERIODS[duration as TimeDuration]?.periods || [];
 
-  // Debug: Log the function call
-  // eslint-disable-next-line no-console
-  console.log('🔧 getCandlePeriodsForDuration:', {
-    inputDuration: duration,
-    foundConfig: !!DURATION_CANDLE_PERIODS[duration as TimeDuration],
-    periodsCount: periods.length,
-    periodsLabels: periods.map((p) => p.label).join(', '),
-  });
-
   return periods;
 };
 

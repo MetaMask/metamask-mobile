@@ -75,10 +75,6 @@ export const usePerpsPositionData = ({
         baseCandleCount,
       );
 
-    DevLogger.log(
-      `Received ${historicalData?.candles?.length || 0} total candles`,
-    );
-
     return historicalData;
   }, [coin, selectedDuration, selectedInterval]);
 
@@ -242,9 +238,22 @@ export const usePerpsPositionData = ({
     };
   }, [candleData, liveCandle]);
 
+  const refreshCandleData = useCallback(async () => {
+    setIsLoadingHistory(true);
+    try {
+      const historicalData = await fetchHistoricalCandles();
+      setCandleData(historicalData);
+    } catch (err) {
+      console.error('Error refreshing candle data:', err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }, [fetchHistoricalCandles]);
+
   return {
     candleData: candleDataWithLive,
     priceData,
     isLoadingHistory,
+    refreshCandleData,
   };
 };
