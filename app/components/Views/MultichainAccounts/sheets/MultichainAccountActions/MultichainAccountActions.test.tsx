@@ -5,6 +5,11 @@ import { InternalAccount } from '@metamask/keyring-internal-api';
 import MultichainAccountActions from './MultichainAccountActions';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import Engine from '../../../../../core/Engine';
+import Routes from '../../../../../constants/navigation/Routes';
+import {
+  MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS,
+  MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES,
+} from './MultichainAccountActions.testIds';
 
 const mockAccountGroup: AccountGroupObject = {
   type: AccountGroupType.SingleAccount,
@@ -87,7 +92,7 @@ describe('MultichainAccountActions', () => {
     const { getByText } = renderWithProvider(<MultichainAccountActions />);
 
     expect(getByText('Account Details')).toBeTruthy();
-    expect(getByText('Rename account')).toBeTruthy();
+    // expect(getByText('Rename account')).toBeTruthy(); // TODO: Uncomment when account group renaming is supported
     expect(getByText('Addresses')).toBeTruthy();
   });
 
@@ -95,9 +100,25 @@ describe('MultichainAccountActions', () => {
     const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
 
     expect(
-      getByTestId('multichain-account-actions-account-details'),
+      getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS),
     ).toBeTruthy();
-    expect(getByTestId('multichain-account-actions-edit-name')).toBeTruthy();
-    expect(getByTestId('multichain-account-actions-addresses')).toBeTruthy();
+    // expect(getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME)).toBeTruthy(); // TODO: Uncomment when account group renaming is supported
+    expect(getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES)).toBeTruthy();
+  });
+
+  it('navigates to account details when account details button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
+
+    const accountDetailsButton = getByTestId(
+      MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS,
+    );
+    accountDetailsButton.props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS,
+      {
+        account: mockInternalAccount,
+      },
+    );
   });
 });

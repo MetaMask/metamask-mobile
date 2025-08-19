@@ -20,6 +20,11 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import styleSheet from './MultichainAccountActions.styles';
+import {
+  MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS,
+  // MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME,
+  MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES,
+} from './MultichainAccountActions.testIds';
 
 interface MultichainAccountActionsParams {
   accountGroup: AccountGroupObject;
@@ -32,7 +37,7 @@ const MultichainAccountActions = () => {
   const sheetRef = React.useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
 
-  // Get the first account from the group for now, this should be changed when Account Details for group is implemented
+  // TODO: Update when Account Details for group is implemented. For the moment, we just get the first account from a group
   const firstAccount = useMemo((): InternalAccount | null => {
     const firstAccountId = accountGroup.accounts[0];
     if (firstAccountId) {
@@ -52,7 +57,7 @@ const MultichainAccountActions = () => {
     });
   }, [navigate, firstAccount]);
 
-  const goToEditAccountName = useCallback(() => null, []); // TODO: To be implemented
+  // const goToEditAccountName = useCallback(() => null, []); // TODO: To be implemented
 
   const goToAddresses = useCallback(() => null, []); // TODO: To be implemented
 
@@ -63,21 +68,22 @@ const MultichainAccountActions = () => {
           actionTitle={strings('account_details.title')}
           iconName={IconName.Add}
           onPress={goToAccountDetails}
-          testID="multichain-account-actions-account-details"
+          testID={MULTICHAIN_ACCOUNT_ACTIONS_ACCOUNT_DETAILS}
           style={styles.accountAction}
         />
+        {/* TODO: Uncomment when account group renaming is supported
         <AccountAction
           actionTitle={strings('account_actions.rename_account')}
           iconName={IconName.Edit}
           onPress={goToEditAccountName}
-          testID="multichain-account-actions-edit-name"
+          testID={MULTICHAIN_ACCOUNT_ACTIONS_EDIT_NAME}
           style={styles.accountAction}
-        />
+        /> */}
         <AccountAction
           actionTitle={strings('account_actions.addresses')}
           iconName={IconName.Scan}
           onPress={goToAddresses}
-          testID="multichain-account-actions-addresses"
+          testID={MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES}
           style={styles.accountAction}
         />
       </View>
