@@ -8,6 +8,7 @@ import {
   suggestedGasFeesApiGanache,
 } from '../mock-responses/gas-api-responses.json';
 import defiPositionsWithData from '../mock-responses/defi-api-response-data.json';
+import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder';
 
 export const mockEvents = {
   /**
@@ -151,40 +152,50 @@ export const mockEvents = {
       responseCode: 200,
     },
 
-    defiPositionsWithNoData: {
+    // TODO: Remove when this feature is no longer behind a feature flag
+    remoteFeatureFlagsNotificationsEnabledByDefault: {
       urlEndpoint:
-        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+        'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
+      response: [
+        {
+          assetsEnableNotificationsByDefault: true,
+        },
+      ],
+      responseCode: 200,
+    },
+
+    defiPositionsWithNoData: {
+      urlEndpoint: `https://defiadapters.api.cx.metamask.io/positions/${DEFAULT_FIXTURE_ACCOUNT}`,
       response: { data: [] },
       responseCode: 200,
     },
 
     defiPositionsError: {
-      urlEndpoint:
-        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      urlEndpoint: `https://defiadapters.api.cx.metamask.io/positions/${DEFAULT_FIXTURE_ACCOUNT}`,
+      response: { error: 'Internal server error' },
       responseCode: 500,
     },
 
     defiPositionsWithData: {
-      urlEndpoint:
-        'https://defiadapters.api.cx.metamask.io/positions/0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3',
+      urlEndpoint: `https://defiadapters.api.cx.metamask.io/positions/${DEFAULT_FIXTURE_ACCOUNT}`,
       response: { data: defiPositionsWithData },
       responseCode: 200,
     },
 
-    remoteFeatureMultichainAccountsAccountDetails: {
+    remoteFeatureMultichainAccountsAccountDetails: (enabled = true) => ({
       urlEndpoint:
         'https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=dev',
       response: [
         {
           enableMultichainAccounts: {
-            enabled: true,
+            enabled,
             featureVersion: '1',
             minimumVersion: '7.46.0',
           },
         },
       ],
       responseCode: 200,
-    },
+    }),
 
     remoteFeatureEip7702: {
       urlEndpoint:

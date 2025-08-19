@@ -679,7 +679,7 @@ describe('Permission Utility Functions', () => {
       );
     });
 
-    it('should log errors and continue if removing accounts fails', async () => {
+    it('should continue and not log errors if caip-25 endowment is not found for subject', async () => {
       Engine.context.PermissionController.state.subjects = {
         'https://example.com': {} as PermissionSubjectEntry<
           ValidPermission<string, Caveat<string, Json>>
@@ -691,6 +691,44 @@ describe('Permission Utility Functions', () => {
 
       // Mock getCaip25Caveat return undefined
       mockGetCaveat.mockReturnValue(undefined);
+
+      await removeAccountsFromPermissions(['0x1', '0x2']);
+
+      expect(Logger.log).not.toHaveBeenCalled();
+    });
+
+    it('should log errors if removing accounts fails', async () => {
+      const mockCaveat = {
+        type: Caip25CaveatType,
+        value: {
+          optionalScopes: {
+            'eip155:1': {
+              accounts: ['eip155:1:0x1', 'eip155:1:0x2'],
+            },
+          },
+          requiredScopes: {},
+          isMultichainOrigin: false,
+          sessionProperties: {},
+        },
+      };
+
+      const ethAccounts: Hex[] = ['0x1', '0x2'];
+      Engine.context.PermissionController.state.subjects = {
+        'https://example.com': {} as PermissionSubjectEntry<
+          ValidPermission<string, Caveat<string, Json>>
+        >,
+        'https://another.com': {} as PermissionSubjectEntry<
+          ValidPermission<string, Caveat<string, Json>>
+        >,
+      };
+
+      mockGetCaveat.mockReturnValue(mockCaveat);
+
+      (getEthAccounts as jest.Mock).mockReturnValue(ethAccounts);
+
+      mockGetAccountByAddress.mockImplementation(() => {
+        throw new Error('something unexpected happened');
+      });
 
       await removeAccountsFromPermissions(['0x1', '0x2']);
 

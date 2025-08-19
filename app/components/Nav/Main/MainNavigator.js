@@ -26,7 +26,7 @@ import Asset from '../../Views/Asset';
 import AssetDetails from '../../Views/AssetDetails';
 import AddAsset from '../../Views/AddAsset';
 import Collectible from '../../Views/Collectible';
-import Send from '../../Views/confirmations/legacy/Send';
+import SendLegacy from '../../Views/confirmations/legacy/Send';
 import SendTo from '../../Views/confirmations/legacy/SendFlow/SendTo';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
@@ -102,10 +102,16 @@ import {
   PerpsModalStack,
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
+import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
+import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
+import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
 import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 import WalletRecovery from '../../Views/WalletRecovery';
+import CardRoutes from '../../UI/Card/routes';
+import { Send } from '../../Views/confirmations/components/send';
+import { isSendRedesignEnabled } from '../../Views/confirmations/utils/send';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -571,9 +577,9 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       <Tab.Screen
-        name={Routes.TRANSACTIONS_VIEW}
-        options={options.activity}
-        component={TransactionsHome}
+        name={Routes.BROWSER.HOME}
+        options={options.browser}
+        component={BrowserFlow}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
       <Tab.Screen
@@ -582,9 +588,9 @@ const HomeTabs = () => {
         component={WalletTabModalFlow}
       />
       <Tab.Screen
-        name={Routes.BROWSER.HOME}
-        options={options.browser}
-        component={BrowserFlow}
+        name={Routes.TRANSACTIONS_VIEW}
+        options={options.activity}
+        component={TransactionsHome}
         layout={({ children }) => <UnmountOnBlur>{children}</UnmountOnBlur>}
       />
 
@@ -613,8 +619,8 @@ const SendView = () => (
   <Stack.Navigator>
     <Stack.Screen
       name="Send"
-      component={Send}
-      options={Send.navigationOptions}
+      component={SendLegacy}
+      options={SendLegacy.navigationOptions}
     />
   </Stack.Navigator>
 );
@@ -834,8 +840,14 @@ const MainNavigator = () => {
       <Stack.Screen name="Webview" component={Webview} />
       <Stack.Screen name="SendView" component={SendView} />
       <Stack.Screen
+        name="Send"
+        component={Send}
+        //Disabling swipe down on IOS
+        options={{ gestureEnabled: false }}
+      />
+      <Stack.Screen
         name="SendFlowView"
-        component={SendFlowView}
+        component={isSendRedesignEnabled() ? Send : SendFlowView}
         //Disabling swipe down on IOS
         options={{ gestureEnabled: false }}
       />
@@ -888,6 +900,34 @@ const MainNavigator = () => {
           />
         </>
       )}
+      {isPerpsEnabled && (
+        <>
+          <Stack.Screen
+            name={Routes.PERPS.POSITION_TRANSACTION}
+            component={PerpsPositionTransactionView}
+            options={{
+              title: 'Position Transaction',
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PERPS.ORDER_TRANSACTION}
+            component={PerpsOrderTransactionView}
+            options={{
+              title: 'Order Transaction',
+              headerShown: true,
+            }}
+          />
+          <Stack.Screen
+            name={Routes.PERPS.FUNDING_TRANSACTION}
+            component={PerpsFundingTransactionView}
+            options={{
+              title: 'Funding Transaction',
+              headerShown: true,
+            }}
+          />
+        </>
+      )}
       <Stack.Screen
         name="SetPasswordFlow"
         component={SetPasswordFlow}
@@ -927,6 +967,7 @@ const MainNavigator = () => {
           headerShown: true,
         }}
       />
+      <Stack.Screen name={Routes.CARD.ROOT} component={CardRoutes} />
     </Stack.Navigator>
   );
 };

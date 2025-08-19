@@ -1,30 +1,43 @@
-import { getGanachePort, getTestDappLocalUrl } from './FixtureUtils';
+import {
+  getGanachePort,
+  getTestDappLocalUrlByDappCounter,
+} from './FixtureUtils';
 import { merge } from 'lodash';
+import { encryptVault } from './FixtureHelper';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { SolScope } from '@metamask/keyring-api';
 import {
   Caip25CaveatType,
   Caip25CaveatValue,
   Caip25EndowmentPermissionName,
+  getEthAccounts,
   setEthAccounts,
   setPermittedEthChainIds,
 } from '@metamask/chain-agnostic-permission';
-import { RampsRegions, RampsRegionsEnum } from '../Constants';
+import { DEFAULT_TAB_ID, RampsRegions, RampsRegionsEnum } from '../Constants';
 import {
   CustomNetworks,
   PopularNetworksList,
 } from '../../resources/networks.e2e';
-import { BackupAndSyncSettings } from '../types';
-import { logger } from '../logger';
+import { BackupAndSyncSettings, RampsRegion } from '../types';
+import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants';
+
+export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
+  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
 
 export const DEFAULT_FIXTURE_ACCOUNT =
-  '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
+  DEFAULT_FIXTURE_ACCOUNT_CHECKSUM.toLowerCase() as Lowercase<
+    typeof DEFAULT_FIXTURE_ACCOUNT_CHECKSUM
+  >;
 
 export const DEFAULT_FIXTURE_ACCOUNT_2 =
   '0xcdd74c6eb517f687aa2c786bc7484eb2f9bae1da';
 
 export const DEFAULT_IMPORTED_FIXTURE_ACCOUNT =
   '0x43e1c289177ecfbe6ef34b5fb2b66ebce5a8e05b';
+
+export const DEFAULT_SOLANA_FIXTURE_ACCOUNT =
+  'CEQ87PmqFPA8cajAXYVrFT2FQobRrAT4Wd53FvfgYrrd';
 
 const DAPP_URL = 'localhost';
 
@@ -96,6 +109,16 @@ class FixtureBuilder {
   }
 
   /**
+   * Set the showTestNetworks property of the fixture to false.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withTestNetworksOff() {
+    this.fixture.state.engine.backgroundState.PreferencesController.showTestNetworks =
+      false;
+    return this;
+  }
+
+  /**
    * Set the default fixture values.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
@@ -114,12 +137,12 @@ class FixtureBuilder {
             AccountTrackerController: {
               accountsByChainId: {
                 64: {
-                  [DEFAULT_FIXTURE_ACCOUNT]: {
+                  [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
                     balance: '0x0',
                   },
                 },
                 1: {
-                  [DEFAULT_FIXTURE_ACCOUNT]: {
+                  [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM]: {
                     balance: '0x0',
                   },
                 },
@@ -455,7 +478,14 @@ class FixtureBuilder {
             },
             MultichainNetworkController: {
               selectedMultichainNetworkChainId: SolScope.Mainnet,
-              multichainNetworkConfigurationsByChainId: {},
+              multichainNetworkConfigurationsByChainId: {
+                [SolScope.Mainnet]: {
+                  chainId: SolScope.Mainnet,
+                  name: 'Solana Mainnet',
+                  nativeCurrency: `${SolScope.Mainnet}/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v`,
+                  isEvm: false,
+                },
+              },
               isEvmSelected: true,
               networksWithTransactionActivity: {},
             },
@@ -470,6 +500,7 @@ class FixtureBuilder {
               jobs: {},
               events: {},
             },
+            SnapController: {},
           },
         },
         privacy: {
@@ -792,6 +823,22 @@ class FixtureBuilder {
         isMultichainOrigin: false,
       } as Caip25CaveatValue);
 
+    const incomingEthAccounts = getEthAccounts(caip25CaveatValue);
+    const permittedEthAccounts =
+      incomingEthAccounts.length > 0
+        ? incomingEthAccounts
+        : [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM];
+
+    // Cast addresses to the required 0x${string} format
+    const typedAddresses = permittedEthAccounts.map(
+      (addr) => addr as `0x${string}`,
+    );
+
+    const basePermissionCaveatValue = setEthAccounts(
+      caip25CaveatValue,
+      typedAddresses,
+    );
+
     const basePermissions = {
       [Caip25EndowmentPermissionName]: {
         id: 'ZaqPEWxyhNCJYACFw93jE',
@@ -800,7 +847,7 @@ class FixtureBuilder {
         caveats: [
           {
             type: Caip25CaveatType,
-            value: setEthAccounts(caip25CaveatValue, [DEFAULT_FIXTURE_ACCOUNT]),
+            value: basePermissionCaveatValue,
           },
         ],
         date: 1664388714636,
@@ -817,46 +864,28 @@ class FixtureBuilder {
     };
   }
 
-  withPermissionControllerConnectedToTestDapp() {
-    return this.withPermissionControllerConnectedToMultipleTestDapps();
-  }
-
   /**
    * Connects the PermissionController to a test dapp with specific accounts permissions and origins.
-   * For the time being, you're only able to connect 2 dapps because one will have the origin as
-   * localhost and the other dapp will have the specific device equivalent localhost.
-   * We could hardcoded the state but then Wallet behavior would be incorrectly checked.
-   * @param {Object[]} additionalPermissions - Additional permissions to merge for each test dapp instance. They should be passed in the correct order
+   * @param {Object} additionalPermissions - Additional permissions to merge.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withPermissionControllerConnectedToMultipleTestDapps(
-    additionalPermissions: Record<string, unknown>[] = [{}],
+  withPermissionControllerConnectedToTestDapp(
+    additionalPermissions = {},
+    connectSecondDapp = false,
   ) {
-    if (additionalPermissions.length > 2) {
-      logger.error(
-        'You can only connect 2 dapps at a time since permissions are given based on the origin.',
-      );
-      throw new Error(
-        'You can only connect 2 dapps at a time since permissions are given based on the origin.',
+    const testDappPermissions = this.createPermissionControllerConfig(
+      additionalPermissions,
+    );
+    let secondDappPermissions = {};
+    if (connectSecondDapp) {
+      secondDappPermissions = this.createPermissionControllerConfig(
+        additionalPermissions,
+        device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1',
       );
     }
-    let allPermissions = {};
-    for (let i = 0; i < additionalPermissions.length; i++) {
-      // This needs to be escalated as permissions are given based on the origin and it's impossible to have distinct
-      // permissions for the same origin.
-      if (i === 0) {
-        additionalPermissions[i].origin = DAPP_URL;
-      } else {
-        additionalPermissions[i].origin =
-          device.getPlatform() === 'android' ? '10.0.2.2' : '127.0.0.1';
-      }
-      const testDappPermissions = this.createPermissionControllerConfig(
-        additionalPermissions[i],
-        additionalPermissions[i].origin as string,
-      );
-      allPermissions = merge(allPermissions, testDappPermissions);
-    }
-    this.withPermissionController(allPermissions);
+    this.withPermissionController(
+      merge(testDappPermissions, secondDappPermissions),
+    );
 
     // Ensure Solana feature modal is suppressed
     return this.ensureSolanaModalSuppressed();
@@ -867,7 +896,7 @@ class FixtureBuilder {
    * @param {string} region - The region to set.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
    */
-  withRampsSelectedRegion(region = null) {
+  withRampsSelectedRegion(region: RampsRegion | null = null) {
     const defaultRegion = RampsRegions[RampsRegionsEnum.SAINT_LUCIA];
 
     // Use the provided region or fallback to the default
@@ -912,7 +941,7 @@ class FixtureBuilder {
     );
     const caip25CaveatValueWithDefaultAccount = setEthAccounts(
       caip25CaveatValueWithChains,
-      [DEFAULT_FIXTURE_ACCOUNT],
+      [DEFAULT_FIXTURE_ACCOUNT_CHECKSUM],
     );
     const chainPermission = {
       [Caip25EndowmentPermissionName]: {
@@ -932,6 +961,223 @@ class FixtureBuilder {
     this.withPermissionController(
       this.createPermissionControllerConfig(chainPermission),
     );
+    return this;
+  }
+
+  /**
+   * Adds Solana account permissions for default fixture account.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withSolanaAccountPermission() {
+    const caveatValue = {
+      optionalScopes: {
+        [SolScope.Mainnet]: {
+          accounts: [`${SolScope.Mainnet}:${DEFAULT_SOLANA_FIXTURE_ACCOUNT}`],
+        },
+      },
+      requiredScopes: {},
+      sessionProperties: {},
+      isMultichainOrigin: false,
+    };
+
+    const permissionConfig = {
+      [Caip25EndowmentPermissionName]: {
+        id: 'Lde5rzDG2bUF6HbXl4xxT',
+        parentCapability: Caip25EndowmentPermissionName,
+        invoker: 'localhost',
+        caveats: [
+          {
+            type: Caip25CaveatType,
+            value: caveatValue,
+          },
+        ],
+        date: 1732715918637,
+      },
+    };
+
+    this.withPermissionController(
+      this.createPermissionControllerConfig(permissionConfig),
+    );
+    return this;
+  }
+
+  /**
+   * Sets the user profile key ring in the fixture's background state.
+   * @param {object} userState - The user state to set.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  withUserProfileKeyRing(userState: any) {
+    merge(
+      this.fixture.state.engine.backgroundState.KeyringController,
+      userState.KEYRING_CONTROLLER_STATE,
+    );
+
+    // Add accounts controller with the first account selected
+    const firstAccountAddress =
+      userState.KEYRING_CONTROLLER_STATE.keyrings[0].accounts[0];
+    const accountId = '4d7a5e0b-b261-4aed-8126-43972b0fa0a1';
+
+    merge(this.fixture.state.engine.backgroundState.AccountsController, {
+      internalAccounts: {
+        accounts: {
+          [accountId]: {
+            address: firstAccountAddress,
+            id: accountId,
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            type: 'eip155:eoa',
+            scopes: ['eip155:1'],
+          },
+        },
+        selectedAccount: accountId,
+      },
+    });
+
+    return this;
+  }
+
+  /**
+   * Sets the user profile snap unencrypted state in the fixture's background state.
+   * @param {object} userState - The user state to set.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  withUserProfileSnapUnencryptedState(userState: any) {
+    merge(
+      this.fixture.state.engine.backgroundState.SnapController,
+      userState.SNAPS_CONTROLLER_STATE,
+    );
+
+    return this;
+  }
+
+  /**
+   * Sets the user profile snap permissions in the fixture's background state.
+   * @param {object} userState - The user state to set.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  withUserProfileSnapPermissions(userState: any) {
+    merge(
+      this.fixture.state.engine.backgroundState.PermissionController,
+      userState.PERMISSION_CONTROLLER_STATE,
+    );
+    return this;
+  }
+
+  /**
+   * Sets the tokens for all popular networks in the fixture's background state.
+   * @param tokens - The tokens to set.
+   * @param userState - The user state to set.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withTokensForAllPopularNetworks(
+    tokens: Record<string, unknown>[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    userState: any = null,
+  ) {
+    // Get all popular network chain IDs using proper constants
+    const popularChainIds = [
+      CHAIN_IDS.MAINNET, // Ethereum Mainnet
+      CHAIN_IDS.POLYGON, // Polygon Mainnet
+      CHAIN_IDS.BSC, // BNB Smart Chain
+      CHAIN_IDS.OPTIMISM, // Optimism
+      CHAIN_IDS.ARBITRUM, // Arbitrum One
+      CHAIN_IDS.AVALANCHE, // Avalanche C-Chain
+      CHAIN_IDS.BASE, // Base
+      CHAIN_IDS.ZKSYNC_ERA, // zkSync Era
+      CHAIN_IDS.SEI, // Sei Mainnet
+    ];
+
+    // Use userState accounts if provided, otherwise fall back to MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER
+    let allAccountAddresses: string[] = [];
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+    if (userState && userState.KEYRING_CONTROLLER_STATE) {
+      // Extract all account addresses from the user state keyring
+      allAccountAddresses = userState.KEYRING_CONTROLLER_STATE.keyrings.flatMap(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (keyring: any) => keyring.accounts,
+      );
+    } else {
+      // Fallback to the hardcoded accounts
+      const accountsData =
+        MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER.internalAccounts.accounts;
+      allAccountAddresses = Object.values(accountsData).map(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (account: any) => account.address,
+      );
+    }
+
+    // Create tokens object for all accounts
+    const accountTokens: Record<string, Record<string, unknown>[]> = {};
+    allAccountAddresses.forEach((address) => {
+      accountTokens[address] = tokens;
+    });
+
+    const allTokens: Record<string, Record<string, unknown>> = {};
+
+    // Add tokens to each popular network
+    popularChainIds.forEach((chainId) => {
+      allTokens[chainId] = accountTokens;
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allTokens,
+    });
+
+    // we need to test this ...
+
+    // Create token balances for TokenBalancesController
+    // Structure: { [accountAddress]: { [chainId]: { [tokenAddress]: balance } } }
+    const tokenBalances: Record<
+      string,
+      Record<string, Record<string, string>>
+    > = {};
+
+    allAccountAddresses.forEach((accountAddress, accountIndex) => {
+      tokenBalances[accountAddress] = {};
+
+      // Add balances for each popular network
+      popularChainIds.forEach((chainId) => {
+        tokenBalances[accountAddress][chainId] = {};
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        tokens.forEach((token: any, tokenIndex: number) => {
+          // Generate realistic but varied balances for testing
+          // Using different multipliers to create variety across accounts and tokens
+          const baseBalance = (accountIndex + 1) * (tokenIndex + 1) * 1000;
+          const randomVariation = Math.floor(Math.random() * 5000);
+          const finalBalance = baseBalance + randomVariation;
+
+          // Convert to hex with proper padding for token decimals
+          const balanceInWei = (
+            finalBalance * Math.pow(10, token.decimals)
+          ).toString(16);
+          tokenBalances[accountAddress][chainId][
+            token.address
+          ] = `0x${balanceInWei}`;
+        });
+      });
+    });
+
+    merge(this.fixture.state.engine.backgroundState.TokenBalancesController, {
+      tokenBalances,
+    });
+
     return this;
   }
 
@@ -1002,7 +1248,7 @@ class FixtureBuilder {
       rpcEndpoints: [
         {
           networkClientId: newNetworkClientId,
-          url: sepoliaConfig.rpcTarget,
+          url: sepoliaConfig.rpcUrl,
           type: 'custom',
           name: sepoliaConfig.nickname,
         },
@@ -1078,11 +1324,84 @@ class FixtureBuilder {
     return this.ensureSolanaModalSuppressed();
   }
 
+  /**
+   * Sets the privacy mode preferences in the fixture's asyncState.
+   * This indicates that the user has agreed to MetaMetrics data collection.
+   *
+   * @returns {FixtureBuilder} The current instance for method chaining.
+   */
+  withPrivacyModePreferences(privacyMode: boolean) {
+    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
+      privacyMode,
+    });
+    return this;
+  }
+
+  /**
+   * Disables smart transactions
+   * @returns FixtureBuilder
+   */
+  withDisabledSmartTransactions() {
+    merge(this.fixture.state.engine.backgroundState.PreferencesController, {
+      smartTransactionsOptInStatus: false,
+    });
+    return this;
+  }
+
   withPreferencesController(data: Record<string, unknown>) {
     merge(
       this.fixture.state.engine.backgroundState.PreferencesController,
       data,
     );
+    return this;
+  }
+
+  /**
+   * Merges provided data into the KeyringController's state with a random imported account.
+   * and also includes the default HD Key Tree fixture account.
+   *
+   * @param {Object} account - ethers.Wallet object containing address and privateKey.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withRandomImportedAccountKeyringController(
+    address: string,
+    privateKey: string,
+  ) {
+    // mnemonics belonging to the DEFAULT_FIXTURE_ACCOUNT
+    const vault = encryptVault([
+      {
+        type: 'HD Key Tree',
+        data: {
+          mnemonic: [
+            100, 114, 105, 118, 101, 32, 109, 97, 110, 97, 103, 101, 32, 99,
+            108, 111, 115, 101, 32, 114, 97, 118, 101, 110, 32, 116, 97, 112,
+            101, 32, 97, 118, 101, 114, 97, 103, 101, 32, 115, 97, 117, 115, 97,
+            103, 101, 32, 112, 108, 101, 100, 103, 101, 32, 114, 105, 111, 116,
+            32, 102, 117, 114, 110, 97, 99, 101, 32, 97, 117, 103, 117, 115,
+            116, 32, 116, 105, 112,
+          ],
+          numberOfAccounts: 1,
+          hdPath: "m/44'/60'/0'/0",
+        },
+      },
+      {
+        type: 'Simple Key Pair',
+        data: [privateKey],
+      },
+    ]);
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: [DEFAULT_FIXTURE_ACCOUNT],
+          type: 'HD Key Tree',
+        },
+        {
+          type: 'Simple Key Pair',
+          accounts: [address],
+        },
+      ],
+      vault,
+    });
     return this;
   }
 
@@ -1191,6 +1510,135 @@ class FixtureBuilder {
     return this;
   }
 
+  /**
+   * Enables profile syncing in the fixture.
+   * @returns {this} The current instance for method chaining.
+   */
+  withKeyringControllerOfMultipleAccounts() {
+    merge(this.fixture.state.engine.backgroundState.KeyringController, {
+      keyrings: [
+        {
+          accounts: ['0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6'],
+          metadata: { id: '01JYMQCWV547WJ1X7X8KA72BHB', name: null },
+          type: 'HD Key Tree',
+        },
+        // {
+        //   accounts: ['C8WwCAxqd7CsdF2nmQWaMqj8bc6b4RtTZEmaQCAusgkh'],
+        //   metadata: { id: '01JYMQCXJR780W8479CHWADRMW', name: null },
+        //   type: 'Snap Keyring',
+        // },
+        {
+          accounts: [],
+          metadata: { id: '01JYMQD2ZW9MH3QDV97J1T9H9A', name: null },
+          type: 'QR Hardware Wallet Device',
+        },
+      ],
+      vault:
+        '{"cipher":"DUx7iAsJoxlE+MKGopEvRQBL50daKCxL5stSFkxjZl4ZA3DMv4tLxUs1yAr31VMwM9rDuTFDZmZmTLj/WVNnPUgu8PXioD+Qufj3NP6cFmU3oTN1mw+sneI+9CSVlPYnuTzBOWaCXhxHEqTe4jfjPRc0rEeiBAzvJvvnZh93BNoBO7aqr5LNEx32cIuNqefG4mBzNbKq8ytfWHRsKZOZRl9yROpPtUtCaiuk8tuSAtTbtEOT5Btbiha/gAEYT5JjLsMe2Gw96oqyqS8Oza4WagQSVCIJvT/kJDPuO+KZJiIV2VZXmpck+UF02xiw2qvrnm9gu/hZ20t19alx3nbKsF3Q/Kxrfxt02MS/5Z+XKgRDl6qrNmD2K7NkMphuiWI4TdKT8yEU7ZWucJ83XLdQwAhyG2T1ugoe5dwbN9QvY4Fcyw92kba3A3ILKlV3XLnDnel1ZG6V9GAa4SRRCs7z/+lTzfj/h1QpO24ETznMi+PqJF4gtp/RNtgu/aTHwAqj0zkenZYtSME44lYe5hgbJCZXdK5zUTC1czqXshkVotccoKBly9kyML/ajAfO9RIGhSjglrrRUsCco7yyUafz2jLZYuQvFFAuVVukgbAEdINimRlHbYGran1klp9YVaMDADrTB31IVnDCAuNMb5RVoiiS7J0iCuvJWLAVrV5sukHFMi9oA6XMRYCYE6v6jvHgOPXRhJfxV8k7U96Vgv6o7VXkaA9s10y/tuYUhnQpH8AuhOqtQthytlt1FeTF1c74G+Vt/fLfWd3B2p6Iyqrf+XMOT+e/4fAZc0jTsmMM9cfoYoVd8ofyAmRGhql19cAYUEAwvMNfu3QAiOLl00EicHdX8IK8EzoObwLHO+008erBUKbjRvJ1ePl9Dvx83BZkqb2wlP5GmXSQjy9JmUDrCS6TuquVVNHpVKA8EoBwORN68p3B1hnP29yC79Kq7hc8K94K/Xofm0T0wj+Tzspru2iFxA0aZhEAoe13CGy9hBq9QqT285XPGby7vvek9wifIgvwA1yBXjU6lQ5ObyYCKitp8NLXPb5U0UXEOho7mu0QE+GwhoI3uxjtcKyIWkZlPldYsh2eZfcP/mfNhuFsqqlRin+SWynNUY9HMyaDw3FvtPkDZ6VgYMymP3DnWbmiOUa82iKJ2uGKuVgzvKzOlP5pf/GyWSdBz9ZjPNWMTEW/WYPvTkfGDdDCbTWxAG7fKU9locF+D09CV9mboSAQGTbZSI2f7d48Uo+77rntE6ODcumD++qASMZrGHOapCRtv0a4fHbMa3dWDtx6GHLlbvViDbvCsec7ChOUBoL39sgZEyWrC5JiOgYuRUWnU7xkaZHtYha7yKEVLWg4UFtXnLliYQLQseDa/k2/SDbSqLrz9ACVHgKpS3vtY6mSdhNWyrBkWamwVPXinb1Wjni3OQUqN0R7TeQ/QmRRp20atkY5OoFUuYOkBWU4HgyJHg0wEiYOXkscktGS1vl6RvOHyoTPKiWPJFgtz46NOP5ynmlBqS2+srespbKPh2GEN5EGhbdFWGAXSUoecbvjzizxRQdzm8nLNWtx2eDHo54fv3IahvWQNvmDIL265Ezfo+ZEYhOeHTerWvuVBzg78ZeHpOd1ZwTZz/k5JVtW9BZDoJoO1DZ98Bliew7i2uaN0De2ZP10RMQzH5GL636aptqRiUw9mwbavkaI2xC8f2Y9J2jsgtZ8Gjp48lGjBMxWpG4xywu3J8aUi+rLEiOthEK1Ob6LjkUEBeKC8eFreM1LeB9adIuWpdre84RdWTfWvirzCpvyStNc6USpZtgMKTYGmbqgFtZouphiNEvW2zbUi82Qp5v9XqhXB/zGnJwHRFs+Qk/k20tTLnp1U1+5uIjm+uzbXkLix5KGHNwdDpsx4GrZs04HHN2aRcBHnPZokGajwtcv/1PDHW4VMLKb0bttZSYr1tiYYuFp/0p1EcsCJ1cUcQTdTm8xmjKJWune9L2L","iv":"9e427fa9c50d74903acc326dc5f57f32","keyMetadata":{"algorithm":"PBKDF2","params":{"iterations":5000}},"lib":"original","salt":"r6Ta3qV3uqZgiXbnJ6bmT5oJhqKpH3ojd2NUzmc2ZLU="}',
+    });
+
+    // Update AccountsController to only include Ethereum account (hide Solana account)
+    this.fixture.state.engine.backgroundState.AccountsController = {
+      internalAccounts: {
+        accounts: {
+          // Ethereum Account 1 only
+          '4d7a5e0b-b261-4aed-8126-43972b0fa0a1': {
+            address: '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
+            id: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+            metadata: {
+              name: 'Account 1',
+              importTime: 1684232000456,
+              keyring: {
+                type: 'HD Key Tree',
+              },
+            },
+            options: {},
+            methods: [
+              'personal_sign',
+              'eth_signTransaction',
+              'eth_signTypedData_v1',
+              'eth_signTypedData_v3',
+              'eth_signTypedData_v4',
+            ],
+            type: 'eip155:eoa',
+            scopes: ['eip155:1'],
+          },
+        },
+        selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1', // Default to Ethereum account
+      },
+    };
+    // this.fixture.state.engine.backgroundState.PreferencesController.identities = {
+    //   '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6': {
+    //     address: '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
+    //     name: 'Account 1',
+    //     importTime: 1684232000456,
+    //   },
+    // };
+    // this.fixture.state.engine.backgroundState.PreferencesController.selectedAddress = '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6';
+
+    // Configure for Ethereum mainnet only
+    this.fixture.state.engine.backgroundState.MultichainNetworkController = {
+      selectedMultichainNetworkChainId: 'eip155:1', // Default to Ethereum mainnet
+      multichainNetworkConfigurationsByChainId: {
+        'eip155:1': {
+          chainId: 'eip155:1',
+          name: 'Ethereum Mainnet',
+          nativeCurrency: 'ETH',
+          isEvm: true,
+        },
+      },
+      isEvmSelected: true, // Default to EVM mode
+      networksWithTransactionActivity: {},
+    };
+
+    return this;
+  }
+
+  /**
+   * Enables profile syncing in the fixture.
+   * @returns {this} The current instance for method chaining.
+   */
+  withProfileSyncingEnabled() {
+    // Enable AuthenticationController - user must be signed in for profile syncing
+    merge(this.fixture.state.engine.backgroundState.AuthenticationController, {
+      isSignedIn: true,
+    });
+
+    // Enable UserStorageController with all profile syncing features
+    merge(this.fixture.state.engine.backgroundState.UserStorageController, {
+      isBackupAndSyncEnabled: true,
+      isBackupAndSyncUpdateLoading: false,
+      isAccountSyncingEnabled: true,
+      isContactSyncingEnabled: true,
+      hasAccountSyncingSyncedAtLeastOnce: true,
+      isAccountSyncingReadyToBeDispatched: true,
+      isAccountSyncingInProgress: false,
+      isContactSyncingInProgress: false,
+    });
+
+    // Enable basic functionality in settings (required for profile syncing)
+    merge(this.fixture.state.settings, {
+      basicFunctionalityEnabled: true,
+    });
+
+    return this;
+  }
+
+  /**
+   * Disables profile syncing in the fixture.
+   * @returns {this} The current instance for method chaining.
+   */
+  withProfileSyncingDisabled() {
+    merge(this.fixture.state.engine.backgroundState.UserStorageController, {
+      isBackupAndSyncEnabled: false,
+      isAccountSyncingEnabled: false,
+      isContactSyncingEnabled: false,
+      basicFunctionalityEnabled: false,
+    });
+
+    return this;
+  }
+
   // Mirrors the vault contents from the extension fixture.
   withMultiSRPKeyringController() {
     merge(this.fixture.state.engine.backgroundState.KeyringController, {
@@ -1201,9 +1649,24 @@ class FixtureBuilder {
     return this;
   }
 
-  withTokens(tokens: Record<string, unknown>) {
+  withTokens(
+    tokens: Record<string, unknown>[],
+    chainId: string = CHAIN_IDS.MAINNET,
+    account: string = DEFAULT_FIXTURE_ACCOUNT,
+  ) {
     merge(this.fixture.state.engine.backgroundState.TokensController, {
       allTokens: {
+        [chainId]: {
+          [account]: tokens,
+        },
+      },
+    });
+    return this;
+  }
+
+  withDetectedTokens(tokens: Record<string, unknown>[]) {
+    merge(this.fixture.state.engine.backgroundState.TokensController, {
+      allDetectedTokens: {
         [CHAIN_IDS.MAINNET]: {
           [DEFAULT_FIXTURE_ACCOUNT]: tokens,
         },
@@ -1219,7 +1682,7 @@ class FixtureBuilder {
     return this;
   }
 
-  withTransactions(transactions: Record<string, unknown>) {
+  withTransactions(transactions: Record<string, unknown>[]) {
     merge(this.fixture.state.engine.backgroundState.TransactionController, {
       transactions,
     });
@@ -1268,17 +1731,18 @@ class FixtureBuilder {
    * This is intended to be used for testing multiple dapps concurrently.
    * The dapps are opened in the order they are added.
    * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
-   * @param {number} amountOfDapps - The number of test dapps to open.
+   * @param {number} extraTabs - The amount of extra tabs to open.
    */
-  withMultipleDappTabs(amountOfDapps = 2) {
+  withExtraTabs(extraTabs = 1) {
     if (!this.fixture.state.browser.tabs) {
       this.fixture.state.browser.tabs = [];
     }
 
-    for (let i = 0; i < amountOfDapps; i++) {
+    // We start at 1 to easily identify the tab across all tests
+    for (let i = 1; i <= extraTabs; i++) {
       this.fixture.state.browser.tabs.push({
-        url: getTestDappLocalUrl(i),
-        id: 1749234797566 + i,
+        url: getTestDappLocalUrlByDappCounter(i),
+        id: DEFAULT_TAB_ID + i,
         isArchived: false,
       });
     }

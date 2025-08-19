@@ -1,19 +1,13 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-console */
-'use strict';
 /**
  * E2E tests for wallet_revokeSession API
  * Tests revoking sessions and verifying the session state afterwards
  */
-import TestHelpers from '../../helpers';
 import { SmokeMultiChainAPI } from '../../tags';
-import FixtureBuilder from '../../fixtures/fixture-builder';
-import {
-  DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
-  withFixtures,
-} from '../../fixtures/fixture-helper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import MultichainTestDApp from '../../pages/Browser/MultichainTestDApp';
 import MultichainUtilities from '../../utils/MultichainUtilities';
+import { DappVariants } from '../../framework/Constants';
 
 describe(SmokeMultiChainAPI('wallet_revokeSession'), () => {
   beforeEach(() => {
@@ -23,7 +17,11 @@ describe(SmokeMultiChainAPI('wallet_revokeSession'), () => {
   it('should return empty object from wallet_getSession call after revoking session', async () => {
     await withFixtures(
       {
-        ...DEFAULT_MULTICHAIN_TEST_DAPP_FIXTURE_OPTIONS,
+        dapps: [
+          {
+            dappVariant: DappVariants.MULTICHAIN_TEST_DAPP,
+          },
+        ],
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
       },
@@ -35,9 +33,6 @@ describe(SmokeMultiChainAPI('wallet_revokeSession'), () => {
         const networksToTest =
           MultichainUtilities.NETWORK_COMBINATIONS.SINGLE_ETHEREUM;
         await MultichainTestDApp.createSessionWithNetworks(networksToTest);
-
-        // Wait for session creation
-        await TestHelpers.delay(1000);
 
         // Verify session exists before revoke
         const sessionBeforeRevoke = await MultichainTestDApp.getSessionData();
@@ -56,9 +51,6 @@ describe(SmokeMultiChainAPI('wallet_revokeSession'), () => {
 
         // Revoke the session
         await MultichainTestDApp.tapRevokeSessionButton();
-
-        // Wait for revoke to process
-        await TestHelpers.delay(2000);
 
         // Get session data after revoke - should be empty
         const sessionAfterRevoke = await MultichainTestDApp.getSessionData();

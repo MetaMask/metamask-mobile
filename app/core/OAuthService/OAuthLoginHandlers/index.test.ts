@@ -209,9 +209,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - Error: Network error',
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.AppleLoginError,
           );
         }
       });
@@ -224,9 +223,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - handleIosAppleLogin: Unknown error',
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.AppleLoginError,
           );
         }
       });
@@ -294,9 +292,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - handleIosGoogleLogin: Unknown error',
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.GoogleLoginError,
           );
         }
       });
@@ -380,9 +377,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - handleAndroidAppleLogin: Unknown error',
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.AppleLoginError,
           );
         }
       });
@@ -397,9 +393,8 @@ describe('OAuth login handlers', () => {
           await handler.login();
         } catch (error) {
           expect(error).toBeInstanceOf(OAuthError);
-          expect((error as OAuthError).code).toBe(OAuthErrorType.UnknownError);
-          expect((error as OAuthError).message).toContain(
-            'Unknown error - handleAndroidAppleLogin: Unknown error',
+          expect((error as OAuthError).code).toBe(
+            OAuthErrorType.AppleLoginError,
           );
         }
       });

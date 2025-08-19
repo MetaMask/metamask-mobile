@@ -4,9 +4,9 @@ import Assertions from '../../../framework/Assertions';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
 import SettingsView from '../../../pages/Settings/SettingsView';
 import { loginToApp } from '../../../viewHelper';
-import AesCryptoTestForm from '../../../pages/Settings/AesCryptoTestForm.ts';
-import FixtureBuilder from '../../../fixtures/fixture-builder.js';
-import { withFixtures } from '../../../fixtures/fixture-helper.js';
+import AesCryptoTestForm from '../../../pages/Settings/AesCryptoTestForm';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 
 describe(
   SmokeAccounts('AES Crypto - Encryption and decryption with encryption key'),

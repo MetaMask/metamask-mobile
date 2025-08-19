@@ -4,15 +4,13 @@ import Gestures from '../../framework/Gestures';
 
 class SigningBottomSheet {
   get signButton(): DetoxElement {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(SigningBottomSheetSelectorsIDs.SIGN_BUTTON)
-      : Matchers.getElementByID(SigningBottomSheetSelectorsIDs.SIGN_BUTTON);
+    return Matchers.getElementByID(SigningBottomSheetSelectorsIDs.SIGN_BUTTON);
   }
 
   get cancelButton(): DetoxElement {
-    return device.getPlatform() === 'android'
-      ? Matchers.getElementByLabel(SigningBottomSheetSelectorsIDs.CANCEL_BUTTON)
-      : Matchers.getElementByID(SigningBottomSheetSelectorsIDs.CANCEL_BUTTON);
+    return Matchers.getElementByID(
+      SigningBottomSheetSelectorsIDs.CANCEL_BUTTON,
+    );
   }
 
   get personalRequest(): DetoxElement {

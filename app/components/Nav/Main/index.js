@@ -84,7 +84,11 @@ import isNetworkUiRedesignEnabled from '../../../util/networks/isNetworkUiRedesi
 import { useConnectionHandler } from '../../../util/navigation/useConnectionHandler';
 import { getGlobalEthQuery } from '../../../util/networks/global-network';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
-import { isPortfolioViewEnabled } from '../../../util/networks';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
+import {
+  isPortfolioViewEnabled,
+  isRemoveGlobalNetworkSelectorEnabled,
+} from '../../../util/networks';
 import { useIdentityEffects } from '../../../util/identity/hooks/useIdentityEffects/useIdentityEffects';
 import ProtectWalletMandatoryModal from '../../Views/ProtectWalletMandatoryModal/ProtectWalletMandatoryModal';
 import InfoNetworkModal from '../../Views/InfoNetworkModal/InfoNetworkModal';
@@ -94,6 +98,14 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { useCompletedOnboardingEffect } from '../../../util/onboarding/hooks/useCompletedOnboardingEffect';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import { useIsOnBridgeRoute } from '../../UI/Bridge/hooks/useIsOnBridgeRoute';
+import { handleShowNetworkActiveToast } from './utils';
+import { CardVerification } from '../../UI/Card/sdk';
 
 const Stack = createStackNavigator();
 
@@ -124,28 +136,40 @@ const Main = (props) => {
   );
 
   useEffect(() => {
-    if (isSeedlessPasswordOutdated) {
-      // show seedless password outdated modal and force user to lock app
-      props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('login.seedless_password_outdated_modal_title'),
-          description: strings(
-            'login.seedless_password_outdated_modal_content',
-          ),
-          primaryButtonLabel: strings(
-            'login.seedless_password_outdated_modal_confirm',
-          ),
-          type: 'error',
-          icon: IconName.Danger,
-          isInteractable: false,
-          onPrimaryButtonPress: async () => {
-            await Authentication.lockApp({ locked: true });
+    const checkIsSeedlessPasswordOutdated = async () => {
+      if (isSeedlessPasswordOutdated) {
+        // Check for latest seedless password outdated state
+        // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
+        const isOutdated = await Authentication.checkIsSeedlessPasswordOutdated(
+          false,
+        );
+        if (!isOutdated) {
+          return;
+        }
+
+        // show seedless password outdated modal and force user to lock app
+        props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: {
+            title: strings('login.seedless_password_outdated_modal_title'),
+            description: strings(
+              'login.seedless_password_outdated_modal_content',
+            ),
+            primaryButtonLabel: strings(
+              'login.seedless_password_outdated_modal_confirm',
+            ),
+            type: 'error',
+            icon: IconName.Danger,
+            isInteractable: false,
+            onPrimaryButtonPress: async () => {
+              await Authentication.lockApp({ locked: true });
+            },
+            closeOnPrimaryButtonPress: true,
           },
-          closeOnPrimaryButtonPress: true,
-        },
-      });
-    }
+        });
+      }
+    };
+    checkIsSeedlessPasswordOutdated();
   }, [isSeedlessPasswordOutdated, props.navigation]);
 
   const { connectionChangeHandler } = useConnectionHandler(props.navigation);
@@ -261,10 +285,18 @@ const Main = (props) => {
   const previousProviderConfig = useRef(undefined);
   const previousNetworkConfigurations = useRef(undefined);
   const { toastRef } = useContext(ToastContext);
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
+  const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
   const networkImage = useSelector(selectNetworkImageSource);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const isOnBridgeRoute = useIsOnBridgeRoute();
 
   const hasNetworkChanged = useCallback(
     (chainId, previousConfig, isEvmSelected) => {
@@ -297,6 +329,12 @@ const Main = (props) => {
           });
         }
       }
+      if (
+        isRemoveGlobalNetworkSelectorEnabled() &&
+        enabledEVMNetworks.length === 0
+      ) {
+        selectNetwork(chainId);
+      }
       toastRef?.current?.showToast({
         variant: ToastVariants.Network,
         labelOptions: [
@@ -308,6 +346,13 @@ const Main = (props) => {
         ],
         networkImageSource: networkImage,
       });
+
+      handleShowNetworkActiveToast(
+        isOnBridgeRoute,
+        toastRef,
+        networkName,
+        networkImage,
+      );
     }
     previousProviderConfig.current = !isEvmSelected
       ? { chainId }
@@ -322,6 +367,9 @@ const Main = (props) => {
     hasNetworkChanged,
     isAllNetworks,
     tokenNetworkFilter,
+    selectNetwork,
+    enabledEVMNetworks,
+    isOnBridgeRoute,
   ]);
 
   // Show add network confirmation.
@@ -458,6 +506,7 @@ const Main = (props) => {
         <Notification navigation={props.navigation} />
         <RampOrders />
         <SwapsLiveness />
+        <CardVerification />
         <BackupAlert
           onDismiss={toggleRemindLater}
           navigation={props.navigation}

@@ -19,6 +19,7 @@ import { BIOMETRY_TYPE } from 'react-native-keychain';
 import { Authentication } from '../../../core';
 import { InteractionManager, Alert } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
+import Logger from '../../../util/Logger';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -83,6 +84,7 @@ jest.mock('../../../core/Authentication', () => ({
 jest.mock('../../../util/device', () => ({
   isIos: jest.fn(),
   isAndroid: jest.fn(),
+  isMediumDevice: jest.fn(),
 }));
 
 jest.mock('react-native/Libraries/Alert/Alert', () => ({
@@ -90,9 +92,11 @@ jest.mock('react-native/Libraries/Alert/Alert', () => ({
 }));
 
 const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
+const mockTrackEvent = jest.fn();
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   getInstance: () => ({
     isEnabled: mockMetricsIsEnabled,
+    trackEvent: mockTrackEvent,
   }),
 }));
 
@@ -192,6 +196,8 @@ describe('ChoosePassword', () => {
 
   it('render loading state while creating password', async () => {
     jest.spyOn(Device, 'isIos').mockReturnValue(true);
+    jest.spyOn(Device, 'isMediumDevice').mockReturnValue(true);
+
     const component = renderWithProviders(<ChoosePassword {...defaultProps} />);
 
     await act(async () => {
@@ -239,6 +245,7 @@ describe('ChoosePassword', () => {
     );
     expect(loadingTitle).toBeTruthy();
     jest.spyOn(Device, 'isIos').mockRestore();
+    jest.spyOn(Device, 'isMediumDevice').mockRestore();
   });
 
   it('error message is shown when passwords do not match', async () => {
@@ -871,6 +878,177 @@ describe('ChoosePassword', () => {
     });
 
     mockNewWalletAndKeychain.mockRestore();
+  });
+
+  it('should navigate to support article when learn more link is pressed when oauth2Login is true', async () => {
+    const props: ChoosePasswordProps = {
+      ...defaultProps,
+      route: {
+        ...defaultProps.route,
+        params: {
+          ...defaultProps.route.params,
+          [PREVIOUS_SCREEN]: ONBOARDING,
+          oauthLoginSuccess: true,
+        },
+      },
+      navigation: mockNavigation,
+    };
+    const component = renderWithProviders(<ChoosePassword {...props} />);
+
+    const learnMoreLink = component.getByTestId(
+      ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID,
+    );
+
+    expect(learnMoreLink).toBeOnTheScreen();
+    expect(learnMoreLink.props.onPress).toBeDefined();
+
+    await act(async () => {
+      fireEvent.press(learnMoreLink);
+    });
+
+    expect(mockNavigation.push).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/configure/wallet/passwords-and-metamask/',
+        title: 'support.metamask.io',
+      },
+    });
+  });
+
+  describe('ErrorBoundary Tests', () => {
+    it('should trigger ErrorBoundary for OAuth password creation failures when analytics disabled', async () => {
+      const loggerErrorSpy = jest.spyOn(Logger, 'error');
+      mockMetricsIsEnabled.mockReturnValueOnce(false);
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain
+        .mockRejectedValueOnce(
+          new Error('SeedlessOnboardingController - Auth server is down'),
+        )
+        .mockResolvedValueOnce(undefined);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'submitEditing');
+      });
+
+      expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message: expect.stringContaining('OAuth password creation failed'),
+        }),
+        expect.objectContaining({
+          View: 'ChoosePassword',
+          ErrorBoundary: true,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          name: 'Error Screen Viewed',
+        }),
+      );
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+
+    it('should not trigger ErrorBoundary for OAuth password creation failures when analytics enabled', async () => {
+      mockMetricsIsEnabled.mockReturnValueOnce(true);
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain
+        .mockRejectedValueOnce(
+          new Error('SeedlessOnboardingController - Auth server is down'),
+        )
+        .mockResolvedValueOnce(undefined);
+
+      const props: ChoosePasswordProps = {
+        ...defaultProps,
+        route: {
+          ...defaultProps.route,
+          params: {
+            ...defaultProps.route.params,
+            [PREVIOUS_SCREEN]: ONBOARDING,
+            oauthLoginSuccess: true,
+          },
+        },
+      };
+      const component = renderWithProviders(<ChoosePassword {...props} />);
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      });
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+
+      await act(async () => {
+        fireEvent.press(checkbox);
+        fireEvent.changeText(passwordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
+      });
+      await act(async () => {
+        fireEvent(confirmPasswordInput, 'submitEditing');
+      });
+
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      });
+
+      expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).not.toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          name: 'Error Screen Viewed',
+        }),
+      );
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
   });
 
   describe('Tracing functionality', () => {

@@ -72,7 +72,7 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Wallet Recovery
+          Wallet recovery
         </Text>
         <Text
           accessibilityRole="text"
@@ -87,38 +87,21 @@ exports[`SecuritySettings should render correctly 1`] = `
             }
           }
         >
-          Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget.
-        </Text>
-        <Text
-          accessibilityRole="link"
-          accessible={true}
-          onPress={[Function]}
-          onPressIn={[Function]}
-          onPressOut={[Function]}
-          style={
-            {
-              "backgroundColor": "transparent",
-              "color": "#121314",
-              "fontFamily": "Geist Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
-          }
-          suppressHighlighting={true}
-        >
+          Back up your Secret Recovery Phrase so you never lose access to your wallet. Be sure to store it in a safe place that only you can access and won’t forget
           <Text
             accessibilityRole="text"
+            onPress={[Function]}
             style={
               {
                 "color": "#4459ff",
-                "fontFamily": "Geist Medium",
+                "fontFamily": "Geist Regular",
                 "fontSize": 16,
                 "letterSpacing": 0,
                 "lineHeight": 24,
               }
             }
           >
+             
             Learn more.
           </Text>
         </Text>
@@ -870,7 +853,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -956,7 +939,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -1036,14 +1019,13 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessible={true}
             activeOpacity={1}
             disabled={true}
-            onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -1121,14 +1103,13 @@ exports[`SecuritySettings should render correctly 1`] = `
             accessible={true}
             activeOpacity={1}
             disabled={true}
-            onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -2180,7 +2161,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,
@@ -2267,7 +2248,7 @@ exports[`SecuritySettings should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "stretch",
-                "backgroundColor": "#3c4d9d1a",
+                "backgroundColor": "#3c4d9d0f",
                 "borderColor": "transparent",
                 "borderRadius": 12,
                 "borderWidth": 1,

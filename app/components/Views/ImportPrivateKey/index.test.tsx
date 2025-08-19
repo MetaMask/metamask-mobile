@@ -1,4 +1,4 @@
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import ImportPrivateKey from './';
@@ -14,6 +14,7 @@ import { Alert } from 'react-native';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockFetchAccountsWithActivity = jest.fn();
+const mockCheckIsSeedlessPasswordOutdated = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -34,6 +35,14 @@ jest.mock('../../hooks/useAccountsWithNetworkActivitySync', () => ({
   useAccountsWithNetworkActivitySync: () => ({
     fetchAccountsWithActivity: mockFetchAccountsWithActivity,
   }),
+}));
+
+jest.mock('../../../core', () => ({
+  ...jest.requireActual('../../../core'),
+  Authentication: {
+    checkIsSeedlessPasswordOutdated: () =>
+      mockCheckIsSeedlessPasswordOutdated(),
+  },
 }));
 
 // Mock Alert
@@ -78,6 +87,7 @@ describe('ImportPrivateKey', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(false);
   });
 
   it('render matches snapshot', () => {
@@ -139,7 +149,7 @@ describe('ImportPrivateKey', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('calls learnMore function when learn more text is pressed', () => {
+  it('calls learnMore function with srp url when learn more text is pressed', () => {
     const { getByText } = renderScreen(
       ImportPrivateKey,
       { name: 'ImportPrivateKey' },
@@ -147,12 +157,34 @@ describe('ImportPrivateKey', () => {
     );
 
     const learnMoreText = getByText(strings('import_private_key.here'));
+    expect(learnMoreText).toBeOnTheScreen();
     fireEvent.press(learnMoreText);
 
     expect(mockNavigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
       params: {
-        url: 'https://support.metamask.io/managing-my-wallet/accounts-and-addresses/what-are-imported-accounts-/',
+        url: 'https://support.metamask.io/start/use-an-existing-wallet/#importing-using-a-private-key',
+        title: strings('drawer.metamask_support'),
+      },
+    });
+  });
+
+  it('calls learnMore function with social login url when learn more text is pressed', () => {
+    const { getByText } = renderScreen(
+      ImportPrivateKey,
+      { name: 'ImportPrivateKey' },
+      { state: initialState },
+    );
+
+    const learnMoreText = getByText(strings('import_private_key.learn_more'));
+    expect(learnMoreText).toBeOnTheScreen();
+
+    fireEvent.press(learnMoreText);
+
+    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+      screen: 'SimpleWebview',
+      params: {
+        url: 'https://support.metamask.io/start/use-an-existing-wallet/#import-an-existing-wallet',
         title: strings('drawer.metamask_support'),
       },
     });
@@ -267,7 +299,7 @@ describe('ImportPrivateKey', () => {
   });
 
   describe('onScanSuccess function', () => {
-    it('imports private key when scanned data contains private_key', () => {
+    it('imports private key when scanned data contains private_key', async () => {
       mockImportAccountFromPrivateKey.mockResolvedValue(undefined);
 
       const { getByText } = renderScreen(
@@ -279,18 +311,21 @@ describe('ImportPrivateKey', () => {
       const scanButton = getByText(
         strings('import_private_key.or_scan_a_qr_code'),
       );
-      fireEvent.press(scanButton);
 
-      // Get the onScanSuccess callback from the navigation call
-      const navCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === Routes.QR_TAB_SWITCHER,
-      );
-      const onScanSuccess = navCall[1].onScanSuccess;
+      await act(async () => {
+        fireEvent.press(scanButton);
 
-      // Simulate successful scan with private key
-      onScanSuccess({
-        private_key:
-          '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        // Get the onScanSuccess callback from the navigation call
+        const navCall = mockNavigate.mock.calls.find(
+          (call) => call[0] === Routes.QR_TAB_SWITCHER,
+        );
+        const onScanSuccess = navCall[1].onScanSuccess;
+
+        // Simulate successful scan with private key
+        await onScanSuccess({
+          private_key:
+            '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        });
       });
 
       expect(mockImportAccountFromPrivateKey).toHaveBeenCalledWith(

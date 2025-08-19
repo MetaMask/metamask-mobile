@@ -40,6 +40,7 @@ import {
 } from '@metamask/multichain-network-controller';
 import { TokenI } from '../../components/UI/Tokens/types';
 import { createSelector } from 'reselect';
+import { selectRemoteFeatureFlags } from '../featureFlagController';
 
 export const selectMultichainDefaultToken = createDeepEqualSelector(
   selectIsEvmNetworkSelected,
@@ -113,7 +114,7 @@ const getNonEvmCachedBalance = (
   return balanceOfAsset?.amount ?? undefined;
 };
 
-const selectNonEvmCachedBalance = createDeepEqualSelector(
+export const selectNonEvmCachedBalance = createDeepEqualSelector(
   selectSelectedInternalAccount,
   selectMultichainBalances,
   selectSelectedNonEvmNetworkChainId,
@@ -183,7 +184,7 @@ export function selectMultichainAssetsMetadata(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
 }
 
-export function selectMultichainAssetsRatesState(state: RootState) {
+function selectMultichainAssetsRatesState(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
     .conversionRates;
 }
@@ -191,6 +192,7 @@ export function selectMultichainAssetsRatesState(state: RootState) {
 export const selectMultichainAssetsRates = createDeepEqualSelector(
   selectMultichainAssetsRatesState,
   (conversionRates) => conversionRates,
+  { devModeChecks: { identityFunctionCheck: 'never' } },
 );
 
 export function selectMultichainHistoricalPrices(state: RootState) {
@@ -487,5 +489,10 @@ export const makeSelectNonEvmAssetById = () =>
       };
     },
   );
+
+export const selectSolanaOnboardingModalEnabled = createDeepEqualSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => Boolean(remoteFeatureFlags.solanaOnboardingModal),
+);
 
 ///: END:ONLY_INCLUDE_IF

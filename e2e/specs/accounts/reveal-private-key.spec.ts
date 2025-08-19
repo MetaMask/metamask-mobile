@@ -9,8 +9,9 @@ import Assertions from '../../framework/Assertions';
 import RevealPrivateKey from '../../pages/Settings/SecurityAndPrivacy/RevealPrivateKeyView';
 import { RevealSeedViewSelectorsText } from '../../selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import WalletView from '../../pages/wallet/WalletView';
-import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
+import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
+import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
 // These keys are from the fixture and are used to test the reveal private key functionality
 const HD_ACCOUNT_1_PRIVATE_KEY =
@@ -31,6 +32,11 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
+        testSpecificMock: {
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
+          ],
+        },
       },
       async () => {
         await loginToApp();
@@ -80,6 +86,11 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
+        testSpecificMock: {
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
+          ],
+        },
       },
       async () => {
         await loginToApp();
@@ -121,6 +132,11 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
+        testSpecificMock: {
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
+          ],
+        },
       },
       async () => {
         await loginToApp();
@@ -162,6 +178,11 @@ describe(Regression('reveal private key'), () => {
           .withImportedAccountKeyringController()
           .build(),
         restartDevice: true,
+        testSpecificMock: {
+          GET: [
+            mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false),
+          ],
+        },
       },
       async () => {
         await loginToApp();

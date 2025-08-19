@@ -15,6 +15,7 @@ import StyledButton from '../../../UI/StyledButton';
 import { selectProviderConfig } from '../../../../selectors/networkController';
 import generateTestId from '../../../../../wdio/utils/generateTestId';
 import {
+  ACCOUNT_SELECTOR_FORGET_BUTTON,
   ACCOUNT_SELECTOR_NEXT_BUTTON,
   ACCOUNT_SELECTOR_PREVIOUS_BUTTON,
 } from '../../../../../wdio/screen-objects/testIDs/Components/AccountSelector.testIds';
@@ -152,6 +153,7 @@ const AccountSelector = (props: ISelectQRAccountsProps) => {
           type={'transparent-blue'}
           onPress={onForget}
           containerStyle={[styles.button]}
+          {...generateTestId(Platform, ACCOUNT_SELECTOR_FORGET_BUTTON)}
         >
           {strings('account_selector.forget')}
         </StyledButton>
