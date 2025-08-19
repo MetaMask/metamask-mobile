@@ -14,18 +14,20 @@ index a51913b..a6c159e 100644
      use: {
          // TODO: Use this for actions
 diff --git a/node_modules/appwright/dist/providers/browserstack/index.js b/node_modules/appwright/dist/providers/browserstack/index.js
-index 638c5df..fc8aa1d 100644
+index 638c5df..5ea0bf6 100644
 --- a/node_modules/appwright/dist/providers/browserstack/index.js
 +++ b/node_modules/appwright/dist/providers/browserstack/index.js
-@@ -242,6 +242,7 @@ class BrowserStackDeviceProvider {
+@@ -242,6 +242,9 @@ class BrowserStackDeviceProvider {
                  "bstack:options": {
                      debug: true,
                      interactiveDebugging: true,
-+                    local: true,
++                    local: process.env.BROWSERSTACK_LOCAL || false, // needed to run e2e on CI
++                    localIdentifier: process.env.GITHUB_RUN_ID, // needed to run e2e on CI
++                    appProfiling: true, // needed to profile the app
                      networkLogs: true,
                      appiumVersion: "2.6.0",
                      enableCameraImageInjection: this.project.use.device?.enableCameraImageInjection,
-@@ -250,7 +251,7 @@ class BrowserStackDeviceProvider {
+@@ -250,7 +253,7 @@ class BrowserStackDeviceProvider {
                      osVersion: this.project.use.device.osVersion,
                      platformName: platformName,
                      deviceOrientation: this.project.use.device?.orientation,
@@ -34,7 +36,7 @@ index 638c5df..fc8aa1d 100644
                      sessionName: `${projectName} ${platformName} test`,
                      buildIdentifier: process.env.GITHUB_ACTIONS === "true"
                          ? `CI ${process.env.GITHUB_RUN_ID}`
-@@ -260,6 +261,7 @@ class BrowserStackDeviceProvider {
+@@ -260,6 +263,7 @@ class BrowserStackDeviceProvider {
                  "appium:app": process.env[envVarKey],
                  "appium:autoAcceptAlerts": true,
                  "appium:fullReset": true,
