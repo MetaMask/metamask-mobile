@@ -12,6 +12,7 @@ import { getNavigationOptionsTitle } from '../../../../../UI/Navbar';
 import { useTheme } from '../../../../../../util/theme';
 import { TransactionDetailsPayWithRow } from '../transaction-details-pay-with-row/transaction-details-pay-with-row';
 import { TransactionDetailsSummary } from '../transaction-details-summary/transaction-details-summary';
+import { TransactionDetailsHero } from '../transaction-details-hero/transaction-details-hero';
 
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
@@ -33,6 +34,7 @@ export function TransactionDetails() {
   return (
     <ScreenView>
       <Box style={styles.container} gap={12}>
+        <TransactionDetailsHero />
         <TransactionDetailsStatusRow />
         <TransactionDetailsDateRow />
         <TransactionDetailDivider />
