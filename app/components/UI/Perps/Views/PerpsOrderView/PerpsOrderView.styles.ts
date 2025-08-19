@@ -82,6 +82,7 @@ const createStyles = (colors: Colors) =>
       flex: 1,
     },
     keypad: {
+      paddingHorizontal: 16,
       backgroundColor: colors.background.default,
     },
   });
