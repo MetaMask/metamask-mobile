@@ -33,11 +33,13 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     // Call MultichainAccountService to update provider states and trigger alignment
     try {
-      await Engine.context.MultichainAccountService.setBasicFunctionality({
-        enabled: true,
-      });
+               await Engine.context.MultichainAccountService.setBasicFunctionality(
+           true,
+         );
+      console.log('Successfully enabled multichain provider states and alignment');
     } catch (error) {
       console.error('Failed to call MultichainAccountService.setBasicFunctionality:', error);
+      // Note: We continue with the flow even if this fails to avoid blocking the user
     }
     ///: END:ONLY_INCLUDE_IF
   };
