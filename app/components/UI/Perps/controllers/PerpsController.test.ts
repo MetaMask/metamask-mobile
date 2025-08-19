@@ -2991,4 +2991,150 @@ describe('PerpsController', () => {
       );
     });
   });
+
+  describe('reconnectWithNewContext', () => {
+    it('should clear state and reinitialize providers', async () => {
+      // Mock initialize to succeed before creating controller
+      mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+      await withController(async ({ controller }) => {
+        // Set up initial state with data
+        controller.state.positions = [
+          {
+            coin: 'BTC',
+            szi: '1.5',
+            entryPx: '50000',
+            positionValue: '75000',
+            returnOnEquity: '0.15',
+            unrealizedPnl: '1000',
+            marginUsed: '5000',
+          } as any,
+        ];
+        controller.state.accountState = {
+          marginSummary: {
+            accountValue: '10000',
+            totalMarginUsed: '5000',
+          },
+        } as any;
+        controller.state.pendingOrders = [
+          {
+            oid: '123',
+            coin: 'BTC',
+            limitPx: '49000',
+            sz: '0.5',
+            orderType: 'limit',
+          } as any,
+        ];
+        controller.state.lastError = 'Some previous error';
+
+        // Call reconnectWithNewContext
+        await controller.reconnectWithNewContext();
+
+        // Verify state was cleared
+        expect(controller.state.positions).toEqual([]);
+        expect(controller.state.accountState).toBeNull();
+        expect(controller.state.pendingOrders).toEqual([]);
+        expect(controller.state.lastError).toBeNull();
+
+        // Verify providers were reinitialized (constructor called twice: once on init, once on reconnect)
+        expect(HyperLiquidProvider).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('should reset initialization flags', async () => {
+      // Set up the mock to return different instances
+      let providerInstance = 0;
+      (
+        HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
+      ).mockImplementation(() => {
+        providerInstance++;
+        return {
+          ...mockHyperLiquidProvider,
+          instanceId: providerInstance,
+        } as any;
+      });
+
+      await withController(async ({ controller }) => {
+        // First, verify the controller is initialized
+        const initialProvider = (controller as any).providers.get(
+          'hyperliquid',
+        );
+        expect(initialProvider).toBeDefined();
+        const initialInstanceId = initialProvider.instanceId;
+
+        // Call reconnectWithNewContext
+        await controller.reconnectWithNewContext();
+
+        // Verify a new provider instance was created (constructor called twice)
+        expect(HyperLiquidProvider).toHaveBeenCalledTimes(2);
+
+        // Verify the controller is initialized again
+        const newProvider = (controller as any).providers.get('hyperliquid');
+        expect(newProvider).toBeDefined();
+        // It should be a different instance (different instanceId)
+        expect(newProvider.instanceId).not.toBe(initialInstanceId);
+      });
+    });
+
+    it('should handle errors during reconnection', async () => {
+      // Mock the constructor to throw an error on the second call
+      let callCount = 0;
+      (
+        HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
+      ).mockImplementation(() => {
+        callCount++;
+        if (callCount === 2) {
+          throw new Error('Network error');
+        }
+        return { ...mockHyperLiquidProvider, instanceId: callCount } as any;
+      });
+
+      await withController(async ({ controller }) => {
+        // Set some initial state
+        controller.state.positions = [{ coin: 'BTC' } as any];
+        controller.state.accountState = { account: 'test' } as any;
+        controller.state.pendingOrders = [{ oid: '123' } as any];
+
+        // Call reconnectWithNewContext - it should throw the error
+        await expect(controller.reconnectWithNewContext()).rejects.toThrow(
+          'Network error',
+        );
+
+        // State should still be cleared even on error (cleared before the error)
+        expect(controller.state.positions).toEqual([]);
+        expect(controller.state.accountState).toBeNull();
+        expect(controller.state.pendingOrders).toEqual([]);
+
+        // The constructor should have been called twice (once on init, once on reconnect attempt)
+        expect(HyperLiquidProvider).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('should work correctly after reconnection', async () => {
+      // Mock successful reconnection before creating controller
+      mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+      const mockAccountState = {
+        totalBalance: '20000',
+        availableBalance: '15000',
+        marginUsed: '5000',
+        unrealizedPnl: '100',
+      };
+      mockHyperLiquidProvider.getAccountState.mockResolvedValue(
+        mockAccountState,
+      );
+
+      await withController(async ({ controller }) => {
+        // Set up initial state
+        controller.state.positions = [{ coin: 'ETH' } as any];
+
+        // Reconnect
+        await controller.reconnectWithNewContext();
+
+        // Verify can fetch new data after reconnection
+        const accountState = await controller.getAccountState();
+        expect(accountState).toEqual(mockAccountState);
+      });
+    });
+  });
 });

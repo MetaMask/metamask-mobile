@@ -19,6 +19,13 @@ import {
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
 describe('MultichainAccountSelectorList', () => {
   const mockOnSelectAccount = jest.fn();
 
