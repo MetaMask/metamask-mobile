@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unstable-nested-components */
 import React, { useEffect } from 'react';
 import ScreenView from '../../../../../Base/ScreenView';
 import { Box } from '../../../../../UI/Box/Box';
@@ -14,23 +13,24 @@ import { TransactionDetailsPayWithRow } from '../transaction-details-pay-with-ro
 import { TransactionDetailsSummary } from '../transaction-details-summary/transaction-details-summary';
 import { TransactionDetailsHero } from '../transaction-details-hero/transaction-details-hero';
 import { TransactionDetailsTotalRow } from '../transaction-details-total-row/transaction-details-total-row';
+import { TransactionType } from '@metamask/transaction-controller';
+import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { strings } from '../../../../../../../locales/i18n';
 
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const theme = useTheme();
+  const { transactionMeta } = useTransactionDetails();
+
   const { colors } = theme;
+  const title = getTitle(transactionMeta.type);
 
   useEffect(() => {
     navigation.setOptions(
-      getNavigationOptionsTitle(
-        'Funded perps account',
-        navigation,
-        true,
-        colors,
-      ),
+      getNavigationOptionsTitle(title, navigation, true, colors),
     );
-  }, [colors, navigation, theme]);
+  }, [colors, navigation, theme, title]);
 
   return (
     <ScreenView>
@@ -46,4 +46,13 @@ export function TransactionDetails() {
       </Box>
     </ScreenView>
   );
+}
+
+function getTitle(type?: TransactionType) {
+  switch (type) {
+    case TransactionType.perpsDeposit:
+      return strings('transaction_details.title.perps_deposit');
+    default:
+      return strings('transaction_details.title.default');
+  }
 }
