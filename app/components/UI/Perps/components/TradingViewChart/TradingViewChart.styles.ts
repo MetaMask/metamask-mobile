@@ -12,7 +12,6 @@ export const styleSheet = (params: { theme: Theme }) => {
       position: 'relative',
     },
     webView: {
-      backgroundColor: 'transparent',
       flex: 1,
       width: '100%',
       height: '100%',
