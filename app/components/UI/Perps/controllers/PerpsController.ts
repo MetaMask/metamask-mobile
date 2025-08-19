@@ -52,7 +52,9 @@ import type {
   OrderParams,
   OrderResult,
   Position,
+  SubscribeAccountParams,
   SubscribeOrderFillsParams,
+  SubscribeOrdersParams,
   SubscribePositionsParams,
   SubscribePricesParams,
   SwitchProviderResult,
@@ -1709,6 +1711,22 @@ export class PerpsController extends BaseController<
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void {
     const provider = this.getActiveProvider();
     return provider.subscribeToOrderFills(params);
+  }
+
+  /**
+   * Subscribe to live order updates
+   */
+  subscribeToOrders(params: SubscribeOrdersParams): () => void {
+    const provider = this.getActiveProvider();
+    return provider.subscribeToOrders(params);
+  }
+
+  /**
+   * Subscribe to live account updates
+   */
+  subscribeToAccount(params: SubscribeAccountParams): () => void {
+    const provider = this.getActiveProvider();
+    return provider.subscribeToAccount(params);
   }
 
   /**

@@ -57,7 +57,7 @@ jest.mock('../../hooks', () => ({
 
 // Mock stream hooks
 jest.mock('../../hooks/stream', () => ({
-  useLivePrices: jest.fn(() => ({})), // Return empty object for prices
+  usePerpsLivePrices: jest.fn(() => ({})), // Return empty object for prices
 }));
 
 // Mock format utilities
