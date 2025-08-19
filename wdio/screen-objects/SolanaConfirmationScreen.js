@@ -25,7 +25,7 @@ class SolanaConfirmationScreen {
 
   async isConfirmButtonDisplayed() {
     const confirmButton = await this.confirmButton;
-    await appwrightExpect(confirmButton).toBeVisible();
+    await appwrightExpect(confirmButton).toBeVisible({ timeout: 10000 });
   }
 }
 
