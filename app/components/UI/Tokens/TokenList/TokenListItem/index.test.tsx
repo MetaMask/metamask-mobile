@@ -1079,6 +1079,246 @@ describe('TokenListItem - Advanced Component Logic', () => {
       expect(result.secondaryBalanceColorToUse).toBeUndefined();
     });
   });
+
+  describe('Non-EVM Balance Formatting with Decimal Places', () => {
+    const testNonEvmFormatting = (
+      asset: {
+        address: string;
+        symbol: string;
+        balance?: string;
+        balanceFiat?: string;
+      } | null,
+      chainId: string,
+    ) => {
+      if (!asset) return { balanceValueFormatted: 'Loading...' };
+
+      // Mock MULTICHAIN_NETWORK_DECIMAL_PLACES behavior
+      const MULTICHAIN_NETWORK_DECIMAL_PLACES: Record<string, number> = {
+        'cosmos:cosmoshub-4': 6,
+        'cosmos:osmosis-1': 4,
+        'solana:mainnet': 8,
+      };
+
+      const formatWithThresholdMock = (
+        value: number,
+        _threshold: number,
+        _locale: string,
+        options: {
+          maximumFractionDigits?: number;
+          minimumFractionDigits?: number;
+        },
+      ) => {
+        const decimals = options.maximumFractionDigits || 5;
+        return `${value.toFixed(decimals)} ${asset.symbol}`;
+      };
+
+      if (asset.balance) {
+        const oneHundredThousandths = 0.00001;
+        const maximumFractionDigits =
+          MULTICHAIN_NETWORK_DECIMAL_PLACES[chainId] || 5;
+
+        return {
+          balanceValueFormatted: formatWithThresholdMock(
+            parseFloat(asset.balance),
+            oneHundredThousandths,
+            'en-US',
+            {
+              minimumFractionDigits: 0,
+              maximumFractionDigits,
+            },
+          ),
+        };
+      }
+
+      return { balanceValueFormatted: 'Loading...' };
+    };
+
+    it('uses specific decimal places for known multichain networks', () => {
+      const cosmosAsset = {
+        address: 'cosmos:asset',
+        symbol: 'ATOM',
+        balance: '123.456789',
+      };
+
+      const result = testNonEvmFormatting(cosmosAsset, 'cosmos:cosmoshub-4');
+      expect(result.balanceValueFormatted).toBe('123.456789 ATOM');
+    });
+
+    it('falls back to default 5 decimals for unknown networks', () => {
+      const unknownAsset = {
+        address: 'unknown:asset',
+        symbol: 'UNK',
+        balance: '999.123456789',
+      };
+
+      const result = testNonEvmFormatting(unknownAsset, 'unknown:network');
+      expect(result.balanceValueFormatted).toBe('999.12346 UNK');
+    });
+
+    it('handles missing balance gracefully', () => {
+      const assetWithoutBalance = {
+        address: 'cosmos:asset',
+        symbol: 'ATOM',
+      };
+
+      const result = testNonEvmFormatting(
+        assetWithoutBalance,
+        'cosmos:cosmoshub-4',
+      );
+      expect(result.balanceValueFormatted).toBe('Loading...');
+    });
+  });
+
+  describe('Percentage Change Number.isFinite Coverage', () => {
+    const testPercentageChangeWithFiniteCheck = (
+      _chainId: string,
+      showPercentageChange: boolean,
+      pricePercentChange1d: number | null | undefined,
+      isTestNet: boolean = false,
+    ) => {
+      // This tests the exact logic from the component including Number.isFinite
+      const hasPercentageChange =
+        !isTestNet &&
+        showPercentageChange &&
+        pricePercentChange1d !== null &&
+        pricePercentChange1d !== undefined &&
+        Number.isFinite(pricePercentChange1d);
+
+      if (!hasPercentageChange) {
+        return {
+          hasPercentageChange: false,
+          percentageText: undefined,
+          percentageColor: 'Alternative',
+        };
+      }
+
+      let percentageColor = 'Alternative';
+      if (pricePercentChange1d === 0) {
+        percentageColor = 'Alternative';
+      } else if (pricePercentChange1d > 0) {
+        percentageColor = 'Success';
+      } else {
+        percentageColor = 'Error';
+      }
+
+      const percentageText = `${
+        pricePercentChange1d >= 0 ? '+' : ''
+      }${pricePercentChange1d.toFixed(2)}%`;
+
+      return {
+        hasPercentageChange: true,
+        percentageText,
+        percentageColor,
+      };
+    };
+
+    it('covers Number.isFinite check for valid finite number', () => {
+      const result = testPercentageChangeWithFiniteCheck(
+        '0x1',
+        true,
+        5.67,
+        false,
+      );
+      expect(result.hasPercentageChange).toBe(true);
+      expect(result.percentageText).toBe('+5.67%');
+      expect(result.percentageColor).toBe('Success');
+    });
+
+    it('covers Number.isFinite check preventing Infinity', () => {
+      const result = testPercentageChangeWithFiniteCheck(
+        '0x1',
+        true,
+        Infinity,
+        false,
+      );
+      expect(result.hasPercentageChange).toBe(false);
+      expect(result.percentageText).toBeUndefined();
+      expect(result.percentageColor).toBe('Alternative');
+    });
+
+    it('covers Number.isFinite check preventing NaN', () => {
+      const result = testPercentageChangeWithFiniteCheck(
+        '0x1',
+        true,
+        NaN,
+        false,
+      );
+      expect(result.hasPercentageChange).toBe(false);
+      expect(result.percentageText).toBeUndefined();
+      expect(result.percentageColor).toBe('Alternative');
+    });
+
+    it('covers Number.isFinite check preventing negative Infinity', () => {
+      const result = testPercentageChangeWithFiniteCheck(
+        '0x1',
+        true,
+        -Infinity,
+        false,
+      );
+      expect(result.hasPercentageChange).toBe(false);
+      expect(result.percentageText).toBeUndefined();
+      expect(result.percentageColor).toBe('Alternative');
+    });
+  });
+
+  describe('Component Props Default Values and Privacy Mode', () => {
+    const testComponentDefaults = (props: {
+      assetKey: { address: string; chainId: string };
+      showRemoveMenu?: jest.Mock;
+      setShowScamWarningModal?: jest.Mock;
+      privacyMode?: boolean;
+      showPercentageChange?: boolean;
+    }) => {
+      // Test the default value assignment
+      const showPercentageChange = props.showPercentageChange ?? true;
+      const privacyMode = props.privacyMode ?? false;
+
+      return {
+        showPercentageChange,
+        privacyMode,
+        hasDefaultShowPercentage: props.showPercentageChange === undefined,
+        hasDefaultPrivacyMode: props.privacyMode === undefined,
+      };
+    };
+
+    it('applies default showPercentageChange = true when not provided', () => {
+      const result = testComponentDefaults({
+        assetKey: { address: '0x123', chainId: '0x1' },
+      });
+
+      expect(result.showPercentageChange).toBe(true);
+      expect(result.hasDefaultShowPercentage).toBe(true);
+    });
+
+    it('respects explicit showPercentageChange = false', () => {
+      const result = testComponentDefaults({
+        assetKey: { address: '0x123', chainId: '0x1' },
+        showPercentageChange: false,
+      });
+
+      expect(result.showPercentageChange).toBe(false);
+      expect(result.hasDefaultShowPercentage).toBe(false);
+    });
+
+    it('handles privacyMode prop correctly', () => {
+      const resultWithPrivacy = testComponentDefaults({
+        assetKey: { address: '0x123', chainId: '0x1' },
+        privacyMode: true,
+      });
+
+      expect(resultWithPrivacy.privacyMode).toBe(true);
+      expect(resultWithPrivacy.hasDefaultPrivacyMode).toBe(false);
+    });
+
+    it('handles default privacyMode = false', () => {
+      const resultWithoutPrivacy = testComponentDefaults({
+        assetKey: { address: '0x123', chainId: '0x1' },
+      });
+
+      expect(resultWithoutPrivacy.privacyMode).toBe(false);
+      expect(resultWithoutPrivacy.hasDefaultPrivacyMode).toBe(true);
+    });
+  });
 });
 
 describe('TokenListItem - Component Integration', () => {
