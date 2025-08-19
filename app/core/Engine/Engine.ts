@@ -1454,6 +1454,8 @@ export class Engine {
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
             'AccountsController:listAccounts',
+            'AccountTrackerController:updateNativeBalances',
+            'AccountTrackerController:updateStakedBalances',
           ],
           allowedEvents: [
             'TokensController:stateChange',
@@ -1463,8 +1465,12 @@ export class Engine {
           ],
         }),
         // TODO: This is long, can we decrease it?
-        interval: 180000,
+        interval: 15000,
         state: initialState.TokenBalancesController,
+        useAccountsAPI: false,
+        allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
+        queryMultipleAccounts:
+          preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1765,7 +1771,7 @@ export class Engine {
   }
 
   configureControllersOnNetworkChange() {
-    const { AccountTrackerController, NetworkController } = this.context;
+    const { NetworkController, TokenBalancesController } = this.context;
     const { provider } = NetworkController.getProviderAndBlockTracker();
 
     // Skip configuration if this is called before the provider is initialized
@@ -1774,15 +1780,9 @@ export class Engine {
     }
     provider.sendAsync = provider.sendAsync.bind(provider);
 
-    AccountTrackerController.refresh([
-      NetworkController.state.networkConfigurationsByChainId[
-        getGlobalChainId(NetworkController)
-      ]?.rpcEndpoints?.[
-        NetworkController.state.networkConfigurationsByChainId[
-          getGlobalChainId(NetworkController)
-        ]?.defaultRpcEndpointIndex
-      ]?.networkClientId,
-    ]);
+    TokenBalancesController.updateBalances({
+      chainIds: [getGlobalChainId(NetworkController)],
+    });
   }
 
   getTotalEvmFiatAccountBalance = (

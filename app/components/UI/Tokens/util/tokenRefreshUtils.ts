@@ -11,30 +11,15 @@ export const performEvmRefresh = async (
 ) => {
   const {
     TokenDetectionController,
-    AccountTrackerController,
     CurrencyRateController,
     TokenRatesController,
     TokenBalancesController,
-    NetworkController,
     PreferencesController,
   } = Engine.context;
 
   const tokenListChains = PreferencesController.state.tokenNetworkFilter;
-  const networkConfigurations =
-    NetworkController.state.networkConfigurationsByChainId;
 
   const chainIds = Object.keys(tokenListChains) as Hex[];
-  const networkClientIds = chainIds
-    .map((c) => {
-      const config = networkConfigurations[c];
-      if (!config) {
-        return undefined;
-      }
-
-      return config?.rpcEndpoints?.[config?.defaultRpcEndpointIndex]
-        ?.networkClientId;
-    })
-    .filter((c: string | undefined): c is string => Boolean(c));
 
   const actions = [
     TokenDetectionController.detectTokens({
@@ -43,7 +28,6 @@ export const performEvmRefresh = async (
     TokenBalancesController.updateBalances({
       chainIds,
     }),
-    AccountTrackerController.refresh(networkClientIds),
     CurrencyRateController.updateExchangeRate(nativeCurrencies),
     TokenRatesController.updateExchangeRatesByChainId(
       chainIds

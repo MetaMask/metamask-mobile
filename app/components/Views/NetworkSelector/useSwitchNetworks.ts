@@ -208,8 +208,8 @@ export function useSwitchNetworks({
 
       const {
         MultichainNetworkController,
-        AccountTrackerController,
         SelectedNetworkController,
+        TokenBalancesController,
       } = Engine.context;
 
       if (domainIsConnectedDapp && isPerDappSelectedNetworkEnabled()) {
@@ -236,7 +236,10 @@ export function useSwitchNetworks({
         }
 
         closeRpcModal?.();
-        AccountTrackerController.refresh([clientId]);
+
+        TokenBalancesController.updateBalances({
+          chainIds: [networkConfiguration.chainId],
+        });
 
         // Update incoming transactions after a delay
         setTimeout(async () => {

@@ -5,7 +5,7 @@ import useTokenRatesPolling from './useTokenRatesPolling';
 import useTokenDetectionPolling from './useTokenDetectionPolling';
 import useTokenListPolling from './useTokenListPolling';
 import useTokenBalancesPolling from './useTokenBalancesPolling';
-import useAccountTrackerPolling from './useAccountTrackerPolling';
+// import useAccountTrackerPolling from './useAccountTrackerPolling';
 
 // This provider is a step towards making controller polling fully UI based.
 // Eventually, individual UI components will call the use*Polling hooks to
@@ -13,19 +13,13 @@ import useAccountTrackerPolling from './useAccountTrackerPolling';
 export const AssetPollingProvider = memo(
   ({
     chainIds,
-    networkClientId,
+    // networkClientId,
     address,
   }: {
     chainIds?: Hex[];
     networkClientId?: string;
     address?: Hex;
   }) => {
-    const accountTrackerParams = useMemo(
-      () =>
-        networkClientId ? { networkClientIds: [networkClientId] } : undefined,
-      [networkClientId],
-    );
-
     const chainParams = useMemo(
       () => (chainIds ? { chainIds } : undefined),
       [chainIds],
@@ -36,7 +30,7 @@ export const AssetPollingProvider = memo(
       [chainIds, address],
     );
 
-    useAccountTrackerPolling(accountTrackerParams);
+    // useAccountTrackerPolling(accountTrackerParams);
     useCurrencyRatePolling(chainParams);
     useTokenRatesPolling(chainParams);
     useTokenDetectionPolling(tokenDetectionParams);

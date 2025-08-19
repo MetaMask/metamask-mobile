@@ -1,0 +1,117 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
+index 8912b10..2b0f164 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
+@@ -36,7 +36,7 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+ // ────────────────────────────────────────────────────────────────────────────
+ // region: Main controller
+ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPollingController)() {
+-    constructor({ messenger, interval = DEFAULT_INTERVAL_MS, state = {}, queryMultipleAccounts = true, useAccountsAPI = true, allowExternalServices = () => true, }) {
++    constructor({ messenger, interval = DEFAULT_INTERVAL_MS, state = {}, queryMultipleAccounts = true, useAccountsAPI = false, allowExternalServices = () => true, }) {
+         super({
+             name: CONTROLLER,
+             messenger,
+diff --git a/node_modules/@metamask/assets-controllers/dist/multi-chain-accounts-service/api-balance-fetcher.cjs b/node_modules/@metamask/assets-controllers/dist/multi-chain-accounts-service/api-balance-fetcher.cjs
+index 30030d4..b455c09 100644
+--- a/node_modules/@metamask/assets-controllers/dist/multi-chain-accounts-service/api-balance-fetcher.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/multi-chain-accounts-service/api-balance-fetcher.cjs
+@@ -51,10 +51,19 @@ class AccountsApiBalanceFetcher {
+         if (!caipAddrs.length) {
+             return [];
+         }
+-        const [balances, stakedBalances] = await Promise.all([
+-            (0, controller_utils_1.safelyExecute)(() => __classPrivateFieldGet(this, _AccountsApiBalanceFetcher_instances, "m", _AccountsApiBalanceFetcher_fetchBalances).call(this, caipAddrs)),
+-            __classPrivateFieldGet(this, _AccountsApiBalanceFetcher_instances, "m", _AccountsApiBalanceFetcher_fetchStakedBalances).call(this, caipAddrs),
+-        ]);
++        // Don't use safelyExecute here - let real errors propagate
++        let balances;
++        let apiError = false;
++        try {
++            balances = await __classPrivateFieldGet(this, _AccountsApiBalanceFetcher_instances, "m", _AccountsApiBalanceFetcher_fetchBalances).call(this, caipAddrs);
++        }
++        catch (error) {
++            // Mark that we had an API error so we don't add fake zero balances
++            apiError = true;
++            console.error('Failed to fetch balances from API:', error);
++            balances = undefined;
++        }
++        const stakedBalances = await __classPrivateFieldGet(this, _AccountsApiBalanceFetcher_instances, "m", _AccountsApiBalanceFetcher_fetchStakedBalances).call(this, caipAddrs);
+         const results = [];
+         // Collect all unique addresses and chains from the CAIP addresses
+         const addressChainMap = new Map();
+@@ -81,7 +90,17 @@ class AccountsApiBalanceFetcher {
+                 const chainId = (0, controller_utils_1.toHex)(b.chainId);
+                 let value;
+                 try {
+-                    value = new bn_js_1.default((parseFloat(b.balance) * 10 ** b.decimals).toFixed(0));
++                    // Convert string balance to BN avoiding floating point precision issues
++                    const { balance: balanceStr, decimals } = b;
++                    // Split the balance string into integer and decimal parts
++                    const [integerPart = '0', decimalPart = ''] = balanceStr.split('.');
++                    // Pad or truncate decimal part to match token decimals
++                    const paddedDecimalPart = decimalPart
++                        .padEnd(decimals, '0')
++                        .slice(0, decimals);
++                    // Combine and create BN
++                    const fullIntegerStr = integerPart + paddedDecimalPart;
++                    value = new bn_js_1.default(fullIntegerStr);
+                 }
+                 catch {
+                     value = undefined;
+@@ -102,25 +121,45 @@ class AccountsApiBalanceFetcher {
+             });
+             results.push(...apiBalances);
+         }
+-        // Ensure native token entries exist for all addresses/chains, even if not returned by API
+-        addressChainMap.forEach((chains, address) => {
+-            chains.forEach((chainId) => {
+-                const key = `${address}-${chainId}`;
+-                const existingBalance = nativeBalancesFromAPI.get(key);
+-                if (!existingBalance) {
+-                    // Add zero native balance entry if API didn't return one
++        // Only add zero native balance entries if API succeeded but didn't return balances
++        // Don't add fake zero balances if the API failed entirely
++        if (!apiError) {
++            addressChainMap.forEach((chains, address) => {
++                chains.forEach((chainId) => {
++                    const key = `${address}-${chainId}`;
++                    const existingBalance = nativeBalancesFromAPI.get(key);
++                    if (!existingBalance) {
++                        // Add zero native balance entry if API succeeded but didn't return one
++                        results.push({
++                            success: true,
++                            value: new bn_js_1.default('0'),
++                            account: address,
++                            token: ZERO_ADDRESS,
++                            chainId,
++                        });
++                    }
++                });
++            });
++        }
++        else {
++            // If API failed, add error entries for all requested addresses/chains
++            addressChainMap.forEach((chains, address) => {
++                chains.forEach((chainId) => {
+                     results.push({
+-                        success: true,
+-                        value: new bn_js_1.default('0'),
++                        success: false,
+                         account: address,
+                         token: ZERO_ADDRESS,
+                         chainId,
+                     });
+-                }
++                });
+             });
+-        });
++        }
+         // Add staked balances
+         results.push(...stakedBalances);
++        // If we had an API error and no successful results, throw the error
++        if (apiError && results.every((r) => !r.success)) {
++            throw new Error('Failed to fetch any balance data due to API error');
++        }
+         return results;
+     }
+ }
