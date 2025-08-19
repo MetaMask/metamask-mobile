@@ -22,6 +22,7 @@ const BIG_NUMBER_GWEI_MULTIPLIER = new BigNumber('1000000000');
 const BIG_NUMBER_ETH_MULTIPLIER = new BigNumber('1');
 
 /**
+ * @deprecated Use hexToBigInt instead.
  * Converts a hex string to a BN object.
  * Adapt function with non string argument handler
  *
@@ -36,6 +37,7 @@ export const hexToBN = (inputHex) =>
     : new BN4(0);
 
 /**
+ * @deprecated Use bigIntToHex instead.
  * Converts a BN object to a hex string with a '0x' prefix.
  *
  * @param inputBn - BN instance to convert to a hex string.
