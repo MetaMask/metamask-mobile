@@ -174,6 +174,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                             color: '${theme.colors.background.default}',
                         },
                         textColor: '${theme.colors.text.muted}',
+                        attributionLogo: false, // Hide the TradingView logo
                     },
                     grid: {
                         vertLines: { color: '${theme.colors.border.muted}' },
