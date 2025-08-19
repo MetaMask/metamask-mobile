@@ -11,13 +11,8 @@ describe('ConnectionRegistry', () => {
     registry = new ConnectionRegistry(hostapp, store);
   });
 
-  describe('dummy tests for scaffolding, will be replaced with real tests', () => {
-    it('should be defined', () => {
-      expect(registry).toBeDefined();
-    });
-
-    it('should handle connect deeplink', () => {
-      expect(registry.handleConnectDeeplink).toBeDefined();
-    });
+  it('dummy tests for scaffolding, will be replaced with real tests', () => {
+    expect(registry).toBeDefined();
+    expect(registry.handleConnectDeeplink('test-deeplink')).not.toThrow();
   });
 });

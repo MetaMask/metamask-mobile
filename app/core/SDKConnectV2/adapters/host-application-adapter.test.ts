@@ -7,29 +7,18 @@ describe('HostApplicationAdapter', () => {
     adapter = new HostApplicationAdapter();
   });
 
-  describe('dummy tests for scaffolding, will be replaced with real tests', () => {
-    it('should be defined', () => {
-      expect(adapter).toBeDefined();
-    });
-
-    it('should show connection approval', () => {
-      expect(adapter.showConnectionApproval).toBeDefined();
-    });
-
-    it('should show loading', () => {
-      expect(adapter.showLoading).toBeDefined();
-    });
-
-    it('should hide loading', () => {
-      expect(adapter.hideLoading).toBeDefined();
-    });
-
-    it('should show OTP modal', () => {
-      expect(adapter.showOTPModal).toBeDefined();
-    });
-
-    it('should sync connection list', () => {
-      expect(adapter.syncConnectionList).toBeDefined();
-    });
+  it('dummy tests for scaffolding, will be replaced with real tests', () => {
+    expect(adapter).toBeDefined();
+    expect(
+      adapter.showConnectionApproval('test-id', {
+        name: 'test-dapp-name',
+        url: 'test-dapp-url',
+        icon: 'test-dapp-icon',
+      }),
+    ).resolves.not.toThrow();
+    expect(adapter.showLoading()).not.toThrow();
+    expect(adapter.hideLoading()).not.toThrow();
+    expect(adapter.showOTPModal()).resolves.not.toThrow();
+    expect(adapter.syncConnectionList([])).not.toThrow();
   });
 });

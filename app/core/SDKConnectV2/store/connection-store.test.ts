@@ -1,4 +1,5 @@
 import { ConnectionStore } from './connection-store';
+import { Connection } from '../types/connection';
 
 describe('ConnectionStore', () => {
   let store: ConnectionStore;
@@ -7,25 +8,11 @@ describe('ConnectionStore', () => {
     store = new ConnectionStore();
   });
 
-  describe('dummy tests for scaffolding, will be replaced with real tests', () => {
-    it('should be defined', () => {
-      expect(store).toBeDefined();
-    });
-
-    it('should save a connection', () => {
-      expect(store.save).toBeDefined();
-    });
-
-    it('should get a connection', () => {
-      expect(store.get).toBeDefined();
-    });
-
-    it('should list connections', () => {
-      expect(store.list).toBeDefined();
-    });
-
-    it('should delete a connection', () => {
-      expect(store.delete).toBeDefined();
-    });
+  it('dummy tests for scaffolding, will be replaced with real tests', () => {
+    expect(store).toBeDefined();
+    expect(store.save({} as Connection)).resolves.not.toThrow();
+    expect(store.get('test-id')).resolves.toBeNull();
+    expect(store.list()).resolves.toEqual([]);
+    expect(store.delete('test-id')).resolves.not.toThrow();
   });
 });
