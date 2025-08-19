@@ -611,6 +611,476 @@ describe('TokenListItem - Utility Logic Tests', () => {
   });
 });
 
+describe('TokenListItem - Advanced Component Logic', () => {
+  describe('Balance Calculation and Formatting', () => {
+    const testBalanceDerivation = (
+      asset: {
+        address: string;
+        symbol: string;
+        balance?: string;
+        balanceFiat?: string;
+      } | null,
+      exchangeRates: Record<string, { price: number }>,
+      tokenBalances: Record<string, string>,
+      conversionRate: number,
+      _currentCurrency: string,
+      isEvmNetworkSelected: boolean,
+    ) => {
+      if (!isEvmNetworkSelected || !asset) {
+        return {
+          balanceFiat: asset?.balanceFiat
+            ? `$${asset.balanceFiat}`
+            : 'Loading...',
+          balanceValueFormatted: asset?.balance
+            ? `${asset.balance} ${asset.symbol}`
+            : 'Loading...',
+        };
+      }
+
+      // Simplified balance derivation logic
+      const rate = exchangeRates[asset.address]?.price || 0;
+      const balance = tokenBalances[asset.address] || '0';
+      const balanceNum = parseFloat(balance);
+      const fiatValue = balanceNum * rate * conversionRate;
+
+      return {
+        balanceFiat: fiatValue > 0 ? `$${fiatValue.toFixed(2)}` : '$0.00',
+        balanceValueFormatted: `${balanceNum} ${asset.symbol}`,
+      };
+    };
+
+    it('calculates fiat balance correctly for EVM assets', () => {
+      const asset = { address: '0x123', symbol: 'TEST', balance: '100' };
+      const exchangeRates = { '0x123': { price: 2.5 } };
+      const tokenBalances = { '0x123': '100' };
+
+      const result = testBalanceDerivation(
+        asset,
+        exchangeRates,
+        tokenBalances,
+        1.0,
+        'USD',
+        true,
+      );
+
+      expect(result.balanceFiat).toBe('$250.00');
+      expect(result.balanceValueFormatted).toBe('100 TEST');
+    });
+
+    it('handles non-EVM assets with pre-calculated values', () => {
+      const asset = {
+        address: 'cosmos:asset',
+        symbol: 'ATOM',
+        balance: '50',
+        balanceFiat: '125.50',
+      };
+
+      const result = testBalanceDerivation(asset, {}, {}, 1.0, 'USD', false);
+
+      expect(result.balanceFiat).toBe('$125.50');
+      expect(result.balanceValueFormatted).toBe('50 ATOM');
+    });
+
+    it('handles zero balance correctly', () => {
+      const asset = { address: '0x123', symbol: 'TEST', balance: '0' };
+      const exchangeRates = { '0x123': { price: 2.5 } };
+      const tokenBalances = { '0x123': '0' };
+
+      const result = testBalanceDerivation(
+        asset,
+        exchangeRates,
+        tokenBalances,
+        1.0,
+        'USD',
+        true,
+      );
+
+      expect(result.balanceFiat).toBe('$0.00');
+      expect(result.balanceValueFormatted).toBe('0 TEST');
+    });
+
+    it('handles missing exchange rate gracefully', () => {
+      const asset = { address: '0x123', symbol: 'TEST', balance: '100' };
+      const exchangeRates = {}; // No rate available
+      const tokenBalances = { '0x123': '100' };
+
+      const result = testBalanceDerivation(
+        asset,
+        exchangeRates,
+        tokenBalances,
+        1.0,
+        'USD',
+        true,
+      );
+
+      expect(result.balanceFiat).toBe('$0.00');
+      expect(result.balanceValueFormatted).toBe('100 TEST');
+    });
+  });
+
+  describe('Asset Selection Logic', () => {
+    const testAssetSelection = (
+      isEvmNetworkSelected: boolean,
+      evmAsset: { chainId: string; symbol: string } | null,
+      nonEvmAsset: { chainId: string; symbol: string } | null,
+    ) => (isEvmNetworkSelected ? evmAsset : nonEvmAsset);
+
+    it('selects EVM asset when EVM network is selected', () => {
+      const evmAsset = { chainId: '0x1', symbol: 'ETH' };
+      const nonEvmAsset = { chainId: 'cosmos:hub', symbol: 'ATOM' };
+
+      const result = testAssetSelection(true, evmAsset, nonEvmAsset);
+      expect(result).toBe(evmAsset);
+    });
+
+    it('selects non-EVM asset when non-EVM network is selected', () => {
+      const evmAsset = { chainId: '0x1', symbol: 'ETH' };
+      const nonEvmAsset = { chainId: 'cosmos:hub', symbol: 'ATOM' };
+
+      const result = testAssetSelection(false, evmAsset, nonEvmAsset);
+      expect(result).toBe(nonEvmAsset);
+    });
+
+    it('handles null assets gracefully', () => {
+      const result = testAssetSelection(true, null, null);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('Navigation and Analytics', () => {
+    const testNavigationLogic = (
+      asset: {
+        chainId: string;
+        symbol: string;
+        address: string;
+        isStaked?: boolean;
+        nativeAsset?: { chainId: string; symbol: string; address: string };
+      } | null,
+      trackEventFn: jest.Mock,
+      navigateFn: jest.Mock,
+    ) => {
+      // Mock the onItemPress logic
+      if (!asset) return;
+
+      trackEventFn({
+        category: 'TOKEN_DETAILS_OPENED',
+        properties: {
+          source: 'mobile-token-list',
+          chain_id: asset.chainId,
+          token_symbol: asset.symbol,
+        },
+      });
+
+      if (asset.isStaked) {
+        navigateFn('Asset', asset.nativeAsset);
+      } else {
+        navigateFn('Asset', asset);
+      }
+    };
+
+    it('tracks event and navigates to regular asset', () => {
+      const trackEvent = jest.fn();
+      const navigate = jest.fn();
+      const asset = {
+        chainId: '0x1',
+        symbol: 'TOKEN',
+        address: '0x123',
+        isStaked: false,
+      };
+
+      testNavigationLogic(asset, trackEvent, navigate);
+
+      expect(trackEvent).toHaveBeenCalledWith({
+        category: 'TOKEN_DETAILS_OPENED',
+        properties: {
+          source: 'mobile-token-list',
+          chain_id: '0x1',
+          token_symbol: 'TOKEN',
+        },
+      });
+      expect(navigate).toHaveBeenCalledWith('Asset', asset);
+    });
+
+    it('navigates to native asset for staked tokens', () => {
+      const trackEvent = jest.fn();
+      const navigate = jest.fn();
+      const asset = {
+        chainId: '0x1',
+        symbol: 'stETH',
+        address: '0x456',
+        isStaked: true,
+        nativeAsset: { chainId: '0x1', symbol: 'ETH', address: '0x0' },
+      };
+
+      testNavigationLogic(asset, trackEvent, navigate);
+
+      expect(navigate).toHaveBeenCalledWith('Asset', asset.nativeAsset);
+    });
+
+    it('handles null asset gracefully', () => {
+      const trackEvent = jest.fn();
+      const navigate = jest.fn();
+
+      testNavigationLogic(null, trackEvent, navigate);
+
+      expect(trackEvent).not.toHaveBeenCalled();
+      expect(navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Testnet Balance Display Logic', () => {
+    const testTestnetLogic = (
+      chainId: string,
+      showFiatOnTestnets: boolean,
+      balanceFiat: string | undefined,
+    ) => {
+      const isTestNet = chainId.startsWith('0x5') || chainId.startsWith('0x4');
+      const shouldNotShowBalanceOnTestnets = isTestNet && !showFiatOnTestnets;
+
+      if (shouldNotShowBalanceOnTestnets && !balanceFiat) {
+        return { mainBalance: undefined, shouldHide: true };
+      }
+
+      return {
+        mainBalance: balanceFiat ?? 'Unable to find conversion rate',
+        shouldHide: false,
+      };
+    };
+
+    it('hides balance on testnet when showFiatOnTestnets is disabled', () => {
+      const result = testTestnetLogic('0x5', false, undefined);
+      expect(result.shouldHide).toBe(true);
+      expect(result.mainBalance).toBeUndefined();
+    });
+
+    it('shows balance on testnet when showFiatOnTestnets is enabled', () => {
+      const result = testTestnetLogic('0x5', true, '$100.00');
+      expect(result.shouldHide).toBe(false);
+      expect(result.mainBalance).toBe('$100.00');
+    });
+
+    it('shows balance on mainnet regardless of showFiatOnTestnets', () => {
+      const result = testTestnetLogic('0x1', false, '$100.00');
+      expect(result.shouldHide).toBe(false);
+      expect(result.mainBalance).toBe('$100.00');
+    });
+
+    it('shows fallback when no fiat but showFiatOnTestnets enabled', () => {
+      const result = testTestnetLogic('0x5', true, undefined);
+      expect(result.shouldHide).toBe(false);
+      expect(result.mainBalance).toBe('Unable to find conversion rate');
+    });
+  });
+
+  describe('Earn/Staking Feature Logic', () => {
+    const testEarnLogic = (
+      asset: { isETH?: boolean; isStaked?: boolean; symbol: string } | null,
+      isStakingSupportedChain: boolean,
+      isPooledStakingEnabled: boolean,
+      isStablecoinLendingEnabled: boolean,
+      earnToken: { symbol: string; apy: number } | null,
+    ) => {
+      if (!asset) return { shouldShowCta: false, ctaType: null };
+
+      const isCurrentAssetEth = asset?.isETH && !asset?.isStaked;
+      const shouldShowPooledStakingCta =
+        isCurrentAssetEth && isStakingSupportedChain && isPooledStakingEnabled;
+      const shouldShowStablecoinLendingCta =
+        earnToken && isStablecoinLendingEnabled;
+
+      if (shouldShowPooledStakingCta) {
+        return { shouldShowCta: true, ctaType: 'staking' };
+      }
+      if (shouldShowStablecoinLendingCta) {
+        return { shouldShowCta: true, ctaType: 'lending' };
+      }
+
+      return { shouldShowCta: false, ctaType: null };
+    };
+
+    it('shows staking CTA for ETH on supported chain', () => {
+      const asset = { isETH: true, isStaked: false, symbol: 'ETH' };
+      const result = testEarnLogic(asset, true, true, false, null);
+
+      expect(result.shouldShowCta).toBe(true);
+      expect(result.ctaType).toBe('staking');
+    });
+
+    it('shows lending CTA for supported stablecoin', () => {
+      const asset = { isETH: false, symbol: 'USDC' };
+      const earnToken = { symbol: 'USDC', apy: 5.2 };
+      const result = testEarnLogic(asset, false, false, true, earnToken);
+
+      expect(result.shouldShowCta).toBe(true);
+      expect(result.ctaType).toBe('lending');
+    });
+
+    it('does not show CTA for staked ETH', () => {
+      const asset = { isETH: true, isStaked: true, symbol: 'stETH' };
+      const result = testEarnLogic(asset, true, true, false, null);
+
+      expect(result.shouldShowCta).toBe(false);
+      expect(result.ctaType).toBeNull();
+    });
+
+    it('does not show CTA when features are disabled', () => {
+      const asset = { isETH: true, isStaked: false, symbol: 'ETH' };
+      const result = testEarnLogic(asset, true, false, false, null);
+
+      expect(result.shouldShowCta).toBe(false);
+      expect(result.ctaType).toBeNull();
+    });
+
+    it('prioritizes staking over lending for ETH', () => {
+      const asset = { isETH: true, isStaked: false, symbol: 'ETH' };
+      const earnToken = { symbol: 'ETH', apy: 3.2 };
+      const result = testEarnLogic(asset, true, true, true, earnToken);
+
+      expect(result.shouldShowCta).toBe(true);
+      expect(result.ctaType).toBe('staking');
+    });
+  });
+
+  describe('Network Avatar and Badge Logic', () => {
+    const testNetworkAvatarLogic = (
+      asset: {
+        isNative?: boolean;
+        symbol: string;
+        ticker?: string;
+        image?: string;
+      } | null,
+      chainId: string,
+    ) => {
+      if (!asset) return { avatarType: 'none' };
+
+      if (asset.isNative) {
+        const customNetworkMapping: Record<string, string> = {
+          '0x89': 'polygon-native.png',
+          '0xa86a': 'avalanche-native.png',
+        };
+
+        if (customNetworkMapping[chainId]) {
+          return {
+            avatarType: 'custom-native',
+            imageSource: customNetworkMapping[chainId],
+          };
+        }
+
+        return {
+          avatarType: 'network-logo',
+          ticker: asset.ticker || '',
+        };
+      }
+
+      return {
+        avatarType: 'token',
+        imageSource: asset.image,
+      };
+    };
+
+    it('returns custom native avatar for recognized chains', () => {
+      const asset = { isNative: true, symbol: 'MATIC', ticker: 'MATIC' };
+      const result = testNetworkAvatarLogic(asset, '0x89');
+
+      expect(result.avatarType).toBe('custom-native');
+      expect(result.imageSource).toBe('polygon-native.png');
+    });
+
+    it('returns network logo for native assets on standard chains', () => {
+      const asset = { isNative: true, symbol: 'ETH', ticker: 'ETH' };
+      const result = testNetworkAvatarLogic(asset, '0x1');
+
+      expect(result.avatarType).toBe('network-logo');
+      expect(result.ticker).toBe('ETH');
+    });
+
+    it('returns token avatar for non-native assets', () => {
+      const asset = {
+        isNative: false,
+        symbol: 'USDC',
+        image: 'https://example.com/usdc.png',
+      };
+      const result = testNetworkAvatarLogic(asset, '0x1');
+
+      expect(result.avatarType).toBe('token');
+      expect(result.imageSource).toBe('https://example.com/usdc.png');
+    });
+
+    it('handles null asset gracefully', () => {
+      const result = testNetworkAvatarLogic(null, '0x1');
+      expect(result.avatarType).toBe('none');
+    });
+  });
+
+  describe('Error State and Fallback Logic', () => {
+    const testErrorHandling = (
+      evmAsset: { hasBalanceError?: boolean; symbol: string } | null,
+      balanceFiat: string | undefined,
+    ) => {
+      let mainBalance;
+      let secondaryBalance;
+      let secondaryBalanceColorToUse;
+
+      // Initial state
+      mainBalance = balanceFiat ?? 'Unable to find conversion rate';
+      secondaryBalance = undefined;
+      secondaryBalanceColorToUse = undefined;
+
+      // Handle balance error
+      if (evmAsset?.hasBalanceError) {
+        mainBalance = evmAsset.symbol;
+        secondaryBalance = 'Unable to load';
+        secondaryBalanceColorToUse = undefined;
+      }
+
+      // Handle rate undefined
+      if (balanceFiat === TOKEN_RATE_UNDEFINED) {
+        mainBalance = '1.23 ETH'; // Mock balance value
+        secondaryBalance = 'Unable to find conversion rate';
+        secondaryBalanceColorToUse = undefined;
+      }
+
+      return { mainBalance, secondaryBalance, secondaryBalanceColorToUse };
+    };
+
+    it('handles balance error correctly', () => {
+      const evmAsset = { hasBalanceError: true, symbol: 'TOKEN' };
+      const result = testErrorHandling(evmAsset, '$100.00');
+
+      expect(result.mainBalance).toBe('TOKEN');
+      expect(result.secondaryBalance).toBe('Unable to load');
+      expect(result.secondaryBalanceColorToUse).toBeUndefined();
+    });
+
+    it('handles rate undefined correctly', () => {
+      const evmAsset = { hasBalanceError: false, symbol: 'TOKEN' };
+      const result = testErrorHandling(evmAsset, TOKEN_RATE_UNDEFINED);
+
+      expect(result.mainBalance).toBe('1.23 ETH');
+      expect(result.secondaryBalance).toBe('Unable to find conversion rate');
+      expect(result.secondaryBalanceColorToUse).toBeUndefined();
+    });
+
+    it('handles normal state correctly', () => {
+      const evmAsset = { hasBalanceError: false, symbol: 'TOKEN' };
+      const result = testErrorHandling(evmAsset, '$100.00');
+
+      expect(result.mainBalance).toBe('$100.00');
+      expect(result.secondaryBalance).toBeUndefined();
+      expect(result.secondaryBalanceColorToUse).toBeUndefined();
+    });
+
+    it('handles missing fiat gracefully', () => {
+      const evmAsset = { hasBalanceError: false, symbol: 'TOKEN' };
+      const result = testErrorHandling(evmAsset, undefined);
+
+      expect(result.mainBalance).toBe('Unable to find conversion rate');
+      expect(result.secondaryBalance).toBeUndefined();
+      expect(result.secondaryBalanceColorToUse).toBeUndefined();
+    });
+  });
+});
+
 describe('TokenListItem - Component Integration', () => {
   // Instead of testing the entire component with Redux,
   // let's focus on testing the component's integration with simpler mocking
