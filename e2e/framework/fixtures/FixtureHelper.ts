@@ -328,7 +328,17 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
 export const createMockAPIServer = async (
   mockServerInstance?: Mockttp,
   testSpecificMock?: TestSpecificMock,
+  framework?: 'detox' | 'appwright',
 ) => {
+  // Skip mock server for non-Detox tests since they don't need API mocking
+  if (framework !== 'detox') {
+    logger.debug('Mock server disabled for non-Detox tests');
+    return {
+      mockServer: undefined,
+      mockServerPort: undefined,
+    };
+  }
+
   // Handle mock server
   let mockServer: Mockttp | undefined;
   let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
@@ -363,8 +373,17 @@ export const createMockAPIServer = async (
     );
   }
 
-  // neither
+  // neither - only start if not Appwright
   if (!mockServerInstance && !testSpecificMock) {
+    // For Appwright tests, don't start a mock server
+    if (framework !== 'detox') {
+      logger.debug('No mock server needed for non-Detox test');
+      return {
+        mockServer: undefined,
+        mockServerPort: undefined,
+      };
+    }
+
     mockServerPort = getMockServerPort();
     mockServer = await startMockServer({}, mockServerPort);
 
@@ -374,10 +393,18 @@ export const createMockAPIServer = async (
   }
 
   if (!mockServer) {
+    // For Appwright tests, this is expected behavior
+    if (framework !== 'detox') {
+      logger.debug('No mock server for non-Detox test - this is expected');
+      return {
+        mockServer: undefined,
+        mockServerPort: undefined,
+      };
+    }
     throw new Error('Test setup failure, no mock server setup');
   }
 
-  // Additional Global Mocks
+  // Additional Global Mocks - only when mock server exists
   await mockNotificationServices(mockServer);
 
   return {
@@ -396,6 +423,7 @@ export const createMockAPIServer = async (
  * @throws {Error} - Throws an error if an exception occurs during the test suite execution.
  */
 export async function withFixtures(
+  framework: 'detox' | 'appwright',
   options: WithFixturesOptions,
   testSuite: TestSuiteFunction,
 ) {
@@ -424,10 +452,14 @@ export async function withFixtures(
   const { mockServer, mockServerPort } = await createMockAPIServer(
     mockServerInstance,
     testSpecificMock,
+    framework,
   );
 
   // Prepare android devices for testing to avoid having this in all tests
-  await TestHelpers.reverseServerPort();
+  // Only do this for Detox
+  if (framework === 'detox') {
+    await TestHelpers.reverseServerPort();
+  }
 
   // Handle local nodes
   let localNodes;
@@ -471,13 +503,14 @@ export async function withFixtures(
     );
     // Due to the fact that the app was already launched on `init.js`, it is necessary to
     // launch into a fresh installation of the app to apply the new fixture loaded perviously.
-    if (restartDevice) {
+    // Only restart device for Detox
+    if (restartDevice && framework === 'detox') {
       await TestHelpers.launchApp({
         delete: true,
         launchArgs: {
           fixtureServerPort: `${getFixturesServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-          mockServerPort: `${mockServerPort}`,
+          ...(mockServerPort && { mockServerPort: `${mockServerPort}` }),
           ...(launchArgs || {}),
         },
         languageAndLocale,

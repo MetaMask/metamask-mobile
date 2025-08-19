@@ -1,24 +1,23 @@
 import { test, expect } from 'appwright';
 
-import { PerformanceTracker } from '../../reporters/PerformanceTracker.js';
+import { PerformanceTracker } from '../reporters/PerformanceTracker.js';
 
-import FixtureBuilder from '../../../e2e/framework/fixtures/FixtureBuilder.js';
+import FixtureBuilder from '../../e2e/framework/fixtures/FixtureBuilder.js';
 
-import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
-import TimerHelper from '../../utils/TimersHelper.js';
-import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import LoginScreen from '../../wdio/screen-objects/LoginScreen.js';
+import TimerHelper from '../utils/TimersHelper.js';
+import WalletMainScreen from '../../wdio/screen-objects/WalletMainScreen.js';
+// import AppLaunchHelper from '../utils/AppLaunchHelper.js';
 
-import { withFixtures } from '../../../e2e/framework/fixtures/FixtureHelper.js';
-import { launchApp, importSRPFlow } from '../../utils/Flows.js';
+import { withFixtures } from '../../e2e/framework/fixtures/FixtureHelper.js';
+import { launchApp } from '../utils/Flows.js';
 
-import AccountListComponent from '../../../wdio/screen-objects/AccountListComponent.js';
-import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal.js';
-import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
-import SwapScreen from '../../../wdio/screen-objects/SwapScreen.js';
-import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
-test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
-  device,
-}, testInfo) => {
+import AccountListComponent from '../../wdio/screen-objects/AccountListComponent.js';
+import AddAccountModal from '../../wdio/screen-objects/Modals/AddAccountModal.js';
+import WalletActionModal from '../../wdio/screen-objects/Modals/WalletActionModal.js';
+import SwapScreen from '../../wdio/screen-objects/SwapScreen.js';
+import TabBarModal from '../../wdio/screen-objects/Modals/TabBarModal.js';
+test('Swap flow - Etherem with Fixtures ', async ({ device }, testInfo) => {
   await withFixtures(
     'appwright', // Specifying the framework as a parameter
     {
@@ -39,8 +38,6 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
       const swapLoadTimer = new TimerHelper(
         'Time since the user clicks on the "Swap" button until the swap page is loaded',
       );
-      await importSRPFlow(device, process.env.TEST_SRP_3);
-
       swapLoadTimer.start();
       await WalletActionModal.tapSwapButton();
       swapLoadTimer.stop();

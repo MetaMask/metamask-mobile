@@ -13,6 +13,7 @@ import SolanaFeatureSheet from '../../../wdio/screen-objects/Modals/SolanaFeatur
 import WalletAccountModal from '../../../wdio/screen-objects/Modals/WalletAccountModal.js';
 import SkipAccountSecurityModal from '../../../wdio/screen-objects/Modals/SkipAccountSecurityModal.js';
 import WalletMainScreen from '../../../wdio/screen-objects/WalletMainScreen.js';
+import { launchApp } from '../../utils/Flows.js';
 
 const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED
   ? process.env.SEEDLESS_ONBOARDING_ENABLED
@@ -63,7 +64,7 @@ test('Onboarding new wallet, SRP 1 + SRP 2 + SRP 3', async ({
   const timer8 = new TimerHelper(
     'Time since the user clicks on "Done" button until Solana feature sheet is visible',
   );
-
+  await launchApp(device);
   timer1.start();
   await WelcomeScreen.clickGetStartedButton();
   await TermOfUseScreen.isDisplayed();
