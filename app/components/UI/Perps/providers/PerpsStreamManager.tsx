@@ -19,7 +19,7 @@ interface StreamSubscription<T> {
 }
 
 // Base class for any stream type
-class StreamChannel<T> {
+abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscription: (() => void) | null = null;
@@ -109,6 +109,34 @@ class StreamChannel<T> {
     // Override in subclasses
     return null;
   }
+
+  public clearCache(): void {
+    this.cache.clear();
+    // Disconnect existing WebSocket subscription to force reconnect with new account
+    if (this.wsSubscription) {
+      this.disconnect();
+    }
+    // Notify subscribers immediately with cleared data (bypass throttling)
+    // Subclasses should override getClearedData() to provide appropriate empty state
+    const clearedData = this.getClearedData();
+    this.subscribers.forEach((subscriber) => {
+      // Clear any pending updates and timers
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
+      // Notify immediately with cleared data
+      subscriber.callback(clearedData);
+    });
+    // If we have active subscribers, reconnect with the new account
+    if (this.subscribers.size > 0) {
+      // Small delay to ensure old connection is fully closed
+      setTimeout(() => this.connect(), 100);
+    }
+  }
+
+  protected abstract getClearedData(): T;
 }
 
 // Specific channel for prices
@@ -167,6 +195,17 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     return cached;
   }
 
+  protected getClearedData(): Record<string, PriceUpdate> {
+    return {};
+  }
+
+  public clearCache(): void {
+    // Clear the price-specific cache
+    this.priceCache.clear();
+    // Call parent clearCache
+    super.clearCache();
+  }
+
   subscribeToSymbols(params: {
     symbols: string[];
     callback: (prices: Record<string, PriceUpdate>) => void;
@@ -223,6 +262,10 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     return this.cache.get('orders') || [];
   }
 
+  protected getClearedData(): Order[] {
+    return [];
+  }
+
   /**
    * Pre-warm the channel by creating a persistent subscription
    * This keeps the WebSocket connection alive and caches data continuously
@@ -273,6 +316,10 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
   protected getCachedData() {
     return this.cache.get('positions') || [];
+  }
+
+  protected getClearedData(): Position[] {
+    return [];
   }
 
   /**
@@ -326,10 +373,14 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
   protected getCachedData() {
     return this.cache.get('fills') || [];
   }
+
+  protected getClearedData(): OrderFill[] {
+    return [];
+  }
 }
 
 // Specific channel for account state
-class AccountStreamChannel extends StreamChannel<AccountState> {
+class AccountStreamChannel extends StreamChannel<AccountState | null> {
   private prewarmUnsubscribe?: () => void;
 
   protected connect() {
@@ -339,7 +390,7 @@ class AccountStreamChannel extends StreamChannel<AccountState> {
       callback: (account: AccountState) => {
         // Use base cache Map with consistent key
         this.cache.set('account', account);
-        this.notifySubscribers(account);
+        this.notifySubscribers(account as AccountState | null);
       },
     });
   }
@@ -347,6 +398,10 @@ class AccountStreamChannel extends StreamChannel<AccountState> {
   protected getCachedData(): AccountState | null {
     // Return cached data for instant display
     return this.cache.get('account') || null;
+  }
+
+  protected getClearedData(): AccountState | null {
+    return null;
   }
 
   /**

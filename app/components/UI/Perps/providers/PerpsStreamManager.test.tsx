@@ -567,6 +567,173 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('clearCache', () => {
+    it('should clear cache and notify subscribers with empty data', async () => {
+      let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
+      const mockUnsubscribe = jest.fn();
+
+      mockSubscribeToPrices.mockImplementation((params) => {
+        priceCallback = params.callback;
+        return mockUnsubscribe;
+      });
+
+      const onUpdate = jest.fn();
+
+      render(
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <TestPriceComponent onUpdate={onUpdate} />
+        </PerpsStreamProvider>,
+      );
+
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalled();
+      });
+
+      // Send initial data
+      act(() => {
+        priceCallback([
+          {
+            coin: 'BTC-PERP',
+            price: '50000',
+            timestamp: Date.now(),
+            percentChange24h: '5',
+          },
+        ]);
+      });
+
+      await waitFor(() => {
+        expect(onUpdate).toHaveBeenCalledWith({
+          'BTC-PERP': expect.objectContaining({
+            coin: 'BTC-PERP',
+            price: '50000',
+          }),
+        });
+      });
+
+      // Clear the mock to track only clearCache calls
+      onUpdate.mockClear();
+
+      // Clear cache
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Should disconnect and reconnect
+      await waitFor(() => {
+        expect(mockUnsubscribe).toHaveBeenCalled();
+      });
+
+      // Should notify with empty data after clearing
+      expect(onUpdate).toHaveBeenCalledWith({});
+
+      // Should reconnect after delay
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('should disconnect WebSocket when clearing cache', async () => {
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
+
+      const onUpdate = jest.fn();
+
+      render(
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <TestPriceComponent onUpdate={onUpdate} />
+        </PerpsStreamProvider>,
+      );
+
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalled();
+      });
+
+      // Clear cache
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Should disconnect existing subscription
+      expect(mockUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('should reconnect after clearing cache if there are active subscribers', async () => {
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
+
+      const onUpdate = jest.fn();
+
+      render(
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <TestPriceComponent onUpdate={onUpdate} />
+        </PerpsStreamProvider>,
+      );
+
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+      });
+
+      // Clear cache
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Advance timer to trigger reconnection
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Should reconnect
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('should not reconnect if no active subscribers', async () => {
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
+
+      const onUpdate = jest.fn();
+
+      const { unmount } = render(
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <TestPriceComponent onUpdate={onUpdate} />
+        </PerpsStreamProvider>,
+      );
+
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+      });
+
+      // Unmount to remove all subscribers
+      unmount();
+
+      await waitFor(() => {
+        expect(mockUnsubscribe).toHaveBeenCalled();
+      });
+
+      // Reset mock
+      mockSubscribeToPrices.mockClear();
+
+      // Clear cache with no subscribers
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Advance timer
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Should not reconnect
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+    });
+  });
+
   it('should throttle subsequent updates', async () => {
     const onUpdate = jest.fn();
     let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
