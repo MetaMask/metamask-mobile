@@ -405,10 +405,10 @@ describe('PerpsConnectionManager', () => {
       storeCallbacks.length = 0;
 
       // Setup initial values for selectors
-      (selectSelectedInternalAccountAddress as jest.Mock).mockReturnValue(
-        '0xabc123',
-      );
-      (selectPerpsNetwork as jest.Mock).mockReturnValue('mainnet');
+      (
+        selectSelectedInternalAccountAddress as unknown as jest.Mock
+      ).mockReturnValue('0xabc123');
+      (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('mainnet');
       (store.getState as jest.Mock).mockReturnValue({});
     });
 
@@ -442,9 +442,9 @@ describe('PerpsConnectionManager', () => {
       mockDevLogger.log.mockClear();
 
       // Simulate account change
-      (selectSelectedInternalAccountAddress as jest.Mock).mockReturnValue(
-        '0xdef456',
-      );
+      (
+        selectSelectedInternalAccountAddress as unknown as jest.Mock
+      ).mockReturnValue('0xdef456');
 
       // Trigger the store callback with the changed value
       storeCallback();
@@ -478,7 +478,7 @@ describe('PerpsConnectionManager', () => {
       mockDevLogger.log.mockClear();
 
       // Simulate network change
-      (selectPerpsNetwork as jest.Mock).mockReturnValue('testnet');
+      (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('testnet');
 
       // Trigger the store callback with the changed value
       storeCallback();
@@ -514,9 +514,9 @@ describe('PerpsConnectionManager', () => {
         mockDevLogger.log.mockClear();
 
         // Simulate account change
-        (selectSelectedInternalAccountAddress as jest.Mock).mockReturnValue(
-          '0xdef456',
-        );
+        (
+          selectSelectedInternalAccountAddress as unknown as jest.Mock
+        ).mockReturnValue('0xdef456');
 
         // Trigger the store callback with changed values
         storeCallback();
