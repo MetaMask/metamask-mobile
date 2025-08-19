@@ -658,7 +658,7 @@ const RevealPrivateCredential = ({
         scrollViewTestID={
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_SCROLL_ID
         }
-        contentContainerStyle={styles.stretch}
+        contentContainerStyle={styles.scrollContentContainer}
         // The cancel button here is not named correctly. When it is unlocked, the button is shown as "Done"
         showCancelButton={Boolean(showCancelButton || unlocked)}
         enableOnAndroid
@@ -666,7 +666,7 @@ const RevealPrivateCredential = ({
         extraScrollHeight={40}
         showsVerticalScrollIndicator={false}
       >
-        <ScrollView>
+        <View>
           <View style={[styles.rowWrapper, styles.normalText]}>
             {isPrivateKey && account ? (
               <>
@@ -695,7 +695,7 @@ const RevealPrivateCredential = ({
               {renderPasswordEntry()}
             </View>
           )}
-        </ScrollView>
+        </View>
       </ActionView>
       {renderModal(isPrivateKey)}
 

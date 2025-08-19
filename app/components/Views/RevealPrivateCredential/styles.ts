@@ -139,4 +139,7 @@ export const createStyles = (theme: Theme) =>
     stretch: {
       flex: 1,
     },
+    scrollContentContainer: {
+      flexGrow: 1,
+    },
   });
