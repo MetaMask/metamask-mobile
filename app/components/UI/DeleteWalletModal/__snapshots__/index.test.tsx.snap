@@ -374,7 +374,7 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                       >
                         <View
                           collapsable={false}
-                          enabled={true}
+                          enabled={false}
                           handlerTag={-1}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
@@ -409,26 +409,6 @@ exports[`DeleteWalletModal bottom sheet renders matching snapshot 1`] = `
                             ]
                           }
                         >
-                          <View
-                            style={
-                              {
-                                "alignItems": "center",
-                                "alignSelf": "stretch",
-                                "padding": 4,
-                              }
-                            }
-                          >
-                            <View
-                              style={
-                                {
-                                  "backgroundColor": "#b7bbc866",
-                                  "borderRadius": 2,
-                                  "height": 4,
-                                  "width": 40,
-                                }
-                              }
-                            />
-                          </View>
                           <View
                             style={
                               {
