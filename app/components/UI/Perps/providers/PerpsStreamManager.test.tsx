@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, waitFor, act } from '@testing-library/react-native';
 import { Text } from 'react-native';
-import { PerpsStreamProvider, usePerpsStream } from './PerpsStreamManager';
+import {
+  PerpsStreamProvider,
+  usePerpsStream,
+  PerpsStreamManager,
+} from './PerpsStreamManager';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { PriceUpdate } from '../controllers/types';
@@ -27,7 +31,7 @@ const TestPriceComponent = ({
       callback: (prices: Record<string, PriceUpdate>) => {
         onUpdate?.(prices);
       },
-      debounceMs: 100,
+      throttleMs: 100,
     });
 
     return () => {
@@ -41,11 +45,15 @@ const TestPriceComponent = ({
 describe('PerpsStreamManager', () => {
   let mockSubscribeToPrices: jest.Mock;
   let mockUnsubscribeFromPrices: jest.Mock;
+  let testStreamManager: PerpsStreamManager;
 
   beforeEach(() => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+
+    // Create a fresh stream manager for each test
+    testStreamManager = new PerpsStreamManager();
 
     // Setup default mocks
     mockSubscribeToPrices = jest.fn();
@@ -60,12 +68,14 @@ describe('PerpsStreamManager', () => {
   });
 
   afterEach(() => {
+    jest.clearAllTimers();
     jest.useRealTimers();
+    jest.clearAllMocks();
   });
 
   it('should render children correctly', () => {
     const { getByText } = render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <Text>Child Component</Text>
       </PerpsStreamProvider>,
     );
@@ -91,13 +101,395 @@ describe('PerpsStreamManager', () => {
     console.error = originalError;
   });
 
+  it('should provide immediate cached data on subscription', async () => {
+    // Setup mock subscription that will trigger updates
+    mockSubscribeToPrices.mockImplementation(
+      (params: { callback: (updates: PriceUpdate[]) => void }) => {
+        // Simulate immediate cached data with all required fields
+        const cachedData: PriceUpdate[] = [
+          {
+            coin: 'BTC-PERP',
+            price: '50000',
+            percentChange24h: '5',
+            timestamp: Date.now(),
+            bestBid: '49900',
+            bestAsk: '50100',
+            spread: '200',
+            markPrice: '50050',
+          },
+        ];
+        params.callback(cachedData);
+        return jest.fn();
+      },
+    );
+
+    const onUpdate = jest.fn();
+
+    render(
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <TestPriceComponent onUpdate={onUpdate} />
+      </PerpsStreamProvider>,
+    );
+
+    // Should receive cached data immediately
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledWith({
+        'BTC-PERP': {
+          coin: 'BTC-PERP',
+          price: '50000',
+          timestamp: expect.any(Number),
+          percentChange24h: '5',
+          bestBid: '49900',
+          bestAsk: '50100',
+          spread: '200',
+          markPrice: '50050',
+          funding: undefined,
+          openInterest: undefined,
+          volume24h: undefined,
+        },
+      });
+    });
+  });
+
+  it('should throttle updates after first immediate update', async () => {
+    let controllerCallback: ((updates: PriceUpdate[]) => void) | null = null;
+    mockSubscribeToPrices.mockImplementation(
+      (params: { callback: (updates: PriceUpdate[]) => void }) => {
+        controllerCallback = params.callback;
+        return jest.fn();
+      },
+    );
+
+    const onUpdate = jest.fn();
+
+    render(
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <TestPriceComponent onUpdate={onUpdate} />
+      </PerpsStreamProvider>,
+    );
+
+    // Wait for subscription setup
+    await waitFor(() => {
+      expect(mockSubscribeToPrices).toHaveBeenCalled();
+    });
+
+    // First update should be immediate
+    act(() => {
+      controllerCallback?.([
+        {
+          coin: 'BTC-PERP',
+          price: '50000',
+          percentChange24h: '5',
+          timestamp: Date.now(),
+        },
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    // Subsequent updates should be throttled
+    act(() => {
+      controllerCallback?.([
+        {
+          coin: 'BTC-PERP',
+          price: '50100',
+          percentChange24h: '5.1',
+          timestamp: Date.now(),
+        },
+      ]);
+    });
+
+    // Should not be called immediately
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+
+    // Fast-forward time to trigger throttled update
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledTimes(2);
+      expect(onUpdate).toHaveBeenLastCalledWith({
+        'BTC-PERP': {
+          coin: 'BTC-PERP',
+          price: '50100',
+          timestamp: expect.any(Number),
+          percentChange24h: '5.1',
+          bestBid: undefined,
+          bestAsk: undefined,
+          spread: undefined,
+          markPrice: undefined,
+          funding: undefined,
+          openInterest: undefined,
+          volume24h: undefined,
+        },
+      });
+    });
+  });
+
+  it('should handle multiple rapid updates with throttling', async () => {
+    let controllerCallback: ((updates: PriceUpdate[]) => void) | null = null;
+    mockSubscribeToPrices.mockImplementation(
+      (params: { callback: (updates: PriceUpdate[]) => void }) => {
+        controllerCallback = params.callback;
+        return jest.fn();
+      },
+    );
+
+    const onUpdate = jest.fn();
+
+    render(
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <TestPriceComponent onUpdate={onUpdate} />
+      </PerpsStreamProvider>,
+    );
+
+    // Wait for subscription setup
+    await waitFor(() => {
+      expect(mockSubscribeToPrices).toHaveBeenCalled();
+    });
+
+    // First update (immediate)
+    act(() => {
+      controllerCallback?.([
+        {
+          coin: 'BTC-PERP',
+          price: '50000',
+          percentChange24h: '5',
+          timestamp: Date.now(),
+        },
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    // Multiple rapid updates during throttle period
+    act(() => {
+      controllerCallback?.([
+        {
+          coin: 'BTC-PERP',
+          price: '50100',
+          percentChange24h: '5.1',
+          timestamp: Date.now(),
+        },
+      ]);
+      controllerCallback?.([
+        {
+          coin: 'BTC-PERP',
+          price: '50200',
+          percentChange24h: '5.2',
+          timestamp: Date.now(),
+        },
+      ]);
+      controllerCallback?.([
+        {
+          coin: 'BTC-PERP',
+          price: '50300',
+          percentChange24h: '5.3',
+          timestamp: Date.now(),
+        },
+      ]);
+    });
+
+    // Still only 1 call (first immediate)
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+
+    // Advance timer to trigger throttled update
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    // Should receive the latest update
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledTimes(2);
+      expect(onUpdate).toHaveBeenLastCalledWith({
+        'BTC-PERP': {
+          coin: 'BTC-PERP',
+          price: '50300',
+          timestamp: expect.any(Number),
+          percentChange24h: '5.3',
+          bestBid: undefined,
+          bestAsk: undefined,
+          spread: undefined,
+          markPrice: undefined,
+          funding: undefined,
+          openInterest: undefined,
+          volume24h: undefined,
+        },
+      });
+    });
+  });
+
+  it('should handle subscription without throttling', async () => {
+    let controllerCallback: ((updates: PriceUpdate[]) => void) | null = null;
+    mockSubscribeToPrices.mockImplementation(
+      (params: { callback: (updates: PriceUpdate[]) => void }) => {
+        controllerCallback = params.callback;
+        return jest.fn();
+      },
+    );
+
+    const TestNoThrottleComponent = ({
+      onUpdate,
+    }: {
+      onUpdate?: (prices: Record<string, PriceUpdate>) => void;
+    }) => {
+      const stream = usePerpsStream();
+
+      React.useEffect(() => {
+        const unsubscribe = stream.prices.subscribeToSymbols({
+          symbols: ['ETH-PERP'],
+          callback: (prices: Record<string, PriceUpdate>) => {
+            onUpdate?.(prices);
+          },
+          throttleMs: 0, // No throttling
+        });
+
+        return () => {
+          unsubscribe();
+        };
+      }, [stream, onUpdate]);
+
+      return <Text>No Throttle</Text>;
+    };
+
+    const onUpdate = jest.fn();
+
+    render(
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <TestNoThrottleComponent onUpdate={onUpdate} />
+      </PerpsStreamProvider>,
+    );
+
+    // Wait for subscription setup
+    await waitFor(() => {
+      expect(mockSubscribeToPrices).toHaveBeenCalled();
+    });
+
+    // Reset the mock call count after initial setup
+    onUpdate.mockClear();
+
+    // All updates should be immediate when throttleMs is 0
+    act(() => {
+      controllerCallback?.([
+        {
+          coin: 'ETH-PERP',
+          price: '3000',
+          timestamp: Date.now(),
+          percentChange24h: '2',
+        },
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    act(() => {
+      controllerCallback?.([
+        {
+          coin: 'ETH-PERP',
+          price: '3010',
+          timestamp: Date.now(),
+          percentChange24h: '2.1',
+        },
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledTimes(2);
+    });
+
+    act(() => {
+      controllerCallback?.([
+        {
+          coin: 'ETH-PERP',
+          price: '3020',
+          timestamp: Date.now(),
+          percentChange24h: '2.2',
+        },
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledTimes(3);
+    });
+  });
+
+  it('should clean up timers on unsubscribe', async () => {
+    let controllerCallback: ((updates: PriceUpdate[]) => void) | null = null;
+    const unsubscribeMock = jest.fn();
+    mockSubscribeToPrices.mockImplementation(
+      (params: { callback: (updates: PriceUpdate[]) => void }) => {
+        controllerCallback = params.callback;
+        return unsubscribeMock;
+      },
+    );
+
+    const onUpdate = jest.fn();
+
+    const { unmount } = render(
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
+        <TestPriceComponent onUpdate={onUpdate} />
+      </PerpsStreamProvider>,
+    );
+
+    // Wait for subscription setup
+    await waitFor(() => {
+      expect(mockSubscribeToPrices).toHaveBeenCalled();
+    });
+
+    // First update (immediate)
+    act(() => {
+      controllerCallback?.([
+        {
+          coin: 'BTC-PERP',
+          price: '50000',
+          timestamp: Date.now(),
+          percentChange24h: '5',
+        },
+      ]);
+    });
+
+    await waitFor(() => {
+      expect(onUpdate).toHaveBeenCalledTimes(1);
+    });
+
+    // Queue a throttled update
+    act(() => {
+      controllerCallback?.([
+        {
+          coin: 'BTC-PERP',
+          price: '50100',
+          timestamp: Date.now(),
+          percentChange24h: '5.1',
+        },
+      ]);
+    });
+
+    // Unmount before timer fires
+    unmount();
+
+    // Advance timer
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    // Should not receive update after unmount
+    expect(onUpdate).toHaveBeenCalledTimes(1);
+  });
+
   it('should subscribe to prices when component mounts', async () => {
     mockSubscribeToPrices.mockImplementation(() => jest.fn());
 
     const onUpdate = jest.fn();
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -116,7 +508,7 @@ describe('PerpsStreamManager', () => {
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
 
     const { unmount } = render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent />
       </PerpsStreamProvider>,
     );
@@ -143,7 +535,7 @@ describe('PerpsStreamManager', () => {
     });
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -175,7 +567,174 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should debounce subsequent updates', async () => {
+  describe('clearCache', () => {
+    it('should clear cache and notify subscribers with empty data', async () => {
+      let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
+      const mockUnsubscribe = jest.fn();
+
+      mockSubscribeToPrices.mockImplementation((params) => {
+        priceCallback = params.callback;
+        return mockUnsubscribe;
+      });
+
+      const onUpdate = jest.fn();
+
+      render(
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <TestPriceComponent onUpdate={onUpdate} />
+        </PerpsStreamProvider>,
+      );
+
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalled();
+      });
+
+      // Send initial data
+      act(() => {
+        priceCallback([
+          {
+            coin: 'BTC-PERP',
+            price: '50000',
+            timestamp: Date.now(),
+            percentChange24h: '5',
+          },
+        ]);
+      });
+
+      await waitFor(() => {
+        expect(onUpdate).toHaveBeenCalledWith({
+          'BTC-PERP': expect.objectContaining({
+            coin: 'BTC-PERP',
+            price: '50000',
+          }),
+        });
+      });
+
+      // Clear the mock to track only clearCache calls
+      onUpdate.mockClear();
+
+      // Clear cache
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Should disconnect and reconnect
+      await waitFor(() => {
+        expect(mockUnsubscribe).toHaveBeenCalled();
+      });
+
+      // Should notify with empty data after clearing
+      expect(onUpdate).toHaveBeenCalledWith({});
+
+      // Should reconnect after delay
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('should disconnect WebSocket when clearing cache', async () => {
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
+
+      const onUpdate = jest.fn();
+
+      render(
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <TestPriceComponent onUpdate={onUpdate} />
+        </PerpsStreamProvider>,
+      );
+
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalled();
+      });
+
+      // Clear cache
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Should disconnect existing subscription
+      expect(mockUnsubscribe).toHaveBeenCalled();
+    });
+
+    it('should reconnect after clearing cache if there are active subscribers', async () => {
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
+
+      const onUpdate = jest.fn();
+
+      render(
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <TestPriceComponent onUpdate={onUpdate} />
+        </PerpsStreamProvider>,
+      );
+
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+      });
+
+      // Clear cache
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Advance timer to trigger reconnection
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Should reconnect
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('should not reconnect if no active subscribers', async () => {
+      const mockUnsubscribe = jest.fn();
+      mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
+
+      const onUpdate = jest.fn();
+
+      const { unmount } = render(
+        <PerpsStreamProvider testStreamManager={testStreamManager}>
+          <TestPriceComponent onUpdate={onUpdate} />
+        </PerpsStreamProvider>,
+      );
+
+      await waitFor(() => {
+        expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+      });
+
+      // Unmount to remove all subscribers
+      unmount();
+
+      await waitFor(() => {
+        expect(mockUnsubscribe).toHaveBeenCalled();
+      });
+
+      // Reset mock
+      mockSubscribeToPrices.mockClear();
+
+      // Clear cache with no subscribers
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+
+      // Advance timer
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+
+      // Should not reconnect
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+    });
+  });
+
+  it('should throttle subsequent updates', async () => {
     const onUpdate = jest.fn();
     let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
 
@@ -185,7 +744,7 @@ describe('PerpsStreamManager', () => {
     });
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -233,12 +792,12 @@ describe('PerpsStreamManager', () => {
     // Should not be called immediately
     expect(onUpdate).toHaveBeenCalledTimes(1);
 
-    // Advance timers to trigger debounce
+    // Advance timers to trigger throttle
     act(() => {
       jest.advanceTimersByTime(100);
     });
 
-    // Should receive the last update after debounce
+    // Should receive the last update after throttle
     await waitFor(() => {
       expect(onUpdate).toHaveBeenCalledTimes(2);
       const lastCall = onUpdate.mock.calls[1][0];
@@ -249,7 +808,7 @@ describe('PerpsStreamManager', () => {
     });
   });
 
-  it('should handle multiple subscribers with different debounce times', async () => {
+  it('should handle multiple subscribers with different throttle times', async () => {
     const onUpdate1 = jest.fn();
     const onUpdate2 = jest.fn();
     let priceCallback: (data: PriceUpdate[]) => void = jest.fn();
@@ -268,7 +827,7 @@ describe('PerpsStreamManager', () => {
           callback: (prices: Record<string, PriceUpdate>) => {
             onUpdate1(prices);
           },
-          debounceMs: 100,
+          throttleMs: 100,
         });
 
         const sub2 = stream.prices.subscribeToSymbols({
@@ -276,7 +835,7 @@ describe('PerpsStreamManager', () => {
           callback: (prices: Record<string, PriceUpdate>) => {
             onUpdate2(prices);
           },
-          debounceMs: 200,
+          throttleMs: 200,
         });
 
         return () => {
@@ -289,7 +848,7 @@ describe('PerpsStreamManager', () => {
     };
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestMultipleSubscribers />
       </PerpsStreamProvider>,
     );
@@ -365,7 +924,7 @@ describe('PerpsStreamManager', () => {
           callback: (prices: Record<string, PriceUpdate>) => {
             onUpdate(prices);
           },
-          debounceMs: 100,
+          throttleMs: 100,
         });
 
         return () => {
@@ -379,7 +938,7 @@ describe('PerpsStreamManager', () => {
     const onUpdate = jest.fn();
 
     render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestMultipleSymbols onUpdate={onUpdate} />
       </PerpsStreamProvider>,
     );
@@ -397,7 +956,7 @@ describe('PerpsStreamManager', () => {
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
 
     const { unmount } = render(
-      <PerpsStreamProvider>
+      <PerpsStreamProvider testStreamManager={testStreamManager}>
         <TestPriceComponent />
       </PerpsStreamProvider>,
     );
