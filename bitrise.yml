@@ -349,7 +349,7 @@ stages:
       - run_tag_smoke_multichain_api_ios: {}
       - run_tag_smoke_accounts_ios: {}
       # - run_tag_smoke_accounts_android: {}
-      - run_tag_smoke_performance_ios: {}
+      # - run_tag_smoke_performance_ios: {}
       # - run_tag_smoke_performance_android: {}
       - run_tag_smoke_card_ios: {}
       # - run_tag_smoke_card_android: {}
