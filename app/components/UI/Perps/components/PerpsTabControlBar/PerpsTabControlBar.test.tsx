@@ -227,7 +227,7 @@ describe('PerpsTabControlBar', () => {
       // Verify hook was called to subscribe to live data
       expect(
         jest.requireMock('../../hooks/stream').usePerpsLiveAccount,
-      ).toHaveBeenCalledWith({ throttleMs: 0 });
+      ).toHaveBeenCalledWith({ throttleMs: 1000 });
     });
 
     it('triggers pulse animation on balance change', async () => {
