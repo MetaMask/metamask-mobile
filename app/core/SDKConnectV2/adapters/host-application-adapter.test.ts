@@ -16,9 +16,9 @@ describe('HostApplicationAdapter', () => {
         icon: 'test-dapp-icon',
       }),
     ).resolves.not.toThrow();
-    expect(adapter.showLoading()).not.toThrow();
-    expect(adapter.hideLoading()).not.toThrow();
+    expect(() => adapter.showLoading()).not.toThrow();
+    expect(() => adapter.hideLoading()).not.toThrow();
     expect(adapter.showOTPModal()).resolves.not.toThrow();
-    expect(adapter.syncConnectionList([])).not.toThrow();
+    expect(() => adapter.syncConnectionList([])).not.toThrow();
   });
 });

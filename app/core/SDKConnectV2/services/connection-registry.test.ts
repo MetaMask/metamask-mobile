@@ -13,6 +13,6 @@ describe('ConnectionRegistry', () => {
 
   it('dummy tests for scaffolding, will be replaced with real tests', () => {
     expect(registry).toBeDefined();
-    expect(registry.handleConnectDeeplink('test-deeplink')).not.toThrow();
+    expect(() => registry.handleConnectDeeplink('test-deeplink')).not.toThrow();
   });
 });
