@@ -23,7 +23,6 @@ export interface IdentityFixtureOptions {
   >;
   sharedUserStorageController?: UserStorageMockttpController;
   mockBalancesAccounts?: string[];
-  strictMockMode?: boolean;
 }
 
 export interface IdentityTestContext {
@@ -46,7 +45,6 @@ export async function withIdentityFixtures(
     ],
     userStorageOverrides,
     sharedUserStorageController,
-    strictMockMode = false,
   } = options;
 
   await withFixtures(
@@ -54,7 +52,6 @@ export async function withIdentityFixtures(
       fixture,
       restartDevice,
       testSpecificMock,
-      strictMockMode,
     },
     async ({ mockServer }) => {
       if (!mockServer) {

@@ -40,7 +40,6 @@ describe(SmokeIdentity('Account syncing - Unsupported Account types'), () => {
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         sharedUserStorageController,
-        strictMockMode: true,
       },
       async ({ userStorageMockttpController }) => {
         await loginToApp();
@@ -116,7 +115,6 @@ describe(SmokeIdentity('Account syncing - Unsupported Account types'), () => {
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         sharedUserStorageController,
-        strictMockMode: true,
       },
       async () => {
         await loginToApp();

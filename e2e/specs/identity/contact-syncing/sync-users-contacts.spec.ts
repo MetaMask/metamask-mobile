@@ -36,7 +36,6 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
         ],
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         sharedUserStorageController,
-        strictMockMode: true,
       },
       async ({ userStorageMockttpController }) => {
         await importWalletWithRecoveryPhrase({
@@ -79,7 +78,6 @@ describe(SmokeIdentity('Contact syncing - syncs new contacts'), () => {
         ],
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         sharedUserStorageController,
-        strictMockMode: true,
       },
       async () => {
         await importWalletWithRecoveryPhrase({

@@ -82,7 +82,6 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .withNetworkController(CustomNetworks.Tenderly.Mainnet)
           .build(),
         restartDevice: true,
-        strictMockMode: true,
         testSpecificMock: {
           GET: [TOKEN_RESPONSE],
         },
@@ -114,7 +113,6 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
-        strictMockMode: true,
         testSpecificMock: {
           GET: [TOKEN_RESPONSE],
         },
@@ -153,7 +151,6 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .withTokens([AAVE_TENDERLY_MAINNET_DETAILS])
           .build(),
         restartDevice: true,
-        strictMockMode: true,
         testSpecificMock: {
           GET: [TOKEN_RESPONSE],
         },

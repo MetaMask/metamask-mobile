@@ -16,7 +16,7 @@ import TestHelpers from '../../helpers';
 import {
   startMockServer,
   stopMockServer,
-  validateStrictMockMode,
+  validateLiveRequests,
 } from '../../api-mocking/mock-server';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
@@ -370,9 +370,8 @@ const mergeWithDefaultMocks = (
 export const createMockAPIServer = async (
   mockServerInstance?: Mockttp,
   testSpecificMock?: TestSpecificMock,
-  strictMockMode: boolean = false,
 ): Promise<{
-  mockServer: Mockttp & { _strictMockMode?: boolean; _liveRequests?: string };
+  mockServer: Mockttp;
   mockServerPort: number;
 }> => {
   // Handle mock server
@@ -393,21 +392,13 @@ export const createMockAPIServer = async (
     logger.debug(
       `Mock server started from mockServerInstance on port ${mockServerPort}`,
     );
-
-    const endpoints = await mockServer.getMockedEndpoints();
-
-    logger.debug(`Mocked endpoints: ${endpoints.length}`);
   }
 
   // testSpecificMock only
   if (!mockServerInstance && testSpecificMock) {
     mockServerPort = getMockServerPort();
     const mergedMocks = mergeWithDefaultMocks(testSpecificMock);
-    mockServer = await startMockServer(
-      mergedMocks,
-      mockServerPort,
-      strictMockMode,
-    );
+    mockServer = await startMockServer(mergedMocks, mockServerPort);
 
     logger.debug(
       `Mock server started from testSpecificMock on port ${mockServerPort}`,
@@ -418,11 +409,7 @@ export const createMockAPIServer = async (
   if (!mockServerInstance && !testSpecificMock) {
     mockServerPort = getMockServerPort();
     const mergedMocks = mergeWithDefaultMocks(testSpecificMock);
-    mockServer = await startMockServer(
-      mergedMocks,
-      mockServerPort,
-      strictMockMode,
-    );
+    mockServer = await startMockServer(mergedMocks, mockServerPort);
 
     logger.debug(
       `Mock server started from testSpecificMock on port ${mockServerPort}`,
@@ -435,6 +422,9 @@ export const createMockAPIServer = async (
 
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
+
+  const endpoints = await mockServer.getMockedEndpoints();
+  logger.debug(`Mocked endpoints: ${endpoints.length}`);
 
   return {
     mockServer,
@@ -474,7 +464,6 @@ export async function withFixtures(
     launchArgs,
     languageAndLocale,
     permissions = {},
-    strictMockMode = false,
     endTestfn,
   } = options;
 
@@ -484,7 +473,6 @@ export async function withFixtures(
   const { mockServer, mockServerPort } = await createMockAPIServer(
     mockServerInstance,
     testSpecificMock,
-    strictMockMode,
   );
 
   // Handle local nodes
@@ -548,10 +536,7 @@ export async function withFixtures(
     logger.error('Error in withFixtures:', error);
     throw error;
   } finally {
-    // Validate strict mock mode before cleanup
-    if ((mockServer && strictMockMode) || mockServer?._strictMockMode) {
-      validateStrictMockMode(mockServer);
-    }
+    validateLiveRequests(mockServer);
 
     if (endTestfn) {
       // Pass the mockServer to the endTestfn if it exists as we may want

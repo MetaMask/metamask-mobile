@@ -53,7 +53,7 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort, true);
+    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort);
   });
 
   // We need to manually stop the mock server after all the tests as each test

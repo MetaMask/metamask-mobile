@@ -52,7 +52,7 @@ describe(SmokeTrade('Onramp quote build screen'), () => {
     jest.setTimeout(150000);
 
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort, true);
+    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort);
   });
 
   afterAll(async () => {

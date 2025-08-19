@@ -42,7 +42,6 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         sharedUserStorageController,
-        strictMockMode: true,
       },
       async ({ userStorageMockttpController }) => {
         // Phase 1: Initial setup and verification of default account
@@ -143,7 +142,6 @@ describe(SmokeIdentity('Account syncing - Setting'), () => {
       {
         userStorageFeatures: [USER_STORAGE_FEATURE_NAMES.accounts],
         sharedUserStorageController,
-        strictMockMode: true,
       },
       async () => {
         // Login to fresh app instance to test sync restoration

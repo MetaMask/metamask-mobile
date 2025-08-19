@@ -79,16 +79,14 @@ const isUrlAllowed = (url) => {
  *
  * @param {Object} events - The events to mock, organised by method.
  * @param {number} [port] - Optional port number. If not provided, a free port will be used.
- * @param {boolean} [strictMockMode] - If true, fails on unmocked requests. If false, logs warnings.
  * @returns {Promise} Resolves to the running mock server.
  */
-export const startMockServer = async (events, port, strictMockMode = false) => {
+export const startMockServer = async (events, port) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
 
-  // Track live requests for strict mock mode
+  // Track live requests
   const liveRequests = [];
-  mockServer._strictMockMode = strictMockMode;
   mockServer._liveRequests = liveRequests;
 
   try {
@@ -202,16 +200,11 @@ export const startMockServer = async (events, port, strictMockMode = false) => {
       if (!isUrlAllowed(updatedUrl)) {
         const errorMessage = `Request going to live server: ${updatedUrl}`;
         logger.warn(errorMessage);
-        global.liveServerRequest = new Error(errorMessage);
-
-        // Track live request for strict mock mode
-        if (strictMockMode) {
-          liveRequests.push({
-            url: updatedUrl,
-            method,
-            timestamp: new Date().toISOString(),
-          });
-        }
+        liveRequests.push({
+          url: updatedUrl,
+          method,
+          timestamp: new Date().toISOString(),
+        });
       }
 
       return handleDirectFetch(
@@ -228,16 +221,11 @@ export const startMockServer = async (events, port, strictMockMode = false) => {
     if (!isUrlAllowed(request.url)) {
       const errorMessage = `Request going to live server: ${request.url}`;
       logger.warn(errorMessage);
-      global.liveServerRequest = new Error(errorMessage);
-
-      // Track live request for strict mock mode
-      if (strictMockMode) {
-        liveRequests.push({
-          url: request.url,
-          method: request.method,
-          timestamp: new Date().toISOString(),
-        });
-      }
+      liveRequests.push({
+        url: request.url,
+        method: request.method,
+        timestamp: new Date().toISOString(),
+      });
     }
 
     return handleDirectFetch(
@@ -252,12 +240,12 @@ export const startMockServer = async (events, port, strictMockMode = false) => {
 };
 
 /**
- * Validates strict mock mode by checking for live requests
+ * Validates that no unexpected live requests were made
  * @param {import('mockttp').Mockttp} mockServer
- * @throws {Error} If in strict mode and live requests were made
+ * @throws {Error} If live requests were made
  */
-export const validateStrictMockMode = (mockServer) => {
-  if (mockServer._strictMockMode && mockServer._liveRequests.length > 0) {
+export const validateLiveRequests = (mockServer) => {
+  if (mockServer._liveRequests.length > 0) {
     // Get unique requests by method + URL combination
     const uniqueRequests = Array.from(
       new Map(
@@ -279,9 +267,9 @@ export const validateStrictMockMode = (mockServer) => {
     const uniqueCount = uniqueRequests.length;
 
     throw new Error(
-      `Strict Mock Mode: Test made ${totalCount} unmocked request(s) (${uniqueCount} unique):\n${requestsSummary}\n\n` +
-        `These requests need to be mocked before enabling strict mode. ` +
-        `Check your test-specific mocks or add them to the default mocks.`,
+      `Test made ${totalCount} unmocked request(s) (${uniqueCount} unique):\n${requestsSummary}\n\n` +
+        'Check your test-specific mocks or add them to the default mocks.',
+      "You can also add the URL to the allowlist if it's a known live request.",
     );
   }
 };

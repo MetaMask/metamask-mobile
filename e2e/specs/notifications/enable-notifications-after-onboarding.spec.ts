@@ -22,7 +22,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort, true);
+    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort);
     await mockNotificationServices(mockServer);
   });
 
