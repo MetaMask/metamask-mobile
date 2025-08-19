@@ -1,7 +1,3 @@
-import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Engine from '../../../../core/Engine';
-import { PerpsConnectionManager } from './PerpsConnectionManager';
-
 // Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../core/Engine', () => ({
@@ -10,9 +6,56 @@ jest.mock('../../../../core/Engine', () => ({
       initializeProviders: jest.fn(),
       getAccountState: jest.fn(),
       disconnect: jest.fn(),
+      reconnectWithNewContext: jest.fn(),
     },
   },
 }));
+
+// Store the subscription callbacks
+const storeCallbacks: (() => void)[] = [];
+
+// Mock Redux store like other tests do
+jest.mock('../../../../store', () => ({
+  store: {
+    subscribe: jest.fn((callback) => {
+      storeCallbacks.push(callback);
+      return jest.fn(); // Returns unsubscribe function
+    }),
+    getState: jest.fn(),
+    dispatch: jest.fn(),
+  },
+}));
+
+// Mock selectors
+jest.mock('../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountAddress: jest.fn(),
+}));
+
+jest.mock('../selectors/perpsController', () => ({
+  selectPerpsNetwork: jest.fn(),
+}));
+
+// Mock StreamManager - create a singleton mock instance
+const mockStreamManagerInstance = {
+  positions: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  orders: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  account: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+};
+
+jest.mock('../providers/PerpsStreamManager', () => ({
+  getStreamManagerInstance: jest.fn(() => mockStreamManagerInstance),
+}));
+
+// Import non-singleton modules first
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Engine from '../../../../core/Engine';
+import { store } from '../../../../store';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectPerpsNetwork } from '../selectors/perpsController';
+
+// Import PerpsConnectionManager after mocks are set up
+// This is imported here after mocks to ensure store.subscribe is mocked before the singleton is created
+import { PerpsConnectionManager } from './PerpsConnectionManager';
 
 // Helper to reset private properties for testing
 const resetManager = (manager: unknown) => {
@@ -22,12 +65,18 @@ const resetManager = (manager: unknown) => {
     isInitialized: boolean;
     connectionRefCount: number;
     initPromise: Promise<void> | null;
+    unsubscribeFromStore: (() => void) | null;
+    previousAddress: string | undefined;
+    previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
   };
   m.isConnected = false;
   m.isConnecting = false;
   m.isInitialized = false;
   m.connectionRefCount = 0;
   m.initPromise = null;
+  m.unsubscribeFromStore = null;
+  m.previousAddress = undefined;
+  m.previousPerpsNetwork = undefined;
 };
 
 describe('PerpsConnectionManager', () => {
@@ -38,10 +87,21 @@ describe('PerpsConnectionManager', () => {
       () => Promise<Record<string, unknown>>
     >;
     disconnect: jest.MockedFunction<() => Promise<void>>;
+    reconnectWithNewContext: jest.MockedFunction<() => Promise<void>>;
   };
+
+  // No need for beforeAll - singleton is created on first access
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Clear StreamManager mock calls
+    mockStreamManagerInstance.positions.clearCache.mockClear();
+    mockStreamManagerInstance.orders.clearCache.mockClear();
+    mockStreamManagerInstance.account.clearCache.mockClear();
+    mockStreamManagerInstance.positions.prewarm.mockClear();
+    mockStreamManagerInstance.orders.prewarm.mockClear();
+    mockStreamManagerInstance.account.prewarm.mockClear();
 
     // Reset the singleton instance state
     resetManager(PerpsConnectionManager);
@@ -253,6 +313,30 @@ describe('PerpsConnectionManager', () => {
       expect(disconnectedState.isInitialized).toBe(false);
       expect(disconnectedState.isConnecting).toBe(false);
     });
+
+    it('should clean up state monitoring when reference count reaches zero', async () => {
+      // Connect to set up monitoring
+      await PerpsConnectionManager.connect();
+
+      // Verify monitoring was set up
+      const subscribeCallsBefore = (store.subscribe as jest.Mock).mock.calls
+        .length;
+      expect(subscribeCallsBefore).toBeGreaterThan(0);
+
+      // Disconnect - should clean up monitoring
+      await PerpsConnectionManager.disconnect();
+
+      // Verify cleanup was logged
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        'PerpsConnectionManager: State monitoring cleaned up',
+      );
+
+      // Verify monitoring is cleaned up internally
+      expect(
+        (PerpsConnectionManager as unknown as { unsubscribeFromStore: unknown })
+          .unsubscribeFromStore,
+      ).toBeNull();
+    });
   });
 
   describe('getConnectionState', () => {
@@ -310,6 +394,193 @@ describe('PerpsConnectionManager', () => {
 
       // Should disconnect when ref count reaches 0
       expect(mockPerpsController.disconnect).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('state monitoring', () => {
+    let storeCallback: () => void;
+
+    beforeEach(() => {
+      // Reset store callbacks
+      storeCallbacks.length = 0;
+
+      // Setup initial values for selectors
+      (selectSelectedInternalAccountAddress as jest.Mock).mockReturnValue(
+        '0xabc123',
+      );
+      (selectPerpsNetwork as jest.Mock).mockReturnValue('mainnet');
+      (store.getState as jest.Mock).mockReturnValue({});
+    });
+
+    it('should set up Redux store subscription on first connect', async () => {
+      // Connect to trigger monitoring setup
+      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+
+      await PerpsConnectionManager.connect();
+
+      // Verify subscription was set up
+      expect(store.subscribe).toHaveBeenCalled();
+      expect(storeCallbacks.length).toBeGreaterThan(0);
+
+      // The callback should be a function
+      expect(typeof storeCallbacks[storeCallbacks.length - 1]).toBe('function');
+    });
+
+    it('should detect account changes and trigger reconnection', async () => {
+      // Setup connected state
+      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      mockPerpsController.reconnectWithNewContext.mockResolvedValue();
+
+      await PerpsConnectionManager.connect();
+
+      // Get the store callback that was registered
+      storeCallback = storeCallbacks[storeCallbacks.length - 1];
+
+      // Clear mock calls from connection
+      mockDevLogger.log.mockClear();
+
+      // Simulate account change
+      (selectSelectedInternalAccountAddress as jest.Mock).mockReturnValue(
+        '0xdef456',
+      );
+
+      // Trigger the store callback with the changed value
+      storeCallback();
+
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Account or network change detected'),
+        expect.objectContaining({
+          accountChanged: true,
+          networkChanged: false,
+          previousAddress: '0xabc123',
+          currentAddress: '0xdef456',
+        }),
+      );
+    });
+
+    it('should detect network changes and trigger reconnection', async () => {
+      // Setup connected state
+      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      mockPerpsController.reconnectWithNewContext.mockResolvedValue();
+
+      await PerpsConnectionManager.connect();
+
+      // Get the store callback that was registered
+      storeCallback = storeCallbacks[storeCallbacks.length - 1];
+
+      // Clear mock calls from connection
+      mockDevLogger.log.mockClear();
+
+      // Simulate network change
+      (selectPerpsNetwork as jest.Mock).mockReturnValue('testnet');
+
+      // Trigger the store callback with the changed value
+      storeCallback();
+
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Account or network change detected'),
+        expect.objectContaining({
+          accountChanged: false,
+          networkChanged: true,
+          previousNetwork: 'mainnet',
+          currentNetwork: 'testnet',
+        }),
+      );
+    });
+
+    it('should not trigger reconnection when not connected', async () => {
+      // Setup but don't connect
+      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+
+      // Connect and immediately disconnect to set up monitoring
+      await PerpsConnectionManager.connect();
+      await PerpsConnectionManager.disconnect();
+
+      // Get the store callback that was registered (if any)
+      if (storeCallbacks.length > 0) {
+        storeCallback = storeCallbacks[storeCallbacks.length - 1];
+
+        // Clear mock calls
+        mockDevLogger.log.mockClear();
+
+        // Simulate account change
+        (selectSelectedInternalAccountAddress as jest.Mock).mockReturnValue(
+          '0xdef456',
+        );
+
+        // Trigger the store callback with changed values
+        storeCallback();
+
+        // Should not log account change detection because not connected
+        expect(mockDevLogger.log).not.toHaveBeenCalledWith(
+          expect.stringContaining('Account or network change detected'),
+          expect.any(Object),
+        );
+      }
+    });
+  });
+
+  describe('reconnectWithNewContext', () => {
+    beforeEach(() => {
+      mockPerpsController.reconnectWithNewContext.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+    });
+
+    it('should clear StreamManager caches', async () => {
+      // Setup connected state first
+      mockPerpsController.initializeProviders.mockResolvedValue();
+      mockPerpsController.getAccountState.mockResolvedValue({});
+      await PerpsConnectionManager.connect();
+
+      // Now call reconnectWithNewContext through the private method
+      await (
+        PerpsConnectionManager as unknown as {
+          reconnectWithNewContext: () => Promise<void>;
+        }
+      ).reconnectWithNewContext();
+
+      expect(mockStreamManagerInstance.positions.clearCache).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.orders.clearCache).toHaveBeenCalled();
+      expect(mockStreamManagerInstance.account.clearCache).toHaveBeenCalled();
+    });
+
+    it('should reinitialize controller with new context', async () => {
+      await (
+        PerpsConnectionManager as unknown as {
+          reconnectWithNewContext: () => Promise<void>;
+        }
+      ).reconnectWithNewContext();
+
+      expect(mockPerpsController.reconnectWithNewContext).toHaveBeenCalled();
+      expect(mockPerpsController.getAccountState).toHaveBeenCalled();
+    });
+
+    it('should handle reconnection errors gracefully', async () => {
+      const error = new Error('Reconnection failed');
+      mockPerpsController.reconnectWithNewContext.mockRejectedValueOnce(error);
+
+      await expect(
+        (
+          PerpsConnectionManager as unknown as {
+            reconnectWithNewContext: () => Promise<void>;
+          }
+        ).reconnectWithNewContext(),
+      ).rejects.toThrow('Reconnection failed');
+
+      expect(mockDevLogger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Reconnection with new context failed'),
+        error,
+      );
     });
   });
 });
