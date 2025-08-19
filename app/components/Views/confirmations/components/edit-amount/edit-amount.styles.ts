@@ -5,9 +5,14 @@ const styleSheet = (params: { theme: Theme; vars: { hasAlert: boolean } }) =>
   StyleSheet.create({
     container: {
       display: 'flex',
-      gap: 8,
-      marginTop: 16,
-      marginBottom: 16,
+      marginTop: 50,
+      flex: 1,
+      justifyContent: 'space-between',
+      marginBottom: 20,
+    },
+    primaryContainer: {
+      display: 'flex',
+      flexDirection: 'column',
     },
     input: {
       textAlign: 'center',
@@ -16,10 +21,7 @@ const styleSheet = (params: { theme: Theme; vars: { hasAlert: boolean } }) =>
       color: params.vars.hasAlert
         ? params.theme.colors.error.default
         : params.theme.colors.text.default,
-    },
-    alert: {
-      color: params.theme.colors.error.default,
-      textAlign: 'center',
+      marginBottom: 16,
     },
   });
 

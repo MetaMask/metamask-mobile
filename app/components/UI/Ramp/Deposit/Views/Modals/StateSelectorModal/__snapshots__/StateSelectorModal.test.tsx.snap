@@ -385,8 +385,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -435,6 +435,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -458,7 +459,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders cleared search stat
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -1158,8 +1158,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -1208,6 +1208,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -1231,7 +1232,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders empty state when no
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -1875,8 +1875,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -1925,6 +1925,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -1948,7 +1949,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -2648,8 +2648,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -2698,6 +2698,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -2721,7 +2722,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders filtered state when
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -3421,8 +3421,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -3471,6 +3471,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -3494,7 +3495,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders initial state corre
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -4457,8 +4457,8 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -4507,6 +4507,7 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -4530,7 +4531,6 @@ exports[`StateSelectorModal Component Snapshot Tests renders partial search resu
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >

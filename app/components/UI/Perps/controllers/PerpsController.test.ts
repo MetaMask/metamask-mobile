@@ -68,6 +68,24 @@ jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
   },
 }));
 
+// Mock trace utilities
+jest.mock('../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PerpsController: 'Perps Controller',
+    PerpsOrderExecution: 'Perps Order Execution',
+    PerpsDeposit: 'Perps Deposit',
+    PerpsWithdrawal: 'Perps Withdrawal',
+  },
+  TraceOperation: {
+    PerpsOperation: 'perps.operation',
+    PerpsOrderSubmission: 'perps.order_submission',
+    PerpsDeposit: 'perps.deposit',
+    PerpsWithdrawal: 'perps.withdrawal',
+  },
+}));
+
 // Mock successfulFetch for geo location testing
 jest.mock('@metamask/controller-utils', () => {
   const actual = jest.requireActual('@metamask/controller-utils');
@@ -128,6 +146,7 @@ describe('PerpsController', () => {
       getOrderFills: jest.fn(),
       getOrders: jest.fn(),
       getFunding: jest.fn(),
+      getIsFirstTimeUser: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -743,6 +762,39 @@ describe('PerpsController', () => {
         expect(mockHyperLiquidProvider.closePosition).toHaveBeenCalledWith(
           closeParams,
         );
+      });
+    });
+
+    it('should track performance when placing order', async () => {
+      const orderParams = {
+        coin: 'ETH',
+        isBuy: true,
+        size: '1.5',
+        orderType: 'market' as const,
+      };
+
+      withController(async ({ controller }) => {
+        mockHyperLiquidProvider.placeOrder.mockResolvedValue({
+          success: true,
+          orderId: 'test-order-123',
+        });
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+        await controller.placeOrder(orderParams);
+
+        // Verify trace was called with correct parameters
+        const traceModule = jest.requireMock('../../../../util/trace');
+        expect(traceModule.trace).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: expect.stringContaining('Perps Order Execution'),
+            tags: expect.objectContaining({
+              market: 'ETH',
+              leverage: 1,
+            }),
+          }),
+        );
+        expect(traceModule.endTrace).toHaveBeenCalled();
       });
     });
 
@@ -2694,6 +2746,394 @@ describe('PerpsController', () => {
           expect(error).toBeInstanceOf(Error);
           expect((error as Error).message).toBe(errorMessage);
         }
+      });
+    });
+  });
+
+  describe('Network-specific isFirstTimeUser state and markTutorialCompleted', () => {
+    it('should default to true for both networks for first-time users', async () => {
+      await withController(async ({ controller }) => {
+        // Assert
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: true,
+          mainnet: true,
+        });
+      });
+    });
+
+    it('should set testnet isFirstTimeUser to false when markTutorialCompleted is called on testnet', async () => {
+      await withController(
+        async ({ controller }) => {
+          // Arrange - start on testnet
+          controller.state.isTestnet = true;
+          expect(controller.state.isFirstTimeUser.testnet).toBe(true);
+          expect(controller.state.isFirstTimeUser.mainnet).toBe(true);
+
+          // Act
+          controller.markTutorialCompleted();
+
+          // Assert - only testnet should be affected
+          expect(controller.state.isFirstTimeUser.testnet).toBe(false);
+          expect(controller.state.isFirstTimeUser.mainnet).toBe(true);
+        },
+        { state: { isTestnet: true } },
+      );
+    });
+
+    it('should set mainnet isFirstTimeUser to false when markTutorialCompleted is called on mainnet', async () => {
+      await withController(
+        async ({ controller }) => {
+          // Arrange - start on mainnet
+          controller.state.isTestnet = false;
+          expect(controller.state.isFirstTimeUser.testnet).toBe(true);
+          expect(controller.state.isFirstTimeUser.mainnet).toBe(true);
+
+          // Act
+          controller.markTutorialCompleted();
+
+          // Assert - only mainnet should be affected
+          expect(controller.state.isFirstTimeUser.testnet).toBe(true);
+          expect(controller.state.isFirstTimeUser.mainnet).toBe(false);
+        },
+        { state: { isTestnet: false } },
+      );
+    });
+
+    it('should correctly identify first-time status per network', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange - initial state both networks are first-time
+        await controller.toggleTestnet(); // Switch to testnet
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(true);
+
+        await controller.toggleTestnet(); // Switch to mainnet
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(true);
+
+        // Act - complete tutorial on testnet only
+        await controller.toggleTestnet(); // Switch to testnet
+        controller.markTutorialCompleted();
+
+        // Assert - testnet is no longer first-time, mainnet still is
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(false);
+
+        await controller.toggleTestnet(); // Switch to mainnet
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(true);
+      });
+    });
+
+    it('should handle network switching correctly for first-time status', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange - complete tutorial on both networks
+        await controller.toggleTestnet(); // Switch to testnet
+        controller.markTutorialCompleted();
+
+        await controller.toggleTestnet(); // Switch to mainnet
+        controller.markTutorialCompleted();
+
+        // Assert - both networks should be marked as not first-time
+        await controller.toggleTestnet(); // Switch to testnet
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(false);
+
+        await controller.toggleTestnet(); // Switch to mainnet
+        expect(controller.isFirstTimeUserOnCurrentNetwork()).toBe(false);
+
+        // Final state check
+        expect(controller.state.isFirstTimeUser).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should persist network-specific isFirstTimeUser state', async () => {
+      // First controller instance - complete tutorial on testnet only
+      await withController(
+        async ({ controller }) => {
+          controller.state.isTestnet = true;
+          controller.markTutorialCompleted();
+          expect(controller.state.isFirstTimeUser.testnet).toBe(false);
+          expect(controller.state.isFirstTimeUser.mainnet).toBe(true);
+        },
+        { state: { isTestnet: true } },
+      );
+
+      // Second controller instance should have persisted state
+      await withController(
+        async ({ controller }) => {
+          // Assert - state should be persisted
+          expect(controller.state.isFirstTimeUser).toEqual({
+            testnet: false,
+            mainnet: true,
+          });
+        },
+        {
+          // Use same state to simulate persistence
+          state: {
+            isFirstTimeUser: {
+              testnet: false,
+              mainnet: true,
+            },
+          },
+        },
+      );
+    });
+  });
+
+  describe('first order notification tracking', () => {
+    it('should initialize with hasPlacedFirstOrder as false for both networks', () => {
+      withController(({ controller }) => {
+        expect(controller.state.hasPlacedFirstOrder).toEqual({
+          testnet: false,
+          mainnet: false,
+        });
+      });
+    });
+
+    it('should mark hasPlacedFirstOrder as true for mainnet when markFirstOrderCompleted is called', () => {
+      withController(({ controller }) => {
+        expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(false);
+        expect(controller.state.hasPlacedFirstOrder.testnet).toBe(false);
+
+        controller.markFirstOrderCompleted();
+
+        expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(true);
+        expect(controller.state.hasPlacedFirstOrder.testnet).toBe(false);
+      });
+    });
+
+    it('should mark hasPlacedFirstOrder as true for testnet when markFirstOrderCompleted is called on testnet', () => {
+      withController(
+        ({ controller }) => {
+          expect(controller.state.hasPlacedFirstOrder.testnet).toBe(false);
+          expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(false);
+
+          controller.markFirstOrderCompleted();
+
+          expect(controller.state.hasPlacedFirstOrder.testnet).toBe(true);
+          expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(false);
+        },
+        { state: { isTestnet: true } },
+      );
+    });
+
+    it('should persist hasPlacedFirstOrder state between controller instances', () => {
+      // Test with initial state having hasPlacedFirstOrder set for mainnet
+      withController(
+        ({ controller }) => {
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: false,
+            mainnet: true,
+          });
+        },
+        {
+          state: {
+            hasPlacedFirstOrder: {
+              testnet: false,
+              mainnet: true,
+            },
+          },
+        },
+      );
+    });
+
+    it('should maintain hasPlacedFirstOrder state after calling markFirstOrderCompleted multiple times', () => {
+      withController(({ controller }) => {
+        expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(false);
+
+        controller.markFirstOrderCompleted();
+        expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(true);
+
+        // Call again - should remain true
+        controller.markFirstOrderCompleted();
+        expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(true);
+      });
+    });
+
+    it('should track first order independently for mainnet and testnet', async () => {
+      // First controller instance - mark mainnet as completed
+      await withController(
+        async ({ controller }) => {
+          controller.markFirstOrderCompleted();
+          expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(true);
+          expect(controller.state.hasPlacedFirstOrder.testnet).toBe(false);
+        },
+        { state: { isTestnet: false } },
+      );
+
+      // Second controller instance - mark testnet as completed
+      await withController(
+        async ({ controller }) => {
+          controller.state.isTestnet = true;
+          controller.markFirstOrderCompleted();
+          expect(controller.state.hasPlacedFirstOrder.testnet).toBe(true);
+          expect(controller.state.hasPlacedFirstOrder.mainnet).toBe(false);
+        },
+        { state: { isTestnet: true } },
+      );
+
+      // Third controller instance should have persisted state
+      await withController(
+        async ({ controller }) => {
+          // Assert - state should be persisted
+          expect(controller.state.hasPlacedFirstOrder).toEqual({
+            testnet: true,
+            mainnet: true,
+          });
+        },
+        {
+          // Use same state to simulate persistence
+          state: {
+            hasPlacedFirstOrder: {
+              testnet: true,
+              mainnet: true,
+            },
+          },
+        },
+      );
+    });
+  });
+
+  describe('reconnectWithNewContext', () => {
+    it('should clear state and reinitialize providers', async () => {
+      // Mock initialize to succeed before creating controller
+      mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+      await withController(async ({ controller }) => {
+        // Set up initial state with data
+        controller.state.positions = [
+          {
+            coin: 'BTC',
+            szi: '1.5',
+            entryPx: '50000',
+            positionValue: '75000',
+            returnOnEquity: '0.15',
+            unrealizedPnl: '1000',
+            marginUsed: '5000',
+          } as any,
+        ];
+        controller.state.accountState = {
+          marginSummary: {
+            accountValue: '10000',
+            totalMarginUsed: '5000',
+          },
+        } as any;
+        controller.state.pendingOrders = [
+          {
+            oid: '123',
+            coin: 'BTC',
+            limitPx: '49000',
+            sz: '0.5',
+            orderType: 'limit',
+          } as any,
+        ];
+        controller.state.lastError = 'Some previous error';
+
+        // Call reconnectWithNewContext
+        await controller.reconnectWithNewContext();
+
+        // Verify state was cleared
+        expect(controller.state.positions).toEqual([]);
+        expect(controller.state.accountState).toBeNull();
+        expect(controller.state.pendingOrders).toEqual([]);
+        expect(controller.state.lastError).toBeNull();
+
+        // Verify providers were reinitialized (constructor called twice: once on init, once on reconnect)
+        expect(HyperLiquidProvider).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('should reset initialization flags', async () => {
+      // Set up the mock to return different instances
+      let providerInstance = 0;
+      (
+        HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
+      ).mockImplementation(() => {
+        providerInstance++;
+        return {
+          ...mockHyperLiquidProvider,
+          instanceId: providerInstance,
+        } as any;
+      });
+
+      await withController(async ({ controller }) => {
+        // First, verify the controller is initialized
+        const initialProvider = (controller as any).providers.get(
+          'hyperliquid',
+        );
+        expect(initialProvider).toBeDefined();
+        const initialInstanceId = initialProvider.instanceId;
+
+        // Call reconnectWithNewContext
+        await controller.reconnectWithNewContext();
+
+        // Verify a new provider instance was created (constructor called twice)
+        expect(HyperLiquidProvider).toHaveBeenCalledTimes(2);
+
+        // Verify the controller is initialized again
+        const newProvider = (controller as any).providers.get('hyperliquid');
+        expect(newProvider).toBeDefined();
+        // It should be a different instance (different instanceId)
+        expect(newProvider.instanceId).not.toBe(initialInstanceId);
+      });
+    });
+
+    it('should handle errors during reconnection', async () => {
+      // Mock the constructor to throw an error on the second call
+      let callCount = 0;
+      (
+        HyperLiquidProvider as jest.MockedClass<typeof HyperLiquidProvider>
+      ).mockImplementation(() => {
+        callCount++;
+        if (callCount === 2) {
+          throw new Error('Network error');
+        }
+        return { ...mockHyperLiquidProvider, instanceId: callCount } as any;
+      });
+
+      await withController(async ({ controller }) => {
+        // Set some initial state
+        controller.state.positions = [{ coin: 'BTC' } as any];
+        controller.state.accountState = { account: 'test' } as any;
+        controller.state.pendingOrders = [{ oid: '123' } as any];
+
+        // Call reconnectWithNewContext - it should throw the error
+        await expect(controller.reconnectWithNewContext()).rejects.toThrow(
+          'Network error',
+        );
+
+        // State should still be cleared even on error (cleared before the error)
+        expect(controller.state.positions).toEqual([]);
+        expect(controller.state.accountState).toBeNull();
+        expect(controller.state.pendingOrders).toEqual([]);
+
+        // The constructor should have been called twice (once on init, once on reconnect attempt)
+        expect(HyperLiquidProvider).toHaveBeenCalledTimes(2);
+      });
+    });
+
+    it('should work correctly after reconnection', async () => {
+      // Mock successful reconnection before creating controller
+      mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+      const mockAccountState = {
+        totalBalance: '20000',
+        availableBalance: '15000',
+        marginUsed: '5000',
+        unrealizedPnl: '100',
+      };
+      mockHyperLiquidProvider.getAccountState.mockResolvedValue(
+        mockAccountState,
+      );
+
+      await withController(async ({ controller }) => {
+        // Set up initial state
+        controller.state.positions = [{ coin: 'ETH' } as any];
+
+        // Reconnect
+        await controller.reconnectWithNewContext();
+
+        // Verify can fetch new data after reconnection
+        const accountState = await controller.getAccountState();
+        expect(accountState).toEqual(mockAccountState);
       });
     });
   });

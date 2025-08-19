@@ -7,13 +7,18 @@ import OnboardingSuccess, {
   ResetNavigationToHome,
 } from '.';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { selectProviderConfig } from '../../../selectors/networkController';
 import { OnboardingSuccessSelectorIDs } from '../../../../e2e/selectors/Onboarding/OnboardingSuccess.selectors';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { Linking } from 'react-native';
 import AppConstants from '../../../core/AppConstants';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { AuthConnection } from '@metamask/seedless-onboarding-controller';
+import { capitalize } from 'lodash';
+import { strings } from '../../../../locales/i18n';
+import { backgroundState } from '../../../util/test/initial-root-state';
+import { useSelector } from 'react-redux';
+import { selectSeedlessOnboardingAuthConnection } from '../../../selectors/seedlessOnboardingController';
 
 const mockNavigate = jest.fn();
 
@@ -43,14 +48,11 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockUseSelector = jest.fn();
-const mockUseDispatch = jest.fn();
 const mockDispatch = jest.fn();
-mockUseDispatch.mockImplementation(() => mockDispatch);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: mockUseSelector,
+  useSelector: jest.fn(),
   useDispatch: () => mockDispatch,
 }));
 const mockImportAdditionalAccounts = jest.fn();
@@ -58,15 +60,6 @@ jest.mock(
   '../../../util/importAdditionalAccounts',
   () => () => mockImportAdditionalAccounts(),
 );
-
-const mockProviderConfig = jest.fn().mockReturnValue({
-  type: 'mainnet',
-  chainId: '1',
-});
-
-mockUseSelector.mockImplementation((selector) => {
-  if (selector === selectProviderConfig) return mockProviderConfig;
-});
 
 describe('OnboardingSuccessComponent', () => {
   it('renders matching snapshot when successFlow is BACKED_UP_SRP', () => {
@@ -145,6 +138,12 @@ describe('OnboardingSuccessComponent', () => {
 
 describe('OnboardingSuccess', () => {
   mockImportAdditionalAccounts.mockResolvedValue(true);
+
+  beforeEach(() => {
+    // Reset mocks before each test
+    (useSelector as jest.Mock).mockReset();
+  });
+
   describe('route params successFlow is IMPORT_FROM_SEED_PHRASE', () => {
     mockRoute.mockReturnValue({
       params: {
@@ -192,5 +191,86 @@ describe('OnboardingSuccess', () => {
       const { toJSON } = renderWithProvider(<OnboardingSuccess />);
       expect(toJSON()).toMatchSnapshot();
     });
+  });
+
+  // write a test for the social login flow check authconnection is google or apple
+  it('renders social login description when authConnection is Apple', () => {
+    mockRoute.mockReturnValue({
+      params: {
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      },
+    });
+
+    // Mock the useSelector to return the Apple auth connection
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSeedlessOnboardingAuthConnection) {
+        return AuthConnection.Apple;
+      }
+      return undefined;
+    });
+
+    const initialState = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Apple,
+            socialBackupsMetadata: [],
+          },
+        },
+      },
+      settings: {},
+    };
+
+    const { getByText } = renderWithProvider(<OnboardingSuccess />, {
+      state: initialState,
+    });
+
+    const description = getByText(
+      strings('onboarding_success.import_description_social_login', {
+        authConnection: capitalize(AuthConnection.Apple) || '',
+      }),
+    );
+    expect(description).toBeOnTheScreen();
+  });
+
+  it('renders social login description when authConnection is Google', () => {
+    mockRoute.mockReturnValue({
+      params: {
+        successFlow: ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP,
+      },
+    });
+
+    // Mock the useSelector to return the Google auth connection
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectSeedlessOnboardingAuthConnection) {
+        return AuthConnection.Google;
+      }
+      return undefined;
+    });
+
+    const initialState = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          SeedlessOnboardingController: {
+            authConnection: AuthConnection.Google,
+            socialBackupsMetadata: [],
+          },
+        },
+      },
+      settings: {},
+    };
+
+    const { getByText } = renderWithProvider(<OnboardingSuccess />, {
+      state: initialState,
+    });
+
+    const description = getByText(
+      strings('onboarding_success.import_description_social_login', {
+        authConnection: capitalize(AuthConnection.Google) || '',
+      }),
+    );
+    expect(description).toBeOnTheScreen();
   });
 });
