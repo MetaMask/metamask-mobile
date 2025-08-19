@@ -133,4 +133,164 @@ describe('usePerpsLiveAccount', () => {
     // Should unsubscribe and resubscribe
     expect(mockUnsubscribe).toHaveBeenCalled();
   });
+
+  describe('null handling during reconnection', () => {
+    it('should handle null account data without setting loading to false', () => {
+      // Override mock to not send initial data
+      mockSubscribe.mockImplementation(
+        ({
+          callback,
+        }: {
+          callback: (account: AccountState | null) => void;
+          throttleMs?: number;
+        }) => {
+          mockCallback = callback as (account: AccountState) => void;
+          // Don't send initial data
+          return mockUnsubscribe;
+        },
+      );
+
+      const { result } = renderHook(() => usePerpsLiveAccount());
+
+      // Should be in loading state
+      expect(result.current.account).toBeNull();
+      expect(result.current.isInitialLoading).toBe(true);
+
+      // Simulate null update (during reconnection)
+      act(() => {
+        (mockCallback as unknown as (data: null) => void)(null);
+      });
+
+      // Should still be in loading state when null is received
+      expect(result.current.account).toBeNull();
+      expect(result.current.isInitialLoading).toBe(true);
+    });
+
+    it('should transition from null to data correctly', async () => {
+      // Override mock to control data flow
+      mockSubscribe.mockImplementation(
+        ({
+          callback,
+        }: {
+          callback: (account: AccountState | null) => void;
+          throttleMs?: number;
+        }) => {
+          mockCallback = callback as (account: AccountState) => void;
+          // Don't send initial data
+          return mockUnsubscribe;
+        },
+      );
+
+      const { result } = renderHook(() => usePerpsLiveAccount());
+
+      // Initial state
+      expect(result.current.account).toBeNull();
+      expect(result.current.isInitialLoading).toBe(true);
+
+      // Simulate null update (during reconnection)
+      act(() => {
+        (mockCallback as unknown as (data: null) => void)(null);
+      });
+
+      // Should still be loading
+      expect(result.current.account).toBeNull();
+      expect(result.current.isInitialLoading).toBe(true);
+
+      // Simulate successful reconnection with data
+      act(() => {
+        mockCallback(mockAccount);
+      });
+
+      // Should now have data and loading false
+      expect(result.current.account).toEqual(mockAccount);
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
+    it('should handle multiple null updates during reconnection', () => {
+      // Override mock to control data flow
+      mockSubscribe.mockImplementation(
+        ({
+          callback,
+        }: {
+          callback: (account: AccountState | null) => void;
+          throttleMs?: number;
+        }) => {
+          mockCallback = callback as (account: AccountState) => void;
+          return mockUnsubscribe;
+        },
+      );
+
+      const { result } = renderHook(() => usePerpsLiveAccount());
+
+      // Simulate multiple null updates (e.g., during repeated reconnection attempts)
+      act(() => {
+        (mockCallback as unknown as (data: null) => void)(null);
+      });
+
+      expect(result.current.account).toBeNull();
+      expect(result.current.isInitialLoading).toBe(true);
+
+      act(() => {
+        (mockCallback as unknown as (data: null) => void)(null);
+      });
+
+      // Should remain in loading state
+      expect(result.current.account).toBeNull();
+      expect(result.current.isInitialLoading).toBe(true);
+
+      act(() => {
+        (mockCallback as unknown as (data: null) => void)(null);
+      });
+
+      // Still loading
+      expect(result.current.account).toBeNull();
+      expect(result.current.isInitialLoading).toBe(true);
+
+      // Finally receive data
+      act(() => {
+        mockCallback(mockAccount);
+      });
+
+      // Now should have data
+      expect(result.current.account).toEqual(mockAccount);
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+
+    it('should handle data -> null -> data transitions', () => {
+      const { result } = renderHook(() => usePerpsLiveAccount());
+
+      // First, receive initial data
+      act(() => {
+        mockCallback(mockAccount);
+      });
+
+      expect(result.current.account).toEqual(mockAccount);
+      expect(result.current.isInitialLoading).toBe(false);
+
+      // Account/network change causes null
+      act(() => {
+        (mockCallback as unknown as (data: null) => void)(null);
+      });
+
+      // Should keep null but not change loading state
+      // since we already had data
+      expect(result.current.account).toBeNull();
+      expect(result.current.isInitialLoading).toBe(false);
+
+      // New account data arrives
+      const newAccount: AccountState = {
+        totalBalance: '5000.00',
+        availableBalance: '4000.00',
+        marginUsed: '1000.00',
+        unrealizedPnl: '50.00',
+      };
+
+      act(() => {
+        mockCallback(newAccount);
+      });
+
+      expect(result.current.account).toEqual(newAccount);
+      expect(result.current.isInitialLoading).toBe(false);
+    });
+  });
 });
