@@ -49,7 +49,7 @@ test('Account creation with 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
     'Time since the user clicks on "Add account" button until the next modal is visible',
   );
   const screen3Timer = new TimerHelper(
-    'Time since the user clicks on "Create Ethereum account" button until the account is visible',
+    'Time since the user clicks on "Create Ethereum account" button until the Token list is visible',
   );
 
   await WalletMainScreen.isTokenVisible('Ethereum');

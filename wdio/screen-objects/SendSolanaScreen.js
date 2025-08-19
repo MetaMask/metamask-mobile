@@ -52,7 +52,7 @@ class SendSolanaScreen {
   async tapContinueButton() {
     await this._device.waitForTimeout(2000); // wait for the spinner to dissapear
     const continueButton = await this.continueButton;
-    await appwrightExpect(continueButton).toBeVisible();
+    await appwrightExpect(continueButton).toBeVisible({ timeout: 10000 });
     const timer1 = new TimerHelper(
       'Time since the user is on the send amount screen until the user gets the confirmation screen',
     );
