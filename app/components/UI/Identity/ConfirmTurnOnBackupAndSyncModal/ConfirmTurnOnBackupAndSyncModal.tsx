@@ -16,6 +16,9 @@ import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { useParams } from '../../../../util/navigation/navUtils';
 import { ConfirmTurnOnBackupAndSyncModalNavigateParams } from '../BackupAndSyncToggle/BackupAndSyncToggle';
 import { InteractionManager } from 'react-native';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import Engine from '../../../../core/Engine';
+///: END:ONLY_INCLUDE_IF
 
 const ConfirmTurnOnBackupAndSyncModal = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
@@ -26,6 +29,17 @@ const ConfirmTurnOnBackupAndSyncModal = () => {
 
   const enableBasicFunctionality = async () => {
     dispatch(toggleBasicFunctionality(true));
+    
+    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+    // Call MultichainAccountService to update provider states and trigger alignment
+    try {
+      await Engine.context.MultichainAccountService.setBasicFunctionality({
+        enabled: true,
+      });
+    } catch (error) {
+      console.error('Failed to call MultichainAccountService.setBasicFunctionality:', error);
+    }
+    ///: END:ONLY_INCLUDE_IF
   };
 
   const handleEnableBackupAndSync = () => {

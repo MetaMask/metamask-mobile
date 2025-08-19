@@ -32,6 +32,9 @@ import { useEnableNotifications } from '../../../../util/notifications/hooks/use
 import { useMetrics } from '../../../hooks/useMetrics';
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
+///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+import Engine from '../../../../core/Engine';
+///: END:ONLY_INCLUDE_IF
 
 interface Props {
   route: {
@@ -68,10 +71,23 @@ const BasicFunctionalityModal = ({ route }: Props) => {
 
   const closeBottomSheet = async () => {
     bottomSheetRef.current?.onCloseBottomSheet(() => {
-      dispatch(toggleBasicFunctionality(!isEnabled));
+      const newBasicFunctionalityState = !isEnabled;
+      dispatch(toggleBasicFunctionality(newBasicFunctionalityState));
+      
+      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
+      // Call MultichainAccountService to update provider states and trigger alignment
+      try {
+        Engine.context.MultichainAccountService.setBasicFunctionality({
+          enabled: newBasicFunctionalityState,
+        });
+      } catch (error) {
+        console.error('Failed to call MultichainAccountService.setBasicFunctionality:', error);
+      }
+      ///: END:ONLY_INCLUDE_IF
+      
       trackEvent(
         createEventBuilder(
-          !isEnabled
+          newBasicFunctionalityState
             ? MetaMetricsEvents.BASIC_FUNCTIONALITY_ENABLED
             : MetaMetricsEvents.BASIC_FUNCTIONALITY_DISABLED,
         ).build(),
@@ -82,7 +98,7 @@ const BasicFunctionalityModal = ({ route }: Props) => {
             settings_group: 'security_privacy',
             settings_type: 'basic_functionality',
             old_value: isEnabled,
-            new_value: !isEnabled,
+            new_value: newBasicFunctionalityState,
             was_notifications_on: isEnabled
               ? isNotificationsFeatureEnabled
               : false,
