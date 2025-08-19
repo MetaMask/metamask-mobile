@@ -633,6 +633,39 @@ const RevealPrivateCredential = ({
     </View>
   );
 
+  const renderContent = () => (
+    <>
+      <View style={[styles.rowWrapper, styles.normalText]}>
+        {isPrivateKey && account ? (
+          <>
+            <AccountInfo account={account} />
+            <BannerAlert
+              severity={BannerAlertSeverity.Error}
+              title={strings(
+                'multichain_accounts.reveal_private_key.banner_title',
+              )}
+              description={strings(
+                'multichain_accounts.reveal_private_key.banner_description',
+              )}
+            />
+          </>
+        ) : (
+          <>
+            {renderSRPExplanation()}
+            {renderWarning(credentialSlug)}
+          </>
+        )}
+      </View>
+      {unlocked ? (
+        renderTabView(credentialSlug)
+      ) : (
+        <View style={[styles.rowWrapper, styles.stretch]}>
+          {renderPasswordEntry()}
+        </View>
+      )}
+    </>
+  );
+
   return (
     <View
       style={[styles.wrapper]}
@@ -663,39 +696,15 @@ const RevealPrivateCredential = ({
         showCancelButton={Boolean(showCancelButton || unlocked)}
         enableOnAndroid
         enableAutomaticScroll
-        extraScrollHeight={40}
+        extraScrollHeight={Device.isAndroid() ? 0 : 150}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps={Device.isAndroid() ? 'never' : 'always'}
       >
-        <ScrollView>
-          <View style={[styles.rowWrapper, styles.normalText]}>
-            {isPrivateKey && account ? (
-              <>
-                <AccountInfo account={account} />
-                <BannerAlert
-                  severity={BannerAlertSeverity.Error}
-                  title={strings(
-                    'multichain_accounts.reveal_private_key.banner_title',
-                  )}
-                  description={strings(
-                    'multichain_accounts.reveal_private_key.banner_description',
-                  )}
-                />
-              </>
-            ) : (
-              <>
-                {renderSRPExplanation()}
-                {renderWarning(credentialSlug)}
-              </>
-            )}
-          </View>
-          {unlocked ? (
-            renderTabView(credentialSlug)
-          ) : (
-            <View style={[styles.rowWrapper, styles.stretch]}>
-              {renderPasswordEntry()}
-            </View>
-          )}
-        </ScrollView>
+        {Device.isAndroid() ? (
+          <ScrollView>{renderContent()}</ScrollView>
+        ) : (
+          <View style={styles.stretch}>{renderContent()}</View>
+        )}
       </ActionView>
       {renderModal(isPrivateKey)}
 
