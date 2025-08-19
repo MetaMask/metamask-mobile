@@ -7,6 +7,7 @@ import {
   AddressInputElement,
   AssetSelectorElement,
   AccountSelectorElement,
+  DropdownElement,
 } from '@metamask/snaps-sdk/jsx';
 import { getJsxChildren } from '@metamask/snaps-utils';
 import { getPrimaryChildElementIndex, mapToTemplate } from '../utils';
@@ -16,6 +17,7 @@ import { UIComponentFactory, UIComponentParams } from './types';
 import { constructInputProps } from './input';
 import { assetSelector as assetSelectorFn } from './asset-selector';
 import { accountSelector as accountSelectorFn } from './account-selector';
+import { dropdown as dropdownFn } from './dropdown';
 
 export const field: UIComponentFactory<FieldElement> = ({
   element: e,
@@ -197,6 +199,25 @@ export const field: UIComponentFactory<FieldElement> = ({
           label: e.props.label,
           form,
           error: e.props.error,
+        },
+      };
+    }
+
+    case 'Dropdown': {
+      const dropdown = child as DropdownElement;
+      const dropdownMapped = dropdownFn({
+        element: dropdown,
+      } as UIComponentParams<DropdownElement>);
+      return {
+        element: 'SnapUIDropdown',
+        props: {
+          ...dropdownMapped.props,
+          id: dropdown.props.name,
+          label: e.props.label,
+          name: dropdown.props.name,
+          form,
+          error: e.props.error,
+          disabled: child.props.disabled,
         },
       };
     }
