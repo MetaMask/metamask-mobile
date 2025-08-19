@@ -176,6 +176,15 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                         textColor: '${theme.colors.text.muted}',
                         attributionLogo: false, // Hide the TradingView logo
                     },
+                    localization: {
+                        priceFormatter: (price) => {
+                            // Format price with comma separators
+                            return new Intl.NumberFormat('en-US', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }).format(price);
+                        }
+                    },
                     grid: {
                         vertLines: { color: '${theme.colors.border.muted}' },
                         horzLines: { color: '${theme.colors.border.muted}' },
