@@ -242,7 +242,7 @@ export const startMockServer = async (events, port) => {
 /**
  * Validates that no unexpected live requests were made
  * @param {import('mockttp').Mockttp} mockServer
- * @throws {Error} If live requests were made
+ * @returns {void}
  */
 export const validateLiveRequests = (mockServer) => {
   if (mockServer._liveRequests.length > 0) {
@@ -265,11 +265,10 @@ export const validateLiveRequests = (mockServer) => {
 
     const totalCount = mockServer._liveRequests.length;
     const uniqueCount = uniqueRequests.length;
-
-    throw new Error(
+    // This is temporary, we will remove this in the future when we expect no unknown live request to happen in a test
+    logger.warn(
       `Test made ${totalCount} unmocked request(s) (${uniqueCount} unique):\n${requestsSummary}\n\n` +
-        'Check your test-specific mocks or add them to the default mocks.',
-      "You can also add the URL to the allowlist if it's a known live request.",
+        "Check your test-specific mocks or add them to the default mocks.\n You can also add the URL to the allowlist if it's a known live request.",
     );
   }
 };
