@@ -132,7 +132,7 @@ class ImportFromSeedScreen {
           await element.waitUntil(async () => { 
             const isVisible = await element.isVisible();
             return !isVisible; // wait until the element is not visible
-          }, { timeout: 30000 });
+          }, 30000);
         } else {
           const element = await AppwrightSelectors.getElementByText(this.device, 'Continue');
           await element.tap();
@@ -140,7 +140,7 @@ class ImportFromSeedScreen {
           await screenTitle.waitUntil(async () => {
             const isVisible = await screenTitle.isVisible();
             return !isVisible;
-          }, { timeout: 50000 });
+          }, 30000);
         }
       }
     }

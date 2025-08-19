@@ -18,7 +18,7 @@ import ImportFromSeedScreen from '../../../wdio/screen-objects/Onboarding/Import
 
 const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED === 'false';
 
-test('Onboarding Import SRP with +50 accounts, SRP 1 + SRP 2 + SRP 3', async ({
+test('Onboarding Import SRP with +50 accounts, SRP 3', async ({
   device,
 }, testInfo) => {
   const screen1Timer = new TimerHelper(
