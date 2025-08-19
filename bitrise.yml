@@ -112,7 +112,7 @@ pipelines:
       - set_main_target_stage: {}
       - pr_cache_check_stage: {}
       - build_smoke_e2e_ios_android_stage: {}
-      - run_smoke_e2e_performance_ios_android_stage: {}
+      # - run_smoke_e2e_performance_ios_android_stage: {}
       - notify: {}
 
   #PR_e2e_verfication (build ios & android), run iOS (regression), emulator Android
@@ -353,8 +353,9 @@ stages:
       # - run_tag_smoke_performance_android: {}
       - run_tag_smoke_card_ios: {}
       # - run_tag_smoke_card_android: {}
-  run_smoke_e2e_performance_ios_android_stage:
-    workflows:
+  # The entire workflow is disabled as Android runs on GHA and iOS was already skipped due to a regression
+  # run_smoke_e2e_performance_ios_android_stage:
+    # workflows:
       # - run_tag_smoke_performance_ios: {}
       #- run_tag_smoke_performance_android: {}
   # TODO: This stage does the same thing as build_smoke_e2e_ios_android_stage
