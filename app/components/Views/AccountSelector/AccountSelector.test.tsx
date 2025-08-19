@@ -7,6 +7,7 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   AccountSelectorParams,
   AccountSelectorProps,
+  AccountSelectorScreens,
 } from './AccountSelector.types';
 import {
   MOCK_ACCOUNTS_CONTROLLER_STATE_WITH_SOLANA,
@@ -161,6 +162,24 @@ jest.mock('../../../components/hooks/useMetrics', () => ({
   }),
 }));
 
+// Mock the multichain accounts selector with default disabled state
+const mockSelectMultichainAccountsState2Enabled = jest
+  .fn()
+  .mockReturnValue(false);
+const mockSelectMultichainAccountsState1Enabled = jest
+  .fn()
+  .mockReturnValue(false);
+
+jest.mock(
+  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
+  () => ({
+    selectMultichainAccountsState2Enabled: () =>
+      mockSelectMultichainAccountsState2Enabled(),
+    selectMultichainAccountsState1Enabled: () =>
+      mockSelectMultichainAccountsState1Enabled(),
+  }),
+);
+
 const mockRoute: AccountSelectorProps['route'] = {
   params: {
     onSelectAccount: jest.fn((address: string) => address),
@@ -175,6 +194,9 @@ const AccountSelectorWrapper = () => <AccountSelector route={mockRoute} />;
 describe('AccountSelector', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Reset multichain selectors to disabled state by default
+    mockSelectMultichainAccountsState2Enabled.mockReturnValue(false);
+    mockSelectMultichainAccountsState1Enabled.mockReturnValue(false);
   });
 
   it('should render correctly', () => {
@@ -271,5 +293,74 @@ describe('AccountSelector', () => {
       AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
     );
     expect(accountsList).toBeDefined();
+  });
+
+  describe('Multichain Accounts V2', () => {
+    it('shows button text based on feature flag state', () => {
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeDefined();
+      expect(addButton.props.children).toBeDefined();
+    });
+
+    it('shows "Add wallet" text when multichain feature flag is enabled', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      // Verify component renders successfully with feature flag enabled
+      const addButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addButton).toBeDefined();
+
+      // When multichain feature flag is enabled, button text should be "Add wallet"
+      expect(addButton).toHaveTextContent('Add wallet');
+    });
+
+    it('handles navigation to add account actions', () => {
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      const routeWithNavigation = {
+        params: {
+          ...mockRoute.params,
+          navigateToAddAccountActions:
+            AccountSelectorScreens.AddAccountActions as AccountSelectorScreens.AddAccountActions,
+        },
+      };
+
+      renderScreen(
+        () => <AccountSelector route={routeWithNavigation} />,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(screen.getAllByText('Create a new account')).toBeDefined();
+    });
   });
 });
