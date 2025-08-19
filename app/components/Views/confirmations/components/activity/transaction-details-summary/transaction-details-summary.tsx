@@ -17,24 +17,44 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './transaction-details-summary.styles';
 import I18n from '../../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
+import { selectTransactionsByIds } from '../../../../../../selectors/transactionController';
+import { useSelector } from 'react-redux';
+import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { RootState } from '../../../../../../reducers';
+import { TransactionMeta } from '@metamask/transaction-controller';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
-  const testData = [{}, {}, {}, {}, {}];
+  const { transactionMeta } = useTransactionDetails();
+  const { requiredTransactionIds } = transactionMeta;
+
+  const requiredTransactions = useSelector((state: RootState) =>
+    selectTransactionsByIds(state, requiredTransactionIds ?? []),
+  );
 
   return (
     <Box gap={12}>
       <Text color={TextColor.Alternative}>Summary</Text>
       <Box gap={1} style={styles.lineContainer}>
-        {testData.map((_item, index) => (
-          <SummaryLine key={index} isLast={index === testData.length - 1} />
+        {requiredTransactions.map((item, index) => (
+          <SummaryLine
+            key={index}
+            transaction={item}
+            isLast={index === requiredTransactions.length - 1}
+          />
         ))}
       </Box>
     </Box>
   );
 }
 
-function SummaryLine({ isLast }: { isLast: boolean }) {
+function SummaryLine({
+  isLast,
+  transaction,
+}: {
+  isLast: boolean;
+  transaction: TransactionMeta;
+}) {
   const { styles } = useStyles(styleSheet, { isLast });
   const timestamp = Date.now();
   const dateString = getDateString(timestamp);
@@ -52,7 +72,7 @@ function SummaryLine({ isLast }: { isLast: boolean }) {
           gap={12}
         >
           <Icon name={IconName.CircleX} />
-          <Text variant={TextVariant.BodyMD}>Bridge from ETH to Arbitrum</Text>
+          <Text variant={TextVariant.BodyMD}>{transaction.type}</Text>
         </Box>
         <Icon name={IconName.Arrow2UpRight} color={IconColor.Alternative} />
       </Box>
