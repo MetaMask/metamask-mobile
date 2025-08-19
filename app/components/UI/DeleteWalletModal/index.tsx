@@ -135,7 +135,7 @@ const DeleteWalletModal: React.FC = () => {
   };
 
   return (
-    <BottomSheet ref={modalRef}>
+    <BottomSheet ref={modalRef} isInteractable={false}>
       {!isResetWallet && !isResetWalletFromParams ? (
         <View
           style={styles.forgotPasswordContainer}
@@ -288,6 +288,7 @@ const DeleteWalletModal: React.FC = () => {
                 label={strings('login.cancel')}
                 width={ButtonWidthTypes.Full}
                 testID={ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON}
+                isDisabled={isDeletingWallet}
               />
             </View>
           </View>
