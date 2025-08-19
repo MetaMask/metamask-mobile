@@ -21,7 +21,6 @@ export const AmountInputType = {
 
 export const AmountInputMethod = {
   Manual: 'manual',
-  Pasted: 'pasted',
   PressedMax: 'pressed_max',
 };
 
@@ -30,7 +29,6 @@ export const RecipientInputMethod = {
   Pasted: 'pasted',
   SelectAccount: 'select_account',
   SelectContact: 'select_contact',
-  QRCodeScan: 'qr_code_scan',
 };
 
 export interface SendMetricsContextType {

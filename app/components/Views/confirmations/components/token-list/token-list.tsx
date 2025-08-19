@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { FlashList } from '@shopify/flash-list';
 import { Box } from '@metamask/design-system-react-native';
 
 import { useSendScreenNavigation } from '../../hooks/send/useSendScreenNavigation';
@@ -30,27 +29,15 @@ export function TokenList({ tokens }: TokenListProps) {
     [captureAssetSelected, gotToSendScreen, tokens, updateAsset],
   );
 
-  const renderTokenListItem = useCallback(
-    ({ item }: { item: AssetType }) => (
-      <Token asset={item} onPress={handleTokenPress} />
-    ),
-    [handleTokenPress],
-  );
-
-  const keyExtractor = useCallback(
-    (item: AssetType) => `${item.address}-${item.chainId}`,
-    [],
-  );
-
   return (
-    <Box twClassName="flex-1">
-      <FlashList
-        data={tokens}
-        decelerationRate={0}
-        keyExtractor={keyExtractor}
-        removeClippedSubviews
-        renderItem={renderTokenListItem}
-      />
+    <Box>
+      {tokens.map((token) => (
+        <Token
+          key={`${token.chainId}-${token.address}`}
+          asset={token}
+          onPress={handleTokenPress}
+        />
+      ))}
     </Box>
   );
 }
