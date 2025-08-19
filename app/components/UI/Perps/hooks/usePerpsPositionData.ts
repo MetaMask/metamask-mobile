@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import Engine from '../../../../core/Engine';
-import type { PriceUpdate } from '../controllers/types';
 import type { CandleData } from '../types';
 import {
   calculateCandleCount,
@@ -21,7 +20,6 @@ export const usePerpsPositionData = ({
   selectedInterval,
 }: UsePerpsPositionDataProps) => {
   const [candleData, setCandleData] = useState<CandleData | null>(null);
-  const [priceData, setPriceData] = useState<PriceUpdate | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const fetchHistoricalCandles = useCallback(async () => {
@@ -41,26 +39,6 @@ export const usePerpsPositionData = ({
     return historicalData;
   }, [coin, selectedDuration, selectedInterval]);
 
-  const subscribeToPriceUpdates = useCallback(() => {
-    try {
-      const unsubscribe = Engine.context.PerpsController.subscribeToPrices({
-        symbols: [coin],
-        callback: (priceUpdates) => {
-          const update = priceUpdates.find((p) => p.coin === coin);
-          if (update) {
-            setPriceData(update);
-          }
-        },
-      });
-      return unsubscribe;
-    } catch (err) {
-      console.error('Error subscribing to price updates:', err);
-      return () => {
-        // Empty cleanup function on error
-      };
-    }
-  }, [coin]);
-
   // Load historical candles
   useEffect(() => {
     setIsLoadingHistory(true);
@@ -78,15 +56,6 @@ export const usePerpsPositionData = ({
     loadHistoricalData();
   }, [fetchHistoricalCandles]);
 
-  // Subscribe to price updates for 24-hour data
-  useEffect(() => {
-    const unsubscribe = subscribeToPriceUpdates();
-
-    return () => {
-      unsubscribe();
-    };
-  }, [subscribeToPriceUpdates]);
-
   // Refresh function to reload candle data
   const refreshCandleData = useCallback(async () => {
     setIsLoadingHistory(true);
@@ -102,7 +71,6 @@ export const usePerpsPositionData = ({
 
   return {
     candleData,
-    priceData,
     isLoadingHistory,
     refreshCandleData,
   };
