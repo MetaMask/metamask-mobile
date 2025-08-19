@@ -36,9 +36,12 @@ export function usePerpsLiveAccount(
     if (!streamManager) return;
 
     // Mark as no longer loading once we get first update
-    const handleAccountUpdate = (newAccount: AccountState) => {
+    const handleAccountUpdate = (newAccount: AccountState | null) => {
       setAccount(newAccount);
-      setIsInitialLoading(false);
+      // Only set loading to false if we have actual data
+      if (newAccount !== null) {
+        setIsInitialLoading(false);
+      }
     };
 
     const unsubscribe = streamManager.account.subscribe({
