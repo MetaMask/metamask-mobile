@@ -126,7 +126,8 @@ const Balance = ({ asset, mainBalance, secondaryBalance }: BalanceProps) => {
   const hasPercentageChange =
     !isTestNet(asset.chainId as Hex) &&
     pricePercentChange1d !== null &&
-    pricePercentChange1d !== undefined;
+    pricePercentChange1d !== undefined &&
+    Number.isFinite(pricePercentChange1d);
 
   // Determine the color for percentage change
   let percentageColor = TextColor.Alternative;

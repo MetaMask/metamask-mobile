@@ -236,7 +236,8 @@ export const TokenListItem = React.memo(
       !isTestNet(chainId) &&
       showPercentageChange &&
       pricePercentChange1d !== null &&
-      pricePercentChange1d !== undefined;
+      pricePercentChange1d !== undefined &&
+      Number.isFinite(pricePercentChange1d);
 
     // Determine the color for percentage change
     let percentageColor = TextColor.Alternative;

@@ -390,6 +390,63 @@ describe('Balance', () => {
       expect(queryByText(/-.*%/)).toBeNull();
     });
 
+    it('should not display percentage for Infinity values (prevents crash)', () => {
+      // Mock the percentage selector to return Infinity
+      mockSelectPricePercentChange1d.mockReturnValue(Infinity);
+
+      const { queryByText } = render(
+        <Provider store={store}>
+          <Balance
+            asset={mockDAI}
+            mainBalance="$100"
+            secondaryBalance="5 DAI"
+          />
+        </Provider>,
+      );
+
+      // Should not display any percentage text when value is Infinity
+      expect(queryByText(/\+.*%/)).toBeNull();
+      expect(queryByText(/-.*%/)).toBeNull();
+    });
+
+    it('should not display percentage for NaN values (prevents crash)', () => {
+      // Mock the percentage selector to return NaN
+      mockSelectPricePercentChange1d.mockReturnValue(NaN);
+
+      const { queryByText } = render(
+        <Provider store={store}>
+          <Balance
+            asset={mockDAI}
+            mainBalance="$100"
+            secondaryBalance="5 DAI"
+          />
+        </Provider>,
+      );
+
+      // Should not display any percentage text when value is NaN
+      expect(queryByText(/\+.*%/)).toBeNull();
+      expect(queryByText(/-.*%/)).toBeNull();
+    });
+
+    it('should not display percentage for negative Infinity values (prevents crash)', () => {
+      // Mock the percentage selector to return negative Infinity
+      mockSelectPricePercentChange1d.mockReturnValue(-Infinity);
+
+      const { queryByText } = render(
+        <Provider store={store}>
+          <Balance
+            asset={mockDAI}
+            mainBalance="$100"
+            secondaryBalance="5 DAI"
+          />
+        </Provider>,
+      );
+
+      // Should not display any percentage text when value is negative Infinity
+      expect(queryByText(/\+.*%/)).toBeNull();
+      expect(queryByText(/-.*%/)).toBeNull();
+    });
+
     it('should display token amount below token name', () => {
       const { getByText } = render(
         <Provider store={store}>
