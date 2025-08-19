@@ -5265,6 +5265,7 @@
   },
   "multichain_accounts": {
     "add_wallet": "Add wallet",
+    "add_hardware_wallet": "Add a hardware wallet",
     "account_details": {
       "header_title": "Account Details",
       "account_name": "Account Name",

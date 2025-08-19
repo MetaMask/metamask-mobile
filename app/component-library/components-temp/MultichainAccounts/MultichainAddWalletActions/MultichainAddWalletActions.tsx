@@ -75,14 +75,14 @@ const MultichainAddWalletActions = ({
             style={styles.accountAction}
           />
           <AccountAction
-            actionTitle="Import an account"
+            actionTitle={strings('accounts.import_account')}
             iconName={IconName.Download}
             onPress={openImportAccount}
             testID={AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON}
             style={styles.accountAction}
           />
           <AccountAction
-            actionTitle="Add a hardware wallet"
+            actionTitle={strings('multichain_accounts.add_hardware_wallet')}
             iconName={IconName.Usb}
             onPress={openConnectHardwareWallet}
             testID={
