@@ -19,7 +19,10 @@ import { scale } from 'react-native-size-matters';
 import { strings } from '../../../../locales/i18n';
 import { MetaMetrics, MetaMetricsEvents } from '../../../core/Analytics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
+import {
+  isRemoveGlobalNetworkSelectorEnabled,
+  isSendFlowGNSEnabled,
+} from '../../../util/networks';
 import Device from '../../../util/device';
 import generateTestId from '../../../../wdio/utils/generateTestId';
 import PickerNetwork from '../../../component-library/components/Pickers/PickerNetwork';
@@ -598,17 +601,17 @@ export function getSendFlowTitle(
         title={titleToRender}
         disableNetwork={disableNetwork}
         showSelectedNetwork={
-          isRemoveGlobalNetworkSelectorEnabled()
+          isRemoveGlobalNetworkSelectorEnabled() || isSendFlowGNSEnabled()
             ? showSelectedNetwork
             : undefined
         }
         networkName={
-          isRemoveGlobalNetworkSelectorEnabled()
+          isRemoveGlobalNetworkSelectorEnabled() || isSendFlowGNSEnabled()
             ? sendFlowContextualChainId
             : undefined
         }
         source={
-          isRemoveGlobalNetworkSelectorEnabled()
+          isRemoveGlobalNetworkSelectorEnabled() || isSendFlowGNSEnabled()
             ? NETWORK_SELECTOR_SOURCES.SEND_FLOW
             : undefined
         }

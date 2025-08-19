@@ -13,6 +13,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   getDecimalChainId,
   isRemoveGlobalNetworkSelectorEnabled,
+  isSendFlowGNSEnabled,
 } from '../../../../../../util/networks';
 import { handleNetworkSwitch } from '../../../../../../util/networks/handleNetworkSwitch';
 import {
@@ -595,7 +596,7 @@ class SendFlow extends PureComponent {
         style={styles.wrapper}
         {...generateTestId(Platform, SendViewSelectorsIDs.CONTAINER_ID)}
       >
-        {isRemoveGlobalNetworkSelectorEnabled() ? (
+        {isRemoveGlobalNetworkSelectorEnabled() || isSendFlowGNSEnabled() ? (
           <ContextualNetworkPicker
             networkName={networkName}
             networkImageSource={networkImageSource}
