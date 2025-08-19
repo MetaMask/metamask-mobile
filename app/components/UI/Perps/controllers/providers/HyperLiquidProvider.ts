@@ -70,6 +70,7 @@ import type {
   PerpsMarketData,
   Position,
   ReadyToTradeResult,
+  SubscribeAccountParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -1767,6 +1768,13 @@ export class HyperLiquidProvider implements IPerpsProvider {
    */
   subscribeToOrders(params: SubscribeOrdersParams): () => void {
     return this.subscriptionService.subscribeToOrders(params);
+  }
+
+  /**
+   * Subscribe to live account updates
+   */
+  subscribeToAccount(params: SubscribeAccountParams): () => void {
+    return this.subscriptionService.subscribeToAccount(params);
   }
 
   /**

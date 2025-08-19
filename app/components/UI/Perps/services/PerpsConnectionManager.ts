@@ -143,13 +143,14 @@ class PerpsConnectionManagerClass {
       // Get the singleton StreamManager instance
       const streamManager = getStreamManagerInstance();
 
-      // Pre-warm the positions and orders channels
+      // Pre-warm the positions, orders, and account channels
       // This creates persistent subscriptions that keep connections alive
       // Store cleanup functions to call when leaving Perps
       const positionCleanup = streamManager.positions.prewarm();
       const orderCleanup = streamManager.orders.prewarm();
+      const accountCleanup = streamManager.account.prewarm();
 
-      this.prewarmCleanups.push(positionCleanup, orderCleanup);
+      this.prewarmCleanups.push(positionCleanup, orderCleanup, accountCleanup);
 
       // Give subscriptions a moment to receive initial data
       await new Promise((resolve) => setTimeout(resolve, 100));
