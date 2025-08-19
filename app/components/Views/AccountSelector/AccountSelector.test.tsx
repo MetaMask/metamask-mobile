@@ -1,8 +1,9 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { screen, fireEvent } from '@testing-library/react-native';
 import AccountSelector from './AccountSelector';
 import { renderScreen } from '../../../util/test/renderWithProvider';
 import { AccountListBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AccountListBottomSheet.selectors';
+import { AddAccountBottomSheetSelectorsIDs } from '../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import Routes from '../../../constants/navigation/Routes';
 import {
   AccountSelectorParams,
@@ -361,6 +362,38 @@ describe('AccountSelector', () => {
       );
 
       expect(screen.getAllByText('Create a new account')).toBeDefined();
+    });
+
+    it('clicks Add wallet button and displays MultichainAddWalletActions bottomsheet', () => {
+      // Enable the multichain accounts state 2 feature flag for this test
+      mockSelectMultichainAccountsState2Enabled.mockReturnValue(true);
+
+      renderScreen(
+        AccountSelectorWrapper,
+        {
+          name: Routes.SHEET.ACCOUNT_SELECTOR,
+        },
+        {
+          state: mockInitialState,
+        },
+        mockRoute.params,
+      );
+
+      const addWalletButton = screen.getByTestId(
+        AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+      );
+      expect(addWalletButton).toHaveTextContent('Add wallet');
+
+      fireEvent.press(addWalletButton);
+
+      // Check for the "Add wallet" header text which indicates the component is rendered
+      expect(screen.getByText('Add wallet')).toBeDefined();
+
+      expect(
+        screen.getByTestId(
+          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+        ),
+      ).toBeDefined();
     });
   });
 });
