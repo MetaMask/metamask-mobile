@@ -26,7 +26,7 @@ export const prepareEVMTransaction = (
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';
   } else {
-    const tokenAmount = toTokenMinimalUnit(value ?? '0', asset.decimals);
+    const tokenAmount = toTokenMinimalUnit(value ?? '0', asset.decimals ?? 0);
     trxnParams.data = generateTransferData('transfer', {
       toAddress: to,
       amount: BNToHex(tokenAmount),

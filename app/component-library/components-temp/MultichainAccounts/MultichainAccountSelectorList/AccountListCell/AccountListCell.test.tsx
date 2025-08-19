@@ -3,6 +3,13 @@ import { render, fireEvent } from '@testing-library/react-native';
 import AccountListCell from './AccountListCell';
 import { createMockAccountGroup } from '../../test-utils';
 
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
 const mockAccountGroup = createMockAccountGroup(
   'keyring:test-group/ethereum',
   'Test Account',
