@@ -68,6 +68,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
         await WalletView.tapTokenNetworkFilter();
         await WalletView.tapTokenNetworkFilterAll();
         const avax = WalletView.tokenInWallet('AVAX');
+        await WalletView.scrollToToken('AVAX');
         await Assertions.expectElementToBeVisible(avax);
         await WalletView.tapOnToken('AVAX');
         await Assertions.expectElementToBeVisible(TokenOverview.sendButton);
@@ -120,9 +121,7 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
 
         await WalletView.tapTokenNetworkFilter();
         await WalletView.tapTokenNetworkFilterAll();
-        if (device.getPlatform() === 'ios') {
-          await WalletView.scrollToToken('AVAX', 'up');
-        }
+        await WalletView.scrollToToken('AVAX');
         await WalletView.tapOnToken('AVAX');
 
         await Assertions.expectElementToBeVisible(TokenOverview.container);
