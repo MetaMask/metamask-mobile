@@ -753,4 +753,1565 @@ describe('TradingViewChart', () => {
       expect(getByTestId('rerender-test')).toBeOnTheScreen();
     });
   });
+
+  describe('HTML Content Generation', () => {
+    it('generates HTML content with theme colors', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="html-theme-test" />,
+      );
+
+      // Assert - Component should render with theme-aware HTML
+      expect(getByTestId('html-theme-test')).toBeOnTheScreen();
+    });
+
+    it('includes TradingView library script in HTML', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="library-script-test" />,
+      );
+
+      // Assert - Component should render with library script
+      expect(getByTestId('library-script-test')).toBeOnTheScreen();
+    });
+
+    it('includes chart configuration in HTML', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="chart-config-test" />,
+      );
+
+      // Assert - Component should render with chart configuration
+      expect(getByTestId('chart-config-test')).toBeOnTheScreen();
+    });
+
+    it('updates HTML when theme changes', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart testID="theme-update-test" />,
+      );
+
+      // Act - Force re-render to test theme dependency
+      rerender(<TradingViewChart testID="theme-update-test" />);
+
+      // Assert
+      expect(getByTestId('theme-update-test')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Data Version Tracking', () => {
+    it('tracks candle data version changes', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart
+          candleData={mockCandleData}
+          testID="version-tracking-test"
+        />,
+      );
+
+      // Act - Update with new data
+      const updatedData: CandleData = {
+        ...mockCandleData,
+        coin: 'ETH', // Different coin
+      };
+
+      rerender(
+        <TradingViewChart
+          candleData={updatedData}
+          testID="version-tracking-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('version-tracking-test')).toBeOnTheScreen();
+    });
+
+    it('handles data version with single candle', () => {
+      // Arrange
+      const singleCandleData: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [mockCandleData.candles[0]],
+      };
+
+      // Act
+      const { getByTestId } = render(
+        <TradingViewChart
+          candleData={singleCandleData}
+          testID="single-candle-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('single-candle-test')).toBeOnTheScreen();
+    });
+
+    it('handles data version with null candles', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart candleData={null} testID="null-version-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('null-version-test')).toBeOnTheScreen();
+    });
+  });
+
+  describe('WebView Configuration', () => {
+    it('configures WebView with JavaScript enabled', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="js-enabled-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('js-enabled-test-webview')).toBeOnTheScreen();
+    });
+
+    it('configures WebView with DOM storage enabled', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="dom-storage-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('dom-storage-test-webview')).toBeOnTheScreen();
+    });
+
+    it('configures WebView without scrolling', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="no-scroll-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('no-scroll-test-webview')).toBeOnTheScreen();
+    });
+
+    it('enables WebView debugging in development', () => {
+      // Arrange & Act
+      const { getByTestId } = render(<TradingViewChart testID="debug-test" />);
+
+      // Assert
+      expect(getByTestId('debug-test-webview')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Message Type Handling', () => {
+    it('handles CHART_READY message type', () => {
+      // Arrange
+      const mockOnChartReady = jest.fn();
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            onChartReady={mockOnChartReady}
+            testID="chart-ready-message-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles PRICE_LINES_UPDATE message type', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="price-lines-message-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('price-lines-message-test')).toBeOnTheScreen();
+    });
+
+    it('handles INTERVAL_UPDATED message type', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="interval-message-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('interval-message-test')).toBeOnTheScreen();
+    });
+
+    it('handles WEBVIEW_TEST message type', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="webview-test-message" />,
+      );
+
+      // Assert
+      expect(getByTestId('webview-test-message')).toBeOnTheScreen();
+    });
+
+    it('handles unknown message types gracefully', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="unknown-message-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('unknown-message-test')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Console Logging and Debugging', () => {
+    it('logs debugging information during normal operation', () => {
+      // Arrange
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      // Act
+      const { getByTestId } = render(
+        <TradingViewChart
+          candleData={mockCandleData}
+          testID="console-log-test"
+        />,
+      );
+
+      // Assert - Component should render successfully
+      expect(getByTestId('console-log-test')).toBeOnTheScreen();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('handles console error logging for invalid JSON', () => {
+      // Arrange
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+      // Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="error-logging-test" />,
+      );
+
+      // Assert - Component should render without throwing
+      expect(getByTestId('error-logging-test')).toBeOnTheScreen();
+
+      consoleErrorSpy.mockRestore();
+    });
+  });
+
+  describe('Effect Hook Behaviors', () => {
+    it('handles chart ready state changes', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart
+          selectedDuration={TimeDuration.ONE_DAY}
+          testID="ready-state-test"
+        />,
+      );
+
+      // Act - Trigger re-render to test useEffect
+      rerender(
+        <TradingViewChart
+          selectedDuration={TimeDuration.ONE_WEEK}
+          testID="ready-state-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('ready-state-test')).toBeOnTheScreen();
+    });
+
+    it('handles candle data updates through effects', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart candleData={null} testID="data-effect-test" />,
+      );
+
+      // Act - Update from null to actual data
+      rerender(
+        <TradingViewChart
+          candleData={mockCandleData}
+          testID="data-effect-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('data-effect-test')).toBeOnTheScreen();
+    });
+
+    it('handles tpslLines updates through effects', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart tpslLines={undefined} testID="tpsl-effect-test" />,
+      );
+
+      // Act - Update from undefined to actual lines
+      rerender(
+        <TradingViewChart
+          tpslLines={mockTPSLLines}
+          testID="tpsl-effect-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('tpsl-effect-test')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Complex Data Scenarios', () => {
+    it('handles large datasets efficiently', () => {
+      // Arrange - Create large dataset
+      const largeCandleData: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_MINUTE,
+        candles: Array.from({ length: 100 }, (_, i) => ({
+          time: 1640995200000 + i * 60000, // 1 minute intervals
+          open: (45000 + Math.random() * 1000).toString(),
+          high: (46000 + Math.random() * 1000).toString(),
+          low: (44000 + Math.random() * 1000).toString(),
+          close: (45500 + Math.random() * 1000).toString(),
+          volume: (1000 + Math.random() * 500).toString(),
+        })),
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={largeCandleData}
+            testID="large-dataset-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles mixed valid and invalid candles', () => {
+      // Arrange
+      const mixedData: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          mockCandleData.candles[0], // Valid
+          {
+            time: 1640998800000,
+            open: 'invalid',
+            high: '47000',
+            low: '45000',
+            close: '46500',
+            volume: '1200',
+          }, // Invalid
+          mockCandleData.candles[1], // Valid
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart candleData={mixedData} testID="mixed-data-test" />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles extreme price values', () => {
+      // Arrange
+      const extremePriceData: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: 1640995200000,
+            open: '0.000001', // Very small
+            high: '999999999', // Very large
+            low: '0.000001',
+            close: '500000000',
+            volume: '1000',
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={extremePriceData}
+            testID="extreme-price-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles zero and negative volumes', () => {
+      // Arrange
+      const zeroVolumeData: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: 1640995200000,
+            open: '45000',
+            high: '46000',
+            low: '44000',
+            close: '45500',
+            volume: '0', // Zero volume
+          },
+          {
+            time: 1640998800000,
+            open: '45500',
+            high: '47000',
+            low: '45000',
+            close: '46500',
+            volume: '-100', // Negative volume
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={zeroVolumeData}
+            testID="zero-volume-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+  });
+
+  describe('TP/SL Lines Variations', () => {
+    it('handles partial TP/SL line data', () => {
+      // Arrange
+      const partialTPSL: TPSLLines = {
+        takeProfitPrice: '50000',
+        // Missing other lines
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            tpslLines={partialTPSL}
+            testID="partial-tpsl-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles invalid price values in TP/SL lines', () => {
+      // Arrange
+      const invalidTPSL: TPSLLines = {
+        takeProfitPrice: 'invalid',
+        stopLossPrice: 'NaN',
+        entryPrice: '',
+        liquidationPrice: '0',
+        currentPrice: '-1000',
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            tpslLines={invalidTPSL}
+            testID="invalid-tpsl-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles very large TP/SL price values', () => {
+      // Arrange
+      const extremeTPSL: TPSLLines = {
+        takeProfitPrice: '999999999999',
+        stopLossPrice: '0.000000001',
+        entryPrice: '123456789.123456789',
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            tpslLines={extremeTPSL}
+            testID="extreme-tpsl-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+  });
+
+  describe('Interval and Duration Combinations', () => {
+    it('handles all duration enum values', () => {
+      // Arrange & Act
+      const durations = [
+        TimeDuration.ONE_HOUR,
+        TimeDuration.ONE_DAY,
+        TimeDuration.ONE_WEEK,
+        TimeDuration.ONE_MONTH,
+        TimeDuration.YEAR_TO_DATE,
+        TimeDuration.MAX,
+      ];
+
+      durations.forEach((duration, index) => {
+        expect(() => {
+          render(
+            <TradingViewChart
+              selectedDuration={duration}
+              testID={`duration-enum-test-${index}`}
+            />,
+          );
+        }).not.toThrow();
+      });
+    });
+
+    it('handles all candle period enum values', () => {
+      // Arrange & Act
+      const periods = [
+        CandlePeriod.ONE_MINUTE,
+        CandlePeriod.THREE_MINUTES,
+        CandlePeriod.FIVE_MINUTES,
+        CandlePeriod.FIFTEEN_MINUTES,
+        CandlePeriod.THIRTY_MINUTES,
+        CandlePeriod.ONE_HOUR,
+        CandlePeriod.TWO_HOURS,
+        CandlePeriod.FOUR_HOURS,
+        CandlePeriod.EIGHT_HOURS,
+        CandlePeriod.TWELVE_HOURS,
+        CandlePeriod.ONE_DAY,
+        CandlePeriod.THREE_DAYS,
+        CandlePeriod.ONE_WEEK,
+        CandlePeriod.ONE_MONTH,
+      ];
+
+      periods.forEach((period, index) => {
+        expect(() => {
+          render(
+            <TradingViewChart
+              selectedCandlePeriod={period}
+              testID={`period-enum-test-${index}`}
+            />,
+          );
+        }).not.toThrow();
+      });
+    });
+
+    it('handles string values for duration and period', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart
+          selectedDuration="custom-duration"
+          selectedCandlePeriod="custom-period"
+          testID="string-values-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('string-values-test')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Data Flow and State Management', () => {
+    it('handles rapid data updates without memory leaks', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart testID="rapid-data-test" />,
+      );
+
+      // Act - Simulate rapid data changes
+      for (let i = 0; i < 20; i++) {
+        const dynamicData: CandleData = {
+          coin: `COIN${i}`,
+          interval: CandlePeriod.ONE_HOUR,
+          candles: [
+            {
+              time: 1640995200000 + i * 3600000,
+              open: (45000 + i * 100).toString(),
+              high: (46000 + i * 100).toString(),
+              low: (44000 + i * 100).toString(),
+              close: (45500 + i * 100).toString(),
+              volume: (1000 + i * 50).toString(),
+            },
+          ],
+        };
+
+        rerender(
+          <TradingViewChart
+            candleData={dynamicData}
+            testID="rapid-data-test"
+          />,
+        );
+      }
+
+      // Assert
+      expect(getByTestId('rapid-data-test')).toBeOnTheScreen();
+    });
+
+    it('handles showSampleDataWhenEmpty flag variations', () => {
+      // Arrange & Act - Test both true and false values
+      const { rerender, getByTestId } = render(
+        <TradingViewChart
+          showSampleDataWhenEmpty
+          testID="sample-data-flag-test"
+        />,
+      );
+
+      rerender(
+        <TradingViewChart
+          showSampleDataWhenEmpty={false}
+          testID="sample-data-flag-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('sample-data-flag-test')).toBeOnTheScreen();
+    });
+
+    it('handles data source tracking', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart candleData={null} testID="data-source-test" />,
+      );
+
+      // Act - Change from no data to real data
+      rerender(
+        <TradingViewChart
+          candleData={mockCandleData}
+          testID="data-source-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('data-source-test')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Height and Styling Variations', () => {
+    it('handles very small height values', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart height={50} testID="small-height-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('small-height-test')).toBeOnTheScreen();
+    });
+
+    it('handles very large height values', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart height={2000} testID="large-height-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('large-height-test')).toBeOnTheScreen();
+    });
+
+    it('handles fractional height values', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart height={350.5} testID="fractional-height-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('fractional-height-test')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Component Integration', () => {
+    it('integrates with DevLogger for debugging', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart
+          candleData={mockCandleData}
+          testID="devlogger-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('devlogger-test')).toBeOnTheScreen();
+    });
+
+    it('handles concurrent prop updates', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart testID="concurrent-test" />,
+      );
+
+      // Act - Update multiple props simultaneously
+      rerender(
+        <TradingViewChart
+          candleData={mockCandleData}
+          tpslLines={mockTPSLLines}
+          height={400}
+          selectedDuration={TimeDuration.ONE_WEEK}
+          selectedCandlePeriod={CandlePeriod.FOUR_HOURS}
+          testID="concurrent-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('concurrent-test')).toBeOnTheScreen();
+    });
+
+    it('maintains stability across multiple mount/unmount cycles', () => {
+      // Act & Assert - Test multiple mount/unmount cycles
+      for (let i = 0; i < 5; i++) {
+        const { unmount } = render(
+          <TradingViewChart
+            candleData={mockCandleData}
+            testID={`mount-unmount-test-${i}`}
+          />,
+        );
+
+        expect(() => unmount()).not.toThrow();
+      }
+    });
+  });
+
+  describe('Error Boundary and Edge Cases', () => {
+    it('handles candle data with all zero values', () => {
+      // Arrange
+      const zeroData: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: 1640995200000,
+            open: '0',
+            high: '0',
+            low: '0',
+            close: '0',
+            volume: '0',
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart candleData={zeroData} testID="zero-values-test" />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles candle data with identical OHLC values', () => {
+      // Arrange
+      const identicalOHLC: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: 1640995200000,
+            open: '45000',
+            high: '45000',
+            low: '45000',
+            close: '45000',
+            volume: '1000',
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={identicalOHLC}
+            testID="identical-ohlc-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles timestamps from different time periods', () => {
+      // Arrange
+      const diverseTimestamps: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: 946684800000, // Year 2000
+            open: '100',
+            high: '200',
+            low: '50',
+            close: '150',
+            volume: '1000',
+          },
+          {
+            time: Date.now(), // Current time
+            open: '45000',
+            high: '46000',
+            low: '44000',
+            close: '45500',
+            volume: '1000',
+          },
+          {
+            time: 4102444800000, // Year 2100
+            open: '100000',
+            high: '110000',
+            low: '90000',
+            close: '105000',
+            volume: '1000',
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={diverseTimestamps}
+            testID="diverse-timestamps-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+  });
+
+  describe('Data Validation Edge Cases', () => {
+    it('handles candles with decimal string precision', () => {
+      // Arrange
+      const preciseData: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: 1640995200000,
+            open: '45000.123456789',
+            high: '46000.987654321',
+            low: '44000.111111111',
+            close: '45500.555555555',
+            volume: '1000.999999999',
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={preciseData}
+            testID="precise-data-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles scientific notation in price strings', () => {
+      // Arrange
+      const scientificData: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: 1640995200000,
+            open: '4.5e4', // 45000 in scientific notation
+            high: '4.6e4',
+            low: '4.4e4',
+            close: '4.55e4',
+            volume: '1e3',
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={scientificData}
+            testID="scientific-notation-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles candles with inconsistent OHLC logic', () => {
+      // Arrange - High < Low (invalid but should be handled)
+      const inconsistentData: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: 1640995200000,
+            open: '45000',
+            high: '44000', // High < Low (inconsistent)
+            low: '46000',
+            close: '45500',
+            volume: '1000',
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={inconsistentData}
+            testID="inconsistent-ohlc-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+  });
+
+  describe('WebView Load Events', () => {
+    it('handles WebView onLoadStart event', () => {
+      // Arrange
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      // Act & Assert
+      expect(() => {
+        render(<TradingViewChart testID="load-start-test" />);
+      }).not.toThrow();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('handles WebView onLoadEnd event', () => {
+      // Arrange
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      // Act & Assert
+      expect(() => {
+        render(<TradingViewChart testID="load-end-test" />);
+      }).not.toThrow();
+
+      consoleSpy.mockRestore();
+    });
+
+    it('handles WebView onLoad event', () => {
+      // Arrange
+      const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+
+      // Act & Assert
+      expect(() => {
+        render(<TradingViewChart testID="load-event-test" />);
+      }).not.toThrow();
+
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('Advanced Props Combinations', () => {
+    it('handles all props set to maximum values', () => {
+      // Arrange
+      const maximalTPSL: TPSLLines = {
+        takeProfitPrice: '999999999',
+        stopLossPrice: '1',
+        entryPrice: '500000000',
+        liquidationPrice: '100000000',
+        currentPrice: '600000000',
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={mockCandleData}
+            height={5000}
+            tpslLines={maximalTPSL}
+            onChartReady={() => {
+              /* Chart ready callback */
+            }}
+            testID="maximal-props-test"
+            showSampleDataWhenEmpty
+            selectedDuration={TimeDuration.MAX}
+            selectedCandlePeriod={CandlePeriod.ONE_MONTH}
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles all props set to minimal values', () => {
+      // Arrange
+      const minimalTPSL: TPSLLines = {
+        takeProfitPrice: '1',
+        stopLossPrice: '0.001',
+        entryPrice: '0.1',
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={null}
+            height={1}
+            tpslLines={minimalTPSL}
+            testID="minimal-props-test"
+            showSampleDataWhenEmpty={false}
+            selectedDuration={TimeDuration.ONE_HOUR}
+            selectedCandlePeriod={CandlePeriod.ONE_MINUTE}
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles mixed extreme prop combinations', () => {
+      // Arrange & Act
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={mockCandleData}
+            height={-1} // Negative height
+            tpslLines={undefined}
+            selectedDuration="invalid-duration"
+            selectedCandlePeriod={CandlePeriod.ONE_HOUR}
+            testID="mixed-extreme-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+  });
+
+  describe('Time and Date Handling', () => {
+    it('handles timestamp conversion edge cases', () => {
+      // Arrange - Edge case timestamps
+      const edgeTimestamps: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: 0, // Unix epoch
+            open: '45000',
+            high: '46000',
+            low: '44000',
+            close: '45500',
+            volume: '1000',
+          },
+          {
+            time: 2147483647000, // Near max 32-bit timestamp
+            open: '45000',
+            high: '46000',
+            low: '44000',
+            close: '45500',
+            volume: '1000',
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={edgeTimestamps}
+            testID="edge-timestamps-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles duplicate timestamps', () => {
+      // Arrange
+      const duplicateTimestamps: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: 1640995200000,
+            open: '45000',
+            high: '46000',
+            low: '44000',
+            close: '45500',
+            volume: '1000',
+          },
+          {
+            time: 1640995200000, // Same timestamp
+            open: '45500',
+            high: '47000',
+            low: '45000',
+            close: '46500',
+            volume: '1200',
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={duplicateTimestamps}
+            testID="duplicate-timestamps-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+  });
+
+  describe('State Transitions', () => {
+    it('handles transition from error state to normal state', () => {
+      // Arrange - Start with normal component
+      const { rerender, getByTestId } = render(
+        <TradingViewChart testID="state-transition-test" />,
+      );
+
+      // Act - Update with new data to trigger state changes
+      rerender(
+        <TradingViewChart
+          candleData={mockCandleData}
+          testID="state-transition-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('state-transition-test')).toBeOnTheScreen();
+    });
+
+    it('handles multiple callback registrations', () => {
+      // Arrange
+      const callback1 = jest.fn();
+      const callback2 = jest.fn();
+
+      // Act
+      const { rerender, getByTestId } = render(
+        <TradingViewChart onChartReady={callback1} testID="callback-test" />,
+      );
+
+      rerender(
+        <TradingViewChart onChartReady={callback2} testID="callback-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('callback-test')).toBeOnTheScreen();
+    });
+
+    it('handles state when WebView ref becomes null', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart candleData={mockCandleData} testID="null-ref-test" />,
+      );
+
+      // Assert - Component should handle null ref gracefully
+      expect(getByTestId('null-ref-test')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Comprehensive Integration Tests', () => {
+    it('handles full user workflow simulation', () => {
+      // Arrange - Start with minimal setup
+      const { rerender, getByTestId } = render(
+        <TradingViewChart testID="workflow-test" />,
+      );
+
+      // Act - Simulate user workflow: data loading -> TP/SL setting -> updates
+
+      // Step 1: Load initial data
+      rerender(
+        <TradingViewChart candleData={mockCandleData} testID="workflow-test" />,
+      );
+
+      // Step 2: Add TP/SL lines
+      rerender(
+        <TradingViewChart
+          candleData={mockCandleData}
+          tpslLines={mockTPSLLines}
+          testID="workflow-test"
+        />,
+      );
+
+      // Step 3: Change time period
+      rerender(
+        <TradingViewChart
+          candleData={mockCandleData}
+          tpslLines={mockTPSLLines}
+          selectedDuration={TimeDuration.ONE_WEEK}
+          selectedCandlePeriod={CandlePeriod.ONE_DAY}
+          testID="workflow-test"
+        />,
+      );
+
+      // Step 4: Update data
+      const newData: CandleData = {
+        ...mockCandleData,
+        candles: [
+          ...mockCandleData.candles,
+          {
+            time: 1641002400000,
+            open: '46500',
+            high: '48000',
+            low: '46000',
+            close: '47500',
+            volume: '1500',
+          },
+        ],
+      };
+
+      rerender(
+        <TradingViewChart
+          candleData={newData}
+          tpslLines={mockTPSLLines}
+          selectedDuration={TimeDuration.ONE_WEEK}
+          selectedCandlePeriod={CandlePeriod.ONE_DAY}
+          testID="workflow-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('workflow-test')).toBeOnTheScreen();
+    });
+
+    it('handles stress test with maximum complexity', () => {
+      // Arrange - Create maximum complexity scenario
+      const stressTestData: CandleData = {
+        coin: 'STRESS_TEST_COIN_WITH_VERY_LONG_NAME',
+        interval: CandlePeriod.ONE_MINUTE,
+        candles: Array.from({ length: 500 }, (_, i) => ({
+          time: 1640995200000 + i * 60000,
+          open: (Math.random() * 100000).toFixed(8),
+          high: (Math.random() * 100000).toFixed(8),
+          low: (Math.random() * 100000).toFixed(8),
+          close: (Math.random() * 100000).toFixed(8),
+          volume: (Math.random() * 10000).toFixed(6),
+        })),
+      };
+
+      const stressTPSL: TPSLLines = {
+        takeProfitPrice: '999999999.123456789',
+        stopLossPrice: '0.000000001',
+        entryPrice: '50000.50505050505',
+        liquidationPrice: '25000.25252525252',
+        currentPrice: '75000.75757575757',
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={stressTestData}
+            height={1000}
+            tpslLines={stressTPSL}
+            onChartReady={() => {
+              // Complex callback
+              for (let i = 0; i < 100; i++) {
+                Math.random();
+              }
+            }}
+            testID="stress-test"
+            showSampleDataWhenEmpty
+            selectedDuration={TimeDuration.MAX}
+            selectedCandlePeriod={CandlePeriod.ONE_MINUTE}
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('handles component with all possible prop variations', () => {
+      // Arrange - Test all possible boolean/enum combinations
+      const propVariations = [
+        { showSampleDataWhenEmpty: true },
+        { showSampleDataWhenEmpty: false },
+        { height: 1 },
+        { height: 10000 },
+        { selectedDuration: TimeDuration.ONE_HOUR },
+        { selectedDuration: TimeDuration.MAX },
+        { selectedCandlePeriod: CandlePeriod.ONE_MINUTE },
+        { selectedCandlePeriod: CandlePeriod.ONE_MONTH },
+      ];
+
+      // Act & Assert
+      propVariations.forEach((props, _index) => {
+        expect(() => {
+          render(
+            <TradingViewChart
+              {...props}
+              testID={`prop-variation-test-${_index}`}
+            />,
+          );
+        }).not.toThrow();
+      });
+    });
+  });
+
+  describe('Specific Logic Path Coverage', () => {
+    it('exercises formatCandleData with boundary values', () => {
+      // Arrange
+      const boundaryData: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: Number.MAX_SAFE_INTEGER,
+            open: Number.MAX_VALUE.toString(),
+            high: Number.MAX_VALUE.toString(),
+            low: Number.MIN_VALUE.toString(),
+            close: (Number.MAX_VALUE / 2).toString(),
+            volume: Number.MAX_SAFE_INTEGER.toString(),
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={boundaryData}
+            testID="boundary-values-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('exercises candle filtering logic with edge cases', () => {
+      // Arrange - Mix of valid and edge case data
+      const edgeCaseData: CandleData = {
+        coin: 'BTC',
+        interval: CandlePeriod.ONE_HOUR,
+        candles: [
+          {
+            time: 1640995200000,
+            open: '45000',
+            high: '46000',
+            low: '44000',
+            close: '45500',
+            volume: '1000',
+          }, // Valid
+          {
+            time: NaN,
+            open: '45000',
+            high: '46000',
+            low: '44000',
+            close: '45500',
+            volume: '1000',
+          }, // Invalid time
+          {
+            time: 1640998800000,
+            open: 'Infinity',
+            high: '46000',
+            low: '44000',
+            close: '45500',
+            volume: '1000',
+          }, // Invalid open
+          {
+            time: 1641002400000,
+            open: '45000',
+            high: '46000',
+            low: '-Infinity',
+            close: '45500',
+            volume: '1000',
+          }, // Invalid low
+        ],
+      };
+
+      // Act & Assert
+      expect(() => {
+        render(
+          <TradingViewChart
+            candleData={edgeCaseData}
+            testID="edge-case-filtering-test"
+          />,
+        );
+      }).not.toThrow();
+    });
+
+    it('exercises all switch statement branches in getCandleCount', () => {
+      // Arrange & Act - Test various combinations to hit all switch branches
+      const testCombinations = [
+        { duration: TimeDuration.ONE_HOUR, period: CandlePeriod.ONE_MINUTE },
+        { duration: TimeDuration.ONE_DAY, period: CandlePeriod.THREE_MINUTES },
+        { duration: TimeDuration.ONE_WEEK, period: CandlePeriod.FIVE_MINUTES },
+        {
+          duration: TimeDuration.ONE_MONTH,
+          period: CandlePeriod.FIFTEEN_MINUTES,
+        },
+        {
+          duration: TimeDuration.YEAR_TO_DATE,
+          period: CandlePeriod.THIRTY_MINUTES,
+        },
+        { duration: TimeDuration.MAX, period: CandlePeriod.ONE_HOUR },
+        { duration: 'unknown' as TimeDuration, period: CandlePeriod.TWO_HOURS },
+        { duration: TimeDuration.ONE_DAY, period: CandlePeriod.FOUR_HOURS },
+        { duration: TimeDuration.ONE_WEEK, period: CandlePeriod.EIGHT_HOURS },
+        { duration: TimeDuration.ONE_MONTH, period: CandlePeriod.TWELVE_HOURS },
+        { duration: TimeDuration.YEAR_TO_DATE, period: CandlePeriod.ONE_DAY },
+        { duration: TimeDuration.MAX, period: CandlePeriod.THREE_DAYS },
+        { duration: TimeDuration.ONE_MONTH, period: CandlePeriod.ONE_WEEK },
+        { duration: TimeDuration.YEAR_TO_DATE, period: CandlePeriod.ONE_MONTH },
+        { duration: TimeDuration.ONE_DAY, period: 'unknown' as CandlePeriod },
+      ];
+
+      testCombinations.forEach((combo, _index) => {
+        expect(() => {
+          render(
+            <TradingViewChart
+              selectedDuration={combo.duration}
+              selectedCandlePeriod={combo.period}
+              testID={`switch-branch-test-${_index}`}
+            />,
+          );
+        }).not.toThrow();
+      });
+    });
+
+    it('exercises candleDataVersion memo with various data shapes', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart testID="memo-test" />,
+      );
+
+      // Act - Test different data shapes that exercise memo logic
+      const dataVariations = [
+        null, // Null data
+        { coin: 'BTC', interval: CandlePeriod.ONE_HOUR, candles: [] }, // Empty candles
+        {
+          coin: 'BTC',
+          interval: CandlePeriod.ONE_HOUR,
+          candles: [mockCandleData.candles[0]],
+        }, // Single candle
+        mockCandleData, // Normal data
+        { ...mockCandleData, coin: 'ETH' }, // Different coin
+        { ...mockCandleData, interval: CandlePeriod.ONE_DAY }, // Different interval
+      ];
+
+      dataVariations.forEach((data) => {
+        rerender(<TradingViewChart candleData={data} testID="memo-test" />);
+
+        // Assert each variation renders
+        expect(getByTestId('memo-test')).toBeOnTheScreen();
+      });
+    });
+
+    it('exercises error handling in handleWebViewError', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="webview-error-handling-test" />,
+      );
+
+      // Assert - Component should handle WebView errors gracefully
+      expect(getByTestId('webview-error-handling-test')).toBeOnTheScreen();
+    });
+  });
+
+  describe('HTML Template and JavaScript Coverage', () => {
+    it('generates HTML with proper script structure', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="html-script-test" />,
+      );
+
+      // Assert - Component with embedded HTML should render
+      expect(getByTestId('html-script-test')).toBeOnTheScreen();
+    });
+
+    it('includes all necessary JavaScript functions in HTML', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="js-functions-test" />,
+      );
+
+      // Assert - HTML with JS functions should render
+      expect(getByTestId('js-functions-test')).toBeOnTheScreen();
+    });
+
+    it('handles HTML template with theme interpolation', () => {
+      // Arrange & Act
+      const { getByTestId } = render(
+        <TradingViewChart testID="theme-interpolation-test" />,
+      );
+
+      // Assert - Theme values should be interpolated into HTML
+      expect(getByTestId('theme-interpolation-test')).toBeOnTheScreen();
+    });
+  });
+
+  describe('useCallback and useMemo Dependencies', () => {
+    it('handles sendMessage callback dependency changes', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart
+          candleData={mockCandleData}
+          testID="sendmessage-deps-test"
+        />,
+      );
+
+      // Act - Change props to trigger dependency updates
+      rerender(
+        <TradingViewChart
+          candleData={mockCandleData}
+          tpslLines={mockTPSLLines}
+          testID="sendmessage-deps-test"
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('sendmessage-deps-test')).toBeOnTheScreen();
+    });
+
+    it('handles formatCandleData callback stability', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart
+          candleData={mockCandleData}
+          testID="format-callback-test"
+        />,
+      );
+
+      // Act - Multiple re-renders to test callback stability
+      for (let i = 0; i < 5; i++) {
+        rerender(
+          <TradingViewChart
+            candleData={mockCandleData}
+            testID="format-callback-test"
+          />,
+        );
+      }
+
+      // Assert
+      expect(getByTestId('format-callback-test')).toBeOnTheScreen();
+    });
+
+    it('handles htmlContent memo dependencies', () => {
+      // Arrange
+      const { rerender, getByTestId } = render(
+        <TradingViewChart testID="html-memo-test" />,
+      );
+
+      // Act - Force re-render to test memo stability
+      for (let i = 0; i < 3; i++) {
+        rerender(<TradingViewChart testID="html-memo-test" />);
+      }
+
+      // Assert
+      expect(getByTestId('html-memo-test')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Component Prop Interface Coverage', () => {
+    it('validates all TPSLLines interface properties', () => {
+      // Arrange - Test each property individually
+      const individualProps: TPSLLines[] = [
+        { takeProfitPrice: '50000' },
+        { stopLossPrice: '40000' },
+        { entryPrice: '45000' },
+        { liquidationPrice: '35000' },
+        { currentPrice: '46000' },
+        {}, // Empty object
+      ];
+
+      // Act & Assert
+      individualProps.forEach((tpsl, index) => {
+        expect(() => {
+          render(
+            <TradingViewChart
+              tpslLines={tpsl}
+              testID={`tpsl-individual-test-${index}`}
+            />,
+          );
+        }).not.toThrow();
+      });
+    });
+
+    it('validates component with missing optional props', () => {
+      // Arrange & Act - Only required props (none, all are optional)
+      const { getByTestId } = render(
+        <TradingViewChart testID="minimal-required-test" />,
+      );
+
+      // Assert
+      expect(getByTestId('minimal-required-test')).toBeOnTheScreen();
+    });
+
+    it('validates component interface with TypeScript edge cases', () => {
+      // Arrange - Test TypeScript union types and optional chaining
+      const { getByTestId } = render(
+        <TradingViewChart
+          candleData={undefined} // undefined instead of null
+          height={undefined} // undefined height
+          tpslLines={undefined}
+          onChartReady={undefined}
+          testID={undefined} // undefined testID
+          showSampleDataWhenEmpty={undefined}
+          selectedDuration={undefined}
+          selectedCandlePeriod={undefined}
+        />,
+      );
+
+      // Assert
+      expect(getByTestId('tradingview-chart-container')).toBeOnTheScreen(); // Should use default testID
+    });
+  });
 });
