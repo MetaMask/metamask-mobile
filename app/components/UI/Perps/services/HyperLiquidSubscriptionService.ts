@@ -344,6 +344,7 @@ export class HyperLiquidSubscriptionService {
               .toString(),
           };
 
+          //TODO: @abretonc7s - We need to revisit this logic for increased performance.
           // Check if data actually changed
           const positionsChanged =
             JSON.stringify(positionsWithTPSL) !==
