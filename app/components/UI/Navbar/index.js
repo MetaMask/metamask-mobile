@@ -552,6 +552,9 @@ export function getSendFlowTitle(
   themeColors,
   resetTransaction,
   transaction,
+  disableNetwork = true,
+  showSelectedNetwork = false,
+  globalChainId = '',
 ) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
@@ -589,7 +592,20 @@ export function getSendFlowTitle(
   const titleToRender = title;
 
   return {
-    headerTitle: () => <NavbarTitle title={titleToRender} disableNetwork />,
+    headerTitle: () => (
+      <NavbarTitle
+        title={titleToRender}
+        disableNetwork={disableNetwork}
+        showSelectedNetwork={
+          isRemoveGlobalNetworkSelectorEnabled()
+            ? showSelectedNetwork
+            : undefined
+        }
+        networkName={
+          isRemoveGlobalNetworkSelectorEnabled() ? globalChainId : undefined
+        }
+      />
+    ),
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity

@@ -102,6 +102,10 @@ import { MultichainNetworkConfiguration } from '@metamask/multichain-network-con
 import { useSwitchNetworks } from './useSwitchNetworks';
 import { removeItemFromChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { MetaMetrics } from '../../../core/Analytics';
+import {
+  NETWORK_SELECTOR_SOURCES,
+  NetworkSelectorSource,
+} from '../../../constants/networkSelector';
 
 interface infuraNetwork {
   name: string;
@@ -122,6 +126,7 @@ interface NetworkSelectorRouteParams {
       origin?: string;
     };
   };
+  source?: NetworkSelectorSource;
 }
 
 const NetworkSelector = () => {
@@ -173,6 +178,9 @@ const NetworkSelector = () => {
     domainIsConnectedDapp,
     networkName: selectedNetworkName,
   } = useNetworkInfo(origin);
+
+  const isSendFlow =
+    route.params?.source === NETWORK_SELECTOR_SOURCES.SEND_FLOW;
 
   const avatarSize = isNetworkUiRedesignEnabled() ? AvatarSize.Sm : undefined;
   const modalTitle = isNetworkUiRedesignEnabled()
@@ -886,7 +894,7 @@ const NetworkSelector = () => {
       {renderRpcNetworks()}
       {
         ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-        renderNonEvmNetworks(false)
+        !isSendFlow && renderNonEvmNetworks(false)
         ///: END:ONLY_INCLUDE_IF
       }
       {isNetworkUiRedesignEnabled() &&
@@ -895,7 +903,7 @@ const NetworkSelector = () => {
       {isNetworkUiRedesignEnabled() && renderAdditonalNetworks()}
       {searchString.length === 0 && renderTestNetworksSwitch()}
       {showTestNetworks && renderOtherNetworks()}
-      {showTestNetworks && renderNonEvmNetworks(true)}
+      {!isSendFlow && showTestNetworks && renderNonEvmNetworks(true)}
     </>
   );
 
