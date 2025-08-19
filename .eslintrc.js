@@ -160,6 +160,7 @@ module.exports = {
     driver: true,
     $: true,
     $$: true,
+    BigInt: true,
   },
 
   settings: {

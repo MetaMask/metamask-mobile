@@ -2,12 +2,13 @@ import { useSelector } from 'react-redux';
 import { useEffect, useMemo, useState } from 'react';
 import { MarketDataDetails, Token } from '@metamask/assets-controllers';
 import { InternalAccount } from '@metamask/keyring-internal-api';
+import { add0x } from '@metamask/utils';
 import { isEqual } from 'lodash';
 import { selectAllTokens } from '../../selectors/tokensController';
 import { selectAllTokenBalances } from '../../selectors/tokenBalancesController';
 import {
-  balanceToFiatNumber,
   renderFromTokenMinimalUnit,
+  balanceToFiatNumber,
   toHexadecimal,
 } from '../../util/number';
 import {
@@ -193,7 +194,8 @@ export const useGetFormattedTokensPerChain = (
         const matchedChainSymbol = allNetworks[singleChain].nativeCurrency;
         const conversionRate =
           currencyRates?.[matchedChainSymbol]?.conversionRate ?? 0;
-        const tokenExchangeRates = marketData?.[toHexadecimal(singleChain)];
+        const tokenExchangeRates =
+          marketData?.[add0x(toHexadecimal(singleChain))];
         const decimalsToShow = (currentCurrency === 'usd' && 2) || undefined;
         const tokensWithBalances = getTokenFiatBalances({
           tokens,
