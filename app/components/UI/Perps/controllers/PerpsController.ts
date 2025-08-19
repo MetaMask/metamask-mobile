@@ -672,20 +672,28 @@ export class PerpsController extends BaseController<
       // The result promise will resolve/reject based on user action and transaction outcome
 
       // Track the transaction lifecycle
-      // We'll monitor the promise to know when the transaction completes
-      let transactionSubmitted = false;
+      // The result promise will resolve/reject based on user action and transaction outcome
+      // Note: We intentionally don't set depositInProgress immediately to avoid
+      // showing toasts before the user confirms the transaction
 
       result
         .then((actualTxHash) => {
           // Transaction was successfully completed
-          // Show success toast
+          // Set depositInProgress to true temporarily to show success
           this.update((state) => {
-            state.depositInProgress = false;
+            state.depositInProgress = true;
             state.lastDepositResult = {
               success: true,
               txHash: actualTxHash,
             };
           });
+
+          // Clear depositInProgress after a short delay
+          setTimeout(() => {
+            this.update((state) => {
+              state.depositInProgress = false;
+            });
+          }, 100);
         })
         .catch((error) => {
           // Check if user denied/cancelled the transaction
@@ -714,34 +722,6 @@ export class PerpsController extends BaseController<
             });
           }
         });
-
-      // Use a short timeout to detect if the transaction was submitted
-      // If the promise hasn't rejected quickly (user cancel), the transaction is likely submitted
-      setTimeout(() => {
-        // Check if we haven't already set a result (quick cancel/error)
-        if (!this.state.lastDepositResult && !transactionSubmitted) {
-          transactionSubmitted = true;
-          // Transaction is being processed - show pending toast
-          this.update((state) => {
-            state.depositInProgress = true;
-            // Temporarily set a "pending" result to trigger the pending toast
-            state.lastDepositResult = {
-              success: false,
-              error: 'pending', // Special marker for pending state
-            };
-          });
-
-          // Clear the pending marker after showing the toast
-          setTimeout(() => {
-            this.update((state) => {
-              // Only clear if still showing pending
-              if (state.lastDepositResult?.error === 'pending') {
-                state.lastDepositResult = null;
-              }
-            });
-          }, 100);
-        }
-      }, 500); // Wait 500ms - if not cancelled by then, transaction is likely submitted
 
       return {
         result,

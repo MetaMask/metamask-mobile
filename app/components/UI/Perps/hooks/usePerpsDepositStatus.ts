@@ -46,11 +46,18 @@ export const usePerpsDepositStatus = () => {
       );
       clearDepositResult();
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Only run on mount - intentionally omitting dependencies
 
-  // Don't show in-progress toast based on depositInProgress
-  // We'll only show toasts when we have actual results
+  // Log state changes for debugging
+  useEffect(() => {
+    DevLogger.log('usePerpsDepositStatus: State changed', {
+      depositInProgress,
+      lastDepositResult,
+      hasToastContext: !!toastRef?.current,
+    });
+  }, [depositInProgress, lastDepositResult, toastRef]);
 
   // Update toast when deposit state changes
   useEffect(() => {
@@ -65,32 +72,18 @@ export const usePerpsDepositStatus = () => {
     if (lastDepositResult && resultId !== hasProcessedResultRef.current) {
       hasProcessedResultRef.current = resultId;
 
-      DevLogger.log('usePerpsDepositStatus: Showing deposit toast', {
+      DevLogger.log('usePerpsDepositStatus: Attempting to show deposit toast', {
         success: lastDepositResult.success,
         txHash: lastDepositResult.txHash,
         error: lastDepositResult.error,
+        hasToastContext: !!toastRef?.current,
+        toastRefPresent: !!toastRef,
+        showToastPresent: !!toastRef?.current?.showToast,
       });
 
-      // Check if this is the "pending" state
-      if (lastDepositResult.error === 'pending') {
-        // Show in-progress toast
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Loading,
-          hasNoTimeout: true, // Keep showing until transaction completes
-          labelOptions: [
-            {
-              label: strings('perps.deposit.in_progress'),
-              isBold: true,
-            },
-            {
-              label: strings('perps.deposit.processing_message'),
-              isBold: false,
-            },
-          ],
-        });
-        // Don't clear the result for pending - it will be cleared by the controller
-      } else if (lastDepositResult.success) {
+      let timeoutId: NodeJS.Timeout | null = null;
+
+      if (lastDepositResult.success) {
         // Show success toast
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -109,7 +102,7 @@ export const usePerpsDepositStatus = () => {
         });
 
         // Clear the result after showing toast
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           clearDepositResult();
           hasProcessedResultRef.current = null;
         }, 500);
@@ -134,11 +127,18 @@ export const usePerpsDepositStatus = () => {
         });
 
         // Clear the result after showing toast
-        setTimeout(() => {
+        timeoutId = setTimeout(() => {
           clearDepositResult();
           hasProcessedResultRef.current = null;
         }, 500);
       }
+
+      // Cleanup function to clear timeout if component unmounts
+      return () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      };
     }
   }, [lastDepositResult, toastRef, clearDepositResult]);
 
