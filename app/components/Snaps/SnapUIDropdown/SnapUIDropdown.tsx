@@ -24,7 +24,7 @@ export const SnapUIDropdown: FunctionComponent<SnapUIDropdownProps> = ({
   }));
 
   const optionComponents = options.map((option, index) => (
-    <SnapUICard key={index} title={option.value} value="" />
+    <SnapUICard key={index} title={option.name} value="" />
   ));
 
   return (

@@ -1,6 +1,6 @@
 import React, { FunctionComponent, useEffect, useState } from 'react';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
-import { BorderColor, FlexDirection } from '../../UI/Box/box.types';
+import { FlexDirection } from '../../UI/Box/box.types';
 import Checkbox from '../../../component-library/components/Checkbox/Checkbox';
 import { HelpTextSeverity } from '../../../component-library/components/Form/HelpText/HelpText.types';
 import HelpText from '../../../component-library/components/Form/HelpText';
@@ -59,9 +59,6 @@ export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
         onPress={handleChange}
         isChecked={value}
         label={label}
-        checkboxStyle={{
-          borderColor: BorderColor.borderMuted,
-        }}
         isDisabled={disabled}
       />
       {error && (
