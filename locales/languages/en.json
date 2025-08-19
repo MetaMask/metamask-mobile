@@ -5502,5 +5502,11 @@
   "time": {
     "minutes_format": "{{count}} minute",
     "minutes_format_plural": "{{count}} minutes"
+  },
+  "transaction_details": {
+    "title": {
+      "perps_deposit": "Funded perps account",
+      "default": "Transaction details"
+    }
   }
 }
