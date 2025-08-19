@@ -1,15 +1,16 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useHasExistingPosition } from './useHasExistingPosition';
-import { usePerpsPositions } from './usePerpsPositions';
+import { usePerpsLivePositions } from './stream';
 import type { Position } from '../controllers/types';
 
-// Mock the usePerpsPositions hook
-jest.mock('./usePerpsPositions');
+// Mock the usePerpsLivePositions hook
+jest.mock('./stream', () => ({
+  usePerpsLivePositions: jest.fn(),
+}));
 
 describe('useHasExistingPosition', () => {
-  const mockUsePerpsPositions = usePerpsPositions as jest.MockedFunction<
-    typeof usePerpsPositions
-  >;
+  const mockUsePerpsLivePositions =
+    usePerpsLivePositions as jest.MockedFunction<typeof usePerpsLivePositions>;
 
   const mockPositions: Position[] = [
     {
@@ -59,12 +60,9 @@ describe('useHasExistingPosition', () => {
   });
 
   it('should return hasPosition as true when position exists for asset', () => {
-    mockUsePerpsPositions.mockReturnValue({
+    mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      loadPositions: jest.fn(),
+      isInitialLoading: false,
     });
 
     const { result } = renderHook(() =>
@@ -78,12 +76,9 @@ describe('useHasExistingPosition', () => {
   });
 
   it('should return hasPosition as false when no position exists for asset', () => {
-    mockUsePerpsPositions.mockReturnValue({
+    mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      loadPositions: jest.fn(),
+      isInitialLoading: false,
     });
 
     const { result } = renderHook(() =>
@@ -96,13 +91,10 @@ describe('useHasExistingPosition', () => {
     expect(result.current.error).toBe(null);
   });
 
-  it('should return loading state correctly', () => {
-    mockUsePerpsPositions.mockReturnValue({
+  it('should return loading state as false (WebSocket loads from cache)', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
-      isLoading: true,
-      isRefreshing: false,
-      error: null,
-      loadPositions: jest.fn(),
+      isInitialLoading: false,
     });
 
     const { result } = renderHook(() =>
@@ -111,18 +103,14 @@ describe('useHasExistingPosition', () => {
 
     expect(result.current.hasPosition).toBe(false);
     expect(result.current.existingPosition).toBe(null);
-    expect(result.current.isLoading).toBe(true);
+    expect(result.current.isLoading).toBe(false); // Always false with WebSocket
     expect(result.current.error).toBe(null);
   });
 
-  it('should return error state correctly', () => {
-    const errorMessage = 'Failed to load positions';
-    mockUsePerpsPositions.mockReturnValue({
+  it('should return error as null (WebSocket handles errors internally)', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
-      isLoading: false,
-      isRefreshing: false,
-      error: errorMessage,
-      loadPositions: jest.fn(),
+      isInitialLoading: false,
     });
 
     const { result } = renderHook(() =>
@@ -132,35 +120,27 @@ describe('useHasExistingPosition', () => {
     expect(result.current.hasPosition).toBe(false);
     expect(result.current.existingPosition).toBe(null);
     expect(result.current.isLoading).toBe(false);
-    expect(result.current.error).toBe(errorMessage);
+    expect(result.current.error).toBe(null); // Always null with WebSocket
   });
 
-  it('should pass loadOnMount parameter correctly', () => {
-    mockUsePerpsPositions.mockReturnValue({
+  it('should ignore loadOnMount parameter (WebSocket loads from cache)', () => {
+    mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      loadPositions: jest.fn(),
+      isInitialLoading: false,
     });
 
-    renderHook(() =>
+    const { result } = renderHook(() =>
       useHasExistingPosition({ asset: 'BTC', loadOnMount: false }),
     );
 
-    expect(mockUsePerpsPositions).toHaveBeenCalledWith({
-      loadOnMount: false,
-      refreshOnFocus: true,
-    });
+    // loadOnMount is ignored in WebSocket implementation
+    expect(result.current.hasPosition).toBe(false);
   });
 
   it('should handle empty positions array', () => {
-    mockUsePerpsPositions.mockReturnValue({
+    mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      loadPositions: jest.fn(),
+      isInitialLoading: false,
     });
 
     const { result } = renderHook(() =>
@@ -172,33 +152,40 @@ describe('useHasExistingPosition', () => {
   });
 
   it('should update when positions change', () => {
+    // Initially no positions
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+    });
+
     const { result, rerender } = renderHook(() =>
       useHasExistingPosition({ asset: 'BTC' }),
     );
 
-    // Initially no positions
-    mockUsePerpsPositions.mockReturnValue({
-      positions: [],
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      loadPositions: jest.fn(),
-    });
-
-    rerender();
     expect(result.current.hasPosition).toBe(false);
 
     // Update with positions
-    mockUsePerpsPositions.mockReturnValue({
+    mockUsePerpsLivePositions.mockReturnValue({
       positions: mockPositions,
-      isLoading: false,
-      isRefreshing: false,
-      error: null,
-      loadPositions: jest.fn(),
+      isInitialLoading: false,
     });
 
     rerender();
     expect(result.current.hasPosition).toBe(true);
     expect(result.current.existingPosition).toEqual(mockPositions[0]);
+  });
+
+  it('should return a no-op refreshPosition function', async () => {
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: mockPositions,
+      isInitialLoading: false,
+    });
+
+    const { result } = renderHook(() =>
+      useHasExistingPosition({ asset: 'BTC' }),
+    );
+
+    // refreshPosition should be a no-op that returns a resolved promise
+    await expect(result.current.refreshPosition()).resolves.toBeUndefined();
   });
 });

@@ -70,7 +70,17 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
 
   // Derive order data for display
   const derivedData = useMemo<OpenOrderCardDerivedData>(() => {
-    const direction = order.side === 'buy' ? 'long' : 'short';
+    // For reduce-only orders (TP/SL), show them as closing positions
+    let direction: OpenOrderCardDerivedData['direction'];
+    if (order.reduceOnly || order.isTrigger) {
+      // This is a TP/SL order closing a position
+      // If side is 'sell', it's closing a long position
+      // If side is 'buy', it's closing a short position
+      direction = order.side === 'sell' ? 'Close Long' : 'Close Short';
+    } else {
+      // Regular order
+      direction = order.side === 'buy' ? 'long' : 'short';
+    }
 
     // Calculate size in USD
     const sizeInUSD = BigNumber(order.originalSize)
