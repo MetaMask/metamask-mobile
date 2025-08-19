@@ -30,6 +30,14 @@ import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsPerformance } from '../../hooks';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -135,6 +143,14 @@ const PerpsMarketListView = ({
     }
   };
 
+  const { track } = usePerpsEventTracking();
+  const { startMeasure, endMeasure } = usePerpsPerformance();
+
+  // Start measuring screen load time on mount
+  useEffect(() => {
+    startMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
+  }, [startMeasure]);
+
   const handleRefresh = () => {
     refreshMarkets();
   };
@@ -160,6 +176,9 @@ const PerpsMarketListView = ({
     if (isSearchVisible) {
       // Clear search when hiding search bar
       setSearchQuery('');
+    } else {
+      // Track search bar clicked event
+      track(MetaMetricsEvents.PERPS_ASSET_SEARCH_BAR_CLICKED, {});
     }
   };
 
@@ -169,9 +188,34 @@ const PerpsMarketListView = ({
     }
   };
 
+  // Track screen load performance
+  const hasTrackedMarketsView = useRef(false);
+  const hasTrackedSkeletonDisplay = useRef(false);
+
+  // Track skeleton display immediately
+  useEffect(() => {
+    if (isLoadingMarkets && !hasTrackedSkeletonDisplay.current) {
+      // Measure time to skeleton display (should be instant)
+      endMeasure(PerpsMeasurementName.MARKETS_SCREEN_LOADED);
+      hasTrackedSkeletonDisplay.current = true;
+    }
+  }, [isLoadingMarkets, endMeasure]);
+
+  useEffect(() => {
+    // Track markets screen viewed event - only once when data is loaded
+    if (markets.length > 0 && !hasTrackedMarketsView.current) {
+      // Track event
+      track(MetaMetricsEvents.PERPS_MARKETS_VIEWED, {
+        [PerpsEventProperties.SOURCE]:
+          PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
+      });
+
+      hasTrackedMarketsView.current = true;
+    }
+  }, [markets, track]);
   const renderMarketList = () => {
-    // Skeleton List
-    if (filteredMarkets.length === 0 && isLoadingMarkets) {
+    // Skeleton List - show immediately while loading
+    if (isLoadingMarkets) {
       return (
         <View>
           <PerpsMarketListHeader />

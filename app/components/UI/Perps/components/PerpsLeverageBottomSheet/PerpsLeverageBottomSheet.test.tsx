@@ -516,7 +516,7 @@ describe('PerpsLeverageBottomSheet', () => {
       fireEvent.press(confirmButton);
 
       // Assert
-      expect(mockOnConfirm).toHaveBeenCalledWith(5);
+      expect(mockOnConfirm).toHaveBeenCalledWith(5, 'slider');
     });
 
     it('calls onConfirm with updated leverage after quick select', () => {
@@ -538,7 +538,7 @@ describe('PerpsLeverageBottomSheet', () => {
       fireEvent.press(confirmButton);
 
       // Assert
-      expect(mockOnConfirm).toHaveBeenCalledWith(10);
+      expect(mockOnConfirm).toHaveBeenCalledWith(10, 'preset');
     });
 
     it('calls onClose after confirm', () => {
@@ -570,7 +570,9 @@ describe('PerpsLeverageBottomSheet', () => {
       fireEvent.press(confirmButton);
 
       // Assert
-      expect(DevLogger.log).toHaveBeenCalledWith('Confirming leverage: 5');
+      expect(DevLogger.log).toHaveBeenCalledWith(
+        'Confirming leverage: 5, method: slider',
+      );
     });
   });
 
