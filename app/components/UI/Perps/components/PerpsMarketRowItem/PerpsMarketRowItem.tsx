@@ -20,6 +20,7 @@ import {
   formatPercentage,
   formatPnl,
 } from '../../utils/formatUtils';
+import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -58,8 +59,13 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
       updatedMarket.change24hPercent = formatPercentage(changePercent);
 
       // Calculate dollar change
+      // If current price is P and change is x%, then:
+      // Price 24h ago = P / (1 + x/100)
+      // Dollar change = P - (P / (1 + x/100))
+      const divisor = 1 + changePercent / 100;
+      // Avoid division by zero (would mean -100% change, price went to 0)
       const priceChange =
-        (currentPrice * changePercent) / (100 + changePercent);
+        divisor !== 0 ? currentPrice - currentPrice / divisor : -currentPrice;
       updatedMarket.change24h = formatPnl(priceChange);
     }
 
@@ -97,7 +103,9 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
               variant={AvatarVariant.Network}
               name={displayMarket.symbol}
               size={AvatarSize.Lg}
-              testID={`perps-market-row-item-${displayMarket.symbol}`}
+              testID={getPerpsMarketRowItemSelector.rowItem(
+                displayMarket.symbol,
+              )}
               style={styles.networkAvatar}
             />
           )}
