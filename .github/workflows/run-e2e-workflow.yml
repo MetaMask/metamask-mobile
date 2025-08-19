@@ -181,12 +181,38 @@ jobs:
       - name: Prepare screenshots
         if: failure()
         run: |
-          echo "🔎 Pruning artifacts to keep only Detox screenshots/videos for this platform..."
-          if [[ "${{ inputs.platform }}" == "android" ]]; then
-            find artifacts -mindepth 1 -maxdepth 1 ! -name 'android*' -exec rm -rf {} + 2>/dev/null || true
-          else
-            find artifacts -mindepth 1 -maxdepth 1 ! -name 'ios*' -exec rm -rf {} + 2>/dev/null || true
+          echo "🔎 Pruning artifacts while preserving platform Detox artifacts and debug assets..."
+
+          PLATFORM="${{ inputs.platform }}"
+
+          if [[ -z "$PLATFORM" ]]; then
+            echo "⚠️ Platform not specified; skipping pruning to avoid data loss."
+            exit 0
           fi
+
+          case "$PLATFORM" in
+            android)
+              KEEP_PREFIX="android"
+              ;;
+            ios)
+              KEEP_PREFIX="ios"
+              ;;
+            *)
+              echo "⚠️ Unknown platform '$PLATFORM'; skipping pruning to avoid accidental deletion."
+              exit 0
+              ;;
+          esac
+
+          shopt -s nullglob
+          for entry in artifacts/*; do
+            base="$(basename "$entry")"
+            if [[ "$base" == "$KEEP_PREFIX"* || "$base" == coverage-* || "$base" == "ios-bundle" ]]; then
+              echo "Keeping: $base"
+              continue
+            fi
+            echo "Removing: $base"
+            rm -rf "$entry" 2>/dev/null || true
+          done
         continue-on-error: true
 
       - name: Upload screenshots
