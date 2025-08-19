@@ -46,8 +46,6 @@ export const useHasSufficientGas = ({ quote }: Props): boolean | null => {
     ? new BigNumber(quote.gasFee.effective.amount).toFixed()
     : null;
 
-  console.log('effectiveGasFee', effectiveGasFee);
-
   const atomicGasFee =
     effectiveGasFee && !gasIncluded
       ? ethers.utils.parseUnits(
