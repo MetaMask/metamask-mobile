@@ -13,6 +13,7 @@ import PerpsOrderView from '../Views/PerpsOrderView';
 import PerpsQuoteExpiredModal from '../components/PerpsQuoteExpiredModal';
 import PerpsTutorialCarousel from '../components/PerpsTutorialCarousel';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
+import PerpsBalanceModal from '../Views/PerpsBalanceModal';
 
 const Stack = createStackNavigator();
 const ModalStack = createStackNavigator();
@@ -30,6 +31,10 @@ const PerpsModalStack = () => (
     <ModalStack.Screen
       name={Routes.PERPS.MODALS.QUOTE_EXPIRED_MODAL}
       component={PerpsQuoteExpiredModal}
+    />
+    <ModalStack.Screen
+      name={Routes.PERPS.MODALS.BALANCE_MODAL}
+      component={PerpsBalanceModal}
     />
   </ModalStack.Navigator>
 );
