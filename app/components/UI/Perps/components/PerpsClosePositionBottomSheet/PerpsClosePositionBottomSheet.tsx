@@ -24,9 +24,9 @@ import type { OrderType, Position } from '../../controllers/types';
 import {
   useMinimumOrderAmount,
   usePerpsOrderFees,
-  usePerpsPrices,
   usePerpsClosePositionValidation,
 } from '../../hooks';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
 import PerpsSlider from '../PerpsSlider/PerpsSlider';
 import { createStyles } from './PerpsClosePositionBottomSheet.styles';
@@ -79,8 +79,11 @@ const PerpsClosePositionBottomSheet: React.FC<
   const [limitPrice, setLimitPrice] = useState('');
   const [limitPriceInputFocused, setLimitPriceInputFocused] = useState(false);
 
-  // Subscribe to real-time price
-  const priceData = usePerpsPrices(isVisible ? [position.coin] : [], {});
+  // Subscribe to real-time price with 1s debounce for position closing
+  const priceData = usePerpsLivePrices({
+    symbols: isVisible ? [position.coin] : [],
+    throttleMs: 1000,
+  });
   const currentPrice = priceData[position.coin]?.price
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);
@@ -487,6 +490,15 @@ const PerpsClosePositionBottomSheet: React.FC<
 };
 
 PerpsClosePositionBottomSheet.displayName = 'PerpsClosePositionBottomSheet';
+
+// Enable WDYR tracking in development
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsClosePositionBottomSheet as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsClosePositionBottomSheet',
+  };
+}
 
 export default memo(
   PerpsClosePositionBottomSheet,

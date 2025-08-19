@@ -107,13 +107,11 @@ jest.mock('../../../../../core/Engine', () => ({
 
 const mockMarketStats: PerpsMarketTabsProps['marketStats'] = {
   currentPrice: 45000,
-  priceChange24h: 1125,
   high24h: '$46,000.00',
   low24h: '$44,000.00',
   volume24h: '$1.23B',
   openInterest: '$500M',
   fundingRate: '+0.01%',
-  fundingCountdown: '5h 30m',
   isLoading: false,
   refresh: jest.fn(),
 };

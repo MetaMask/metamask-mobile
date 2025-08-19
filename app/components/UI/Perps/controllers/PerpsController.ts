@@ -52,7 +52,9 @@ import type {
   OrderParams,
   OrderResult,
   Position,
+  SubscribeAccountParams,
   SubscribeOrderFillsParams,
+  SubscribeOrdersParams,
   SubscribePositionsParams,
   SubscribePricesParams,
   SwitchProviderResult,
@@ -125,6 +127,12 @@ export type PerpsControllerState = {
     mainnet: boolean;
   };
 
+  // Notification tracking
+  hasPlacedFirstOrder: {
+    testnet: boolean;
+    mainnet: boolean;
+  };
+
   // Error handling
   lastError: string | null;
   lastUpdateTimestamp: number;
@@ -152,6 +160,10 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
     testnet: true,
     mainnet: true,
   },
+  hasPlacedFirstOrder: {
+    testnet: false,
+    mainnet: false,
+  },
 });
 
 /**
@@ -173,6 +185,7 @@ const metadata = {
   lastUpdateTimestamp: { persist: false, anonymous: false },
   isEligible: { persist: false, anonymous: false },
   isFirstTimeUser: { persist: true, anonymous: false },
+  hasPlacedFirstOrder: { persist: true, anonymous: false },
 };
 
 /**
@@ -266,6 +279,10 @@ export type PerpsControllerActions =
   | {
       type: 'PerpsController:markTutorialCompleted';
       handler: PerpsController['markTutorialCompleted'];
+    }
+  | {
+      type: 'PerpsController:markFirstOrderCompleted';
+      handler: PerpsController['markFirstOrderCompleted'];
     };
 
 /**
@@ -1697,6 +1714,22 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Subscribe to live order updates
+   */
+  subscribeToOrders(params: SubscribeOrdersParams): () => void {
+    const provider = this.getActiveProvider();
+    return provider.subscribeToOrders(params);
+  }
+
+  /**
+   * Subscribe to live account updates
+   */
+  subscribeToAccount(params: SubscribeAccountParams): () => void {
+    const provider = this.getActiveProvider();
+    return provider.subscribeToAccount(params);
+  }
+
+  /**
    * Configure live data throttling
    */
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {
@@ -1750,6 +1783,32 @@ export class PerpsController extends BaseController<
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
     this.initializationPromise = null;
+  }
+
+  /**
+   * Reconnect with new account/network context
+   * Called when user switches accounts or networks
+   */
+  async reconnectWithNewContext(): Promise<void> {
+    DevLogger.log('PerpsController: Reconnecting with new account/network', {
+      timestamp: new Date().toISOString(),
+    });
+
+    // Clear Redux state immediately to reset UI
+    this.update((state) => {
+      state.positions = [];
+      state.accountState = null;
+      state.pendingOrders = [];
+      state.lastError = null;
+    });
+
+    // Clear state and force reinitialization
+    // initializeProviders() will handle disconnection if needed
+    this.isInitialized = false;
+    this.initializationPromise = null;
+
+    // Reinitialize with new context
+    await this.initializeProviders();
   }
 
   /**
@@ -1848,6 +1907,23 @@ export class PerpsController extends BaseController<
 
     this.update((state) => {
       state.isFirstTimeUser[currentNetwork] = false;
+    });
+  }
+
+  /*
+   * Mark that user has placed their first successful order
+   * This prevents the notification tooltip from showing again
+   */
+  markFirstOrderCompleted(): void {
+    const currentNetwork = this.state.isTestnet ? 'testnet' : 'mainnet';
+
+    DevLogger.log('PerpsController: Marking first order completed', {
+      timestamp: new Date().toISOString(),
+      network: currentNetwork,
+    });
+
+    this.update((state) => {
+      state.hasPlacedFirstOrder[currentNetwork] = true;
     });
   }
 }

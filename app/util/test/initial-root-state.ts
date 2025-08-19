@@ -33,7 +33,6 @@ const initialRootState: RootState = {
   alert: undefined,
   transaction: undefined,
   user: userInitialState,
-  wizard: undefined,
   onboarding: initialOnboardingState,
   notification: undefined,
   swaps: undefined,

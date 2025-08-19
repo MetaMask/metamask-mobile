@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.54.0",
+  "version": "7.55.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -360,6 +360,7 @@
     "expo-build-properties": "~0.13.2",
     "expo-dev-client": "~5.0.18",
     "expo-file-system": "~18.0.7",
+    "expo-sensors": "~14.0.2",
     "fast-equals": "^5.2.2",
     "fuse.js": "3.4.4",
     "he": "^1.2.0",
@@ -427,6 +428,7 @@
     "react-native-quick-crypto": "^0.7.15",
     "react-native-randombytes": "^3.5.3",
     "react-native-reanimated": "^3.17.2",
+    "react-native-release-profiler": "^0.4.0",
     "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "^5.4.0",
     "react-native-screens": "3.37.0",
