@@ -21,26 +21,36 @@ import { selectTransactionsByIds } from '../../../../../../selectors/transaction
 import { useSelector } from 'react-redux';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { RootState } from '../../../../../../reducers';
-import { TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
+import { useBridgeTxHistoryData } from '../../../../../../util/bridge/hooks/useBridgeTxHistoryData';
+import { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 
 export function TransactionDetailsSummary() {
   const { styles } = useStyles(styleSheet, {});
   const { transactionMeta } = useTransactionDetails();
   const { requiredTransactionIds } = transactionMeta;
 
-  const requiredTransactions = useSelector((state: RootState) =>
-    selectTransactionsByIds(state, requiredTransactionIds ?? []),
+  const transactionIds = [
+    ...(requiredTransactionIds ?? []),
+    transactionMeta.id,
+  ];
+
+  const transactions = useSelector((state: RootState) =>
+    selectTransactionsByIds(state, transactionIds),
   );
 
   return (
     <Box gap={12}>
       <Text color={TextColor.Alternative}>Summary</Text>
       <Box gap={1} style={styles.lineContainer}>
-        {requiredTransactions.map((item, index) => (
+        {transactions.map((item, index) => (
           <SummaryLine
             key={index}
             transaction={item}
-            isLast={index === requiredTransactions.length - 1}
+            isLast={index === transactions.length - 1}
           />
         ))}
       </Box>
@@ -56,8 +66,17 @@ function SummaryLine({
   transaction: TransactionMeta;
 }) {
   const { styles } = useStyles(styleSheet, { isLast });
-  const timestamp = Date.now();
-  const dateString = getDateString(timestamp);
+  const bridgeHistory = useBridgeTxHistoryData({ evmTxMeta: transaction });
+
+  const dateString = getDateString(
+    transaction.submittedTime ?? transaction.time,
+  );
+
+  const title = getLineTitle(transaction, bridgeHistory.bridgeTxHistoryItem);
+
+  if (!title) {
+    return null;
+  }
 
   return (
     <Box>
@@ -72,7 +91,7 @@ function SummaryLine({
           gap={12}
         >
           <Icon name={IconName.CircleX} />
-          <Text variant={TextVariant.BodyMD}>{transaction.type}</Text>
+          <Text variant={TextVariant.BodyMD}>{title}</Text>
         </Box>
         <Icon name={IconName.Arrow2UpRight} color={IconColor.Alternative} />
       </Box>
@@ -106,4 +125,22 @@ function getDateString(timestamp: number): string {
   const dateString = `${month} ${date.getDate()}, ${date.getFullYear()}`;
 
   return `${timeString} • ${dateString}`;
+}
+
+function getLineTitle(
+  transactionMeta: TransactionMeta,
+  bridgeHistory?: BridgeHistoryItem,
+): string | undefined {
+  const { type } = transactionMeta;
+  const sourceSymbol = bridgeHistory?.quote.srcAsset.symbol;
+  const targetSymbol = bridgeHistory?.quote.destAsset.symbol;
+
+  switch (type) {
+    case TransactionType.bridge:
+      return `Bridge from ${sourceSymbol} to ${targetSymbol}`;
+    case TransactionType.perpsDeposit:
+      return 'Add funds';
+    default:
+      return undefined;
+  }
 }
