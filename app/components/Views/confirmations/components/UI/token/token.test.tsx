@@ -48,11 +48,11 @@ describe('Token', () => {
       balance: '50.0',
     });
 
-    const { getByText } = renderWithProvider(
+    const { getByText, queryByText } = renderWithProvider(
       <Token asset={mockToken} onPress={mockOnPress} />,
     );
 
-    expect(getByText('TOKEN')).toBeOnTheScreen();
+    expect(queryByText('Ethereum')).not.toBeOnTheScreen();
     expect(getByText('50.0 TOKEN')).toBeOnTheScreen();
   });
 

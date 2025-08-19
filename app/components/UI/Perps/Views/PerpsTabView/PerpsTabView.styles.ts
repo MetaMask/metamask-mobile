@@ -43,12 +43,6 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 24,
       alignItems: 'center',
     },
-    bottomSheetContent: {
-      padding: 24,
-    },
-    actionButton: {
-      marginBottom: 12,
-    },
     firstTimeContainer: {
       flex: 1,
       padding: 24,
