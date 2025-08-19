@@ -11,12 +11,6 @@
       "os_version": "14.0",
       "category": "high",
       "description": "High-end Google flagship device with Android 14"
-    },
-    {
-      "name": "Samsung Galaxy A35",
-      "os_version": "14.0",
-      "category": "low",
-      "description": "Mid-range Samsung device with Android 12 (Snapdragon 778G, 8 cores, ~2.4 GHz, 6 GB RAM)"
     }
   ],
   "ios_devices": [
@@ -31,12 +25,6 @@
       "os_version": "18",
       "category": "medium",
       "description": "Medium iPhone 14."
-    },
-    {
-      "name": "iPhone 12",
-      "os_version": "17",
-      "category": "low",
-      "description": "Medium iPhone 12."
     }
   ],
   "device_categories": {
