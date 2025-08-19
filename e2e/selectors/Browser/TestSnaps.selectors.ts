@@ -117,7 +117,6 @@ export const TestSnapResultSelectorWebIDS = {
   entropySignResultSpan: 'entropySignResult',
   getBackgroundEventsResultSpan: 'getBackgroundEventsResult',
   fileResultSpan: 'getFileResult',
-  preferencesResultSpan: 'preferencesResult',
   getStateResultSpan: 'getStateResult',
   getStateUnencryptedResultSpan: 'getStateUnencryptedResult',
   installedSnapResultSpan: 'installedSnapsResult',
