@@ -12,7 +12,6 @@ import { MetaMetricsEvents } from '../../../hooks/useMetrics';
 import { isSignatureRequest } from '../utils/confirm';
 import { useLedgerContext } from '../context/ledger-context';
 import { useQRHardwareContext } from '../context/qr-hardware-context';
-import { useSendContext } from '../context/send-context/send-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
@@ -26,7 +25,6 @@ export const useConfirmActions = () => {
     onReject: onRequestReject,
     approvalRequest,
   } = useApprovalRequest();
-  const sendContext = useSendContext();
   const { captureSignatureMetrics } = useSignatureMetrics();
   const {
     cancelQRScanRequestIfPresent,
@@ -70,9 +68,6 @@ export const useConfirmActions = () => {
         captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_REJECTED);
         PPOMUtil.clearSignatureSecurityAlertResponse();
       }
-      if (sendContext) {
-        sendContext.updateTo('');
-      }
     },
     [
       cancelQRScanRequestIfPresent,
@@ -80,7 +75,6 @@ export const useConfirmActions = () => {
       navigation,
       onRequestReject,
       isSignatureReq,
-      sendContext,
     ],
   );
 

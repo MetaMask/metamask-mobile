@@ -13,28 +13,24 @@ import {
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useSendContext } from '../../context/send-context/send-context';
 import { useSendActions } from './useSendActions';
 
 export function useSendNavbar() {
   const { handleCancelPress } = useSendActions();
-  const { updateTo, updateAsset } = useSendContext();
   const navigation = useNavigation();
   const theme = useTheme();
 
   const onBackPressRecipient = useCallback(() => {
-    updateTo('');
     navigation.navigate(Routes.SEND.DEFAULT, {
       screen: Routes.SEND.AMOUNT,
     });
-  }, [updateTo, navigation]);
+  }, [navigation]);
 
   const onBackPressAmount = useCallback(() => {
-    updateAsset(undefined);
     navigation.navigate(Routes.SEND.DEFAULT, {
       screen: Routes.SEND.ASSET,
     });
-  }, [updateAsset, navigation]);
+  }, [navigation]);
 
   const headerStyle = useMemo(
     () => ({

@@ -7,8 +7,6 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import { useSendNavbar } from './useSendNavbar';
 
 const mockHandleCancelPress = jest.fn();
-const mockUpdateTo = jest.fn();
-const mockUpdateAsset = jest.fn();
 const mockNavigate = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
@@ -25,13 +23,6 @@ jest.mock('@react-navigation/stack', () => ({
 jest.mock('./useSendActions', () => ({
   useSendActions: () => ({
     handleCancelPress: mockHandleCancelPress,
-  }),
-}));
-
-jest.mock('../../context/send-context/send-context', () => ({
-  useSendContext: () => ({
-    updateTo: mockUpdateTo,
-    updateAsset: mockUpdateAsset,
   }),
 }));
 
@@ -128,7 +119,6 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockUpdateAsset).toHaveBeenCalledWith(undefined);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
         screen: Routes.SEND.ASSET,
       });
@@ -222,7 +212,6 @@ describe('useSendNavbar', () => {
 
       fireEvent.press(backButton);
 
-      expect(mockUpdateTo).toHaveBeenCalledWith('');
       expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
         screen: Routes.SEND.AMOUNT,
       });
