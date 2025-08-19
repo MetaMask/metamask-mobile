@@ -91,6 +91,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -112,6 +113,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: null,
+      priceData: null,
       isLoadingHistory: true,
       refreshCandleData: jest.fn(),
     });
@@ -129,6 +131,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: null,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -159,6 +162,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -184,6 +188,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
