@@ -300,7 +300,7 @@ export const startMockServer = async (events, port) => {
  * @returns {void}
  */
 export const validateLiveRequests = (mockServer) => {
-  if (mockServer._liveRequests.length > 0) {
+  if (mockServer._liveRequests && mockServer._liveRequests.length > 0) {
     // Get unique requests by method + URL combination
     const uniqueRequests = Array.from(
       new Map(
