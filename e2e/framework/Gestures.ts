@@ -30,6 +30,7 @@ export default class Gestures {
       checkEnabled?: boolean;
       elemDescription?: string;
       delay?: number;
+      waitForElementToDisappear?: boolean;
     },
     point?: { x: number; y: number },
   ) => {
@@ -44,6 +45,9 @@ export default class Gestures {
       // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
       await (expect(await elem) as any).toExist();
       await (await elem).tap();
+      if (options.waitForElementToDisappear) {
+        await Utilities.waitForElementToDisappear(elem);
+      }
       return;
     }
 
@@ -61,6 +65,11 @@ export default class Gestures {
       );
     }
     await el.tap(point);
+
+    if (options.waitForElementToDisappear) {
+      await Utilities.waitForElementToDisappear(elem);
+    }
+
     const successMessage = elemDescription
       ? `✅ Successfully tapped element: ${elemDescription}`
       : `✅ Successfully tapped element`;
@@ -82,6 +91,8 @@ export default class Gestures {
       checkVisibility = true,
       checkEnabled = true,
       elemDescription,
+      waitForElementToDisappear = false,
+      delay = 500,
     } = options;
 
     const fn = () =>
@@ -90,6 +101,8 @@ export default class Gestures {
         checkVisibility,
         checkEnabled,
         elemDescription,
+        waitForElementToDisappear,
+        delay,
       });
     return Utilities.executeWithRetry(fn, {
       timeout,
@@ -116,6 +129,7 @@ export default class Gestures {
       checkEnabled = true,
       elemDescription,
       delay = 500,
+      waitForElementToDisappear = false,
     } = options;
 
     const fn = async () =>
@@ -125,6 +139,7 @@ export default class Gestures {
         checkEnabled,
         elemDescription,
         delay,
+        waitForElementToDisappear,
       });
 
     return Utilities.executeWithRetry(fn, {
@@ -142,14 +157,19 @@ export default class Gestures {
   static async tapAtIndex(
     elem: DetoxElement,
     index: number,
-    timeout = 15000,
+    options: TapOptions = {},
   ): Promise<void> {
+    const { timeout = BASE_DEFAULTS.timeout, elemDescription } = options;
     return Utilities.executeWithRetry(
       async () => {
         const el = (await elem) as Detox.IndexableNativeElement;
         const itemElementAtIndex = el.atIndex(index);
         await waitFor(itemElementAtIndex).toBeVisible().withTimeout(timeout);
         await itemElementAtIndex.tap();
+        const successMessage = elemDescription
+          ? `✅ Successfully tapped element at index: ${index} ${elemDescription}`
+          : `✅ Successfully tapped element at index: ${index}`;
+        logger.debug(successMessage);
       },
       {
         timeout,
@@ -293,6 +313,7 @@ export default class Gestures {
       checkEnabled = true,
       checkVisibility = true,
       sensitive = false,
+      delay = BASE_DEFAULTS.actionDelay,
       elemDescription,
     } = options;
 
@@ -305,9 +326,7 @@ export default class Gestures {
           checkEnabled,
         })) as Detox.IndexableNativeElement;
 
-        await new Promise((resolve) =>
-          setTimeout(resolve, BASE_DEFAULTS.actionDelay),
-        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
 
         if (clearFirst) {
           await el.replaceText('');
@@ -426,10 +445,14 @@ export default class Gestures {
       direction = 'down',
       scrollAmount = 350,
       elemDescription,
+      delay = 0,
     } = options;
 
     return Utilities.executeWithRetry(
       async () => {
+        // Add delay before scrolling
+        await new Promise((resolve) => setTimeout(resolve, delay));
+
         const target = (await targetElement) as Detox.IndexableNativeElement;
         const scrollable = await scrollableContainer;
 
@@ -439,7 +462,7 @@ export default class Gestures {
             await waitFor(target).toBeVisible().withTimeout(100);
             return;
           } catch {
-            await scrollableElement.scroll(scrollAmount / 2, direction); // Decrease scroll amount for Android to avoid overshooting
+            await scrollableElement.scroll(scrollAmount, direction);
             await waitFor(target).toBeVisible().withTimeout(100);
           }
         } else {

@@ -58,6 +58,12 @@ import { AccountTreeController } from '@metamask/account-tree-controller';
 import { accountTreeControllerInit } from '../../../multichain-accounts/controllers/account-tree-controller';
 import { WebSocketServiceInit } from '../controllers/snaps/websocket-service-init';
 import { perpsControllerInit } from '../controllers/perps-controller';
+import { bridgeControllerInit } from '../controllers/bridge-controller/bridge-controller-init';
+import { bridgeStatusControllerInit } from '../controllers/bridge-status-controller/bridge-status-controller-init';
+import { BridgeController } from '@metamask/bridge-controller';
+import { BridgeStatusController } from '@metamask/bridge-status-controller';
+import { multichainAccountServiceInit } from '../controllers/multichain-account-service/multichain-account-service-init';
+import { networkEnablementControllerInit } from '../controllers/network-enablement-controller/network-enablement-controller-init';
 
 jest.mock('../controllers/accounts-controller');
 jest.mock('../controllers/app-metadata-controller');
@@ -92,6 +98,10 @@ jest.mock(
   '../controllers/defi-positions-controller/defi-positions-controller-init',
 );
 jest.mock('../../../multichain-accounts/controllers/account-tree-controller');
+jest.mock('../controllers/bridge-controller/bridge-controller-init');
+jest.mock(
+  '../controllers/bridge-status-controller/bridge-status-controller-init',
+);
 
 describe('initModularizedControllers', () => {
   const mockAccountsControllerInit = jest.mocked(accountsControllerInit);
@@ -140,6 +150,16 @@ describe('initModularizedControllers', () => {
   );
   const mockAccountTreeControllerInit = jest.mocked(accountTreeControllerInit);
   const mockPerpsControllerInit = jest.mocked(perpsControllerInit);
+  const mockBridgeControllerInit = jest.mocked(bridgeControllerInit);
+  const mockBridgeStatusControllerInit = jest.mocked(
+    bridgeStatusControllerInit,
+  );
+  const mockMultichainAccountServiceInit = jest.mocked(
+    multichainAccountServiceInit,
+  );
+  const mockNetworkEnablementControllerInit = jest.mocked(
+    networkEnablementControllerInit,
+  );
 
   function buildModularizedControllerRequest(
     overrides?: Record<string, unknown>,
@@ -163,6 +183,8 @@ describe('initModularizedControllers', () => {
           MultichainAssetsRatesController:
             mockMultichainAssetsRatesControllerInit,
           MultichainBalancesController: mockMultichainBalancesControllerInit,
+          MultichainAccountService: mockMultichainAccountServiceInit,
+          NetworkEnablementController: mockNetworkEnablementControllerInit,
           NotificationServicesController:
             mockNotificationServicesControllerInit,
           NotificationServicesPushController:
@@ -176,6 +198,8 @@ describe('initModularizedControllers', () => {
           DeFiPositionsController: mockDeFiPositionsControllerInit,
           SeedlessOnboardingController: mockSeedlessOnboardingControllerInit,
           PerpsController: mockPerpsControllerInit,
+          BridgeController: mockBridgeControllerInit,
+          BridgeStatusController: mockBridgeStatusControllerInit,
         },
         persistedState: {},
         baseControllerMessenger: new ExtendedControllerMessenger(),
@@ -251,6 +275,12 @@ describe('initModularizedControllers', () => {
     });
     mockAccountTreeControllerInit.mockReturnValue({
       controller: {} as unknown as AccountTreeController,
+    });
+    mockBridgeControllerInit.mockReturnValue({
+      controller: {} as BridgeController,
+    });
+    mockBridgeStatusControllerInit.mockReturnValue({
+      controller: {} as BridgeStatusController,
     });
   });
 

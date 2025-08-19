@@ -312,11 +312,14 @@ export function snapKeyringBuilder(
   helpers: SnapKeyringHelpers,
 ) {
   const builder = (() =>
-    new SnapKeyring(
+    new SnapKeyring({
       // @ts-expect-error TODO: Resolve mismatch between base-controller versions.
       messenger,
-      new SnapKeyringImpl(messenger, helpers),
-    )) as SnapKeyringBuilder;
+      callbacks: new SnapKeyringImpl(messenger, helpers),
+      ///: BEGIN:ONLY_INCLUDE_IF(flask)
+      isAnyAccountTypeAllowed: true,
+      ///: END:ONLY_INCLUDE_IF
+    })) as SnapKeyringBuilder;
   builder.type = SnapKeyring.type;
 
   return builder;

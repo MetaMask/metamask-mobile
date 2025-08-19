@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { captureException } from '@sentry/react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -75,6 +76,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
+import ErrorBoundary from '../ErrorBoundary';
 import {
   TraceName,
   endTrace,
@@ -99,29 +101,29 @@ const createStyles = (colors) =>
       flexDirection: 'column',
     },
     loadingWrapper: {
-      paddingHorizontal: 40,
-      paddingBottom: 30,
+      paddingHorizontal: 16,
       alignItems: 'center',
+      display: 'flex',
+      justifyContent: 'flex-start',
+      alignContent: 'center',
       flex: 1,
+      rowGap: 24,
     },
     foxWrapper: {
-      width: Device.isIos() ? 90 : 80,
-      height: Device.isIos() ? 90 : 80,
-      marginTop: 30,
-      marginBottom: 30,
+      width: Device.isMediumDevice() ? 180 : 220,
+      height: Device.isMediumDevice() ? 180 : 220,
     },
     image: {
       alignSelf: 'center',
-      width: 80,
-      height: 80,
+      width: Device.isMediumDevice() ? 180 : 220,
+      height: Device.isMediumDevice() ? 180 : 220,
     },
-    title: {
-      justifyContent: 'flex-start',
-      textAlign: 'flex-start',
-      fontSize: 32,
-    },
-    subtitle: {
-      textAlign: 'center',
+    loadingTextContainer: {
+      display: 'flex',
+      flexDirection: 'column',
+      rowGap: 4,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     field: {
       position: 'relative',
@@ -248,6 +250,7 @@ class ChoosePassword extends PureComponent {
     rememberMe: false,
     loading: false,
     error: null,
+    errorToThrow: null,
     inputWidth: { width: '99%' },
     showPasswordIndex: [0, 1],
     passwordInputContainerFocusedIndex: -1,
@@ -280,7 +283,7 @@ class ChoosePassword extends PureComponent {
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
-          color={this.state.loading ? colors.icon.muted : colors.icon.default}
+          color={colors.icon.default}
           style={{ marginLeft }}
         />
       </TouchableOpacity>
@@ -294,7 +297,7 @@ class ChoosePassword extends PureComponent {
       getOnboardingNavbarOptions(
         route,
         {
-          headerLeft: this.headerLeft,
+          headerLeft: this.state.loading ? () => <View /> : this.headerLeft,
         },
         colors,
         false,
@@ -369,6 +372,34 @@ class ChoosePassword extends PureComponent {
     }
   }
 
+  isOAuthPasswordCreationError = (error, authType) =>
+    authType.oauth2Login &&
+    error.message &&
+    error.message.includes('SeedlessOnboardingController');
+
+  handleOAuthPasswordCreationError = (error, authType) => {
+    // If user has already consented to analytics, report error using regular Sentry
+    if (this.props.metrics.isEnabled()) {
+      authType.oauth2Login &&
+        captureException(error, {
+          tags: {
+            view: 'ChoosePassword',
+            context:
+              'OAuth password creation failed - user consented to analytics',
+          },
+        });
+    } else {
+      // User hasn't consented to analytics yet, use ErrorBoundary onboarding flow
+      authType.oauth2Login &&
+        this.setState({
+          loading: false,
+          errorToThrow: new Error(
+            `OAuth password creation failed: ${error.message}`,
+          ),
+        });
+    }
+  };
+
   setSelection = () => {
     const { isSelected } = this.state;
     this.setState(() => ({ isSelected: !isSelected }));
@@ -429,6 +460,10 @@ class ChoosePassword extends PureComponent {
         try {
           await Authentication.newWalletAndKeychain(password, authType);
         } catch (error) {
+          if (this.isOAuthPasswordCreationError(error, authType)) {
+            this.handleOAuthPasswordCreationError(error, authType);
+            return;
+          }
           if (Device.isIos) {
             await this.handleRejectedOsBiometricPrompt();
           }
@@ -480,7 +515,7 @@ class ChoosePassword extends PureComponent {
       }
       this.track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(this.state.biometryType),
-        password_strength: getPasswordStrengthWord(this.state.passwordStrength),
+        account_type: provider ? `metamask_${provider}` : 'metamask',
       });
       this.track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
@@ -544,6 +579,10 @@ class ChoosePassword extends PureComponent {
         newAuthData,
       );
     } catch (err) {
+      if (this.isOAuthPasswordCreationError(err, newAuthData)) {
+        this.handleOAuthPasswordCreationError(err, newAuthData);
+        return;
+      }
       throw Error(strings('choose_password.disable_biometric_error'));
     }
     this.setState({
@@ -666,13 +705,20 @@ class ChoosePassword extends PureComponent {
   };
 
   learnMore = () => {
-    const learnMoreUrl =
+    let learnMoreUrl =
       'https://support.metamask.io/managing-my-wallet/resetting-deleting-and-restoring/how-can-i-reset-my-password/';
+
+    if (this.getOauth2LoginSuccess()) {
+      learnMoreUrl =
+        'https://support.metamask.io/configure/wallet/passwords-and-metamask/';
+    }
+
     this.track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
       location: 'choose_password',
       url: learnMoreUrl,
     });
+
     this.props.navigation.push('Webview', {
       screen: 'SimpleWebview',
       params: {
@@ -700,7 +746,7 @@ class ChoosePassword extends PureComponent {
     );
   };
 
-  render() {
+  renderContent = () => {
     const { isSelected, password, passwordStrength, confirmPassword, loading } =
       this.state;
     const passwordsMatch = password !== '' && password === confirmPassword;
@@ -726,21 +772,26 @@ class ChoosePassword extends PureComponent {
               />
             </View>
             <ActivityIndicator size="large" color={colors.text.default} />
-            <Text
-              variant={TextVariant.HeadingLG}
-              style={styles.title}
-              adjustsFontSizeToFit
-              numberOfLines={1}
-            >
-              {strings(
-                previousScreen === ONBOARDING
-                  ? 'create_wallet.title'
-                  : 'secure_your_wallet.creating_password',
-              )}
-            </Text>
-            <Text variant={TextVariant.BodyMD} style={styles.subtitle}>
-              {strings('create_wallet.subtitle')}
-            </Text>
+            <View style={styles.loadingTextContainer}>
+              <Text
+                variant={TextVariant.HeadingLG}
+                color={colors.text.default}
+                adjustsFontSizeToFit
+                numberOfLines={1}
+              >
+                {strings(
+                  previousScreen === ONBOARDING
+                    ? 'create_wallet.title'
+                    : 'secure_your_wallet.creating_password',
+                )}
+              </Text>
+              <Text
+                variant={TextVariant.BodyMD}
+                color={colors.text.alternative}
+              >
+                {strings('create_wallet.subtitle')}
+              </Text>
+            </View>
           </View>
         ) : (
           <KeyboardAwareScrollView
@@ -775,7 +826,9 @@ class ChoosePassword extends PureComponent {
                     variant={TextVariant.BodyMD}
                     color={TextColor.Alternative}
                   >
-                    {strings('choose_password.description')}
+                    {this.getOauth2LoginSuccess()
+                      ? strings('choose_password.description_social_login')
+                      : strings('choose_password.description')}
                   </Text>
                 </View>
 
@@ -951,6 +1004,31 @@ class ChoosePassword extends PureComponent {
           </KeyboardAwareScrollView>
         )}
       </SafeAreaView>
+    );
+  };
+
+  render() {
+    const { errorToThrow } = this.state;
+
+    // Component that throws error if needed (to be caught by ErrorBoundary)
+    const ThrowErrorIfNeeded = () => {
+      if (errorToThrow) {
+        throw errorToThrow;
+      }
+      return null;
+    };
+
+    return (
+      <ErrorBoundary
+        navigation={this.props.navigation}
+        view="ChoosePassword"
+        useOnboardingErrorHandling={
+          !!errorToThrow && !this.props.metrics.isEnabled()
+        }
+      >
+        <ThrowErrorIfNeeded />
+        {this.renderContent()}
+      </ErrorBoundary>
     );
   }
 }

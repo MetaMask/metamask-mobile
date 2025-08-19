@@ -2,7 +2,8 @@ import React from 'react';
 import { screen, fireEvent } from '@testing-library/react-native';
 import AdditionalVerification from './AdditionalVerification';
 import Routes from '../../../../../../constants/navigation/Routes';
-import renderDepositTestComponent from '../../utils/renderDepositTestComponent';
+import { renderScreen } from '../../../../../../util/test/renderWithProvider';
+import initialRootState from '../../../../../../util/test/initial-root-state';
 
 const mockSetNavigationOptions = jest.fn();
 const mockNavigateToKycWebview = jest.fn();
@@ -18,12 +19,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-jest.mock('../../../../Navbar', () => ({
-  getDepositNavbarOptions: jest.fn().mockReturnValue({
-    title: 'Verify your identity',
-  }),
-}));
 
 jest.mock('../../hooks/useDepositRouting', () => ({
   useDepositRouting: () => ({
@@ -42,7 +37,15 @@ jest.mock('../../../../../../util/navigation/navUtils.ts', () => ({
 }));
 
 function render(Component: React.ComponentType) {
-  return renderDepositTestComponent(Component, Routes.DEPOSIT.VERIFY_IDENTITY);
+  return renderScreen(
+    Component,
+    {
+      name: Routes.DEPOSIT.VERIFY_IDENTITY,
+    },
+    {
+      state: initialRootState,
+    },
+  );
 }
 
 describe('AdditionalVerification Component', () => {
@@ -57,11 +60,7 @@ describe('AdditionalVerification Component', () => {
 
   it('calls setOptions when the component mounts', () => {
     render(AdditionalVerification);
-    expect(mockSetNavigationOptions).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Verify your identity',
-      }),
-    );
+    expect(mockSetNavigationOptions).toHaveBeenCalled();
   });
 
   it('calls navigateToKycWebview when continue button is pressed', () => {

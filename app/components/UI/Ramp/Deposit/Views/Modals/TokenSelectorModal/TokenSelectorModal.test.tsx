@@ -74,10 +74,10 @@ describe('TokenSelectorModal Component', () => {
   it('displays tokens and allows selection', async () => {
     const { getByText } = renderWithProvider(TokenSelectorModal);
 
-    expect(getByText('USD Coin')).toBeTruthy();
-    expect(getByText('Tether USD')).toBeTruthy();
+    expect(getByText('USDC')).toBeTruthy();
+    expect(getByText('USDT')).toBeTruthy();
 
-    const tetherElement = getByText('Tether USD');
+    const tetherElement = getByText('USDT');
     fireEvent.press(tetherElement);
 
     await waitFor(() => {
@@ -99,5 +99,17 @@ describe('TokenSelectorModal Component', () => {
     await waitFor(() => {
       expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
     });
+  });
+
+  it('displays network filter selector when pressing "All networks" button', async () => {
+    const { getByText, toJSON } = renderWithProvider(TokenSelectorModal);
+
+    const allNetworksButton = getByText('All networks');
+    fireEvent.press(allNetworksButton);
+
+    await waitFor(() => {
+      expect(getByText('Deselect all')).toBeTruthy();
+    });
+    expect(toJSON()).toMatchSnapshot();
   });
 });

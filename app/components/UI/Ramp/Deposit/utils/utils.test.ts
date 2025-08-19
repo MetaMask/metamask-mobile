@@ -136,9 +136,9 @@ describe('Transak Utils', () => {
     });
 
     it('should throw error for unsupported chain', () => {
-      expect(() => getTransakChainId('unsupported')).toThrow(
-        'Unsupported chain: unsupported',
-      );
+      expect(() =>
+        getTransakChainId('unsupported' as unknown as `${string}:${string}`),
+      ).toThrow('Unsupported chain: unsupported');
     });
   });
 

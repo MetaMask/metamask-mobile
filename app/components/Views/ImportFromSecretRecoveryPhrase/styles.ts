@@ -30,7 +30,7 @@ const createStyles = (colors: any) =>
     },
     seedPhraseContainer: {
       paddingTop: 16,
-      backgroundColor: colors.background.muted,
+      backgroundColor: colors.background.section,
       borderRadius: 10,
       marginTop: 16,
       minHeight: 264,
@@ -58,12 +58,14 @@ const createStyles = (colors: any) =>
     seedPhraseDefaultInput: {
       borderWidth: 0,
       paddingHorizontal: 0,
-      width: '100%',
+      display: 'flex',
+      flex: 1,
       backgroundColor: importedColors.transparent,
       height: 66,
     },
     textAreaInput: {
-      width: '100%',
+      display: 'flex',
+      flex: 1,
       backgroundColor: importedColors.transparent,
       fontSize: 16,
       color: colors.text.alternative,
@@ -158,16 +160,24 @@ const createStyles = (colors: any) =>
       color: colors.text.default,
       ...fontStyles.normal,
       textAlignVertical: 'center',
-      paddingHorizontal: 8,
+      paddingLeft: 8,
+      overflow: 'hidden', // Ensure content doesn't overflow
     },
     seedPhraseInputItem: {
       width: '31.33%', // 100% / 3 = 33.33%, minus some space
       marginRight: '3%', // Space between columns
       marginBottom: 8,
       flex: 0, // Prevent flex growth
+      minWidth: 0, // Allow flex shrinking below content size
     },
     seedPhraseInputItemLast: {
       marginRight: 0, // Remove right margin for last item in row
+    },
+    inputItem: {
+      flex: 1,
+      minWidth: 0, // Allow flex shrinking below content size
+      maxWidth: '100%', // Ensure text doesn't overflow container
+      paddingRight: 8, // Add some padding to prevent text from touching edges
     },
     passwordContainer: {
       flexDirection: 'column',

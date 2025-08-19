@@ -151,6 +151,9 @@ class AesCryptoTestForm {
     await Gestures.scrollToElement(
       this.decryptButton,
       this.scrollViewIdentifier,
+      {
+        delay: 1000,
+      },
     );
   }
 
@@ -165,6 +168,9 @@ class AesCryptoTestForm {
     await Gestures.scrollToElement(
       this.decryptWithKeyButton,
       this.scrollViewIdentifier,
+      {
+        delay: 1000,
+      },
     );
   }
 

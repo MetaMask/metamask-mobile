@@ -385,8 +385,8 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -415,6 +415,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -438,7 +439,6 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -570,7 +570,7 @@ exports[`UnsupportedRegionModal handles missing region gracefully 1`] = `
                                 }
                               }
                             >
-                              We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.
+                              We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to get crypto.
                                
                             </Text>
                           </View>
@@ -1058,8 +1058,8 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                               {
                                 "backgroundColor": "#ffffff",
                                 "borderColor": "#b7bbc866",
-                                "borderTopLeftRadius": 8,
-                                "borderTopRightRadius": 8,
+                                "borderTopLeftRadius": 24,
+                                "borderTopRightRadius": 24,
                                 "borderWidth": 1,
                                 "maxHeight": 1334,
                                 "overflow": "hidden",
@@ -1088,6 +1088,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                 {
                                   "backgroundColor": "#ffffff",
                                   "flexDirection": "row",
+                                  "gap": 16,
                                   "padding": 16,
                                 },
                                 false,
@@ -1111,7 +1112,6 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                 {
                                   "alignItems": "center",
                                   "flex": 1,
-                                  "marginHorizontal": 16,
                                 }
                               }
                             >
@@ -1247,7 +1247,7 @@ exports[`UnsupportedRegionModal render match snapshot 1`] = `
                                 }
                               }
                             >
-                              We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to buy crypto.
+                              We're working hard to expand coverage to your region. In the meantime, there may be other ways for you to get crypto.
                                
                             </Text>
                           </View>

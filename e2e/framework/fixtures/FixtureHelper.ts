@@ -1,5 +1,5 @@
 /* eslint-disable import/no-nodejs-modules */
-import FixtureServer, { DEFAULT_FIXTURE_SERVER_PORT } from './FixtureServer';
+import FixtureServer from './FixtureServer';
 import { AnvilManager, Hardfork } from '../../seeder/anvil-manager';
 import Ganache from '../../../app/util/test/ganache';
 
@@ -7,7 +7,6 @@ import GanacheSeeder from '../../../app/util/test/ganache-seeder';
 import axios from 'axios';
 import createStaticServer from '../../create-static-server';
 import {
-  DEFAULT_MOCKSERVER_PORT,
   getFixturesServerPort,
   getLocalTestDappPort,
   getMockServerPort,
@@ -27,24 +26,28 @@ import {
   DappOptions,
   AnvilNodeOptions,
   GanacheNodeOptions,
+  TestSpecificMock,
 } from '../types';
-import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
+import {
+  TestDapps,
+  DappVariants,
+  defaultGanacheOptions,
+  DEFAULT_MOCKSERVER_PORT,
+} from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
+import { mockNotificationServices } from '../../specs/notifications/utils/mocks';
+import { type Mockttp } from 'mockttp';
+import { Buffer } from 'buffer';
+import crypto from 'crypto';
+import { DEFAULT_MOCKS } from '../../api-mocking/default-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
 });
 
-export const DEFAULT_DAPP_SERVER_PORT = 8085;
-
-// While Appium is still in use it's necessary to check if getFixturesServerPort if defined and provide a fallback in case it's not.
-const getFixturesPort =
-  typeof getFixturesServerPort === 'function'
-    ? getFixturesServerPort
-    : () => DEFAULT_FIXTURE_SERVER_PORT;
-const FIXTURE_SERVER_URL = `http://localhost:${getFixturesPort()}/state.json`;
+const FIXTURE_SERVER_URL = `http://localhost:${getFixturesServerPort()}/state.json`;
 
 // checks if server has already been started
 const isFixtureServerStarted = async () => {
@@ -175,6 +178,7 @@ async function handleLocalNodes(
         case LocalNodeType.anvil:
           localNode = new AnvilManager();
           localNodeSpecificOptions = nodeOptions as AnvilNodeOptions;
+
           await localNode.start(localNodeSpecificOptions);
           localNodes.push(localNode);
           break;
@@ -282,6 +286,7 @@ export const loadFixture = async (
   const state = fixture || new FixtureBuilder({ onboarding: true }).build();
   await fixtureServer.loadJsonState(state, null);
   // Checks if state is loaded
+  logger.debug(`Loading fixture into fixture server: ${FIXTURE_SERVER_URL}`);
   const response = await axios.get(FIXTURE_SERVER_URL);
 
   // Throws if state is not properly loaded
@@ -317,6 +322,111 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
 };
 
 /**
+ * Merges test-specific mocks with default mocks, prioritizing test-specific mocks
+ * @param testSpecificMocks - Test-specific mock events organized by method
+ * @returns Merged mock events with test-specific mocks taking priority
+ */
+const mergeWithDefaultMocks = (
+  testSpecificMocks: TestSpecificMock | undefined,
+) => {
+  if (!testSpecificMocks) {
+    return DEFAULT_MOCKS;
+  }
+
+  const mergedMocks: TestSpecificMock = {};
+
+  // Get all HTTP methods from both test-specific and default mocks
+  const allMethods = new Set([
+    ...Object.keys(testSpecificMocks),
+    ...Object.keys(DEFAULT_MOCKS),
+  ]);
+
+  allMethods.forEach((method) => {
+    const testMocks = testSpecificMocks[method as keyof TestSpecificMock] || [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const defaultMocks = (DEFAULT_MOCKS as any)[method] || [];
+
+    // Create a set of URLs that already exist in test-specific mocks
+    const testMockUrls = new Set(testMocks.map((mock) => mock.urlEndpoint));
+
+    // Filter out default mocks that have the same URL as test-specific mocks
+    const filteredDefaultMocks = defaultMocks.filter(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (defaultMock: any) => !testMockUrls.has(defaultMock.urlEndpoint),
+    );
+
+    // Merge test-specific mocks first, then append non-duplicate default mocks
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (mergedMocks as any)[method] = [...testMocks, ...filteredDefaultMocks];
+  });
+
+  return mergedMocks;
+};
+
+export const createMockAPIServer = async (
+  mockServerInstance?: Mockttp,
+  testSpecificMock?: TestSpecificMock,
+) => {
+  // Handle mock server
+  let mockServer: Mockttp | undefined;
+  let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
+
+  // Both
+  if (mockServerInstance && testSpecificMock) {
+    throw new Error(
+      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
+    );
+  }
+
+  // mockServerInstance only
+  if (mockServerInstance && !testSpecificMock) {
+    mockServer = mockServerInstance;
+    mockServerPort = mockServer.port;
+    logger.debug(
+      `Mock server started from mockServerInstance on port ${mockServerPort}`,
+    );
+
+    const endpoints = await mockServer.getMockedEndpoints();
+
+    logger.debug(`Mocked endpoints: ${endpoints.length}`);
+  }
+
+  // testSpecificMock only
+  if (!mockServerInstance && testSpecificMock) {
+    mockServerPort = getMockServerPort();
+    const mergedMocks = mergeWithDefaultMocks(testSpecificMock);
+    mockServer = await startMockServer(mergedMocks, mockServerPort);
+
+    logger.debug(
+      `Mock server started from testSpecificMock on port ${mockServerPort}`,
+    );
+  }
+
+  // neither
+  if (!mockServerInstance && !testSpecificMock) {
+    mockServerPort = getMockServerPort();
+    const mergedMocks = mergeWithDefaultMocks(testSpecificMock);
+    mockServer = await startMockServer(mergedMocks, mockServerPort);
+
+    logger.debug(
+      `Mock server started from testSpecificMock on port ${mockServerPort}`,
+    );
+  }
+
+  if (!mockServer) {
+    throw new Error('Test setup failure, no mock server setup');
+  }
+
+  // Additional Global Mocks
+  await mockNotificationServices(mockServer);
+
+  return {
+    mockServer,
+    mockServerPort,
+  };
+};
+
+/**
  * Executes a test suite with fixtures by setting up a fixture server, loading a specified fixture,
  * and running the test suite. After the test suite execution, it stops the fixture server.
  *
@@ -344,21 +454,20 @@ export async function withFixtures(
       },
     ],
     testSpecificMock,
+    mockServerInstance,
     launchArgs,
     languageAndLocale,
     permissions = {},
+    endTestfn,
   } = options;
 
   // Prepare android devices for testing to avoid having this in all tests
   await TestHelpers.reverseServerPort();
 
-  // Handle mock server
-  let mockServer;
-  let mockServerPort = DEFAULT_MOCKSERVER_PORT;
-  if (testSpecificMock) {
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
-  }
+  const { mockServer, mockServerPort } = await createMockAPIServer(
+    mockServerInstance,
+    testSpecificMock,
+  );
 
   // Handle local nodes
   let localNodes;
@@ -421,6 +530,12 @@ export async function withFixtures(
     logger.error('Error in withFixtures:', error);
     throw error;
   } finally {
+    if (endTestfn) {
+      // Pass the mockServer to the endTestfn if it exists as we may want
+      // to capture events before cleanup
+      await endTestfn({ mockServer });
+    }
+
     // Clean up all local nodes
     if (localNodes && localNodes.length > 0) {
       await handleLocalNodeCleanup(localNodes);
@@ -430,10 +545,107 @@ export async function withFixtures(
       await handleDappCleanup(dapps, dappServer);
     }
 
-    if (testSpecificMock) {
+    if (mockServer) {
       await stopMockServer(mockServer);
     }
 
     await stopFixtureServer(fixtureServer);
   }
+}
+
+/**
+ * Generates a random salt for encryption purposes.
+ *
+ * @param {number} byteCount - The number of bytes to generate.
+ * @returns {string} - The generated salt.
+ */
+
+function generateSalt(byteCount = 32) {
+  const view = crypto.randomBytes(byteCount);
+
+  return Buffer.from(view).toString('base64');
+}
+
+/**
+ * Encrypts a vault object using AES-256-CBC encryption with a password.
+ *
+ * @param {Object} vault - The vault object to encrypt.
+ * @param {string} [password='123123123'] - The password used for encryption.
+ * @returns {string} - The encrypted vault as a JSON string.
+ */
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function encryptVault(vault: any, password = '123123123') {
+  const salt = generateSalt(16);
+  const passBuffer = Buffer.from(password, 'utf-8');
+  // Parse base 64 string as utf-8 because mobile encryptor is flawed.
+  const saltBuffer = Buffer.from(salt, 'utf-8');
+  const iv = crypto.randomBytes(16);
+
+  // Derive key using PBKDF2
+  const derivedKey = crypto.pbkdf2Sync(
+    passBuffer,
+    saltBuffer,
+    5000,
+    32,
+    'sha512',
+  );
+
+  const json = JSON.stringify(vault);
+  const buffer = Buffer.from(json, 'utf-8');
+
+  // Encrypt using AES-256-CBC
+  const cipher = crypto.createCipheriv('aes-256-cbc', derivedKey, iv);
+  let encrypted = cipher.update(buffer);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+
+  // Prepare the result object
+  const result = {
+    keyMetadata: { algorithm: 'PBKDF2', params: { iterations: 5000 } },
+    lib: 'original',
+    cipher: encrypted.toString('base64'),
+    iv: iv.toString('hex'),
+    salt,
+  };
+
+  // Convert the result to a JSON string
+  return JSON.stringify(result);
+}
+
+/**
+ * Decrypts a vault object that was encrypted using AES-256-CBC encryption with a password.
+ *
+ * @param {string} vault - The encrypted vault as a JSON string.
+ * @param {string} [password='123123123'] - The password used for encryption.
+ * @returns {Object} - The decrypted vault JSON object.
+ */
+
+export function decryptVault(vault: string, password = '123123123') {
+  // 1. Parse vault inputs
+  const vaultJson = JSON.parse(vault);
+  const cipherText = Buffer.from(vaultJson.cipher, 'base64');
+  const iv = Buffer.from(vaultJson.iv, 'hex');
+  const salt = vaultJson.salt;
+
+  // "flawed": interpret base64 string as UTF-8 bytes, not decoded
+  const saltBuffer = Buffer.from(salt, 'utf-8');
+  const passBuffer = Buffer.from(password, 'utf-8');
+
+  // 2. Recreate PBKDF2 key
+  const derivedKey = crypto.pbkdf2Sync(
+    passBuffer,
+    saltBuffer,
+    5000,
+    32,
+    'sha512',
+  );
+
+  // 3. Decrypt
+  const decipher = crypto.createDecipheriv('aes-256-cbc', derivedKey, iv);
+  let decrypted = decipher.update(cipherText);
+  decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+  // 4. Convert back to string and parse JSON
+  const decryptedText = decrypted.toString('utf-8');
+  return JSON.parse(decryptedText);
 }

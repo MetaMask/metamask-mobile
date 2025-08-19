@@ -1,6 +1,3 @@
-import type { MockttpServer } from 'mockttp';
-import TestHelpers from '../../helpers';
-import EnableNotificationsModal from '../../pages/Notifications/EnableNotificationsModal';
 import NotificationDetailsView from '../../pages/Notifications/NotificationDetailsView';
 import NotificationMenuView from '../../pages/Notifications/NotificationMenuView';
 import WalletView from '../../pages/wallet/WalletView';
@@ -12,41 +9,47 @@ import {
   getMockWalletNotificationItemIds,
   mockNotificationServices,
 } from './utils/mocks';
-import { withFixtures } from '../../fixtures/fixture-helper';
-import FixtureBuilder from '../../fixtures/fixture-builder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
+import { startMockServer } from '../../api-mocking/mock-server';
+import { Mockttp } from 'mockttp';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
+  let mockServer: Mockttp;
+
   beforeAll(async () => {
-    await TestHelpers.reverseServerPort();
+    jest.setTimeout(170000);
+    const mockServerPort = getMockServerPort();
+    mockServer = await startMockServer([], mockServerPort);
+    await mockNotificationServices(mockServer);
   });
 
   it('should enable notifications and view feature announcements and wallet notifications', async () => {
+    // Notification mocks are now enabled by default inside the fixture helper
+    // since they're turned on by default
     await withFixtures(
       {
         fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
         restartDevice: true,
-        testSpecificMock: {},
+        mockServerInstance: mockServer,
         permissions: {
           notifications: 'YES',
         },
       },
-      async ({ mockServer }: { mockServer: MockttpServer }) => {
-        await mockNotificationServices(mockServer);
+      async () => {
         await loginToApp();
         // Bell Icon
         await WalletView.tapBellIcon();
-
-        // Enable Notifications Modal
-        await Assertions.expectElementToBeVisible(
-          EnableNotificationsModal.title,
-        );
-        await EnableNotificationsModal.tapOnConfirm();
 
         await Assertions.expectElementToBeVisible(NotificationMenuView.title);
         await Assertions.expectElementToBeVisible(
           NotificationMenuView.selectNotificationItem(
             getMockFeatureAnnouncementItemId(),
           ),
+          {
+            description: 'Feature Announcement Item',
+          },
         );
 
         // Feature Annonucement Details
@@ -55,6 +58,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         );
         await Assertions.expectElementToBeVisible(
           NotificationDetailsView.title,
+          {
+            description: 'Feature Announcement Details',
+          },
         );
         await NotificationDetailsView.tapOnBackButton();
 
@@ -69,6 +75,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
           );
           await Assertions.expectElementToBeVisible(
             NotificationDetailsView.title,
+            {
+              description: 'Wallet Announcement Details',
+            },
           );
           await NotificationDetailsView.tapOnBackButton();
         }

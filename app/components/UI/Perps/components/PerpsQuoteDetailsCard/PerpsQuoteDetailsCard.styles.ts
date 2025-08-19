@@ -16,11 +16,6 @@ const createStyles = ({ theme }: { theme: Theme }) => {
     quoteRow: {
       marginVertical: 4,
     },
-    slippageButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
   });
 };
 
