@@ -38,17 +38,20 @@ export const selectSnapsMetadata = createDeepEqualSelector(
     }, {}),
 );
 
-export const getEnabledSnaps = createDeepEqualSelector(selectSnaps, (snaps) => Object.values(snaps).reduce<Record<SnapId, Snap>>((acc, cur) => {
+export const getEnabledSnaps = createDeepEqualSelector(selectSnaps, (snaps) =>
+  Object.values(snaps).reduce<Record<SnapId, Snap>>((acc, cur) => {
     if (cur.enabled) {
       acc[cur.id] = cur;
     }
     return acc;
-  }, {}));
+  }, {}),
+);
 
 export const getNameLookupSnaps = createDeepEqualSelector(
   getEnabledSnaps,
   getSubjects,
-  (snaps, subjects) => Object.values(snaps)
+  (snaps, subjects) =>
+    Object.values(snaps)
       .filter(({ id }) => subjects[id]?.permissions['endowment:name-lookup'])
       .map((snap) => ({
         id: snap.id,
