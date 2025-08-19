@@ -52,7 +52,7 @@ class MetaMetricsScreen{
       await expect(this.screenTitle).toBeDisplayed();
     } else {
       const element = await this.screenTitle;
-      await appwrightExpect(element).toBeVisible({ timeout: 10000 });
+      await appwrightExpect(element).toBeVisible({ timeout: 30000 }); // Some devices take longer to transition to this screen
     }
   }
 

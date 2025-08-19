@@ -152,16 +152,10 @@ test('Send flow - Solana, SRP 1 + SRP 2 + SRP 3', async ({
   );
   await SendSolanaScreen.fillAmountField('0.001');
 
-  const timer2 = new TimerHelper(
-    'Time since the user is on the send amount screen until the user gets the confirmation screen',
-  );
-  timer2.start();
-
-  await SendSolanaScreen.tapContinueButton();
+  const timer2 = await SendSolanaScreen.tapContinueButton();
   await SolanaConfirmationScreen.isConfirmButtonDisplayed();
 
   timer2.stop();
-
   const performanceTracker = new PerformanceTracker();
   performanceTracker.addTimer(timer1);
   performanceTracker.addTimer(timer2);

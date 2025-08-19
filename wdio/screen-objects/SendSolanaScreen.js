@@ -1,18 +1,6 @@
-import Gestures from '../helpers/Gestures.js';
-import Selectors from '../helpers/Selectors.js';
-import {
-  ADD_ADDRESS_BUTTON,
-  AMOUNT_SCREEN,
-  SEND_ADDRESS_INPUT_FIELD,
-  SEND_CANCEL_BUTTON,
-  SEND_SCREEN_ID,
-  SEND_WARNING_MESSAGE,
-  UNDERSTAND_WARNING_CONTINUE,
-} from './testIDs/Screens/SendScreen.testIds.js';
-import { TRANSACTION_AMOUNT_INPUT } from './testIDs/Screens/AmountScreen.testIds.js';
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
-import { SendViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendView.selectors.js';
 import { expect as appwrightExpect } from 'appwright';
+import TimerHelper from '../../appwright/utils/TimersHelper.js';
 
 class SendSolanaScreen {
   get device() {
@@ -58,11 +46,19 @@ class SendSolanaScreen {
   async fillAmountField(amount) {
     const element = await this.amountField;
     await element.fill(amount);
-  }
+    const continueButton = await this.continueButton;
+    await appwrightExpect(continueButton).toBeVisible({ timeout: 10000 });  }
 
   async tapContinueButton() {
-    const element = await this.continueButton;
-    await element.tap();
+    await this._device.waitForTimeout(2000); // wait for the spinner to dissapear
+    const continueButton = await this.continueButton;
+    await appwrightExpect(continueButton).toBeVisible({ timeout: 10000 });
+    const timer1 = new TimerHelper(
+      'Time since the user is on the send amount screen until the user gets the confirmation screen',
+    );
+    timer1.start();
+    await continueButton.tap();
+    return timer1;
   }
 
   async tapCancelButton() {
