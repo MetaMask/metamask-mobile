@@ -696,7 +696,9 @@
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>@reown/appkit-controllers>viem>ws>bufferutil": false,
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>@reown/appkit-utils>viem>ws>bufferutil": false,
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>viem>ws>bufferutil": false,
-      "@metamask/test-dapp-solana>@solana/web3.js>rpc-websockets>bufferutil": false
+      "@metamask/test-dapp-solana>@solana/web3.js>rpc-websockets>bufferutil": false,
+      "@metamask/mobile-wallet-protocol-core>centrifuge>protobufjs": false,
+      "ethereumjs-util>ethereum-cryptography>secp256k1": false
     }
   },
   "packageManager": "yarn@1.22.22",
