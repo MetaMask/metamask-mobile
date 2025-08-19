@@ -14,11 +14,15 @@ import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import MultichainAddressRow from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
+import MultichainAddressRow, {
+  MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
+  MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
+} from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import { AddressListIds } from '../../../../../e2e/selectors/MultichainAccounts/AddressList.selectors';
 
 import styleSheet from './styles';
 import type { Props as AddressListProps, AddressItem } from './types';
+import ClipboardManager from '../../../../core/ClipboardManager';
 
 /**
  * AddressList component displays a list of addresses spread by scopes.
@@ -38,15 +42,33 @@ export const AddressList = (props: AddressListProps) => {
   const internalAccountsSpreadByScopes =
     selectInternalAccountsSpreadByScopes(groupId);
 
+  const copyAddressToClipboard = useCallback((address: string) => {
+    ClipboardManager.setString(address);
+  }, []);
+
   const renderAddressItem = useCallback(
     ({ item }: { item: AddressItem }) => (
       <MultichainAddressRow
         chainId={item.scope}
         networkName={item.networkName}
         address={item.account.address}
+        icons={[
+          {
+            name: IconName.Copy,
+            callback: () => copyAddressToClipboard(item.account.address),
+            testId: MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
+          },
+          {
+            name: IconName.QrCode,
+            callback: () => {
+              // TODO: Implement navigation to QR code screen when it is ready
+            },
+            testId: MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
+          },
+        ]}
       />
     ),
-    [],
+    [copyAddressToClipboard],
   );
 
   return (
