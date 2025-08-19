@@ -1,4 +1,4 @@
-import type { Position, Order, PriceUpdate } from '../../controllers/types';
+import type { Position, Order } from '../../controllers/types';
 import { usePerpsMarketStats } from '../../hooks';
 
 export interface TabViewProps {
@@ -12,5 +12,12 @@ export interface PerpsMarketTabsProps {
   unfilledOrders: Order[];
   onPositionUpdate?: () => Promise<void>;
   onActiveTabChange?: (tabId: string) => void;
-  priceData?: PriceUpdate | null;
+  /**
+   * Next funding time in milliseconds since epoch (optional, market-specific)
+   */
+  nextFundingTime?: number;
+  /**
+   * Funding interval in hours (optional, market-specific)
+   */
+  fundingIntervalHours?: number;
 }

@@ -1,16 +1,12 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
+import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
+import type { OrderFormState } from '../types';
+import { usePerpsOrderValidation } from './usePerpsOrderValidation';
+import { usePerpsTrading } from './usePerpsTrading';
 
 // Configure waitFor with a shorter timeout for all tests
 const fastWaitFor = (callback: () => void, options = {}) =>
   waitFor(callback, { timeout: 1000, ...options });
-import { usePerpsOrderValidation } from './usePerpsOrderValidation';
-import { usePerpsTrading } from './usePerpsTrading';
-import {
-  HYPERLIQUID_MAINNET_CHAIN_ID,
-  HYPERLIQUID_TESTNET_CHAIN_ID,
-} from '../constants/hyperLiquidConfig';
-import { VALIDATION_THRESHOLDS } from '../constants/perpsConfig';
-import type { OrderFormState } from '../types';
 
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger', () => ({
@@ -24,8 +20,6 @@ jest.mock('../../../../../locales/i18n', () => ({
     const translations: Record<string, string> = {
       'perps.order.validation.existing_position': `Existing position for ${values?.asset}`,
       'perps.order.validation.insufficient_balance': `Insufficient balance: need ${values?.required}, have ${values?.available}`,
-      'perps.order.validation.only_hyperliquid_usdc':
-        'Only HyperLiquid USDC supported',
       'perps.order.validation.high_leverage_warning': 'High leverage warning',
       'perps.order.validation.limit_price_required': 'Limit price required',
       'perps.order.validation.error': 'Validation error',
@@ -39,11 +33,17 @@ describe('usePerpsOrderValidation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
     // Default to immediate resolution
     mockValidateOrder.mockResolvedValue({ isValid: true });
     (usePerpsTrading as jest.Mock).mockReturnValue({
       validateOrder: mockValidateOrder,
     });
+  });
+
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   const defaultOrderForm: OrderFormState = {
@@ -61,8 +61,6 @@ describe('usePerpsOrderValidation', () => {
     assetPrice: 50000,
     availableBalance: 1000,
     marginRequired: '10.00',
-    selectedPaymentToken: null,
-    hasExistingPosition: false,
   };
 
   describe('protocol validation', () => {
@@ -72,6 +70,16 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation(defaultParams),
       );
+
+      // Wait a tick for initial validation
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Advance timers to trigger debounced validation
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -91,6 +99,16 @@ describe('usePerpsOrderValidation', () => {
         usePerpsOrderValidation(defaultParams),
       );
 
+      // Wait a tick for initial validation
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // Advance timers to trigger debounced validation
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
@@ -109,6 +127,11 @@ describe('usePerpsOrderValidation', () => {
           ...defaultParams,
         }),
       );
+
+      // Advance timers to trigger debounced validation
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -131,6 +154,11 @@ describe('usePerpsOrderValidation', () => {
         }),
       );
 
+      // Advance timers to trigger debounced validation
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
@@ -138,82 +166,6 @@ describe('usePerpsOrderValidation', () => {
       expect(result.current.isValid).toBe(false);
       expect(result.current.errors).toContain(
         'Insufficient balance: need 10.00, have 5',
-      );
-    });
-  });
-
-  describe('payment token validation', () => {
-    it('should pass with HyperLiquid mainnet token', async () => {
-      mockValidateOrder.mockResolvedValue({ isValid: true });
-
-      const { result } = renderHook(() =>
-        usePerpsOrderValidation({
-          ...defaultParams,
-          selectedPaymentToken: {
-            symbol: 'USDC',
-            chainId: HYPERLIQUID_MAINNET_CHAIN_ID,
-            image: '',
-            address: '0x0000000000000000000000000000000000000000',
-            decimals: 6,
-          },
-        }),
-      );
-
-      await fastWaitFor(() => {
-        expect(result.current.isValidating).toBe(false);
-      });
-
-      expect(result.current.isValid).toBe(true);
-      expect(result.current.errors).toEqual([]);
-    });
-
-    it('should pass with HyperLiquid testnet token', async () => {
-      mockValidateOrder.mockResolvedValue({ isValid: true });
-
-      const { result } = renderHook(() =>
-        usePerpsOrderValidation({
-          ...defaultParams,
-          selectedPaymentToken: {
-            symbol: 'USDC',
-            chainId: HYPERLIQUID_TESTNET_CHAIN_ID,
-            image: '',
-            address: '0x0000000000000000000000000000000000000000',
-            decimals: 6,
-          },
-        }),
-      );
-
-      await fastWaitFor(() => {
-        expect(result.current.isValidating).toBe(false);
-      });
-
-      expect(result.current.isValid).toBe(true);
-      expect(result.current.errors).toEqual([]);
-    });
-
-    it('should fail with non-HyperLiquid token', async () => {
-      mockValidateOrder.mockResolvedValue({ isValid: true });
-
-      const { result } = renderHook(() =>
-        usePerpsOrderValidation({
-          ...defaultParams,
-          selectedPaymentToken: {
-            symbol: 'USDC',
-            chainId: '0x1', // Ethereum mainnet
-            image: '',
-            address: '0x0000000000000000000000000000000000000000',
-            decimals: 6,
-          },
-        }),
-      );
-
-      await fastWaitFor(() => {
-        expect(result.current.isValidating).toBe(false);
-      });
-
-      expect(result.current.isValid).toBe(false);
-      expect(result.current.errors).toContain(
-        'Only HyperLiquid USDC supported',
       );
     });
   });
@@ -231,6 +183,11 @@ describe('usePerpsOrderValidation', () => {
           },
         }),
       );
+
+      // Advance timers to trigger debounced validation
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -252,6 +209,11 @@ describe('usePerpsOrderValidation', () => {
           },
         }),
       );
+
+      // Advance timers to trigger debounced validation
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -280,6 +242,11 @@ describe('usePerpsOrderValidation', () => {
         }),
       );
 
+      // Advance timers to trigger debounced validation
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
@@ -302,6 +269,11 @@ describe('usePerpsOrderValidation', () => {
         }),
       );
 
+      // Advance timers to trigger debounced validation
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
       });
@@ -318,6 +290,11 @@ describe('usePerpsOrderValidation', () => {
       const { result } = renderHook(() =>
         usePerpsOrderValidation(defaultParams),
       );
+
+      // Advance timers to trigger debounced validation
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);
@@ -342,6 +319,11 @@ describe('usePerpsOrderValidation', () => {
           marginRequired: '10.00',
         }),
       );
+
+      // Advance timers to trigger debounced validation
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
 
       await fastWaitFor(() => {
         expect(result.current.isValidating).toBe(false);

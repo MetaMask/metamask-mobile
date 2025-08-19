@@ -48,7 +48,6 @@ describe('PerpsMarketStatisticsCard', () => {
     volume24h: '$1,234,567.89',
     openInterest: '$987,654.32',
     fundingRate: '0.0125%',
-    fundingCountdown: '02:15:30',
     currentPrice: 47500,
     priceChange24h: 0.05,
     isLoading: false,
@@ -86,7 +85,6 @@ describe('PerpsMarketStatisticsCard', () => {
     // Check funding rate row
     expect(getByText('perps.market.funding_rate')).toBeOnTheScreen();
     expect(getByText('0.0125%')).toBeOnTheScreen();
-    expect(getByText('(02:15:30)')).toBeOnTheScreen();
   });
 
   it('displays positive funding rate in success color', () => {
@@ -177,7 +175,6 @@ describe('PerpsMarketStatisticsCard', () => {
     expect(getByTestId('perps-statistics-volume-24h')).toBeOnTheScreen();
     expect(getByTestId('perps-statistics-open-interest')).toBeOnTheScreen();
     expect(getByTestId('perps-statistics-funding-rate')).toBeOnTheScreen();
-    expect(getByTestId('perps-statistics-funding-countdown')).toBeOnTheScreen();
   });
 
   it('handles edge case with very small funding rate values', () => {
@@ -212,15 +209,6 @@ describe('PerpsMarketStatisticsCard', () => {
     expect(getByText('15.7500%')).toBeOnTheScreen();
   });
 
-  it('renders funding countdown in parentheses', () => {
-    const { getByText } = render(
-      <PerpsMarketStatisticsCard {...defaultProps} />,
-    );
-
-    const countdownText = getByText('(02:15:30)');
-    expect(countdownText).toBeOnTheScreen();
-  });
-
   it('displays all market statistics with proper formatting', () => {
     const { getByText } = render(
       <PerpsMarketStatisticsCard {...defaultProps} />,
@@ -232,7 +220,6 @@ describe('PerpsMarketStatisticsCard', () => {
     expect(getByText('$1,234,567.89')).toBeOnTheScreen(); // volume24h
     expect(getByText('$987,654.32')).toBeOnTheScreen(); // openInterest
     expect(getByText('0.0125%')).toBeOnTheScreen(); // fundingRate
-    expect(getByText('(02:15:30)')).toBeOnTheScreen(); // fundingCountdown
   });
 
   it('calls onTooltipPress only when info icons are pressed', () => {

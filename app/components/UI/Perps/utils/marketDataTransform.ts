@@ -3,6 +3,7 @@ import type {
   PerpsUniverse,
   PerpsAssetCtx,
   AllMids,
+  PredictedFunding,
 } from '@deeeed/hyperliquid-node20';
 
 /**
@@ -12,6 +13,7 @@ export interface HyperLiquidMarketData {
   universe: PerpsUniverse[];
   assetCtxs: PerpsAssetCtx[];
   allMids: AllMids;
+  predictedFundings?: PredictedFunding[];
 }
 
 /**
@@ -22,7 +24,7 @@ export interface HyperLiquidMarketData {
 export function transformMarketData(
   hyperLiquidData: HyperLiquidMarketData,
 ): PerpsMarketData[] {
-  const { universe, assetCtxs, allMids } = hyperLiquidData;
+  const { universe, assetCtxs, allMids, predictedFundings } = hyperLiquidData;
 
   return universe.map((asset) => {
     const symbol = asset.name;
@@ -57,6 +59,30 @@ export function transformMarketData(
     // Format volume (dayNtlVlm is daily notional volume)
     const volume = assetCtx ? parseFloat(assetCtx.dayNtlVlm) : 0;
 
+    // Extract funding time data if available
+    let nextFundingTime: number | undefined;
+    let fundingIntervalHours: number | undefined;
+
+    if (predictedFundings) {
+      // Find the funding data for this specific symbol
+      const fundingData = predictedFundings.find(
+        ([assetSymbol]) => assetSymbol === symbol,
+      );
+      // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
+      if (fundingData && fundingData[1] && fundingData[1].length > 0) {
+        // Get the first exchange's funding data (usually HyperLiquid itself)
+        // Safely check if the first element is an array with at least 2 elements
+        const firstExchange = fundingData[1][0];
+        if (Array.isArray(firstExchange) && firstExchange.length >= 2) {
+          const exchangeData = firstExchange[1];
+          if (exchangeData) {
+            nextFundingTime = exchangeData.nextFundingTime;
+            fundingIntervalHours = exchangeData.fundingIntervalHours;
+          }
+        }
+      }
+    }
+
     return {
       symbol,
       name: symbol, // HyperLiquid uses symbol as name
@@ -67,6 +93,8 @@ export function transformMarketData(
         ? '0.00%'
         : formatPercentage(change24hPercent),
       volume: isNaN(volume) ? '$0' : formatVolume(volume),
+      nextFundingTime,
+      fundingIntervalHours,
     };
   });
 }

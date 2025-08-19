@@ -22,6 +22,7 @@ import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletServic
 import {
   adaptAccountStateFromSDK,
   adaptMarketFromSDK,
+  adaptOrderFromSDK,
   adaptPositionFromSDK,
   buildAssetMapping,
   formatHyperLiquidPrice,
@@ -69,7 +70,9 @@ import type {
   PerpsMarketData,
   Position,
   ReadyToTradeResult,
+  SubscribeAccountParams,
   SubscribeOrderFillsParams,
+  SubscribeOrdersParams,
   SubscribePositionsParams,
   SubscribePricesParams,
   ToggleTestnetResult,
@@ -1161,8 +1164,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
   async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
     try {
       DevLogger.log(
-        'Getting currently open orders via HyperLiquid SDK:',
-        params,
+        'Getting currently open orders via HyperLiquid SDK',
+        params || '(no params)',
       );
       await this.ensureReady();
 
@@ -1177,62 +1180,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       DevLogger.log('Currently open orders received:', rawOrders);
 
-      // Transform HyperLiquid open orders to abstract Order type
-      const orders: Order[] = (rawOrders || []).map((rawOrder) => {
-        const orderId = rawOrder.oid?.toString() || '';
-        const symbol = rawOrder.coin;
-        const side = rawOrder.side === 'B' ? 'buy' : 'sell';
-        const detailedOrderType = rawOrder.orderType || '';
-        const orderType = detailedOrderType.toLowerCase().includes('limit')
-          ? 'limit'
-          : 'market';
-        const size = rawOrder.sz;
-        const originalSize = rawOrder.origSz || size;
-        const price = rawOrder.limitPx || rawOrder.triggerPx || '0';
-        const isTrigger = rawOrder.isTrigger || false;
-        const reduceOnly = rawOrder.reduceOnly || false;
-
-        // Calculate filled and remaining size
-        const currentSize = parseFloat(size);
-        const origSize = parseFloat(originalSize);
-        const filledSize = origSize - currentSize;
-
-        // Check for TP/SL in child orders
-        let takeProfitPrice: string | undefined;
-        let stopLossPrice: string | undefined;
-
-        if (rawOrder.children && rawOrder.children.length > 0) {
-          rawOrder.children.forEach((child: typeof rawOrder) => {
-            if (child.isTrigger && child.orderType) {
-              if (child.orderType.includes('Take Profit')) {
-                takeProfitPrice = child.triggerPx || child.limitPx;
-              } else if (child.orderType.includes('Stop')) {
-                stopLossPrice = child.triggerPx || child.limitPx;
-              }
-            }
-          });
-        }
-
-        return {
-          orderId,
-          symbol,
-          side,
-          orderType,
-          size,
-          originalSize,
-          price,
-          filledSize: filledSize.toString(),
-          remainingSize: size,
-          status: 'open' as const,
-          timestamp: rawOrder.timestamp,
-          lastUpdated: rawOrder.timestamp,
-          takeProfitPrice,
-          stopLossPrice,
-          detailedOrderType,
-          isTrigger,
-          reduceOnly,
-        };
-      });
+      // Transform HyperLiquid open orders to abstract Order type using adapter
+      const orders: Order[] = (rawOrders || []).map(adaptOrderFromSDK);
 
       return orders;
     } catch (error) {
@@ -1334,7 +1283,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const infoClient = this.clientService.getInfoClient();
       const meta = await infoClient.meta();
-      return meta.universe.map((asset) => adaptMarketFromSDK(asset));
+      const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
+
+      return markets;
     } catch (error) {
       DevLogger.log('Error getting markets:', error);
       return [];
@@ -1353,9 +1304,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const infoClient = this.clientService.getInfoClient();
 
       // Fetch all required data in parallel for better performance
-      const [perpsMeta, allMids] = await Promise.all([
+      const [perpsMeta, allMids, predictedFundings] = await Promise.all([
         infoClient.meta(),
         infoClient.allMids(),
+        infoClient.predictedFundings(),
       ]);
 
       if (!perpsMeta?.universe || !allMids) {
@@ -1371,6 +1323,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         universe: perpsMeta.universe,
         assetCtxs,
         allMids,
+        predictedFundings,
       });
     } catch (error) {
       DevLogger.log('Error getting market data with prices:', error);
@@ -1451,6 +1404,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
             };
           }
         } catch (error) {
+          // Log the error before falling back
+          DevLogger.log('Failed to get max leverage for symbol', error);
           // If we can't get max leverage, use the default as fallback
           const defaultMaxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
           if (params.leverage < 1 || params.leverage > defaultMaxLeverage) {
@@ -1809,6 +1764,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Subscribe to live order updates
+   */
+  subscribeToOrders(params: SubscribeOrdersParams): () => void {
+    return this.subscriptionService.subscribeToOrders(params);
+  }
+
+  /**
+   * Subscribe to live account updates
+   */
+  subscribeToAccount(params: SubscribeAccountParams): () => void {
+    return this.subscriptionService.subscribeToAccount(params);
+  }
+
+  /**
    * Configure live data settings
    */
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {
@@ -1869,7 +1838,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       try {
         await this.walletService.getCurrentAccountId();
         accountConnected = true;
-      } catch {
+      } catch (error) {
+        DevLogger.log('Account not connected:', error);
         accountConnected = false;
       }
 
