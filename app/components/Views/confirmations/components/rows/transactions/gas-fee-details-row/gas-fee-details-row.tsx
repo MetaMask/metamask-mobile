@@ -25,6 +25,8 @@ import AlertRow from '../../../UI/info-row/alert-row';
 import { RowAlertKey } from '../../../UI/info-row/alert-row/constants';
 import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './gas-fee-details-row.styles';
+import { SelectedGasFeeToken } from '../../../gas/selected-gas-fee-token';
+import { useSelectedGasFeeToken } from '../../../../hooks/gas/useGasFeeToken';
 
 const EstimationInfo = ({
   hideFiatForTestnet,
@@ -43,11 +45,7 @@ const EstimationInfo = ({
           {feeCalculations.estimatedFeeFiat}
         </Text>
       )}
-      {!fiatOnly && (
-        <Text style={styles.primaryValue}>
-          {feeCalculations.estimatedFeeNative}
-        </Text>
-      )}
+      {!fiatOnly && <SelectedGasFeeToken />}
     </View>
   );
 };
@@ -163,6 +161,7 @@ const GasFeesDetailsRow = ({
 
   const transactionMetadata = useTransactionMetadataRequest();
   const transactionBatchesMetadata = useTransactionBatchesMetadata();
+  const gasFeeToken = useSelectedGasFeeToken();
 
   const hideFiatForTestnet = useHideFiatForTestnet(
     transactionMetadata?.chainId,
@@ -178,7 +177,6 @@ const GasFeesDetailsRow = ({
   };
 
   const Container = noSection ? View : InfoSection;
-
   return (
     <>
       <Container testID={ConfirmationRowComponentIDs.GAS_FEES_DETAILS}>
@@ -189,7 +187,7 @@ const GasFeesDetailsRow = ({
           onTooltipPress={handleNetworkFeeTooltipClickedEvent}
         >
           <View style={styles.valueContainer}>
-            {disableUpdate ? (
+            {disableUpdate || gasFeeToken ? (
               <RenderEstimationInfo
                 transactionBatchesMetadata={transactionBatchesMetadata}
                 hideFiatForTestnet={hideFiatForTestnet}

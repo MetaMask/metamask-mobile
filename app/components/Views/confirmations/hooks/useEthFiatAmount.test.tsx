@@ -3,8 +3,20 @@ import { useEthFiatAmount } from './useEthFiatAmount';
 import BigNumber from 'bignumber.js';
 import { transferTransactionStateMock } from '../__mocks__/transfer-transaction-mock';
 import { merge } from 'lodash';
+import {
+  selectConversionRateByChainId,
+  selectCurrentCurrency,
+} from '../../../../selectors/currencyRateController';
+
+jest.mock('../../../../selectors/currencyRateController', () => ({
+  selectConversionRateByChainId: jest.fn(),
+  selectCurrentCurrency: jest.fn(),
+}));
 
 describe('useEthFiatAmount', () => {
+  const mockSelectConversionRate =
+    selectConversionRateByChainId as unknown as jest.Mock;
+  const mockCurrentCurrency = selectCurrentCurrency as unknown as jest.Mock;
   const mockState = merge({}, transferTransactionStateMock, {
     engine: {
       backgroundState: {
@@ -55,6 +67,8 @@ describe('useEthFiatAmount', () => {
   });
 
   it('returns formatted fiat amount when all conditions are met', () => {
+    mockSelectConversionRate.mockReturnValue(3000);
+    mockCurrentCurrency.mockReturnValue('USD');
     const { result } = renderHookWithProvider(
       () => useEthFiatAmount('1', { showFiat: true }, false),
       { state: mockState },
@@ -64,6 +78,8 @@ describe('useEthFiatAmount', () => {
   });
 
   it('returns formatted fiat amount without currency symbol when hideCurrencySymbol is true', () => {
+    mockSelectConversionRate.mockReturnValue(3000);
+    mockCurrentCurrency.mockReturnValue('USD');
     const { result } = renderHookWithProvider(
       () => useEthFiatAmount('1', { showFiat: true }, true),
       { state: mockState },
@@ -73,6 +89,8 @@ describe('useEthFiatAmount', () => {
   });
 
   it('returns "< $0.01" for small fiat amounts', () => {
+    mockSelectConversionRate.mockReturnValue(3000);
+    mockCurrentCurrency.mockReturnValue('USD');
     const { result } = renderHookWithProvider(
       () => useEthFiatAmount('0.000001', { showFiat: true }, false),
       { state: mockState },
@@ -82,6 +100,8 @@ describe('useEthFiatAmount', () => {
   });
 
   it('returns "< $0.01" without currency symbol for small fiat amounts', () => {
+    mockSelectConversionRate.mockReturnValue(3000);
+    mockCurrentCurrency.mockReturnValue('USD');
     const { result } = renderHookWithProvider(
       () => useEthFiatAmount('0.000001', { showFiat: true }, true),
       { state: mockState },
@@ -91,6 +111,8 @@ describe('useEthFiatAmount', () => {
   });
 
   it('handles BigNumber input for ethAmount', () => {
+    mockSelectConversionRate.mockReturnValue(3000);
+    mockCurrentCurrency.mockReturnValue('USD');
     const { result } = renderHookWithProvider(
       () => useEthFiatAmount(new BigNumber('1'), { showFiat: true }, false),
       { state: mockState },
