@@ -21,7 +21,6 @@ const authMocks = getAuthMocks();
 
 export const DEFAULT_MOCKS = {
   GET: [
-    // Auth mocks
     ...authMocks.GET,
     {
       urlEndpoint:
