@@ -206,7 +206,7 @@ jobs:
           shopt -s nullglob
           for entry in artifacts/*; do
             base="$(basename "$entry")"
-            if [[ "$base" == "$KEEP_PREFIX"* || "$base" == coverage-* || "$base" == "ios-bundle" ]]; then
+            if [[ "$base" == "$KEEP_PREFIX"* || "$base" == coverage-* ]]; then
               echo "Keeping: $base"
               continue
             fi
