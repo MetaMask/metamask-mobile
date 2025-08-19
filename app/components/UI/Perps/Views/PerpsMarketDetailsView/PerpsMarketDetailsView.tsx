@@ -81,7 +81,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
     selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
   });
-  // Note: isLoadingHistory available if needed: const { candleData, isLoadingHistory } = usePerpsPositionData...
 
   const handleDurationChange = useCallback((newDuration: TimeDuration) => {
     setSelectedDuration(newDuration);
@@ -97,11 +96,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleGearPress = useCallback(() => {
     setIsCandlePeriodBottomSheetVisible(true);
   }, []);
-
-  // Note: handleZoomChange available if needed for zoom functionality
-  // const handleZoomChange = useCallback((newCandleCount: number) => {
-  //   setCandleCount(newCandleCount);
-  // }, []);
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -163,17 +157,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         />
         {/* Chart */}
         <View style={[styles.section, styles.chartSection]}>
-          {/* TODO: Re-enable when TradingView chart supports duration/period changes */}
-          {/* <CandlestickChartComponent
-            candleData={candleData}
-            isLoading={isLoadingHistory}
-            height={350}
-            selectedDuration={selectedDuration}
-            candleCount={candleCount}
-            onDurationChange={handleDurationChange}
-            onGearPress={handleGearPress}
-            onZoomChange={handleZoomChange}
-          /> */}
           <TradingViewChart
             candleData={candleData}
             height={350}

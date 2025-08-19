@@ -15,6 +15,7 @@ import type { CandleData } from '../../types';
 import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 // TP/SL Lines interface
 export interface TPSLLines {
@@ -126,12 +127,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     [],
   );
 
-  // Note: currentCandlePeriod calculation available if needed later
-  // const currentCandlePeriod = useMemo(() =>
-  //   getCurrentCandlePeriod(selectedDuration),
-  //   [selectedDuration, getCurrentCandlePeriod]
-  // );
-
   // Send interval update to WebView
   // Note: This is mainly for debugging/logging. The actual data fetching
   // should be handled by the parent component via usePerpsPositionData
@@ -165,12 +160,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   // Send initial interval when chart becomes ready
   useEffect(() => {
     if (isChartReady) {
-      console.log(
-        '📊 Chart ready, sending initial interval:',
-        selectedDuration,
-        'period:',
-        selectedCandlePeriod,
-      );
       sendIntervalUpdate(
         selectedDuration,
         selectedCandlePeriod as CandlePeriod,
@@ -198,14 +187,14 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             width: 100%;
             height: 100%;
             font-family: Arial, sans-serif;
-            background: ${theme.colors.background.default}; /* 🎨 Theme background */
+            background: ${theme.colors.background.default};
         }
         
         #container {
             width: 100%;
             height: 100vh;
             position: relative;
-            background: ${theme.colors.background.default}; /* 🎨 Theme background */
+            background: ${theme.colors.background.default};
         }
     </style>
 </head>
@@ -214,7 +203,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     </div>
 
     <script>
-        console.log('📊 TradingView: Starting initialization...');
+        console.log('TradingView: Starting initialization...');
         
         // Global variables
         window.chart = null;
@@ -224,18 +213,18 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         
         // Step 1: Load TradingView library dynamically
         function loadTradingView() {
-            console.log('📊 TradingView: Loading library...');
+            console.log('TradingView: Loading library...');
             
             const script = document.createElement('script');
             script.src = 'https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js';
             
             script.onload = function() {
-                console.log('📊 TradingView: Library loaded successfully');
+                console.log('TradingView: Library loaded successfully');
                 setTimeout(createChart, 500); // Small delay to ensure library is ready
             };
             
             script.onerror = function() {
-                console.error('📊 TradingView: Failed to load library');
+                console.error('TradingView: Failed to load library');
             };
             
             document.head.appendChild(script);
@@ -243,10 +232,10 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
         
         // Step 2: Create chart
         function createChart() {
-            console.log('📊 TradingView: Creating chart...');
+            console.log('TradingView: Creating chart...');
             
             if (!window.LightweightCharts) {
-                console.error('📊 TradingView: Library not available');
+                console.error('TradingView: Library not available');
                 return;
             }
             
@@ -257,24 +246,24 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                     height: window.innerHeight,
                     layout: {
                         background: {
-                            color: '${theme.colors.background.default}', // 🎨 Theme background
+                            color: '${theme.colors.background.default}',
                         },
-                        textColor: '${theme.colors.text.muted}', // 🎨 Muted text for axes labels
+                        textColor: '${theme.colors.text.muted}',
                     },
                     grid: {
-                        vertLines: { color: '${theme.colors.border.muted}' }, // 🎨 Theme grid
-                        horzLines: { color: '${theme.colors.border.muted}' }, // 🎨 Theme grid
+                        vertLines: { color: '${theme.colors.border.muted}' },
+                        horzLines: { color: '${theme.colors.border.muted}' },
                     },
                     timeScale: {
                         timeVisible: true,
                         secondsVisible: false,
-                        borderColor: 'transparent', // ✅ Remove bottom border
+                        borderColor: 'transparent',
                     },
                     rightPriceScale: {
-                        borderColor: 'transparent', // ✅ Remove right border
+                        borderColor: 'transparent',
                     },
                     leftPriceScale: {
-                        borderColor: 'transparent', // ✅ Remove left border (if visible)
+                        borderColor: 'transparent',
                     }
                 });
                 
@@ -286,7 +275,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                     }));
                 } 
             } catch (error) {
-                console.error('📊 TradingView: Error creating chart:', error);
+                console.error('TradingView: Error creating chart:', error);
             }
         }
         
@@ -312,7 +301,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                 title: 'Current',
             });
             
-            console.log('📊 TradingView: Candlestick series created successfully');
+            console.log('TradingView: Candlestick series created successfully');
             return window.candlestickSeries;
         };
         
@@ -390,8 +379,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                         axisLabelVisible: true,
                         title: 'TP'
                     });
-                    
-                    // Store reference for future removal
                     window.priceLines.takeProfitPrice = priceLine;
                 } catch (error) {
                     // Silent error handling
@@ -413,9 +400,9 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.stopLossPrice),
-                        color: '#484848', // Dark Gray
+                        color: '#484848',
                         lineWidth: 1,
-                        lineStyle: 2, // Dashed
+                        lineStyle: 2,
                         axisLabelVisible: true,
                         title: 'SL'
                     });
@@ -442,9 +429,9 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                 try {
                     const priceLine = window.candlestickSeries.createPriceLine({
                         price: parseFloat(lines.liquidationPrice),
-                        color: '#FF7584', // Pink/Light Red
+                        color: '#FF7584',
                         lineWidth: 1,
-                        lineStyle: 2, // Dashed
+                        lineStyle: 2,
                         axisLabelVisible: true,
                         title: 'Liq'
                     });
@@ -496,18 +483,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
                         break;
                         
                     case 'UPDATE_INTERVAL':
-                        console.log('📊 TradingView: Received interval update:', {
-                            duration: message.duration,
-                            candlePeriod: message.candlePeriod,
-                            candleCount: message.candleCount
-                        });
-                        
-                        // For now, just log the interval change
-                        // In a real implementation, you would:
-                        // 1. Request new data with the specified candle period
-                        // 2. Update the chart with the new candle count/period
-                        // 3. Possibly adjust time scale settings
-                        
                         // Send confirmation back to React Native
                         if (window.ReactNativeWebView) {
                             window.ReactNativeWebView.postMessage(JSON.stringify({
@@ -563,40 +538,16 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
         switch (message.type) {
           case 'CHART_READY':
-            console.log('📊 TradingViewChart: Chart is ready and loaded!');
             setIsChartReady(true);
             onChartReady?.();
             break;
           case 'PRICE_LINES_UPDATE':
-            console.log('📊 Price Lines Update:', {
-              approach: message.approach,
-              removed: message.removed,
-              created: message.created,
-              skipped: message.skipped,
-              prices: message.priceValues,
-              timestamp: new Date(message.timestamp).toLocaleTimeString(),
-            });
             break;
           case 'INTERVAL_UPDATED':
-            console.log('✅ Chart interval updated successfully:', {
-              duration: message.duration,
-              candlePeriod: message.candlePeriod,
-              candleCount: message.candleCount,
-              timestamp: new Date(message.timestamp).toLocaleTimeString(),
-            });
             break;
-
           case 'WEBVIEW_TEST':
-            console.log(
-              'TradingViewChart: WebView test message received:',
-              message.message,
-            );
             break;
           default:
-            console.log(
-              'TradingViewChart: Unknown message type:',
-              message.type,
-            );
             break;
         }
       } catch (error) {
@@ -640,7 +591,12 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
           formattedCandle.close > 0;
 
         if (!isValid) {
-          console.warn('🚨 Invalid candle data:', candle, '→', formattedCandle);
+          DevLogger.log(
+            '🚨 Invalid candle data:',
+            candle,
+            '→',
+            formattedCandle,
+          );
           return null;
         }
 

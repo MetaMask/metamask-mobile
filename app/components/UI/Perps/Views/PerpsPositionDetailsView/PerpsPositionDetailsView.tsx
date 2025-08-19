@@ -48,10 +48,6 @@ const PerpsPositionDetailsView: React.FC = () => {
 
   const { position } = route.params || {};
 
-  // TODO: Re-enable when TradingView chart supports duration changes
-  // const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
-  //   TimeDuration.ONE_HOUR,
-  // );
   const [selectedCandlePeriod, setSelectedCandlePeriod] =
     useState<CandlePeriod>(() =>
       getDefaultCandlePeriodForDuration(TimeDuration.ONE_HOUR),
@@ -65,20 +61,21 @@ const PerpsPositionDetailsView: React.FC = () => {
   const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
     TimeDuration.ONE_HOUR,
   );
-  // TODO: Re-enable when TradingView chart supports zoom functionality
-  // const [candleCount, setCandleCount] = useState<number>(45); // Default zoom level: 45 candles
+
   const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
     onSuccess: () => {
       // Navigate back to refresh the position
       navigation.goBack();
     },
   });
+
   const { handleClosePosition, isClosing } = usePerpsClosePosition({
     onSuccess: () => {
       // Navigate back to positions list after successful close
       navigation.goBack();
     },
   });
+
   const { candleData, priceData } = usePerpsPositionData({
     coin: position?.coin || '',
     selectedDuration, // Time duration (1hr, 1D, 1W, etc.) - now uses dynamic state
@@ -96,17 +93,10 @@ const PerpsPositionDetailsView: React.FC = () => {
     setSelectedCandlePeriod(newPeriod);
   }, []);
 
-  // TODO: Re-enable when TradingView chart supports zoom changes
-  // const handleZoomChange = useCallback((newCandleCount: number) => {
-  //   setCandleCount(newCandleCount);
-  // }, []);
-
-  // TODO: Re-enable when TradingView chart supports gear/settings press
   const handleGearPress = useCallback(() => {
     setIsCandlePeriodBottomSheetVisible(true);
   }, []);
 
-  // Handle position close button click
   const handleCloseClick = useCallback(() => {
     DevLogger.log('PerpsPositionDetails: Opening close position bottom sheet');
     setIsClosePositionVisible(true);
@@ -171,9 +161,7 @@ const PerpsPositionDetailsView: React.FC = () => {
             selectedDuration={selectedDuration}
             onDurationChange={handleDurationChange}
             onGearPress={handleGearPress}
-            // testID={`${
-            //   testID || TradingViewChartSelectorsIDs.CONTAINER
-            // }-duration-selector`}
+            testID={`${PerpsPositionDetailsViewSelectorsIDs.CANDLESTICK_CHART}-duration-selector`}
           />
         </View>
 
