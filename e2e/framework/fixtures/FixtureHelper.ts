@@ -328,7 +328,17 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
 export const createMockAPIServer = async (
   mockServerInstance?: Mockttp,
   testSpecificMock?: TestSpecificMock,
+  framework?: 'detox' | 'appwright',
 ) => {
+  // Skip mock server for non-Detox tests since they don't need API mocking
+  if (framework !== 'detox') {
+    logger.debug('Mock server disabled for non-Detox tests');
+    return {
+      mockServer: undefined,
+      mockServerPort: undefined,
+    };
+  }
+
   // Handle mock server
   let mockServer: Mockttp | undefined;
   let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
@@ -363,8 +373,17 @@ export const createMockAPIServer = async (
     );
   }
 
-  // neither
+  // neither - only start if not Appwright
   if (!mockServerInstance && !testSpecificMock) {
+    // For Appwright tests, don't start a mock server
+    if (framework !== 'detox') {
+      logger.debug('No mock server needed for non-Detox test');
+      return {
+        mockServer: undefined,
+        mockServerPort: undefined,
+      };
+    }
+
     mockServerPort = getMockServerPort();
     mockServer = await startMockServer({}, mockServerPort);
 
@@ -374,10 +393,18 @@ export const createMockAPIServer = async (
   }
 
   if (!mockServer) {
+    // For Appwright tests, this is expected behavior
+    if (framework !== 'detox') {
+      logger.debug('No mock server for non-Detox test - this is expected');
+      return {
+        mockServer: undefined,
+        mockServerPort: undefined,
+      };
+    }
     throw new Error('Test setup failure, no mock server setup');
   }
 
-  // Additional Global Mocks
+  // Additional Global Mocks - only when mock server exists
   await mockNotificationServices(mockServer);
 
   return {
@@ -425,6 +452,7 @@ export async function withFixtures(
   const { mockServer, mockServerPort } = await createMockAPIServer(
     mockServerInstance,
     testSpecificMock,
+    framework,
   );
 
   // Prepare android devices for testing to avoid having this in all tests
@@ -482,7 +510,7 @@ export async function withFixtures(
         launchArgs: {
           fixtureServerPort: `${getFixturesServerPort()}`,
           detoxURLBlacklistRegex: Utilities.BlacklistURLs,
-          mockServerPort: `${mockServerPort}`,
+          ...(mockServerPort && { mockServerPort: `${mockServerPort}` }),
           ...(launchArgs || {}),
         },
         languageAndLocale,
