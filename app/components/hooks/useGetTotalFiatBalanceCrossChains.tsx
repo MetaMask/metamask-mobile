@@ -1,8 +1,7 @@
 import { useSelector } from 'react-redux';
-import { toHexadecimal, weiToFiatNumber } from '../../util/number';
 import { selectNetworkConfigurations } from '../../selectors/networkController';
 import { selectAccountsByChainId } from '../../selectors/accountTrackerController';
-import { hexToBN, toChecksumHexAddress } from '@metamask/controller-utils';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { TokensWithBalances } from './useGetFormattedTokensPerChain';
 import {
   selectCurrencyRates,
@@ -13,6 +12,11 @@ import { selectShowFiatInTestnets } from '../../selectors/settings';
 import { isTestNet } from '../../util/networks';
 import { useMemo } from 'react';
 import { selectEVMEnabledNetworks } from '../../selectors/networkEnablementController';
+import {
+  hexToBigInt,
+  toHexadecimal,
+  weiToFiatNumber,
+} from '../../util/number/bigInt';
 
 interface TokenFiatBalancesCrossChains {
   chainId: string;
@@ -109,25 +113,24 @@ export const useGetTotalFiatBalanceCrossChains = (
         const conversionRate =
           currencyRates?.[matchedChainSymbol]?.conversionRate ?? 0;
         let ethFiat = 0;
+        const hexChainId = toHexadecimal(singleChainTokenBalances.chainId);
         if (
           account &&
-          accountsByChainId?.[
-            toHexadecimal(singleChainTokenBalances.chainId)
-          ]?.[toChecksumHexAddress(account.address)]
+          accountsByChainId?.[hexChainId]?.[
+            toChecksumHexAddress(account.address)
+          ]
         ) {
-          const balanceBN = hexToBN(
-            accountsByChainId[toHexadecimal(singleChainTokenBalances.chainId)][
-              toChecksumHexAddress(account.address)
-            ].balance,
+          const balanceBN = hexToBigInt(
+            accountsByChainId[hexChainId][toChecksumHexAddress(account.address)]
+              .balance,
           );
-          const stakedBalanceBN = hexToBN(
-            accountsByChainId[toHexadecimal(singleChainTokenBalances.chainId)][
-              toChecksumHexAddress(account.address)
-            ].stakedBalance || '0x00',
+          const stakedBalanceBN = hexToBigInt(
+            accountsByChainId[hexChainId][toChecksumHexAddress(account.address)]
+              .stakedBalance || '0x00',
           );
-          const totalAccountBalance = balanceBN
-            .add(stakedBalanceBN)
-            .toString('hex');
+          const totalAccountBalance = (balanceBN + stakedBalanceBN).toString(
+            16,
+          );
           ethFiat = weiToFiatNumber(
             totalAccountBalance,
             conversionRate,
