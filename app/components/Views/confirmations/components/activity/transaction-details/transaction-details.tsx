@@ -13,6 +13,7 @@ import { useTheme } from '../../../../../../util/theme';
 import { TransactionDetailsPayWithRow } from '../transaction-details-pay-with-row/transaction-details-pay-with-row';
 import { TransactionDetailsSummary } from '../transaction-details-summary/transaction-details-summary';
 import { TransactionDetailsHero } from '../transaction-details-hero/transaction-details-hero';
+import { TransactionDetailsTotalRow } from '../transaction-details-total-row/transaction-details-total-row';
 
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
@@ -39,9 +40,7 @@ export function TransactionDetails() {
         <TransactionDetailsDateRow />
         <TransactionDetailDivider />
         <TransactionDetailsPayWithRow />
-        <TransactionDetailsPayWithRow />
-        <TransactionDetailsPayWithRow />
-        <TransactionDetailsPayWithRow />
+        <TransactionDetailsTotalRow />
         <TransactionDetailDivider />
         <TransactionDetailsSummary />
       </Box>

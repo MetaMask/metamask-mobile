@@ -61,3 +61,9 @@ export const selectTransactionBatchMetadataById = createDeepEqualSelector(
   (_: RootState, id: string) => id,
   (transactionBatches, id) => transactionBatches?.find((tx) => tx.id === id),
 );
+
+export const selectTransactionsByIds = createSelector(
+  selectTransactionsStrict,
+  (_: RootState, ids: string[]) => ids,
+  (transactions, ids) => transactions.filter((tx) => ids.includes(tx.id)),
+);
