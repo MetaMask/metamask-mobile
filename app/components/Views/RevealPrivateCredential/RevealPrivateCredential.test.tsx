@@ -9,6 +9,7 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 import { RevealSeedViewSelectorsIDs } from '../../../../e2e/selectors/Settings/SecurityAndPrivacy/RevealSeedView.selectors';
 import { EthAccountType, EthMethod, EthScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
+import Device from '../../../util/device';
 
 // Mock dispatch function
 const mockDispatch = jest.fn();
@@ -144,6 +145,7 @@ describe('RevealPrivateCredential', () => {
     );
 
   it('renders reveal SRP correctly when the credential is directly passed', () => {
+    (Device.isAndroid as jest.Mock).mockReturnValue(false);
     const { toJSON } = renderWithProviders(
       <RevealPrivateCredential
         route={{
@@ -159,9 +161,11 @@ describe('RevealPrivateCredential', () => {
       />,
     );
     expect(toJSON()).toMatchSnapshot();
+    (Device.isAndroid as jest.Mock).mockRestore();
   });
 
   it('renders reveal SRP correctly when the credential is passed via the route object', () => {
+    (Device.isAndroid as jest.Mock).mockReturnValue(true);
     const { toJSON } = renderWithProviders(
       <RevealPrivateCredential
         route={{
@@ -178,6 +182,7 @@ describe('RevealPrivateCredential', () => {
       />,
     );
     expect(toJSON()).toMatchSnapshot();
+    (Device.isAndroid as jest.Mock).mockRestore();
   });
 
   it('renders reveal private key correctly', () => {
