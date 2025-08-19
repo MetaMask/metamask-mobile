@@ -29,6 +29,10 @@ const mockUsePerpsAssetMetadata = usePerpsAssetMetadata as jest.MockedFunction<
   typeof usePerpsAssetMetadata
 >;
 
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})), // Return empty object - no live prices in tests
+}));
+
 jest.mock('../../../../Base/RemoteImage', () => {
   const { View } = jest.requireActual('react-native');
   return function MockRemoteImage({ source }: { source: { uri: string } }) {
