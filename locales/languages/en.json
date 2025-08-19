@@ -510,6 +510,8 @@
     "invalid_value": "Invalid value",
     "insufficient_funds": "Insufficient funds",
     "continue": "Continue",
+    "units": "units",
+    "next": "Next",
     "title": "Send",
     "deeplink_failure": "Something went wrong. Please try again",
     "warn_network_change": "Network changed to ",
@@ -527,7 +529,10 @@
     "sign": "Sign",
     "network_not_found_title": "Network not found",
     "network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first.",
-    "network_missing_id": "Missing chain id."
+    "network_missing_id": "Missing chain id.",
+    "search_tokens_and_nfts": "Search tokens and NFTs",
+    "tokens": "Tokens",
+    "nfts": "NFTs"
   },
   "deposit": {
     "title": "Deposit",
@@ -4563,6 +4568,8 @@
     "add_bitcoin_account": "Bitcoin account",
     "add_solana_account": "Solana account",
     "switch_to_smart_account": "Switch to Smart account",
+    "rename_account": "Rename account",
+    "addresses": "Addresses",
     "headers": {
       "bitcoin": "Bitcoin",
       "solana": "Solana"

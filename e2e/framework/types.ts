@@ -166,6 +166,8 @@ export interface TestSpecificMock {
 
 export interface MockApiEndpoint {
   urlEndpoint: string | RegExp;
+  requestBody?: unknown;
+  ignoreFields?: string[];
   response: unknown;
   responseCode: number;
 }

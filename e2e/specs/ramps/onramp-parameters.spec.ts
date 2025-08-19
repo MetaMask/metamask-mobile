@@ -19,6 +19,7 @@ import SoftAssert from '../../utils/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
+import Matchers from '../../framework/Matchers';
 
 let mockServer: Mockttp;
 let mockServerPort: number;
@@ -94,10 +95,14 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
   it('should select payment method and verify display', async () => {
     await setupOnRampTest(async () => {
       const paymentMethod =
-        device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
+        device.getPlatform() === 'ios'
+          ? 'Apple Pay'
+          : /^(?:Google|Revolut)\s+Pay$/i;
       await BuildQuoteView.tapPaymentMethodDropdown(paymentMethod);
       await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
-      await Assertions.expectTextNotDisplayed(paymentMethod);
+      await Assertions.expectElementToNotBeVisible(
+        Matchers.getElementByText(paymentMethod),
+      );
       await Assertions.expectTextDisplayed('Debit or Credit');
     });
   });

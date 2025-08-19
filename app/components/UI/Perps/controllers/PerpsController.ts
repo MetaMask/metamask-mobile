@@ -52,6 +52,7 @@ import type {
   OrderParams,
   OrderResult,
   Position,
+  SubscribeAccountParams,
   SubscribeOrderFillsParams,
   SubscribeOrdersParams,
   SubscribePositionsParams,
@@ -1721,6 +1722,14 @@ export class PerpsController extends BaseController<
   }
 
   /**
+   * Subscribe to live account updates
+   */
+  subscribeToAccount(params: SubscribeAccountParams): () => void {
+    const provider = this.getActiveProvider();
+    return provider.subscribeToAccount(params);
+  }
+
+  /**
    * Configure live data throttling
    */
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {
@@ -1774,6 +1783,32 @@ export class PerpsController extends BaseController<
     // Reset initialization state to ensure proper reconnection
     this.isInitialized = false;
     this.initializationPromise = null;
+  }
+
+  /**
+   * Reconnect with new account/network context
+   * Called when user switches accounts or networks
+   */
+  async reconnectWithNewContext(): Promise<void> {
+    DevLogger.log('PerpsController: Reconnecting with new account/network', {
+      timestamp: new Date().toISOString(),
+    });
+
+    // Clear Redux state immediately to reset UI
+    this.update((state) => {
+      state.positions = [];
+      state.accountState = null;
+      state.pendingOrders = [];
+      state.lastError = null;
+    });
+
+    // Clear state and force reinitialization
+    // initializeProviders() will handle disconnection if needed
+    this.isInitialized = false;
+    this.initializationPromise = null;
+
+    // Reinitialize with new context
+    await this.initializeProviders();
   }
 
   /**

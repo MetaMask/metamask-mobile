@@ -107,6 +107,7 @@ const mockProvider = {
   unsubscribeFromPrices: jest.fn(),
   unsubscribeFromPositions: jest.fn(),
   unsubscribeFromOrderFills: jest.fn(),
+  subscribeToAccount: jest.fn(() => jest.fn()),
 };
 
 const mockPerpsController = Engine.context.PerpsController as jest.Mocked<
