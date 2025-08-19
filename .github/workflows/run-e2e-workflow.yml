@@ -181,11 +181,12 @@ jobs:
       - name: Prepare screenshots
         if: failure()
         run: |
-          echo "Removing APKs from artifacts..."
-          # Remove APKs, but ignore coverage folders and ios-bundle
-          find artifacts/ \( -type d \( -name "coverage-*" -o -name "ios-bundle" \) -prune \) -o -type f -name "*app-*" -delete 2>/dev/null || true
-          # Also remove artifact directories that contain APK/AAB files (download-artifact creates directories)
-          find artifacts/ \( -type d \( -name "coverage-*" -o -name "ios-bundle" \) -prune \) -o -type d -name "*app-*" -exec rm -rf {} + 2>/dev/null || true
+          echo "🔎 Pruning artifacts to keep only Detox screenshots/videos for this platform..."
+          if [[ "${{ inputs.platform }}" == "android" ]]; then
+            find artifacts -mindepth 1 -maxdepth 1 ! -name 'android*' -exec rm -rf {} + 2>/dev/null || true
+          else
+            find artifacts -mindepth 1 -maxdepth 1 ! -name 'ios*' -exec rm -rf {} + 2>/dev/null || true
+          fi
         continue-on-error: true
 
       - name: Upload screenshots
