@@ -11,6 +11,12 @@ import type {
   FeeCalculationParams,
   FeeCalculationResult,
   GetAccountStateParams,
+  GetOrderFillsParams,
+  GetOrdersParams,
+  GetFundingParams,
+  OrderFill,
+  Order,
+  Funding,
   LiquidationPriceParams,
   MaintenanceMarginParams,
   MarketInfo,
@@ -18,8 +24,8 @@ import type {
   OrderResult,
   Position,
   SubscribeOrderFillsParams,
-  SubscribePositionsParams,
   SubscribePricesParams,
+  SubscribePositionsParams,
   UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
@@ -107,6 +113,13 @@ export function usePerpsTrading() {
     [],
   );
 
+  const depositWithConfirmation = useCallback(async (): Promise<{
+    result: Promise<string>;
+  }> => {
+    const controller = Engine.context.PerpsController;
+    return controller.depositWithConfirmation();
+  }, []);
+
   const getDepositRoutes = useCallback((): AssetRoute[] => {
     const controller = Engine.context.PerpsController;
     return controller.getDepositRoutes();
@@ -172,6 +185,14 @@ export function usePerpsTrading() {
     [],
   );
 
+  const getOrderFills = useCallback(
+    async (params?: GetOrderFillsParams): Promise<OrderFill[]> => {
+      const controller = Engine.context.PerpsController;
+      return controller.getOrderFills(params);
+    },
+    [],
+  );
+
   const validateClosePosition = useCallback(
     async (
       params: ClosePositionParams,
@@ -182,12 +203,28 @@ export function usePerpsTrading() {
     [],
   );
 
+  const getOrders = useCallback(
+    async (params?: GetOrdersParams): Promise<Order[]> => {
+      const controller = Engine.context.PerpsController;
+      return controller.getOrders(params);
+    },
+    [],
+  );
+
   const validateWithdrawal = useCallback(
     async (
       params: WithdrawParams,
     ): Promise<{ isValid: boolean; error?: string }> => {
       const controller = Engine.context.PerpsController;
       return controller.validateWithdrawal(params);
+    },
+    [],
+  );
+
+  const getFunding = useCallback(
+    async (params?: GetFundingParams): Promise<Funding[]> => {
+      const controller = Engine.context.PerpsController;
+      return controller.getFunding(params);
     },
     [],
   );
@@ -203,6 +240,7 @@ export function usePerpsTrading() {
     subscribeToPositions,
     subscribeToOrderFills,
     deposit,
+    depositWithConfirmation,
     getDepositRoutes,
     resetDepositState,
     withdraw,
@@ -214,5 +252,8 @@ export function usePerpsTrading() {
     validateOrder,
     validateClosePosition,
     validateWithdrawal,
+    getOrderFills,
+    getOrders,
+    getFunding,
   };
 }

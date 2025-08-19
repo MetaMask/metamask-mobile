@@ -9,6 +9,7 @@ import {
 import PerpsMarketListView from './PerpsMarketListView';
 import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import type { PerpsMarketData } from '../../controllers/types';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -20,8 +21,19 @@ jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
+}));
+
 jest.mock('../../hooks', () => ({
-  usePerpsPositions: jest.fn(),
+  usePerpsPerformance: jest.fn(() => ({
+    startMeasure: jest.fn(),
+    endMeasure: jest.fn(),
+    measure: jest.fn(),
+    measureAsync: jest.fn(),
+  })),
 }));
 
 // Mock Animated to prevent act() warnings
@@ -47,8 +59,6 @@ jest.mock('react-native', () => {
     Animated: MockedAnimated,
   };
 });
-
-const mockUsePerpsPositions = jest.requireMock('../../hooks').usePerpsPositions;
 
 jest.mock('../../components/PerpsMarketRowItem', () => {
   const {
@@ -249,13 +259,6 @@ describe('PerpsMarketListView', () => {
       refresh: jest.fn(),
       isRefreshing: false,
     });
-
-    mockUsePerpsPositions.mockReturnValue({
-      positions: [],
-      isLoading: false,
-      isRefreshing: false,
-      loadPositions: jest.fn(),
-    });
   });
 
   afterEach(() => {
@@ -269,8 +272,10 @@ describe('PerpsMarketListView', () => {
     it('renders the component with header and search button', () => {
       render(<PerpsMarketListView />);
 
-      expect(screen.getByText('Perpetual markets')).toBeOnTheScreen();
-      expect(screen.getByTestId('search-toggle-button')).toBeOnTheScreen();
+      expect(screen.getByText('Perps')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-market-list-search-toggle-button'),
+      ).toBeOnTheScreen();
       expect(screen.getByText('Token Volume')).toBeOnTheScreen();
       expect(screen.getByText('Last Price / 24h Change')).toBeOnTheScreen();
     });
@@ -287,7 +292,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // Should have search toggle button and market rows
-      expect(screen.getByTestId('search-toggle-button')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-market-list-search-toggle-button'),
+      ).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
@@ -302,7 +309,9 @@ describe('PerpsMarketListView', () => {
       expect(screen.queryByPlaceholderText('Search')).not.toBeOnTheScreen();
 
       // Click search toggle button
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -315,7 +324,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -334,7 +345,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -353,7 +366,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -366,7 +381,9 @@ describe('PerpsMarketListView', () => {
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
 
       // Should show clear button when there's search text
-      expect(screen.getByTestId('search-clear-button')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('perps-market-list-search-clear-button'),
+      ).toBeOnTheScreen();
 
       // Should only show the filtered market (BTC), not others
       expect(screen.queryByTestId('market-row-ETH')).not.toBeOnTheScreen();
@@ -377,7 +394,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -394,7 +413,9 @@ describe('PerpsMarketListView', () => {
       expect(searchInput.props.value).toBe('BTC');
 
       // Find and press clear button using testID
-      const clearButton = screen.getByTestId('search-clear-button');
+      const clearButton = screen.getByTestId(
+        'perps-market-list-search-clear-button',
+      );
       act(() => {
         fireEvent.press(clearButton);
       });
@@ -412,7 +433,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -458,7 +481,9 @@ describe('PerpsMarketListView', () => {
 
       render(<PerpsMarketListView />);
 
-      expect(screen.getAllByTestId('skeleton-placeholder')).toHaveLength(8);
+      expect(
+        screen.getAllByTestId('perps-market-list-skeleton-row'),
+      ).toHaveLength(8);
     });
 
     it('shows header even during loading', () => {
@@ -550,6 +575,23 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Navigation', () => {
+    it('navigates to tutorial when tutorial button is pressed', () => {
+      render(<PerpsMarketListView />);
+
+      // Find the tutorial button
+      const tutorialButton = screen.getByTestId(
+        'perps-market-list-tutorial-button',
+      );
+      act(() => {
+        fireEvent.press(tutorialButton);
+      });
+
+      // Should navigate to tutorial screen
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.TUTORIAL,
+      );
+    });
+
     it('navigates back when close button is pressed', () => {
       render(<PerpsMarketListView />);
 
@@ -622,7 +664,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -641,7 +685,9 @@ describe('PerpsMarketListView', () => {
       render(<PerpsMarketListView />);
 
       // First toggle search visibility
-      const searchButton = screen.getByTestId('search-toggle-button');
+      const searchButton = screen.getByTestId(
+        'perps-market-list-search-toggle-button',
+      );
       act(() => {
         fireEvent.press(searchButton);
       });
@@ -655,65 +701,6 @@ describe('PerpsMarketListView', () => {
       expect(screen.getByTestId('market-row-BTC')).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-ETH')).toBeOnTheScreen();
       expect(screen.getByTestId('market-row-SOL')).toBeOnTheScreen();
-    });
-  });
-
-  describe('Tab Switching', () => {
-    it('switches from markets to positions tab', () => {
-      render(<PerpsMarketListView />);
-
-      // Initially markets tab should be active
-      expect(screen.getByText('Perpetual markets')).toBeOnTheScreen();
-      expect(screen.getByText('Your positions')).toBeOnTheScreen();
-
-      // Switch to positions tab
-      const positionsTab = screen.getByText('Your positions');
-      act(() => {
-        fireEvent.press(positionsTab);
-      });
-
-      // Search button should be hidden on positions tab
-      expect(
-        screen.queryByTestId('search-toggle-button'),
-      ).not.toBeOnTheScreen();
-    });
-
-    it('calls loadPositions when positions tab is selected', () => {
-      const mockLoadPositions = jest.fn();
-      mockUsePerpsPositions.mockReturnValue({
-        positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: mockLoadPositions,
-      });
-
-      render(<PerpsMarketListView />);
-
-      const positionsTab = screen.getByText('Your positions');
-      act(() => {
-        fireEvent.press(positionsTab);
-      });
-
-      expect(mockLoadPositions).toHaveBeenCalled();
-    });
-
-    it('shows loading state for positions tab', () => {
-      mockUsePerpsPositions.mockReturnValue({
-        positions: [],
-        isLoading: true,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
-      });
-
-      render(<PerpsMarketListView />);
-
-      // Switch to positions tab
-      const positionsTab = screen.getByText('Your positions');
-      act(() => {
-        fireEvent.press(positionsTab);
-      });
-
-      expect(screen.getByText('Loading positions...')).toBeOnTheScreen();
     });
   });
 });

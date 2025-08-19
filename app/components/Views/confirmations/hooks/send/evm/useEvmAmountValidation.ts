@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
 import { strings } from '../../../../../../../locales/i18n';
+import Logger from '../../../../../../util/Logger';
 import {
   hexToBN,
   isDecimal,
@@ -33,7 +34,7 @@ export const validateAmountFn = ({
     return;
   }
   if (!isDecimal(amount) || Number(amount) < 0) {
-    return strings('transaction.invalid_amount');
+    return strings('send.invalid_value');
   }
   let weiValue;
   let weiBalance;
@@ -46,7 +47,8 @@ export const validateAmountFn = ({
     try {
       weiValue = toWei(amount);
     } catch (error) {
-      return strings('transaction.invalid_amount');
+      Logger.log(error);
+      return strings('send.invalid_value');
     }
     weiBalance = hexToBN(account?.balance ?? '0');
   } else {
@@ -54,9 +56,8 @@ export const validateAmountFn = ({
     weiBalance = hexToBN(contractBalances[asset.address as Hex]);
   }
   if (weiBalance.cmp(weiValue) === -1) {
-    return strings('transaction.insufficient');
+    return strings('send.insufficient_funds');
   }
-  return undefined;
 };
 
 export const useEvmAmountValidation = () => {

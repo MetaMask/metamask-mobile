@@ -1,11 +1,11 @@
 import { Regression } from '../../../tags';
 import { loginToApp } from '../../../viewHelper';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { buildPermissions } from '../../../fixtures/utils';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import Assertions from '../../../framework/Assertions';
-import WalletActionsBottomSheet from '../../../pages/wallet/WalletActionsBottomSheet';
-import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import WalletView from '../../../pages/wallet/WalletView';
 import TabBarComponent from '../../../pages/wallet/TabBarComponent';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import SendView from '../../../pages/Send/SendView';
 import AmountView from '../../../pages/Send/AmountView';
 import { NETWORK_TEST_CONFIGS } from '../../../resources/mock-configs';
@@ -39,8 +39,7 @@ describe(Regression('Wallet Initiated Transfer'), () => {
           await loginToApp();
 
           // Network should already be configured, no need to switch
-          await TabBarComponent.tapActions();
-          await WalletActionsBottomSheet.tapSendButton();
+          await WalletView.tapWalletSendButton();
 
           await SendView.inputAddress(RECIPIENT);
           await SendView.tapNextButton();

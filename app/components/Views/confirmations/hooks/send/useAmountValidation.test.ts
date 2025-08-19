@@ -12,6 +12,6 @@ describe('useAmountValidation', () => {
       () => useAmountValidation(),
       mockState,
     );
-    expect(result.current).toStrictEqual({ amountError: undefined });
+    expect(result.current).toEqual({ amountError: undefined });
   });
 });

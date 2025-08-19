@@ -89,6 +89,14 @@ describe('perps controller init', () => {
       lastError: null,
       lastUpdateTimestamp: Date.now(),
       isEligible: false,
+      isFirstTimeUser: {
+        testnet: true,
+        mainnet: true,
+      },
+      hasPlacedFirstOrder: {
+        testnet: false,
+        mainnet: false,
+      },
     };
 
     initRequestMock.persistedState = {

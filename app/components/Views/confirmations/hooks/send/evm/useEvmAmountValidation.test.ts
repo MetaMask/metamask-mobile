@@ -48,10 +48,10 @@ describe('validateAmountFn', () => {
 
   it('returns invalid value error if value passed is not correct positive decimal', () => {
     expect(validateAmountFn(getArguments({ amount: 'abc' }))).toStrictEqual(
-      'Invalid amount',
+      'Invalid value',
     );
     expect(validateAmountFn(getArguments({ amount: '-100' }))).toStrictEqual(
-      'Invalid amount',
+      'Invalid value',
     );
   });
 

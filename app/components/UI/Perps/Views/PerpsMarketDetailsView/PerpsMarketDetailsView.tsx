@@ -4,8 +4,14 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import React, { useCallback, useState } from 'react';
-import { SafeAreaView, ScrollView, View } from 'react-native';
+import React, {
+  useCallback,
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
+import { SafeAreaView, ScrollView, View, RefreshControl } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -19,7 +25,10 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
-import { PerpsMarketDetailsViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import {
+  PerpsMarketDetailsViewSelectorsIDs,
+  PerpsOrderViewSelectorsIDs,
+} from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
@@ -37,17 +46,49 @@ import {
 } from '../../constants/chartConfig';
 import { createStyles } from './PerpsMarketDetailsView.styles';
 import type { PerpsMarketDetailsViewProps } from './PerpsMarketDetailsView.types';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { useSelector } from 'react-redux';
+import { selectPerpsProvider } from '../../selectors/perpsController';
+import { capitalize } from '../../../../../util/general';
+import {
+  usePerpsAccount,
+  usePerpsConnection,
+  usePerpsPerformance,
+  usePerpsTrading,
+} from '../../hooks';
+import { usePerpsLiveOrders } from '../../hooks/stream';
+import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
+import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
+import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
+import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
+  isNavigationFromOrderSuccess?: boolean;
 }
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
-  const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
-  const { market } = route.params || {};
+  const { market, isNavigationFromOrderSuccess } = route.params || {};
   const { top } = useSafeAreaInsets();
+  const { track } = usePerpsEventTracking();
+
+  // Track screen load time
+  const { startMeasure, endMeasure } = usePerpsPerformance();
+  const hasTrackedAssetView = useRef(false);
+
+  // Start measuring screen load time on mount
+  useEffect(() => {
+    startMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
+    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
+  }, [startMeasure]);
 
   const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
     TimeDuration.ONE_DAY,
@@ -60,38 +101,158 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     isCandlePeriodBottomSheetVisible,
     setIsCandlePeriodBottomSheetVisible,
   ] = useState(false);
+  const [activeTabId, setActiveTabId] = useState('position');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const perpsProvider = useSelector(selectPerpsProvider);
+
+  const account = usePerpsAccount();
+
+  usePerpsConnection();
+  const { depositWithConfirmation } = usePerpsTrading();
+
+  // Get real-time open orders via WebSocket
+  const ordersData = usePerpsLiveOrders(); // Instant updates (no debouncing)
+
+  // Filter orders for the current market
+  const openOrders = useMemo(() => {
+    if (!ordersData?.length || !market?.symbol) return [];
+    return ordersData.filter((order) => order.symbol === market.symbol);
+  }, [ordersData, market?.symbol]);
+
+  const hasZeroBalance = useMemo(
+    () => parseFloat(account?.availableBalance || '0') === 0,
+    [account?.availableBalance],
+  );
 
   // Get comprehensive market statistics
   const marketStats = usePerpsMarketStats(market?.symbol || '');
 
   // Get candlestick data
-  const { candleData, isLoadingHistory } = usePerpsPositionData({
-    coin: market?.symbol || '',
-    selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
-    selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
-  });
-
-  // Check if user has an existing position for this market
-  const { hasPosition: hasExistingPosition, isLoading: isLoadingPosition } =
-    useHasExistingPosition({
-      asset: market?.symbol || '',
-      loadOnMount: true,
+  const { candleData, isLoadingHistory, refreshCandleData } =
+    usePerpsPositionData({
+      coin: market?.symbol || '',
+      selectedDuration, // Time duration (1hr, 1D, 1W, etc.)
+      selectedInterval: selectedCandlePeriod, // Candle period (1m, 3m, 5m, etc.)
     });
 
-  const handleDurationChange = useCallback((newDuration: TimeDuration) => {
-    setSelectedDuration(newDuration);
-    // Auto-update candle period to the appropriate default for the new duration
-    const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
-    setSelectedCandlePeriod(defaultPeriod);
-  }, []);
+  // Check if user has an existing position for this market
+  const {
+    isLoading: isLoadingPosition,
+    existingPosition,
+    refreshPosition,
+  } = useHasExistingPosition({
+    asset: market?.symbol || '',
+    loadOnMount: true,
+  });
 
-  const handleCandlePeriodChange = useCallback((newPeriod: CandlePeriod) => {
-    setSelectedCandlePeriod(newPeriod);
-  }, []);
+  // Track screen load and position data loaded
+  useEffect(() => {
+    if (
+      market &&
+      marketStats &&
+      !isLoadingHistory &&
+      !hasTrackedAssetView.current
+    ) {
+      // Track asset screen loaded
+      endMeasure(PerpsMeasurementName.ASSET_SCREEN_LOADED);
+
+      // Track asset screen viewed event - only once
+      track(MetaMetricsEvents.PERPS_ASSET_SCREEN_VIEWED, {
+        [PerpsEventProperties.ASSET]: market.symbol,
+        [PerpsEventProperties.SOURCE]: PerpsEventValues.SOURCE.PERP_MARKETS,
+      });
+
+      hasTrackedAssetView.current = true;
+    }
+  }, [market, marketStats, isLoadingHistory, track, endMeasure]);
+
+  useEffect(() => {
+    if (!isLoadingPosition && market) {
+      // Track position data loaded for asset screen
+      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_ASSET_SCREEN);
+    }
+  }, [isLoadingPosition, market, endMeasure]);
+
+  const handleDurationChange = useCallback(
+    (newDuration: TimeDuration) => {
+      setSelectedDuration(newDuration);
+      // Auto-update candle period to the appropriate default for the new duration
+      const defaultPeriod = getDefaultCandlePeriodForDuration(newDuration);
+      setSelectedCandlePeriod(defaultPeriod);
+
+      // Track chart time series change
+      track(MetaMetricsEvents.PERPS_CHART_TIME_SERIE_CHANGED, {
+        [PerpsEventProperties.ASSET]: market?.symbol || '',
+        [PerpsEventProperties.TIME_SERIE_SELECTED]: newDuration,
+      });
+    },
+    [market, track],
+  );
+
+  const handleCandlePeriodChange = useCallback(
+    (newPeriod: CandlePeriod) => {
+      setSelectedCandlePeriod(newPeriod);
+
+      // Track chart interaction
+      track(MetaMetricsEvents.PERPS_CHART_INTERACTION, {
+        [PerpsEventProperties.ASSET]: market?.symbol || '',
+        [PerpsEventProperties.INTERACTION_TYPE]: 'candle_period_change',
+        [PerpsEventProperties.CANDLE_PERIOD]: newPeriod,
+      });
+    },
+    [market, track],
+  );
 
   const handleGearPress = useCallback(() => {
     setIsCandlePeriodBottomSheetVisible(true);
   }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+
+    try {
+      // Always refresh chart data regardless of active tab
+      if (candleData) {
+        await refreshCandleData();
+      }
+
+      switch (activeTabId) {
+        case 'position':
+          // Refresh position data
+          await refreshPosition();
+          break;
+
+        case 'orders':
+          // Orders update automatically via WebSocket, no refresh needed
+          break;
+
+        case 'statistics':
+          // Refresh market statistics (24h high/low from candle data)
+          await marketStats.refresh();
+          // Also refresh position as it affects some stats
+          await refreshPosition();
+          break;
+
+        default:
+          // Fallback: refresh position
+          await refreshPosition();
+      }
+    } catch (error) {
+      console.error(`Failed to refresh ${activeTabId} data:`, error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [
+    activeTabId,
+    refreshPosition,
+    marketStats,
+    candleData,
+    refreshCandleData,
+  ]);
+
+  // Check if notifications feature is enabled once
+  const isNotificationsEnabled = isNotificationsFeatureEnabled();
 
   const handleBackPress = () => {
     navigation.goBack();
@@ -111,6 +272,32 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   };
 
+  const handleAddFundsPress = () => {
+    // Navigate immediately to confirmations screen for instant UI response
+    navigation.navigate(Routes.PERPS.ROOT, {
+      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+    });
+
+    // Initialize deposit in the background without blocking
+    depositWithConfirmation().catch((error) => {
+      console.error('Failed to initialize deposit:', error);
+    });
+  };
+
+  // Determine if any action buttons will be visible
+  const hasLongShortButtons = useMemo(
+    () => !isLoadingPosition && !hasZeroBalance,
+    [isLoadingPosition, hasZeroBalance],
+  );
+
+  const hasAddFundsButton = useMemo(
+    () => hasZeroBalance && !isLoadingPosition,
+    [hasZeroBalance, isLoadingPosition],
+  );
+
+  // Simplified styles - no complex calculations needed
+  const { styles, theme } = useStyles(createStyles, {});
+
   if (!market) {
     return (
       <SafeAreaView style={[styles.container, { paddingTop: top }]}>
@@ -128,201 +315,129 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   return (
     <SafeAreaView
-      style={[styles.container, { marginTop: top }]}
+      style={[styles.mainContainer, { marginTop: top }]}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      <ScrollView style={styles.container}>
-        {/* Market Header */}
+      {/* Fixed Header Section */}
+      <View>
         <PerpsMarketHeader
           market={market}
-          currentPrice={marketStats.currentPrice}
-          priceChange24h={marketStats.priceChange24h}
           onBackPress={handleBackPress}
           testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
         />
-        {/* Chart */}
-        <View style={[styles.section, styles.chartSection]}>
-          <CandlestickChartComponent
-            candleData={candleData}
-            isLoading={isLoadingHistory}
-            height={350}
-            selectedDuration={selectedDuration}
-            onDurationChange={handleDurationChange}
-            onGearPress={handleGearPress}
-          />
-        </View>
+      </View>
 
-        {/* Statistics Section */}
-        <View style={styles.section}>
-          <Text
-            variant={TextVariant.HeadingMD}
-            color={TextColor.Default}
-            style={styles.statisticsTitle}
-          >
-            {strings('perps.market.statistics')}
-          </Text>
-
-          <View style={styles.statisticsGrid}>
-            {/* Row 1: 24hr High/Low */}
-            <View style={styles.statisticsRow}>
-              <View
-                style={styles.statisticsItem}
-                testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_HIGH_24H}
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  style={styles.statisticsLabel}
-                >
-                  {strings('perps.market.24hr_high')}
-                </Text>
-                <Text style={styles.statisticsValue} color={TextColor.Default}>
-                  {marketStats.high24h}
-                </Text>
-              </View>
-              <View
-                style={styles.statisticsItem}
-                testID={PerpsMarketDetailsViewSelectorsIDs.STATISTICS_LOW_24H}
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  style={styles.statisticsLabel}
-                >
-                  {strings('perps.market.24hr_low')}
-                </Text>
-                <Text style={styles.statisticsValue} color={TextColor.Default}>
-                  {marketStats.low24h}
-                </Text>
-              </View>
-            </View>
-
-            {/* Row 2: Volume and Open Interest */}
-            <View style={styles.statisticsRow}>
-              <View
-                style={styles.statisticsItem}
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_VOLUME_24H
-                }
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  style={styles.statisticsLabel}
-                >
-                  {strings('perps.market.24h_volume')}
-                </Text>
-                <Text style={styles.statisticsValue} color={TextColor.Default}>
-                  {marketStats.volume24h}
-                </Text>
-              </View>
-              <View
-                style={styles.statisticsItem}
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_OPEN_INTEREST
-                }
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  style={styles.statisticsLabel}
-                >
-                  {strings('perps.market.open_interest')}
-                </Text>
-                <Text style={styles.statisticsValue} color={TextColor.Default}>
-                  {marketStats.openInterest}
-                </Text>
-              </View>
-            </View>
-
-            {/* Row 3: Funding Rate and Countdown */}
-            <View style={styles.statisticsRow}>
-              <View
-                style={styles.statisticsItem}
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_RATE
-                }
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  style={styles.statisticsLabel}
-                >
-                  {strings('perps.market.funding_rate')}
-                </Text>
-                <Text
-                  style={styles.statisticsValue}
-                  color={
-                    parseFloat(marketStats.fundingRate) >= 0
-                      ? TextColor.Success
-                      : TextColor.Error
-                  }
-                >
-                  {marketStats.fundingRate}
-                </Text>
-              </View>
-              <View
-                style={styles.statisticsItem}
-                testID={
-                  PerpsMarketDetailsViewSelectorsIDs.STATISTICS_FUNDING_COUNTDOWN
-                }
-              >
-                <Text
-                  variant={TextVariant.BodySM}
-                  color={TextColor.Alternative}
-                  style={styles.statisticsLabel}
-                >
-                  {strings('perps.market.countdown')}
-                </Text>
-                <Text style={styles.statisticsValue} color={TextColor.Default}>
-                  {marketStats.fundingCountdown}
-                </Text>
-              </View>
-            </View>
+      {/* Scrollable Content Container */}
+      <View style={styles.scrollableContentContainer}>
+        <ScrollView
+          style={styles.mainContentScrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}
+          testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme.colors.icon.default}
+              colors={[theme.colors.icon.default]} // Android
+            />
+          }
+        >
+          {/* Chart Section */}
+          <View style={[styles.section, styles.chartSection]}>
+            <CandlestickChartComponent
+              candleData={candleData}
+              isLoading={isLoadingHistory}
+              height={350}
+              selectedDuration={selectedDuration}
+              tpslLines={
+                existingPosition
+                  ? {
+                      takeProfitPrice: existingPosition.takeProfitPrice,
+                      stopLossPrice: existingPosition.stopLossPrice,
+                      entryPrice: existingPosition.entryPrice,
+                      liquidationPrice: existingPosition.liquidationPrice,
+                      currentPrice: marketStats.currentPrice?.toString(),
+                    }
+                  : undefined
+              }
+              onDurationChange={handleDurationChange}
+              onGearPress={handleGearPress}
+            />
           </View>
-        </View>
-      </ScrollView>
 
-      {/* Action Buttons */}
-      <View style={styles.actionsContainer}>
-        {!isLoadingPosition && hasExistingPosition && (
-          <View style={styles.positionWarning}>
+          {/* Market Tabs Section */}
+          <View style={styles.section}>
+            <PerpsMarketTabs
+              marketStats={marketStats}
+              position={existingPosition}
+              isLoadingPosition={isLoadingPosition}
+              unfilledOrders={openOrders}
+              onPositionUpdate={refreshPosition}
+              onActiveTabChange={setActiveTabId}
+              nextFundingTime={market?.nextFundingTime}
+              fundingIntervalHours={market?.fundingIntervalHours}
+            />
+          </View>
+
+          {/* Risk Disclaimer Section */}
+          <View style={styles.section}>
             <Text
-              variant={TextVariant.BodySM}
+              style={styles.riskDisclaimer}
+              variant={TextVariant.BodyXS}
               color={TextColor.Alternative}
-              style={styles.positionWarningText}
             >
-              {strings('perps.market.existing_position_warning', {
-                asset: market.symbol,
+              {strings('perps.risk_disclaimer', {
+                provider: capitalize(perpsProvider),
               })}
             </Text>
           </View>
-        )}
-        {!isLoadingPosition && !hasExistingPosition && (
-          <>
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.market.long')}
-              onPress={handleLongPress}
-              style={[styles.actionButton, styles.longButton]}
-              testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-              disabled={hasExistingPosition}
-            />
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.market.short')}
-              onPress={handleShortPress}
-              style={[styles.actionButton, styles.shortButton]}
-              testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-              disabled={hasExistingPosition}
-            />
-          </>
-        )}
+        </ScrollView>
       </View>
+
+      {/* Fixed Actions Footer */}
+      {(hasAddFundsButton || hasLongShortButtons) && (
+        <View style={styles.actionsFooter}>
+          {hasAddFundsButton && (
+            <View style={styles.singleActionContainer}>
+              <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+                {strings('perps.market.add_funds_to_start_trading_perps')}
+              </Text>
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.market.add_funds')}
+                onPress={handleAddFundsPress}
+                testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
+              />
+            </View>
+          )}
+
+          {hasLongShortButtons && (
+            <View style={styles.actionsContainer}>
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.market.long')}
+                onPress={handleLongPress}
+                style={[styles.actionButton, styles.longButton]}
+                testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
+              />
+              <Button
+                variant={ButtonVariants.Primary}
+                size={ButtonSize.Lg}
+                width={ButtonWidthTypes.Full}
+                label={strings('perps.market.short')}
+                onPress={handleShortPress}
+                style={[styles.actionButton, styles.shortButton]}
+                testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
+              />
+            </View>
+          )}
+        </View>
+      )}
 
       {/* Candle Period Bottom Sheet */}
       {isCandlePeriodBottomSheetVisible && (
@@ -335,8 +450,32 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           testID={PerpsMarketDetailsViewSelectorsIDs.CANDLE_PERIOD_BOTTOM_SHEET}
         />
       )}
+
+      {/* Notification Tooltip - Shows after first successful order */}
+      {isNotificationsEnabled &&
+        PERPS_NOTIFICATIONS_FEATURE_ENABLED &&
+        isNavigationFromOrderSuccess && (
+          <PerpsNotificationTooltip
+            orderSuccess={isNavigationFromOrderSuccess}
+            testID={PerpsOrderViewSelectorsIDs.NOTIFICATION_TOOLTIP}
+          />
+        )}
     </SafeAreaView>
   );
 };
+
+// Enable Why Did You Render in development
+// Uncomment to enable WDYR for debugging re-renders
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+//   const { shouldEnableWhyDidYouRender } = require('../../../../../../wdyr');
+//   if (shouldEnableWhyDidYouRender()) {
+//     // @ts-expect-error - whyDidYouRender is added by the WDYR library
+//     PerpsMarketDetailsView.whyDidYouRender = {
+//       logOnDifferentValues: true,
+//       customName: 'PerpsMarketDetailsView',
+//     };
+//   }
+// }
 
 export default PerpsMarketDetailsView;

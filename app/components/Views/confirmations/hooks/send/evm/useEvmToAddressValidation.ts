@@ -12,7 +12,6 @@ import {
   isValidHexAddress,
   toChecksumAddress,
 } from '../../../../../../util/address';
-import { isMainnetByChainId } from '../../../../../../util/networks';
 import { doENSLookup } from '../../../../../../util/ENSUtils';
 import {
   collectConfusables,
@@ -69,24 +68,25 @@ const validateHexAddress = async (
 }> => {
   const checksummedAddress = toChecksumAddress(toAddress);
   if (chainId) {
-    const isMainnet = isMainnetByChainId(chainId);
-    const { AssetsContractController } = Engine.context;
-    // todo: This check should be done for all chains
-    if (isMainnet) {
-      try {
-        const symbol = await AssetsContractController.getERC721AssetSymbol(
-          checksummedAddress,
-        );
-        if (symbol) {
-          // todo: i18n to be implemented depending on the designs
-          return {
-            warning:
-              'This address is a token contract address. If you send tokens to this address, you will lose them.',
-          };
-        }
-      } catch (e) {
-        // Not a token address
+    const { AssetsContractController, NetworkController } = Engine.context;
+
+    try {
+      const networkClientId = NetworkController.findNetworkClientIdByChainId(
+        chainId as Hex,
+      );
+      const symbol = await AssetsContractController.getERC721AssetSymbol(
+        checksummedAddress,
+        networkClientId,
+      );
+      if (symbol) {
+        // todo: i18n to be implemented depending on the designs
+        return {
+          warning:
+            'This address is a token contract address. If you send tokens to this address, you will lose them.',
+        };
       }
+    } catch (e) {
+      // Not a token address
     }
   }
   return {};
@@ -163,17 +163,17 @@ export const validateToAddress = async ({
 export const useEvmToAddressValidation = () => {
   const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const { chainId, to } = useSendContext();
+  const { chainId } = useSendContext();
 
   const validateEvmToAddress = useCallback(
-    async () =>
+    async (addressInputToValidate: string) =>
       await validateToAddress({
-        toAddress: to as Hex,
+        toAddress: addressInputToValidate as Hex,
         chainId: chainId as Hex,
         addressBook,
         internalAccounts,
       }),
-    [addressBook, chainId, internalAccounts, to],
+    [addressBook, chainId, internalAccounts],
   );
 
   return { validateEvmToAddress };

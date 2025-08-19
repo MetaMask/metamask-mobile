@@ -143,6 +143,14 @@ export interface PerpsMarketData {
    * Trading volume as formatted string (e.g., '$1.2B', '$850M')
    */
   volume: string;
+  /**
+   * Next funding time in milliseconds since epoch (optional, market-specific)
+   */
+  nextFundingTime?: number;
+  /**
+   * Funding interval in hours (optional, market-specific)
+   */
+  fundingIntervalHours?: number;
 }
 
 export interface ToggleTestnetResult {
@@ -266,11 +274,15 @@ export interface PriceUpdate {
 export interface OrderFill {
   orderId: string; // Order ID that was filled
   symbol: string; // Asset symbol
-  side: string; // Order side (from SDK)
+  side: string; // Normalized order side ('buy' or 'sell')
   size: string; // Fill size
   price: string; // Fill price
+  pnl: string; // PNL
+  direction: string; // Direction of the fill
   fee: string; // Fee paid
+  feeToken: string; // Fee token symbol
   timestamp: number; // Fill timestamp
+  startPosition?: string; // Start position
   success?: boolean; // Whether the order was filled successfully
 }
 
@@ -282,6 +294,31 @@ export interface GetPositionsParams {
 
 export interface GetAccountStateParams {
   accountId?: CaipAccountId; // Optional: defaults to selected account
+}
+
+export interface GetOrderFillsParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  user: Hex; // Optional: user address
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  aggregateByTime?: boolean; // Optional: aggregate by time
+}
+
+export interface GetOrdersParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  offset?: number; // Optional: offset for pagination
+}
+
+export interface GetFundingParams {
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  startTime?: number; // Optional: start timestamp (Unix milliseconds)
+  endTime?: number; // Optional: end timestamp (Unix milliseconds)
+  limit?: number; // Optional: max number of results for pagination
+  offset?: number; // Optional: offset for pagination
 }
 
 export interface GetSupportedPathsParams {
@@ -311,6 +348,16 @@ export interface SubscribeOrderFillsParams {
   since?: number; // Future: only fills after timestamp
 }
 
+export interface SubscribeOrdersParams {
+  callback: (orders: Order[]) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  includeHistory?: boolean; // Optional: include filled/canceled orders
+}
+
+export interface SubscribeAccountParams {
+  callback: (account: AccountState) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -349,6 +396,35 @@ export interface UpdatePositionTPSLParams {
   stopLossPrice?: string; // Optional: undefined to remove
 }
 
+export interface Order {
+  orderId: string; // Order ID
+  symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
+  side: 'buy' | 'sell'; // Normalized order side
+  orderType: OrderType; // Order type (market/limit)
+  size: string; // Order size
+  originalSize: string; // Original order size
+  price: string; // Order price (for limit orders)
+  filledSize: string; // Amount filled
+  remainingSize: string; // Amount remaining
+  status: 'open' | 'filled' | 'canceled' | 'rejected' | 'triggered' | 'queued'; // Normalized status
+  timestamp: number; // Order timestamp
+  lastUpdated?: number; // Last status update timestamp (optional - not provided by all APIs)
+  // TODO: Consider creating separate type for OpenOrders (UI Orders) potentially if optional properties muddy up the original Order type
+  takeProfitPrice?: string; // Take profit price (if set)
+  stopLossPrice?: string; // Stop loss price (if set)
+  detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
+  isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
+  reduceOnly?: boolean; // Whether this is a reduce-only order
+}
+
+export interface Funding {
+  symbol: string; // Asset symbol (e.g., 'ETH', 'BTC')
+  amountUsd: string; // Funding amount in USD (positive = received, negative = paid)
+  rate: string; // Funding rate applied
+  timestamp: number; // Funding payment timestamp
+  transactionHash?: string; // Optional transaction hash
+}
+
 export interface IPerpsProvider {
   readonly protocolId: string;
 
@@ -381,6 +457,36 @@ export interface IPerpsProvider {
     params: WithdrawParams,
   ): Promise<{ isValid: boolean; error?: string }>; // Protocol-specific withdrawal validation
 
+  // Historical data operations
+  /**
+   * Historical trade fills - actual executed trades with exact prices and fees.
+   * Purpose: Track what actually happened when orders were executed.
+   * Example: Market long 1 ETH @ $50,000 → OrderFill with exact execution price and fees
+   */
+  getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]>;
+
+  /**
+   * Historical order lifecycle - order placement, modifications, and status changes.
+   * Purpose: Track the complete journey of orders from request to completion.
+   * Example: Limit buy 1 ETH @ $48,000 → Order with status 'open' → 'filled' when executed
+   */
+  getOrders(params?: GetOrdersParams): Promise<Order[]>;
+
+  /**
+   * Currently active open orders (real-time status).
+   * Purpose: Show orders that are currently open/pending execution (not historical states).
+   * Different from getOrders() which returns complete historical order lifecycle.
+   * Example: Shows only orders that are actually open right now in the exchange.
+   */
+  getOpenOrders(params?: GetOrdersParams): Promise<Order[]>;
+
+  /**
+   * Historical funding payments - periodic costs/rewards for holding positions.
+   * Purpose: Track ongoing expenses and income from position maintenance.
+   * Example: Holding long ETH position → Funding payment of -$5.00 (you pay the funding)
+   */
+  getFunding(params?: GetFundingParams): Promise<Funding[]>;
+
   // Protocol-specific calculations
   calculateLiquidationPrice(params: LiquidationPriceParams): Promise<string>;
   calculateMaintenanceMargin(params: MaintenanceMarginParams): Promise<number>;
@@ -391,6 +497,8 @@ export interface IPerpsProvider {
   subscribeToPrices(params: SubscribePricesParams): () => void;
   subscribeToPositions(params: SubscribePositionsParams): () => void;
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void;
+  subscribeToOrders(params: SubscribeOrdersParams): () => void;
+  subscribeToAccount(params: SubscribeAccountParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;
@@ -400,4 +508,7 @@ export interface IPerpsProvider {
   initialize(): Promise<InitializeResult>;
   isReadyToTrade(): Promise<ReadyToTradeResult>;
   disconnect(): Promise<DisconnectResult>;
+
+  // Block explorer
+  getBlockExplorerUrl(address?: string): string;
 }

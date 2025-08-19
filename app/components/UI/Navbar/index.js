@@ -43,7 +43,9 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
-import HeaderBase from '../../../component-library/components/HeaderBase';
+import HeaderBase, {
+  HeaderBaseVariant,
+} from '../../../component-library/components/HeaderBase';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
@@ -66,6 +68,8 @@ import { BridgeViewMode } from '../Bridge/types';
 import { trace, TraceName, TraceOperation } from '../../../util/trace';
 import { getTraceTags } from '../../../util/sentry/tags';
 import { store } from '../../../store';
+import CardButton from '../Card/components/CardButton';
+import { NETWORK_SELECTOR_SOURCES } from '../../../constants/networkSelector';
 
 const trackEvent = (event, params = {}) => {
   MetaMetrics.getInstance().trackEvent(event);
@@ -549,6 +553,9 @@ export function getSendFlowTitle(
   themeColors,
   resetTransaction,
   transaction,
+  disableNetwork = true,
+  showSelectedNetwork = false,
+  sendFlowContextualChainId = '',
 ) {
   const innerStyles = StyleSheet.create({
     headerButtonText: {
@@ -586,7 +593,27 @@ export function getSendFlowTitle(
   const titleToRender = title;
 
   return {
-    headerTitle: () => <NavbarTitle title={titleToRender} disableNetwork />,
+    headerTitle: () => (
+      <NavbarTitle
+        title={titleToRender}
+        disableNetwork={disableNetwork}
+        showSelectedNetwork={
+          isRemoveGlobalNetworkSelectorEnabled()
+            ? showSelectedNetwork
+            : undefined
+        }
+        networkName={
+          isRemoveGlobalNetworkSelectorEnabled()
+            ? sendFlowContextualChainId
+            : undefined
+        }
+        source={
+          isRemoveGlobalNetworkSelectorEnabled()
+            ? NETWORK_SELECTOR_SOURCES.SEND_FLOW
+            : undefined
+        }
+      />
+    ),
     headerRight: () => (
       // eslint-disable-next-line react/jsx-no-bind
       <TouchableOpacity
@@ -940,6 +967,7 @@ export function getWalletNavbarOptions(
   isBackupAndSyncEnabled,
   unreadNotificationCount,
   readNotificationCount,
+  isCardholder = false,
 ) {
   const innerStyles = StyleSheet.create({
     headerContainer: {
@@ -1012,84 +1040,101 @@ export function getWalletNavbarOptions(
 
   const isFeatureFlagEnabled = isRemoveGlobalNetworkSelectorEnabled();
 
-  // Action buttons for right side
-  const actionButtons = (
-    <View style={innerStyles.actionButtonsContainer}>
-      <View testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}>
-        <AddressCopy
-          account={selectedInternalAccount}
-          hitSlop={innerStyles.touchAreaSlop}
-        />
-      </View>
-      {isNotificationsFeatureEnabled() && (
-        <BadgeWrapper
-          position={BadgeWrapperPosition.TopRight}
-          positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-          badge={
-            isNotificationEnabled && unreadNotificationCount > 0 ? (
-              <BadgeStatus status={BadgeStatusStatus.Active} />
-            ) : null
-          }
-        >
-          <ButtonIcon
-            iconProps={{ color: MMDSIconColor.Default }}
-            onPress={handleNotificationOnPress}
-            iconName={IconName.Notification}
-            size={ButtonIconSize.Lg}
-            testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-            hitSlop={innerStyles.touchAreaSlop}
-          />
-        </BadgeWrapper>
-      )}
-    </View>
-  );
-
-  // Account picker component
-  const accountPicker = (
-    <PickerAccount
-      ref={accountActionsRef}
-      accountName={accountName}
-      onPress={() => {
-        trace({
-          name: TraceName.AccountList,
-          tags: getTraceTags(store.getState()),
-          op: TraceOperation.AccountList,
-        });
-        navigation.navigate(...createAccountSelectorNavDetails({}));
-      }}
-      testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-      hitSlop={innerStyles.touchAreaSlop}
-    />
-  );
-
-  // Network picker component
-  const networkPicker = (
-    <PickerNetwork
-      onPress={onPressTitle}
-      label={networkName}
-      imageSource={networkImageSource}
-      testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-      hideNetworkName
-      hitSlop={innerStyles.touchAreaSlop}
-      style={innerStyles.networkPickerStyle}
-    />
-  );
+  const handleCardPress = () => {
+    trackEvent(
+      MetricsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CARD_HOME_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.CARD.ROOT);
+  };
 
   return {
     header: () => (
       <HeaderBase
         includesTopInset
+        variant={
+          isFeatureFlagEnabled
+            ? HeaderBaseVariant.Display
+            : HeaderBaseVariant.Compact
+        }
         style={innerStyles.headerContainer}
         startAccessory={
-          <View style={innerStyles.startAccessoryContainer}>
-            {!isFeatureFlagEnabled ? networkPicker : accountPicker}
-          </View>
+          !isFeatureFlagEnabled && (
+            <View style={innerStyles.startAccessoryContainer}>
+              <PickerNetwork
+                onPress={onPressTitle}
+                label={networkName}
+                imageSource={networkImageSource}
+                testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+                hideNetworkName
+                hitSlop={innerStyles.touchAreaSlop}
+                style={innerStyles.networkPickerStyle}
+              />
+            </View>
+          )
         }
         endAccessory={
-          <View style={innerStyles.endAccessoryContainer}>{actionButtons}</View>
+          <View style={innerStyles.endAccessoryContainer}>
+            {
+              <View style={innerStyles.actionButtonsContainer}>
+                <View
+                  testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+                >
+                  <AddressCopy
+                    account={selectedInternalAccount}
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                </View>
+                {isCardholder ? (
+                  <CardButton
+                    onPress={handleCardPress}
+                    touchAreaSlop={innerStyles.touchAreaSlop}
+                  />
+                ) : null}
+                {isNotificationsFeatureEnabled() && (
+                  <BadgeWrapper
+                    position={BadgeWrapperPosition.TopRight}
+                    positionAnchorShape={
+                      BadgeWrapperPositionAnchorShape.Circular
+                    }
+                    badge={
+                      isNotificationEnabled && unreadNotificationCount > 0 ? (
+                        <BadgeStatus status={BadgeStatusStatus.Active} />
+                      ) : null
+                    }
+                  >
+                    <ButtonIcon
+                      iconProps={{ color: MMDSIconColor.Default }}
+                      onPress={handleNotificationOnPress}
+                      iconName={IconName.Notification}
+                      size={ButtonIconSize.Lg}
+                      testID={
+                        WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
+                      }
+                      hitSlop={innerStyles.touchAreaSlop}
+                    />
+                  </BadgeWrapper>
+                )}
+              </View>
+            }
+          </View>
         }
       >
-        {!isFeatureFlagEnabled ? accountPicker : null}
+        <PickerAccount
+          ref={accountActionsRef}
+          accountName={accountName}
+          onPress={() => {
+            trace({
+              name: TraceName.AccountList,
+              tags: getTraceTags(store.getState()),
+              op: TraceOperation.AccountList,
+            });
+            navigation.navigate(...createAccountSelectorNavDetails({}));
+          }}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+          hitSlop={innerStyles.touchAreaSlop}
+        />
       </HeaderBase>
     ),
   };
@@ -1810,6 +1855,39 @@ export function getBridgeTransactionDetailsNavbar(navigation) {
   };
 }
 
+export function getPerpsTransactionsDetailsNavbar(navigation, title) {
+  const innerStyles = StyleSheet.create({
+    perpsTransactionsBackButton: {
+      marginTop: 0,
+    },
+    perpsTransactionsTitle: {
+      fontWeight: '700',
+    },
+  });
+  const leftAction = () => navigation.pop();
+
+  return {
+    headerTitle: () => (
+      <NavbarTitle
+        style={innerStyles.perpsTransactionsTitle}
+        variant={TextVariant.HeadingMD}
+        title={title}
+        disableNetwork
+        showSelectedNetwork={false}
+        translate={false}
+      />
+    ),
+    headerLeft: () => (
+      <TouchableOpacity
+        onPress={leftAction}
+        style={[styles.backButton, innerStyles.perpsTransactionsBackButton]}
+      >
+        <Icon name={IconName.Arrow2Left} />
+      </TouchableOpacity>
+    ),
+  };
+}
+
 /**
  * Function that returns navigation options for deposit flow screens
  *
@@ -1855,37 +1933,35 @@ export function getDepositNavbarOptions(
     ),
     headerLeft: showBack
       ? () => (
-          <TouchableOpacity onPress={leftAction} style={styles.backButton}>
-            <Icon name={IconName.ArrowLeft} size={IconSize.Lg} />
-          </TouchableOpacity>
+          <ButtonIcon
+            onPress={leftAction}
+            iconName={IconName.ArrowLeft}
+            size={ButtonIconSize.Lg}
+            style={styles.headerLeftButton}
+          />
         )
       : showConfiguration
       ? () => (
-          <TouchableOpacity
-            onPress={() => onConfigurationPress?.()}
-            style={styles.backButton}
+          <ButtonIcon
+            onPress={onConfigurationPress}
+            iconName={IconName.MoreHorizontal}
+            size={ButtonIconSize.Lg}
             testID="deposit-configuration-menu-button"
-          >
-            <Icon
-              name={IconName.MoreHorizontal}
-              size={IconSize.Lg}
-              color={theme.colors.icon.default}
-            />
-          </TouchableOpacity>
+            style={styles.headerLeftButton}
+          />
         )
       : null,
     headerRight: showClose
       ? () => (
-          <TouchableOpacity style={styles.closeButton}>
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSize.Lg}
-              onPress={() => {
-                navigation.dangerouslyGetParent()?.pop();
-                onClose?.();
-              }}
-            />
-          </TouchableOpacity>
+          <ButtonIcon
+            style={styles.headerRightButton}
+            iconName={IconName.Close}
+            size={ButtonIconSize.Lg}
+            onPress={() => {
+              navigation.dangerouslyGetParent()?.pop();
+              onClose?.();
+            }}
+          />
         )
       : null,
   };
