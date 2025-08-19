@@ -1,19 +1,12 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
   IconColor,
   IconName,
@@ -25,14 +18,23 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import {
+  usePerpsAccount,
   usePerpsConnection,
+  usePerpsEventTracking,
   usePerpsFirstTimeUser,
-  usePerpsPositions,
   usePerpsTrading,
+  usePerpsPerformance,
+  usePerpsLivePositions,
 } from '../../hooks';
 import styleSheet from './PerpsTabView.styles';
 
@@ -41,23 +43,27 @@ interface PerpsTabViewProps {}
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { getAccountState, depositWithConfirmation } = usePerpsTrading();
+  const { getAccountState } = usePerpsTrading();
   const { isConnected, isInitialized } = usePerpsConnection();
+  const { track } = usePerpsEventTracking();
+  const cachedAccountState = usePerpsAccount();
 
-  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
+  const hasTrackedHomescreen = useRef(false);
+  const { startMeasure, endMeasure } = usePerpsPerformance();
 
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const { positions, isInitialLoading } = usePerpsLivePositions({
+    throttleMs: 1000, // Update positions every second
+  });
 
-  const {
-    positions,
-    isLoading: isPositionsLoading,
-    isRefreshing,
-    loadPositions,
-  } = usePerpsPositions();
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
-  const isLoading = isPositionsLoading;
   const firstTimeUserIconSize = 48 as unknown as IconSize;
+
+  // Start measuring position data load time on mount
+  useEffect(() => {
+    startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
+  }, [startMeasure]);
+
   // Automatically load account state on mount and when network changes
   useEffect(() => {
     // Only load account state if we're connected and initialized
@@ -68,33 +74,45 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     }
   }, [getAccountState, isConnected, isInitialized]);
 
-  const handleRefresh = useCallback(() => {
-    loadPositions();
-  }, [loadPositions]);
+  // Track homescreen tab viewed - only once when positions and account are loaded
+  useEffect(() => {
+    if (
+      !hasTrackedHomescreen.current &&
+      !isInitialLoading &&
+      positions &&
+      cachedAccountState?.totalBalance !== undefined
+    ) {
+      // Track position data loaded performance
+      endMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
+
+      // Track homescreen tab viewed event with exact property names from requirements
+      track(MetaMetricsEvents.PERPS_HOMESCREEN_TAB_VIEWED, {
+        [PerpsEventProperties.OPEN_POSITION]: positions.map((p) => ({
+          [PerpsEventProperties.ASSET]: p.coin,
+          [PerpsEventProperties.LEVERAGE]: p.leverage.value,
+          [PerpsEventProperties.DIRECTION]:
+            parseFloat(p.size) > 0
+              ? PerpsEventValues.DIRECTION.LONG
+              : PerpsEventValues.DIRECTION.SHORT,
+        })),
+        [PerpsEventProperties.PERP_ACCOUNT_BALANCE]: parseFloat(
+          cachedAccountState.totalBalance,
+        ),
+      });
+
+      hasTrackedHomescreen.current = true;
+    }
+  }, [
+    isInitialLoading,
+    positions,
+    cachedAccountState?.totalBalance,
+    track,
+    endMeasure,
+  ]);
 
   const handleManageBalancePress = useCallback(() => {
-    setIsBottomSheetVisible(true);
-  }, []);
-
-  const handleCloseBottomSheet = useCallback(() => {
-    setIsBottomSheetVisible(false);
-  }, []);
-
-  const handleAddFunds = useCallback(async () => {
-    setIsBottomSheetVisible(false);
-    const { result: depositResult } = await depositWithConfirmation();
-
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    });
-
-    await depositResult;
-  }, [depositWithConfirmation, navigation]);
-
-  const handleWithdrawFunds = useCallback(() => {
-    setIsBottomSheetVisible(false);
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.WITHDRAW,
+    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.BALANCE_MODAL,
     });
   }, [navigation]);
 
@@ -106,7 +124,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   }, [navigation]);
 
   const renderPositionsSection = () => {
-    if (isLoading) {
+    if (isInitialLoading) {
       return (
         <View style={styles.loadingContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Muted}>
@@ -172,11 +190,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     return (
       <>
         <View style={styles.sectionHeader}>
-          <Text
-            variant={TextVariant.HeadingSM}
-            color={TextColor.Alternative}
-            style={styles.sectionTitle}
-          >
+          <Text variant={TextVariant.BodyMDMedium} style={styles.sectionTitle}>
             {strings('perps.position.title')}
           </Text>
         </View>
@@ -187,14 +201,6 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
               position={position}
               expanded={false}
               showIcon
-              isInPerpsNavContext={false}
-              rightAccessory={
-                <ButtonIcon
-                  iconName={IconName.Close}
-                  iconColor={IconColor.Alternative}
-                  size={ButtonIconSizes.Md}
-                />
-              }
             />
           ))}
         </View>
@@ -211,51 +217,23 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       ) : (
         <>
           <PerpsTabControlBar onManageBalancePress={handleManageBalancePress} />
-          <ScrollView
-            style={styles.content}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-              />
-            }
-          >
+          <ScrollView style={styles.content}>
             <View style={styles.section}>{renderPositionsSection()}</View>
           </ScrollView>
         </>
       )}
-
-      {isBottomSheetVisible && (
-        <BottomSheet ref={bottomSheetRef} onClose={handleCloseBottomSheet}>
-          <BottomSheetHeader onClose={handleCloseBottomSheet}>
-            <Text variant={TextVariant.HeadingMD}>
-              {strings('perps.manage_balance')}
-            </Text>
-          </BottomSheetHeader>
-          <View style={styles.bottomSheetContent}>
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.add_funds')}
-              onPress={handleAddFunds}
-              style={styles.actionButton}
-              startIconName={IconName.Add}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={strings('perps.withdraw')}
-              onPress={handleWithdrawFunds}
-              style={styles.actionButton}
-              startIconName={IconName.Minus}
-            />
-          </View>
-        </BottomSheet>
-      )}
     </View>
   );
 };
+
+// Enable WDYR tracking in development
+// Uncomment to enable WDYR for debugging re-renders
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   (PerpsTabView as any).whyDidYouRender = {
+//     logOnDifferentValues: true,
+//     customName: 'PerpsTabView',
+//   };
+// }
 
 export default PerpsTabView;

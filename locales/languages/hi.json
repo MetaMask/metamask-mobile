@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "पर्प्स ट्रेडिंग",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "कुल बैलेंस",
     "available_balance": "उपलब्ध बैलेंस",
     "margin_used": "उपयोग किया गया मार्जिन",
@@ -1124,7 +1123,7 @@
     "chart": {
       "no_data": "कोई चार्ट डेटा उपलब्ध नहीं है"
     },
-    "perpetual_markets": "Perpetual markets",
+    "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
