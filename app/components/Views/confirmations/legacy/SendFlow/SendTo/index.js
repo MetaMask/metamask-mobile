@@ -51,7 +51,8 @@ import {
   selectEvmChainId,
   selectNativeCurrencyByChainId,
   selectProviderTypeByChainId,
- selectNetworkConfigurations } from '../../../../../../selectors/networkController';
+  selectNetworkConfigurations,
+} from '../../../../../../selectors/networkController';
 import {
   selectInternalAccounts,
   selectSelectedInternalAccountFormattedAddress,
