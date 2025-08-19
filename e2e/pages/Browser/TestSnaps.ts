@@ -24,7 +24,7 @@ import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/2.25.0/';
+  'https://metamask.github.io/snaps/test-snaps/2.28.1/';
 
 class TestSnaps {
   get getConnectSnapButton(): DetoxElement {
@@ -74,6 +74,20 @@ class TestSnaps {
       const actualText = await webElement.getText();
       await Assertions.checkIfTextMatches(actualText, expectedMessage);
     }, options);
+  }
+
+  async checkInstalledSnaps(
+    expectedMessage: string,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    return await this.checkResultSpan(
+      'installedSnapResultSpan',
+      expectedMessage,
+      options,
+    );
   }
 
   async checkResultJson(
@@ -182,6 +196,14 @@ class TestSnaps {
 
   async tapFooterButton() {
     await Gestures.waitAndTap(this.footerButton);
+  }
+
+  async dismissAlert() {
+    // Matches the native WebView alert on each platform
+    const button = Matchers.getElementByText(
+      device.getPlatform() === 'ios' ? 'Ok' : 'OK',
+    );
+    await Gestures.tap(button);
   }
 
   async getOptionValueByText(

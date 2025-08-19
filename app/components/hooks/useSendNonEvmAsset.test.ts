@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSendNonEvmAsset } from './useSendNonEvmAsset';
+import { InitSendLocation } from '../Views/confirmations/constants/send';
 import { sendMultichainTransaction } from '../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { isMultichainWalletSnap } from '../../core/SnapKeyring/utils/snaps';
 import { isEvmAccountType } from '@metamask/keyring-api';
@@ -79,7 +80,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(false);
       expect(mockCloseModal).not.toHaveBeenCalled();
@@ -106,7 +109,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(false);
       expect(mockCloseModal).not.toHaveBeenCalled();
@@ -218,7 +223,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -258,7 +265,9 @@ describe('useSendNonEvmAsset', () => {
         { state: stateWithoutSnap },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -274,7 +283,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -292,7 +303,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockCloseModal).toHaveBeenCalledTimes(1);
@@ -308,7 +321,9 @@ describe('useSendNonEvmAsset', () => {
         { state: mockState },
       );
 
-      const wasHandled = await result.current.sendNonEvmAsset();
+      const wasHandled = await result.current.sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
 
       expect(wasHandled).toBe(true);
       expect(mockedSendMultichainTransaction).toHaveBeenCalled();

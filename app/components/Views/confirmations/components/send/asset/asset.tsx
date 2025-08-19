@@ -1,38 +1,51 @@
-import React from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { useEffect } from 'react';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { Box, Text } from '@metamask/design-system-react-native';
 
-import { useTheme } from '../../../../../../util/theme';
+import Routes from '../../../../../../constants/navigation/Routes';
 import TabBar from '../../../../../../component-library/components-temp/TabBar/TabBar';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import { TextFieldSize } from '../../../../../../component-library/components/Form/TextField/TextField.types';
+import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
 import { useSelectedEVMAccountTokens } from '../../../hooks/send/evm/useSelectedEVMAccountTokens';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
-import { useSendActions } from '../../../hooks/send/useSendActions';
-import { useSendAssetNavbar } from '../../UI/navbar/navbar';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { TokenList } from '../../token-list';
 
 export const Asset = () => {
-  const theme = useTheme();
-  const navigation = useNavigation();
-  const { handleCancelPress } = useSendActions();
   const tokens = useSelectedEVMAccountTokens();
   const { searchQuery, setSearchQuery, filteredTokens, clearSearch } =
     useTokenSearch(tokens);
+  const {
+    setAssetListSize,
+    setNoneAssetFilterMethod,
+    setSearchAssetFilterMethod,
+  } = useAssetSelectionMetrics();
 
-  navigation.setOptions({
-    ...useSendAssetNavbar({ theme, onClose: handleCancelPress }),
-  });
+  useSendNavbar({ currentRoute: Routes.SEND.ASSET });
+
+  useEffect(() => {
+    setAssetListSize(
+      filteredTokens?.length ? filteredTokens?.length.toString() : '',
+    );
+  }, [filteredTokens, setAssetListSize]);
+
+  useEffect(() => {
+    if (searchQuery.length) {
+      setSearchAssetFilterMethod();
+    } else {
+      setNoneAssetFilterMethod();
+    }
+  }, [searchQuery, setNoneAssetFilterMethod, setSearchAssetFilterMethod]);
 
   return (
-    <Box twClassName="flex-1 px-4">
-      <Box twClassName="w-full py-2">
+    <Box twClassName="flex-1">
+      <Box twClassName="w-full px-4 py-2">
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Search"
-          size={TextFieldSize.Md}
+          size={TextFieldSize.Lg}
           showClearButton={searchQuery.length > 0}
           onPressClearButton={clearSearch}
         />
