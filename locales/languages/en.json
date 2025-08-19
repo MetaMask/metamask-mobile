@@ -4587,6 +4587,8 @@
     "add_multichain_account": "Create a new {{networkName}} account",
     "create_an_account": "Create a new account",
     "add_new_account": "Ethereum account",
+    "create_new_wallet": "Create a new wallet",
+    "import_wallet": "Import a wallet",
     "import_srp": "Secret Recovery Phrase",
     "add_hardware_wallet": "Hardware wallet",
     "import_account": "Private key",
@@ -5262,6 +5264,7 @@
     "show_less": "less"
   },
   "multichain_accounts": {
+    "add_wallet": "Add wallet",
     "account_details": {
       "header_title": "Account Details",
       "account_name": "Account Name",
