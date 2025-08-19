@@ -5,7 +5,7 @@ import Device from '../../../util/device';
 import AppConstants from '../../AppConstants';
 import handleDeeplink from '../../SDKConnect/handlers/handleDeeplink';
 import SDKConnect from '../../SDKConnect/SDKConnect';
-import * as SDKConnectV2 from '../../SDKConnectV2';
+import SDKConnectV2 from '../../SDKConnectV2';
 import WC2Manager from '../../WalletConnect/WalletConnectV2';
 import DeeplinkManager from '../DeeplinkManager';
 import extractURLParams from './extractURLParams';
@@ -112,17 +112,17 @@ describe('handleMetaMaskProtocol', () => {
     expect(handled).toHaveBeenCalled();
   });
 
-  describe('when url starts with ${PREFIXES.METAMASK}${ACTIONS.SDK_V2}', () => {
-    const mockReceiveRequest = jest.fn();
+  describe('when url starts with ${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp', () => {
+    const spyHandleConnectDeeplink = jest.spyOn(
+      SDKConnectV2,
+      'handleConnectDeeplink',
+    );
     beforeEach(() => {
-      url = `${PREFIXES.METAMASK}${ACTIONS.SDK_V2}`;
-
-      jest
-        .spyOn(SDKConnectV2, 'getInstance')
-        .mockReturnValue({ receiveRequest: mockReceiveRequest });
+      url = `${PREFIXES.METAMASK}${ACTIONS.CONNECT}/mwp`;
+      spyHandleConnectDeeplink.mockImplementation(jest.fn());
     });
 
-    it('should call SDKConnectV2.receiveRequest', () => {
+    it('should call SDKConnectV2.handleConnectDeeplink', () => {
       handleMetaMaskDeeplink({
         instance,
         handled,
@@ -132,10 +132,7 @@ describe('handleMetaMaskProtocol', () => {
         wcURL,
       });
 
-      expect(mockReceiveRequest).toHaveBeenCalledWith({
-        url,
-        origin,
-      });
+      expect(spyHandleConnectDeeplink).toHaveBeenCalledWith(url);
     });
   });
 
