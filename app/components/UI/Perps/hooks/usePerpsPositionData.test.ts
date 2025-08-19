@@ -1129,7 +1129,7 @@ describe('usePerpsPositionData', () => {
       // Assert - Should handle gracefully without throwing
       expect(result.current.priceData).toEqual({
         coin: 'ETH',
-        price: 'invalid',
+        price: NaN,
       });
     });
 
@@ -1338,13 +1338,16 @@ describe('usePerpsPositionData', () => {
 
     it('handles rapid prop changes without race conditions', async () => {
       // Arrange
-      const { rerender } = renderHook((props) => usePerpsPositionData(props), {
-        initialProps: {
-          coin: 'ETH',
-          selectedInterval: CandlePeriod.ONE_HOUR,
-          selectedDuration: TimeDuration.ONE_DAY,
+      const { result, rerender } = renderHook(
+        (props) => usePerpsPositionData(props),
+        {
+          initialProps: {
+            coin: 'ETH',
+            selectedInterval: CandlePeriod.ONE_HOUR,
+            selectedDuration: TimeDuration.ONE_DAY,
+          },
         },
-      });
+      );
 
       // Act - Rapid prop changes
       for (let i = 0; i < 3; i++) {
