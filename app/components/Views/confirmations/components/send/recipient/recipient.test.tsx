@@ -170,7 +170,6 @@ describe('Recipient', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
-
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -247,7 +246,6 @@ describe('Recipient', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
-
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -327,7 +325,6 @@ describe('Recipient', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
-
       updateValue: jest.fn(),
       value: undefined,
     });

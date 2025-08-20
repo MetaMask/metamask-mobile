@@ -11,10 +11,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 const mockGotToSendScreen = jest.fn();
 const mockUpdateAsset = jest.fn();
 
-jest.mock('react-redux', () => ({
-  useSelector: jest.fn(),
-}));
-
 jest.mock('../../hooks/send/useSendScreenNavigation', () => ({
   useSendScreenNavigation: () => ({
     gotToSendScreen: mockGotToSendScreen,
