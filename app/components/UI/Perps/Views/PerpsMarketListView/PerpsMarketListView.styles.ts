@@ -48,7 +48,7 @@ const styleSheet = (params: { theme: Theme }) => {
       alignItems: 'center',
       paddingHorizontal: 16,
       marginBottom: 8,
-      marginTop: 30,
+      marginTop: 12,
     },
     listHeaderLeft: {
       flex: 1,
