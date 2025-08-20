@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApprovalType } from '@metamask/controller-utils';
@@ -16,6 +16,9 @@ import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
+import { useSelectedGasFeeToken } from './gas/useGasFeeToken';
+import { cloneDeep } from 'lodash';
+import { updateTransaction } from '../../../../util/transaction-controller';
 
 export const useConfirmActions = () => {
   const {
@@ -36,11 +39,37 @@ export const useConfirmActions = () => {
     selectShouldUseSmartTransaction(state, transactionMetadata?.chainId),
   );
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
+  const selectedGasFeeToken = useSelectedGasFeeToken();
   const dispatch = useDispatch();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
   const isTransactionReq =
     approvalType && approvalType === ApprovalType.Transaction;
+
+  const newTransactionMeta = useMemo(
+    () => cloneDeep(transactionMetadata),
+    [transactionMetadata],
+  );
+
+  const handleSmartTransaction = useCallback(() => {
+    if (!selectedGasFeeToken || !newTransactionMeta) {
+      return;
+    }
+
+    newTransactionMeta.batchTransactions = [
+      selectedGasFeeToken.transferTransaction,
+    ];
+
+    newTransactionMeta.txParams.gas = selectedGasFeeToken.gas;
+    newTransactionMeta.txParams.maxFeePerGas = selectedGasFeeToken.maxFeePerGas;
+
+    newTransactionMeta.txParams.maxPriorityFeePerGas =
+      selectedGasFeeToken.maxPriorityFeePerGas;
+    updateTransaction(
+      newTransactionMeta,
+      'Mobile:UseConfirmActions - batchTransactions and gas properties updated',
+    );
+  }, [selectedGasFeeToken, newTransactionMeta]);
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false) => {
@@ -64,6 +93,10 @@ export const useConfirmActions = () => {
   );
 
   const onConfirm = useCallback(async () => {
+    if (shouldUseSmartTransaction) {
+      handleSmartTransaction();
+    }
+
     if (ledgerSigningInProgress) {
       openLedgerSignModal();
       return;
@@ -96,6 +129,7 @@ export const useConfirmActions = () => {
   }, [
     captureSignatureMetrics,
     dispatch,
+    handleSmartTransaction,
     isFullScreenConfirmation,
     isQRSigningInProgress,
     isSignatureReq,

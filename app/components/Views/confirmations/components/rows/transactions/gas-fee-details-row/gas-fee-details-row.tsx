@@ -46,13 +46,17 @@ const EstimationInfo = ({
   const fiatValue = gasFeeToken
     ? gasFeeToken.amountFiat
     : feeCalculations.estimatedFeeFiat;
+  const tokenValue = gasFeeToken
+    ? gasFeeToken.amountFormatted
+    : feeCalculations.estimatedFeeNative;
   const { styles } = useStyles(styleSheet, {});
   return (
     <View style={styles.estimationContainer}>
       {!hideFiatForTestnet && fiatValue && (
         <Text style={styles.secondaryValue}>{fiatValue}</Text>
       )}
-      {!fiatOnly && <SelectedGasFeeToken />}
+      {!fiatOnly && <Text style={styles.primaryValue}>{tokenValue}</Text>}
+      <SelectedGasFeeToken />
     </View>
   );
 };

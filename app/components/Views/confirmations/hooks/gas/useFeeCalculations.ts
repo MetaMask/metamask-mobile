@@ -20,9 +20,10 @@ export const useFeeCalculations = (transactionMeta: TransactionMeta) => {
   const { chainId, gasLimitNoBuffer, layer1GasFee, networkClientId } =
     transactionMeta;
 
-  const { nativeCurrency } = useSelector((state: RootState) =>
-    selectNetworkConfigurationByChainId(state, chainId as Hex),
-  );
+  const { nativeCurrency } =
+    useSelector((state: RootState) =>
+      selectNetworkConfigurationByChainId(state, chainId as Hex),
+    ) ?? {};
   const nativeConversionRate = useSelector((state: RootState) =>
     selectConversionRateByChainId(state, chainId as Hex, true),
   );

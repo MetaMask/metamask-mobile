@@ -41,7 +41,7 @@ export function getFeesFromHex({
 
   const nativeConversionRateInBN = new BigNumber(nativeConversionRate);
   const locale = I18n.locale;
-  const nativeCurrencyFee = `${formatAmount(
+  const nativeCurrencyFee = formatAmount(
     locale,
     new BigNumber(
       getValueFromWeiHex({
@@ -53,7 +53,7 @@ export function getFeesFromHex({
         toDenomination: 'ETH',
       }) ?? 0,
     ),
-  )} ${nativeCurrency}`;
+  );
 
   const preciseNativeCurrencyFee = `${formatAmount(
     locale,

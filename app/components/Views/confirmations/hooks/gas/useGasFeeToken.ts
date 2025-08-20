@@ -108,7 +108,7 @@ function useNativeGasFeeToken(): GasFeeToken {
   const { gas, maxFeePerGas, maxPriorityFeePerGas } = txParams ?? {};
 
   return {
-    amount: estimatedFeeNativeHex as Hex,
+    amount: (estimatedFeeNativeHex as Hex) ?? '0x0',
     balance,
     decimals: 18,
     gas: gas as Hex,

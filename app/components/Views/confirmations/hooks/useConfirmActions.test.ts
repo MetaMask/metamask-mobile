@@ -17,6 +17,10 @@ import * as SmartTransactionsSelector from '../../../../selectors/smartTransacti
 // eslint-disable-next-line import/no-namespace
 import * as TransactionActions from '../../../../actions/transaction';
 import { useConfirmActions } from './useConfirmActions';
+// eslint-disable-next-line import/no-namespace
+import * as TransactionController from '../../../../util/transaction-controller';
+// eslint-disable-next-line import/no-namespace
+import * as GasFeeTokenHook from './gas/useGasFeeToken';
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -37,6 +41,13 @@ jest.mock('../../../../core/Engine', () => ({
       },
     },
   },
+}));
+
+jest.mock('./gas/useGasFeeToken');
+
+jest.mock('../../../../util/transaction-controller', () => ({
+  ...jest.requireActual('../../../../util/transaction-controller'),
+  updateTransaction: jest.fn(),
 }));
 
 const mockCaptureSignatureMetrics = jest.fn();
@@ -272,6 +283,47 @@ describe('useConfirmAction', () => {
       stakingDepositConfirmationState.engine.backgroundState.ApprovalController
         .pendingApprovals[transactionId].requestData,
       { deleteAfterResult: true, handleErrors: false, waitForResult: true },
+    );
+  });
+
+  it('calls updateTransaction with batchTransactions and gas properties when smart transactions are enabled', async () => {
+    jest
+      .spyOn(SmartTransactionsSelector, 'selectShouldUseSmartTransaction')
+      .mockReturnValue(true);
+
+    const mockGasFeeToken = {
+      transferTransaction: { id: 'mock-tx' },
+      gas: '0x5208',
+      maxFeePerGas: '0x10',
+      maxPriorityFeePerGas: '0x5',
+    } as unknown as ReturnType<typeof GasFeeTokenHook.useSelectedGasFeeToken>;
+    jest
+      .spyOn(GasFeeTokenHook, 'useSelectedGasFeeToken')
+      .mockReturnValue(mockGasFeeToken);
+
+    const updateTransactionSpy = jest.spyOn(
+      TransactionController,
+      'updateTransaction',
+    );
+
+    const { result } = renderHookWithProvider(() => useConfirmActions(), {
+      state: stakingDepositConfirmationState,
+    });
+
+    await result.current.onConfirm();
+    await flushPromises();
+
+    expect(updateTransactionSpy).toHaveBeenCalledTimes(1);
+    expect(updateTransactionSpy.mock.calls[0][0]).toMatchObject({
+      batchTransactions: [mockGasFeeToken?.transferTransaction],
+      txParams: {
+        gas: mockGasFeeToken?.gas,
+        maxFeePerGas: mockGasFeeToken?.maxFeePerGas,
+        maxPriorityFeePerGas: mockGasFeeToken?.maxPriorityFeePerGas,
+      },
+    });
+    expect(updateTransactionSpy.mock.calls[0][1]).toContain(
+      'Mobile:UseConfirmActions - batchTransactions and gas properties updated',
     );
   });
 });

@@ -58,7 +58,7 @@ describe('useFeeCalculations', () => {
     );
 
     expect(result.current.estimatedFeeFiat).toBe('< $0.01');
-    expect(result.current.estimatedFeeNative).toBe('0 ETH');
+    expect(result.current.estimatedFeeNative).toBe('0');
     expect(result.current.preciseNativeFeeInHex).toBe('0x0');
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
@@ -72,7 +72,7 @@ describe('useFeeCalculations', () => {
     );
 
     expect(result.current.estimatedFeeFiat).toBe('$0.34');
-    expect(result.current.estimatedFeeNative).toBe('0.0001 ETH');
+    expect(result.current.estimatedFeeNative).toBe('0.0001');
     expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
@@ -122,7 +122,7 @@ describe('useFeeCalculations', () => {
     );
 
     expect(result.current.estimatedFeeFiat).toBe('< $0.01');
-    expect(result.current.estimatedFeeNative).toBe('0.0001 ETH');
+    expect(result.current.estimatedFeeNative).toBe('0.0001');
     expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c22d00');
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
@@ -176,7 +176,7 @@ describe('useFeeCalculations', () => {
     // The expected values are the sum of the original estimatedFee and layer1GasFee
     // The original estimatedFee is 0x5572e9c22d00, so the sum is 0x5572e9c23d00
     expect(result.current.estimatedFeeFiat).toBe('$0.34');
-    expect(result.current.estimatedFeeNative).toBe('0.0001 ETH');
+    expect(result.current.estimatedFeeNative).toBe('0.0001');
     expect(result.current.preciseNativeFeeInHex).toBe('0x5572e9c23d00');
     expect(result.current.calculateGasEstimate).toBeDefined();
   });
