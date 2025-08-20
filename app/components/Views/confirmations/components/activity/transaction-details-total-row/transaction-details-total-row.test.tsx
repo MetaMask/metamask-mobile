@@ -31,4 +31,16 @@ describe('TransactionDetailsTotalRow', () => {
     const { getByText } = render();
     expect(getByText(TOTAL_FIAT_MOCK)).toBeDefined();
   });
+
+  it('renders nothing if no total fiat', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        metamaskPay: {},
+      } as unknown as TransactionMeta,
+    });
+
+    const { queryByText } = render();
+
+    expect(queryByText(TOTAL_FIAT_MOCK)).toBeNull();
+  });
 });
