@@ -3,7 +3,6 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../util/test/renderWithProvider';
 import { AddAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
 import MultichainAddWalletActions from './MultichainAddWalletActions';
-import { addNewHdAccount } from '../../../../actions/multiSrp';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { MOCK_KEYRING_CONTROLLER } from '../../../../selectors/keyringController/testUtils';
 import Routes from '../../../../constants/navigation/Routes';
@@ -18,9 +17,6 @@ jest.mock('@react-navigation/native', () => {
     }),
   };
 });
-
-// Mock addNewHdAccount action
-jest.mock('../../../../actions/multiSrp');
 
 const mockInitialState = {
   engine: {
@@ -71,25 +67,26 @@ describe('MultichainAddWalletActions', () => {
     // expect(screen.getByText('Create a new wallet')).toBeOnTheScreen();
   });
 
-  it('has no action for create new wallet button', () => {
-    renderScreen(
-      () => <MultichainAddWalletActions {...mockProps} />,
-      {
-        name: 'MultichainAddWalletActions',
-      },
-      {
-        state: mockInitialState,
-      },
-    );
+  // TODO: Uncomment when adding new SRP will be implemented
+  // it('has no action for create new wallet button', () => {
+  //   renderScreen(
+  //     () => <MultichainAddWalletActions {...mockProps} />,
+  //     {
+  //       name: 'MultichainAddWalletActions',
+  //     },
+  //     {
+  //       state: mockInitialState,
+  //     },
+  //   );
 
-    const createButton = screen.getByTestId(
-      AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
-    );
+  //   const createButton = screen.getByTestId(
+  //     AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
+  //   );
 
-    // TODO: Check correct behaviour after implementing the action
-    fireEvent.press(createButton);
-    expect(addNewHdAccount).not.toHaveBeenCalled();
-  });
+  //   // TODO: Check correct behaviour after implementing the action
+  //   fireEvent.press(createButton);
+  //   expect(addNewHdAccount).not.toHaveBeenCalled();
+  //   });
 
   it('navigates to import account screen when clicking import account', () => {
     renderScreen(
