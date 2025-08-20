@@ -348,11 +348,11 @@ export const getRpcMethodMiddlewareHooks = (origin: string) => ({
       hooks: {
         grantPermissionsIncremental:
           Engine.context.PermissionController.grantPermissionsIncremental.bind(
-            Engine.context.PermissionController.grantPermissionsIncremental,
+            Engine.context.PermissionController,
           ),
         requestPermissionsIncremental:
           Engine.context.PermissionController.requestPermissionsIncremental.bind(
-            Engine.context.PermissionController.requestPermissionsIncremental,
+            Engine.context.PermissionController,
           ),
       },
     }),
