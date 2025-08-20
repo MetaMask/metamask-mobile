@@ -5467,11 +5467,11 @@
     "@metamask/superstruct" "^3.1.0"
 
 "@metamask/keyring-internal-api@^8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-8.0.0.tgz#97356d73dc998110cd0b5879e545c1752760319c"
-  integrity sha512-GwqWwY4qWo4whiEHjvWiX9NrFDxyYMfH/lYRqP3kbTwvcLVHWzzgw2MswVAEdNccWl90zKOIbJ4hNumsGR+hYg==
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-8.1.0.tgz#285b0480a540bba16c9ddde6fdc426022a0071db"
+  integrity sha512-rFLm5fELp5akU6nZV0/q6sCWscskFbjn07tjjGouZrb78Py0TLUHfktytl7OcDptgce2icuyy7E08spmfPda1w==
   dependencies:
-    "@metamask/keyring-api" "^20.0.0"
+    "@metamask/keyring-api" "^20.1.0"
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/superstruct" "^3.1.0"
 
