@@ -50,7 +50,6 @@ exports[`ButtonBase should render correctly when disabled 1`] = `
   accessible={true}
   activeOpacity={1}
   disabled={true}
-  onPress={[Function]}
   style={
     {
       "alignItems": "center",
