@@ -1,11 +1,10 @@
 // Core hooks (direct controller access)
-export { usePerpsDeposit } from './usePerpsDeposit';
-export { usePerpsDepositQuote } from './usePerpsDepositQuote';
 export { usePerpsMarkets } from './usePerpsMarkets';
 export { usePerpsNetwork } from './usePerpsNetwork';
 export { usePerpsNetworkConfig } from './usePerpsNetworkConfig';
 export { usePerpsTrading } from './usePerpsTrading';
 export { usePerpsWithdrawQuote } from './usePerpsWithdrawQuote';
+export { usePerpsDepositStatus } from './usePerpsDepositStatus';
 
 // Connection management hooks
 export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
@@ -34,7 +33,6 @@ export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 // UI utility hooks
 export { useBalanceComparison } from './useBalanceComparison';
 export { useColorPulseAnimation } from './useColorPulseAnimation';
-export { usePerpsPositions } from './usePerpsPositions';
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
@@ -49,7 +47,6 @@ export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsOrders } from './usePerpsOrders';
-export { usePerpsOpenOrders } from './usePerpsOpenOrders';
 export { usePerpsFunding } from './usePerpsFunding';
 
 // Event tracking hook
@@ -68,7 +65,6 @@ export { useStableArray } from './useStableArray';
 // Stream hooks (WebSocket subscriptions)
 export * from './stream';
 
-// - usePerpsDeposit (deposit flows)
 // - usePerpsPendingOrders (order management)
 // - usePerpsError (error handling)
 // - usePerpsLivePositions (live position tracking)

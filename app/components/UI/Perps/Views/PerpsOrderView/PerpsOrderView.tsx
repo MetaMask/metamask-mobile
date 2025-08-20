@@ -82,7 +82,7 @@ import {
   usePerpsOrderValidation,
   usePerpsPerformance,
 } from '../../hooks';
-import { useLivePrices } from '../../hooks/stream';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
@@ -144,7 +144,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     setOrderType,
     handlePercentageAmount,
     handleMaxAmount,
-    handleMinAmount,
     calculations,
   } = usePerpsOrderContext();
 
@@ -314,9 +313,9 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   // Get real-time price data using new stream architecture
   // Uses single WebSocket subscription with component-level debouncing
-  const prices = useLivePrices({
+  const prices = usePerpsLivePrices({
     symbols: [orderForm.asset],
-    debounceMs: 10000, // 10 seconds for testing the architecture
+    throttleMs: 10000, // 10 seconds for testing the architecture
   });
   const currentPrice = prices[orderForm.asset];
 
@@ -523,10 +522,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
   const handleMaxPress = () => {
     handleMaxAmount();
-  };
-
-  const handleMinPress = () => {
-    handleMinAmount();
   };
 
   const handleDonePress = () => {
@@ -867,23 +862,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
-              label="75%"
-              onPress={() => handlePercentagePress(0.75)}
-              style={styles.percentageButton}
-            />
-          </View>
-
-          <View style={styles.percentageButtonsContainer}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="Min"
-              onPress={handleMinPress}
-              style={styles.percentageButton}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
               label={strings('perps.deposit.max_button')}
               onPress={handleMaxPress}
               style={styles.percentageButton}
@@ -902,6 +880,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             onChange={handleKeypadChange}
             currency="USD"
             decimals={0}
+            style={styles.keypad}
           />
         </View>
       )}

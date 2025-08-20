@@ -1,4 +1,3 @@
-import Clipboard from '@react-native-clipboard/clipboard';
 import { useCallback } from 'react';
 
 import { MetaMetricsEvents, useMetrics } from '../../../../../hooks/useMetrics';
@@ -12,7 +11,7 @@ import { useSendType } from '../useSendType';
 
 export const useAmountSelectionMetrics = () => {
   const { trackEvent, createEventBuilder } = useMetrics();
-  const { chainId, value } = useSendContext();
+  const { chainId } = useSendContext();
   const { isEvmSendType } = useSendType();
   const {
     accountType,
@@ -39,16 +38,11 @@ export const useAmountSelectionMetrics = () => {
   }, [setAmountInputType]);
 
   const captureAmountSelected = useCallback(async () => {
-    let inputMethod = amountInputMethod;
-    const clipboardText = await Clipboard.getString();
-    if (clipboardText === value) {
-      inputMethod = AmountInputMethod.Pasted;
-    }
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SEND_AMOUNT_SELECTED)
         .addProperties({
           account_type: accountType,
-          input_method: inputMethod,
+          input_method: amountInputMethod,
           input_type: amountInputType,
           chain_id: isEvmSendType ? chainId : undefined,
           chain_id_caip: isEvmSendType ? undefined : chainId,
@@ -63,7 +57,6 @@ export const useAmountSelectionMetrics = () => {
     createEventBuilder,
     isEvmSendType,
     trackEvent,
-    value,
   ]);
 
   return {
