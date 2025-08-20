@@ -1,0 +1,2119 @@
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
+index 81faf0a..5906e41 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
++++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.d.ts
+@@ -11,10 +11,9 @@ export declare enum TransakEnvironment {
+     Staging = "staging"
+ }
+ export type NativeTransakAccessToken = {
+-    id: string;
++    accessToken: string;
+     ttl: number;
+     created: Date;
+-    userId: string;
+ };
+ export type NativeTransakUserDetails = {
+     id: string;
+@@ -24,7 +23,7 @@ export type NativeTransakUserDetails = {
+     mobileNumber: string;
+     status: string;
+     dob: string;
+-    kyc: NativeTransakUserDetailsKyc;
++    kyc: NativeTransakUserDetailsKycDetails;
+     address: NativeTransakUserDetailsAddress;
+     createdAt: string;
+ };
+@@ -37,14 +36,39 @@ export type NativeTransakUserDetailsAddress = {
+     country: string;
+     countryCode: string;
+ };
+-export type NativeTransakUserDetailsKyc = {
+-    l1: NativeTransakUserDetailsKycDetails;
+-};
+ export type NativeTransakUserDetailsKycDetails = {
+     status: string;
+     type: string;
+-    updatedAt: string;
+-    kycSubmittedAt: string;
++    attempts: NativeTransakUserDetailsKycAttempt[];
++    highestApprovedKYCType: string | null;
++    kycMarkedBy: string | null;
++    kycResult: string | null;
++    rejectionDetails: NativeTransakUserDetailsKycAttemptRejectionDetails | null;
++    userId: string;
++    workflowRunId: string;
++};
++export type NativeTransakUserDetailsKycAttempt = {
++    artifacts: NativeTransakUserDetailsKycAttemptArtifact[];
++    metadata: NativeTransakUserDetailsKycAttemptMetadata;
++    rejectionDetails: NativeTransakUserDetailsKycAttemptRejectionDetails;
++    result: string;
++    sessionId: string;
++};
++export type NativeTransakUserDetailsKycAttemptArtifact = {
++    key: string;
++    value: string;
++};
++export type NativeTransakUserDetailsKycAttemptMetadata = {
++    transaction: {
++        kycVendorId: string;
++        scanReference: string;
++        workflowId: string;
++    };
++};
++export type NativeTransakUserDetailsKycAttemptRejectionDetails = {
++    archetype: string;
++    reason: string;
++    reasonCode: string;
+ };
+ export type BuyQuote = {
+     quoteId: string;
+@@ -65,58 +89,21 @@ export type BuyQuote = {
+     cryptoLiquidityProvider: string;
+     notes: any[];
+ };
+-export type KycForms = {
+-    forms: KycForm[];
+-    onboardingSessionId: string;
+-    kycType: string;
+-    kycFlowType: string;
+-    isAllowedToDoKyc: boolean;
+-    isAllowedToPlaceOrder: boolean;
+-};
+-export type KycForm = {
+-    id: string;
+-    active: boolean;
+-    hideProgress: boolean;
+-    onSubmit: string;
+-    isSubmitted?: boolean;
+-};
+-export type KycFormDetails = {
+-    formId: string;
+-    formName: string;
+-    endpoint: KycFormDetailsEndpoint;
+-    hideProgress: boolean;
+-    supportAutoSubmit: boolean;
+-    fields: KycFormDetailsField[];
+-    id: string;
+-    type: string;
+-    data: any;
+-};
+ export type KycWorkflowRunStatus = {
+     status: 'NOT_SUBMITTED' | 'SUBMITTED';
+     kycType: string;
+     randomLogIdentifier: string;
+ };
+-export type KycFormDetailsEndpoint = {
+-    path: string;
+-    method: string;
+-    excludeDisabled: boolean;
++export type KycRequirement = {
++    status: 'NOT_SUBMITTED' | 'APPROVED' | 'ADDITIONAL_FORMS_REQUIRED';
++    kycType: string;
++    isAllowedToPlaceOrder: boolean;
+ };
+-export type KycFormDetailsField = {
+-    name: string;
+-    id: string;
+-    type: string;
+-    value: string;
+-    regex: string;
+-    regexErrorMessage: string;
+-    disabled: boolean;
++export type AdditionalRequirement = {
++    formId: string;
++    formName: string;
+     isRequired: boolean;
+-    placeholder: string;
+-    cols: KycFormDetailsFieldCols;
+-};
+-export type KycFormDetailsFieldCols = {
+-    xs: number;
+-    md: number;
+-    lg: number;
++    description?: string;
+ };
+ export type Reservation = {
+     id: string;
+@@ -155,14 +142,13 @@ export type DepositOrder = {
+     orderType: DepositOrderType.Deposit;
+     exchangeRate?: number;
+     statusDescription?: string;
+-    paymentOptions: OrderPaymentMethod[];
++    paymentDetails: OrderPaymentMethod[];
+     partnerFees?: number;
+     networkFees?: number;
+ };
+ export type OrderPaymentMethod = {
+-    currency: string;
+-    id: string;
+-    name: string;
++    fiatCurrency: string;
++    paymentMethod: string;
+     fields: OrderPaymentMethodField[];
+ };
+ export type OrderPaymentMethodField = {
+@@ -201,27 +187,24 @@ export type UserLimits = {
+     };
+ };
+ export type OttResponse = {
+-    token: string;
++    ott: string;
+ };
+ export type GeolocationResponse = {
+     ipCountryCode: string;
+ };
+ export type NativeRampsSdkConfig = {
+-    partnerApiKey?: string;
+-    frontendAuth?: string;
++    apiKey?: string;
+     verbose?: boolean;
+ };
+ export type TransakOrder = {
+-    id: string;
+-    userId: string;
++    orderId: string;
++    partnerUserId: string;
+     status: string;
+     isBuyOrSell: string;
+     fiatCurrency: string;
+     cryptoCurrency: string;
+-    paymentOptionId: string;
+     network: string;
+     walletAddress: string;
+-    addressAdditionalData: boolean;
+     quoteId: string;
+     fiatAmount: number;
+     fiatAmountInUsd: number;
+@@ -229,12 +212,12 @@ export type TransakOrder = {
+     cryptoAmount: number;
+     conversionPrice: number;
+     totalFeeInFiat: number;
+-    paymentOptions: OrderPaymentMethod[];
+-    transactionHash: string;
++    paymentDetails: OrderPaymentMethod[];
++    txHash: string;
++    transationLink: string | null;
+     createdAt: string;
+     updatedAt: string;
+     completedAt: string;
+-    statusHistories: any[];
+ };
+ export declare class OrderIdTransformer {
+     static depositOrderIdToTransakOrderId(depositOrderId: string): string;
+@@ -251,27 +234,31 @@ export declare class NativeRampsSdk {
+     getVersion(): string;
+     sendUserOtp(email: string): Promise<{
+         isTncAccepted: boolean;
++        stateToken: string;
++        email: string;
++        expiresIn: number;
+     }>;
+-    verifyUserOtp(email: string, verificationCode: string): Promise<NativeTransakAccessToken>;
++    verifyUserOtp(email: string, verificationCode: string, stateToken: string): Promise<NativeTransakAccessToken>;
+     getUserDetails(): Promise<NativeTransakUserDetails>;
+     getBuyQuote(fiatCurrency: string, cryptoCurrency: string, network: string, paymentMethod: string, fiatAmount: string): Promise<BuyQuote>;
+-    getKYCForms(quote: BuyQuote): Promise<KycForms>;
+-    getKycForm(quote: BuyQuote, form: KycForm): Promise<KycFormDetails>;
+     getKycWorkflowRunStatus(kycWorkflowRunId: string): Promise<KycWorkflowRunStatus>;
++    getKycRequirement(quoteId: string): Promise<KycRequirement>;
++    getAdditionalRequirements(quoteId: string): Promise<AdditionalRequirement[]>;
+     patchUser(data: any): Promise<any>;
+     submitPurposeOfUsageForm(purpose: string[]): Promise<void>;
+     submitSsnDetails(ssn: string): Promise<any>;
+-    walletReserve(quote: BuyQuote, walletAddress: string): Promise<Reservation>;
+     cancelOrder(depositOrderId: string): Promise<void>;
+-    createOrder(reservation: Reservation): Promise<DepositOrder>;
++    cancelAllActiveOrders(): Promise<void>;
++    createOrder(quote: BuyQuote, walletAddress: string, paymentMethodId: string): Promise<DepositOrder>;
+     confirmPayment(orderId: string, paymentMethodId: string): Promise<{
+         success: boolean;
+     }>;
+-    getOrder(orderId: string, wallet: string, paymentOptions?: OrderPaymentMethod[]): Promise<DepositOrder>;
++    getOrder(orderId: string, wallet: string, paymentDetails?: OrderPaymentMethod[]): Promise<DepositOrder>;
+     getUserLimits(fiatCurrency: string, paymentMethod?: string, kycType?: string): Promise<UserLimits>;
+     requestOtt(): Promise<OttResponse>;
+     getGeolocation(): Promise<GeolocationResponse>;
+     generatePaymentWidgetUrl(ottToken: string, quote: BuyQuote, walletAddress: string, extraParams?: Record<string, string>): string;
++    getActiveOrders(): Promise<TransakOrder[]>;
+     getOrdersHistory(limit?: number, skip?: number): Promise<TransakOrder[]>;
+     logout(): Promise<string>;
+ }
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
+index f5facee..78f9872 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
++++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.js
+@@ -40,7 +40,7 @@ const logRequest = (config) => {
+         url,
+         params,
+         data,
+-        headers: Object.assign(Object.assign({}, headers), { authorization: (headers === null || headers === void 0 ? void 0 : headers.authorization) ? '***' : undefined, 'frontend-auth': (headers === null || headers === void 0 ? void 0 : headers['frontend-auth']) ? '***' : undefined }),
++        headers: Object.assign(Object.assign({}, headers), { authorization: (headers === null || headers === void 0 ? void 0 : headers.authorization) ? '***' : undefined }),
+     });
+ };
+ exports.logRequest = logRequest;
+@@ -50,7 +50,7 @@ const logResponse = (response) => {
+         status,
+         statusText,
+         data,
+-        headers: Object.assign(Object.assign({}, headers), { authorization: (headers === null || headers === void 0 ? void 0 : headers.authorization) ? '***' : undefined, 'frontend-auth': (headers === null || headers === void 0 ? void 0 : headers['frontend-auth']) ? '***' : undefined }),
++        headers: Object.assign(Object.assign({}, headers), { authorization: (headers === null || headers === void 0 ? void 0 : headers.authorization) ? '***' : undefined }),
+     });
+ };
+ exports.logResponse = logResponse;
+@@ -116,9 +116,11 @@ class NativeRampsSdk {
+         const baseURL = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseUrl).call(this, environment);
+         __classPrivateFieldSet(this, _NativeRampsSdk_apiClient, axios_1.default.create({
+             baseURL,
+-            headers: Object.assign(Object.assign({ 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': `NativeRampsSdk/${package_json_1.version}` }, (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").frontendAuth && {
+-                'frontend-auth': __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").frontendAuth,
+-            })), { 'x-trace-id': '8e3dc027-e5e2-4765-99e6-6c3393d5d99f' }),
++            headers: {
++                'Content-Type': 'application/json',
++                Accept: 'application/json',
++                'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
++            },
+         }), "f");
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_setupInterceptors).call(this);
+     }
+@@ -135,24 +137,38 @@ class NativeRampsSdk {
+         return package_json_1.version;
+     }
+     async sendUserOtp(email) {
++        if (!__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
++            throw new Error('Partner API key is required for sendUserOtp');
++        }
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/user/email/send', {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/auth/login', {
+                 email,
++                apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey,
+             });
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+         }
+     }
+-    async verifyUserOtp(email, verificationCode) {
++    async verifyUserOtp(email, verificationCode, stateToken) {
++        if (!__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
++            throw new Error('Partner API key is required for verifyUserOtp');
++        }
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/user/email/verify', {
++            const requestBody = {
+                 email,
+-                emailVerificationCode: verificationCode,
+-                isTncAccepted: true,
+-            });
+-            const accessToken = response.data.response;
++                otp: verificationCode,
++                apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey,
++                stateToken,
++            };
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/auth/verify', requestBody);
++            const responseData = response.data.data;
++            const accessToken = {
++                accessToken: responseData.accessToken,
++                ttl: responseData.ttl,
++                created: new Date(responseData.created),
++            };
+             this.setAccessToken(accessToken);
+             return accessToken;
+         }
+@@ -163,8 +179,8 @@ class NativeRampsSdk {
+     async getUserDetails() {
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/user');
+-            return response.data.response;
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/user/');
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+@@ -172,7 +188,7 @@ class NativeRampsSdk {
+     }
+     async getBuyQuote(fiatCurrency, cryptoCurrency, network, paymentMethod, fiatAmount) {
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v1/pricing/public/quotes', {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/lookup/quotes', {
+                 params: {
+                     fiatCurrency,
+                     cryptoCurrency,
+@@ -183,54 +199,49 @@ class NativeRampsSdk {
+                     isFeeExcludedFromFiat: true,
+                 },
+             });
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+         }
+     }
+-    async getKYCForms(quote) {
++    async getKycWorkflowRunStatus(kycWorkflowRunId) {
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/user/kyc/get-forms', {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/user/workflow-run-id/status', {
+                 params: {
+-                    onlyFormIds: true,
+-                    'metadata[quoteId]': quote.quoteId,
+-                    'metadata[formType]': 'KYC',
++                    workflowRunId: kycWorkflowRunId,
+                 },
+             });
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+         }
+     }
+-    async getKycForm(quote, form) {
++    async getKycRequirement(quoteId) {
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/user/kyc/get-forms', {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/kyc/requirement', {
+                 params: {
+-                    onlyFormIds: false,
+-                    'formIds[]': form.id,
+-                    'metadata[quoteId]': quote.quoteId,
+-                    'metadata[formType]': 'KYC',
++                    'metadata[quoteId]': quoteId,
+                 },
+             });
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+         }
+     }
+-    async getKycWorkflowRunStatus(kycWorkflowRunId) {
++    async getAdditionalRequirements(quoteId) {
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/user/workflow-run-id/status', {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/kyc/additional-requirements', {
+                 params: {
+-                    workflowRunId: kycWorkflowRunId,
++                    'metadata[quoteId]': quoteId,
+                 },
+             });
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+@@ -240,7 +251,7 @@ class NativeRampsSdk {
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+             const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").patch('/api/v2/user', data);
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+@@ -252,7 +263,7 @@ class NativeRampsSdk {
+             const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/user/purpose-of-usage', {
+                 purposeList: purpose,
+             });
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+@@ -264,62 +275,72 @@ class NativeRampsSdk {
+             const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/user/verify-ssn', {
+                 ssn,
+             });
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+         }
+     }
+-    async walletReserve(quote, walletAddress) {
++    async cancelOrder(depositOrderId) {
++        __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/orders/wallet-reserve', {
+-                quoteId: quote.quoteId,
+-                walletAddress,
++            const transakOrderId = OrderIdTransformer.extractTransakOrderId(depositOrderId);
++            await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").delete(`/api/v2/orders/${transakOrderId}`, {
++                params: {
++                    cancelReason: 'Creating new order',
++                },
+             });
+-            return response.data.response;
+         }
+         catch (error) {
+             throw error;
+         }
+     }
+-    async cancelOrder(depositOrderId) {
++    async cancelAllActiveOrders() {
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+-            const transakOrderId = OrderIdTransformer.extractTransakOrderId(depositOrderId);
+-            await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").delete(`/api/v2/orders/${transakOrderId}`, {
+-                params: {
+-                    cancelReason: 'Creating new order',
+-                },
++            const activeOrders = await this.getActiveOrders();
++            const cancelPromises = activeOrders.map(async (order) => {
++                try {
++                    const depositOrderId = OrderIdTransformer.transakOrderIdToDepositOrderId(order.orderId, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
++                    await this.cancelOrder(depositOrderId);
++                }
++                catch (error) {
++                    console.warn(`Failed to cancel order ${order.orderId}:`, error === null || error === void 0 ? void 0 : error.message);
++                }
+             });
++            await Promise.all(cancelPromises);
+         }
+         catch (error) {
+             throw error;
+         }
+     }
+-    async createOrder(reservation) {
+-        var _a, _b, _c;
++    async createOrder(quote, walletAddress, paymentMethodId) {
++        var _a, _b, _c, _d, _e, _f;
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+             const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/orders', {
+-                reservationId: reservation.id,
++                quoteId: quote.quoteId,
++                walletAddress,
++                paymentInstrumentId: paymentMethodId,
+             });
+-            const transakOrder = response.data.response;
+-            const depositOrderId = OrderIdTransformer.transakOrderIdToDepositOrderId(transakOrder.id, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
+-            return await this.getOrder(depositOrderId, transakOrder.walletAddress, transakOrder.paymentOptions);
++            const transakOrder = response.data.data;
++            const depositOrderId = OrderIdTransformer.transakOrderIdToDepositOrderId(transakOrder.orderId, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
++            return await this.getOrder(depositOrderId, transakOrder.walletAddress, transakOrder.paymentDetails);
+         }
+         catch (error) {
+-            if (((_c = (_b = (_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.error) === null || _c === void 0 ? void 0 : _c.message) === 'Order exists') {
+-                const existingOrder = error.response.data.error.details.data;
++            if (((_c = (_b = (_a = error === null || error === void 0 ? void 0 : error.response) === null || _a === void 0 ? void 0 : _a.data) === null || _b === void 0 ? void 0 : _b.error) === null || _c === void 0 ? void 0 : _c.errorCode) === 4005 ||
++                ((_f = (_e = (_d = error === null || error === void 0 ? void 0 : error.response) === null || _d === void 0 ? void 0 : _d.data) === null || _e === void 0 ? void 0 : _e.error) === null || _f === void 0 ? void 0 : _f.message) === 'Order exists') {
+                 try {
+-                    const existingDepositOrderId = OrderIdTransformer.transakOrderIdToDepositOrderId(existingOrder.id, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
+-                    await this.cancelOrder(existingDepositOrderId);
++                    await this.cancelAllActiveOrders();
+                     await new Promise((resolve) => setTimeout(resolve, 2000));
+                     const retryResponse = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/orders', {
+-                        reservationId: reservation.id,
++                        quoteId: quote.quoteId,
++                        walletAddress,
++                        paymentInstrumentId: paymentMethodId,
+                     });
+-                    const retryTransakOrder = retryResponse.data.response;
+-                    const retryDepositOrderId = OrderIdTransformer.transakOrderIdToDepositOrderId(retryTransakOrder.id, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
+-                    return await this.getOrder(retryDepositOrderId, retryTransakOrder.walletAddress, retryTransakOrder.paymentOptions);
++                    const retryTransakOrder = retryResponse.data.data;
++                    const retryDepositOrderId = OrderIdTransformer.transakOrderIdToDepositOrderId(retryTransakOrder.orderId, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
++                    return await this.getOrder(retryDepositOrderId, retryTransakOrder.walletAddress, retryTransakOrder.paymentDetails);
+                 }
+                 catch (retryError) {
+                     throw retryError;
+@@ -334,15 +355,15 @@ class NativeRampsSdk {
+             const transakOrderId = OrderIdTransformer.extractTransakOrderId(orderId);
+             const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/orders/payment-confirmation', {
+                 orderId: transakOrderId,
+-                paymentOptionId: paymentMethodId,
++                paymentMethod: paymentMethodId,
+             });
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+         }
+     }
+-    async getOrder(orderId, wallet, paymentOptions) {
++    async getOrder(orderId, wallet, paymentDetails) {
+         let depositOrderId;
+         if (OrderIdTransformer.isDepositOrderId(orderId)) {
+             depositOrderId = orderId;
+@@ -365,14 +386,14 @@ class NativeRampsSdk {
+                 },
+             });
+             const order = Object.assign(Object.assign({}, response.data), { id: depositOrderId, orderType: DepositOrderType.Deposit });
+-            if (paymentOptions && paymentOptions.length > 0) {
+-                return Object.assign(Object.assign({}, order), { paymentOptions });
++            if (paymentDetails && paymentDetails.length > 0) {
++                return Object.assign(Object.assign({}, order), { paymentDetails });
+             }
+             if (__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f")) {
+                 try {
+                     const transakResponse = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get(`/api/v2/orders/${transakOrderId}`);
+-                    const transakOrder = transakResponse.data.response;
+-                    return Object.assign(Object.assign({}, order), { paymentOptions: transakOrder.paymentOptions });
++                    const transakOrder = transakResponse.data.data;
++                    return Object.assign(Object.assign({}, order), { paymentDetails: transakOrder.paymentDetails });
+                 }
+                 catch (transakError) {
+                     console.warn('Failed to fetch payment options from Transak API:', transakError);
+@@ -404,28 +425,29 @@ class NativeRampsSdk {
+     }
+     async requestOtt() {
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
++        if (!__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
++            throw new Error('Partner API key is required for requestOtt');
++        }
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/auth/public/v1/request-ott', {});
+-            if (!response.data || !response.data.response) {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/auth/request-ott', {
++                apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey,
++            });
++            if (!response.data || !response.data.data) {
+                 throw new Error('Failed to get OTT token');
+             }
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+         }
+     }
+     async getGeolocation() {
+-        const baseURL = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getBaseUrl).call(this, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
+-        const url = `${baseURL}/fiat/public/v1/get/country`;
++        const oldBaseURL = __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f") === TransakEnvironment.Staging
++            ? 'https://api-stg.transak.com'
++            : 'https://api.transak.com';
++        const url = new URL('/fiat/public/v1/get/country', oldBaseURL);
+         try {
+-            const response = await axios_1.default.get(url, {
+-                headers: {
+-                    'Content-Type': 'application/json',
+-                    Accept: 'application/json',
+-                    'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
+-                },
+-            });
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").call(this, url.toString());
+             return response.data;
+         }
+         catch (error) {
+@@ -433,12 +455,12 @@ class NativeRampsSdk {
+         }
+     }
+     generatePaymentWidgetUrl(ottToken, quote, walletAddress, extraParams) {
+-        if (!__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey) {
++        if (!__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
+             throw new Error('Partner API key is required for generatePaymentWidgetUrl');
+         }
+         const widgetBaseUrl = __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_getPaymentWidgetBaseUrl).call(this, __classPrivateFieldGet(this, _NativeRampsSdk_environment, "f"));
+         const defaultParams = {
+-            apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey,
++            apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey,
+             ott: ottToken,
+             fiatCurrency: quote.fiatCurrency,
+             cryptoCurrencyCode: quote.cryptoCurrency,
+@@ -457,6 +479,16 @@ class NativeRampsSdk {
+         widgetUrl.search = params.toString();
+         return widgetUrl.toString();
+     }
++    async getActiveOrders() {
++        __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
++        try {
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").get('/api/v2/active-orders');
++            return response.data.data;
++        }
++        catch (error) {
++            throw error;
++        }
++    }
+     async getOrdersHistory(limit = 10, skip = 0) {
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+@@ -466,7 +498,7 @@ class NativeRampsSdk {
+                     limit,
+                 },
+             });
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             throw error;
+@@ -476,9 +508,9 @@ class NativeRampsSdk {
+         var _a;
+         __classPrivateFieldGet(this, _NativeRampsSdk_instances, "m", _NativeRampsSdk_ensureAccessToken).call(this);
+         try {
+-            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v2/user/logout');
++            const response = await __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").post('/api/v1/auth/logout');
+             this.clearAccessToken();
+-            return response.data.response;
++            return response.data.data;
+         }
+         catch (error) {
+             if (((_a = error.response) === null || _a === void 0 ? void 0 : _a.status) === 401) {
+@@ -491,24 +523,18 @@ class NativeRampsSdk {
+ }
+ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(), _NativeRampsSdk_environment = new WeakMap(), _NativeRampsSdk_accessToken = new WeakMap(), _NativeRampsSdk_instances = new WeakSet(), _NativeRampsSdk_setupInterceptors = function _NativeRampsSdk_setupInterceptors() {
+     __classPrivateFieldGet(this, _NativeRampsSdk_apiClient, "f").interceptors.request.use((request) => {
+-        var _a;
+-        if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey) {
++        var _a, _b;
++        if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey) {
+             if (((_a = request.method) === null || _a === void 0 ? void 0 : _a.toLowerCase()) === 'get') {
+-                request.params = Object.assign(Object.assign({}, (request.params || {})), { apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey });
+-                if (request.url === '/api/v1/pricing/public/quotes') {
+-                    request.params = Object.assign(Object.assign({}, (request.params || {})), { partnerApiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey });
+-                }
++                request.params = Object.assign(Object.assign({}, (request.params || {})), { apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey });
+             }
+             else {
+-                request.data = Object.assign(Object.assign({}, (request.data || {})), { partnerApiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").partnerApiKey });
++                if (!((_b = request.data) === null || _b === void 0 ? void 0 : _b.apiKey)) {
++                    request.data = Object.assign(Object.assign({}, (request.data || {})), { apiKey: __classPrivateFieldGet(this, _NativeRampsSdk_config, "f").apiKey });
++                }
+             }
+             if (__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f") && request.headers) {
+-                if (request.url === '/auth/public/v1/request-ott') {
+-                    request.headers.authorization = `Bearer ${__classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f").id}`;
+-                }
+-                else {
+-                    request.headers.authorization = __classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f").id;
+-                }
++                request.headers.authorization = __classPrivateFieldGet(this, _NativeRampsSdk_accessToken, "f").accessToken;
+             }
+             if (__classPrivateFieldGet(this, _NativeRampsSdk_config, "f").verbose) {
+                 (0, exports.logRequest)(request);
+@@ -533,9 +559,9 @@ _NativeRampsSdk_apiClient = new WeakMap(), _NativeRampsSdk_config = new WeakMap(
+ }, _NativeRampsSdk_getBaseUrl = function _NativeRampsSdk_getBaseUrl(environment) {
+     switch (environment) {
+         case TransakEnvironment.Production:
+-            return 'https://api.transak.com';
++            return 'https://api-gateway.transak.com';
+         case TransakEnvironment.Staging:
+-            return 'https://api-stg.transak.com';
++            return 'https://api-gateway-stg.transak.com';
+         default:
+             throw new Error(`Invalid environment: ${String(environment)}`);
+     }
+@@ -562,8 +588,9 @@ __decorate([
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __param(1, (0, SdkParam_1.default)({ required: true })),
++    __param(2, (0, SdkParam_1.default)({ required: true })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [String, String]),
++    __metadata("design:paramtypes", [String, String, String]),
+     __metadata("design:returntype", Promise)
+ ], NativeRampsSdk.prototype, "verifyUserOtp", null);
+ __decorate([
+@@ -579,22 +606,21 @@ __decorate([
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [Object]),
++    __metadata("design:paramtypes", [String]),
+     __metadata("design:returntype", Promise)
+-], NativeRampsSdk.prototype, "getKYCForms", null);
++], NativeRampsSdk.prototype, "getKycWorkflowRunStatus", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [Object, Object]),
++    __metadata("design:paramtypes", [String]),
+     __metadata("design:returntype", Promise)
+-], NativeRampsSdk.prototype, "getKycForm", null);
++], NativeRampsSdk.prototype, "getKycRequirement", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __metadata("design:type", Function),
+     __metadata("design:paramtypes", [String]),
+     __metadata("design:returntype", Promise)
+-], NativeRampsSdk.prototype, "getKycWorkflowRunStatus", null);
++], NativeRampsSdk.prototype, "getAdditionalRequirements", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __metadata("design:type", Function),
+@@ -613,13 +639,6 @@ __decorate([
+     __metadata("design:paramtypes", [String]),
+     __metadata("design:returntype", Promise)
+ ], NativeRampsSdk.prototype, "submitSsnDetails", null);
+-__decorate([
+-    __param(0, (0, SdkParam_1.default)({ required: true })),
+-    __param(1, (0, SdkParam_1.default)({ required: true })),
+-    __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [Object, String]),
+-    __metadata("design:returntype", Promise)
+-], NativeRampsSdk.prototype, "walletReserve", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
+     __metadata("design:type", Function),
+@@ -628,8 +647,10 @@ __decorate([
+ ], NativeRampsSdk.prototype, "cancelOrder", null);
+ __decorate([
+     __param(0, (0, SdkParam_1.default)({ required: true })),
++    __param(1, (0, SdkParam_1.default)({ required: true })),
++    __param(2, (0, SdkParam_1.default)({ required: true })),
+     __metadata("design:type", Function),
+-    __metadata("design:paramtypes", [Object]),
++    __metadata("design:paramtypes", [Object, String, String]),
+     __metadata("design:returntype", Promise)
+ ], NativeRampsSdk.prototype, "createOrder", null);
+ __decorate([
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js
+index 70cf5dc..bf9d0b5 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js
++++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test-d.js
+@@ -4,8 +4,7 @@ const vitest_1 = require("vitest");
+ const NativeRampsSdk_1 = require("./NativeRampsSdk");
+ (0, vitest_1.describe)('NativeRampsSdk', () => {
+     const mockConfig = {
+-        partnerApiKey: 'test-api-key',
+-        frontendAuth: 'test-frontend-auth',
++        apiKey: 'test-api-key',
+     };
+     (0, vitest_1.it)('getVersion returns a string', () => {
+         const sdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
+index 5416ceb..bd76961 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
++++ b/node_modules/@consensys/native-ramps-sdk/dist/NativeRampsSdk.test.js
+@@ -11,9 +11,9 @@ vitest_1.vi.mock('axios', () => {
+     return {
+         default: {
+             create: vitest_1.vi.fn(() => ({
+-                post: vitest_1.vi.fn().mockResolvedValue({ data: { response: {} } }),
+-                get: vitest_1.vi.fn().mockResolvedValue({ data: { response: {} } }),
+-                patch: vitest_1.vi.fn().mockResolvedValue({ data: { response: {} } }),
++                post: vitest_1.vi.fn().mockResolvedValue({ data: { data: {} } }),
++                get: vitest_1.vi.fn().mockResolvedValue({ data: { data: {} } }),
++                patch: vitest_1.vi.fn().mockResolvedValue({ data: { data: {} } }),
+                 delete: vitest_1.vi.fn().mockResolvedValue({ data: { success: true } }),
+                 interceptors: {
+                     request: {
+@@ -25,16 +25,15 @@ vitest_1.vi.mock('axios', () => {
+                 },
+             })),
+             get: vitest_1.vi.fn().mockResolvedValue({ data: {} }),
+-            post: vitest_1.vi.fn().mockResolvedValue({ data: { response: {} } }),
+-            patch: vitest_1.vi.fn().mockResolvedValue({ data: { response: {} } }),
++            post: vitest_1.vi.fn().mockResolvedValue({ data: { data: {} } }),
++            patch: vitest_1.vi.fn().mockResolvedValue({ data: { data: {} } }),
+             delete: vitest_1.vi.fn().mockResolvedValue({ data: { success: true } }),
+         },
+     };
+ });
+ (0, vitest_1.describe)('NativeRampsSdk', () => {
+     const mockConfig = {
+-        partnerApiKey: 'test-api-key',
+-        frontendAuth: 'test-frontend-auth',
++        apiKey: 'test-api-key',
+     };
+     let sdk;
+     let mockAxiosInstance;
+@@ -55,12 +54,12 @@ vitest_1.vi.mock('axios', () => {
+         });
+         (0, vitest_1.it)('initializes with default environment', () => {
+             (0, vitest_1.expect)(sdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
+-            (0, vitest_1.expect)(axios_1.default.create.mock.calls[0][0].baseURL).toContain('transak.com');
++            (0, vitest_1.expect)(axios_1.default.create.mock.calls[0][0].baseURL).toContain('api-gateway.transak.com');
+         });
+         (0, vitest_1.it)('initializes with staging environment', () => {
+             const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
+             (0, vitest_1.expect)(stagingSdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
+-            (0, vitest_1.expect)(axios_1.default.create.mock.calls[1][0].baseURL).toContain('api-stg.transak.com');
++            (0, vitest_1.expect)(axios_1.default.create.mock.calls[1][0].baseURL).toContain('api-gateway-stg.transak.com');
+         });
+         (0, vitest_1.it)('initializes with empty config object', () => {
+             const emptySdk = new NativeRampsSdk_1.NativeRampsSdk({});
+@@ -77,13 +76,13 @@ vitest_1.vi.mock('axios', () => {
+                 new NativeRampsSdk_1.NativeRampsSdk(mockConfig, 'invalid');
+             }).toThrow('Invalid environment: invalid');
+         });
+-        (0, vitest_1.it)('initializes without partnerApiKey', () => {
++        (0, vitest_1.it)('initializes without apiKey', () => {
+             const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({ verbose: true });
+             (0, vitest_1.expect)(noApiKeySdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
+         });
+         (0, vitest_1.it)('initializes with verbose logging enabled', () => {
+             const verboseSdk = new NativeRampsSdk_1.NativeRampsSdk({
+-                partnerApiKey: 'test-key',
++                apiKey: 'test-key',
+                 verbose: true,
+             });
+             (0, vitest_1.expect)(verboseSdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
+@@ -91,10 +90,9 @@ vitest_1.vi.mock('axios', () => {
+     });
+     (0, vitest_1.describe)('access token management', () => {
+         const mockToken = {
+-            id: 'token-id',
++            accessToken: 'token-id',
+             ttl: 3600,
+             created: new Date(),
+-            userId: 'user-id',
+         };
+         (0, vitest_1.it)('sets access token', () => {
+             sdk.setAccessToken(mockToken);
+@@ -113,80 +111,96 @@ vitest_1.vi.mock('axios', () => {
+     });
+     (0, vitest_1.describe)('authentication methods', () => {
+         (0, vitest_1.it)('sends OTP to user email', async () => {
+-            const mockResponse = { data: { response: { isTncAccepted: true } } };
++            const mockResponse = {
++                data: {
++                    data: {
++                        isTncAccepted: true,
++                        stateToken: 'state-token-123',
++                        email: 'test@example.com',
++                        expiresIn: 300,
++                    },
++                },
++            };
+             mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
+             const result = await sdk.sendUserOtp('test@example.com');
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/email/send', { email: 'test@example.com' });
+-            (0, vitest_1.expect)(result).toStrictEqual({ isTncAccepted: true });
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/login', { email: 'test@example.com', apiKey: 'test-api-key' });
++            (0, vitest_1.expect)(result).toStrictEqual({
++                isTncAccepted: true,
++                stateToken: 'state-token-123',
++                email: 'test@example.com',
++                expiresIn: 300,
++            });
+         });
+         (0, vitest_1.it)('verifies OTP and returns access token', async () => {
+-            const mockToken = {
+-                id: 'token-id',
++            const mockTokenResponse = {
++                accessToken: 'token-id',
+                 ttl: 3600,
+-                created: new Date(),
+-                userId: 'user-id',
++                created: new Date().toISOString(),
+             };
+-            const mockResponse = { data: { response: mockToken } };
++            const mockResponse = { data: { data: mockTokenResponse } };
+             mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
+-            const result = await sdk.verifyUserOtp('test@example.com', '123456');
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/email/verify', {
++            const result = await sdk.verifyUserOtp('test@example.com', '123456', 'state-token-123');
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/verify', {
+                 email: 'test@example.com',
+-                emailVerificationCode: '123456',
+-                isTncAccepted: true,
++                otp: '123456',
++                apiKey: 'test-api-key',
++                stateToken: 'state-token-123',
++            });
++            (0, vitest_1.expect)(result).toMatchObject({
++                accessToken: 'token-id',
++                ttl: 3600,
++                created: vitest_1.expect.any(Date),
+             });
+-            (0, vitest_1.expect)(result).toStrictEqual(mockToken);
+         });
+         (0, vitest_1.it)('handles error when sending OTP', async () => {
+             const invalidEmailError = new Error('Invalid email format');
+             mockAxiosInstance.post.mockRejectedValueOnce(invalidEmailError);
+             await (0, vitest_1.expect)(sdk.sendUserOtp('invalid_email')).rejects.toThrow('Invalid email format');
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/email/send', { email: 'invalid_email' });
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/login', { email: 'invalid_email', apiKey: 'test-api-key' });
+         });
+         (0, vitest_1.it)('handles error when verifying OTP', async () => {
+             const invalidOtpError = new Error('Invalid verification code');
+             mockAxiosInstance.post.mockRejectedValueOnce(invalidOtpError);
+-            await (0, vitest_1.expect)(sdk.verifyUserOtp('test@example.com', '000000')).rejects.toThrow('Invalid verification code');
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/email/verify', {
++            await (0, vitest_1.expect)(sdk.verifyUserOtp('test@example.com', '000000', 'state-token-123')).rejects.toThrow('Invalid verification code');
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/verify', {
+                 email: 'test@example.com',
+-                emailVerificationCode: '000000',
+-                isTncAccepted: true,
++                otp: '000000',
++                apiKey: 'test-api-key',
++                stateToken: 'state-token-123',
+             });
+         });
+         (0, vitest_1.it)('logs out user and clears access token', async () => {
+             const mockToken = {
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             };
+             sdk.setAccessToken(mockToken);
+-            const mockResponse = { data: { response: 'user logout complete' } };
++            const mockResponse = { data: { data: 'user logout complete' } };
+             mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
+             const result = await sdk.logout();
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/logout');
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v1/auth/logout');
+             (0, vitest_1.expect)(result).toBe('user logout complete');
+             (0, vitest_1.expect)(sdk.getAccessToken()).toBeNull();
+         });
+         (0, vitest_1.it)('handles error when logging out', async () => {
+             const mockToken = {
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             };
+             sdk.setAccessToken(mockToken);
+             const logoutError = new Error('Logout failed');
+             mockAxiosInstance.post.mockRejectedValueOnce(logoutError);
+             await (0, vitest_1.expect)(sdk.logout()).rejects.toThrow('Logout failed');
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/logout');
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v1/auth/logout');
+             (0, vitest_1.expect)(sdk.getAccessToken()).toStrictEqual(mockToken);
+         });
+         (0, vitest_1.it)('handles 401 error when logging out and clears access token', async () => {
+             const mockToken = {
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             };
+             sdk.setAccessToken(mockToken);
+             const unauthorizedError = {
+@@ -196,7 +210,7 @@ vitest_1.vi.mock('axios', () => {
+             };
+             mockAxiosInstance.post.mockRejectedValueOnce(unauthorizedError);
+             const result = await sdk.logout();
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/logout');
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v1/auth/logout');
+             (0, vitest_1.expect)(result).toBe('user was already logged out');
+             (0, vitest_1.expect)(sdk.getAccessToken()).toBeNull();
+         });
+@@ -208,10 +222,9 @@ vitest_1.vi.mock('axios', () => {
+     (0, vitest_1.describe)('user methods', () => {
+         (0, vitest_1.beforeEach)(() => {
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+         });
+         (0, vitest_1.it)('gets user details', async () => {
+@@ -224,12 +237,15 @@ vitest_1.vi.mock('axios', () => {
+                 status: 'active',
+                 dob: '1990-01-01',
+                 kyc: {
+-                    l1: {
+-                        status: 'APPROVED',
+-                        type: 'basic',
+-                        updatedAt: '2023-01-01',
+-                        kycSubmittedAt: '2023-01-01',
+-                    },
++                    status: 'APPROVED',
++                    type: 'basic',
++                    attempts: [],
++                    highestApprovedKYCType: 'BASIC',
++                    kycMarkedBy: null,
++                    kycResult: 'APPROVED',
++                    rejectionDetails: null,
++                    userId: 'user-id',
++                    workflowRunId: 'workflow-123',
+                 },
+                 address: {
+                     addressLine1: '123 Main St',
+@@ -242,16 +258,16 @@ vitest_1.vi.mock('axios', () => {
+                 },
+                 createdAt: '2023-01-01',
+             };
+-            const mockResponse = { data: { response: mockUserDetails } };
++            const mockResponse = { data: { data: mockUserDetails } };
+             mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+             const result = await sdk.getUserDetails();
+-            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/user');
++            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/user/');
+             (0, vitest_1.expect)(result).toStrictEqual(Object.assign({}, mockUserDetails));
+         });
+         (0, vitest_1.it)('patches user data', async () => {
+             const userData = { firstName: 'John', lastName: 'Smith' };
+             const mockResponse = {
+-                data: { response: Object.assign(Object.assign({}, userData), { id: 'user-id' }) },
++                data: { data: Object.assign(Object.assign({}, userData), { id: 'user-id' }) },
+             };
+             mockAxiosInstance.patch.mockResolvedValueOnce(mockResponse);
+             const result = await sdk.patchUser(userData);
+@@ -260,19 +276,18 @@ vitest_1.vi.mock('axios', () => {
+         });
+         (0, vitest_1.it)('submits purpose of usage form', async () => {
+             const purposes = ['investment', 'payment'];
+-            const mockResponse = { data: { response: true } };
++            const mockResponse = { data: { data: true } };
+             mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
+             await sdk.submitPurposeOfUsageForm(purposes);
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/purpose-of-usage', { purposeList: purposes });
+         });
+         (0, vitest_1.it)('submits SSN details', async () => {
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+-            const mockResponse = { data: { response: { success: true } } };
++            const mockResponse = { data: { data: { success: true } } };
+             mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
+             const result = await sdk.submitSsnDetails('123-45-6789');
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/user/verify-ssn', { ssn: '123-45-6789' });
+@@ -280,10 +295,9 @@ vitest_1.vi.mock('axios', () => {
+         });
+         (0, vitest_1.it)('handles error when submitting SSN details', async () => {
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+             const mockError = new Error('Invalid SSN');
+             mockAxiosInstance.post.mockRejectedValueOnce(mockError);
+@@ -297,10 +311,9 @@ vitest_1.vi.mock('axios', () => {
+     (0, vitest_1.describe)('quote and order methods', () => {
+         (0, vitest_1.beforeEach)(() => {
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+         });
+         (0, vitest_1.it)('gets buy quote', async () => {
+@@ -323,10 +336,10 @@ vitest_1.vi.mock('axios', () => {
+                 cryptoLiquidityProvider: 'provider',
+                 notes: [],
+             };
+-            const mockResponse = { data: { response: mockQuote } };
++            const mockResponse = { data: { data: mockQuote } };
+             mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+             const result = await sdk.getBuyQuote('USD', 'ETH', 'ethereum', 'credit_card', '100');
+-            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v1/pricing/public/quotes', {
++            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/lookup/quotes', {
+                 params: {
+                     fiatCurrency: 'USD',
+                     cryptoCurrency: 'ETH',
+@@ -339,35 +352,47 @@ vitest_1.vi.mock('axios', () => {
+             });
+             (0, vitest_1.expect)(result).toStrictEqual(mockQuote);
+         });
+-        (0, vitest_1.it)('reserves wallet address', async () => {
++        (0, vitest_1.it)('gets active orders', async () => {
++            const mockActiveOrders = [
++                { orderId: 'order-1', status: 'CREATED', walletAddress: '0x123' },
++                { orderId: 'order-2', status: 'PENDING', walletAddress: '0x456' },
++            ];
++            const mockResponse = { data: { data: mockActiveOrders } };
++            mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
++            const result = await sdk.getActiveOrders();
++            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/active-orders');
++            (0, vitest_1.expect)(result).toStrictEqual(mockActiveOrders);
++        });
++        (0, vitest_1.it)('creates an order', async () => {
+             const mockQuote = {
+                 quoteId: 'quote-123',
++                conversionPrice: 50000,
++                marketConversionPrice: 49500,
++                slippage: 0.01,
++                fiatCurrency: 'USD',
+                 cryptoCurrency: 'ETH',
++                paymentMethod: 'credit_debit_card',
++                fiatAmount: 100,
++                cryptoAmount: 0.002,
++                isBuyOrSell: 'BUY',
+                 network: 'ethereum',
++                feeDecimal: 0.03,
++                totalFee: 3,
++                feeBreakdown: [],
++                nonce: 12345,
++                cryptoLiquidityProvider: 'provider',
++                notes: [],
+             };
+-            const mockReservation = { id: 'reservation-123' };
+-            const mockResponse = { data: { response: mockReservation } };
+-            mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
+-            const result = await sdk.walletReserve(mockQuote, '0x123456789');
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/orders/wallet-reserve', {
+-                quoteId: mockQuote.quoteId,
+-                walletAddress: '0x123456789',
+-            });
+-            (0, vitest_1.expect)(result).toStrictEqual(mockReservation);
+-        });
+-        (0, vitest_1.it)('creates an order', async () => {
+-            const mockReservation = { id: 'reservation-123' };
+             const transakOrderId = '9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
+             const depositOrderId = '/providers/transak-native/orders/9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
+             const mockTransakOrder = {
+-                id: transakOrderId,
++                orderId: transakOrderId,
+                 status: 'CREATED',
+                 walletAddress: '0x123456789',
+-                paymentOptions: [
++                paymentDetails: [
+                     {
+-                        currency: 'EUR',
+-                        id: 'payment-1',
+-                        name: 'SEPA',
++                        fiatCurrency: 'EUR',
++                        paymentMethod: 'sepa_bank_transfer',
+                         fields: [],
+                     },
+                 ],
+@@ -378,13 +403,15 @@ vitest_1.vi.mock('axios', () => {
+                 walletAddress: '0x123456789',
+                 orderType: 'DEPOSIT',
+             };
+-            const mockTransakResponse = { data: { response: mockTransakOrder } };
++            const mockTransakResponse = { data: { data: mockTransakOrder } };
+             mockAxiosInstance.post.mockResolvedValueOnce(mockTransakResponse);
+             const mockRampApiResponse = { data: mockDepositOrder };
+             mockAxios.get.mockResolvedValueOnce(mockRampApiResponse);
+-            const result = await sdk.createOrder(mockReservation);
++            const result = await sdk.createOrder(mockQuote, '0x123456789', 'payment-method-123');
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/orders', {
+-                reservationId: mockReservation.id,
++                quoteId: mockQuote.quoteId,
++                walletAddress: '0x123456789',
++                paymentInstrumentId: 'payment-method-123',
+             });
+             (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith(`https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/${transakOrderId}`, {
+                 params: {
+@@ -393,7 +420,7 @@ vitest_1.vi.mock('axios', () => {
+                     context: 'mobile',
+                 },
+             });
+-            (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockDepositOrder), { id: depositOrderId, orderType: 'DEPOSIT', paymentOptions: mockTransakOrder.paymentOptions }));
++            (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockDepositOrder), { id: depositOrderId, orderType: 'DEPOSIT', paymentDetails: mockTransakOrder.paymentDetails }));
+         });
+         (0, vitest_1.it)('gets order details from on-ramp API and adds deposit type', async () => {
+             const transakOrderId = '9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
+@@ -413,7 +440,7 @@ vitest_1.vi.mock('axios', () => {
+                     context: 'mobile',
+                 },
+             });
+-            (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockOrder), { id: depositOrderId, orderType: 'DEPOSIT', paymentOptions: undefined }));
++            (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockOrder), { id: depositOrderId, orderType: 'DEPOSIT', paymentDetails: undefined }));
+         });
+         (0, vitest_1.it)('gets order details from staging on-ramp API when using staging environment', async () => {
+             const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
+@@ -449,19 +476,34 @@ vitest_1.vi.mock('axios', () => {
+             });
+         });
+         (0, vitest_1.it)('handles "Order exists" error when creating an order', async () => {
+-            const mockReservation = { id: 'reservation-123' };
+-            const existingOrderId = 'existing-order-123';
+-            const existingOrder = { id: existingOrderId };
++            const mockQuote = {
++                quoteId: 'quote-123',
++                conversionPrice: 50000,
++                marketConversionPrice: 49500,
++                slippage: 0.01,
++                fiatCurrency: 'USD',
++                cryptoCurrency: 'ETH',
++                paymentMethod: 'credit_debit_card',
++                fiatAmount: 100,
++                cryptoAmount: 0.002,
++                isBuyOrSell: 'BUY',
++                network: 'ethereum',
++                feeDecimal: 0.03,
++                totalFee: 3,
++                feeBreakdown: [],
++                nonce: 12345,
++                cryptoLiquidityProvider: 'provider',
++                notes: [],
++            };
+             const newOrderId = 'order-123';
+             const newOrder = {
+-                id: newOrderId,
++                orderId: newOrderId,
+                 status: 'CREATED',
+                 walletAddress: '0x123456789',
+-                paymentOptions: [
++                paymentDetails: [
+                     {
+-                        currency: 'EUR',
+-                        id: 'payment-1',
+-                        name: 'SEPA',
++                        fiatCurrency: 'EUR',
++                        paymentMethod: 'sepa_bank_transfer',
+                         fields: [],
+                     },
+                 ],
+@@ -477,20 +519,22 @@ vitest_1.vi.mock('axios', () => {
+                 response: {
+                     data: {
+                         error: {
++                            errorCode: 4005,
+                             message: 'Order exists',
+-                            details: {
+-                                data: existingOrder,
+-                            },
+                         },
+                     },
+                 },
+             };
+             mockAxiosInstance.post.mockRejectedValueOnce(orderExistsError);
+-            mockAxiosInstance.delete.mockResolvedValueOnce({
++            const mockActiveOrders = [{ orderId: 'existing-order-1' }];
++            mockAxiosInstance.get.mockResolvedValueOnce({
++                data: { data: mockActiveOrders },
++            });
++            mockAxiosInstance.delete.mockResolvedValue({
+                 data: { success: true },
+             });
+             mockAxiosInstance.post.mockResolvedValueOnce({
+-                data: { response: newOrder },
++                data: { data: newOrder },
+             });
+             const mockRampApiResponse = { data: mockDepositOrder };
+             mockAxios.get.mockResolvedValueOnce(mockRampApiResponse);
+@@ -498,17 +542,17 @@ vitest_1.vi.mock('axios', () => {
+                 callback();
+                 return 123;
+             });
+-            const result = await sdk.createOrder(mockReservation);
++            const result = await sdk.createOrder(mockQuote, '0x123456789', 'payment-method-123');
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenNthCalledWith(1, '/api/v2/orders', {
+-                reservationId: mockReservation.id,
+-            });
+-            (0, vitest_1.expect)(mockAxiosInstance.delete).toHaveBeenCalledWith(`/api/v2/orders/${existingOrderId}`, {
+-                params: {
+-                    cancelReason: 'Creating new order',
+-                },
++                quoteId: mockQuote.quoteId,
++                walletAddress: '0x123456789',
++                paymentInstrumentId: 'payment-method-123',
+             });
++            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/active-orders');
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenNthCalledWith(2, '/api/v2/orders', {
+-                reservationId: mockReservation.id,
++                quoteId: mockQuote.quoteId,
++                walletAddress: '0x123456789',
++                paymentInstrumentId: 'payment-method-123',
+             });
+             (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith(`https://on-ramp.api.cx.metamask.io/providers/transak-native/orders/${newOrderId}`, {
+                 params: {
+@@ -517,46 +561,79 @@ vitest_1.vi.mock('axios', () => {
+                     context: 'mobile',
+                 },
+             });
+-            (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockDepositOrder), { id: depositOrderId, orderType: 'DEPOSIT', paymentOptions: newOrder.paymentOptions }));
++            (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockDepositOrder), { id: depositOrderId, orderType: 'DEPOSIT', paymentDetails: newOrder.paymentDetails }));
+             vitest_1.vi.restoreAllMocks();
+         });
+         (0, vitest_1.it)('handles retry failure when "Order exists" and cancellation fails', async () => {
+-            const mockReservation = { id: 'reservation-123' };
+-            const existingOrder = { id: 'existing-order-123' };
++            const mockQuote = {
++                quoteId: 'quote-123',
++                conversionPrice: 50000,
++                marketConversionPrice: 49500,
++                slippage: 0.01,
++                fiatCurrency: 'USD',
++                cryptoCurrency: 'ETH',
++                paymentMethod: 'credit_debit_card',
++                fiatAmount: 100,
++                cryptoAmount: 0.002,
++                isBuyOrSell: 'BUY',
++                network: 'ethereum',
++                feeDecimal: 0.03,
++                totalFee: 3,
++                feeBreakdown: [],
++                nonce: 12345,
++                cryptoLiquidityProvider: 'provider',
++                notes: [],
++            };
+             const orderExistsError = {
+                 response: {
+                     data: {
+                         error: {
++                            errorCode: 4005,
+                             message: 'Order exists',
+-                            details: {
+-                                data: existingOrder,
+-                            },
+                         },
+                     },
+                 },
+             };
+             mockAxiosInstance.post.mockRejectedValueOnce(orderExistsError);
+             const cancelError = new Error('Failed to cancel');
+-            mockAxiosInstance.delete.mockRejectedValueOnce(cancelError);
++            mockAxiosInstance.get.mockRejectedValueOnce(cancelError);
+             vitest_1.vi.useFakeTimers();
+-            await (0, vitest_1.expect)(sdk.createOrder(mockReservation)).rejects.toThrow(cancelError);
++            await (0, vitest_1.expect)(sdk.createOrder(mockQuote, '0x123456789', 'payment-method-123')).rejects.toThrow(cancelError);
+             vitest_1.vi.useRealTimers();
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/orders', {
+-                reservationId: mockReservation.id,
+-            });
+-            (0, vitest_1.expect)(mockAxiosInstance.delete).toHaveBeenCalledWith(`/api/v2/orders/${existingOrder.id}`, {
+-                params: {
+-                    cancelReason: 'Creating new order',
+-                },
++                quoteId: mockQuote.quoteId,
++                walletAddress: '0x123456789',
++                paymentInstrumentId: 'payment-method-123',
+             });
++            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/active-orders');
+         });
+         (0, vitest_1.it)('handles non-"Order exists" errors when creating an order', async () => {
+-            const mockReservation = { id: 'reservation-123' };
++            const mockQuote = {
++                quoteId: 'quote-123',
++                conversionPrice: 50000,
++                marketConversionPrice: 49500,
++                slippage: 0.01,
++                fiatCurrency: 'USD',
++                cryptoCurrency: 'ETH',
++                paymentMethod: 'credit_debit_card',
++                fiatAmount: 100,
++                cryptoAmount: 0.002,
++                isBuyOrSell: 'BUY',
++                network: 'ethereum',
++                feeDecimal: 0.03,
++                totalFee: 3,
++                feeBreakdown: [],
++                nonce: 12345,
++                cryptoLiquidityProvider: 'provider',
++                notes: [],
++            };
+             const mockError = new Error('Generic error');
+             mockAxiosInstance.post.mockRejectedValueOnce(mockError);
+-            await (0, vitest_1.expect)(sdk.createOrder(mockReservation)).rejects.toThrow(mockError);
++            await (0, vitest_1.expect)(sdk.createOrder(mockQuote, '0x123456789', 'payment-method-123')).rejects.toThrow(mockError);
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/orders', {
+-                reservationId: mockReservation.id,
++                quoteId: mockQuote.quoteId,
++                walletAddress: '0x123456789',
++                paymentInstrumentId: 'payment-method-123',
+             });
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledTimes(1);
+         });
+@@ -568,12 +645,12 @@ vitest_1.vi.mock('axios', () => {
+                 walletAddress: '0x123456789',
+             };
+             const mockPaymentMethod = { id: 'payment-123' };
+-            const mockPaymentResponse = { data: { response: { success: true } } };
++            const mockPaymentResponse = { data: { data: { success: true } } };
+             mockAxiosInstance.post.mockResolvedValueOnce(mockPaymentResponse);
+             const result = await sdk.confirmPayment(mockOrder.id, mockPaymentMethod.id);
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/orders/payment-confirmation', {
+                 orderId: transakOrderId,
+-                paymentOptionId: mockPaymentMethod.id,
++                paymentMethod: mockPaymentMethod.id,
+             });
+             (0, vitest_1.expect)(result).toStrictEqual({
+                 success: true,
+@@ -587,7 +664,7 @@ vitest_1.vi.mock('axios', () => {
+             await (0, vitest_1.expect)(sdk.confirmPayment(mockOrder.id, mockPaymentMethod.id)).rejects.toThrow(mockError);
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/orders/payment-confirmation', {
+                 orderId: mockOrder.id,
+-                paymentOptionId: mockPaymentMethod.id,
++                paymentMethod: mockPaymentMethod.id,
+             });
+         });
+         (0, vitest_1.it)('gets order with no payment options provided', async () => {
+@@ -615,18 +692,23 @@ vitest_1.vi.mock('axios', () => {
+             const mockResponse = { data: mockOrder };
+             mockAxios.get.mockResolvedValueOnce(mockResponse);
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+             const mockTransakOrder = {
+-                paymentOptions: [{ id: 'payment-1', name: 'Test Payment' }],
++                paymentDetails: [
++                    {
++                        fiatCurrency: 'USD',
++                        paymentMethod: 'credit_debit_card',
++                        fields: [],
++                    },
++                ],
+             };
+-            const mockTransakResponse = { data: { response: mockTransakOrder } };
++            const mockTransakResponse = { data: { data: mockTransakOrder } };
+             mockAxiosInstance.get.mockResolvedValueOnce(mockTransakResponse);
+             const result = await sdk.getOrder(depositOrderId, '0x123456789', []);
+-            (0, vitest_1.expect)(result.paymentOptions).toStrictEqual(mockTransakOrder.paymentOptions);
++            (0, vitest_1.expect)(result.paymentDetails).toStrictEqual(mockTransakOrder.paymentDetails);
+         });
+         (0, vitest_1.it)('handles Transak API error when fetching payment options', async () => {
+             const transakOrderId = '9c473ac4-a8d7-40d1-a10a-f29fa06c3028';
+@@ -639,10 +721,9 @@ vitest_1.vi.mock('axios', () => {
+             const mockResponse = { data: mockOrder };
+             mockAxios.get.mockResolvedValueOnce(mockResponse);
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+             const mockTransakError = new Error('Transak API error');
+             mockAxiosInstance.get.mockRejectedValueOnce(mockTransakError);
+@@ -663,14 +744,13 @@ vitest_1.vi.mock('axios', () => {
+             const mockResponse = { data: mockOrder };
+             mockAxios.get.mockResolvedValueOnce(mockResponse);
+             const result = await sdk.getOrder(transakOrderId, '0x123456789');
+-            (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockOrder), { id: expectedDepositOrderId, orderType: 'DEPOSIT', paymentOptions: undefined }));
++            (0, vitest_1.expect)(result).toStrictEqual(Object.assign(Object.assign({}, mockOrder), { id: expectedDepositOrderId, orderType: 'DEPOSIT', paymentDetails: undefined }));
+         });
+         (0, vitest_1.it)('handles fallback for getUserLimits response data', async () => {
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+             const mockResponse = { data: null };
+             mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+@@ -681,74 +761,55 @@ vitest_1.vi.mock('axios', () => {
+     (0, vitest_1.describe)('KYC methods', () => {
+         (0, vitest_1.beforeEach)(() => {
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+         });
+-        (0, vitest_1.it)('gets KYC forms', async () => {
+-            const mockQuote = { quoteId: 'quote-123' };
+-            const mockForms = {
+-                forms: [
+-                    { id: 'form-1', active: true, hideProgress: false, onSubmit: 'next' },
+-                ],
+-                onboardingSessionId: 'session-123',
++        (0, vitest_1.it)('gets KYC requirement', async () => {
++            const mockKycRequirement = {
++                status: 'APPROVED',
+                 kycType: 'BASIC',
+-                kycFlowType: 'MOBILE',
+-                isAllowedToDoKyc: true,
+-                isAllowedToPlaceOrder: false,
++                isAllowedToPlaceOrder: true,
+             };
+-            const mockResponse = { data: { response: mockForms } };
++            const mockResponse = { data: { data: mockKycRequirement } };
+             mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+-            const result = await sdk.getKYCForms(mockQuote);
+-            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/user/kyc/get-forms', {
++            const result = await sdk.getKycRequirement('quote-123');
++            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/kyc/requirement', {
+                 params: {
+-                    onlyFormIds: true,
+-                    'metadata[quoteId]': mockQuote.quoteId,
+-                    'metadata[formType]': 'KYC',
++                    'metadata[quoteId]': 'quote-123',
+                 },
+             });
+-            (0, vitest_1.expect)(result).toStrictEqual(mockForms);
+-        });
+-        (0, vitest_1.it)('gets KYC form details', async () => {
+-            const mockQuote = { quoteId: 'quote-123' };
+-            const mockForm = { id: 'form-1' };
+-            const mockFormDetails = {
+-                formId: 'form-1',
+-                formName: 'Personal Information',
+-                fields: [
+-                    {
+-                        name: 'firstName',
+-                        id: 'firstName',
+-                        type: 'text',
+-                        value: '',
+-                        regex: '',
+-                        regexErrorMessage: '',
+-                        disabled: false,
+-                        isRequired: true,
+-                        placeholder: 'First Name',
+-                        cols: { xs: 12, md: 6, lg: 6 },
+-                    },
+-                ],
+-            };
+-            const mockResponse = { data: { response: mockFormDetails } };
++            (0, vitest_1.expect)(result).toStrictEqual(mockKycRequirement);
++        });
++        (0, vitest_1.it)('gets additional requirements', async () => {
++            const mockAdditionalRequirements = [
++                {
++                    formId: 'form-1',
++                    formName: 'Purpose of Usage',
++                    isRequired: true,
++                    description: 'Please provide purpose of usage',
++                },
++                {
++                    formId: 'form-2',
++                    formName: 'SSN Verification',
++                    isRequired: false,
++                },
++            ];
++            const mockResponse = { data: { data: mockAdditionalRequirements } };
+             mockAxiosInstance.get.mockResolvedValueOnce(mockResponse);
+-            const result = await sdk.getKycForm(mockQuote, mockForm);
+-            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/user/kyc/get-forms', {
++            const result = await sdk.getAdditionalRequirements('quote-123');
++            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/kyc/additional-requirements', {
+                 params: {
+-                    onlyFormIds: false,
+-                    'formIds[]': mockForm.id,
+-                    'metadata[quoteId]': mockQuote.quoteId,
+-                    'metadata[formType]': 'KYC',
++                    'metadata[quoteId]': 'quote-123',
+                 },
+             });
+-            (0, vitest_1.expect)(result).toStrictEqual(mockFormDetails);
++            (0, vitest_1.expect)(result).toStrictEqual(mockAdditionalRequirements);
+         });
+         (0, vitest_1.it)('gets KYC workflow run status', async () => {
+             const mockResponse = {
+                 data: {
+-                    response: {
++                    data: {
+                         status: 'SUBMITTED',
+                         kycType: 'STANDARD',
+                         randomLogIdentifier: 'kyq7h8jxw5',
+@@ -774,10 +835,9 @@ vitest_1.vi.mock('axios', () => {
+             const mockError = new Error('API Error');
+             mockAxiosInstance.get.mockRejectedValueOnce(mockError);
+             sdk.setAccessToken({
+-                id: 'test-token',
++                accessToken: 'test-token',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user123',
+             });
+             await (0, vitest_1.expect)(sdk.getKycWorkflowRunStatus('workflow-run-id-123')).rejects.toThrow('API Error');
+         });
+@@ -785,10 +845,9 @@ vitest_1.vi.mock('axios', () => {
+     (0, vitest_1.describe)('user limits', () => {
+         (0, vitest_1.beforeEach)(() => {
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+         });
+         (0, vitest_1.it)('gets user limits', async () => {
+@@ -839,18 +898,17 @@ vitest_1.vi.mock('axios', () => {
+     (0, vitest_1.describe)('one-time token and widget URL', () => {
+         (0, vitest_1.beforeEach)(() => {
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+         });
+         (0, vitest_1.it)('requests one-time token', async () => {
+-            const mockTokenResponse = { token: 'ott-token-123' };
+-            const mockResponse = { data: { response: mockTokenResponse } };
++            const mockTokenResponse = { ott: 'ott-token-123' };
++            const mockResponse = { data: { data: mockTokenResponse } };
+             mockAxiosInstance.post.mockResolvedValueOnce(mockResponse);
+             const result = await sdk.requestOtt();
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/auth/public/v1/request-ott', {});
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/request-ott', { apiKey: 'test-api-key' });
+             (0, vitest_1.expect)(result).toStrictEqual(mockTokenResponse);
+         });
+         (0, vitest_1.it)('generates payment widget URL', () => {
+@@ -915,12 +973,12 @@ vitest_1.vi.mock('axios', () => {
+             const mockError = new Error('Failed to get token');
+             mockAxiosInstance.post.mockRejectedValueOnce(mockError);
+             await (0, vitest_1.expect)(sdk.requestOtt()).rejects.toThrow(mockError);
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/auth/public/v1/request-ott', {});
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/request-ott', { apiKey: 'test-api-key' });
+         });
+         (0, vitest_1.it)('throws error when response data is missing for OTT request', async () => {
+             mockAxiosInstance.post.mockResolvedValueOnce({ data: null });
+             await (0, vitest_1.expect)(sdk.requestOtt()).rejects.toThrow('Failed to get OTT token');
+-            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/auth/public/v1/request-ott', {});
++            (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalledWith('/api/v2/auth/request-ott', { apiKey: 'test-api-key' });
+         });
+         (0, vitest_1.it)('throws error when generating widget URL without partner API key', () => {
+             const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({});
+@@ -936,10 +994,9 @@ vitest_1.vi.mock('axios', () => {
+         (0, vitest_1.it)('generates widget URL for staging environment', () => {
+             const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
+             stagingSdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+             const url = stagingSdk.generatePaymentWidgetUrl('ott-token', {
+                 fiatCurrency: 'USD',
+@@ -955,37 +1012,13 @@ vitest_1.vi.mock('axios', () => {
+             const noApiKeySdk = new NativeRampsSdk_1.NativeRampsSdk({});
+             (0, vitest_1.expect)(noApiKeySdk).toBeInstanceOf(NativeRampsSdk_1.NativeRampsSdk);
+         });
+-        (0, vitest_1.it)('should add Bearer prefix for OTT endpoint', async () => {
+-            const mockAxiosInstanceForOtt = {
+-                post: vitest_1.vi
+-                    .fn()
+-                    .mockResolvedValue({ data: { response: { token: 'ott-123' } } }),
+-                get: vitest_1.vi.fn(),
+-                patch: vitest_1.vi.fn(),
+-                delete: vitest_1.vi.fn(),
+-                interceptors: {
+-                    request: { use: vitest_1.vi.fn() },
+-                    response: { use: vitest_1.vi.fn() },
+-                },
+-            };
+-            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceForOtt);
+-            const sdkWithToken = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
+-            sdkWithToken.setAccessToken({
+-                id: 'test-token',
+-                ttl: 3600,
+-                created: new Date(),
+-                userId: 'user-id',
+-            });
+-            await sdkWithToken.requestOtt();
+-            (0, vitest_1.expect)(mockAxiosInstanceForOtt.post).toHaveBeenCalledWith('/auth/public/v1/request-ott', {});
+-        });
+         (0, vitest_1.it)('should handle POST requests with partnerApiKey in body', async () => {
+             await sdk.sendUserOtp('test@example.com');
+             (0, vitest_1.expect)(mockAxiosInstance.post).toHaveBeenCalled();
+         });
+-        (0, vitest_1.it)('should handle GET requests with special quotes endpoint', async () => {
++        (0, vitest_1.it)('should handle GET requests with v2 quotes endpoint', async () => {
+             await sdk.getBuyQuote('USD', 'ETH', 'ethereum', 'credit_card', '100');
+-            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v1/pricing/public/quotes', {
++            (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/lookup/quotes', {
+                 params: {
+                     fiatCurrency: 'USD',
+                     cryptoCurrency: 'ETH',
+@@ -1010,7 +1043,7 @@ vitest_1.vi.mock('axios', () => {
+             };
+             vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceVerbose);
+             const verboseSdk = new NativeRampsSdk_1.NativeRampsSdk({
+-                partnerApiKey: 'test-key',
++                apiKey: 'test-key',
+                 verbose: true,
+             });
+             const logErrorSpy = vitest_1.vi
+@@ -1028,20 +1061,18 @@ vitest_1.vi.mock('axios', () => {
+         });
+         (0, vitest_1.it)('handles requestOtt with missing response data', async () => {
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+             mockAxiosInstance.post.mockResolvedValueOnce({ data: { response: null } });
+             await (0, vitest_1.expect)(sdk.requestOtt()).rejects.toThrow('Failed to get OTT token');
+         });
+         (0, vitest_1.it)('handles requestOtt with completely missing data', async () => {
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+             mockAxiosInstance.post.mockResolvedValueOnce({ data: null });
+             await (0, vitest_1.expect)(sdk.requestOtt()).rejects.toThrow('Failed to get OTT token');
+@@ -1050,10 +1081,9 @@ vitest_1.vi.mock('axios', () => {
+     (0, vitest_1.describe)('orders history', () => {
+         (0, vitest_1.beforeEach)(() => {
+             sdk.setAccessToken({
+-                id: 'token-id',
++                accessToken: 'token-id',
+                 ttl: 3600,
+                 created: new Date(),
+-                userId: 'user-id',
+             });
+         });
+         (0, vitest_1.it)('gets orders history', async () => {
+@@ -1061,7 +1091,7 @@ vitest_1.vi.mock('axios', () => {
+                 { id: 'order-1', status: 'COMPLETED', walletAddress: '0x123' },
+                 { id: 'order-2', status: 'FAILED', walletAddress: '0x456' },
+             ];
+-            const mockTransakResponse = { data: { response: mockTransakOrders } };
++            const mockTransakResponse = { data: { data: mockTransakOrders } };
+             mockAxiosInstance.get.mockResolvedValueOnce(mockTransakResponse);
+             const result = await sdk.getOrdersHistory();
+             (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/orders', {
+@@ -1076,7 +1106,7 @@ vitest_1.vi.mock('axios', () => {
+             const mockTransakOrders = [
+                 { id: 'order-3', status: 'CREATED', walletAddress: '0x789' },
+             ];
+-            const mockTransakResponse = { data: { response: mockTransakOrders } };
++            const mockTransakResponse = { data: { data: mockTransakOrders } };
+             mockAxiosInstance.get.mockResolvedValueOnce(mockTransakResponse);
+             const result = await sdk.getOrdersHistory(5, 10);
+             (0, vitest_1.expect)(mockAxiosInstance.get).toHaveBeenCalledWith('/api/v2/orders', {
+@@ -1092,99 +1122,150 @@ vitest_1.vi.mock('axios', () => {
+         (0, vitest_1.it)('gets user geolocation successfully', async () => {
+             const mockGeolocationResponse = { ipCountryCode: 'US' };
+             const mockResponse = { data: mockGeolocationResponse };
+-            mockAxios.get.mockResolvedValueOnce(mockResponse);
+-            const result = await sdk.getGeolocation();
+-            (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country', {
+-                headers: {
+-                    'Content-Type': 'application/json',
+-                    Accept: 'application/json',
+-                    'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
++            const mockAxiosInstanceForGeo = vitest_1.vi
++                .fn()
++                .mockResolvedValueOnce(mockResponse);
++            Object.assign(mockAxiosInstanceForGeo, {
++                post: vitest_1.vi.fn(),
++                get: vitest_1.vi.fn(),
++                patch: vitest_1.vi.fn(),
++                delete: vitest_1.vi.fn(),
++                interceptors: {
++                    request: { use: vitest_1.vi.fn() },
++                    response: { use: vitest_1.vi.fn() },
+                 },
+             });
++            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceForGeo);
++            const geoSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
++            const result = await geoSdk.getGeolocation();
++            (0, vitest_1.expect)(mockAxiosInstanceForGeo).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country');
+             (0, vitest_1.expect)(result).toStrictEqual(mockGeolocationResponse);
+         });
+         (0, vitest_1.it)('gets user geolocation with different country code', async () => {
+             const mockGeolocationResponse = { ipCountryCode: 'GB' };
+             const mockResponse = { data: mockGeolocationResponse };
+-            mockAxios.get.mockResolvedValueOnce(mockResponse);
+-            const result = await sdk.getGeolocation();
+-            (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country', {
+-                headers: {
+-                    'Content-Type': 'application/json',
+-                    Accept: 'application/json',
+-                    'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
++            const mockAxiosInstanceForGeo = vitest_1.vi
++                .fn()
++                .mockResolvedValueOnce(mockResponse);
++            Object.assign(mockAxiosInstanceForGeo, {
++                post: vitest_1.vi.fn(),
++                get: vitest_1.vi.fn(),
++                patch: vitest_1.vi.fn(),
++                delete: vitest_1.vi.fn(),
++                interceptors: {
++                    request: { use: vitest_1.vi.fn() },
++                    response: { use: vitest_1.vi.fn() },
+                 },
+             });
++            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceForGeo);
++            const geoSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
++            const result = await geoSdk.getGeolocation();
++            (0, vitest_1.expect)(mockAxiosInstanceForGeo).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country');
+             (0, vitest_1.expect)(result).toStrictEqual(mockGeolocationResponse);
+             (0, vitest_1.expect)(result.ipCountryCode).toBe('GB');
+         });
+         (0, vitest_1.it)('handles error when geolocation request fails', async () => {
+             const mockError = new Error('Geolocation service unavailable');
+-            mockAxios.get.mockRejectedValueOnce(mockError);
+-            await (0, vitest_1.expect)(sdk.getGeolocation()).rejects.toThrow('Geolocation service unavailable');
+-            (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country', {
+-                headers: {
+-                    'Content-Type': 'application/json',
+-                    Accept: 'application/json',
+-                    'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
++            const mockAxiosInstanceForGeo = vitest_1.vi.fn().mockRejectedValueOnce(mockError);
++            Object.assign(mockAxiosInstanceForGeo, {
++                post: vitest_1.vi.fn(),
++                get: vitest_1.vi.fn(),
++                patch: vitest_1.vi.fn(),
++                delete: vitest_1.vi.fn(),
++                interceptors: {
++                    request: { use: vitest_1.vi.fn() },
++                    response: { use: vitest_1.vi.fn() },
+                 },
+             });
++            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceForGeo);
++            const geoSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
++            await (0, vitest_1.expect)(geoSdk.getGeolocation()).rejects.toThrow('Geolocation service unavailable');
++            (0, vitest_1.expect)(mockAxiosInstanceForGeo).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country');
+         });
+         (0, vitest_1.it)('handles network error for geolocation request', async () => {
+             const networkError = new Error('Network error');
+-            mockAxios.get.mockRejectedValueOnce(networkError);
+-            await (0, vitest_1.expect)(sdk.getGeolocation()).rejects.toThrow('Network error');
+-            (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country', {
+-                headers: {
+-                    'Content-Type': 'application/json',
+-                    Accept: 'application/json',
+-                    'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
++            const mockAxiosInstanceForGeo = vitest_1.vi
++                .fn()
++                .mockRejectedValueOnce(networkError);
++            Object.assign(mockAxiosInstanceForGeo, {
++                post: vitest_1.vi.fn(),
++                get: vitest_1.vi.fn(),
++                patch: vitest_1.vi.fn(),
++                delete: vitest_1.vi.fn(),
++                interceptors: {
++                    request: { use: vitest_1.vi.fn() },
++                    response: { use: vitest_1.vi.fn() },
+                 },
+             });
++            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceForGeo);
++            const geoSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
++            await (0, vitest_1.expect)(geoSdk.getGeolocation()).rejects.toThrow('Network error');
++            (0, vitest_1.expect)(mockAxiosInstanceForGeo).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country');
+         });
+         (0, vitest_1.it)('works without access token (public endpoint)', async () => {
+-            const noTokenSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
+             const mockGeolocationResponse = { ipCountryCode: 'CA' };
+             const mockResponse = { data: mockGeolocationResponse };
+-            mockAxios.get.mockResolvedValueOnce(mockResponse);
+-            const result = await noTokenSdk.getGeolocation();
+-            (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country', {
+-                headers: {
+-                    'Content-Type': 'application/json',
+-                    Accept: 'application/json',
+-                    'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
++            const mockAxiosInstanceForGeo = vitest_1.vi
++                .fn()
++                .mockResolvedValueOnce(mockResponse);
++            Object.assign(mockAxiosInstanceForGeo, {
++                post: vitest_1.vi.fn(),
++                get: vitest_1.vi.fn(),
++                patch: vitest_1.vi.fn(),
++                delete: vitest_1.vi.fn(),
++                interceptors: {
++                    request: { use: vitest_1.vi.fn() },
++                    response: { use: vitest_1.vi.fn() },
+                 },
+             });
++            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceForGeo);
++            const noTokenSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig);
++            const result = await noTokenSdk.getGeolocation();
++            (0, vitest_1.expect)(mockAxiosInstanceForGeo).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country');
+             (0, vitest_1.expect)(result).toStrictEqual(mockGeolocationResponse);
+         });
+         (0, vitest_1.it)('works with staging environment', async () => {
+-            const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
+             const mockGeolocationResponse = { ipCountryCode: 'DE' };
+             const mockResponse = { data: mockGeolocationResponse };
+-            mockAxios.get.mockResolvedValueOnce(mockResponse);
+-            const result = await stagingSdk.getGeolocation();
+-            (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith('https://api-stg.transak.com/fiat/public/v1/get/country', {
+-                headers: {
+-                    'Content-Type': 'application/json',
+-                    Accept: 'application/json',
+-                    'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
++            const mockAxiosInstanceForGeo = vitest_1.vi
++                .fn()
++                .mockResolvedValueOnce(mockResponse);
++            Object.assign(mockAxiosInstanceForGeo, {
++                post: vitest_1.vi.fn(),
++                get: vitest_1.vi.fn(),
++                patch: vitest_1.vi.fn(),
++                delete: vitest_1.vi.fn(),
++                interceptors: {
++                    request: { use: vitest_1.vi.fn() },
++                    response: { use: vitest_1.vi.fn() },
+                 },
+             });
++            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceForGeo);
++            const stagingSdk = new NativeRampsSdk_1.NativeRampsSdk(mockConfig, NativeRampsSdk_1.TransakEnvironment.Staging);
++            const result = await stagingSdk.getGeolocation();
++            (0, vitest_1.expect)(mockAxiosInstanceForGeo).toHaveBeenCalledWith('https://api-stg.transak.com/fiat/public/v1/get/country');
+             (0, vitest_1.expect)(result).toStrictEqual(mockGeolocationResponse);
+         });
+         (0, vitest_1.it)('works with empty config', async () => {
+-            const emptyConfigSdk = new NativeRampsSdk_1.NativeRampsSdk({});
+             const mockGeolocationResponse = { ipCountryCode: 'FR' };
+             const mockResponse = { data: mockGeolocationResponse };
+-            mockAxios.get.mockResolvedValueOnce(mockResponse);
+-            const result = await emptyConfigSdk.getGeolocation();
+-            (0, vitest_1.expect)(mockAxios.get).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country', {
+-                headers: {
+-                    'Content-Type': 'application/json',
+-                    Accept: 'application/json',
+-                    'User-Agent': `NativeRampsSdk/${package_json_1.version}`,
++            const mockAxiosInstanceForGeo = vitest_1.vi
++                .fn()
++                .mockResolvedValueOnce(mockResponse);
++            Object.assign(mockAxiosInstanceForGeo, {
++                post: vitest_1.vi.fn(),
++                get: vitest_1.vi.fn(),
++                patch: vitest_1.vi.fn(),
++                delete: vitest_1.vi.fn(),
++                interceptors: {
++                    request: { use: vitest_1.vi.fn() },
++                    response: { use: vitest_1.vi.fn() },
+                 },
+             });
++            vitest_1.vi.mocked(axios_1.default.create).mockReturnValueOnce(mockAxiosInstanceForGeo);
++            const emptyConfigSdk = new NativeRampsSdk_1.NativeRampsSdk({});
++            const result = await emptyConfigSdk.getGeolocation();
++            (0, vitest_1.expect)(mockAxiosInstanceForGeo).toHaveBeenCalledWith('https://api.transak.com/fiat/public/v1/get/country');
+             (0, vitest_1.expect)(result).toStrictEqual(mockGeolocationResponse);
+         });
+     });
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts
+index 0404537..2836360 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts
++++ b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.d.ts
+@@ -31,17 +31,17 @@ declare const _default: {
+                 required: boolean;
+             }[];
+         };
+-        getKYCForms: {
++        getKycWorkflowRunStatus: {
+             parameters: {
+                 required: boolean;
+             }[];
+         };
+-        getKycForm: {
++        getKycRequirement: {
+             parameters: {
+                 required: boolean;
+             }[];
+         };
+-        getKycWorkflowRunStatus: {
++        getAdditionalRequirements: {
+             parameters: {
+                 required: boolean;
+             }[];
+@@ -61,16 +61,14 @@ declare const _default: {
+                 required: boolean;
+             }[];
+         };
+-        walletReserve: {
+-            parameters: {
+-                required: boolean;
+-            }[];
+-        };
+         cancelOrder: {
+             parameters: {
+                 required: boolean;
+             }[];
+         };
++        cancelAllActiveOrders: {
++            parameters: any[];
++        };
+         createOrder: {
+             parameters: {
+                 required: boolean;
+@@ -102,6 +100,9 @@ declare const _default: {
+                 required: boolean;
+             }[];
+         };
++        getActiveOrders: {
++            parameters: any[];
++        };
+         getOrdersHistory: {
+             parameters: {
+                 required: boolean;
+diff --git a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js
+index a384609..ccc28f4 100644
+--- a/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js
++++ b/node_modules/@consensys/native-ramps-sdk/dist/ServicesSignatures.js
+@@ -27,6 +27,9 @@ exports.default = {
+                 {
+                     "required": true
+                 },
++                {
++                    "required": true
++                },
+                 {
+                     "required": true
+                 }
+@@ -54,24 +57,21 @@ exports.default = {
+                 }
+             ]
+         },
+-        "getKYCForms": {
++        "getKycWorkflowRunStatus": {
+             "parameters": [
+                 {
+                     "required": true
+                 }
+             ]
+         },
+-        "getKycForm": {
++        "getKycRequirement": {
+             "parameters": [
+-                {
+-                    "required": true
+-                },
+                 {
+                     "required": true
+                 }
+             ]
+         },
+-        "getKycWorkflowRunStatus": {
++        "getAdditionalRequirements": {
+             "parameters": [
+                 {
+                     "required": true
+@@ -99,16 +99,6 @@ exports.default = {
+                 }
+             ]
+         },
+-        "walletReserve": {
+-            "parameters": [
+-                {
+-                    "required": true
+-                },
+-                {
+-                    "required": true
+-                }
+-            ]
+-        },
+         "cancelOrder": {
+             "parameters": [
+                 {
+@@ -116,8 +106,17 @@ exports.default = {
+                 }
+             ]
+         },
++        "cancelAllActiveOrders": {
++            "parameters": []
++        },
+         "createOrder": {
+             "parameters": [
++                {
++                    "required": true
++                },
++                {
++                    "required": true
++                },
+                 {
+                     "required": true
+                 }
+@@ -181,6 +180,9 @@ exports.default = {
+                 }
+             ]
+         },
++        "getActiveOrders": {
++            "parameters": []
++        },
+         "getOrdersHistory": {
+             "parameters": [
+                 {
