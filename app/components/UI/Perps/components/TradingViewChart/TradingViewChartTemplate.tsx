@@ -148,6 +148,7 @@ export const createTradingViewChartTemplate = (
                     window.candlestickSeries.removePriceLine(window.priceLines.entryPrice);
                 } catch (error) {
                     // Silent error handling
+                    console.error('TradingView: Error removing entry line:', error);
                 }
                 window.priceLines.entryPrice = null;
             }
@@ -174,6 +175,7 @@ export const createTradingViewChartTemplate = (
                     window.candlestickSeries.removePriceLine(window.priceLines.takeProfitPrice);
                 } catch (error) {
                     // Silent error handling
+                    console.error('TradingView: Error removing take profit line:', error);
                 }
                 window.priceLines.takeProfitPrice = null;
             }
@@ -191,6 +193,7 @@ export const createTradingViewChartTemplate = (
                     window.priceLines.takeProfitPrice = priceLine;
                 } catch (error) {
                     // Silent error handling
+                    console.error('TradingView: Error creating take profit line:', error);
                 }
             }
             // Remove existing stop loss line if it exists
@@ -199,6 +202,7 @@ export const createTradingViewChartTemplate = (
                     window.candlestickSeries.removePriceLine(window.priceLines.stopLossPrice);
                 } catch (error) {
                     // Silent error handling
+                    console.error('TradingView: Error removing stop loss line:', error);
                 }
                 window.priceLines.stopLossPrice = null;
             }
@@ -217,6 +221,7 @@ export const createTradingViewChartTemplate = (
                     window.priceLines.stopLossPrice = priceLine;
                 } catch (error) {
                     // Silent error handling
+                    console.error('TradingView: Error creating stop loss line:', error);
                 }
             }
             // Remove existing liquidation line if it exists
@@ -243,6 +248,7 @@ export const createTradingViewChartTemplate = (
                     window.priceLines.liquidationPrice = priceLine;
                 } catch (error) {
                     // Silent error handling
+                    console.error('TradingView: Error creating liquidation line:', error);
                 }
             }
         };
