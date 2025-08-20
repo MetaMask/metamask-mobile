@@ -13,9 +13,9 @@ import SoftAssert from '../../utils/SoftAssert';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { Mockttp } from 'mockttp';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 
 let mockServer: Mockttp;
 let mockServerPort: number;
@@ -48,15 +48,11 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
 
 describe(SmokeTrade('Onramp quote build screen'), () => {
   let shouldCheckProviderSelectedEvents = true;
-  const segmentMock = {
-    POST: [mockEvents.POST.segmentTrack],
-  };
-
   beforeEach(async () => {
     jest.setTimeout(150000);
 
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(segmentMock, mockServerPort);
+    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort);
   });
 
   afterAll(async () => {
