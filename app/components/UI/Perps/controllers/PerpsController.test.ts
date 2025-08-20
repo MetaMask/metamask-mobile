@@ -53,9 +53,13 @@ jest.mock('../../../../core/Engine', () => ({
       state: {
         selectedNetworkClientId: 'mainnet',
       },
+      findNetworkClientIdByChainId: jest.fn().mockReturnValue('arbitrum'),
     },
     TransactionController: {
       addTransaction: jest.fn(),
+    },
+    PerpsController: {
+      clearDepositResult: jest.fn(),
     },
   },
 }));
@@ -97,7 +101,7 @@ jest.mock('@metamask/controller-utils', () => {
 
 // Mock transaction utilities
 jest.mock('../../../../util/transactions', () => ({
-  generateTransferData: jest.fn(),
+  generateTransferData: jest.fn().mockReturnValue('0xabcdef123456'),
 }));
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -145,6 +149,9 @@ describe('PerpsController', () => {
       getOrders: jest.fn(),
       getFunding: jest.fn(),
       getIsFirstTimeUser: jest.fn(),
+      getOpenOrders: jest.fn(),
+      subscribeToOrders: jest.fn(),
+      subscribeToAccount: jest.fn(),
     } as unknown as jest.Mocked<HyperLiquidProvider>;
 
     // Mock the HyperLiquidProvider constructor
@@ -1016,6 +1023,414 @@ describe('PerpsController', () => {
         expect(result).toEqual(mockErrorResult);
         // Should use default error message when no error provided
         expect(controller.state.lastError).toBeTruthy();
+      });
+    });
+  });
+
+  describe('depositWithConfirmation', () => {
+    it('should prepare and submit deposit transaction successfully', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange
+        const mockTxHash = '0xtransaction123';
+        // Create a promise that won't resolve immediately
+        let resolvePromise: (value: string) => void;
+        const mockResult = new Promise<string>((resolve) => {
+          resolvePromise = resolve;
+        });
+
+        const mockDepositRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          chainId: 'eip155:42161',
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        const Engine = jest.requireMock('../../../../core/Engine');
+        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+          result: mockResult,
+        });
+
+        await controller.initializeProviders();
+
+        // Clear initial state
+        controller.state.lastDepositResult = null;
+
+        // Act
+        const result = await controller.depositWithConfirmation();
+
+        // Assert
+        expect(result).toHaveProperty('result');
+        expect(result.result).toBe(mockResult);
+
+        // Verify TransactionController was called with correct params
+        expect(
+          Engine.context.TransactionController.addTransaction,
+        ).toHaveBeenCalledWith(
+          expect.objectContaining({
+            from: '0x1234567890123456789012345678901234567890',
+            to: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+            value: '0x0',
+            data: '0xabcdef123456',
+            gas: expect.any(String),
+          }),
+          expect.objectContaining({
+            networkClientId: 'arbitrum',
+            origin: 'metamask',
+            type: 'perpsDeposit',
+          }),
+        );
+
+        // Verify initial state was cleared (before promise resolves)
+        expect(controller.state.lastDepositResult).toBeNull();
+
+        // Now resolve the promise and wait for state update
+        resolvePromise(mockTxHash);
+        await mockResult;
+
+        // Wait for async state update from the .then handler
+        await new Promise((resolve) => setTimeout(resolve, 150));
+
+        // Now verify state was updated
+        expect(controller.state.lastDepositResult).toEqual({
+          success: true,
+          txHash: mockTxHash,
+        });
+      });
+    });
+
+    it('should handle deposit transaction confirmation', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        const mockTxHash = '0xtransaction123';
+        const mockResultPromise = Promise.resolve(mockTxHash);
+
+        const mockDepositRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          chainId: 'eip155:42161',
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        const Engine = jest.requireMock('../../../../core/Engine');
+        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+          result: mockResultPromise,
+        });
+
+        await controller.initializeProviders();
+
+        // Act
+        const { result } = await controller.depositWithConfirmation();
+
+        // Wait for the promise to resolve
+        const txHash = await result;
+
+        // Assert
+        expect(txHash).toBe(mockTxHash);
+
+        // Wait for state update (setTimeout in the implementation)
+        await new Promise((resolve) => setTimeout(resolve, 150));
+
+        // Verify state was updated correctly
+        expect(controller.state.lastDepositResult).toEqual({
+          success: true,
+          txHash: mockTxHash,
+        });
+        expect(controller.state.depositInProgress).toBe(false);
+      });
+    });
+
+    it('should handle user cancellation of deposit transaction', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        const mockError = new Error('User denied transaction signature');
+        const mockResultPromise = Promise.reject(mockError);
+
+        const mockDepositRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          chainId: 'eip155:42161',
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        const Engine = jest.requireMock('../../../../core/Engine');
+        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+          result: mockResultPromise,
+        });
+
+        await controller.initializeProviders();
+
+        // Act
+        const { result } = await controller.depositWithConfirmation();
+
+        // Attempt to await the promise (should reject)
+        try {
+          await result;
+          fail('Expected promise to reject');
+        } catch (error) {
+          // Assert
+          expect(error).toBe(mockError);
+
+          // Verify state was NOT updated for user cancellation
+          expect(controller.state.lastDepositResult).toBeNull();
+          expect(controller.state.depositInProgress).toBe(false);
+        }
+      });
+    });
+
+    it('should handle deposit transaction failure', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        const mockError = new Error('Insufficient balance');
+        const mockResultPromise = Promise.reject(mockError);
+
+        const mockDepositRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          chainId: 'eip155:42161',
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        const Engine = jest.requireMock('../../../../core/Engine');
+        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+          result: mockResultPromise,
+        });
+
+        await controller.initializeProviders();
+
+        // Act
+        const { result } = await controller.depositWithConfirmation();
+
+        // Attempt to await the promise (should reject)
+        try {
+          await result;
+          fail('Expected promise to reject');
+        } catch (error) {
+          // Assert
+          expect(error).toBe(mockError);
+
+          // Verify state was updated for actual failure
+          expect(controller.state.lastDepositResult).toEqual({
+            success: false,
+            error: 'Insufficient balance',
+          });
+          expect(controller.state.depositInProgress).toBe(false);
+        }
+      });
+    });
+
+    it('should handle deposit when TransactionController.addTransaction throws', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        const mockError = new Error('Network error');
+
+        const mockDepositRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          chainId: 'eip155:42161',
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        const Engine = jest.requireMock('../../../../core/Engine');
+        Engine.context.TransactionController.addTransaction.mockRejectedValue(
+          mockError,
+        );
+
+        await controller.initializeProviders();
+
+        // Act & Assert
+        try {
+          await controller.depositWithConfirmation();
+          fail('Expected depositWithConfirmation to throw');
+        } catch (error) {
+          expect(error).toBe(mockError);
+
+          // Should not update state for user cancellation
+          if (
+            error.message.includes('User denied') ||
+            error.message.includes('User rejected')
+          ) {
+            expect(controller.state.lastDepositResult).toBeNull();
+          } else {
+            // Should update state for other errors
+            expect(controller.state.lastDepositResult).toEqual({
+              success: false,
+              error: 'Network error',
+            });
+          }
+        }
+      });
+    });
+
+    it('should clear stale deposit result when starting new deposit', async () => {
+      await withController(async ({ controller }) => {
+        // Arrange - set initial stale result
+        controller.state.lastDepositResult = {
+          success: true,
+          txHash: '0xoldtransaction',
+        };
+
+        const mockDepositRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          chainId: 'eip155:42161',
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        // Create a controlled promise that won't resolve automatically
+        let resolvePromise: (value: string) => void;
+        const mockResult = new Promise<string>((resolve) => {
+          resolvePromise = resolve;
+        });
+
+        const Engine = jest.requireMock('../../../../core/Engine');
+        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+          result: mockResult,
+        });
+
+        await controller.initializeProviders();
+
+        // Act
+        await controller.depositWithConfirmation();
+
+        // Assert - old result should be cleared immediately (before promise resolves)
+        expect(controller.state.lastDepositResult).toBeNull();
+
+        // Clean up by resolving the promise
+        resolvePromise('0xnewtransaction');
+      });
+    });
+
+    it('should handle empty deposit routes', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        await controller.initializeProviders();
+
+        // Act & Assert
+        try {
+          await controller.depositWithConfirmation();
+          fail('Expected depositWithConfirmation to throw');
+        } catch (error) {
+          expect(error).toBeDefined();
+        }
+      });
+    });
+
+    it('should use correct transaction type for perps deposit', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        const mockDepositRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          chainId: 'eip155:42161',
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        const Engine = jest.requireMock('../../../../core/Engine');
+        Engine.context.TransactionController.addTransaction.mockResolvedValue({
+          result: Promise.resolve('0xtx123'),
+        });
+
+        await controller.initializeProviders();
+
+        // Act
+        await controller.depositWithConfirmation();
+
+        // Assert
+        expect(
+          Engine.context.TransactionController.addTransaction,
+        ).toHaveBeenCalledWith(
+          expect.any(Object),
+          expect.objectContaining({
+            type: 'perpsDeposit',
+          }),
+        );
+      });
+    });
+  });
+
+  describe('clearDepositResult', () => {
+    it('should clear the deposit result', () => {
+      withController(({ controller }) => {
+        // Arrange
+        controller.state.lastDepositResult = {
+          success: true,
+          txHash: '0xtransaction123',
+        };
+
+        // Act
+        controller.clearDepositResult();
+
+        // Assert
+        expect(controller.state.lastDepositResult).toBeNull();
+      });
+    });
+
+    it('should handle clearing when result is already null', () => {
+      withController(({ controller }) => {
+        // Arrange
+        controller.state.lastDepositResult = null;
+
+        // Act
+        controller.clearDepositResult();
+
+        // Assert
+        expect(controller.state.lastDepositResult).toBeNull();
+      });
+    });
+
+    it('should be callable multiple times', () => {
+      withController(({ controller }) => {
+        // Arrange
+        controller.state.lastDepositResult = {
+          success: false,
+          error: 'Some error',
+        };
+
+        // Act
+        controller.clearDepositResult();
+        controller.clearDepositResult();
+        controller.clearDepositResult();
+
+        // Assert
+        expect(controller.state.lastDepositResult).toBeNull();
       });
     });
   });
