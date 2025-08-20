@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import Text, {
@@ -13,16 +13,84 @@ import Avatar, {
 } from '../../../../../component-library/components/Avatars/Avatar';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import RemoteImage from '../../../../Base/RemoteImage';
+import { usePerpsLivePrices } from '../../hooks/stream';
+import type { PerpsMarketData } from '../../controllers/types';
+import {
+  formatPrice,
+  formatPercentage,
+  formatPnl,
+} from '../../utils/formatUtils';
+import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { assetUrl } = usePerpsAssetMetadata(market.symbol);
 
+  // Subscribe to live prices for just this symbol
+  const livePrices = usePerpsLivePrices({
+    symbols: [market.symbol],
+    throttleMs: 3000, // 3 seconds for list view
+  });
+
+  // Merge live price into market data
+  const displayMarket = useMemo(() => {
+    const livePrice = livePrices[market.symbol];
+    if (!livePrice) {
+      return market;
+    }
+
+    // Parse and format the price
+    const currentPrice = parseFloat(livePrice.price);
+    const formattedPrice = formatPrice(currentPrice);
+
+    // Only update if price actually changed
+    if (formattedPrice === market.price) {
+      return market;
+    }
+
+    const updatedMarket: PerpsMarketData = {
+      ...market,
+      price: formattedPrice,
+    };
+
+    // Update 24h change if available
+    if (livePrice.percentChange24h) {
+      const changePercent = parseFloat(livePrice.percentChange24h);
+      updatedMarket.change24hPercent = formatPercentage(changePercent);
+
+      // Calculate dollar change
+      // If current price is P and change is x%, then:
+      // Price 24h ago = P / (1 + x/100)
+      // Dollar change = P - (P / (1 + x/100))
+      const divisor = 1 + changePercent / 100;
+      // Avoid division by zero (would mean -100% change, price went to 0)
+      const priceChange =
+        divisor !== 0 ? currentPrice - currentPrice / divisor : -currentPrice;
+      updatedMarket.change24h = formatPnl(priceChange);
+    }
+
+    // Update volume if available
+    if (livePrice.volume24h) {
+      const volume = livePrice.volume24h;
+      if (volume >= 1e9) {
+        updatedMarket.volume = `$${(volume / 1e9).toFixed(1)}B`;
+      } else if (volume >= 1e6) {
+        updatedMarket.volume = `$${(volume / 1e6).toFixed(1)}M`;
+      } else if (volume >= 1e3) {
+        updatedMarket.volume = `$${(volume / 1e3).toFixed(1)}K`;
+      } else {
+        updatedMarket.volume = `$${volume.toFixed(2)}`;
+      }
+    }
+
+    return updatedMarket;
+  }, [market, livePrices]);
+
   const handlePress = () => {
-    onPress?.(market);
+    onPress?.(displayMarket);
   };
 
-  const isPositiveChange = !market.change24h.startsWith('-');
+  const isPositiveChange = !displayMarket.change24h.startsWith('-');
 
   return (
     <TouchableOpacity style={styles.container} onPress={handlePress}>
@@ -33,9 +101,11 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
           ) : (
             <Avatar
               variant={AvatarVariant.Network}
-              name={market.symbol}
+              name={displayMarket.symbol}
               size={AvatarSize.Lg}
-              testID={`perps-market-row-item-${market.symbol}`}
+              testID={getPerpsMarketRowItemSelector.rowItem(
+                displayMarket.symbol,
+              )}
               style={styles.networkAvatar}
             />
           )}
@@ -44,11 +114,11 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
         <View style={styles.tokenInfo}>
           <View style={styles.tokenHeader}>
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {market.symbol}
+              {displayMarket.symbol}
             </Text>
             <View style={styles.leverageContainer}>
               <Text variant={TextVariant.BodyXS} color={TextColor.Muted}>
-                {market.maxLeverage}
+                {displayMarket.maxLeverage}
               </Text>
             </View>
           </View>
@@ -57,7 +127,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
             color={TextColor.Muted}
             style={styles.tokenVolume}
           >
-            {market.volume}
+            {displayMarket.volume}
           </Text>
         </View>
       </View>
@@ -69,14 +139,14 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
             color={TextColor.Default}
             style={styles.price}
           >
-            {market.price}
+            {displayMarket.price}
           </Text>
           <Text
             variant={TextVariant.BodySM}
             color={isPositiveChange ? TextColor.Success : TextColor.Error}
             style={styles.priceChange}
           >
-            {market.change24h} ({market.change24hPercent})
+            {displayMarket.change24h} ({displayMarket.change24hPercent})
           </Text>
         </View>
       </View>

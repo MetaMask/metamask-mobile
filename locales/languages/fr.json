@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "Trading de contrats perpétuels",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "Solde total",
     "available_balance": "Solde disponible",
     "margin_used": "Marge utilisée",
@@ -1124,7 +1123,7 @@
     "chart": {
       "no_data": "Aucune donnée graphique disponible"
     },
-    "perpetual_markets": "Perpetual markets",
+    "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",

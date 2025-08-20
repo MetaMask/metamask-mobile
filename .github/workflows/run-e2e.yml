@@ -6,11 +6,9 @@ name: Mobile E2E Smoke Tests
 on:
   workflow_call:
   workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize]
 
 permissions:
-  contents: write
+  contents: read
   id-token: write
 
 jobs:
@@ -198,6 +196,27 @@ jobs:
       test_suite_tag: ".*Performance.*"
     secrets: inherit
 
+  smoke-card-ios:
+    name: "Card Smoke (iOS)"
+    if: false
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: smoke-card-ios
+      platform: ios
+      test_suite_tag: ".*SmokeCard.*"
+    secrets: inherit
+
+  smoke-card-android:
+    name: "Card Smoke (Android)"
+    needs: build-android-apks
+    if: always() && needs.build-android-apks.result != 'failure'
+    uses: ./.github/workflows/run-e2e-workflow.yml
+    with:
+      test-suite-name: smoke-card-android
+      platform: android
+      test_suite_tag: ".*SmokeCard.*"
+    secrets: inherit
+
   smoke-api-specs:
     name: "API Specs E2E"
     if: false
@@ -207,7 +226,7 @@ jobs:
   report-e2e-smoke-tests:
     name: Report E2E Smoke Tests
     runs-on: ubuntu-latest
-    if: false
+    if: always()
     needs:
       - smoke-confirmations-ios
       - smoke-confirmations-android
@@ -226,6 +245,8 @@ jobs:
       - smoke-network-expansion-android
       - smoke-performance-ios
       - smoke-performance-android
+      - smoke-card-ios
+      - smoke-card-android
       - smoke-api-specs
 
     steps:
