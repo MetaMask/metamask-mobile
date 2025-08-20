@@ -66,7 +66,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref || github.ref }}
+          ref: ${{ github.event_name == 'merge_group' && github.event.merge_group.head_sha || github.event.pull_request.head.sha || github.sha }}
           clean: true
           fetch-depth: 0
 
@@ -181,11 +181,27 @@ jobs:
       - name: Prepare screenshots
         if: failure()
         run: |
-          echo "Removing APKs from artifacts..."
-          # Remove APKs, but ignore coverage folders and ios-bundle
-          find artifacts/ \( -type d \( -name "coverage-*" -o -name "ios-bundle" \) -prune \) -o -type f -name "*app-*" -delete 2>/dev/null || true
-          # Also remove artifact directories that contain APK/AAB files (download-artifact creates directories)
-          find artifacts/ \( -type d \( -name "coverage-*" -o -name "ios-bundle" \) -prune \) -o -type d -name "*app-*" -exec rm -rf {} + 2>/dev/null || true
+          echo "🔎 Pruning artifacts while preserving platform Detox artifacts and debug assets..."
+
+          case "${{ inputs.platform }}" in
+            android)
+              KEEP_PREFIX="android"
+              ;;
+            ios)
+              KEEP_PREFIX="ios"
+              ;;
+            *)
+              echo "⚠️ Unknown platform '${{ inputs.platform }}'; skipping pruning to avoid accidental deletion."
+              exit 0
+              ;;
+          esac
+
+          # Remove all artifacts except the ones that match the keep prefix. We should later on improve this to avoid having rm -rf references.
+          find artifacts -mindepth 1 -prune \
+            ! -name "${KEEP_PREFIX}*" \
+            ! -name 'coverage-*' \
+            -exec echo "Removing:" {} \; \
+            -exec rm -rf {} + 2>/dev/null || true
         continue-on-error: true
 
       - name: Upload screenshots
