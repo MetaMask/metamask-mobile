@@ -118,6 +118,20 @@ export const PerpsMarketListViewSelectorsIDs = {
 };
 
 // ========================================
+// PERPS MARKET ROW ITEM SELECTORS
+// ========================================
+
+export const PerpsMarketRowItemSelectorsIDs = {
+  ROW_ITEM: 'perps-market-row-item',
+};
+
+// Helper functions for dynamic market row selectors
+export const getPerpsMarketRowItemSelector = {
+  rowItem: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}`,
+};
+
+// ========================================
 // PERPS ORDER HEADER SELECTORS
 // ========================================
 
