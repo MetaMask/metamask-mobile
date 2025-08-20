@@ -28,7 +28,7 @@ export const useSendActions = () => {
       const toAddress = recipientAddress || to;
 
       if (isEvmSendType) {
-        await submitEvmTransaction({
+        submitEvmTransaction({
           asset,
           chainId: chainId as Hex,
           from: from as Hex,
