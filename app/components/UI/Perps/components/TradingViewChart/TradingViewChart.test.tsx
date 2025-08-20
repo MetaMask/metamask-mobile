@@ -119,11 +119,7 @@ describe('TradingViewChart', () => {
     it('renders component with different duration and period combinations', () => {
       // Arrange & Act
       const { getByTestId } = render(
-        <TradingViewChart
-          selectedDuration={TimeDuration.ONE_HOUR}
-          selectedCandlePeriod={CandlePeriod.ONE_MINUTE}
-          testID="short-duration-test"
-        />,
+        <TradingViewChart testID="short-duration-test" />,
       );
 
       // Assert
@@ -133,11 +129,7 @@ describe('TradingViewChart', () => {
     it('renders component with maximum duration settings', () => {
       // Arrange & Act
       const { getByTestId } = render(
-        <TradingViewChart
-          selectedDuration={TimeDuration.MAX}
-          selectedCandlePeriod={CandlePeriod.ONE_MINUTE}
-          testID="max-duration-test"
-        />,
+        <TradingViewChart testID="max-duration-test" />,
       );
 
       // Assert
@@ -147,11 +139,7 @@ describe('TradingViewChart', () => {
     it('handles unknown duration gracefully', () => {
       // Arrange & Act
       const { getByTestId } = render(
-        <TradingViewChart
-          selectedDuration={'unknown' as TimeDuration}
-          selectedCandlePeriod={CandlePeriod.ONE_HOUR}
-          testID="unknown-duration-test"
-        />,
+        <TradingViewChart testID="unknown-duration-test" />,
       );
 
       // Assert
@@ -338,22 +326,14 @@ describe('TradingViewChart', () => {
     it('handles different time durations correctly', () => {
       // Arrange & Act
       const { rerender, getByTestId } = render(
-        <TradingViewChart
-          selectedDuration={TimeDuration.ONE_WEEK}
-          testID="duration-test"
-        />,
+        <TradingViewChart testID="duration-test" />,
       );
 
       // Assert
       expect(getByTestId('duration-test')).toBeOnTheScreen();
 
       // Act - Change duration
-      rerender(
-        <TradingViewChart
-          selectedDuration={TimeDuration.ONE_MONTH}
-          testID="duration-test"
-        />,
-      );
+      rerender(<TradingViewChart testID="duration-test" />);
 
       // Assert
       expect(getByTestId('duration-test')).toBeOnTheScreen();
@@ -362,22 +342,14 @@ describe('TradingViewChart', () => {
     it('handles different candle periods correctly', () => {
       // Arrange & Act
       const { rerender, getByTestId } = render(
-        <TradingViewChart
-          selectedCandlePeriod={CandlePeriod.FIVE_MINUTES}
-          testID="period-test"
-        />,
+        <TradingViewChart testID="period-test" />,
       );
 
       // Assert
       expect(getByTestId('period-test')).toBeOnTheScreen();
 
       // Act - Change candle period
-      rerender(
-        <TradingViewChart
-          selectedCandlePeriod={CandlePeriod.ONE_DAY}
-          testID="period-test"
-        />,
-      );
+      rerender(<TradingViewChart testID="period-test" />);
 
       // Assert
       expect(getByTestId('period-test')).toBeOnTheScreen();
@@ -485,11 +457,7 @@ describe('TradingViewChart', () => {
     it('renders component that handles interval updates', () => {
       // Arrange & Act
       const { getByTestId } = render(
-        <TradingViewChart
-          selectedDuration={TimeDuration.ONE_DAY}
-          selectedCandlePeriod={CandlePeriod.ONE_HOUR}
-          testID="interval-test"
-        />,
+        <TradingViewChart testID="interval-test" />,
       );
 
       // Assert
@@ -667,9 +635,6 @@ describe('TradingViewChart', () => {
               ...mockCandleData,
               candles: mockCandleData.candles.slice(0, i + 1),
             }}
-            selectedDuration={
-              i % 2 === 0 ? TimeDuration.ONE_DAY : TimeDuration.ONE_WEEK
-            }
             testID="rapid-update-test"
           />,
         );
@@ -711,13 +676,10 @@ describe('TradingViewChart', () => {
       consoleSpy.mockRestore();
     });
 
-    it('handles showSampleDataWhenEmpty prop correctly', () => {
+    it('handles  prop correctly', () => {
       // Arrange & Act
       const { getByTestId } = render(
-        <TradingViewChart
-          showSampleDataWhenEmpty={false}
-          testID="no-sample-data-test"
-        />,
+        <TradingViewChart testID="no-sample-data-test" />,
       );
 
       // Assert
@@ -993,19 +955,11 @@ describe('TradingViewChart', () => {
     it('handles chart ready state changes', () => {
       // Arrange
       const { rerender, getByTestId } = render(
-        <TradingViewChart
-          selectedDuration={TimeDuration.ONE_DAY}
-          testID="ready-state-test"
-        />,
+        <TradingViewChart testID="ready-state-test" />,
       );
 
       // Act - Trigger re-render to test useEffect
-      rerender(
-        <TradingViewChart
-          selectedDuration={TimeDuration.ONE_WEEK}
-          testID="ready-state-test"
-        />,
-      );
+      rerender(<TradingViewChart testID="ready-state-test" />);
 
       // Assert
       expect(getByTestId('ready-state-test')).toBeOnTheScreen();
@@ -1239,14 +1193,9 @@ describe('TradingViewChart', () => {
         TimeDuration.MAX,
       ];
 
-      durations.forEach((duration, index) => {
+      durations.forEach((_, index) => {
         expect(() => {
-          render(
-            <TradingViewChart
-              selectedDuration={duration}
-              testID={`duration-enum-test-${index}`}
-            />,
-          );
+          render(<TradingViewChart testID={`duration-enum-test-${index}`} />);
         }).not.toThrow();
       });
     });
@@ -1270,14 +1219,9 @@ describe('TradingViewChart', () => {
         CandlePeriod.ONE_MONTH,
       ];
 
-      periods.forEach((period, index) => {
+      periods.forEach((_, index) => {
         expect(() => {
-          render(
-            <TradingViewChart
-              selectedCandlePeriod={period}
-              testID={`period-enum-test-${index}`}
-            />,
-          );
+          render(<TradingViewChart testID={`period-enum-test-${index}`} />);
         }).not.toThrow();
       });
     });
@@ -1285,11 +1229,7 @@ describe('TradingViewChart', () => {
     it('handles string values for duration and period', () => {
       // Arrange & Act
       const { getByTestId } = render(
-        <TradingViewChart
-          selectedDuration="custom-duration"
-          selectedCandlePeriod="custom-period"
-          testID="string-values-test"
-        />,
+        <TradingViewChart testID="string-values-test" />,
       );
 
       // Assert
@@ -1333,21 +1273,13 @@ describe('TradingViewChart', () => {
       expect(getByTestId('rapid-data-test')).toBeOnTheScreen();
     });
 
-    it('handles showSampleDataWhenEmpty flag variations', () => {
+    it('handles  flag variations', () => {
       // Arrange & Act - Test both true and false values
       const { rerender, getByTestId } = render(
-        <TradingViewChart
-          showSampleDataWhenEmpty
-          testID="sample-data-flag-test"
-        />,
+        <TradingViewChart testID="sample-data-flag-test" />,
       );
 
-      rerender(
-        <TradingViewChart
-          showSampleDataWhenEmpty={false}
-          testID="sample-data-flag-test"
-        />,
-      );
+      rerender(<TradingViewChart testID="sample-data-flag-test" />);
 
       // Assert
       expect(getByTestId('sample-data-flag-test')).toBeOnTheScreen();
@@ -1430,8 +1362,6 @@ describe('TradingViewChart', () => {
           candleData={mockCandleData}
           tpslLines={mockTPSLLines}
           height={400}
-          selectedDuration={TimeDuration.ONE_WEEK}
-          selectedCandlePeriod={CandlePeriod.FOUR_HOURS}
           testID="concurrent-test"
         />,
       );
@@ -1700,9 +1630,6 @@ describe('TradingViewChart', () => {
               /* Chart ready callback */
             }}
             testID="maximal-props-test"
-            showSampleDataWhenEmpty
-            selectedDuration={TimeDuration.MAX}
-            selectedCandlePeriod={CandlePeriod.ONE_MONTH}
           />,
         );
       }).not.toThrow();
@@ -1724,9 +1651,6 @@ describe('TradingViewChart', () => {
             height={1}
             tpslLines={minimalTPSL}
             testID="minimal-props-test"
-            showSampleDataWhenEmpty={false}
-            selectedDuration={TimeDuration.ONE_HOUR}
-            selectedCandlePeriod={CandlePeriod.ONE_MINUTE}
           />,
         );
       }).not.toThrow();
@@ -1740,8 +1664,6 @@ describe('TradingViewChart', () => {
             candleData={mockCandleData}
             height={-1} // Negative height
             tpslLines={undefined}
-            selectedDuration="invalid-duration"
-            selectedCandlePeriod={CandlePeriod.ONE_HOUR}
             testID="mixed-extreme-test"
           />,
         );
@@ -1899,8 +1821,6 @@ describe('TradingViewChart', () => {
         <TradingViewChart
           candleData={mockCandleData}
           tpslLines={mockTPSLLines}
-          selectedDuration={TimeDuration.ONE_WEEK}
-          selectedCandlePeriod={CandlePeriod.ONE_DAY}
           testID="workflow-test"
         />,
       );
@@ -1925,8 +1845,6 @@ describe('TradingViewChart', () => {
         <TradingViewChart
           candleData={newData}
           tpslLines={mockTPSLLines}
-          selectedDuration={TimeDuration.ONE_WEEK}
-          selectedCandlePeriod={CandlePeriod.ONE_DAY}
           testID="workflow-test"
         />,
       );
@@ -1972,9 +1890,6 @@ describe('TradingViewChart', () => {
               }
             }}
             testID="stress-test"
-            showSampleDataWhenEmpty
-            selectedDuration={TimeDuration.MAX}
-            selectedCandlePeriod={CandlePeriod.ONE_MINUTE}
           />,
         );
       }).not.toThrow();
@@ -1983,14 +1898,14 @@ describe('TradingViewChart', () => {
     it('handles component with all possible prop variations', () => {
       // Arrange - Test all possible boolean/enum combinations
       const propVariations = [
-        { showSampleDataWhenEmpty: true },
-        { showSampleDataWhenEmpty: false },
+        {},
+        {},
         { height: 1 },
         { height: 10000 },
-        { selectedDuration: TimeDuration.ONE_HOUR },
-        { selectedDuration: TimeDuration.MAX },
-        { selectedCandlePeriod: CandlePeriod.ONE_MINUTE },
-        { selectedCandlePeriod: CandlePeriod.ONE_MONTH },
+        {},
+        {},
+        {},
+        {},
       ];
 
       // Act & Assert
@@ -2114,15 +2029,9 @@ describe('TradingViewChart', () => {
         { duration: TimeDuration.ONE_DAY, period: 'unknown' as CandlePeriod },
       ];
 
-      testCombinations.forEach((combo, _index) => {
+      testCombinations.forEach((_, _index) => {
         expect(() => {
-          render(
-            <TradingViewChart
-              selectedDuration={combo.duration}
-              selectedCandlePeriod={combo.period}
-              testID={`switch-branch-test-${_index}`}
-            />,
-          );
+          render(<TradingViewChart testID={`switch-branch-test-${_index}`} />);
         }).not.toThrow();
       });
     });
@@ -2293,25 +2202,6 @@ describe('TradingViewChart', () => {
 
       // Assert
       expect(getByTestId('minimal-required-test')).toBeOnTheScreen();
-    });
-
-    it('validates component interface with TypeScript edge cases', () => {
-      // Arrange - Test TypeScript union types and optional chaining
-      const { getByTestId } = render(
-        <TradingViewChart
-          candleData={undefined} // undefined instead of null
-          height={undefined} // undefined height
-          tpslLines={undefined}
-          onChartReady={undefined}
-          testID={undefined} // undefined testID
-          showSampleDataWhenEmpty={undefined}
-          selectedDuration={undefined}
-          selectedCandlePeriod={undefined}
-        />,
-      );
-
-      // Assert
-      expect(getByTestId('tradingview-chart-container')).toBeOnTheScreen(); // Should use default testID
     });
   });
 });

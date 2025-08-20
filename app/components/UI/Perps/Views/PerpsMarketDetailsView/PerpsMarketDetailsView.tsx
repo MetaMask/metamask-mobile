@@ -349,8 +349,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             <TradingViewChart
               candleData={candleData}
               height={350}
-              selectedDuration={selectedDuration}
-              selectedCandlePeriod={selectedCandlePeriod}
               tpslLines={
                 existingPosition
                   ? {
