@@ -41,6 +41,7 @@ import styles from './Toast.styles';
 import { ToastSelectorsIDs } from '../../../../e2e/selectors/wallet/ToastModal.selectors';
 import { ButtonProps } from '../Buttons/Button/Button.types';
 import { TAB_BAR_HEIGHT } from '../Navigation/TabBar/TabBar.constants';
+import { isE2E } from '../../../util/test/utils';
 
 const visibilityDuration = 2750;
 const animationDuration = 250;
@@ -66,6 +67,9 @@ const Toast = forwardRef((_, ref: React.ForwardedRef<ToastRef>) => {
   const resetState = () => setToastOptions(undefined);
 
   const showToast = (options: ToastOptions) => {
+    // Prevent showing toast in E2E tests as they cause flakiness
+    if (isE2E) return;
+
     let timeoutDuration = 0;
     if (toastOptions) {
       if (!options.hasNoTimeout) {

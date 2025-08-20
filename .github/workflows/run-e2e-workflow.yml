@@ -196,6 +196,7 @@ jobs:
               ;;
           esac
 
+          # Remove all artifacts except the ones that match the keep prefix. We should later on improve this to avoid having rm -rf references.
           find artifacts -mindepth 1 -prune \
             ! -name "${KEEP_PREFIX}*" \
             ! -name 'coverage-*' \
