@@ -1,8 +1,17 @@
 import React from 'react';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { AccountCell } from './AccountCell';
+import AccountCell from './AccountCell';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { fireEvent } from '@testing-library/react-native';
 import { createMockAccountGroup } from '../test-utils';
+
+// Mock navigation
+const mockNavigate = jest.fn();
+
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
 
 const mockAccountGroup = createMockAccountGroup(
   'keyring:test-group/ethereum',
@@ -55,5 +64,14 @@ describe('AccountCell', () => {
     const { getByText } = renderAccountCell();
     expect(getByText('Test Account Group')).toBeTruthy();
     expect(getByText('$1234567890.00')).toBeTruthy();
+  });
+
+  it('navigates to account actions when menu button is pressed', () => {
+    const { getByTestId } = renderAccountCell();
+    const menuButton = getByTestId('multichain-account-cell-menu');
+    fireEvent.press(menuButton);
+    expect(mockNavigate).toHaveBeenCalledWith('MultichainAccountActions', {
+      accountGroup: mockAccountGroup,
+    });
   });
 });

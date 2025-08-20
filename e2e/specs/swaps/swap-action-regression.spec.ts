@@ -22,7 +22,7 @@ import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import Ganache from '../../../app/util/test/ganache';
 import { testSpecificMock } from './helpers/constants';
 import { stopMockServer } from '../../api-mocking/mock-server.js';
-import { startMockServer } from './helpers/swap-mocks';
+import { startSwapsMockServer } from './helpers/swap-mocks';
 import { defaultGanacheOptions } from '../../framework/Constants';
 
 const fixtureServer = new FixtureServer();
@@ -41,7 +41,7 @@ describe.skip(Regression('Multiple Swaps from Actions'), () => {
     await localNode.start({ ...defaultGanacheOptions, chainId: 1 });
 
     const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+    mockServer = await startSwapsMockServer(testSpecificMock, mockServerPort);
 
     await TestHelpers.reverseServerPort();
     const fixture = new FixtureBuilder()
