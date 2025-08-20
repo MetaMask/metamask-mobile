@@ -240,38 +240,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           <Text style={styles.limitPriceCurrency}>USD</Text>
         </View>
 
-        {/* Price difference percentage display */}
-        {limitPrice &&
-          parseFloat(limitPrice.replace(/[$,]/g, '')) > 0 &&
-          currentPrice > 0 && (
-            <View style={styles.priceDifferenceContainer}>
-              <Text style={styles.priceDifferenceLabel}>
-                {strings(
-                  'perps.order.limit_price_modal.difference_from_market',
-                )}
-              </Text>
-              <Text
-                style={[
-                  styles.priceDifferenceValue,
-                  {
-                    color:
-                      parseFloat(limitPrice.replace(/[$,]/g, '')) > currentPrice
-                        ? colors.success.default
-                        : colors.error.default,
-                  },
-                ]}
-              >
-                {(
-                  ((parseFloat(limitPrice.replace(/[$,]/g, '')) -
-                    currentPrice) /
-                    currentPrice) *
-                  100
-                ).toFixed(2)}
-                %
-              </Text>
-            </View>
-          )}
-
         {/* Quick percentage buttons */}
         <View style={styles.percentageButtonsRow}>
           <TouchableOpacity
@@ -300,15 +268,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.percentageButton}
-            onPress={() => setLimitPrice(calculatePriceForPercentage(1))}
+            onPress={() => setLimitPrice(calculatePriceForPercentage(-2))}
           >
-            <Text variant={TextVariant.BodyMD}>+1%</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.percentageButton}
-            onPress={() => setLimitPrice(calculatePriceForPercentage(2))}
-          >
-            <Text variant={TextVariant.BodyMD}>+2%</Text>
+            <Text variant={TextVariant.BodyMD}>-2%</Text>
           </TouchableOpacity>
         </View>
 
