@@ -1,6 +1,11 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { parseCaipChainId, CaipChainId } from '@metamask/utils';
+import {
+  parseCaipChainId,
+  CaipChainId,
+  toCaipChainId,
+  isHexString,
+} from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../core/Engine';
@@ -34,6 +39,8 @@ jest.mock('@metamask/utils', () => ({
     Eip155: 'eip155',
     Solana: 'solana',
   },
+  toCaipChainId: jest.fn(),
+  isHexString: jest.fn(),
 }));
 
 jest.mock('@metamask/multichain-network-controller', () => ({
@@ -105,6 +112,10 @@ describe('useNetworkEnablement', () => {
     });
     (toEvmCaipChainId as jest.Mock).mockReturnValue('eip155:1');
     (toHex as jest.Mock).mockImplementation((value) => `0x${value}`);
+    (toCaipChainId as jest.Mock).mockImplementation(
+      (namespace, chainId) => `${namespace}:${chainId}`,
+    );
+    (isHexString as unknown as jest.Mock).mockReturnValue(true);
 
     (
       Engine.context as unknown as {
@@ -128,6 +139,7 @@ describe('useNetworkEnablement', () => {
       expect(result.current).toHaveProperty('toggleNetwork');
       expect(result.current).toHaveProperty('isNetworkEnabled');
       expect(result.current).toHaveProperty('hasOneEnabledNetwork');
+      expect(result.current).toHaveProperty('tryEnableEvmNetwork');
     });
 
     it('returns functions for network operations', () => {
@@ -138,6 +150,7 @@ describe('useNetworkEnablement', () => {
       expect(typeof result.current.toggleNetwork).toBe('function');
       expect(typeof result.current.isNetworkEnabled).toBe('function');
       expect(typeof result.current.hasOneEnabledNetwork).toBe('boolean');
+      expect(typeof result.current.tryEnableEvmNetwork).toBe('function');
     });
 
     it('calculates namespace correctly', () => {
@@ -420,6 +433,40 @@ describe('useNetworkEnablement', () => {
     });
   });
 
+  describe('tryEnableEvmNetwork', () => {
+    it('enables network when global selector is enabled and network is disabled', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.tryEnableEvmNetwork('0x1');
+
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).toHaveBeenCalledWith('eip155:0x1');
+    });
+
+    it('does not enable network when chainId is not provided', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.tryEnableEvmNetwork();
+
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('does not enable network when chainId is not a hex string', () => {
+      (isHexString as unknown as jest.Mock).mockReturnValue(false);
+
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      result.current.tryEnableEvmNetwork('invalid');
+
+      expect(
+        mockNetworkEnablementController.enableNetwork,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
   describe('hook return values', () => {
     it('returns all expected properties', () => {
       const { result } = renderHook(() => useNetworkEnablement());
@@ -446,6 +493,7 @@ describe('useNetworkEnablement', () => {
         toggleNetwork: expect.any(Function),
         isNetworkEnabled: expect.any(Function),
         hasOneEnabledNetwork: true,
+        tryEnableEvmNetwork: expect.any(Function),
       });
     });
   });
