@@ -34,7 +34,7 @@ export const getEvmBalance = ({
   }
   if (isNativeToken(asset)) {
     const accountAddress = Object.keys(accounts).find(
-      (address) => address.toLowerCase() === from.toLowerCase(),
+      (address) => address?.toLowerCase() === from?.toLowerCase(),
     ) as Hex;
     const account = accounts[accountAddress];
     const balance = hexToBN(account.balance);
@@ -69,7 +69,7 @@ export const useBalance = () => {
       return '0';
     }
     return isEvmSendType
-      ? getEvmBalance({ accounts, asset, contractBalances, from })
+      ? getEvmBalance({ accounts, asset, contractBalances, from: from as Hex })
       : getNonEvmBalance(asset);
   }, [accounts, asset, contractBalances, from, isEvmSendType]);
 

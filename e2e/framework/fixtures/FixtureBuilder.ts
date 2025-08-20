@@ -2,6 +2,7 @@ import {
   getGanachePort,
   getSecondTestDappLocalUrl,
   getTestDappLocalUrl,
+  getMockServerPort,
   getTestDappLocalUrlByDappCounter,
 } from './FixtureUtils';
 import { merge } from 'lodash';
@@ -512,7 +513,7 @@ class FixtureBuilder {
           whitelist: [],
           tabs: [
             {
-              url: 'https://google.com',
+              url: `http://localhost:${getMockServerPort()}/health-check`,
               id: 1692550481062,
             },
           ],
