@@ -1,97 +1,108 @@
-import React, { Fragment, useCallback } from 'react';
-import { SafeAreaView, View } from 'react-native';
+// Third party dependencies.
+import React, { Fragment, useCallback, useMemo } from 'react';
+import { SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
-import AccountAction from '../../../../components/Views/AccountAction/AccountAction';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+// External dependencies.
+import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import { IconName } from '@metamask/design-system-react-native';
+import ActionListItem from '../../ActionListItem';
 import { strings } from '../../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-
-import { MultichainAddWalletActionsProps } from './MultichainAddWalletActions.types';
-import { AddAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
+import { IMetaMetricsEvent } from '../../../../core/Analytics/MetaMetrics.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { useMetrics } from '../../../../components/hooks/useMetrics';
-import { useStyles } from '../../../../components/hooks/useStyles';
-import styleSheet from './MultichainAddWalletActions.styles';
+import { AddAccountBottomSheetSelectorsIDs } from '../../../../../e2e/selectors/wallet/AddAccountBottomSheet.selectors';
+
+// Types
+import { MultichainAddWalletActionsProps } from './MultichainAddWalletActions.types';
+
+// Internal types
+interface ActionConfig {
+  type: string;
+  label: string;
+  iconName: IconName;
+  testID: string;
+  isVisible: boolean;
+  analyticsEvent: IMetaMetricsEvent;
+  navigationAction: () => void;
+}
 
 const MultichainAddWalletActions = ({
   onBack,
 }: MultichainAddWalletActionsProps) => {
   const { navigate } = useNavigation();
-  const { styles } = useStyles(styleSheet, {});
   const { trackEvent, createEventBuilder } = useMetrics();
 
-  const openImportAccount = useCallback(() => {
-    navigate('ImportPrivateKeyView');
-    onBack();
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
-      ).build(),
-    );
-  }, [navigate, onBack, trackEvent, createEventBuilder]);
+  const createActionHandler = useCallback(
+    (config: Omit<ActionConfig, 'isVisible'>) => () => {
+      config.navigationAction();
 
-  const openConnectHardwareWallet = useCallback(() => {
-    navigate(Routes.HW.CONNECT);
-    onBack();
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CONNECT_HARDWARE_WALLET).build(),
-    );
-  }, [onBack, navigate, trackEvent, createEventBuilder]);
+      trackEvent(createEventBuilder(config.analyticsEvent).build());
+    },
+    [trackEvent, createEventBuilder],
+  );
 
-  const openImportSrp = useCallback(() => {
-    trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
-      ).build(),
-    );
-    navigate(Routes.MULTI_SRP.IMPORT);
-    onBack();
-  }, [onBack, navigate, trackEvent, createEventBuilder]);
+  const actionConfigs: ActionConfig[] = useMemo(
+    () => [
+      {
+        type: 'import_wallet',
+        label: strings('account_actions.import_wallet'),
+        iconName: IconName.Wallet,
+        testID: AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
+        isVisible: true,
+        analyticsEvent: MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
+        navigationAction: () => {
+          navigate(Routes.MULTI_SRP.IMPORT);
+          onBack();
+        },
+      },
+      {
+        type: 'import_account',
+        label: strings('accounts.import_account'),
+        iconName: IconName.Download,
+        testID: AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
+        isVisible: true,
+        analyticsEvent: MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+        navigationAction: () => {
+          navigate('ImportPrivateKeyView');
+          onBack();
+        },
+      },
+      {
+        type: 'hardware_wallet',
+        label: strings('multichain_accounts.add_hardware_wallet'),
+        iconName: IconName.Usb,
+        testID: AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON,
+        isVisible: true,
+        analyticsEvent: MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
+        navigationAction: () => {
+          navigate(Routes.HW.CONNECT);
+          onBack();
+        },
+      },
+    ],
+    [navigate, onBack],
+  );
 
   return (
     <SafeAreaView>
       <Fragment>
-        <SheetHeader title={strings('multichain_accounts.add_wallet')} />
-        <View>
-          {/* TODO: Uncomment when adding new SRP will be implemented */}
-          {/* <AccountAction
-            actionTitle={strings('account_actions.create_new_wallet')}
-            iconName={IconName.Add}
-            onPress={() => {
-              // TODO: add action for "Create a new wallet"
-            }}
-            disabled={false}
-            testID={
-              AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON
-            }
-            style={styles.accountAction}
-          /> */}
-          <AccountAction
-            actionTitle={strings('account_actions.import_wallet')}
-            iconName={IconName.Wallet}
-            onPress={openImportSrp}
-            testID={AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON}
-            style={styles.accountAction}
-          />
-          <AccountAction
-            actionTitle={strings('accounts.import_account')}
-            iconName={IconName.Download}
-            onPress={openImportAccount}
-            testID={AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON}
-            style={styles.accountAction}
-          />
-          <AccountAction
-            actionTitle={strings('multichain_accounts.add_hardware_wallet')}
-            iconName={IconName.Usb}
-            onPress={openConnectHardwareWallet}
-            testID={
-              AddAccountBottomSheetSelectorsIDs.ADD_HARDWARE_WALLET_BUTTON
-            }
-            style={styles.accountAction}
-          />
-        </View>
+        <BottomSheetHeader>
+          {strings('multichain_accounts.add_wallet')}
+        </BottomSheetHeader>
+        {actionConfigs.map(
+          (config) =>
+            config.isVisible && (
+              <ActionListItem
+                key={config.type}
+                label={config.label}
+                iconName={config.iconName}
+                onPress={createActionHandler(config)}
+                testID={config.testID}
+              />
+            ),
+        )}
       </Fragment>
     </SafeAreaView>
   );
