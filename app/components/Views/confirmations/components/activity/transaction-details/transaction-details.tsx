@@ -10,7 +10,7 @@ import { useNavigation } from '@react-navigation/native';
 import { getNavigationOptionsTitle } from '../../../../../UI/Navbar';
 import { useTheme } from '../../../../../../util/theme';
 import { TransactionDetailsPaidWithRow } from '../transaction-details-paid-with-row';
-import { TransactionDetailsSummary } from '../transaction-details-summary/transaction-details-summary';
+import { TransactionDetailsSummary } from '../transaction-details-summary';
 import { TransactionDetailsHero } from '../transaction-details-hero/transaction-details-hero';
 import { TransactionDetailsTotalRow } from '../transaction-details-total-row';
 import { TransactionType } from '@metamask/transaction-controller';

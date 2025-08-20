@@ -15,7 +15,7 @@ import {
 } from '../../../../../UI/Box/box.types';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './transaction-details-summary.styles';
-import I18n from '../../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../../locales/i18n';
 import { getIntlDateTimeFormatter } from '../../../../../../util/intl';
 import { selectTransactionsByIds } from '../../../../../../selectors/transactionController';
 import { useSelector } from 'react-redux';
@@ -137,9 +137,12 @@ function getLineTitle(
 
   switch (type) {
     case TransactionType.bridge:
-      return `Bridge from ${sourceSymbol} to ${targetSymbol}`;
+      return strings('transaction_details.summary_title.bridge', {
+        sourceSymbol,
+        targetSymbol,
+      });
     case TransactionType.perpsDeposit:
-      return 'Add funds';
+      return strings('transaction_details.summary_title.perps_deposit');
     default:
       return undefined;
   }

@@ -5453,6 +5453,10 @@
       "network_fee": "Network fee",
       "paid_with": "Paid with",
       "total": "Total"
+    },
+    "summary_title": {
+      "bridge": "Bridge from {{sourceSymbol}} to {{targetSymbol}}",
+      "perps_deposit": "Add funds"
     }
   }
 }
