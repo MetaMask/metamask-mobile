@@ -17,6 +17,8 @@ import { NetworkRow } from '../NetworkRow';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectChainId } from '../../../../../selectors/networkController';
 import { BridgeViewMode } from '../../types';
+import { useSwitchNetworks } from '../../../../Views/NetworkSelector/useSwitchNetworks';
+import { useNetworkInfo } from '../../../../../selectors/selectedNetworkController';
 
 export interface BridgeDestNetworkSelectorRouteParams {
   shouldGoToTokens?: boolean;
@@ -40,10 +42,21 @@ export const BridgeDestNetworkSelector: React.FC = () => {
   const enabledDestChains = useSelector(selectEnabledDestChains);
   const currentChainId = useSelector(selectChainId);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
+  const {
+    chainId: selectedEvmChainId,
+    domainIsConnectedDapp,
+    networkName: selectedNetworkName,
+  } = useNetworkInfo();
+  const { onEnableNetwork } = useSwitchNetworks({
+    domainIsConnectedDapp,
+    selectedChainId: selectedEvmChainId,
+    selectedNetworkName,
+  });
 
   const handleChainSelect = useCallback(
     (chainId: Hex | CaipChainId) => {
       dispatch(setSelectedDestChainId(chainId));
+      onEnableNetwork(chainId);
 
       navigation.goBack();
 
@@ -53,7 +66,7 @@ export const BridgeDestNetworkSelector: React.FC = () => {
         });
       }
     },
-    [dispatch, navigation, route?.params?.shouldGoToTokens],
+    [dispatch, navigation, route?.params?.shouldGoToTokens, onEnableNetwork],
   );
 
   const renderDestChains = useCallback(

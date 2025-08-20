@@ -100,14 +100,26 @@ export const useNetworkEnablement = () => {
   const toggleNetwork = useMemo(
     () => (chainId: CaipChainId) => {
       const networkEnabled = isNetworkEnabled(chainId);
+      // This is needed because we should have 1 network at minimum enabled
+      // despite if the user deselects all networks
+      const isSingleNetworkEnabled =
+        Object.keys(enabledNetworksByNamespace[namespace] || {}).filter(
+          (key) => enabledNetworksByNamespace[namespace]?.[key as Hex],
+        ).length === 1;
 
-      if (networkEnabled) {
+      if (networkEnabled && !isSingleNetworkEnabled) {
         disableNetwork(chainId);
       } else {
         enableNetwork(chainId);
       }
     },
-    [isNetworkEnabled, enableNetwork, disableNetwork],
+    [
+      isNetworkEnabled,
+      enableNetwork,
+      disableNetwork,
+      enabledNetworksByNamespace,
+      namespace,
+    ],
   );
 
   const tryEnableEvmNetwork = useCallback(

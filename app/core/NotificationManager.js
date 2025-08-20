@@ -231,6 +231,7 @@ class NotificationManager {
           TokenDetectionController,
           AccountTrackerController,
           NetworkController,
+          NetworkEnablementController,
         } = Engine.context;
 
         const networkClientId = NetworkController.findNetworkClientIdByChainId(
@@ -245,6 +246,7 @@ class NotificationManager {
           TokenBalancesController.updateBalancesByChainId({
             chainId: transactionMeta.chainId,
           }),
+          NetworkEnablementController.enableNetwork(transactionMeta.chainId),
         ];
         switch (originalTransaction.assetType) {
           case 'ERC20': {
