@@ -6,17 +6,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
 import type { CandleData } from '../../types';
 import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-
-import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-import { createIntervalUpdateMessage } from './utils/chartCalculations';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 export interface TPSLLines {
   takeProfitPrice?: string;
@@ -34,9 +30,6 @@ interface TradingViewChartProps {
   tpslLines?: TPSLLines;
   onChartReady?: () => void;
   testID?: string;
-  showSampleDataWhenEmpty?: boolean; // For debugging purposes
-  selectedDuration?: TimeDuration | string;
-  selectedCandlePeriod?: CandlePeriod | string;
 }
 
 // ATTRIBUTION NOTICE:
@@ -48,43 +41,11 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   tpslLines,
   onChartReady,
   testID,
-  showSampleDataWhenEmpty = true, // Enable by default for debugging
-  selectedDuration = '1d',
-  selectedCandlePeriod = CandlePeriod.ONE_HOUR,
 }) => {
   const { styles, theme } = useStyles(styleSheet, {});
   const webViewRef = useRef<WebView>(null);
   const [isChartReady, setIsChartReady] = useState(false);
   const [webViewError, setWebViewError] = useState<string | null>(null);
-
-  const sendIntervalUpdate = useCallback(
-    (duration: TimeDuration | string, candlePeriod?: CandlePeriod) => {
-      if (!webViewRef.current || !isChartReady) {
-        return;
-      }
-
-      const period = candlePeriod || CandlePeriod.ONE_HOUR;
-      const message = createIntervalUpdateMessage(duration, period);
-
-      webViewRef.current.postMessage(JSON.stringify(message));
-    },
-    [isChartReady],
-  );
-
-  // Send initial interval when chart becomes ready
-  useEffect(() => {
-    if (isChartReady) {
-      sendIntervalUpdate(
-        selectedDuration,
-        selectedCandlePeriod as CandlePeriod,
-      );
-    }
-  }, [
-    isChartReady,
-    selectedDuration,
-    selectedCandlePeriod,
-    sendIntervalUpdate,
-  ]);
 
   const htmlContent = useMemo(
     () => createTradingViewChartTemplate(theme),
@@ -212,13 +173,7 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
       };
       webViewRef.current.postMessage(JSON.stringify(message));
     }
-  }, [
-    isChartReady,
-    candleDataVersion,
-    formatCandleData,
-    showSampleDataWhenEmpty,
-    candleData,
-  ]);
+  }, [isChartReady, candleDataVersion, formatCandleData, candleData]);
 
   // Update auxiliary lines when they change
   useEffect(() => {
