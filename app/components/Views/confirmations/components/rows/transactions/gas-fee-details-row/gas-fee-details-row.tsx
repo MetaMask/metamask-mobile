@@ -55,8 +55,14 @@ const EstimationInfo = ({
       {!hideFiatForTestnet && fiatValue && (
         <Text style={styles.secondaryValue}>{fiatValue}</Text>
       )}
-      {!fiatOnly && <Text style={styles.primaryValue}>{tokenValue}</Text>}
-      <SelectedGasFeeToken />
+      {!fiatOnly && (
+        <>
+          {!gasFeeToken && (
+            <Text style={styles.primaryValue}>{tokenValue}</Text>
+          )}
+          <SelectedGasFeeToken />
+        </>
+      )}
     </View>
   );
 };
