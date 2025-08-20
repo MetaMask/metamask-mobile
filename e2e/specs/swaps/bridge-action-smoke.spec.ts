@@ -25,7 +25,7 @@ import {
   getFixturesServerPort,
   getMockServerPort,
 } from '../../framework/fixtures/FixtureUtils';
-import { startMockServer } from './helpers/swap-mocks';
+import { startSwapsMockServer } from './helpers/swap-mocks';
 import { stopMockServer } from '../../api-mocking/mock-server';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { bridgeSpecificMock, localNodeOptions } from './helpers/constants';
@@ -65,7 +65,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     await startFixtureServer(fixtureServer);
     await loadFixture(fixtureServer, { fixture });
     const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(bridgeSpecificMock, mockServerPort);
+    mockServer = await startSwapsMockServer(bridgeSpecificMock, mockServerPort);
     await TestHelpers.launchApp({
       permissions: { notifications: 'YES' },
       launchArgs: {
