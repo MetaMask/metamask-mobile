@@ -7,14 +7,16 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
+import { useSelector } from 'react-redux';
 
-import { useSendScreenNavigation } from '../../hooks/send/useSendScreenNavigation';
+import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useAssetSelectionMetrics } from '../../hooks/send/metrics/useAssetSelectionMetrics';
-import { useSendContext } from '../../context/send-context';
-import { AssetType } from '../../types/token';
-import { Token } from '../UI/token';
 import { strings } from '../../../../../../locales/i18n';
+import { AssetType } from '../../types/token';
+import { useSendContext } from '../../context/send-context';
+import { useSendScreenNavigation } from '../../hooks/send/useSendScreenNavigation';
+import { useAssetSelectionMetrics } from '../../hooks/send/metrics/useAssetSelectionMetrics';
+import { Token } from '../UI/token';
 
 const TOKEN_COUNT_PER_PAGE = 20;
 interface TokenListProps {
@@ -29,10 +31,11 @@ export function TokenList({
   onClearFilters,
 }: TokenListProps) {
   const { gotToSendScreen } = useSendScreenNavigation();
-  const { updateAsset } = useSendContext();
+  const { updateAsset, updateFromAccount } = useSendContext();
   const { captureAssetSelected } = useAssetSelectionMetrics();
   const [visibleTokenCount, setVisibleTokenCount] =
     useState(TOKEN_COUNT_PER_PAGE);
+  const accounts = useSelector(selectInternalAccountsById);
 
   const handleTokenPress = useCallback(
     (asset: AssetType) => {
@@ -41,9 +44,17 @@ export function TokenList({
       );
       captureAssetSelected(asset, position.toString());
       updateAsset(asset);
+      updateFromAccount(accounts[asset.accountId as string]);
       gotToSendScreen(Routes.SEND.AMOUNT);
     },
-    [captureAssetSelected, gotToSendScreen, tokens, updateAsset],
+    [
+      captureAssetSelected,
+      gotToSendScreen,
+      tokens,
+      updateAsset,
+      updateFromAccount,
+      accounts,
+    ],
   );
 
   const handleShowMore = useCallback(() => {
