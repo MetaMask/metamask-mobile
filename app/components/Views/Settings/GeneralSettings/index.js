@@ -5,7 +5,6 @@ import {
   ScrollView,
   Switch,
   View,
-  Image,
   TouchableOpacity,
 } from 'react-native';
 import { connect } from 'react-redux';
@@ -22,12 +21,13 @@ import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import {
   setSearchEngine,
   setPrimaryCurrency,
-  setUseBlockieIcon,
+  setAvatarStyle,
   setHideZeroBalanceTokens,
 } from '../../../../actions/settings';
 import PickComponent from '../../PickComponent';
-import { toDataUrl } from '../../../../util/blockies.js';
-import Jazzicon from 'react-native-jazzicon';
+import AvatarAccount, {
+  AvatarAccountType,
+} from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import { withMetricsAwareness } from '../../../../components/hooks/useMetrics';
@@ -132,29 +132,22 @@ const createStyles = (colors) =>
       flexDirection: 'row',
     },
     identicon_row: {
-      width: '50%',
+      width: '33%',
       alignItems: 'center',
-      flexDirection: 'row',
+      flexDirection: 'column',
     },
     identiconText: {
-      marginLeft: 12,
+      marginTop: 12,
     },
     blockie: {
       height: diameter,
       width: diameter,
       borderRadius: diameter / 2,
     },
-    border: {
-      height: diameter + spacing,
-      width: diameter + spacing,
-      borderRadius: (diameter + spacing) / 2,
-      backgroundColor: colors.background.default,
-      borderWidth: 2,
-      borderColor: colors.background.default,
+    selectedAvatar: {
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    selected: {
+      borderWidth: 2,
       borderColor: colors.primary.default,
     },
   });
@@ -189,13 +182,13 @@ class Settings extends PureComponent {
      */
     primaryCurrency: PropTypes.string,
     /**
-     * Show a BlockieIcon instead of JazzIcon
+     * Selected avatar style (Maskicon | Blockies | JazzIcon)
      */
-    useBlockieIcon: PropTypes.bool,
+    avatarStyle: PropTypes.string,
     /**
-     * called to toggle BlockieIcon
+     * Called to set avatar style
      */
-    setUseBlockieIcon: PropTypes.func,
+    setAvatarStyle: PropTypes.func,
     /**
      * A string that represents the selected address
      */
@@ -326,8 +319,8 @@ class Settings extends PureComponent {
     const {
       currentCurrency,
       primaryCurrency,
-      useBlockieIcon,
-      setUseBlockieIcon,
+      avatarStyle,
+      setAvatarStyle,
       selectedAddress,
       hideZeroBalanceTokens,
     } = this.props;
@@ -477,30 +470,53 @@ class Settings extends PureComponent {
             <View style={styles.accessory}>
               <View style={styles.identicon_container}>
                 <TouchableOpacity
-                  onPress={() => setUseBlockieIcon(false)}
+                  onPress={() => setAvatarStyle(AvatarAccountType.Maskicon)}
                   style={styles.identicon_row}
                 >
-                  <View
-                    style={[styles.border, !useBlockieIcon && styles.selected]}
-                  >
-                    <Jazzicon size={diameter} address={selectedAddress} />
-                  </View>
+                  <AvatarAccount
+                    type={AvatarAccountType.Maskicon}
+                    accountAddress={selectedAddress}
+                    size={diameter}
+                    style={
+                      avatarStyle === AvatarAccountType.Maskicon
+                        ? styles.selectedAvatar
+                        : undefined
+                    }
+                  />
+                  <Text style={styles.identiconText}>Mask Icons</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => setAvatarStyle(AvatarAccountType.JazzIcon)}
+                  style={styles.identicon_row}
+                >
+                  <AvatarAccount
+                    type={AvatarAccountType.JazzIcon}
+                    accountAddress={selectedAddress}
+                    size={diameter}
+                    style={
+                      avatarStyle === AvatarAccountType.JazzIcon
+                        ? styles.selectedAvatar
+                        : undefined
+                    }
+                  />
                   <Text style={styles.identiconText}>
                     {strings('app_settings.jazzicons')}
                   </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  onPress={() => setUseBlockieIcon(true)}
+                  onPress={() => setAvatarStyle(AvatarAccountType.Blockies)}
                   style={styles.identicon_row}
                 >
-                  <View
-                    style={[styles.border, useBlockieIcon && styles.selected]}
-                  >
-                    <Image
-                      source={{ uri: toDataUrl(selectedAddress) }}
-                      style={styles.blockie}
-                    />
-                  </View>
+                  <AvatarAccount
+                    type={AvatarAccountType.Blockies}
+                    accountAddress={selectedAddress}
+                    size={diameter}
+                    style={
+                      avatarStyle === AvatarAccountType.Blockies
+                        ? styles.selectedAvatar
+                        : undefined
+                    }
+                  />
                   <Text style={styles.identiconText}>
                     {strings('app_settings.blockies')}
                   </Text>
@@ -521,7 +537,7 @@ const mapStateToProps = (state) => ({
   currentCurrency: selectCurrentCurrency(state),
   searchEngine: state.settings.searchEngine,
   primaryCurrency: state.settings.primaryCurrency,
-  useBlockieIcon: state.settings.useBlockieIcon,
+  avatarStyle: state.settings.avatarStyle,
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   hideZeroBalanceTokens: state.settings.hideZeroBalanceTokens,
   // appTheme: state.user.appTheme,
@@ -531,8 +547,7 @@ const mapDispatchToProps = (dispatch) => ({
   setSearchEngine: (searchEngine) => dispatch(setSearchEngine(searchEngine)),
   setPrimaryCurrency: (primaryCurrency) =>
     dispatch(setPrimaryCurrency(primaryCurrency)),
-  setUseBlockieIcon: (useBlockieIcon) =>
-    dispatch(setUseBlockieIcon(useBlockieIcon)),
+  setAvatarStyle: (avatarStyle) => dispatch(setAvatarStyle(avatarStyle)),
   setHideZeroBalanceTokens: (hideZeroBalanceTokens) =>
     dispatch(setHideZeroBalanceTokens(hideZeroBalanceTokens)),
 });
