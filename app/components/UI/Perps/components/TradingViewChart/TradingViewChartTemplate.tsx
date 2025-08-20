@@ -15,13 +15,13 @@ export const createTradingViewChartTemplate = (
             width: 100%;
             height: 100%;
             font-family: Arial, sans-serif;
-            background: '${theme.colors.background.default}';
+            background: ${theme.colors.background.default};
         }
         #container {
             width: 100%;
             height: 100vh;
             position: relative;
-            background: '${theme.colors.background.default}';
+            background: ${theme.colors.background.default};
         }
     </style>
 </head>
