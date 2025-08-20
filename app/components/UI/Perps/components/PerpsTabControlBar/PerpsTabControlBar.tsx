@@ -13,11 +13,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsTabControlBar.styles';
-import {
-  useColorPulseAnimation,
-  useBalanceComparison,
-  usePerpsDepositStatus,
-} from '../../hooks';
+import { useColorPulseAnimation, useBalanceComparison } from '../../hooks';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { formatPerpsFiat } from '../../utils/formatUtils';
@@ -33,9 +29,6 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
 
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
-
-  // Enable deposit status monitoring (for toasts)
-  usePerpsDepositStatus();
 
   // Use the reusable hooks
   const { startPulseAnimation, getAnimatedStyle, stopAnimation } =

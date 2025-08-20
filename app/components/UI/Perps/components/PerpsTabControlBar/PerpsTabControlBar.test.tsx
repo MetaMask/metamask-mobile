@@ -30,7 +30,6 @@ jest.mock('../../hooks', () => ({
   usePerpsTrading: jest.fn(),
   useColorPulseAnimation: jest.fn(),
   useBalanceComparison: jest.fn(),
-  usePerpsDepositStatus: jest.fn(() => undefined),
 }));
 
 jest.mock('../../hooks/stream', () => ({
