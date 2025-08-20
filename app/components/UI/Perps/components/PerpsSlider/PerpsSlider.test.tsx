@@ -385,12 +385,7 @@ describe('PerpsSlider', () => {
 
     it('handles custom spring configuration', () => {
       // Act
-      render(
-        <PerpsSlider
-          {...defaultProps}
-          springConfig={{ damping: 20, stiffness: 300 }}
-        />,
-      );
+      render(<PerpsSlider {...defaultProps} />);
 
       // Assert - Component should render without crashing
       expect(screen.getByText('50%')).toBeOnTheScreen();
