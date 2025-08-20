@@ -22,7 +22,7 @@ import QuoteView from '../../pages/Bridge/QuoteView.ts';
 import Matchers from '../../utils/Matchers.js';
 import Gestures from '../../utils/Gestures.js';
 import { Assertions as FrameworkAssertions } from '../../framework';
-import { startMockServer } from '../swaps/helpers/swap-mocks.ts';
+import { startSwapsMockServer } from '../swaps/helpers/swap-mocks.ts';
 import { testSpecificMock } from '../swaps/helpers/constants.ts';
 import { localNodeOptions } from '../bridge/constants.ts';
 
@@ -44,7 +44,7 @@ describe(
       await localNode.start(localNodeOptions);
 
       const mockServerPort = getMockServerPort();
-      mockServer = await startMockServer(testSpecificMock, mockServerPort);
+      mockServer = await startSwapsMockServer(testSpecificMock, mockServerPort);
 
       await TestHelpers.reverseServerPort();
       const fixture = new FixtureBuilder()
