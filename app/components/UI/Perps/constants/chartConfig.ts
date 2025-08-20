@@ -87,7 +87,7 @@ export const CHART_INTERVALS = [
  * Available time durations for chart view
  */
 export const TIME_DURATIONS = [
-  { label: '1hr', value: TimeDuration.ONE_HOUR },
+  { label: '1HR', value: TimeDuration.ONE_HOUR },
   { label: '1D', value: TimeDuration.ONE_DAY },
   { label: '1W', value: TimeDuration.ONE_WEEK },
   { label: '1M', value: TimeDuration.ONE_MONTH },
