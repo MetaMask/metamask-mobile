@@ -8,13 +8,13 @@ import {
   TextColor,
 } from '@metamask/design-system-react-native';
 
-import { useSendScreenNavigation } from '../../hooks/send/useSendScreenNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useAssetSelectionMetrics } from '../../hooks/send/metrics/useAssetSelectionMetrics';
-import { useSendContext } from '../../context/send-context';
-import { AssetType } from '../../types/token';
-import { Token } from '../UI/token';
 import { strings } from '../../../../../../locales/i18n';
+import { AssetType } from '../../types/token';
+import { useSendContext } from '../../context/send-context';
+import { useSendScreenNavigation } from '../../hooks/send/useSendScreenNavigation';
+import { useAssetSelectionMetrics } from '../../hooks/send/metrics/useAssetSelectionMetrics';
+import { Token } from '../UI/token';
 
 const TOKEN_COUNT_PER_PAGE = 20;
 interface TokenListProps {
