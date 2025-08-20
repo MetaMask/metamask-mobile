@@ -16,6 +16,7 @@ import { TransactionDetailsTotalRow } from '../transaction-details-total-row';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { strings } from '../../../../../../../locales/i18n';
+import { TransactionDetailsNetworkFeeRow } from '../transaction-details-network-fee-row';
 
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
@@ -40,6 +41,7 @@ export function TransactionDetails() {
         <TransactionDetailsDateRow />
         <TransactionDetailDivider />
         <TransactionDetailsPaidWithRow />
+        <TransactionDetailsNetworkFeeRow />
         <TransactionDetailsTotalRow />
         <TransactionDetailDivider />
         <TransactionDetailsSummary />
