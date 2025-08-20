@@ -15,6 +15,12 @@ class BackupAndSyncView {
     );
   }
 
+  get contactSyncToggle(): DetoxElement {
+    return Matchers.getElementByID(
+      BackupAndSyncViewSelectorsIDs.CONTACTS_SYNC_TOGGLE,
+    );
+  }
+
   async toggleBackupAndSync() {
     await Gestures.waitAndTap(this.backupAndSyncToggle, {
       elemDescription: 'Backup and Sync Toggle in Backup and Sync View',
@@ -24,6 +30,12 @@ class BackupAndSyncView {
   async toggleAccountSync() {
     await Gestures.waitAndTap(this.accountSyncToggle, {
       elemDescription: 'Account Sync Toggle in Backup and Sync View',
+    });
+  }
+
+  async toggleContactSync() {
+    await Gestures.waitAndTap(this.contactSyncToggle, {
+      elemDescription: 'Contacts Sync Toggle in Backup and Sync View',
     });
   }
 }
