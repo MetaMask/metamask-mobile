@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Box,
   FontWeight,
@@ -6,7 +6,7 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { ScrollView } from 'react-native';
 
 import { strings } from '../../../../../../../locales/i18n';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
@@ -15,16 +15,45 @@ import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSe
 import { useSelectedEVMAccountTokens } from '../../../hooks/send/evm/useSelectedEVMAccountTokens';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
 import { TokenList } from '../../token-list';
+import { AssetType } from '../../../types/token';
+import { NetworkFilter } from '../../network-filter';
 
 export const Asset = () => {
   const tokens = useSelectedEVMAccountTokens();
+  const [filteredTokensByNetwork, setFilteredTokensByNetwork] =
+    useState<AssetType[]>(tokens);
   const { searchQuery, setSearchQuery, filteredTokens, clearSearch } =
-    useTokenSearch(tokens);
+    useTokenSearch(filteredTokensByNetwork);
   const {
     setAssetListSize,
     setNoneAssetFilterMethod,
     setSearchAssetFilterMethod,
   } = useAssetSelectionMetrics();
+
+  const [hasActiveNetworkFilter, setHasActiveNetworkFilter] = useState(false);
+  const [clearNetworkFilters, setClearNetworkFilters] = useState<
+    (() => void) | null
+  >(null);
+
+  const handleFilteredTokensChange = useCallback(
+    (newFilteredTokens: AssetType[]) => {
+      setFilteredTokensByNetwork(newFilteredTokens);
+    },
+    [],
+  );
+
+  const handleNetworkFilterStateChange = useCallback(
+    (hasActiveFilter: boolean) => {
+      setHasActiveNetworkFilter(hasActiveFilter);
+    },
+    [],
+  );
+
+  const handleExposeFilterControls = useCallback((clearFilters: () => void) => {
+    setClearNetworkFilters(() => clearFilters);
+  }, []);
+
+  const hasActiveFilters = searchQuery.length > 0 || hasActiveNetworkFilter;
 
   useEffect(() => {
     setAssetListSize(
@@ -52,32 +81,31 @@ export const Asset = () => {
           onPressClearButton={clearSearch}
         />
       </Box>
+      <NetworkFilter
+        tokens={tokens}
+        onFilteredTokensChange={handleFilteredTokensChange}
+        onNetworkFilterStateChange={handleNetworkFilterStateChange}
+        onExposeFilterControls={handleExposeFilterControls}
+      />
       <ScrollView>
-        <Text
-          twClassName="m-4"
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          fontWeight={FontWeight.Medium}
-        >
-          {strings('send.tokens')}
-        </Text>
-        <TokenList tokens={filteredTokens} />
-        <Text
-          twClassName="m-4"
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          fontWeight={FontWeight.Medium}
-        >
-          {strings('send.nfts')}
-        </Text>
-        <Text
-          twClassName="ml-4"
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          fontWeight={FontWeight.Regular}
-        >
-          NFTs implementation coming soon.
-        </Text>
+        {filteredTokens.length > 0 && (
+          <Text
+            twClassName="m-4 mt-2"
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
+          >
+            {strings('send.tokens')}
+          </Text>
+        )}
+        <TokenList
+          tokens={filteredTokens}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={() => {
+            clearSearch();
+            clearNetworkFilters?.();
+          }}
+        />
       </ScrollView>
     </Box>
   );
