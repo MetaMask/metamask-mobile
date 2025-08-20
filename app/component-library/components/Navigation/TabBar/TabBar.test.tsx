@@ -18,9 +18,6 @@ const navigation = {
 };
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState,
   },
