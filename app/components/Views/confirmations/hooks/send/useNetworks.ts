@@ -1,4 +1,5 @@
 import { ImageSourcePropType } from 'react-native';
+import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../selectors/multichainNetworkController';
@@ -18,25 +19,32 @@ export const useNetworks = (): NetworkInfo[] => {
     selectNonEvmNetworkConfigurationsByChainId,
   );
 
-  const evmNetworks = Object.values(evmNetworkConfigurations).map(
-    (network) => ({
-      chainId: network.chainId,
-      name: network.name,
-      image: getNetworkImageSource({
+  const evmNetworks = useMemo(
+    () =>
+      Object.values(evmNetworkConfigurations).map((network) => ({
         chainId: network.chainId,
-      }),
-    }),
+        name: network.name,
+        image: getNetworkImageSource({
+          chainId: network.chainId,
+        }),
+      })),
+    [evmNetworkConfigurations],
   );
 
-  const nonEvmNetworks = Object.values(nonEvmNetworkConfigurations).map(
-    (network) => ({
-      chainId: network.chainId,
-      name: network.name,
-      image: network.imageSource,
-    }),
+  const nonEvmNetworks = useMemo(
+    () =>
+      Object.values(nonEvmNetworkConfigurations).map((network) => ({
+        chainId: network.chainId,
+        name: network.name,
+        image: network.imageSource,
+      })),
+    [nonEvmNetworkConfigurations],
   );
 
-  const networks = [...evmNetworks, ...nonEvmNetworks];
+  const networks = useMemo(
+    () => [...evmNetworks, ...nonEvmNetworks],
+    [evmNetworks, nonEvmNetworks],
+  );
 
   return networks;
 };

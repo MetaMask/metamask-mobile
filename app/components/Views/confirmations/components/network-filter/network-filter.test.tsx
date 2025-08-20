@@ -1,12 +1,13 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import { NetworkFilter } from './network-filter';
+
 import { AssetType } from '../../types/token';
 import { NetworkInfo, useNetworks } from '../../hooks/send/useNetworks';
 import {
   NETWORK_FILTER_ALL,
   useNetworkFilter,
 } from '../../hooks/send/useNetworkFilter';
+import { NetworkFilter } from './network-filter';
 
 const mockTokens: AssetType[] = [
   {
