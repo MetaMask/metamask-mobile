@@ -6,8 +6,9 @@ import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { useTokensWithBalance } from '../../../../../UI/Bridge/hooks/useTokensWithBalance';
+import { strings } from '../../../../../../../locales/i18n';
 
-export function TransactionDetailsPayWithRow() {
+export function TransactionDetailsPaidWithRow() {
   const { transactionMeta } = useTransactionDetails();
   const { metamaskPay } = transactionMeta;
   const { chainId, tokenAddress } = metamaskPay || {};
@@ -23,7 +24,9 @@ export function TransactionDetailsPayWithRow() {
   }
 
   return (
-    <TransactionDetailsRow label={'Paid with'}>
+    <TransactionDetailsRow
+      label={strings('transaction_details.label.paid_with')}
+    >
       <Box
         flexDirection={FlexDirection.Row}
         gap={6}
