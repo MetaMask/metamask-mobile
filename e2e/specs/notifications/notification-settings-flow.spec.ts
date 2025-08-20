@@ -12,6 +12,7 @@ import SettingsView from '../../pages/Settings/SettingsView';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
 import { startMockServer } from '../../api-mocking/mock-server';
 import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
+import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   let mockServer: Mockttp;
@@ -19,7 +20,7 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
   beforeAll(async () => {
     jest.setTimeout(170000);
     const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer({}, mockServerPort);
+    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort);
     await mockNotificationServices(mockServer);
   });
 
