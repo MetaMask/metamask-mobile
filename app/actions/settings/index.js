@@ -54,6 +54,13 @@ export function setUseBlockieIcon(useBlockieIcon) {
   };
 }
 
+export function setAvatarStyle(avatarStyle) {
+  return {
+    type: 'SET_AVATAR_STYLE',
+    avatarStyle,
+  };
+}
+
 export function toggleBasicFunctionality(basicFunctionalityEnabled) {
   return {
     type: 'TOGGLE_BASIC_FUNCTIONALITY',
