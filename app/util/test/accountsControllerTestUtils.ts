@@ -44,6 +44,22 @@ export function createMockUuidFromAddress(address: string): AccountId {
 }
 
 /**
+ * Supported Tron account types.
+ */
+export declare enum TrxAccountType {
+  Eoa = 'tron:eoa',
+}
+
+/**
+ * Scopes for TRON account type. See {@link KeyringAccount.scopes}.
+ */
+export declare enum TrxScope {
+  Mainnet = 'tron:728126428',
+  Nile = 'tron:3448148188',
+  Shasta = 'tron:2494104990',
+}
+
+/**
  * Maps account types to their corresponding scopes
  * @param accountType - The type of account (ETH, BTC, or Solana)
  * @returns Array of scopes corresponding to the account type
@@ -60,6 +76,9 @@ function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
     [BtcAccountType.P2pkh]: [BtcScope.Mainnet],
     [BtcAccountType.P2sh]: [BtcScope.Mainnet],
     [BtcAccountType.P2tr]: [BtcScope.Mainnet],
+
+    // Tron account types
+    [TrxAccountType.Eoa]: [TrxScope.Mainnet],
 
     // Solana account types
     [SolAccountType.DataAccount]: [SolScope.Mainnet],
