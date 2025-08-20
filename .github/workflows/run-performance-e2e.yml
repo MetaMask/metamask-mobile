@@ -1,9 +1,9 @@
-name: Performance E2E Test Manual WorkFlow
+name: Build Apps and Run Performance E2E Tests
 on:
   workflow_dispatch:
     inputs:
       info:
-        description: 'This workflow runs performance tests on multiple devices for both iOS and Android platforms'
+        description: 'This workflow runs performance tests on multiple devices for both iOS and Android platforms. Device matrix is automatically read from appwright/device-matrix.json'
         required: false
         type: string
       browserstack_app_url_android:
@@ -31,10 +31,49 @@ env:
   TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
 
 jobs:
+  read-device-matrix:
+    name: Read Device Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      android_matrix: ${{ steps.matrix.outputs.android }}
+      ios_matrix: ${{ steps.matrix.outputs.ios }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Read device matrix
+        id: matrix
+        run: |
+          # This step reads the device matrix from appwright/device-matrix.json
+          echo "Reading device matrix from appwright/device-matrix.json"
+          
+          # Extract Android devices
+          ANDROID_MATRIX=$(cat appwright/device-matrix.json | jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson")
+          echo "android=$ANDROID_MATRIX" >> $GITHUB_OUTPUT
+          
+          # Extract iOS devices
+          IOS_MATRIX=$(cat appwright/device-matrix.json | jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson")
+          echo "ios=$IOS_MATRIX" >> $GITHUB_OUTPUT
+          
+          echo "Android matrix: $ANDROID_MATRIX"
+          echo "iOS matrix: $IOS_MATRIX"
+          
+          # Validate that we have devices
+          ANDROID_COUNT=$(echo "$ANDROID_MATRIX" | jq 'length')
+          IOS_COUNT=$(echo "$IOS_MATRIX" | jq 'length')
+          
+          echo "Found $ANDROID_COUNT Android devices and $IOS_COUNT iOS devices"
+          
+          if [ "$ANDROID_COUNT" -eq 0 ] && [ "$IOS_COUNT" -eq 0 ]; then
+            echo "Error: No devices found in device-matrix.json"
+            exit 1
+          fi
+
   # Job to trigger QA builds and extract BrowserStack URLs
   trigger-qa-builds-and-upload:
     name: Trigger QA Builds and Extract BrowserStack URLs
     runs-on: ubuntu-latest
+    needs: read-device-matrix
     env:
       BITRISE_APP_ID: ${{ secrets.BITRISE_APP_ID }}
       BITRISE_BUILD_TRIGGER_TOKEN: ${{ secrets.BITRISE_BUILD_TRIGGER_TOKEN }}
@@ -80,7 +119,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{
               "build_params": {
-                "branch": "main",
+                "branch": "${{ github.ref_name }}",
                 "pipeline_id": "create_qa_builds_pipeline",
                 "commit_message": "Triggered by Performance E2E workflow"
               },
@@ -296,25 +335,11 @@ jobs:
     name: Android Tests
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: trigger-qa-builds-and-upload
+    needs: [trigger-qa-builds-and-upload, read-device-matrix]
     strategy:
       fail-fast: false
       matrix:
-        device:
-          # High-end Devices
-          - name: 'Samsung Galaxy S23 Ultra'
-            os_version: '13.0'
-            category: 'high'
-         # - name: 'Google Pixel 8 Pro'
-         #   os_version: '14.0'
-         #   category: 'high'
-
-         # # Medium Devices
-         # - name: 'Samsung Galaxy A52'
-         #   os_version: '11.0'
-         #   category: 'medium'
-          
-    
+        device: ${{ fromJson(needs.read-device-matrix.outputs.android_matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -397,25 +422,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
-  # Sequential iOS Tests on Multiple Devices
   ios-tests:
     name: iOS Tests
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    needs: trigger-qa-builds-and-upload
+    needs: [trigger-qa-builds-and-upload, read-device-matrix]
     strategy:
       fail-fast: false
       matrix:
-        device:
-          # High-end Devices
-          - name: 'iPhone 14 Pro Max'
-            os_version: '16.0'
-            category: 'high'
-          
-          # # Medium Devices
-          # - name: 'iPhone 12'
-          #   os_version: '14.0'
-          #   category: 'medium'
+        device: ${{ fromJson(needs.read-device-matrix.outputs.ios_matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
