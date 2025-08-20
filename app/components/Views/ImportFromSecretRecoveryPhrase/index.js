@@ -1147,9 +1147,9 @@ const ImportFromSecretRecoveryPhrase = ({
                 variant={ButtonVariants.Primary}
                 label={strings('import_from_seed.create_password_cta')}
                 onPress={onPressImport}
-                disabled={isContinueButtonDisabled}
+                disabled={isContinueButtonDisabled || loading}
                 size={ButtonSize.Lg}
-                isDisabled={isContinueButtonDisabled}
+                isDisabled={isContinueButtonDisabled || loading}
                 testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
               />
             </View>
