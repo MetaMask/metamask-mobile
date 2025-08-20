@@ -97,8 +97,8 @@ jest.mock('../Engine', () => ({
       requestPermissions: jest.fn(),
       getPermissions: jest.fn(),
       revokePermissions: jest.fn(),
-      grantPermissionsIncremental: { bind: jest.fn().mockReturnValue({}) },
-      requestPermissionsIncremental: { bind: jest.fn().mockReturnValue({}) },
+      grantPermissionsIncremental: jest.fn(),
+      requestPermissionsIncremental: jest.fn(),
     },
     NetworkController: {
       getNetworkConfigurationByChainId: jest.fn(),
@@ -1807,8 +1807,8 @@ describe('getRpcMethodMiddlewareHooks', () => {
         ...options,
         origin: testOrigin,
         hooks: {
-          grantPermissionsIncremental: {},
-          requestPermissionsIncremental: {},
+          grantPermissionsIncremental: expect.any(Function),
+          requestPermissionsIncremental: expect.any(Function),
         },
       });
     });
