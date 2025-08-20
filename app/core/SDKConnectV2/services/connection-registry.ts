@@ -8,6 +8,9 @@ import { IConnectionStore } from '../types/connection-store';
  * dApp sessions.
  */
 export class ConnectionRegistry {
+  private readonly hostapp: IHostApplicationAdapter;
+  private readonly store: IConnectionStore;
+
   /**
    * The constructor for the ConnectionRegistry.
    *
@@ -16,10 +19,10 @@ export class ConnectionRegistry {
    * @param store - An adapter for the persistence layer, used to
    * save and retrieve connection data.
    */
-  constructor(
-    private readonly hostapp: IHostApplicationAdapter,
-    private readonly store: IConnectionStore,
-  ) {}
+  constructor(hostapp: IHostApplicationAdapter, store: IConnectionStore) {
+    this.hostapp = hostapp;
+    this.store = store;
+  }
 
   /**
    * The primary entry point for handling a new connection request from a
@@ -27,7 +30,7 @@ export class ConnectionRegistry {
    * @param url - The full deeplink URL that triggered the connection.
    */
   public handleConnectDeeplink(url: string): void {
-    console.log(
+    console.warn(
       '[SDKConnectV2] ConnectionRegistry: handleConnectDeeplink successfully called with URL:',
       url,
     );

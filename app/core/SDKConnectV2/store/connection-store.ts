@@ -8,14 +8,14 @@ import { IConnectionStore } from '../types/connection-store';
  * of the ConnectionRegistry.
  */
 export class ConnectionStore implements IConnectionStore {
-  save(connection: Connection): Promise<void> {
+  save(_connection: Connection): Promise<void> {
     console.warn(
       '[SDKConnectV2] ConnectionStore.save called but is not yet implemented.',
     );
     return Promise.resolve();
   }
 
-  get(id: string): Promise<Connection | null> {
+  get(_id: string): Promise<Connection | null> {
     console.warn(
       '[SDKConnectV2] ConnectionStore.get called but is not yet implemented.',
     );
@@ -29,7 +29,7 @@ export class ConnectionStore implements IConnectionStore {
     return Promise.resolve([]);
   }
 
-  delete(id: string): Promise<void> {
+  delete(_id: string): Promise<void> {
     console.warn(
       '[SDKConnectV2] ConnectionStore.delete called but is not yet implemented.',
     );

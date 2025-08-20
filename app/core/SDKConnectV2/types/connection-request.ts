@@ -7,7 +7,7 @@ import { DappMetadata } from './dapp-metadata';
  * as defined in the technical proposal. It encapsulates all the information
  * needed to initiate a new session.
  */
-export type ConnectionRequest = {
+export interface ConnectionRequest {
   /**
    * The low-level protocol session request, containing cryptographic
    * and channel information.
@@ -19,4 +19,4 @@ export type ConnectionRequest = {
    * requesting the connection.
    */
   dappMetadata: DappMetadata;
-};
+}

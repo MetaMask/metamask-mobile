@@ -4,8 +4,8 @@ import { IHostApplicationAdapter } from '../types/host-application-adapter';
 
 export class HostApplicationAdapter implements IHostApplicationAdapter {
   showConnectionApproval(
-    connectionId: string,
-    dappMetadata: DappMetadata,
+    _connectionId: string,
+    _dappMetadata: DappMetadata,
   ): Promise<void> {
     console.warn(
       '[SDKConnectV2] HostApplicationAdapter.showConnectionApproval called but is not yet implemented.',
@@ -32,7 +32,7 @@ export class HostApplicationAdapter implements IHostApplicationAdapter {
     return Promise.resolve();
   }
 
-  syncConnectionList(connections: Connection[]): void {
+  syncConnectionList(_connections: Connection[]): void {
     console.warn(
       '[SDKConnectV2] HostApplicationAdapter.syncConnectionList called but is not yet implemented.',
     );

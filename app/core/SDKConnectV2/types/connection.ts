@@ -9,7 +9,7 @@ import { DappMetadata } from './dapp-metadata';
  * combining the protocol-level session with application-level metadata and
  * runtime clients.
  */
-export type Connection = {
+export interface Connection {
   /**
    * The unique identifier for this connection, used as the 'origin' for
    * the permissions system. This ID is derived from the underlying
@@ -44,4 +44,4 @@ export type Connection = {
    * and is NOT persisted.
    */
   bridge: BackgroundBridge;
-};
+}
