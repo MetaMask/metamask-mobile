@@ -26,16 +26,16 @@ const getFontSizeForInputLength = (inputLength: number) => {
 
 export const styleSheet = (params: {
   theme: Theme;
-  vars: { inputError: boolean; inputLength: number };
+  vars: { inputError: boolean; inputLength: number; isNFT: boolean };
 }) => {
   const {
     theme,
-    vars: { inputError, inputLength },
+    vars: { inputError, inputLength, isNFT },
   } = params;
   return StyleSheet.create({
     balanceSection: {
       alignSelf: 'center',
-      marginTop: 140,
+      marginTop: isNFT ? 120 : 140,
     },
     container: {
       backgroundColor: theme.colors.background.default,
@@ -49,7 +49,7 @@ export const styleSheet = (params: {
       color: theme.colors.text.alternative,
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,
-      marginTop: 32,
+      marginTop: 8,
       minWidth: 100,
     },
     input: {
@@ -65,12 +65,19 @@ export const styleSheet = (params: {
     inputSection: {
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.center,
+      marginTop: isNFT ? 0 : 100,
     },
     inputWrapper: {
       alignItems: AlignItems.center,
       flexDirection: FlexDirection.Row,
       justifyContent: JustifyContent.flexEnd,
       width: '45%',
+    },
+    nftImage: { alignSelf: 'center', height: 100, width: 100 },
+    nftImageWrapper: {
+      alignItems: AlignItems.center,
+      marginTop: 32,
+      width: '100%',
     },
     tokenSymbol: {
       alignItems: AlignItems.center,

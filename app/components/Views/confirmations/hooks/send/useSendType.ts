@@ -14,7 +14,7 @@ export const useSendType = () => {
     () => (asset?.chainId ? isSolanaChainId(asset.chainId) : undefined),
     [asset?.chainId],
   );
-  const assetIsNative = asset ? asset.isNative : undefined;
+  const assetIsNative = asset ? Boolean(asset.isNative) : undefined;
 
   return useMemo(
     () => ({
