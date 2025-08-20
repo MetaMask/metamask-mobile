@@ -5509,7 +5509,8 @@
       "default": "Transaction details"
     },
     "label": {
-      "paid_with": "Paid with"
+      "paid_with": "Paid with",
+      "total": "Total"
     }
   }
 }
