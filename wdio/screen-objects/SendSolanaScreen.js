@@ -1,6 +1,7 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors.js';
 import { expect as appwrightExpect } from 'appwright';
 import TimerHelper from '../../appwright/utils/TimersHelper.js';
+import { SendActionViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendActionView.selectors';
 
 class SendSolanaScreen {
   get device() {
@@ -13,24 +14,23 @@ class SendSolanaScreen {
 
   get addressField() {
     if (AppwrightSelectors.isAndroid(this._device)) {
-      return AppwrightSelectors.getElementByID(this._device, 'send-to-snap-ui-input');
+      return AppwrightSelectors.getElementByID(this._device, SendActionViewSelectorsIDs.SOLANA_INPUT_ADDRESS_FIELD);
     }
     return AppwrightSelectors.getElementByID(this._device, 'textfield');
   }
 
   get amountField() {
     if (AppwrightSelectors.isAndroid(this._device)) {
-      return AppwrightSelectors.getElementByID(this._device, 'send-amount-input-snap-ui-input');
     }
     return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[2]');
   }
 
   get continueButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'send-submit-button-snap-footer-button');
+    return AppwrightSelectors.getElementByID(this._device, SendActionViewSelectorsIDs.CONTINUE_BUTTON);
   }
 
   get cancelButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'send-cancel-button-snap-footer-button');
+    return AppwrightSelectors.getElementByID(this._device, SendActionViewSelectorsIDs.CANCEL_BUTTON);
   }
 
   async isAddressFieldVisible() {
@@ -40,7 +40,12 @@ class SendSolanaScreen {
 
   async fillAddressField(address) {
     const element = await this.addressField;
-    await element.fill(`${address}\n`);
+    if (AppwrightSelectors.isIOS(this._device)) {
+      await element.fill(`${address}\n`);
+    } else{
+      await element.fill(`${address}`);
+
+    }
   }
 
   async fillAmountField(amount) {
