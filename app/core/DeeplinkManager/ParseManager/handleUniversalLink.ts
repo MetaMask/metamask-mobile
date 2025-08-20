@@ -29,6 +29,7 @@ enum SUPPORTED_ACTIONS {
   HOME = ACTIONS.HOME,
   SWAP = ACTIONS.SWAP,
   SEND = ACTIONS.SEND,
+  NONEVM = ACTIONS.NONEVM,
 }
 
 async function handleUniversalLink({
@@ -47,6 +48,7 @@ async function handleUniversalLink({
   source: string;
 }) {
   const validatedUrl = new URL(url);
+
   if (
     !validatedUrl.hostname ||
     validatedUrl.hostname.includes('?') ||
@@ -163,6 +165,9 @@ async function handleUniversalLink({
     // loops back to open the link with the right protocol
     instance.parse(deeplinkUrl, { origin: source });
     return;
+  } else if (action === SUPPORTED_ACTIONS.NONEVM) {
+    const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handleNonEvm(deeplinkUrl);
   }
 }
 

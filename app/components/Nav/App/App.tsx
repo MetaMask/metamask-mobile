@@ -163,6 +163,7 @@ import { SmartAccountUpdateModal } from '../../Views/confirmations/components/sm
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
+import { DeepLinkNonEvm } from '../../Views/DeepLinkNonEvm/DeepLinkNonEvm';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -916,6 +917,10 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.CONFIRMATION_PAY_WITH_NETWORK_MODAL}
           component={PayWithNetworkModal}
+        />
+        <Stack.Screen
+          name={Routes.DEEPLINK.NON_EVM}
+          component={DeepLinkNonEvm}
         />
       </Stack.Navigator>
     </>

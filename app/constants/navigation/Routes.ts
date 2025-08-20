@@ -307,6 +307,9 @@ const Routes = {
     AMOUNT: 'Amount',
     DEFAULT: 'Send',
   },
+  DEEPLINK: {
+    NON_EVM: 'DeepLinkNonEvm',
+  },
 };
 
 export default Routes;

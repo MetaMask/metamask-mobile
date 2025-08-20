@@ -30,6 +30,7 @@ export enum ACTIONS {
   SWAP = 'swap',
   EMPTY = '',
   OAUTH_REDIRECT = 'oauth-redirect',
+  NONEVM = 'nonevm',
 }
 
 export const PREFIXES = {
@@ -49,5 +50,6 @@ export const PREFIXES = {
   [ACTIONS.OAUTH_REDIRECT]: '',
   [ACTIONS.HOME]: '',
   [ACTIONS.SWAP]: '',
+  [ACTIONS.NONEVM]: '',
   METAMASK: 'metamask://',
 };
