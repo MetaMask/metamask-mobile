@@ -5,7 +5,7 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './transaction-details.styles';
 import { TransactionDetailDivider } from '../transaction-detail-divider/transaction-detail-divider';
 import { TransactionDetailsDateRow } from '../transaction-details-date-row';
-import { TransactionDetailsStatusRow } from '../transaction-details-status-row/transaction-details-status-row';
+import { TransactionDetailsStatusRow } from '../transaction-details-status-row';
 import { useNavigation } from '@react-navigation/native';
 import { getNavigationOptionsTitle } from '../../../../../UI/Navbar';
 import { useTheme } from '../../../../../../util/theme';
