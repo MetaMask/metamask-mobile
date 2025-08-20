@@ -135,7 +135,7 @@ class AuthenticationService {
       parsedSeedUint8Array,
     );
 
-    await Promise.all(
+    Promise.all(
       Object.values(WalletClientType).map(async (clientType) => {
         const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
@@ -215,7 +215,7 @@ class AuthenticationService {
     await Engine.resetState();
     await KeyringController.createNewVaultAndKeychain(password);
 
-    await Promise.all(
+    Promise.all(
       Object.values(WalletClientType).map(async (clientType) => {
         const { discoveryStorageId } = WALLET_SNAP_MAP[clientType];
 
