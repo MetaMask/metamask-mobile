@@ -12,7 +12,7 @@ import approveTransaction from './TransactionManager/approveTransaction';
 import { RampType } from '../../reducers/fiatOrders/types';
 import { handleSwapUrl } from './Handlers/handleSwapUrl';
 import Routes from '../../constants/navigation/Routes';
-import { handleNonEvmUrl } from './Handlers/handleNonEvmUrl';
+import { handleCreateAccountUrl } from './Handlers/handleCreateAccountUrl';
 
 class DeeplinkManager {
   public navigation: NavigationProp<ParamListBase>;
@@ -103,9 +103,9 @@ class DeeplinkManager {
     });
   }
 
-  _handleNonEvm(nonEvmPath: string) {
-    handleNonEvmUrl({
-      path: nonEvmPath,
+  _handleCreateAccount(createAccountPath: string) {
+    handleCreateAccountUrl({
+      path: createAccountPath,
       navigation: this.navigation,
     });
   }

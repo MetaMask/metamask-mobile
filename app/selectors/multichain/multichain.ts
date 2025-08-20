@@ -503,7 +503,7 @@ export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
     internalAccounts,
     multichainBalances,
     chainId,
-  ): Record<string, { assetId: string; balance: Balance }> => {
+  ): Record<string, Balance & { assetId: string }> => {
     return internalAccounts.reduce((list, account) => {
       const accountBalances = multichainBalances?.[account.id];
 
@@ -523,15 +523,13 @@ export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
       if (nativeBalanceAssetId) {
         const accountNativeBalance = accountBalances[nativeBalanceAssetId];
 
-        if (new BigNumber(accountNativeBalance.amount ?? 0).gt(0)) {
-          return {
-            ...list,
-            [account.id]: {
-              assetId: nativeBalanceAssetId,
-              ...accountNativeBalance,
-            },
-          };
-        }
+        return {
+          ...list,
+          [account.id]: {
+            assetId: nativeBalanceAssetId,
+            ...accountNativeBalance,
+          },
+        };
 
         return list;
       }
