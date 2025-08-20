@@ -1,6 +1,7 @@
 import { ImageSourcePropType } from 'react-native';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../../selectors/multichainNetworkController';
 import { getNetworkImageSource } from '../../../../../util/networks';
