@@ -14,11 +14,11 @@ import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
 import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
+import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import Matchers from '../../framework/Matchers';
 
 let mockServer: Mockttp;
@@ -50,15 +50,11 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
   );
 };
 
-const segmentMock = {
-  POST: [mockEvents.POST.segmentTrack],
-};
-
 describe(SmokeTrade('On-Ramp Parameters'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
     mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(segmentMock, mockServerPort);
+    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort);
   });
 
   // We need to manually stop the mock server after all the tests as each test

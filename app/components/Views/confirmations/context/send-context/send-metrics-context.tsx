@@ -78,8 +78,8 @@ export const SendMetricsContextProvider: React.FC<{
   return (
     <SendMetricsContext.Provider
       value={{
-        accountType: isEvmAddress(from)
-          ? getAddressAccountType(from)
+        accountType: isEvmAddress(from as string)
+          ? getAddressAccountType(from as string)
           : undefined,
         assetListSize,
         amountInputMethod,
