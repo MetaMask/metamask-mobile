@@ -50,6 +50,12 @@ pipelines:
       - bump_version_stage: {}
       - create_build_rc: {}
       - deploy_build_release: {}
+  #Releases MetaMask EXP apps for nightly testing
+  release_exp_builds_to_store_pipeline:
+    stages:
+      - bump_version_stage: {}
+      - create_build_exp: {}
+      - deploy_build_release: {}
   #Releases MetaMask apps and stores ipa into App(TestFlight) Store
   release_ios_to_store_pipeline:
     stages:
@@ -195,6 +201,10 @@ stages:
     workflows:
       - deploy_android_to_store: {}
       - deploy_ios_to_store: {}
+  create_build_exp:
+    workflows:
+      - build_android_main_exp: {}
+      - build_ios_main_exp: {}
   create_ios_release:
     workflows:
       - build_ios_release: {}
@@ -750,8 +760,8 @@ workflows:
                 sleep 25
 
                 # Check completion status every 20 seconds
-                for i in {1..5}; do
-                  echo "Checking workflow status (Attempt $i of 5)..."
+                for i in {1..10}; do
+                  echo "Checking workflow status (Attempt $i of 10)..."
 
                   RESPONSE=$(curl -L \
                     -H "Accept: application/vnd.github+json" \
@@ -769,12 +779,12 @@ workflows:
                     # Get the status and conclusion of the most recent run
                     STATUS=$(echo "$RESPONSE" | jq -r '.workflow_runs[0].status')
                     echo "Current status: $STATUS"
-                    echo "Workflow is still in progress (status: $STATUS)..."
+                    echo "Workflow is still in progress (status: $STATUS)..." 
                     sleep 20
                   fi
                 done
 
-                echo "Timeout: Workflow did not complete within 100 seconds"
+                echo "Timeout: Workflow did not complete within 200 seconds"
                 echo "Check this action status for reason: https://github.com/MetaMask/metamask-mobile/actions/workflows/update-latest-build-version.yml"
                 exit 1
     meta:
