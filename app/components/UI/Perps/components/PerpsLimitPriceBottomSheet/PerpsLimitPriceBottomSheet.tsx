@@ -246,7 +246,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           currentPrice > 0 && (
             <View style={styles.priceDifferenceContainer}>
               <Text style={styles.priceDifferenceLabel}>
-                Difference from market:
+                {strings(
+                  'perps.order.limit_price_modal.difference_from_market',
+                )}
               </Text>
               <Text
                 style={[

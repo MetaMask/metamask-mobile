@@ -1001,7 +1001,8 @@
         "market": "Market",
         "current_price": "Current price",
         "ask_price": "Ask price",
-        "bid_price": "Bid price"
+        "bid_price": "Bid price",
+        "difference_from_market": "Difference from market:"
       },
       "leverage_modal": {
         "title": "Set Leverage",
@@ -1126,7 +1127,7 @@
       "card": {
         "entry_price": "Entry Price",
         "market_price": "Market Price",
-        "liquidity_price": "Liquidity Price",
+        "liquidation_price": "Liquidation Price",
         "take_profit": "Take Profit",
         "stop_loss": "Stop Loss",
         "margin": "Margin",
