@@ -1,12 +1,5 @@
-import {
-  type Hex,
-  type Json,
-  hexToNumber,
-  isObject,
-  isValidJson,
-} from '@metamask/utils';
+import { type Hex, hexToNumber, isObject, isValidJson } from '@metamask/utils';
 import { shouldCreateRpcServiceEvents } from './utils';
-import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import Logger from '../../../../util/Logger';
 import onlyKeepHost from '../../../../util/onlyKeepHost';
 import {
@@ -14,6 +7,7 @@ import {
   ITrackingEvent,
   JsonMap,
 } from '../../../Analytics/MetaMetrics.types';
+import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 
 /**
  * Called when an endpoint is determined to be "unavailable". Creates a Segment
@@ -30,32 +24,35 @@ import {
  * @param args.endpointUrl - The URL of the endpoint.
  * @param args.error - The connection or response error encountered after making
  * a request to the RPC endpoint.
- * @param args.trackEvent - The function that will create the Segment event.
+ * @param args.infuraProjectId - Our Infura project ID.
  * @param args.metaMetricsId - The MetaMetrics ID of the user.
+ * @param args.trackEvent - The function that will create the Segment event.
  */
 export function onRpcEndpointUnavailable({
   chainId,
   endpointUrl,
   error,
-  trackEvent,
+  infuraProjectId,
   metaMetricsId,
+  trackEvent,
 }: {
   chainId: Hex;
   endpointUrl: string;
   error: unknown;
+  infuraProjectId: string;
+  metaMetricsId: string | null;
   trackEvent: (options: {
     event: IMetaMetricsEvent | ITrackingEvent;
     properties: JsonMap;
   }) => void;
-  metaMetricsId: string | undefined;
 }): void {
-  trackRpcEndpointEvent({
-    event: MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE,
+  trackRpcEndpointEvent(MetaMetricsEvents.RPC_SERVICE_UNAVAILABLE, {
     chainId,
     endpointUrl,
     error,
-    trackEvent,
+    infuraProjectId,
     metaMetricsId,
+    trackEvent,
   });
 }
 
@@ -73,32 +70,35 @@ export function onRpcEndpointUnavailable({
  * @param args.endpointUrl - The URL of the endpoint.
  * @param args.error - The connection or response error encountered after making
  * a request to the RPC endpoint.
- * @param args.trackEvent - The function that will create the Segment event.
+ * @param args.infuraProjectId - Our Infura project ID.
  * @param args.metaMetricsId - The MetaMetrics ID of the user.
+ * @param args.trackEvent - The function that will create the Segment event.
  */
 export function onRpcEndpointDegraded({
   chainId,
   endpointUrl,
   error,
-  trackEvent,
+  infuraProjectId,
   metaMetricsId,
+  trackEvent,
 }: {
   chainId: Hex;
   endpointUrl: string;
   error: unknown;
+  infuraProjectId: string;
+  metaMetricsId: string | null;
   trackEvent: (options: {
     event: IMetaMetricsEvent | ITrackingEvent;
     properties: JsonMap;
   }) => void;
-  metaMetricsId: string | undefined;
 }): void {
-  trackRpcEndpointEvent({
-    event: MetaMetricsEvents.RPC_SERVICE_DEGRADED,
+  trackRpcEndpointEvent(MetaMetricsEvents.RPC_SERVICE_DEGRADED, {
     chainId,
     endpointUrl,
     error,
-    trackEvent,
+    infuraProjectId,
     metaMetricsId,
+    trackEvent,
   });
 }
 
@@ -106,50 +106,59 @@ export function onRpcEndpointDegraded({
  * Creates a Segment event when an RPC endpoint is determined to be degraded or
  * unavailable.
  *
- * @param args - The arguments.
- * @param args.event - The Segment event to create.
+ * @param event - The Segment event to create.
+ * @param args - The remaining arguments.
  * @param args.chainId - The chain ID that the endpoint represents.
  * @param args.endpointUrl - The URL of the endpoint.
  * @param args.error - The connection or response error encountered after making
  * a request to the RPC endpoint.
- * @param args.trackEvent - The function that will create the Segment event.
+ * @param args.infuraProjectId - Our Infura project ID.
  * @param args.metaMetricsId - The MetaMetrics ID of the user.
+ * @param args.trackEvent - The function that will create the Segment event.
  */
-export function trackRpcEndpointEvent({
-  event,
-  chainId,
-  endpointUrl,
-  error,
-  trackEvent,
-  metaMetricsId,
-}: {
-  event: IMetaMetricsEvent;
-  chainId: Hex;
-  endpointUrl: string;
-  error: unknown;
-  trackEvent: (options: {
-    event: IMetaMetricsEvent | ITrackingEvent;
-    properties: JsonMap;
-  }) => void;
-  metaMetricsId: string | undefined;
-}): void {
-  if (!shouldCreateRpcServiceEvents(error, metaMetricsId)) {
+export function trackRpcEndpointEvent(
+  event: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents],
+  {
+    chainId,
+    endpointUrl,
+    error,
+    infuraProjectId,
+    trackEvent,
+    metaMetricsId,
+  }: {
+    chainId: Hex;
+    endpointUrl: string;
+    error: unknown;
+    infuraProjectId: string;
+    trackEvent: (options: {
+      event: IMetaMetricsEvent | ITrackingEvent;
+      properties: JsonMap;
+    }) => void;
+    metaMetricsId: string | null;
+  },
+): void {
+  if (
+    !shouldCreateRpcServiceEvents({
+      endpointUrl,
+      error,
+      infuraProjectId,
+      metaMetricsId,
+    })
+  ) {
     return;
   }
 
-  // The case of the Segment properties are intentional.
+  // The names of Segment properties have a particular case.
   /* eslint-disable @typescript-eslint/naming-convention */
-  const properties: Json = {
+  const properties = {
     chain_id_caip: `eip155:${hexToNumber(chainId)}`,
     rpc_endpoint_url: onlyKeepHost(endpointUrl),
-  };
-  if (
-    isObject(error) &&
+    ...(isObject(error) &&
     'httpStatus' in error &&
     isValidJson(error.httpStatus)
-  ) {
-    properties.http_status = error.httpStatus;
-  }
+      ? { http_status: error.httpStatus }
+      : {}),
+  };
   /* eslint-enable @typescript-eslint/naming-convention */
 
   Logger.log(
