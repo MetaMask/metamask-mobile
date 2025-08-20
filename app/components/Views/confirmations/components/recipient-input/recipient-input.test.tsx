@@ -70,7 +70,6 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
-      updateFromAccount: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -128,7 +127,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
-      updateFromAccount: jest.fn(),
+
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -150,7 +149,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
-      updateFromAccount: jest.fn(),
+
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -172,7 +171,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
-      updateFromAccount: jest.fn(),
+
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -307,7 +306,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
-      updateFromAccount: jest.fn(),
+
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -334,7 +333,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
-      updateFromAccount: jest.fn(),
+
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -365,7 +364,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
-      updateFromAccount: jest.fn(),
+
       updateValue: jest.fn(),
       value: undefined,
     });

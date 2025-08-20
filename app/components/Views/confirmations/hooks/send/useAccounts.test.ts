@@ -126,7 +126,7 @@ describe('useAccounts', () => {
     mockUseSendContext.mockReturnValue({
       from: undefined,
       updateAsset: jest.fn(),
-      updateFromAccount: jest.fn(),
+
       updateTo: jest.fn(),
       updateValue: jest.fn(),
     });
@@ -181,7 +181,7 @@ describe('useAccounts', () => {
       mockUseSendContext.mockReturnValue({
         from: '0x1234567890123456789012345678901234567890',
         updateAsset: jest.fn(),
-        updateFromAccount: jest.fn(),
+
         updateTo: jest.fn(),
         updateValue: jest.fn(),
       });

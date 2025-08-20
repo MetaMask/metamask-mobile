@@ -7,9 +7,7 @@ import {
   TextVariant,
   TextColor,
 } from '@metamask/design-system-react-native';
-import { useSelector } from 'react-redux';
 
-import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../types/token';
@@ -31,11 +29,10 @@ export function TokenList({
   onClearFilters,
 }: TokenListProps) {
   const { gotToSendScreen } = useSendScreenNavigation();
-  const { updateAsset, updateFromAccount } = useSendContext();
+  const { updateAsset } = useSendContext();
   const { captureAssetSelected } = useAssetSelectionMetrics();
   const [visibleTokenCount, setVisibleTokenCount] =
     useState(TOKEN_COUNT_PER_PAGE);
-  const accounts = useSelector(selectInternalAccountsById);
 
   const handleTokenPress = useCallback(
     (asset: AssetType) => {
@@ -44,17 +41,9 @@ export function TokenList({
       );
       captureAssetSelected(asset, position.toString());
       updateAsset(asset);
-      updateFromAccount(accounts[asset.accountId as string]);
       gotToSendScreen(Routes.SEND.AMOUNT);
     },
-    [
-      captureAssetSelected,
-      gotToSendScreen,
-      tokens,
-      updateAsset,
-      updateFromAccount,
-      accounts,
-    ],
+    [captureAssetSelected, gotToSendScreen, tokens, updateAsset],
   );
 
   const handleShowMore = useCallback(() => {

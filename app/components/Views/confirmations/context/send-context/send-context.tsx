@@ -4,10 +4,13 @@ import React, {
   createContext,
   useContext,
   useState,
+  useCallback,
 } from 'react';
+import { useSelector } from 'react-redux';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { toHex } from '@metamask/controller-utils';
 
+import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { AssetType } from '../../types/token';
 
 export interface SendContextType {
@@ -17,7 +20,6 @@ export interface SendContextType {
   from?: string;
   to?: string;
   updateAsset: (asset?: AssetType) => void;
-  updateFromAccount: (fromAccount?: InternalAccount) => void;
   updateTo: (to: string) => void;
   updateValue: (value: string) => void;
   value?: string;
@@ -30,7 +32,6 @@ export const SendContext = createContext<SendContextType>({
   from: '',
   to: undefined,
   updateAsset: () => undefined,
-  updateFromAccount: () => undefined,
   updateTo: () => undefined,
   updateValue: () => undefined,
   value: undefined,
@@ -43,6 +44,21 @@ export const SendContextProvider: React.FC<{
   const [to, updateTo] = useState<string>();
   const [value, updateValue] = useState<string>();
   const [fromAccount, updateFromAccount] = useState<InternalAccount>();
+  const accounts = useSelector(selectInternalAccountsById);
+
+  const handleUpdateAsset = useCallback(
+    (updatedAsset?: AssetType) => {
+      updateAsset(updatedAsset);
+      if (
+        updatedAsset?.accountId &&
+        updatedAsset.accountId !== fromAccount?.id
+      ) {
+        updateFromAccount(accounts[updatedAsset.accountId as string]);
+      }
+    },
+    [accounts, fromAccount?.id, updateAsset, updateFromAccount],
+  );
+
   const chainId =
     asset && isEvmAddress(asset.address) && asset.chainId
       ? toHex(asset.chainId)
@@ -56,8 +72,7 @@ export const SendContextProvider: React.FC<{
         fromAccount,
         from: fromAccount?.address as string,
         to,
-        updateAsset,
-        updateFromAccount,
+        updateAsset: handleUpdateAsset,
         updateTo,
         updateValue,
         value,

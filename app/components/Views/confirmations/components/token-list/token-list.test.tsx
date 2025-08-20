@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ImageSourcePropType } from 'react-native';
-import { useSelector } from 'react-redux';
 
 // eslint-disable-next-line import/no-namespace
 import * as AssetSelectionMetrics from '../../hooks/send/metrics/useAssetSelectionMetrics';
@@ -11,7 +10,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const mockGotToSendScreen = jest.fn();
 const mockUpdateAsset = jest.fn();
-const mockUpdateFromAccount = jest.fn();
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -26,7 +24,6 @@ jest.mock('../../hooks/send/useSendScreenNavigation', () => ({
 jest.mock('../../context/send-context', () => ({
   useSendContext: () => ({
     updateAsset: mockUpdateAsset,
-    updateFromAccount: mockUpdateFromAccount,
   }),
 }));
 
@@ -51,19 +48,6 @@ jest.mock('../UI/token/token', () => {
   };
 });
 
-const mockAccounts = {
-  'account-1': {
-    id: 'account-1',
-    address: '0x1234567890123456789012345678901234567890',
-    metadata: { name: 'Account 1' },
-  },
-  'account-2': {
-    id: 'account-2',
-    address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-    metadata: { name: 'Account 2' },
-  },
-};
-
 const mockTokens: AssetType[] = [
   {
     address: '0x1234567890123456789012345678901234567890',
@@ -79,7 +63,6 @@ const mockTokens: AssetType[] = [
     name: 'Ethereum',
     symbol: 'ETH',
     ticker: 'ETH',
-    accountId: 'account-1',
   },
   {
     address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
@@ -95,7 +78,6 @@ const mockTokens: AssetType[] = [
     name: 'USD Coin',
     symbol: 'USDC',
     ticker: 'USDC',
-    accountId: 'account-2',
   },
 ];
 
@@ -118,7 +100,6 @@ const manyTokens: AssetType[] = Array.from({ length: 25 }, (_, i) => ({
 describe('TokenList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (useSelector as jest.Mock).mockReturnValue(mockAccounts);
   });
 
   it('renders the component with tokens', () => {
@@ -166,16 +147,6 @@ describe('TokenList', () => {
     });
 
     expect(mockGotToSendScreen).toHaveBeenCalledWith(Routes.SEND.AMOUNT);
-  });
-
-  it('calls updateFromAccount with correct account when token is pressed', () => {
-    const { getByTestId } = render(<TokenList tokens={mockTokens} />);
-
-    fireEvent.press(getByTestId('token-ETH'));
-
-    expect(mockUpdateFromAccount).toHaveBeenCalledWith(
-      mockAccounts['account-1'],
-    );
   });
 
   it('renders empty list when no tokens provided', () => {
