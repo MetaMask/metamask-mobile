@@ -24,7 +24,15 @@ import { strings } from '../../../../../../locales/i18n';
 
 import type { Position } from '../../controllers/types';
 import { createStyles } from './PerpsTPSLBottomSheet.styles';
-import { usePerpsPrices } from '../../hooks';
+import { usePerpsPerformance } from '../../hooks';
+import { usePerpsLivePrices } from '../../hooks/stream';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
   isValidTakeProfitPrice,
   isValidStopLossPrice,
@@ -69,6 +77,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const { startMeasure, endMeasure } = usePerpsPerformance();
 
   const [takeProfitPrice, setTakeProfitPrice] = useState(
     initialTakeProfitPrice ? formatPrice(initialTakeProfitPrice) : '',
@@ -93,8 +102,14 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
   const [tpUsingPercentage, setTpUsingPercentage] = useState(false);
   const [slUsingPercentage, setSlUsingPercentage] = useState(false);
 
+  const { track } = usePerpsEventTracking();
+
   // Subscribe to real-time price only when visible and we have an asset
-  const priceData = usePerpsPrices(isVisible && asset ? [asset] : []);
+  // Use 1s debounce for TP/SL bottom sheet
+  const priceData = usePerpsLivePrices({
+    symbols: isVisible && asset ? [asset] : [],
+    throttleMs: 1000,
+  });
   const livePrice = priceData[asset]?.price
     ? parseFloat(priceData[asset].price)
     : undefined;
@@ -116,9 +131,13 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 
   useEffect(() => {
     if (isVisible) {
-      bottomSheetRef.current?.onOpenBottomSheet();
+      startMeasure(PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED);
+      bottomSheetRef.current?.onOpenBottomSheet(() => {
+        // Measure TP/SL bottom sheet loaded when animation actually completes
+        endMeasure(PerpsMeasurementName.TP_SL_BOTTOM_SHEET_LOADED);
+      });
     }
-  }, [isVisible]);
+  }, [isVisible, startMeasure, endMeasure]);
 
   // Calculate initial percentages only once when component first becomes visible
   useEffect(() => {
@@ -138,6 +157,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         setStopLossPercentage(percentage.toFixed(2));
       }
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible]); // Only run when visibility changes, not on price updates
 
@@ -172,6 +192,7 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
         setStopLossPrice(formatPrice(price));
       }
     }
+    // eslint-disable-next-line react-compiler/react-compiler
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPrice, actualDirection]); // Update prices when current price changes
 
@@ -184,9 +205,48 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
       ? stopLossPrice.replace(/[$,]/g, '')
       : undefined;
 
+    // Track stop loss and take profit set events
+    if (parseStopLossPrice) {
+      track(MetaMetricsEvents.PERPS_STOP_LOSS_SET, {
+        [PerpsEventProperties.ASSET]: asset,
+        [PerpsEventProperties.DIRECTION]:
+          actualDirection === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.STOP_LOSS_PRICE]: parseFloat(parseStopLossPrice),
+        [PerpsEventProperties.INPUT_METHOD]: slUsingPercentage
+          ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
+          : PerpsEventValues.INPUT_METHOD.MANUAL,
+      });
+    }
+
+    if (parseTakeProfitPrice) {
+      track(MetaMetricsEvents.PERPS_TAKE_PROFIT_SET, {
+        [PerpsEventProperties.ASSET]: asset,
+        [PerpsEventProperties.DIRECTION]:
+          actualDirection === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.TAKE_PROFIT_PRICE]:
+          parseFloat(parseTakeProfitPrice),
+        [PerpsEventProperties.INPUT_METHOD]: tpUsingPercentage
+          ? PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON
+          : PerpsEventValues.INPUT_METHOD.MANUAL,
+      });
+    }
+
     onConfirm(parseTakeProfitPrice, parseStopLossPrice);
     // Don't close immediately - let the parent handle closing after update completes
-  }, [takeProfitPrice, stopLossPrice, onConfirm]);
+  }, [
+    takeProfitPrice,
+    stopLossPrice,
+    onConfirm,
+    actualDirection,
+    asset,
+    slUsingPercentage,
+    tpUsingPercentage,
+    track,
+  ]);
 
   // Handle close without saving
   const handleClose = useCallback(() => {
@@ -690,6 +750,15 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 };
 
 PerpsTPSLBottomSheet.displayName = 'PerpsTPSLBottomSheet';
+
+// Enable WDYR tracking in development
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsTPSLBottomSheet as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsTPSLBottomSheet',
+  };
+}
 
 export default memo(
   PerpsTPSLBottomSheet,
