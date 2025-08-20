@@ -8,7 +8,6 @@ import TagBase, {
   TagShape,
 } from '../../../../../../../component-library/base-components/TagBase';
 import Avatar, {
-  AvatarAccountType,
   AvatarVariant,
 } from '../../../../../../../component-library/components/Avatars/Avatar';
 import Badge, {
@@ -28,7 +27,7 @@ import Text, {
 } from '../../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../../component-library/hooks';
 import { getLabelTextByAddress } from '../../../../../../../util/address';
-import { RootState } from '../../../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
+import { selectAvatarStyle } from '../../../../../../../selectors/settings';
 import useAccountInfo from '../../../../hooks/useAccountInfo';
 import { useApprovalInfo } from '../../../../hooks/useApprovalInfo';
 import useNetworkInfo from '../../../../hooks/useNetworkInfo';
@@ -36,9 +35,7 @@ import InfoSection from '../../../UI/info-row/info-section';
 import styleSheet from './account-network-info-collapsed.styles';
 
 const AccountNetworkInfoCollapsed = () => {
-  const useBlockieIcon = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  );
+  const avatarStyle = useSelector(selectAvatarStyle);
   const { chainId, fromAddress } = useApprovalInfo() ?? {};
 
   const { accountName } = useAccountInfo(fromAddress as string, chainId as Hex);
@@ -66,11 +63,7 @@ const AccountNetworkInfoCollapsed = () => {
           >
             <Avatar
               variant={AvatarVariant.Account}
-              type={
-                useBlockieIcon
-                  ? AvatarAccountType.Blockies
-                  : AvatarAccountType.JazzIcon
-              }
+              type={avatarStyle}
               accountAddress={fromAddress as string}
             />
           </BadgeWrapper>
