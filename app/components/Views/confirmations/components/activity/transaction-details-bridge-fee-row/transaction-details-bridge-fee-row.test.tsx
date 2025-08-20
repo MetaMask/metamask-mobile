@@ -2,17 +2,17 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { TransactionDetailsNetworkFeeRow } from './transaction-details-network-fee-row';
+import { TransactionDetailsBridgeFeeRow } from './transaction-details-bridge-fee-row';
 
 jest.mock('../../../hooks/activity/useTransactionDetails');
 
-const NETWORK_FEE_FIAT_MOCK = '$123.45';
+const BRIDGE_FEE_FIAT_MOCK = '$123.45';
 
 function render() {
-  return renderWithProvider(<TransactionDetailsNetworkFeeRow />, {});
+  return renderWithProvider(<TransactionDetailsBridgeFeeRow />, {});
 }
 
-describe('TransactionDetailsNetworkFeeRow', () => {
+describe('TransactionDetailsBridgeFeeRow', () => {
   const useTransactionDetailsMock = jest.mocked(useTransactionDetails);
 
   beforeEach(() => {
@@ -21,18 +21,18 @@ describe('TransactionDetailsNetworkFeeRow', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         metamaskPay: {
-          networkFeeFiat: NETWORK_FEE_FIAT_MOCK,
+          bridgeFeeFiat: BRIDGE_FEE_FIAT_MOCK,
         },
       } as unknown as TransactionMeta,
     });
   });
 
-  it('renders network fee fiat', () => {
+  it('renders bridge fee fiat', () => {
     const { getByText } = render();
-    expect(getByText(NETWORK_FEE_FIAT_MOCK)).toBeDefined();
+    expect(getByText(BRIDGE_FEE_FIAT_MOCK)).toBeDefined();
   });
 
-  it('renders nothing if no network fee fiat', () => {
+  it('renders nothing if no bridge fee fiat', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         metamaskPay: {},
@@ -41,6 +41,6 @@ describe('TransactionDetailsNetworkFeeRow', () => {
 
     const { queryByText } = render();
 
-    expect(queryByText(NETWORK_FEE_FIAT_MOCK)).toBeNull();
+    expect(queryByText(BRIDGE_FEE_FIAT_MOCK)).toBeNull();
   });
 });
