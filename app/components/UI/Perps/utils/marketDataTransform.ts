@@ -57,7 +57,8 @@ export function transformMarketData(
       : 0;
 
     // Format volume (dayNtlVlm is daily notional volume)
-    const volume = assetCtx ? parseFloat(assetCtx.dayNtlVlm) : 0;
+    // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
+    const volume = assetCtx?.dayNtlVlm ? parseFloat(assetCtx.dayNtlVlm) : NaN;
 
     // Extract funding time data if available
     let nextFundingTime: number | undefined;
@@ -92,7 +93,7 @@ export function transformMarketData(
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
         : formatPercentage(change24hPercent),
-      volume: isNaN(volume) ? '$0' : formatVolume(volume),
+      volume: isNaN(volume) ? '$--' : formatVolume(volume),
       nextFundingTime,
       fundingIntervalHours,
     };
@@ -182,7 +183,9 @@ export function formatPercentage(percent: number): string {
  * Format volume with appropriate units
  */
 export function formatVolume(volume: number): string {
-  if (isNaN(volume) || !isFinite(volume)) return '$0';
+  if (isNaN(volume) || !isFinite(volume)) return '$--';
+
+  // Show actual 0 if it's truly 0
   if (volume === 0) return '$0';
 
   return new Intl.NumberFormat('en-US', {
@@ -190,6 +193,6 @@ export function formatVolume(volume: number): string {
     currency: 'USD',
     notation: 'compact',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 0, // Changed from 2 to 0 to remove decimals
   }).format(volume);
 }

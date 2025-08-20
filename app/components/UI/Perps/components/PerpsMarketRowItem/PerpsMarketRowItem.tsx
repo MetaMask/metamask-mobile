@@ -70,17 +70,26 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
     }
 
     // Update volume if available
-    if (livePrice.volume24h) {
+    if (livePrice.volume24h !== undefined) {
       const volume = livePrice.volume24h;
+
+      // Ensure volume is never shown as $0 if there's data
       if (volume >= 1e9) {
-        updatedMarket.volume = `$${(volume / 1e9).toFixed(1)}B`;
+        updatedMarket.volume = `$${Math.round(volume / 1e9)}B`;
       } else if (volume >= 1e6) {
-        updatedMarket.volume = `$${(volume / 1e6).toFixed(1)}M`;
+        updatedMarket.volume = `$${Math.round(volume / 1e6)}M`;
       } else if (volume >= 1e3) {
-        updatedMarket.volume = `$${(volume / 1e3).toFixed(1)}K`;
+        updatedMarket.volume = `$${Math.round(volume / 1e3)}K`;
+      } else if (volume > 0) {
+        // For very small volumes, show at least $1
+        updatedMarket.volume = volume < 1 ? '$<1' : `$${Math.round(volume)}`;
       } else {
-        updatedMarket.volume = `$${volume.toFixed(2)}`;
+        // Only show $0 if volume is truly 0
+        updatedMarket.volume = '$0';
       }
+    } else if (!market.volume || market.volume === '$0') {
+      // Fallback: ensure volume field always has a value
+      updatedMarket.volume = '$--';
     }
 
     return updatedMarket;
@@ -97,16 +106,15 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
       <View style={styles.leftSection}>
         <View style={styles.perpIcon}>
           {assetUrl ? (
-            <RemoteImage source={{ uri: assetUrl }} />
+            <RemoteImage source={{ uri: assetUrl }} style={styles.tokenIcon} />
           ) : (
             <Avatar
-              variant={AvatarVariant.Network}
+              variant={AvatarVariant.Token}
               name={displayMarket.symbol}
-              size={AvatarSize.Lg}
+              size={AvatarSize.Md}
               testID={getPerpsMarketRowItemSelector.rowItem(
                 displayMarket.symbol,
               )}
-              style={styles.networkAvatar}
             />
           )}
         </View>
