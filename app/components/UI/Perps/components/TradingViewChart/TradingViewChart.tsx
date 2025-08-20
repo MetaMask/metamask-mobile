@@ -17,8 +17,6 @@ import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Pe
 import { CandlePeriod, TimeDuration } from '../../constants/chartConfig';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createIntervalUpdateMessage } from './utils/chartCalculations';
-
-// TP/SL Lines interface
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -27,7 +25,6 @@ export interface TPSLLines {
   currentPrice?: string;
 }
 
-// Re-export TimeDuration for convenience
 export type { TimeDuration } from '../../constants/chartConfig';
 
 interface TradingViewChartProps {
@@ -44,7 +41,6 @@ interface TradingViewChartProps {
 // ATTRIBUTION NOTICE:
 // TradingView Lightweight Charts™
 // Copyright (с) 2025 TradingView, Inc. https://www.tradingview.com/
-
 const TradingViewChart: React.FC<TradingViewChartProps> = ({
   candleData,
   height = 350,
@@ -55,32 +51,20 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   selectedDuration = '1d',
   selectedCandlePeriod = CandlePeriod.ONE_HOUR,
 }) => {
-  /* eslint-disable no-console */
-  // Temporarily disable console warnings for debugging
   const { styles, theme } = useStyles(styleSheet, {});
   const webViewRef = useRef<WebView>(null);
   const [isChartReady, setIsChartReady] = useState(false);
   const [webViewError, setWebViewError] = useState<string | null>(null);
 
-  // Note: getCandleCount logic moved to utils/chartCalculations.ts for better testability
-
-  // Send interval update to WebView
-  // Note: This is mainly for debugging/logging. The actual data fetching
-  // should be handled by the parent component via usePerpsPositionData
   const sendIntervalUpdate = useCallback(
     (duration: TimeDuration | string, candlePeriod?: CandlePeriod) => {
       if (!webViewRef.current || !isChartReady) {
-        console.log(
-          '🔍 Chart not ready yet, interval update will be sent when ready',
-        );
         return;
       }
 
-      // Use provided candle period or fallback to a default
       const period = candlePeriod || CandlePeriod.ONE_HOUR;
       const message = createIntervalUpdateMessage(duration, period);
 
-      console.log('📊 Sending interval update to chart:', message);
       webViewRef.current.postMessage(JSON.stringify(message));
     },
     [isChartReady],
@@ -101,7 +85,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     sendIntervalUpdate,
   ]);
 
-  // WORKING TradingView implementation - building on verified WebView foundation
   const htmlContent = useMemo(
     () => `<!DOCTYPE html>
 <html>
@@ -635,21 +618,11 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
           ref={webViewRef}
           source={{ html: htmlContent }}
           style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles
-          // injectedJavaScript={injectedJavaScript}
           onMessage={handleWebViewMessage}
           onError={handleWebViewError}
           onHttpError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
             console.error('TradingViewChart: HTTP Error:', nativeEvent);
-          }}
-          onLoadStart={() =>
-            console.log('TradingViewChart: WebView load started')
-          }
-          onLoadEnd={() => console.log('TradingViewChart: WebView load ended')}
-          onLoad={() => {
-            console.log(
-              'TradingViewChart: WebView loaded - ready to communicate',
-            );
           }}
           javaScriptEnabled
           domStorageEnabled
@@ -663,7 +636,6 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
           mediaPlaybackRequiresUserAction={false}
           mixedContentMode="compatibility"
           testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
-          // Enable debugging (you can set this to false in production)
           webviewDebuggingEnabled={__DEV__}
         />
       </Box>
