@@ -25,6 +25,10 @@ jest.mock('../../../../../selectors/accountsController', () => ({
   selectInternalAccountsById: jest.fn(),
 }));
 
+jest.mock('../../context/send-context', () => ({
+  useSendContext: jest.fn(),
+}));
+
 import { selectMultichainWallets } from '../../../../../selectors/multichainAccounts/wallets';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 
@@ -32,6 +36,7 @@ import { useSelector } from 'react-redux';
 import { useSendType } from './useSendType';
 import { isEvmAccountType } from '@metamask/keyring-api';
 import { isSolanaAccount } from '../../../../../core/Multichain/utils';
+import { useSendContext } from '../../context/send-context';
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseSendType = useSendType as jest.MockedFunction<typeof useSendType>;
@@ -40,6 +45,9 @@ const mockIsEvmAccountType = isEvmAccountType as jest.MockedFunction<
 >;
 const mockIsSolanaAccount = isSolanaAccount as jest.MockedFunction<
   typeof isSolanaAccount
+>;
+const mockUseSendContext = useSendContext as jest.MockedFunction<
+  typeof useSendContext
 >;
 
 describe('useAccounts', () => {
@@ -115,6 +123,14 @@ describe('useAccounts', () => {
       isNonEvmNativeSendType: false,
     });
 
+    mockUseSendContext.mockReturnValue({
+      from: undefined,
+      updateAsset: jest.fn(),
+
+      updateTo: jest.fn(),
+      updateValue: jest.fn(),
+    });
+
     mockIsEvmAccountType.mockReturnValue(true);
     mockIsSolanaAccount.mockReturnValue(false);
   });
@@ -139,7 +155,7 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
-          name: 'Account 1',
+          name: 'Group 1',
           address: '0x1234567890123456789012345678901234567890',
           fiatValue: '$1,000.00',
         },
@@ -159,6 +175,20 @@ describe('useAccounts', () => {
       );
       expect(mockIsEvmAccountType).toHaveBeenCalledWith('eip155:eoa');
       expect(mockIsEvmAccountType).toHaveBeenCalledWith('solana:data-account');
+    });
+
+    it('filters out account when from address matches account address', () => {
+      mockUseSendContext.mockReturnValue({
+        from: '0x1234567890123456789012345678901234567890',
+        updateAsset: jest.fn(),
+
+        updateTo: jest.fn(),
+        updateValue: jest.fn(),
+      });
+
+      const { result } = renderHook(() => useAccounts());
+
+      expect(result.current).toEqual([]);
     });
   });
 
@@ -182,7 +212,7 @@ describe('useAccounts', () => {
 
       expect(result.current).toEqual([
         {
-          name: 'Solana Account 1',
+          name: 'Group 2',
           address: 'Sol1234567890123456789012345678901234567890',
           fiatValue: '$1,000.00',
         },
@@ -378,12 +408,12 @@ describe('useAccounts', () => {
       expect(result.current).toEqual(
         expect.arrayContaining([
           {
-            name: 'Account 1',
+            name: 'Group 1',
             address: '0x1234567890123456789012345678901234567890',
             fiatValue: '$1,000.00',
           },
           {
-            name: 'Account 2',
+            name: 'Group 3',
             address: '0x9876543210987654321098765432109876543210',
             fiatValue: '$1,000.00',
           },

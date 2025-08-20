@@ -5,6 +5,7 @@ import type {
   Position,
   Order,
   OrderFill,
+  AccountState,
 } from '../controllers/types';
 
 // Generic subscription parameters
@@ -18,7 +19,7 @@ interface StreamSubscription<T> {
 }
 
 // Base class for any stream type
-class StreamChannel<T> {
+abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscription: (() => void) | null = null;
@@ -108,6 +109,34 @@ class StreamChannel<T> {
     // Override in subclasses
     return null;
   }
+
+  public clearCache(): void {
+    this.cache.clear();
+    // Disconnect existing WebSocket subscription to force reconnect with new account
+    if (this.wsSubscription) {
+      this.disconnect();
+    }
+    // Notify subscribers immediately with cleared data (bypass throttling)
+    // Subclasses should override getClearedData() to provide appropriate empty state
+    const clearedData = this.getClearedData();
+    this.subscribers.forEach((subscriber) => {
+      // Clear any pending updates and timers
+      if (subscriber.timer) {
+        clearTimeout(subscriber.timer);
+        subscriber.timer = undefined;
+      }
+      subscriber.pendingUpdate = undefined;
+      // Notify immediately with cleared data
+      subscriber.callback(clearedData);
+    });
+    // If we have active subscribers, reconnect with the new account
+    if (this.subscribers.size > 0) {
+      // Small delay to ensure old connection is fully closed
+      setTimeout(() => this.connect(), 100);
+    }
+  }
+
+  protected abstract getClearedData(): T;
 }
 
 // Specific channel for prices
@@ -166,6 +195,17 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     return cached;
   }
 
+  protected getClearedData(): Record<string, PriceUpdate> {
+    return {};
+  }
+
+  public clearCache(): void {
+    // Clear the price-specific cache
+    this.priceCache.clear();
+    // Call parent clearCache
+    super.clearCache();
+  }
+
   subscribeToSymbols(params: {
     symbols: string[];
     callback: (prices: Record<string, PriceUpdate>) => void;
@@ -222,6 +262,10 @@ class OrderStreamChannel extends StreamChannel<Order[]> {
     return this.cache.get('orders') || [];
   }
 
+  protected getClearedData(): Order[] {
+    return [];
+  }
+
   /**
    * Pre-warm the channel by creating a persistent subscription
    * This keeps the WebSocket connection alive and caches data continuously
@@ -272,6 +316,10 @@ class PositionStreamChannel extends StreamChannel<Position[]> {
 
   protected getCachedData() {
     return this.cache.get('positions') || [];
+  }
+
+  protected getClearedData(): Position[] {
+    return [];
   }
 
   /**
@@ -325,6 +373,67 @@ class FillStreamChannel extends StreamChannel<OrderFill[]> {
   protected getCachedData() {
     return this.cache.get('fills') || [];
   }
+
+  protected getClearedData(): OrderFill[] {
+    return [];
+  }
+}
+
+// Specific channel for account state
+class AccountStreamChannel extends StreamChannel<AccountState | null> {
+  private prewarmUnsubscribe?: () => void;
+
+  protected connect() {
+    if (this.wsSubscription) return;
+
+    this.wsSubscription = Engine.context.PerpsController.subscribeToAccount({
+      callback: (account: AccountState) => {
+        // Use base cache Map with consistent key
+        this.cache.set('account', account);
+        this.notifySubscribers(account as AccountState | null);
+      },
+    });
+  }
+
+  protected getCachedData(): AccountState | null {
+    // Return cached data for instant display
+    return this.cache.get('account') || null;
+  }
+
+  protected getClearedData(): AccountState | null {
+    return null;
+  }
+
+  /**
+   * Pre-warm the channel by creating a persistent subscription
+   * This keeps the WebSocket connection alive and caches data continuously
+   * @returns Cleanup function to call when leaving Perps environment
+   */
+  public prewarm(): () => void {
+    if (this.prewarmUnsubscribe) {
+      return this.prewarmUnsubscribe;
+    }
+
+    // Create a real subscription with no-op callback to keep connection alive
+    this.prewarmUnsubscribe = this.subscribe({
+      callback: () => {
+        // No-op callback - just keeps the connection alive for caching
+      },
+      throttleMs: 0, // No throttle for pre-warm
+    });
+
+    return this.prewarmUnsubscribe;
+  }
+
+  /**
+   * Cleanup pre-warm subscription
+   */
+  public cleanupPrewarm(): void {
+    if (this.prewarmUnsubscribe) {
+      this.prewarmUnsubscribe();
+      this.prewarmUnsubscribe = undefined;
+    }
+  }
 }
 
 // Main manager class
@@ -333,10 +442,10 @@ export class PerpsStreamManager {
   public readonly orders = new OrderStreamChannel();
   public readonly positions = new PositionStreamChannel();
   public readonly fills = new FillStreamChannel();
+  public readonly account = new AccountStreamChannel();
 
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();
-  // public readonly accountState = new AccountStreamChannel();
   // public readonly orderBook = new OrderBookStreamChannel();
   // public readonly trades = new TradeStreamChannel();
 }

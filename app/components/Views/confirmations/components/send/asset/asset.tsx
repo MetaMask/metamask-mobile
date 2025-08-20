@@ -1,28 +1,59 @@
-import React, { useEffect } from 'react';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
-import { Box, Text } from '@metamask/design-system-react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { ScrollView } from 'react-native';
 
-import Routes from '../../../../../../constants/navigation/Routes';
-import TabBar from '../../../../../../component-library/components-temp/TabBar/TabBar';
+import { strings } from '../../../../../../../locales/i18n';
 import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 import { TextFieldSize } from '../../../../../../component-library/components/Form/TextField/TextField.types';
 import { useAssetSelectionMetrics } from '../../../hooks/send/metrics/useAssetSelectionMetrics';
 import { useSelectedEVMAccountTokens } from '../../../hooks/send/evm/useSelectedEVMAccountTokens';
 import { useTokenSearch } from '../../../hooks/send/useTokenSearch';
-import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { TokenList } from '../../token-list';
+import { AssetType } from '../../../types/token';
+import { NetworkFilter } from '../../network-filter';
 
 export const Asset = () => {
   const tokens = useSelectedEVMAccountTokens();
+  const [filteredTokensByNetwork, setFilteredTokensByNetwork] =
+    useState<AssetType[]>(tokens);
   const { searchQuery, setSearchQuery, filteredTokens, clearSearch } =
-    useTokenSearch(tokens);
+    useTokenSearch(filteredTokensByNetwork);
   const {
     setAssetListSize,
     setNoneAssetFilterMethod,
     setSearchAssetFilterMethod,
   } = useAssetSelectionMetrics();
 
-  useSendNavbar({ currentRoute: Routes.SEND.ASSET });
+  const [hasActiveNetworkFilter, setHasActiveNetworkFilter] = useState(false);
+  const [clearNetworkFilters, setClearNetworkFilters] = useState<
+    (() => void) | null
+  >(null);
+
+  const handleFilteredTokensChange = useCallback(
+    (newFilteredTokens: AssetType[]) => {
+      setFilteredTokensByNetwork(newFilteredTokens);
+    },
+    [],
+  );
+
+  const handleNetworkFilterStateChange = useCallback(
+    (hasActiveFilter: boolean) => {
+      setHasActiveNetworkFilter(hasActiveFilter);
+    },
+    [],
+  );
+
+  const handleExposeFilterControls = useCallback((clearFilters: () => void) => {
+    setClearNetworkFilters(() => clearFilters);
+  }, []);
+
+  const hasActiveFilters = searchQuery.length > 0 || hasActiveNetworkFilter;
 
   useEffect(() => {
     setAssetListSize(
@@ -44,22 +75,38 @@ export const Asset = () => {
         <TextFieldSearch
           value={searchQuery}
           onChangeText={setSearchQuery}
-          placeholder="Search"
+          placeholder={strings('send.search_tokens_and_nfts')}
           size={TextFieldSize.Lg}
           showClearButton={searchQuery.length > 0}
           onPressClearButton={clearSearch}
         />
       </Box>
-      <ScrollableTabView renderTabBar={() => <TabBar />}>
-        <Box key="token-tab" {...{ tabLabel: 'Tokens' }} twClassName="flex-1">
-          <TokenList tokens={filteredTokens} />
-        </Box>
-        <Box key="nft-tab" {...{ tabLabel: 'NFTs' }} twClassName="flex-1">
-          <Text>
-            NFTs - will be implemented in separate PR - Intentional empty
+      <NetworkFilter
+        tokens={tokens}
+        onFilteredTokensChange={handleFilteredTokensChange}
+        onNetworkFilterStateChange={handleNetworkFilterStateChange}
+        onExposeFilterControls={handleExposeFilterControls}
+      />
+      <ScrollView>
+        {filteredTokens.length > 0 && (
+          <Text
+            twClassName="m-4 mt-2"
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            fontWeight={FontWeight.Medium}
+          >
+            {strings('send.tokens')}
           </Text>
-        </Box>
-      </ScrollableTabView>
+        )}
+        <TokenList
+          tokens={filteredTokens}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={() => {
+            clearSearch();
+            clearNetworkFilters?.();
+          }}
+        />
+      </ScrollView>
     </Box>
   );
 };
