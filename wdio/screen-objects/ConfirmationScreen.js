@@ -1,12 +1,5 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
-import Gestures from '../helpers/Gestures';
-import Selectors from '../helpers/Selectors';
-import {
-  AMOUNT_ERROR,
-  AMOUNT_SCREEN,
-  NEXT_BUTTON,
-  TRANSACTION_AMOUNT_INPUT,
-} from './testIDs/Screens/AmountScreen.testIds';
+import { ConfirmationRowComponentIDs,ConfirmationFooterSelectorIDs } from '../../e2e/selectors/Confirmation/ConfirmationView.selectors';
 import { expect as appwrightExpect } from 'appwright';
 
 class ConfirmationScreen {
@@ -19,11 +12,11 @@ class ConfirmationScreen {
   }
 
   get accountSendTo() {
-    return AppwrightSelectors.getElementByID(this._device, 'from-to');
+    return AppwrightSelectors.getElementByID(this._device, ConfirmationRowComponentIDs.FROM_TO);
   }
 
   get network() {
-    return AppwrightSelectors.getElementByID(this._device, 'gas-fees-details');
+    return AppwrightSelectors.getElementByID(this._device, ConfirmationRowComponentIDs.GAS_FEES_DETAILS);
   }
 
   get advancedSettings() {
@@ -31,7 +24,7 @@ class ConfirmationScreen {
   }
 
   get confirmButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'confirm-button');
+    return AppwrightSelectors.getElementByID(this._device, ConfirmationFooterSelectorIDs.CONFIRM_BUTTON);
   }
 
   async isAccountSendToVisible() {

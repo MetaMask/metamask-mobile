@@ -1,5 +1,6 @@
 import AppwrightSelectors from '../helpers/AppwrightSelectors';
 import { expect as appwrightExpect } from 'appwright';
+import { SendActionViewSelectorsIDs } from '../../e2e/selectors/SendFlow/SendActionView.selectors';
 
 class SolanaConfirmationScreen {
   get device() {
@@ -15,7 +16,7 @@ class SolanaConfirmationScreen {
   }
 
   get confirmButton() {
-    return AppwrightSelectors.getElementByID(this._device, 'transaction-confirmation-submit-button-snap-footer-button');
+    return AppwrightSelectors.getElementByID(this._device, SendActionViewSelectorsIDs.SEND_TRANSACTION_BUTTON);
   }
 
   async isFieldVisible() {
