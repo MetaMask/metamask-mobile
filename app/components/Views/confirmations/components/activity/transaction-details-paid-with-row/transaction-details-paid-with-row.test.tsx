@@ -51,4 +51,24 @@ describe('TransactionDetailsPaidWithRow', () => {
     const { getByTestId } = render();
     expect(getByTestId('token-icon')).toBeDefined();
   });
+
+  it('renders nothing if no payment token', () => {
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        metamaskPay: {},
+      } as unknown as TransactionMeta,
+    });
+
+    const { queryByText } = render();
+
+    expect(queryByText(TOKEN_SYMBOL_MOCK)).toBeNull();
+  });
+
+  it('renders nothing if token not found', () => {
+    useTokensWithBalanceMock.mockReturnValue([]);
+
+    const { queryByText } = render();
+
+    expect(queryByText(TOKEN_SYMBOL_MOCK)).toBeNull();
+  });
 });
