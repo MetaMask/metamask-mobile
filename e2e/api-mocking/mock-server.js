@@ -6,7 +6,6 @@ import _ from 'lodash';
 import { device } from 'detox';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
 import { createLogger } from '../framework/logger';
-import { emptyHtmlPage } from './mock-responses/defaults/helpers';
 
 const logger = createLogger({
   name: 'MockServer',
