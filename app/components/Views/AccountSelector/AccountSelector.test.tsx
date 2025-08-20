@@ -347,7 +347,9 @@ describe('AccountSelector', () => {
         params: {
           ...mockRoute.params,
           navigateToAddAccountActions:
-            AccountSelectorScreens.AddAccountActions as AccountSelectorScreens.AddAccountActions,
+            AccountSelectorScreens.MultichainAddWalletActions as
+              | AccountSelectorScreens.AddAccountActions
+              | AccountSelectorScreens.MultichainAddWalletActions,
         },
       };
 
@@ -361,7 +363,7 @@ describe('AccountSelector', () => {
         },
       );
 
-      expect(screen.getAllByText('Create a new account')).toBeDefined();
+      expect(screen.getAllByText('Import a wallet')).toBeDefined();
     });
 
     it('clicks Add wallet button and displays MultichainAddWalletActions bottomsheet', () => {
@@ -390,9 +392,7 @@ describe('AccountSelector', () => {
       expect(screen.getByText('Add wallet')).toBeDefined();
 
       expect(
-        screen.getByTestId(
-          AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON,
-        ),
+        screen.getByTestId(AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON),
       ).toBeDefined();
     });
   });

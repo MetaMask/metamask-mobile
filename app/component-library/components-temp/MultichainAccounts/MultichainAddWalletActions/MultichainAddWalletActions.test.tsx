@@ -64,10 +64,11 @@ describe('MultichainAddWalletActions', () => {
       },
     );
 
-    expect(screen.getByText('Create a new wallet')).toBeOnTheScreen();
     expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
     expect(screen.getByText('Import an account')).toBeOnTheScreen();
     expect(screen.getByText('Add a hardware wallet')).toBeOnTheScreen();
+    // TODO: Uncomment when adding new SRP will be implemented
+    // expect(screen.getByText('Create a new wallet')).toBeOnTheScreen();
   });
 
   it('has no action for create new wallet button', () => {

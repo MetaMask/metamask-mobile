@@ -55,7 +55,8 @@ const MultichainAddWalletActions = ({
       <Fragment>
         <SheetHeader title={strings('multichain_accounts.add_wallet')} />
         <View>
-          <AccountAction
+          {/* TODO: Uncomment when adding new SRP will be implemented */}
+          {/* <AccountAction
             actionTitle={strings('account_actions.create_new_wallet')}
             iconName={IconName.Add}
             onPress={() => {
@@ -66,7 +67,7 @@ const MultichainAddWalletActions = ({
               AddAccountBottomSheetSelectorsIDs.ADD_ETHEREUM_ACCOUNT_BUTTON
             }
             style={styles.accountAction}
-          />
+          /> */}
           <AccountAction
             actionTitle={strings('account_actions.import_wallet')}
             iconName={IconName.Wallet}
