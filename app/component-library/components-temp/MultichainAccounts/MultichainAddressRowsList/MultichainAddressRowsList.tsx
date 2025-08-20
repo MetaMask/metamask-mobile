@@ -10,7 +10,7 @@ import Text, { TextVariant, TextColor } from '../../../components/Texts/Text';
 import TextFieldSearch from '../../../components/Form/TextFieldSearch';
 import { TextFieldSize } from '../../../components/Form/TextField/TextField.types';
 import { strings } from '../../../../../locales/i18n';
-import MultichainAddressRow from '../MultichainAddressRow';
+import MultichainAddressRow, { SAMPLE_ICONS } from '../MultichainAddressRow';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { selectNonEvmNetworkConfigurationsByChainId } from '../../../../selectors/multichainNetworkController';
 import {
@@ -109,6 +109,7 @@ const MultichainAddressRowsList: React.FC<MultichainAddressRowsListProps> = ({
         chainId={item.chainId}
         networkName={item.networkName}
         address={item.address}
+        icons={SAMPLE_ICONS}
       />
     ),
     [],
