@@ -19,6 +19,7 @@ import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { ORDER_BOOK_SPREAD } from '../../constants/hyperLiquidConfig';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;
@@ -189,7 +190,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                     minimumDecimals: 2,
                     maximumDecimals: 2,
                   })
-                : '$---'}
+                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
             </Text>
           </View>
           <View style={styles.priceRow}>
@@ -202,7 +203,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                     minimumDecimals: 2,
                     maximumDecimals: 2,
                   })
-                : '$---'}
+                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
             </Text>
           </View>
           <View style={styles.priceRow}>
@@ -215,7 +216,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                     minimumDecimals: 2,
                     maximumDecimals: 2,
                   })
-                : '$---'}
+                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
             </Text>
           </View>
         </View>

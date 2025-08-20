@@ -31,6 +31,7 @@ import {
 import styleSheet from './PerpsPositionCard.styles';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import RemoteImage from '../../../../Base/RemoteImage';
 import {
   usePerpsMarkets,
@@ -257,7 +258,7 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                         minimumDecimals: 2,
                         maximumDecimals: 2,
                       })
-                    : '--'}
+                    : PERPS_CONSTANTS.FALLBACK_DATA_DISPLAY}
                 </Text>
               </View>
               <View style={styles.bodyItem}>
