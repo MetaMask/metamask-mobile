@@ -1,11 +1,11 @@
-import { TestSpecificMock } from '../../../framework';
+import { MockObject } from '../../../framework';
 
 /**
  * Mock data for cryptocurrency price API endpoints used in E2E testing.
  * Returns stable price data to ensure consistent balance displays.
  * Uses round numbers to make test assertions predictable.
  */
-export const PRICE_API_MOCKS: TestSpecificMock = {
+export const PRICE_API_MOCKS: MockObject = {
   GET: [
     {
       urlEndpoint:

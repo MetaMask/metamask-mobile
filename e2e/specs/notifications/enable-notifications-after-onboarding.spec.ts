@@ -11,19 +11,10 @@ import {
 } from './utils/mocks';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
-import { startMockServer } from '../../api-mocking/mock-server';
-import { Mockttp } from 'mockttp';
-import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
-  let mockServer: Mockttp;
-
   beforeAll(async () => {
     jest.setTimeout(170000);
-    const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort);
-    await mockNotificationServices(mockServer);
   });
 
   it('should enable notifications and view feature announcements and wallet notifications', async () => {
@@ -33,9 +24,11 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
       {
         fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
         restartDevice: true,
-        mockServerInstance: mockServer,
         permissions: {
           notifications: 'YES',
+        },
+        testSpecificMock: async (mockServer) => {
+          await mockNotificationServices(mockServer);
         },
       },
       async () => {

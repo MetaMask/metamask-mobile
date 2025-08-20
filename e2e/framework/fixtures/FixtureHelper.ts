@@ -31,6 +31,7 @@ import {
   AnvilNodeOptions,
   GanacheNodeOptions,
   TestSpecificMock,
+  MockObject,
 } from '../types';
 import {
   TestDapps,
@@ -325,99 +326,27 @@ export const stopFixtureServer = async (fixtureServer: FixtureServer) => {
   logger.debug('The fixture server is stopped');
 };
 
-/**
- * Merges test-specific mocks with default mocks, prioritizing test-specific mocks
- * @param testSpecificMocks - Test-specific mock events organized by method
- * @returns Merged mock events with test-specific mocks taking priority
- */
-const mergeWithDefaultMocks = (
-  testSpecificMocks: TestSpecificMock | undefined,
-) => {
-  if (!testSpecificMocks) {
-    return DEFAULT_MOCKS;
-  }
-
-  const mergedMocks: TestSpecificMock = {};
-
-  // Get all HTTP methods from both test-specific and default mocks
-  const allMethods = new Set([
-    ...Object.keys(testSpecificMocks),
-    ...Object.keys(DEFAULT_MOCKS),
-  ]);
-
-  allMethods.forEach((method) => {
-    const testMocks = testSpecificMocks[method as keyof TestSpecificMock] || [];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const defaultMocks = (DEFAULT_MOCKS as any)[method] || [];
-
-    // Create a set of URLs that already exist in test-specific mocks
-    const testMockUrls = new Set(testMocks.map((mock) => mock.urlEndpoint));
-
-    // Filter out default mocks that have the same URL as test-specific mocks
-    const filteredDefaultMocks = defaultMocks.filter(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (defaultMock: any) => !testMockUrls.has(defaultMock.urlEndpoint),
-    );
-
-    // Merge test-specific mocks first, then append non-duplicate default mocks
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (mergedMocks as any)[method] = [...testMocks, ...filteredDefaultMocks];
-  });
-
-  return mergedMocks;
-};
-
 export const createMockAPIServer = async (
-  mockServerInstance?: Mockttp,
   testSpecificMock?: TestSpecificMock,
 ): Promise<{
   mockServer: Mockttp;
   mockServerPort: number;
 }> => {
-  // Handle mock server
-  let mockServer: Mockttp | undefined;
   let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
 
-  // Both
-  if (mockServerInstance && testSpecificMock) {
-    throw new Error(
-      'Cannot use both mockServerInstance and testSpecificMock at the same time. Please use only one.',
-    );
-  }
+  mockServerPort = getMockServerPort();
+  const mockServer = await startMockServer(
+    DEFAULT_MOCKS as MockObject,
+    mockServerPort,
+    testSpecificMock, // Applied First, so any test-specific mocks take precedence
+  );
 
-  // mockServerInstance only
-  if (mockServerInstance && !testSpecificMock) {
-    mockServer = mockServerInstance;
-    mockServerPort = mockServer.port;
+  if (testSpecificMock) {
     logger.debug(
-      `Mock server started from mockServerInstance on port ${mockServerPort}`,
+      `Mock server started with testSpecificMock (priority) + defaults fallback on port ${mockServerPort}`,
     );
-  }
-
-  // testSpecificMock only
-  if (!mockServerInstance && testSpecificMock) {
-    mockServerPort = getMockServerPort();
-    const mergedMocks = mergeWithDefaultMocks(testSpecificMock);
-    mockServer = await startMockServer(mergedMocks, mockServerPort);
-
-    logger.debug(
-      `Mock server started from testSpecificMock on port ${mockServerPort}`,
-    );
-  }
-
-  // neither
-  if (!mockServerInstance && !testSpecificMock) {
-    mockServerPort = getMockServerPort();
-    const mergedMocks = mergeWithDefaultMocks(testSpecificMock);
-    mockServer = await startMockServer(mergedMocks, mockServerPort);
-
-    logger.debug(
-      `Mock server started from testSpecificMock on port ${mockServerPort}`,
-    );
-  }
-
-  if (!mockServer) {
-    throw new Error('Test setup failure, no mock server setup');
+  } else {
+    logger.debug(`Mock server started with defaults on port ${mockServerPort}`);
   }
 
   // Additional Global Mocks
@@ -460,7 +389,6 @@ export async function withFixtures(
       },
     ],
     testSpecificMock,
-    mockServerInstance,
     launchArgs,
     languageAndLocale,
     permissions = {},
@@ -471,7 +399,6 @@ export async function withFixtures(
   await TestHelpers.reverseServerPort();
 
   const { mockServer, mockServerPort } = await createMockAPIServer(
-    mockServerInstance,
     testSpecificMock,
   );
 

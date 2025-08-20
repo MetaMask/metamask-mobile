@@ -77,11 +77,12 @@ const isUrlAllowed = (url) => {
 /**
  * Starts the mock server and sets up mock events.
  *
- * @param {Object} events - The events to mock, organised by method.
+ * @param {Object} events - The events to mock - Only to be used for the DEFAULT MOCKS
  * @param {number} [port] - Optional port number. If not provided, a free port will be used.
+ * @param {Function} [testSpecificMock] - Optional function-based test-specific mock
  * @returns {Promise} Resolves to the running mock server.
  */
-export const startMockServer = async (events, port) => {
+export const startMockServer = async (events, port, testSpecificMock) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
 
@@ -96,13 +97,20 @@ export const startMockServer = async (events, port) => {
     logger.error(`Failed to start mock server on port ${port}: ${error}`);
     throw new Error(`Failed to start mock server on port ${port}: ${error}`);
   }
+
   logger.info(`Mockttp server running at http://localhost:${port}`);
 
   await mockServer
     .forGet('/health-check')
     .thenReply(200, 'Mock server is running');
 
-  // Handle all /proxy requests
+  // Apply test-specific mocks first (takes precedence)
+  if (testSpecificMock) {
+    logger.info('Applying testSpecificMock function (takes precedence)');
+    await testSpecificMock(mockServer);
+  }
+
+  // Set up the main proxy handler (fallback logic)
   await mockServer
     .forAnyRequest()
     .matching((request) => request.path.startsWith('/proxy'))
@@ -134,7 +142,6 @@ export const startMockServer = async (events, port) => {
           return event.urlEndpoint.test(urlEndpoint);
         }
         // Support exact match and prefix (partial) match to avoid leaking keys in tests
-
         return urlEndpoint === eventUrl || urlEndpoint.startsWith(eventUrl);
       });
 
@@ -168,7 +175,7 @@ export const startMockServer = async (events, port) => {
       if (matchingEvent) {
         logger.info(`Mocking ${method} request to: ${urlEndpoint}`);
         logger.info(`Response status: ${matchingEvent.responseCode}`);
-        logger.debug('Response:', matchingEvent.response);
+        // logger.debug('Response:', matchingEvent.response);
         // For POST requests, verify the request body if specified
         if (method === 'POST' && matchingEvent.requestBody) {
           const parsedRequestBodyJson = requestBodyJson;

@@ -8,16 +8,12 @@ import WalletView from '../../pages/wallet/WalletView';
 import FundActionMenu from '../../pages/UI/FundActionMenu';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import SellGetStartedView from '../../pages/Ramps/SellGetStartedView';
-import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import {
   EventPayload,
   findEvent,
   getEventsPayloads,
 } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
-import { Mockttp } from 'mockttp';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 
 const PaymentMethods = {
@@ -27,20 +23,8 @@ const expectedEvents = {
   OFFRAMP_PAYMENT_METHOD_SELECTED: 'Off-ramp Payment Method Selected',
 };
 
-let mockServer: Mockttp;
-let mockServerPort: number;
-
 describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
   const eventsToCheck: EventPayload[] = [];
-
-  beforeAll(async () => {
-    const segmentMock = {
-      POST: [mockEvents.POST.segmentTrack],
-    };
-
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(segmentMock, mockServerPort);
-  });
 
   beforeEach(async () => {
     jest.setTimeout(150000);
@@ -55,9 +39,8 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
-        mockServerInstance: mockServer,
-        endTestfn: async ({ mockServer: mockServerInstance }) => {
-          const events = await getEventsPayloads(mockServerInstance);
+        endTestfn: async ({ mockServer }) => {
+          const events = await getEventsPayloads(mockServer);
           const offRampPaymentMethodSelected = findEvent(
             events,
             expectedEvents.OFFRAMP_PAYMENT_METHOD_SELECTED,

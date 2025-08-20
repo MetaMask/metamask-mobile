@@ -290,4 +290,14 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     ],
     occurrences: 19,
   },
+  {
+    address: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
+    symbol: 'SAI',
+    decimals: 18,
+    name: 'SAI',
+    iconUrl:
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359.png',
+    aggregators: ['metamask', 'coinGecko'],
+    occurrences: 2,
+  },
 ];

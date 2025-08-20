@@ -1,5 +1,5 @@
 /* eslint-disable no-useless-escape */
-import { TestSpecificMock } from '../../../framework';
+import { MockObject } from '../../../framework';
 export const ACCOUNTS_API_TRANSACTIONS_RESPONSE = {
   data: [
     {
@@ -1214,7 +1214,7 @@ export const ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE = {
  * Returns empty/basic responses to prevent API failures.
  * For specific account tests, add detailed mocks in the test files.
  */
-export const DEFAULT_ACCOUNTS_MOCK: TestSpecificMock = {
+export const DEFAULT_ACCOUNTS_MOCK: MockObject = {
   GET: [
     {
       urlEndpoint:

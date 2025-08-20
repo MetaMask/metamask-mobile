@@ -99,7 +99,7 @@ interface ResponseParam {
   response: unknown;
 }
 
-async function mockAPICall(server: Mockttp, response: ResponseParam) {
+export async function mockAPICall(server: Mockttp, response: ResponseParam) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {

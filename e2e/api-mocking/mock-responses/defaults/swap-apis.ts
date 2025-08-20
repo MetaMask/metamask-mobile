@@ -1,4 +1,4 @@
-import { TestSpecificMock } from '../../../framework';
+import { MockObject } from '../../../framework';
 
 export const SWAPS_FEATURE_FLAG_RESPONSE = {
   ethereum: {
@@ -170,7 +170,7 @@ export const SWAPS_FEATURE_FLAG_RESPONSE = {
  * Returns basic feature flags structure to prevent API failures.
  * For specific swap tests, add detailed mocks in the test files.
  */
-export const SWAP_API_MOCKS: TestSpecificMock = {
+export const SWAP_API_MOCKS: MockObject = {
   GET: [
     {
       urlEndpoint: 'https://swap.dev-api.cx.metamask.io/featureFlags',

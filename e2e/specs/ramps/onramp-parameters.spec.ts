@@ -12,17 +12,11 @@ import TokenSelectBottomSheet from '../../pages/Ramps/TokenSelectBottomSheet';
 import SelectRegionView from '../../pages/Ramps/SelectRegionView';
 import SelectPaymentMethodView from '../../pages/Ramps/SelectPaymentMethodView';
 import BuyGetStartedView from '../../pages/Ramps/BuyGetStartedView';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
-import { Mockttp } from 'mockttp';
-import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import Matchers from '../../framework/Matchers';
 
-let mockServer: Mockttp;
-let mockServerPort: number;
 const eventsToCheck: EventPayload[] = [];
 
 const setupOnRampTest = async (testFn: () => Promise<void>) => {
@@ -33,10 +27,9 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
         .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.UNITED_STATES])
         .withMetaMetricsOptIn()
         .build(),
-      mockServerInstance: mockServer,
       restartDevice: true,
-      endTestfn: async ({ mockServer: mockServerInstance }) => {
-        const events = await getEventsPayloads(mockServerInstance);
+      endTestfn: async ({ mockServer }) => {
+        const events = await getEventsPayloads(mockServer);
         eventsToCheck.push(...events);
       },
     },
@@ -53,17 +46,6 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
 describe(SmokeTrade('On-Ramp Parameters'), () => {
   beforeEach(async () => {
     jest.setTimeout(150000);
-    mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort);
-  });
-
-  // We need to manually stop the mock server after all the tests as each test
-  // will create a new instance of the mockServer and the segment validation
-  // does not require the app to be launched
-  afterAll(async () => {
-    if (mockServer) {
-      await stopMockServer(mockServer);
-    }
   });
 
   it('should select currency and verify display', async () => {

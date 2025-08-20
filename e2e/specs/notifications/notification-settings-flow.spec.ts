@@ -1,4 +1,3 @@
-import type { Mockttp } from 'mockttp';
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import { mockNotificationServices } from './utils/mocks';
@@ -10,18 +9,10 @@ import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import SettingsView from '../../pages/Settings/SettingsView';
 import NotificationSettingsView from '../../pages/Notifications/NotificationSettingsView';
-import { startMockServer } from '../../api-mocking/mock-server';
-import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
-import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 
 describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
-  let mockServer: Mockttp;
-
   beforeAll(async () => {
     jest.setTimeout(170000);
-    const mockServerPort = getMockServerPort();
-    mockServer = await startMockServer(DEFAULT_MOCKS, mockServerPort);
-    await mockNotificationServices(mockServer);
   });
 
   it('should enable notifications and toggle feature announcements and account notifications', async () => {
@@ -29,7 +20,9 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
       {
         fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
         restartDevice: true,
-        mockServerInstance: mockServer,
+        testSpecificMock: async (mockServer) => {
+          await mockNotificationServices(mockServer);
+        },
         permissions: {
           notifications: 'YES',
         },
