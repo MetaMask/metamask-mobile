@@ -39,11 +39,6 @@ const settingsReducer = (state = initialState, action) => {
         ...state,
         hideZeroBalanceTokens: action.hideZeroBalanceTokens,
       };
-    case 'SET_USE_BLOCKIE_ICON':
-      return {
-        ...state,
-        useBlockieIcon: action.useBlockieIcon,
-      };
     case 'SET_AVATAR_STYLE':
       return {
         ...state,
