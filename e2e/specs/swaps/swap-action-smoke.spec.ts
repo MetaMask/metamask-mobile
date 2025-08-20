@@ -6,6 +6,8 @@ import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import { SmokeTrade } from '../../tags';
+import { swapSpecificMock } from './helpers/constants';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../selectors/Transactions/ActivitiesView.selectors';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';

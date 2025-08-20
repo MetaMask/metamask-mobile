@@ -1,4 +1,4 @@
-gi'use strict';
+'use strict';
 import { loginToApp } from '../../viewHelper';
 import { Mockttp } from 'mockttp';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
@@ -12,7 +12,10 @@ import {
 } from '../../framework/fixtures/FixtureHelper';
 import TestHelpers from '../../helpers';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
-import { getFixturesServerPort, getMockServerPort } from '../../fixtures/utils';
+import {
+  getFixturesServerPort,
+  getMockServerPort,
+} from '../../framework/fixtures/FixtureUtils';
 import { Regression } from '../../tags';
 import Assertions from '../../framework/Assertions';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
