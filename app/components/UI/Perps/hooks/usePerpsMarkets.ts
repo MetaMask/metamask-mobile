@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import type { PerpsMarketData } from '../controllers/types';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export interface UsePerpsMarketsResult {
   /**
@@ -89,7 +90,7 @@ export const usePerpsMarkets = (
             if (!volumeStr) return -1; // Put undefined at the end
 
             // Handle special cases
-            if (volumeStr === '$--') return -1; // Put missing data at the end
+            if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1; // Put missing data at the end
             if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
 
             // Remove $ and commas, handle different suffixes

@@ -5,6 +5,7 @@ import type {
   AllMids,
   PredictedFunding,
 } from '@deeeed/hyperliquid-node20';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 /**
  * HyperLiquid-specific market data structure
@@ -93,7 +94,9 @@ export function transformMarketData(
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
         : formatPercentage(change24hPercent),
-      volume: isNaN(volume) ? '$--' : formatVolume(volume),
+      volume: isNaN(volume)
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+        : formatVolume(volume),
       nextFundingTime,
       fundingIntervalHours,
     };
@@ -183,7 +186,8 @@ export function formatPercentage(percent: number): string {
  * Format volume with appropriate units
  */
 export function formatVolume(volume: number): string {
-  if (isNaN(volume) || !isFinite(volume)) return '$--';
+  if (isNaN(volume) || !isFinite(volume))
+    return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
 
   // Show actual 0 if it's truly 0
   if (volume === 0) return '$0';
@@ -193,6 +197,6 @@ export function formatVolume(volume: number): string {
     currency: 'USD',
     notation: 'compact',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 0, // Changed from 2 to 0 to remove decimals
+    maximumFractionDigits: 0,
   }).format(volume);
 }

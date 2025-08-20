@@ -21,6 +21,7 @@ import {
   formatPnl,
 } from '../../utils/formatUtils';
 import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -89,7 +90,7 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
       }
     } else if (!market.volume || market.volume === '$0') {
       // Fallback: ensure volume field always has a value
-      updatedMarket.volume = '$--';
+      updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
 
     return updatedMarket;
