@@ -27,6 +27,7 @@ jest.mock('../../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../../util/navigation/navUtils'),
   useParams: () => ({
     email: EMAIL,
+    stateToken: 'mock-state-token',
   }),
 }));
 
@@ -40,8 +41,19 @@ const mockUseDepositSdkMethodInitialState = {
   isFetching: false,
 };
 
-const mockVerifyUserOtp = jest.fn().mockResolvedValue('Success');
-const mockSendUserOtp = jest.fn().mockResolvedValue('Success');
+const mockAccessTokenResponse: NativeTransakAccessToken = {
+  accessToken: 'mock-access-token',
+  ttl: 3600,
+  created: new Date('2024-01-01'),
+};
+
+const mockVerifyUserOtp = jest.fn().mockResolvedValue(mockAccessTokenResponse);
+const mockSendUserOtp = jest.fn().mockResolvedValue({
+  stateToken: 'new-mock-state-token',
+  isTncAccepted: false,
+  email: EMAIL,
+  expiresIn: 300,
+});
 
 jest.mock('../../hooks/useDepositSdkMethod', () => ({
   useDepositSdkMethod: jest.fn((config) => {
@@ -161,13 +173,13 @@ describe('OtpCode Screen', () => {
   });
 
   it('navigates to build quote when valid code is input', async () => {
-    const mockResponse = {
-      id: 'mock-id-123',
+    const mockTokenResponse: NativeTransakAccessToken = {
+      accessToken: 'mock-access-token-123',
       ttl: 1000,
-      userId: 'mock-user-id',
-    } as NativeTransakAccessToken;
+      created: new Date('2024-01-01'),
+    };
 
-    mockVerifyUserOtp.mockResolvedValue(mockResponse);
+    mockVerifyUserOtp.mockResolvedValue(mockTokenResponse);
     mockSetAuthToken.mockResolvedValue(undefined);
     const { getByTestId } = render(OtpCode);
     act(() => {
@@ -176,7 +188,7 @@ describe('OtpCode Screen', () => {
     });
     await waitFor(() => {
       expect(mockVerifyUserOtp).toHaveBeenCalled();
-      expect(mockSetAuthToken).toHaveBeenCalledWith(mockResponse);
+      expect(mockSetAuthToken).toHaveBeenCalledWith(mockTokenResponse);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.BUILD_QUOTE, {
         shouldRouteImmediately: true,
       });
@@ -184,13 +196,13 @@ describe('OtpCode Screen', () => {
   });
 
   it('tracks analytics event when OTP is successfully confirmed', async () => {
-    const mockResponse = {
-      id: 'mock-id-123',
+    const mockTokenResponse: NativeTransakAccessToken = {
+      accessToken: 'mock-access-token-456',
       ttl: 1000,
-      userId: 'mock-user-id',
-    } as NativeTransakAccessToken;
+      created: new Date('2024-01-01'),
+    };
 
-    mockVerifyUserOtp.mockResolvedValue(mockResponse);
+    mockVerifyUserOtp.mockResolvedValue(mockTokenResponse);
     mockSetAuthToken.mockResolvedValue(undefined);
     const { getByTestId } = render(OtpCode);
     act(() => {
@@ -226,13 +238,13 @@ describe('OtpCode Screen', () => {
     const mockTrace = trace as jest.MockedFunction<typeof trace>;
     mockTrace.mockClear();
 
-    const mockResponse = {
-      id: 'mock-id-123',
+    const mockTokenResponse: NativeTransakAccessToken = {
+      accessToken: 'mock-access-token-789',
       ttl: 1000,
-      userId: 'mock-user-id',
-    } as NativeTransakAccessToken;
+      created: new Date('2024-01-01'),
+    };
 
-    mockVerifyUserOtp.mockResolvedValue(mockResponse);
+    mockVerifyUserOtp.mockResolvedValue(mockTokenResponse);
     mockSetAuthToken.mockResolvedValue(undefined);
     const { getByTestId } = render(OtpCode);
     act(() => {

@@ -8,10 +8,7 @@ import React, {
   useCallback,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  selectDepositProviderFrontendAuth,
-  selectDepositProviderApiKey,
-} from '../../../../../selectors/featureFlagController/deposit';
+import { selectDepositProviderApiKey } from '../../../../../selectors/featureFlagController/deposit';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import {
   NativeRampsSdk,
@@ -37,7 +34,6 @@ export interface DepositSDK {
   sdk?: NativeRampsSdk;
   sdkError?: Error;
   providerApiKey: string | null;
-  providerFrontendAuth: string | null;
   isAuthenticated: boolean;
   authToken?: NativeTransakAccessToken;
   setAuthToken: (token: NativeTransakAccessToken) => Promise<boolean>;
@@ -74,7 +70,6 @@ export const DepositSDKProvider = ({
 }: Partial<ProviderProps<DepositSDK>>) => {
   const dispatch = useDispatch();
   const providerApiKey = useSelector(selectDepositProviderApiKey);
-  const providerFrontendAuth = useSelector(selectDepositProviderFrontendAuth);
   const selectedWalletAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -133,14 +128,13 @@ export const DepositSDKProvider = ({
 
   useEffect(() => {
     try {
-      if (!providerApiKey || !providerFrontendAuth) {
-        throw new Error('Deposit SDK requires valid API key and frontend auth');
+      if (!providerApiKey) {
+        throw new Error('Deposit SDK requires valid API key');
       }
 
       const sdkInstance = new NativeRampsSdk(
         {
-          partnerApiKey: providerApiKey,
-          frontendAuth: providerFrontendAuth,
+          apiKey: providerApiKey,
         },
         environment,
       );
@@ -149,7 +143,7 @@ export const DepositSDKProvider = ({
     } catch (error) {
       setSdkError(error as Error);
     }
-  }, [providerApiKey, providerFrontendAuth]);
+  }, [providerApiKey]);
 
   useEffect(() => {
     if (sdk && authToken) {
@@ -224,7 +218,6 @@ export const DepositSDKProvider = ({
       sdk,
       sdkError,
       providerApiKey,
-      providerFrontendAuth,
       isAuthenticated,
       authToken,
       setAuthToken: setAuthTokenCallback,
@@ -240,7 +233,6 @@ export const DepositSDKProvider = ({
       sdk,
       sdkError,
       providerApiKey,
-      providerFrontendAuth,
       isAuthenticated,
       authToken,
       setAuthTokenCallback,

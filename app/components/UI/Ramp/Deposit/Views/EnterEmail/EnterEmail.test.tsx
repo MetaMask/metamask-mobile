@@ -17,7 +17,12 @@ const mockResponse = {
   isFetching: false,
 };
 
-const mockSendEmail = jest.fn().mockResolvedValue('Success');
+const mockSendEmail = jest.fn().mockResolvedValue({
+  stateToken: 'mock-state-token',
+  isTncAccepted: false,
+  email: 'test@example.com',
+  expiresIn: 300,
+});
 
 const mockUseDepositSdkMethodInitialValues: DepositSdkMethodResult<'sendUserOtp'> =
   [mockResponse, mockSendEmail];
@@ -64,7 +69,12 @@ describe('EnterEmail Component', () => {
     jest.clearAllMocks();
     mockUseDepositSdkMethodValues = [
       { ...mockResponse },
-      mockSendEmail.mockResolvedValue('Success'),
+      mockSendEmail.mockResolvedValue({
+        stateToken: 'mock-state-token',
+        isTncAccepted: false,
+        email: 'test@example.com',
+        expiresIn: 300,
+      }),
     ];
   });
 
@@ -95,6 +105,7 @@ describe('EnterEmail Component', () => {
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.OTP_CODE, {
         email: 'test@example.com',
+        stateToken: 'mock-state-token',
       });
     });
   });
