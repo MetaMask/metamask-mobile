@@ -43,7 +43,12 @@ export function TransactionDetailsHero() {
   const amountHuman = calcTokenAmount(amount, decimals).toString(10);
 
   return (
-    <Box alignItems={AlignItems.center} gap={12} style={styles.container}>
+    <Box
+      testID="transaction-details-hero"
+      alignItems={AlignItems.center}
+      gap={12}
+      style={styles.container}
+    >
       <Box>
         <TokenIcon
           chainId={chainId}
