@@ -34,7 +34,7 @@ export const getEvmBalance = ({
   }
   if (isNativeToken(asset)) {
     const accountAddress = Object.keys(accounts).find(
-      (address) => address.toLowerCase() === from.toLowerCase(),
+      (address) => address?.toLowerCase() === from?.toLowerCase(),
     ) as Hex;
     const account = accounts[accountAddress];
     const balance = hexToBN(account.balance);
