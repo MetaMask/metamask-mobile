@@ -3,8 +3,6 @@ import {
   EthAccountType,
   BtcAccountType,
   SolAccountType,
-  TrxAccountType,
-  TrxScope,
   EthMethod,
   EthScope,
   BtcScope,
@@ -65,9 +63,6 @@ function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
 
     // Solana account types
     [SolAccountType.DataAccount]: [SolScope.Mainnet],
-
-    // Tron account types
-    [TrxAccountType.Eoa]: [TrxScope.Mainnet],
 
     // Generic account type
     //
