@@ -82,11 +82,6 @@ export const useConfirmActions = () => {
   );
 
   const onConfirm = useCallback(async () => {
-    // Enable the network if it's not enabled for the Network Manager
-    if (isRemoveGlobalNetworkSelectorEnabled()) {
-      tryEnableEvmNetwork(chainId);
-    }
-
     if (ledgerSigningInProgress) {
       openLedgerSignModal();
       return;
@@ -117,6 +112,10 @@ export const useConfirmActions = () => {
     if (isTransactionReq) {
       // Replace/remove this once we have redesigned send flow
       dispatch(resetTransaction());
+      // Enable the network if it's not enabled for the Network Manager
+      if (isRemoveGlobalNetworkSelectorEnabled()) {
+        tryEnableEvmNetwork(chainId);
+      }
     }
   }, [
     captureSignatureMetrics,
