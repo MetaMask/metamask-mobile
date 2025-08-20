@@ -2,8 +2,12 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { RecipientInput } from './recipient-input';
 import ClipboardManager from '../../../../../core/ClipboardManager';
+import { useSendContext } from '../../context/send-context/send-context';
+import { useToAddressValidation } from '../../hooks/send/useToAddressValidation';
+import { useRecipientSelectionMetrics } from '../../hooks/send/metrics/useRecipientSelectionMetrics';
+import { useSendActions } from '../../hooks/send/useSendActions';
+import { RecipientInput } from './recipient-input';
 
 jest.mock('../../context/send-context/send-context', () => ({
   useSendContext: jest.fn(),
@@ -38,12 +42,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 const mockClipboardManager = jest.mocked(ClipboardManager);
-
-import { useSendContext } from '../../context/send-context/send-context';
-import { useToAddressValidation } from '../../hooks/send/useToAddressValidation';
-import { useRecipientSelectionMetrics } from '../../hooks/send/metrics/useRecipientSelectionMetrics';
-import { useSendActions } from '../../hooks/send/useSendActions';
-
 const mockUseSendContext = jest.mocked(useSendContext);
 const mockUseToAddressValidation = jest.mocked(useToAddressValidation);
 const mockUseRecipientSelectionMetrics = jest.mocked(
@@ -72,6 +70,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
+      updateFromAccount: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -129,6 +128,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
+      updateFromAccount: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -150,6 +150,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
+      updateFromAccount: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -171,6 +172,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
+      updateFromAccount: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -305,6 +307,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
+      updateFromAccount: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -331,6 +334,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
+      updateFromAccount: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });
@@ -361,6 +365,7 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
+      updateFromAccount: jest.fn(),
       updateValue: jest.fn(),
       value: undefined,
     });

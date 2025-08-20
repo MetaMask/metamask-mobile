@@ -69,7 +69,7 @@ export const useBalance = () => {
       return '0';
     }
     return isEvmSendType
-      ? getEvmBalance({ accounts, asset, contractBalances, from })
+      ? getEvmBalance({ accounts, asset, contractBalances, from: from as Hex })
       : getNonEvmBalance(asset);
   }, [accounts, asset, contractBalances, from, isEvmSendType]);
 

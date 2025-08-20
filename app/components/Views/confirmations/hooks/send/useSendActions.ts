@@ -1,6 +1,7 @@
 import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 
 import Routes from '../../../../../constants/navigation/Routes';
 import {
@@ -38,7 +39,7 @@ export const useSendActions = () => {
       } else {
         await submitNonEvmTransaction({
           asset,
-          fromAccount,
+          fromAccount: fromAccount as InternalAccount,
         });
       }
 
