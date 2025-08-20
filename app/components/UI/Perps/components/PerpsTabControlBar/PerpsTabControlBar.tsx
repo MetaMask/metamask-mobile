@@ -81,11 +81,13 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
         >
           {strings('perps.perp_account_balance')}
         </Text>
-        <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {formatPerpsFiat(perpsAccount?.availableBalance || '0')}
-          </Text>
-        </Animated.View>
+        <View style={styles.balanceRow}>
+          <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
+            <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+              {formatPerpsFiat(perpsAccount?.availableBalance || '0')}
+            </Text>
+          </Animated.View>
+        </View>
       </View>
       <View style={styles.arrowContainer}>
         <Icon
