@@ -1,13 +1,21 @@
 // Third party dependencies.
 import {
+  FlatList,
   ImageSourcePropType,
   KeyboardAvoidingView,
   Linking,
+  ListRenderItem,
   Switch,
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { ScrollView } from 'react-native-gesture-handler';
 import images from 'images/image-icons';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -914,129 +922,46 @@ const NetworkSelector = () => {
     </>
   );
 
+  const mockData = useMemo(() => {
+    // create large loop of data
+    const data = [];
+    for (let i = 0; i < 100; i++) {
+      data.push({
+        id: i,
+        name: `Network Selector ${i}`,
+        chainId: `0x${i.toString(16)}`,
+        rpcUrl: `https://rpc.network.com/${i}`,
+        nativeCurrency: {
+          name: 'Network Currency',
+          symbol: 'NC',
+          decimals: 18,
+        },
+      });
+    }
+    return data;
+  }, []);
+
+  const renderItem: ListRenderItem<(typeof mockData)[0]> = ({ item }) => (
+    <View>
+      <Text>{item.name}</Text>
+      <Text>{item.chainId}</Text>
+      <Text>{item.rpcUrl}</Text>
+    </View>
+  );
+
   return (
     <ReusableModal ref={sheetRef} style={styles.screen}>
-      <View style={[styles.sheet, { paddingBottom: safeAreaInsets.bottom }]}>
-        <View style={styles.notch} />
-        <Text variant={TextVariant.HeadingMD} style={styles.title}>
-          {strings('networks.select_network')}
-        </Text>
-        <View style={styles.searchContainer}>
-          <NetworkSearchTextInput
-            searchString={searchString}
-            handleSearchTextChange={handleSearchTextChange}
-            clearSearchInput={clearSearchInput}
-            testIdSearchInput={
-              NetworksSelectorSelectorsIDs.SEARCH_NETWORK_INPUT_BOX_ID
-            }
-            testIdCloseIcon={NetworksSelectorSelectorsIDs.CLOSE_ICON}
-          />
-        </View>
-        <KeyboardAvoidingView
-          behavior="height"
-          style={styles.keyboardView}
-          enabled
-        >
-          <ScrollView
-            style={styles.scrollableDescription}
-            keyboardShouldPersistTaps="handled"
-            testID={NetworkListModalSelectorsIDs.SCROLL}
-          >
-            {renderBottomSheetContent()}
-          </ScrollView>
-          <Button
-            variant={ButtonVariants.Secondary}
-            label={strings(buttonLabelAddNetwork)}
-            onPress={goToNetworkSettings}
-            width={ButtonWidthTypes.Full}
-            size={ButtonSize.Lg}
-            style={styles.addNetworkButton}
-            testID={NetworkListModalSelectorsIDs.ADD_BUTTON}
-          />
-        </KeyboardAvoidingView>
-
-        {showWarningModal ? (
-          <InfoModal
-            isVisible={showWarningModal}
-            title={strings(modalTitle)}
-            body={
-              <Text>
-                <Text style={styles.desc}>{strings(modalDescription)}</Text>{' '}
-                <Text style={[styles.blueText]} onPress={goToLearnMore}>
-                  {strings('networks.learn_more')}
-                </Text>
-              </Text>
-            }
-            toggleModal={toggleWarningModal}
-          />
-        ) : null}
-
-        {showNetworkMenuModal.isVisible ? (
-          <BottomSheet
-            ref={networkMenuSheetRef}
-            onClose={closeModal}
-            shouldNavigateBack={false}
-          >
-            <View style={styles.networkMenu}>
-              <AccountAction
-                actionTitle={strings('transaction.edit')}
-                iconName={IconName.Edit}
-                onPress={() => {
-                  sheetRef.current?.dismissModal(() => {
-                    navigate(Routes.ADD_NETWORK, {
-                      shouldNetworkSwitchPopToWallet: false,
-                      shouldShowPopularNetworks: false,
-                      network: showNetworkMenuModal.networkTypeOrRpcUrl,
-                    });
-                  });
-                }}
-              />
-              {showNetworkMenuModal.chainId !== selectedChainId &&
-              showNetworkMenuModal.displayEdit ? (
-                <AccountAction
-                  actionTitle={strings('app_settings.delete')}
-                  iconName={IconName.Trash}
-                  onPress={() => removeRpcUrl(showNetworkMenuModal.chainId)}
-                  testID={NetworkListModalSelectorsIDs.DELETE_NETWORK}
-                />
-              ) : null}
-            </View>
-          </BottomSheet>
-        ) : null}
-
-        <RpcSelectionModal
-          showMultiRpcSelectModal={showMultiRpcSelectModal}
-          closeRpcModal={closeRpcModal}
-          rpcMenuSheetRef={rpcMenuSheetRef}
-          networkConfigurations={networkConfigurations}
-          styles={styles}
+      <ScrollView
+        style={styles.scrollableDescription}
+        keyboardShouldPersistTaps="handled"
+        testID={NetworkListModalSelectorsIDs.SCROLL}
+      >
+        <FlatList
+          data={mockData}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
         />
-
-        {showConfirmDeleteModal.isVisible ? (
-          <BottomSheet
-            ref={deleteModalSheetRef}
-            onClose={closeDeleteModal}
-            shouldNavigateBack={false}
-          >
-            <BottomSheetHeader>
-              <Text variant={TextVariant.HeadingMD}>
-                {strings('app_settings.delete')}{' '}
-                {showConfirmDeleteModal.networkName}{' '}
-                {strings('asset_details.network')}
-              </Text>
-            </BottomSheetHeader>
-            <View style={styles.containerDeleteText}>
-              <Text style={styles.textCentred}>
-                {strings('app_settings.network_delete')}
-              </Text>
-              <BottomSheetFooter
-                buttonsAlignment={ButtonsAlignment.Horizontal}
-                buttonPropsArray={[cancelButtonProps, deleteButtonProps]}
-              />
-            </View>
-          </BottomSheet>
-        ) : null}
-      </View>
+      </ScrollView>
     </ReusableModal>
   );
 };

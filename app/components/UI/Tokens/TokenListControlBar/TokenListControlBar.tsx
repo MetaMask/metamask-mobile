@@ -28,6 +28,7 @@ import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import TextComponent, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+import Routes from '../../../../constants/navigation/Routes';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -61,7 +62,9 @@ export const TokenListControlBar = ({
 
   const handleFilterControls = useCallback(() => {
     if (isRemoveGlobalNetworkSelectorEnabled()) {
-      navigation.navigate(...createNetworkManagerNavDetails({}));
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.NETWORK_MANAGER,
+      });
     } else if (isEvmSelected) {
       navigation.navigate(...createTokenBottomSheetFilterNavDetails({}));
     } else {
