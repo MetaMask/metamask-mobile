@@ -24,12 +24,10 @@ import type {
   PriceUpdate,
 } from '../../controllers/types';
 import {
-  formatPercentage,
   formatPnl,
   formatPrice,
   formatPositionSize,
 } from '../../utils/formatUtils';
-import { calculatePnLPercentageFromUnrealized } from '../../utils/pnlCalculations';
 import styleSheet from './PerpsPositionCard.styles';
 import { PerpsPositionCardSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
@@ -138,11 +136,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   };
 
   const pnlNum = parseFloat(position.unrealizedPnl);
-  const pnlPercentage = calculatePnLPercentageFromUnrealized({
-    unrealizedPnl: pnlNum,
-    entryPrice: parseFloat(position.entryPrice),
-    size: parseFloat(position.size),
-  });
+  // ROE might be stored as decimal (0.171) or percentage (17.1)
+  // Check the magnitude to determine format
+  const roeValue = parseFloat(position.returnOnEquity);
+  const roe = Math.abs(roeValue) < 1 ? roeValue * 100 : roeValue;
 
   const handleEditTPSL = () => {
     setSelectedPosition(position);
@@ -207,10 +204,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
             </View>
             <View style={styles.headerRow}>
               <Text
-                variant={TextVariant.BodySm}
+                variant={TextVariant.BodySM}
                 color={pnlNum >= 0 ? TextColor.Success : TextColor.Error}
               >
-                {formatPnl(pnlNum)} ({formatPercentage(pnlPercentage)})
+                {formatPnl(pnlNum)} ({roe >= 0 ? '+' : ''}
+                {roe.toFixed(1)}%)
               </Text>
             </View>
           </View>
@@ -332,7 +330,10 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
                   variant={TextVariant.BodySMMedium}
                   color={TextColor.Default}
                 >
-                  {formatPrice(position.marginUsed)}
+                  {formatPrice(position.marginUsed, {
+                    minimumDecimals: 2,
+                    maximumDecimals: 2,
+                  })}
                 </Text>
               </View>
             </View>
