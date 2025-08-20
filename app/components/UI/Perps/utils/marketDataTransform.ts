@@ -6,6 +6,7 @@ import type {
   PredictedFunding,
 } from '@deeeed/hyperliquid-node20';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { formatVolume } from './formatUtils';
 
 /**
  * HyperLiquid-specific market data structure
@@ -180,23 +181,4 @@ export function formatPercentage(percent: number): string {
   }).format(percent / 100);
 
   return percent > 0 ? `+${formatted}` : formatted;
-}
-
-/**
- * Format volume with appropriate units
- */
-export function formatVolume(volume: number): string {
-  if (isNaN(volume) || !isFinite(volume))
-    return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
-
-  // Show actual 0 if it's truly 0
-  if (volume === 0) return '$0';
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    notation: 'compact',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(volume);
 }

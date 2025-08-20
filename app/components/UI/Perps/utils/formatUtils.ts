@@ -113,29 +113,74 @@ export const formatPercentage = (value: string | number): string => {
 /**
  * Formats large numbers with magnitude suffixes
  * @param value - Raw numeric value
- * @returns Format: "X.XB" / "X.XM" / "X.XK" / "X.XX" (1 decimal for suffixed, 2 for raw)
- * @example formatLargeNumber(1500000) => "1.5M"
- * @example formatLargeNumber(1234) => "1.2K"
+ * @param options - Optional formatting options
+ * @param options.decimals - Number of decimal places for suffixed values (default: 0)
+ * @param options.rawDecimals - Number of decimal places for non-suffixed values (default: 2)
+ * @returns Format: "X.XXB" / "X.XXM" / "X.XXK" / "X.XX" (configurable decimals)
+ * @example formatLargeNumber(1500000) => "2M"
+ * @example formatLargeNumber(1500000, { decimals: 1 }) => "1.5M"
+ * @example formatLargeNumber(1234, { decimals: 2 }) => "1.23K"
  * @example formatLargeNumber(999) => "999.00"
  */
-export const formatLargeNumber = (value: string | number): string => {
+export const formatLargeNumber = (
+  value: string | number,
+  options?: { decimals?: number; rawDecimals?: number },
+): string => {
   const num = typeof value === 'string' ? parseFloat(value) : value;
+  const decimals = options?.decimals ?? 0;
+  const rawDecimals = options?.rawDecimals ?? 2;
 
   if (isNaN(num)) {
     return '0';
   }
 
-  if (num >= 1000000000) {
-    return `${(num / 1000000000).toFixed(1)}B`;
+  const absNum = Math.abs(num);
+  const sign = num < 0 ? '-' : '';
+
+  if (absNum >= 1000000000000) {
+    const trillions = absNum / 1000000000000;
+    return `${sign}${trillions.toFixed(decimals)}T`;
   }
-  if (num >= 1000000) {
-    return `${(num / 1000000).toFixed(1)}M`;
+  if (absNum >= 1000000000) {
+    const billions = absNum / 1000000000;
+    return `${sign}${billions.toFixed(decimals)}B`;
   }
-  if (num >= 1000) {
-    return `${(num / 1000).toFixed(1)}K`;
+  if (absNum >= 1000000) {
+    const millions = absNum / 1000000;
+    return `${sign}${millions.toFixed(decimals)}M`;
+  }
+  if (absNum >= 1000) {
+    const thousands = absNum / 1000;
+    return `${sign}${thousands.toFixed(decimals)}K`;
   }
 
-  return num.toFixed(2);
+  return num.toFixed(rawDecimals);
+};
+
+/**
+ * Formats volume with appropriate magnitude suffixes and no decimals
+ * @param volume - Raw volume value
+ * @returns Format: "$XB" / "$XM" / "$XK" / "$X" (no decimals for cleaner display)
+ * @example formatVolume(1234567890) => "$1B"
+ * @example formatVolume(12345678) => "$12M"
+ * @example formatVolume(123456) => "$123K"
+ */
+export const formatVolume = (volume: string | number): string => {
+  const num = typeof volume === 'string' ? parseFloat(volume) : volume;
+
+  // Handle invalid inputs - return fallback display for NaN/Infinity
+  if (isNaN(num) || !isFinite(num)) {
+    return '$---';
+  }
+
+  const formatted = formatLargeNumber(volume, { decimals: 0, rawDecimals: 0 });
+
+  // Handle negative values - ensure dollar sign comes after negative sign
+  if (formatted.startsWith('-')) {
+    return `-$${formatted.slice(1)}`;
+  }
+
+  return `$${formatted}`;
 };
 
 /**

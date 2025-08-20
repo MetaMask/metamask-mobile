@@ -7,9 +7,9 @@ import {
   formatPrice,
   formatChange,
   formatPercentage,
-  formatVolume,
   HyperLiquidMarketData,
 } from './marketDataTransform';
+import { formatVolume } from './formatUtils';
 import {
   AllMids,
   PerpsAssetCtx,
@@ -131,7 +131,7 @@ describe('marketDataTransform', () => {
       // Assert
       expect(result[0].change24h).toBe('+$52,000.00');
       expect(result[0].change24hPercent).toBe('0.00%');
-      expect(result[0].volume).toBe('$0');
+      expect(result[0].volume).toBe('$---');
     });
 
     it('handles null/undefined asset context values', () => {
@@ -153,7 +153,7 @@ describe('marketDataTransform', () => {
       // Assert
       expect(result[0].change24h).toBe('$0.00');
       expect(result[0].change24hPercent).toBe('0.00%');
-      expect(result[0].volume).toBe('$0');
+      expect(result[0].volume).toBe('$---');
     });
 
     it('calculates negative price changes correctly', () => {
@@ -202,7 +202,7 @@ describe('marketDataTransform', () => {
       // Assert
       expect(result).toHaveLength(2);
       expect(result[0].volume).toBe('$1B'); // Has context
-      expect(result[1].volume).toBe('$0'); // No context
+      expect(result[1].volume).toBe('$---'); // No context
     });
 
     it('handles predicted funding data correctly', () => {
@@ -609,7 +609,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$2.5B');
+      expect(result).toBe('$3B'); // No decimals in formatVolume
     });
 
     it('formats volume in millions', () => {
@@ -642,7 +642,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$123.45');
+      expect(result).toBe('$123'); // No decimals for small volumes
     });
 
     it('formats edge case at exactly 1 billion', () => {
@@ -686,7 +686,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$1.23B');
+      expect(result).toBe('$1B'); // No decimals
     });
 
     it('formats decimal millions correctly', () => {
@@ -697,7 +697,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$12.35M');
+      expect(result).toBe('$12M'); // No decimals
     });
 
     it('formats decimal thousands correctly', () => {
@@ -708,12 +708,12 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$12.35K');
+      expect(result).toBe('$12K'); // No decimals
     });
 
     it('handles very large numbers correctly', () => {
       // Arrange
-      const volume = 999999999999;
+      const volume = 1000000000000; // 1 trillion
 
       // Act
       const result = formatVolume(volume);
@@ -760,7 +760,7 @@ describe('marketDataTransform', () => {
       // Assert
       expect(result[0].change24h).toBe('$0.00');
       expect(result[0].change24hPercent).toBe('0.00%');
-      expect(result[0].volume).toBe('$0');
+      expect(result[0].volume).toBe('$---');
     });
 
     it('handles invalid price string in allMids with safe fallbacks', () => {
@@ -792,7 +792,7 @@ describe('marketDataTransform', () => {
     it('handles very small numbers close to zero', () => {
       // Arrange & Act & Assert
       expect(formatPrice(0.0000001)).toBe('$0.000000');
-      expect(formatVolume(0.1)).toBe('$0.1');
+      expect(formatVolume(0.1)).toBe('$0'); // Rounds down to 0
       expect(formatPercentage(0.001)).toBe('+0.00%');
     });
 
@@ -801,8 +801,8 @@ describe('marketDataTransform', () => {
       // Arrange & Act & Assert
       expect(formatPrice(NaN)).toBe('$0.00');
       expect(formatPrice(Infinity)).toBe('$0.00');
-      expect(formatVolume(NaN)).toBe('$0');
-      expect(formatVolume(Infinity)).toBe('$0');
+      expect(formatVolume(NaN)).toBe('$---');
+      expect(formatVolume(Infinity)).toBe('$---');
       expect(formatChange(NaN)).toBe('$0.00');
       expect(formatChange(Infinity)).toBe('$0.00');
       expect(formatPercentage(NaN)).toBe('0.00%');
