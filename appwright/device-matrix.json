@@ -11,6 +11,18 @@
       "os_version": "14.0",
       "category": "high",
       "description": "High-end Google flagship device with Android 14"
+    },
+    {
+      "name": "Redmi Note 8",
+      "os_version": "9.0",
+      "category": "low",
+      "description": "Low-end Google flagship device with Android 9"
+    },
+    {
+      "name": "Oppo Reno 6",
+      "os_version": "11.0",
+      "category": "low",
+      "description": "Low-end Google flagship device with Android 9"
     }
   ],
   "ios_devices": [
@@ -25,6 +37,18 @@
       "os_version": "18",
       "category": "medium",
       "description": "Medium iPhone 14."
+    },
+    {
+      "name": "iPhone 12",
+      "os_version": "17",
+      "category": "medium",
+      "description": "Medium iPhone 12."
+    },
+    {
+      "name": "iPhone XR",
+      "os_version": "15",
+      "category": "low",
+      "description": "Low iPhone 12."
     }
   ],
   "device_categories": {
