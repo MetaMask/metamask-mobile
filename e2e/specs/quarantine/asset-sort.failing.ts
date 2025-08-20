@@ -1,19 +1,19 @@
-import { SmokeNetworkAbstractions } from '../../../tags';
-import WalletView from '../../../pages/wallet/WalletView';
-import SortModal from '../../../pages/wallet/TokenSortBottomSheet';
+import { SmokeNetworkAbstractions } from '../../tags';
+import WalletView from '../../pages/wallet/WalletView';
+import SortModal from '../../pages/wallet/TokenSortBottomSheet';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
-} from '../../../framework/fixtures/FixtureBuilder';
-import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { loginToApp } from '../../../viewHelper';
-import Assertions from '../../../framework/Assertions';
-import ConfirmAddAssetView from '../../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
-import Tenderly from '../../../tenderly';
-import { CustomNetworks } from '../../../resources/networks.e2e';
-import ImportTokensView from '../../../pages/wallet/ImportTokenFlow/ImportTokensView';
-import TestHelpers from '../../../helpers';
-import { getFixturesServerPort } from '../../../framework/fixtures/FixtureUtils';
-import { MockApiEndpoint } from '../../../framework';
+} from '../../framework/fixtures/FixtureBuilder';
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { loginToApp } from '../../viewHelper';
+import Assertions from '../../framework/Assertions';
+import ConfirmAddAssetView from '../../pages/wallet/ImportTokenFlow/ConfirmAddAsset';
+import Tenderly from '../../tenderly';
+import { CustomNetworks } from '../../resources/networks.e2e';
+import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensView';
+import TestHelpers from '../../helpers';
+import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
+import { MockApiEndpoint } from '../../framework';
 
 const AAVE_TENDERLY_MAINNET_DETAILS = {
   address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
