@@ -34,7 +34,6 @@ export { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 // UI utility hooks
 export { useBalanceComparison } from './useBalanceComparison';
 export { useColorPulseAnimation } from './useColorPulseAnimation';
-export { usePerpsPositions } from './usePerpsPositions';
 export { usePerpsTPSLUpdate } from './usePerpsTPSLUpdate';
 export { usePerpsClosePosition } from './usePerpsClosePosition';
 export { usePerpsOrderFees, formatFeeRate } from './usePerpsOrderFees';
@@ -49,7 +48,6 @@ export { usePerpsFirstTimeUser } from './usePerpsFirstTimeUser';
 // Transaction data hooks
 export { usePerpsOrderFills } from './usePerpsOrderFills';
 export { usePerpsOrders } from './usePerpsOrders';
-export { usePerpsOpenOrders } from './usePerpsOpenOrders';
 export { usePerpsFunding } from './usePerpsFunding';
 
 // Event tracking hook
