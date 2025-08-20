@@ -5509,6 +5509,7 @@
       "default": "Transaction details"
     },
     "label": {
+      "network_fee": "Network fee",
       "paid_with": "Paid with",
       "total": "Total"
     }
