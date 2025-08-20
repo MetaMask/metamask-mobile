@@ -492,6 +492,7 @@ const RevealPrivateCredential = ({
         onSubmitEditing={tryUnlock}
         keyboardAppearance={themeAppearance}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
+        autoFocus
       />
       <Text
         style={styles.warningText}
