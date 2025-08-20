@@ -1,14 +1,8 @@
-import { useSelector, shallowEqual } from 'react-redux';
+import { useSelector } from 'react-redux';
 
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
-import { RootState } from '../../../../reducers';
+import { selectAvatarStyle } from '../../../../selectors/settings';
 
 export function useAccountAvatarType(): AvatarAccountType {
-  return useSelector(
-    (state: RootState) =>
-      state.settings.useBlockieIcon
-        ? AvatarAccountType.Blockies
-        : AvatarAccountType.JazzIcon,
-    shallowEqual,
-  );
+  return useSelector(selectAvatarStyle);
 }
