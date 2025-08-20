@@ -357,6 +357,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       "opacity": 1,
                     }
                   }
+                  testID="snap-ui-renderer__checkbox"
                 >
                   <View
                     accessibilityRole="checkbox"
@@ -385,7 +386,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                           "width": 20,
                         }
                       }
-                      testID="checkbox-icon-component"
+                      testID="snap-ui-renderer__checkbox"
                       width={20}
                     />
                   </View>
@@ -420,6 +421,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                     undefined,
                   ]
                 }
+                testID="snap-ui-renderer__radio"
               >
                 <Text
                   accessibilityRole="text"
@@ -447,6 +449,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       "opacity": 1,
                     }
                   }
+                  testID="snap-ui-renderer__radio-button"
                 >
                   <View
                     accessibilityRole="radio"
@@ -497,6 +500,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       "opacity": 1,
                     }
                   }
+                  testID="snap-ui-renderer__radio-button"
                 >
                   <View
                     accessibilityRole="radio"
@@ -601,7 +605,7 @@ exports[`SnapUIForm will render with fields 1`] = `
                       "paddingTop": 8,
                     }
                   }
-                  testID="snap-ui-renderer__selector"
+                  testID="snap-ui-renderer__dropdown"
                 >
                   <View
                     alignItems="center"
