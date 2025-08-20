@@ -240,10 +240,10 @@ describe('PerpsPositionCard', () => {
     });
 
     it('handles missing PnL percentage data', () => {
-      // Arrange - Set returnOnEquity to undefined to test fallback
+      // Arrange - Set returnOnEquity to empty string to test fallback
       const positionWithoutROE = {
         ...mockPosition,
-        returnOnEquity: undefined,
+        returnOnEquity: '', // Use empty string instead of undefined
       };
 
       // Act
