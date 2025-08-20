@@ -48,6 +48,7 @@ import Toast, {
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
+import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
 import NetworkManager from '../../../components/UI/NetworkManager';
 import AccountConnect from '../../../components/Views/AccountConnect';
@@ -156,6 +157,7 @@ import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
@@ -836,6 +838,10 @@ const AppFlow = () => {
           component={MultichainAccountDetails}
         />
         <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
+          component={MultichainAccountActions}
+        />
+        <Stack.Screen
           name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
           component={MultichainAccountDetailsActions}
         />
@@ -1240,6 +1246,7 @@ const App: React.FC = () => {
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
+      <ProfilerManager />
     </>
   );
 };

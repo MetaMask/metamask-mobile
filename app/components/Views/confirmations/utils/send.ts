@@ -12,7 +12,7 @@ import { addTransaction } from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
 import { sendMultichainTransaction } from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { toTokenMinimalUnit, toWei } from '../../../../util/number';
-import { AssetType } from '../types/token';
+import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
 import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
@@ -40,7 +40,14 @@ export const handleSendPageNavigation = (
 ) => {
   if (isSendRedesignEnabled()) {
     captureSendStartedEvent(location);
-    const screen = asset ? Routes.SEND.AMOUNT : Routes.SEND.ASSET;
+    let screen = Routes.SEND.ASSET;
+    if (asset) {
+      if (asset.standard === TokenStandard.ERC721) {
+        screen = Routes.SEND.RECIPIENT;
+      } else {
+        screen = Routes.SEND.AMOUNT;
+      }
+    }
     navigate(Routes.SEND.DEFAULT, {
       screen,
       params: {
@@ -64,11 +71,17 @@ export const prepareEVMTransaction = (
     trxnParams.value = BNToHex(toWei(value ?? '0') as unknown as BigNumber);
   } else if (asset.tokenId) {
     // NFT token
-    trxnParams.data = generateTransferData('transferFrom', {
-      fromAddress: from,
-      toAddress: to,
-      tokenId: toHex(asset.tokenId),
-    });
+    trxnParams.data = generateTransferData(
+      asset.standard === TokenStandard.ERC721
+        ? 'transferFrom'
+        : 'safeTransferFrom',
+      {
+        fromAddress: from,
+        toAddress: to,
+        tokenId: toHex(asset.tokenId),
+        amount: toHex(value ?? 1),
+      },
+    );
     trxnParams.to = asset.address;
     trxnParams.value = '0x0';
   } else {
@@ -130,7 +143,7 @@ export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
     if (val < minVal) {
       return `< ${minVal}`;
     }
-    return val.toFixed(decimals);
+    return val.toFixed(decimals).replace(/\.?0+$/, '');
   }
   return '0';
 }
