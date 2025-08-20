@@ -24,10 +24,7 @@ export const getFeatureFlagAppEnvironment = () => {
     case 'pre-release':
     case 'rc':
       return EnvironmentType.ReleaseCandidate;
-    // TODO: e2e needs to point to LaunchDarkly's test environment
-    // This conflicts with isProduction from app/util/environment.ts and breaks e2e smoke tests
-    // Add this back once isProduction is removed or resolved
-    // case 'e2e':
+    case 'e2e':
     case 'test':
       return EnvironmentType.Test;
     case 'exp':
