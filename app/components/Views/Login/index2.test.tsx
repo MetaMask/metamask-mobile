@@ -25,7 +25,6 @@ import OAuthService from '../../../core/OAuthService/OAuthService';
 import StorageWrapper from '../../../store/storage-wrapper';
 import {
   BIOMETRY_CHOICE_DISABLED,
-  ONBOARDING_WIZARD,
   OPTIN_META_METRICS_UI_SEEN,
 } from '../../../constants/storage';
 import { EndTraceRequest, TraceName } from '../../../util/trace';
@@ -681,7 +680,6 @@ describe('Login test suite 2', () => {
         },
       });
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === ONBOARDING_WIZARD) return true;
         if (key === OPTIN_META_METRICS_UI_SEEN) return true;
         return null;
       });
@@ -740,7 +738,6 @@ describe('Login test suite 2', () => {
         },
       });
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === ONBOARDING_WIZARD) return true;
         if (key === OPTIN_META_METRICS_UI_SEEN) return null; // Not seen
         return null;
       });
@@ -801,7 +798,7 @@ describe('Login test suite 2', () => {
       mockIsEnabled.mockReturnValue(true);
     });
 
-    it('should replace navigation when non-OAuth login with existing onboarding wizard', async () => {
+    it('should replace navigation when non-OAuth login ', async () => {
       mockRoute.mockReturnValue({
         params: {
           locked: false,
@@ -809,7 +806,6 @@ describe('Login test suite 2', () => {
         },
       });
       (StorageWrapper.getItem as jest.Mock).mockImplementation((key) => {
-        if (key === ONBOARDING_WIZARD) return true;
         if (key === OPTIN_META_METRICS_UI_SEEN) return true;
         return null;
       });

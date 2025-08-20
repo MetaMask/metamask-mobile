@@ -52,7 +52,7 @@ export const validateAmountFn = ({
     }
     weiBalance = hexToBN(account?.balance ?? '0');
   } else {
-    weiValue = toTokenMinimalUnit(amount, asset.decimals);
+    weiValue = toTokenMinimalUnit(amount, asset.decimals ?? 0);
     weiBalance = hexToBN(contractBalances[asset.address as Hex]);
   }
   if (weiBalance.cmp(weiValue) === -1) {

@@ -1,6 +1,6 @@
-import { renderHook, act } from '@testing-library/react-hooks';
-import { usePerpsMarketStats } from './usePerpsMarketStats';
+import { renderHook } from '@testing-library/react-hooks';
 import { CandlePeriod } from '../constants/chartConfig';
+import { usePerpsMarketStats } from './usePerpsMarketStats';
 
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
@@ -29,8 +29,8 @@ jest.mock('../utils/formatUtils', () => ({
   },
 }));
 
-import { usePerpsPositionData } from './usePerpsPositionData';
 import Engine from '../../../../core/Engine';
+import { usePerpsPositionData } from './usePerpsPositionData';
 
 const mockedUsePerpsPositionData = jest.mocked(usePerpsPositionData);
 const mockSubscribeToPrices = Engine.context.PerpsController
@@ -91,7 +91,6 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
-      priceData: mockPriceData.BTC,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -99,13 +98,11 @@ describe('usePerpsMarketStats', () => {
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
     expect(result.current.currentPrice).toBe(45000);
-    expect(result.current.priceChange24h).toBe(2.5);
     expect(result.current.high24h).toBe('$46,000.00');
     expect(result.current.low24h).toBe('$43,500.00');
     expect(result.current.volume24h).toBe('$1.23B');
     expect(result.current.openInterest).toBe('$987.65M');
     expect(result.current.fundingRate).toBe('1.0000%');
-    expect(result.current.fundingCountdown).toMatch(/^\d{2}:\d{2}:\d{2}$/);
     expect(result.current.isLoading).toBe(false);
   });
 
@@ -115,7 +112,6 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: null,
-      priceData: null,
       isLoadingHistory: true,
       refreshCandleData: jest.fn(),
     });
@@ -126,64 +122,13 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.currentPrice).toBe(0);
   });
 
-  it('should calculate funding countdown correctly', () => {
-    // Set current time to 7:30:00 UTC (30 minutes before funding)
-    const mockDate = new Date('2024-01-01T07:30:00Z');
-    jest.setSystemTime(mockDate);
-
-    mockSubscribeToPrices.mockImplementation(({ callback }) => {
-      callback([mockPriceData.BTC]);
-      return jest.fn();
-    });
-
-    mockedUsePerpsPositionData.mockReturnValue({
-      candleData: mockCandleData,
-      priceData: mockPriceData.BTC,
-      isLoadingHistory: false,
-      refreshCandleData: jest.fn(),
-    });
-
-    const { result } = renderHook(() => usePerpsMarketStats('BTC'));
-
-    expect(result.current.fundingCountdown).toBe('00:30:00');
-  });
-
-  it('should update funding countdown every second', () => {
-    // Set initial time
-    const mockDate = new Date('2024-01-01T07:30:00Z');
-    jest.setSystemTime(mockDate);
-
-    mockSubscribeToPrices.mockImplementation(({ callback }) => {
-      callback([mockPriceData.BTC]);
-      return jest.fn();
-    });
-
-    mockedUsePerpsPositionData.mockReturnValue({
-      candleData: mockCandleData,
-      priceData: mockPriceData.BTC,
-      isLoadingHistory: false,
-      refreshCandleData: jest.fn(),
-    });
-
-    const { result } = renderHook(() => usePerpsMarketStats('BTC'));
-
-    expect(result.current.fundingCountdown).toBe('00:30:00');
-
-    // Advance time by 1 second
-    act(() => {
-      jest.advanceTimersByTime(1000);
-      jest.setSystemTime(new Date('2024-01-01T07:30:01Z'));
-    });
-
-    expect(result.current.fundingCountdown).toBe('00:29:59');
-  });
+  // Funding countdown tests removed - handled by separate component
 
   it('should handle no market data gracefully', () => {
     mockSubscribeToPrices.mockImplementation(() => jest.fn());
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: null,
-      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -191,13 +136,11 @@ describe('usePerpsMarketStats', () => {
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
     expect(result.current.currentPrice).toBe(0);
-    expect(result.current.priceChange24h).toBe(0);
     expect(result.current.high24h).toBe('$0.00');
     expect(result.current.low24h).toBe('$0.00');
     expect(result.current.volume24h).toBe('$0.00');
     expect(result.current.openInterest).toBe('$0.00');
     expect(result.current.fundingRate).toBe('0.0000%');
-    expect(result.current.fundingCountdown).toMatch(/^\d{2}:\d{2}:\d{2}$/);
   });
 
   it('should format large numbers correctly', () => {
@@ -216,7 +159,6 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
-      priceData: largeNumberPriceData.BTC,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -242,7 +184,6 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
-      priceData: negativeFundingData.BTC,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
