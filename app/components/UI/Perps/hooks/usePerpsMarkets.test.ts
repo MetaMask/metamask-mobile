@@ -76,7 +76,6 @@ const mockProvider = {
   toggleTestnet: jest.fn(),
   initialize: jest.fn(),
   isReadyToTrade: jest.fn(),
-  deposit: jest.fn(),
   validateDeposit: jest.fn(),
   calculateLiquidationPrice: jest.fn(),
   calculateMaintenanceMargin: jest.fn(),
@@ -177,7 +176,7 @@ describe('usePerpsMarkets', () => {
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'Perps: Successfully fetched and transformed market data',
-        { marketCount: 2, livePricesEnabled: false },
+        { marketCount: 2 },
       );
     });
 
