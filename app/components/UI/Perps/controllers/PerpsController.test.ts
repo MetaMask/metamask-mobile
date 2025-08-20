@@ -11,6 +11,7 @@ import {
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import { CaipAssetId, CaipChainId, Hex } from '@metamask/utils';
 import { CandlePeriod } from '../constants/chartConfig';
+import type { AssetRoute } from './types';
 
 // Mock the HyperLiquid SDK first
 jest.mock('@deeeed/hyperliquid-node20', () => ({
@@ -1033,16 +1034,18 @@ describe('PerpsController', () => {
         // Arrange
         const mockTxHash = '0xtransaction123';
         // Create a promise that won't resolve immediately
-        let resolvePromise: (value: string) => void;
+        let resolvePromise: (value: string) => void = () => {
+          // Initial empty resolver
+        };
         const mockResult = new Promise<string>((resolve) => {
           resolvePromise = resolve;
         });
 
-        const mockDepositRoute = {
+        const mockDepositRoute: AssetRoute = {
           assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-          chainId: 'eip155:42161',
-          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
         };
 
         mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
@@ -1109,11 +1112,11 @@ describe('PerpsController', () => {
         const mockTxHash = '0xtransaction123';
         const mockResultPromise = Promise.resolve(mockTxHash);
 
-        const mockDepositRoute = {
+        const mockDepositRoute: AssetRoute = {
           assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-          chainId: 'eip155:42161',
-          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
         };
 
         mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
@@ -1155,11 +1158,11 @@ describe('PerpsController', () => {
         const mockError = new Error('User denied transaction signature');
         const mockResultPromise = Promise.reject(mockError);
 
-        const mockDepositRoute = {
+        const mockDepositRoute: AssetRoute = {
           assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-          chainId: 'eip155:42161',
-          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
         };
 
         mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
@@ -1198,11 +1201,11 @@ describe('PerpsController', () => {
         const mockError = new Error('Insufficient balance');
         const mockResultPromise = Promise.reject(mockError);
 
-        const mockDepositRoute = {
+        const mockDepositRoute: AssetRoute = {
           assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-          chainId: 'eip155:42161',
-          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
         };
 
         mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
@@ -1243,11 +1246,11 @@ describe('PerpsController', () => {
         // Arrange
         const mockError = new Error('Network error');
 
-        const mockDepositRoute = {
+        const mockDepositRoute: AssetRoute = {
           assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-          chainId: 'eip155:42161',
-          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
         };
 
         mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
@@ -1270,9 +1273,10 @@ describe('PerpsController', () => {
           expect(error).toBe(mockError);
 
           // Should not update state for user cancellation
+          const errorMessage = error instanceof Error ? error.message : '';
           if (
-            error.message.includes('User denied') ||
-            error.message.includes('User rejected')
+            errorMessage.includes('User denied') ||
+            errorMessage.includes('User rejected')
           ) {
             expect(controller.state.lastDepositResult).toBeNull();
           } else {
@@ -1294,11 +1298,11 @@ describe('PerpsController', () => {
           txHash: '0xoldtransaction',
         };
 
-        const mockDepositRoute = {
+        const mockDepositRoute: AssetRoute = {
           assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-          chainId: 'eip155:42161',
-          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
         };
 
         mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
@@ -1307,7 +1311,9 @@ describe('PerpsController', () => {
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
 
         // Create a controlled promise that won't resolve automatically
-        let resolvePromise: (value: string) => void;
+        let resolvePromise: (value: string) => void = () => {
+          // Initial empty resolver
+        };
         const mockResult = new Promise<string>((resolve) => {
           resolvePromise = resolve;
         });
@@ -1351,11 +1357,11 @@ describe('PerpsController', () => {
     it('should use correct transaction type for perps deposit', async () => {
       withController(async ({ controller }) => {
         // Arrange
-        const mockDepositRoute = {
+        const mockDepositRoute: AssetRoute = {
           assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
-          chainId: 'eip155:42161',
-          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7',
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
         };
 
         mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
