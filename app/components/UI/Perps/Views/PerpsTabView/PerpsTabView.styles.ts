@@ -26,7 +26,7 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 12,
+      marginBottom: 8,
     },
     sectionTitle: {
       paddingTop: 8,
@@ -42,12 +42,6 @@ const styleSheet = (params: { theme: Theme }) => {
     loadingContainer: {
       padding: 24,
       alignItems: 'center',
-    },
-    bottomSheetContent: {
-      padding: 24,
-    },
-    actionButton: {
-      marginBottom: 12,
     },
     firstTimeContainer: {
       flex: 1,

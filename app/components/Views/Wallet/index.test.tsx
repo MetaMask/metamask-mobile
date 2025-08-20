@@ -143,6 +143,7 @@ jest.mock('../../../core/Engine', () => {
         setEnabledNetwork: jest.fn(),
         setDisabledNetwork: jest.fn(),
         isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: jest.fn(),
       },
     },
   };
@@ -185,9 +186,6 @@ const mockInitialState = {
     [MOCK_ADDRESS]: { isLive: true },
     hasOnboarded: false,
     isLive: true,
-  },
-  wizard: {
-    step: 0,
   },
   card: cardInitialState,
   settings: {

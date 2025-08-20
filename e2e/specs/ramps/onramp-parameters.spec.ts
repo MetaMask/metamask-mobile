@@ -1,6 +1,6 @@
 import { loginToApp } from '../../viewHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
+import FundActionMenu from '../../pages/UI/FundActionMenu';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { CustomNetworks } from '../../resources/networks.e2e';
@@ -19,6 +19,7 @@ import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
+import Matchers from '../../framework/Matchers';
 
 let mockServer: Mockttp;
 let mockServerPort: number;
@@ -41,8 +42,8 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
     },
     async () => {
       await loginToApp();
-      await TabBarComponent.tapActions();
-      await WalletActionsBottomSheet.tapBuyButton();
+      await WalletView.tapWalletFundButton();
+      await FundActionMenu.tapBuyButton();
       await BuyGetStartedView.tapGetStartedButton();
       await testFn();
     },
@@ -98,10 +99,14 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
   it('should select payment method and verify display', async () => {
     await setupOnRampTest(async () => {
       const paymentMethod =
-        device.getPlatform() === 'ios' ? 'Apple Pay' : 'Google Pay';
+        device.getPlatform() === 'ios'
+          ? 'Apple Pay'
+          : /^(?:Google|Revolut)\s+Pay$/i;
       await BuildQuoteView.tapPaymentMethodDropdown(paymentMethod);
       await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
-      await Assertions.expectTextNotDisplayed(paymentMethod);
+      await Assertions.expectElementToNotBeVisible(
+        Matchers.getElementByText(paymentMethod),
+      );
       await Assertions.expectTextDisplayed('Debit or Credit');
     });
   });
