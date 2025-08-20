@@ -158,14 +158,15 @@ export const formatLargeNumber = (
 };
 
 /**
- * Formats volume with appropriate magnitude suffixes and no decimals
+ * Formats volume with appropriate magnitude suffixes
  * @param volume - Raw volume value
- * @returns Format: "$XB" / "$XM" / "$XK" / "$X" (no decimals for cleaner display)
- * @example formatVolume(1234567890) => "$1B"
- * @example formatVolume(12345678) => "$12M"
- * @example formatVolume(123456) => "$123K"
+ * @param decimals - Number of decimal places to show (default 2)
+ * @returns Format: "$X.XXB" / "$X.XXM" / "$X.XXK" / "$X.XX"
+ * @example formatVolume(1234567890) => "$1.23B"
+ * @example formatVolume(12345678) => "$12.35M"
+ * @example formatVolume(123456) => "$123.46K"
  */
-export const formatVolume = (volume: string | number): string => {
+export const formatVolume = (volume: string | number, decimals = 2): string => {
   const num = typeof volume === 'string' ? parseFloat(volume) : volume;
 
   // Handle invalid inputs - return fallback display for NaN/Infinity
@@ -173,7 +174,10 @@ export const formatVolume = (volume: string | number): string => {
     return '$---';
   }
 
-  const formatted = formatLargeNumber(volume, { decimals: 0, rawDecimals: 0 });
+  const formatted = formatLargeNumber(volume, {
+    decimals,
+    rawDecimals: decimals,
+  });
 
   // Handle negative values - ensure dollar sign comes after negative sign
   if (formatted.startsWith('-')) {

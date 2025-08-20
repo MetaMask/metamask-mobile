@@ -345,8 +345,8 @@ describe('PerpsMarketRowItem', () => {
 
       // Should show the new live price
       expect(screen.getByText('$55,000.00')).toBeOnTheScreen();
-      // Should show updated volume (no decimals with formatVolume)
-      expect(screen.getByText('$3B')).toBeOnTheScreen();
+      // Should show updated volume (2 decimals with formatVolume)
+      expect(screen.getByText('$3.00B')).toBeOnTheScreen();
     });
 
     it('does not update when live price matches current price', () => {
@@ -404,39 +404,41 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(screen.getByText('$0.00')).toBeOnTheScreen();
+      // Price and volume both show $0.00, so check for multiple instances
+      const zeroElements = screen.getAllByText('$0.00');
+      expect(zeroElements.length).toBeGreaterThanOrEqual(1);
     });
 
     it('formats different volume ranges correctly', () => {
-      // Test billions (no decimals with formatVolume)
+      // Test billions (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 5500000000 },
       });
       const { rerender } = render(
         <PerpsMarketRowItem market={mockMarketData} />,
       );
-      expect(screen.getByText('$6B')).toBeOnTheScreen(); // Rounds 5.5B to 6B
+      expect(screen.getByText('$5.50B')).toBeOnTheScreen(); // Now shows 2 decimals
 
-      // Test millions (no decimals with formatVolume)
+      // Test millions (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 750000000 },
       });
       rerender(<PerpsMarketRowItem market={mockMarketData} />);
-      expect(screen.getByText('$750M')).toBeOnTheScreen(); // No decimals
+      expect(screen.getByText('$750.00M')).toBeOnTheScreen(); // Shows 2 decimals
 
-      // Test thousands (no decimals with formatVolume)
+      // Test thousands (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 50000 },
       });
       rerender(<PerpsMarketRowItem market={mockMarketData} />);
-      expect(screen.getByText('$50K')).toBeOnTheScreen(); // No decimals
+      expect(screen.getByText('$50.00K')).toBeOnTheScreen(); // Shows 2 decimals
 
-      // Test small values (no decimals with formatVolume)
+      // Test small values (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 123.45 },
       });
       rerender(<PerpsMarketRowItem market={mockMarketData} />);
-      expect(screen.getByText('$123')).toBeOnTheScreen(); // No decimals
+      expect(screen.getByText('$123.45')).toBeOnTheScreen(); // Shows 2 decimals
     });
 
     it('handles missing live price fields gracefully', () => {
@@ -519,7 +521,8 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(screen.getByText('$0.0001')).toBeOnTheScreen();
+      // With 2 decimal enforcement, very small prices show as $0.00
+      expect(screen.getByText('$0.00')).toBeOnTheScreen();
     });
 
     it('handles very large price values', () => {

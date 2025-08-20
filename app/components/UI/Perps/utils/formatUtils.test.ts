@@ -225,16 +225,23 @@ describe('formatUtils', () => {
   });
 
   describe('formatVolume', () => {
-    it('should format volume with no decimals and dollar sign', () => {
-      expect(formatVolume(1234567890)).toBe('$1B');
-      expect(formatVolume(12345678)).toBe('$12M');
-      expect(formatVolume(123456)).toBe('$123K');
-      expect(formatVolume(999)).toBe('$999');
+    it('should format volume with 2 decimals and dollar sign by default', () => {
+      expect(formatVolume(1234567890)).toBe('$1.23B');
+      expect(formatVolume(12345678)).toBe('$12.35M');
+      expect(formatVolume(123456)).toBe('$123.46K');
+      expect(formatVolume(999)).toBe('$999.00');
+    });
+
+    it('should allow configurable decimals', () => {
+      expect(formatVolume(1234567890, 0)).toBe('$1B');
+      expect(formatVolume(12345678, 1)).toBe('$12.3M');
+      expect(formatVolume(123456, 3)).toBe('$123.456K');
     });
 
     it('should handle zero volume', () => {
-      expect(formatVolume(0)).toBe('$0');
-      expect(formatVolume('0')).toBe('$0');
+      expect(formatVolume(0)).toBe('$0.00');
+      expect(formatVolume('0')).toBe('$0.00');
+      expect(formatVolume(0, 0)).toBe('$0');
     });
 
     it('should handle invalid inputs', () => {
@@ -244,13 +251,15 @@ describe('formatUtils', () => {
     });
 
     it('should handle negative volume', () => {
-      expect(formatVolume(-1000000)).toBe('-$1M');
-      expect(formatVolume(-1234)).toBe('-$1K');
+      expect(formatVolume(-1000000)).toBe('-$1.00M');
+      expect(formatVolume(-1234)).toBe('-$1.23K');
+      expect(formatVolume(-1234, 0)).toBe('-$1K');
     });
 
     it('should handle very large volumes', () => {
-      expect(formatVolume(1000000000000)).toBe('$1T');
-      expect(formatVolume(2500000000000)).toBe('$3T');
+      expect(formatVolume(1000000000000)).toBe('$1.00T');
+      expect(formatVolume(2500000000000)).toBe('$2.50T');
+      expect(formatVolume(2500000000000, 0)).toBe('$3T');
     });
   });
 

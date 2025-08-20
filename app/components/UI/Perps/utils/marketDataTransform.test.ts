@@ -68,7 +68,9 @@ describe('marketDataTransform', () => {
         price: '$52,000.00',
         change24h: '+$2,000.00',
         change24hPercent: '+4.00%',
-        volume: '$1B',
+        volume: '$1.00B',
+        nextFundingTime: undefined,
+        fundingIntervalHours: undefined,
       });
     });
 
@@ -201,7 +203,7 @@ describe('marketDataTransform', () => {
 
       // Assert
       expect(result).toHaveLength(2);
-      expect(result[0].volume).toBe('$1B'); // Has context
+      expect(result[0].volume).toBe('$1.00B'); // Has context, now with 2 decimals
       expect(result[1].volume).toBe('$---'); // No context
     });
 
@@ -598,7 +600,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$0');
+      expect(result).toBe('$0.00');
     });
 
     it('formats volume in billions', () => {
@@ -609,7 +611,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$3B'); // No decimals in formatVolume
+      expect(result).toBe('$2.50B'); // Now with 2 decimals
     });
 
     it('formats volume in millions', () => {
@@ -620,7 +622,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$150M');
+      expect(result).toBe('$150.00M');
     });
 
     it('formats volume in thousands', () => {
@@ -631,7 +633,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$75K');
+      expect(result).toBe('$75.00K');
     });
 
     it('formats small volume with two decimal places', () => {
@@ -642,7 +644,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$123'); // No decimals for small volumes
+      expect(result).toBe('$123.45'); // Now with 2 decimals
     });
 
     it('formats edge case at exactly 1 billion', () => {
@@ -653,7 +655,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$1B');
+      expect(result).toBe('$1.00B');
     });
 
     it('formats edge case at exactly 1 million', () => {
@@ -664,7 +666,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$1M');
+      expect(result).toBe('$1.00M');
     });
 
     it('formats edge case at exactly 1 thousand', () => {
@@ -675,7 +677,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$1K');
+      expect(result).toBe('$1.00K');
     });
 
     it('formats decimal billions correctly', () => {
@@ -686,7 +688,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$1B'); // No decimals
+      expect(result).toBe('$1.23B'); // Now with 2 decimals
     });
 
     it('formats decimal millions correctly', () => {
@@ -697,7 +699,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$12M'); // No decimals
+      expect(result).toBe('$12.35M'); // Now with 2 decimals
     });
 
     it('formats decimal thousands correctly', () => {
@@ -708,7 +710,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$12K'); // No decimals
+      expect(result).toBe('$12.35K'); // Now with 2 decimals
     });
 
     it('handles very large numbers correctly', () => {
@@ -719,7 +721,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$1T');
+      expect(result).toBe('$1.00T');
     });
   });
 
@@ -786,13 +788,13 @@ describe('marketDataTransform', () => {
     it('handles negative numbers in formatting functions', () => {
       // Arrange & Act & Assert
       expect(formatPrice(-100)).toBe('-$100.00');
-      expect(formatVolume(-1000000)).toBe('-$1M');
+      expect(formatVolume(-1000000)).toBe('-$1.00M'); // Now with 2 decimals
     });
 
     it('handles very small numbers close to zero', () => {
       // Arrange & Act & Assert
       expect(formatPrice(0.0000001)).toBe('$0.000000');
-      expect(formatVolume(0.1)).toBe('$0'); // Rounds down to 0
+      expect(formatVolume(0.1)).toBe('$0.10'); // Now shows 2 decimals
       expect(formatPercentage(0.001)).toBe('+0.00%');
     });
 

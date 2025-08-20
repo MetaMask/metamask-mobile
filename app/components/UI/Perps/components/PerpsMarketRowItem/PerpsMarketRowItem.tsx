@@ -19,6 +19,7 @@ import {
   formatPrice,
   formatPercentage,
   formatPnl,
+  formatVolume,
 } from '../../utils/formatUtils';
 import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
@@ -40,9 +41,12 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
       return market;
     }
 
-    // Parse and format the price
+    // Parse and format the price with exactly 2 decimals for consistency
     const currentPrice = parseFloat(livePrice.price);
-    const formattedPrice = formatPrice(currentPrice);
+    const formattedPrice = formatPrice(currentPrice, {
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+    });
 
     // Only update if price actually changed
     if (formattedPrice === market.price) {
@@ -74,19 +78,12 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
     if (livePrice.volume24h !== undefined) {
       const volume = livePrice.volume24h;
 
-      // Ensure volume is never shown as $0 if there's data
-      if (volume >= 1e9) {
-        updatedMarket.volume = `$${Math.round(volume / 1e9)}B`;
-      } else if (volume >= 1e6) {
-        updatedMarket.volume = `$${Math.round(volume / 1e6)}M`;
-      } else if (volume >= 1e3) {
-        updatedMarket.volume = `$${Math.round(volume / 1e3)}K`;
-      } else if (volume > 0) {
-        // For very small volumes, show at least $1
-        updatedMarket.volume = volume < 1 ? '$<1' : `$${Math.round(volume)}`;
+      // Use formatVolume with 2 decimals for consistent display
+      if (volume > 0) {
+        updatedMarket.volume = formatVolume(volume, 2);
       } else {
         // Only show $0 if volume is truly 0
-        updatedMarket.volume = '$0';
+        updatedMarket.volume = '$0.00';
       }
     } else if (!market.volume || market.volume === '$0') {
       // Fallback: ensure volume field always has a value
