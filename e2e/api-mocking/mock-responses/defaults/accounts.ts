@@ -1,3 +1,5 @@
+/* eslint-disable no-useless-escape */
+import { TestSpecificMock } from '../../../framework';
 export const ACCOUNTS_API_TRANSACTIONS_RESPONSE = {
   data: [
     {
@@ -1204,5 +1206,78 @@ export const ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE = {
     'eip155:10:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
     'eip155:137:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
     'eip155:8453:0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3',
+  ],
+};
+
+/**
+ * Minimal mock data for accounts API endpoints used in E2E testing.
+ * Returns empty/basic responses to prevent API failures.
+ * For specific account tests, add detailed mocks in the test files.
+ */
+export const DEFAULT_ACCOUNTS_MOCK: TestSpecificMock = {
+  GET: [
+    {
+      urlEndpoint:
+        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v1\/metadata\?.*$/,
+      responseCode: 200,
+      response: { is: [] },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/activeNetworks\?.*$/,
+      responseCode: 200,
+      response: ACCOUNTS_API_ACTIVE_NETWORKS_RESPONSE,
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v1\/accounts\/[^\/]+\/transactions\?.*$/,
+      responseCode: 200,
+      response: ACCOUNTS_API_TRANSACTIONS_RESPONSE,
+    },
+    {
+      urlEndpoint: 'https://accounts.api.cx.metamask.io/v1/supportedNetworks',
+      responseCode: 200,
+      response: {
+        fullSupport: [1, 137, 56, 59144, 8453, 10, 42161, 534352, 1329],
+        partialSupport: { balances: [42220, 43114] },
+      },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/accounts\/[^\/]+\/balances\?.*$/,
+      responseCode: 200,
+      response: { count: 0, balances: [], unprocessedNetworks: [] },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/accounts\/0x[a-fA-F0-9]{40}\/balances\?networks=.*$/,
+      responseCode: 200,
+      response: {
+        count: 1,
+        balances: [
+          {
+            object: 'token',
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            type: 'native',
+            timestamp: '2015-07-30T15:26:13.000Z',
+            decimals: 18,
+            chainId: 1,
+            balance: '0.000000000000000000',
+          },
+        ],
+        unprocessedNetworks: [],
+      },
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/accounts\.api\.cx\.metamask\.io\/v\d+\/accounts\/\/.*$/,
+      responseCode: 400,
+      response: {
+        error: 'Bad Request',
+        message: 'Account ID is required',
+      },
+    },
   ],
 };
