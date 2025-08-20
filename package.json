@@ -204,7 +204,6 @@
     "@ledgerhq/react-native-hw-transport-ble": "^6.34.1",
     "@metamask/account-api": "^0.9.0",
     "@metamask/account-tree-controller": "^0.8.0",
-    "@metamask/multichain-account-service": "^0.4.0",
     "@metamask/accounts-controller": "^32.0.1",
     "@metamask/address-book-controller": "^6.1.0",
     "@metamask/app-metadata-controller": "^1.0.0",
@@ -245,6 +244,7 @@
     "@metamask/logging-controller": "^6.0.4",
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/metamask-eth-abis": "3.1.1",
+    "@metamask/multichain-account-service": "^0.4.0",
     "@metamask/multichain-api-client": "^0.6.5",
     "@metamask/multichain-api-middleware": "^0.4.0",
     "@metamask/multichain-network-controller": "^0.10.0",
@@ -467,6 +467,7 @@
     "reselect": "^5.1.1",
     "rive-react-native": "^9.3.4",
     "rxjs": "^7.8.1",
+    "sharp": "^0.34.3",
     "socket.io-client": "^4.5.3",
     "stream-browserify": "3.0.0",
     "through2": "3.0.1",
@@ -712,7 +713,8 @@
       "appium-xcuitest-driver>appium-remote-debugger>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-webdriveragent>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false,
-      "appwright>@empiricalrun/llm>sharp": false
+      "appwright>@empiricalrun/llm>sharp": false,
+      "sharp": false
     }
   },
   "packageManager": "yarn@1.22.22",
