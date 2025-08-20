@@ -1,7 +1,6 @@
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import {
-  mockAuthServices,
   createUserStorageController,
   setupAccountMockedBalances,
 } from './mocks';
@@ -12,7 +11,6 @@ import {
   UserStorageMockttpControllerOverrides,
 } from './user-storage/userStorageMockttpController';
 import { Mockttp } from 'mockttp';
-import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { TestSpecificMock } from '../../../framework/types';
 
 export interface IdentityFixtureOptions {
@@ -39,9 +37,7 @@ export async function withIdentityFixtures(
   const {
     fixture = new FixtureBuilder().withBackupAndSyncSettings().build(),
     restartDevice = true,
-    testSpecificMock = {
-      POST: [mockEvents.POST.segmentTrack],
-    },
+    testSpecificMock,
     mockBalancesAccounts = [],
     userStorageFeatures = [
       USER_STORAGE_FEATURE_NAMES.accounts,
@@ -61,9 +57,6 @@ export async function withIdentityFixtures(
       if (!mockServer) {
         throw new Error('Mock server is not defined');
       }
-
-      // mock auth services
-      await mockAuthServices(mockServer);
       if (mockBalancesAccounts.length > 0) {
         await setupAccountMockedBalances(mockServer, mockBalancesAccounts);
       }
