@@ -35,7 +35,6 @@ import { strings } from '../../../locales/i18n';
 import { resemblesAddress, safeToChecksumAddress } from '../../util/address';
 import { store } from '../../store';
 import { removeBookmark } from '../../actions/bookmarks';
-import setOnboardingWizardStep from '../../actions/wizard';
 import { v1 as random } from 'uuid';
 import { getPermittedAccounts } from '../Permissions';
 import AppConstants from '../AppConstants';
@@ -112,8 +111,6 @@ export interface RPCMethodsMiddleParameters {
   // Show autocomplete
   fromHomepage: { current: boolean };
   toggleUrlModal: (shouldClearUrlInput: boolean) => void;
-  // Wizard
-  wizardScrollAdjusted: { current: boolean };
   // For the browser
   tabId: number | '' | false;
   // For WalletConnect
@@ -390,8 +387,6 @@ export const getRpcMethodMiddleware = ({
   // Show autocomplete
   fromHomepage,
   toggleUrlModal,
-  // Wizard
-  wizardScrollAdjusted,
   // For the browser
   tabId,
   // For WalletConnect
@@ -958,20 +953,6 @@ export const getRpcMethodMiddleware = ({
             ],
           );
         });
-      },
-
-      metamask_showTutorial: async () => {
-        checkTabActive();
-        if (!isHomepage()) {
-          throw providerErrors.unauthorized('Forbidden.');
-        }
-        wizardScrollAdjusted.current = false;
-
-        store.dispatch(setOnboardingWizardStep(1));
-
-        navigation.navigate('WalletView');
-
-        res.result = true;
       },
 
       metamask_showAutocomplete: async () => {

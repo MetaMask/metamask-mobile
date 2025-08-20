@@ -8,7 +8,6 @@ import alertReducer from './alert';
 import transactionReducer from './transaction';
 import legalNoticesReducer from './legalNotices';
 import userReducer, { UserState } from './user';
-import wizardReducer from './wizard';
 import onboardingReducer, { OnboardingState } from './onboarding';
 import fiatOrders from './fiatOrders';
 import swapsReducer from './swaps';
@@ -88,7 +87,6 @@ export interface RootState {
   user: UserState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  wizard: any;
   onboarding: OnboardingState;
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -145,7 +143,6 @@ const baseReducers = {
   alert: alertReducer,
   transaction: transactionReducer,
   user: userReducer,
-  wizard: wizardReducer,
   onboarding: onboardingReducer,
   notification: notificationReducer,
   signatureRequest: signatureRequestReducer,
