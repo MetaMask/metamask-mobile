@@ -265,11 +265,6 @@ export const startMockServer = async (events, port) => {
       );
     });
 
-  await mockServer.forGet('https://google.com').thenCallback(async () => ({
-    statusCode: 200,
-    body: emptyHtmlPage(),
-  }));
-
   // In case any other requests are made, check allowed list before passing through
   await mockServer.forUnmatchedRequest().thenCallback(async (request) => {
     // Check if the URL is in the allowed list
