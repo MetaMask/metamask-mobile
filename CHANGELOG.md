@@ -7,19 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-
-- feat(bridge): add support for deep link parameters in bridge view ([#17187](https://github.com/MetaMask/metamask-mobile/pull/17187))
+## [7.51.4]
 
 ### Fixed
 
-- fix: Security vulnerability in RPC domain validation that could allow malicious domains to be misclassified as legitimate providers ([#17234](https://github.com/MetaMask/metamask-mobile/pull/17234))
+- fix: Bump expo patch version to fix Android crasher - cp-7.53.0 (#18321) ([#18359](https://github.com/MetaMask/metamask-mobile/pull/18359))
+- fix: cp-7.51.4 skip bridge and bridgeApproval tx types in STX ([#18238](https://github.com/MetaMask/metamask-mobile/pull/18238))
+- fix: cp-7.51.4 wipe smart transactions on account reset ([#18194](https://github.com/MetaMask/metamask-mobile/pull/18194))
+- fix: feature flag solana modal ([#18225](https://github.com/MetaMask/metamask-mobile/pull/18225)) 
+- fix: bump @metamask/smart-transactions-controller to 18.0.0 ([#18228](https://github.com/MetaMask/metamask-mobile/pull/18228)) 
+- fix: cp-7.51.4 clean up existing smartTransactions state since we don't persist new ones anymore ([#18200](https://github.com/MetaMask/metamask-mobile/pull/18200)) 
+
+## [7.51.3]
+
+### Fixed
+
+- fix: copied to clipboard alert not dismissable ([#18047](https://github.com/MetaMask/metamask-mobile/pull/18047))
+
+## [7.51.2]
+
+### Fixed
+
+- fix: scroll behavior on Solana New Feature view (#[17807](https://github.com/MetaMask/metamask-mobile/pull/17807))
 
 ## [7.51.1]
 
 ### Added
 
-- migrate BSC network RPC to bsc-mainnet.infura.io ([#16824](https://github.com/MetaMask/metamask-mobile/pull/16824))
+- feat: migrate BSC network RPC to bsc-mainnet.infura.io ([#16824](https://github.com/MetaMask/metamask-mobile/pull/16824))
 - feat: allow multiple provider connections ([#16699](https://github.com/MetaMask/metamask-mobile/pull/16699))
 
 ### Fixed
@@ -6029,7 +6044,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.4...HEAD
+[7.51.4]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.3...v7.51.4  
+[7.51.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.2...v7.51.3  
+[7.51.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.1...v7.51.2  
 [7.51.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.51.0...v7.51.1  
 [7.51.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.2...v7.51.0  
 [7.50.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.50.1...v7.50.2  

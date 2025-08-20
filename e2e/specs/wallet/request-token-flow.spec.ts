@@ -3,13 +3,11 @@ import RequestPaymentModal from '../../pages/Receive/RequestPaymentModal';
 import SendLinkView from '../../pages/Receive/SendLinkView';
 import PaymentRequestQrBottomSheet from '../../pages/Receive/PaymentRequestQrBottomSheet';
 import RequestPaymentView from '../../pages/Receive/RequestPaymentView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
 import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import WalletView from '../../pages/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
 
 const SAI_CONTRACT_ADDRESS: string =
@@ -30,9 +28,8 @@ describe(
         async (): Promise<void> => {
           await loginToApp();
           await Assertions.expectElementToBeVisible(WalletView.container);
-          // Request asset from Action button
-          await TabBarComponent.tapActions();
-          await WalletActionsBottomSheet.tapReceiveButton();
+          // Request asset from main Receive button
+          await WalletView.tapWalletReceiveButton();
           await RequestPaymentModal.tapRequestPaymentButton();
           await Assertions.expectElementToBeVisible(
             RequestPaymentView.requestPaymentContainer,

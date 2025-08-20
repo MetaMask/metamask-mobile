@@ -5,7 +5,6 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
 import { PortfolioBalance } from '.';
 import Engine from '../../../../../core/Engine';
-import { EYE_SLASH_ICON_TEST_ID, EYE_ICON_TEST_ID } from './index.constants';
 
 const { PreferencesController } = Engine.context;
 
@@ -190,7 +189,7 @@ describe('PortfolioBalance', () => {
     expect(sensitiveText.props.children).toEqual('••••••••••••');
   });
 
-  it('toggles privacy mode when eye icon is pressed', () => {
+  it('toggles privacy mode when balance container is pressed', () => {
     const { getByTestId } = renderPortfolioBalance({
       ...initialState,
       engine: {
@@ -207,41 +206,5 @@ describe('PortfolioBalance', () => {
     fireEvent.press(balanceContainer);
 
     expect(PreferencesController.setPrivacyMode).toHaveBeenCalledWith(true);
-  });
-
-  it('renders eye icon when privacy mode is off', () => {
-    const { getByTestId } = renderPortfolioBalance({
-      ...initialState,
-      engine: {
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          PreferencesController: {
-            privacyMode: false,
-          },
-        },
-      },
-    });
-
-    const eyeIcon = getByTestId(EYE_ICON_TEST_ID);
-    expect(eyeIcon).toBeDefined();
-    expect(eyeIcon.props.name).toBe('Eye');
-  });
-
-  it('renders eye-slash icon when privacy mode is on', () => {
-    const { getByTestId } = renderPortfolioBalance({
-      ...initialState,
-      engine: {
-        backgroundState: {
-          ...initialState.engine.backgroundState,
-          PreferencesController: {
-            privacyMode: true,
-          },
-        },
-      },
-    });
-
-    const eyeSlashIcon = getByTestId(EYE_SLASH_ICON_TEST_ID);
-    expect(eyeSlashIcon).toBeDefined();
-    expect(eyeSlashIcon.props.name).toBe('EyeSlash');
   });
 });
