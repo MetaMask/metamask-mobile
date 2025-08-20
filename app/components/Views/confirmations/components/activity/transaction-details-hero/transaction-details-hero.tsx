@@ -1,30 +1,58 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Box } from '../../../../../UI/Box/Box';
 import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import Text, {
-  TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
 import { AlignItems } from '../../../../../UI/Box/box.types';
+import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { TransactionType } from '@metamask/transaction-controller';
+import { parseStandardTokenTransactionData } from '../../../utils/transaction';
+import { Hex } from '@metamask/utils';
+import { useTokensWithBalance } from '../../../../../UI/Bridge/hooks/useTokensWithBalance';
+import { Result } from '@ethersproject/abi';
+import { calcTokenAmount } from '../../../../../../util/transactions';
+import { useStyles } from '../../../../../../component-library/hooks';
+import styleSheet from './transaction-details-hero.styles';
 
 export function TransactionDetailsHero() {
-  const chainId = '0x1';
-  const USDC = '0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+  const { styles } = useStyles(styleSheet, {});
+  const { transactionMeta } = useTransactionDetails();
+  const { chainId, txParams, type } = transactionMeta;
+  const { data, to } = txParams;
+  const chainIds = useMemo(() => (chainId ? [chainId] : []), [chainId]);
+  const tokens = useTokensWithBalance({ chainIds });
+
+  if (type !== TransactionType.perpsDeposit || !to || !data) {
+    return null;
+  }
+
+  const decodedData = parseStandardTokenTransactionData(data);
+
+  const token = tokens.find(
+    (t) => t.address.toLowerCase() === to.toLowerCase(),
+  );
+
+  const { decimals } = token ?? {};
+  const { _value: amount } = decodedData?.args ?? ({} as Result);
+
+  if (!amount || !decimals) {
+    return null;
+  }
+
+  const amountHuman = calcTokenAmount(amount, decimals).toString(10);
 
   return (
-    <Box alignItems={AlignItems.center} gap={8}>
+    <Box alignItems={AlignItems.center} gap={12} style={styles.container}>
       <Box>
         <TokenIcon
           chainId={chainId}
-          address={USDC}
+          address={to as Hex}
           variant={TokenIconVariant.Hero}
           showNetwork={false}
         />
       </Box>
-      <Text variant={TextVariant.HeadingLG}>$500</Text>
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-        0.250 USDC
-      </Text>
+      <Text variant={TextVariant.HeadingLG}>${amountHuman}</Text>
     </Box>
   );
 }
