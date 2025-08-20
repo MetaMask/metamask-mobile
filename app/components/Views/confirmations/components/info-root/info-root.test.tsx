@@ -27,6 +27,8 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../hooks/gas/useGasFeeToken');
+
 const MockText = Text;
 jest.mock('../qr-info', () => () => {
   const View = jest.requireActual('react-native').View;

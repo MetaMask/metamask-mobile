@@ -23,6 +23,12 @@ jest.mock('../../rows/account-network-info-row', () => ({
   default: () => null,
 }));
 
+jest.mock('../../../hooks/gas/useGasFeeToken');
+
+jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert', () => ({
+  useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),
+}));
+
 jest.mock('../../../hooks/7702/use7702TransactionType', () => ({
   use7702TransactionType: jest
     .fn()
