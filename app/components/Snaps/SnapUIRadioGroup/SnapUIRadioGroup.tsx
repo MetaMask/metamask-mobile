@@ -46,7 +46,7 @@ export const SnapUIRadioGroup: FunctionComponent<SnapUIRadioGroupProps> = ({
   };
 
   return (
-    <Box style={style}>
+    <Box style={style} testID="snap-ui-renderer__radio">
       {label && <Label variant={TextVariant.BodyMDMedium}>{label}</Label>}
       {options.map((option) => (
         <RadioButton
@@ -55,6 +55,7 @@ export const SnapUIRadioGroup: FunctionComponent<SnapUIRadioGroupProps> = ({
           isChecked={value === option.value}
           isDisabled={disabled ?? option.disabled}
           onPress={() => handleChange(option.value)}
+          testID="snap-ui-renderer__radio-button"
         />
       ))}
       {error && (

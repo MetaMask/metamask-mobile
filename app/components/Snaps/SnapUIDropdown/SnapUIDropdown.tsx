@@ -32,6 +32,7 @@ export const SnapUIDropdown: FunctionComponent<SnapUIDropdownProps> = ({
       title={strings('snap_ui.dropdown.title')}
       options={formattedOptions}
       optionComponents={optionComponents}
+      testID="snap-ui-renderer__dropdown"
       {...props}
     />
   );

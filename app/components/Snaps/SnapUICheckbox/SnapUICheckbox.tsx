@@ -60,6 +60,7 @@ export const SnapUICheckbox: FunctionComponent<SnapUICheckboxProps> = ({
         isChecked={value}
         label={label}
         isDisabled={disabled}
+        testID="snap-ui-renderer__checkbox"
       />
       {error && (
         // eslint-disable-next-line react-native/no-inline-styles
