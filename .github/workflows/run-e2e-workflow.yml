@@ -183,14 +183,7 @@ jobs:
         run: |
           echo "🔎 Pruning artifacts while preserving platform Detox artifacts and debug assets..."
 
-          PLATFORM="${{ inputs.platform }}"
-
-          if [[ -z "$PLATFORM" ]]; then
-            echo "⚠️ Platform not specified; skipping pruning to avoid data loss."
-            exit 0
-          fi
-
-          case "$PLATFORM" in
+          case "${{ inputs.platform }}" in
             android)
               KEEP_PREFIX="android"
               ;;
@@ -198,21 +191,16 @@ jobs:
               KEEP_PREFIX="ios"
               ;;
             *)
-              echo "⚠️ Unknown platform '$PLATFORM'; skipping pruning to avoid accidental deletion."
+              echo "⚠️ Unknown platform '${{ inputs.platform }}'; skipping pruning to avoid accidental deletion."
               exit 0
               ;;
           esac
 
-          shopt -s nullglob
-          for entry in artifacts/*; do
-            base="$(basename "$entry")"
-            if [[ "$base" == "$KEEP_PREFIX"* || "$base" == coverage-* ]]; then
-              echo "Keeping: $base"
-              continue
-            fi
-            echo "Removing: $base"
-            rm -rf "$entry" 2>/dev/null || true
-          done
+          find artifacts -mindepth 1 -prune \
+            ! -name "${KEEP_PREFIX}*" \
+            ! -name 'coverage-*' \
+            -exec echo "Removing:" {} \; \
+            -exec rm -rf {} + 2>/dev/null || true
         continue-on-error: true
 
       - name: Upload screenshots

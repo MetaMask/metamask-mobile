@@ -6,6 +6,7 @@ import _ from 'lodash';
 import { device } from 'detox';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
 import { createLogger } from '../framework/logger';
+import { emptyHtmlPage } from './mock-responses/defaults/helpers';
 
 const logger = createLogger({
   name: 'MockServer',
@@ -263,6 +264,11 @@ export const startMockServer = async (events, port) => {
         method === 'POST' ? requestBodyText : undefined,
       );
     });
+
+  await mockServer.forGet('https://google.com').thenCallback(async () => ({
+    statusCode: 200,
+    body: emptyHtmlPage(),
+  }));
 
   // In case any other requests are made, check allowed list before passing through
   await mockServer.forUnmatchedRequest().thenCallback(async (request) => {
