@@ -103,11 +103,16 @@ const CardHome = () => {
     useCallback(() => {
       const handleNetworkChange = async () => {
         if (selectedChainId !== LINEA_CHAIN_ID) {
+          Logger.log('CardHome::handleNetworkChange - Not on LINEA chain');
           const networkClientId =
             NetworkController.findNetworkClientIdByChainId(LINEA_CHAIN_ID);
 
           try {
             if (networkClientId) {
+              setIsLoadingNetworkChange(true);
+              Logger.log(
+                'CardHome::handleNetworkChange - Setting active network to LINEA',
+              );
               await NetworkController.setActiveNetwork(networkClientId);
             }
           } catch (err) {
@@ -115,8 +120,9 @@ const CardHome = () => {
               err instanceof Error ? err : new Error(String(err));
             Logger.error(mappedError, 'CardHome::Error setting active network');
             setError(true);
-            setIsLoadingNetworkChange(false);
             return;
+          } finally {
+            setIsLoadingNetworkChange(false);
           }
         }
 
@@ -154,9 +160,6 @@ const CardHome = () => {
       selectedChainId,
     ]),
   );
-
-  Logger.log('selectedAccount', selectedAccount?.address);
-  Logger.log('selectedChainId', selectedChainId);
 
   const {
     priorityToken,
