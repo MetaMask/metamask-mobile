@@ -38,31 +38,32 @@ export const formatPerpsFiat = (balance: string | number): string => {
  */
 export const formatPrice = (
   price: string | number,
-  options?: { minimumDecimals?: number },
+  options?: { minimumDecimals?: number; maximumDecimals?: number },
 ): string => {
   const num = typeof price === 'string' ? parseFloat(price) : price;
   const minDecimals = options?.minimumDecimals ?? 2;
+  const maxDecimals = options?.maximumDecimals ?? 4;
 
   if (isNaN(num)) {
     return minDecimals === 0 ? '$0' : '$0.00';
   }
 
-  // For prices >= 1000, use specified minimum decimal places
+  // For prices >= 1000, use specified decimal places
   if (num >= 1000) {
     return formatWithThreshold(num, 1000, 'en-US', {
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: minDecimals,
-      maximumFractionDigits: Math.max(minDecimals, 2),
+      maximumFractionDigits: maxDecimals,
     });
   }
 
-  // For prices < 1000, use up to 4 decimal places
+  // For prices < 1000, use specified decimal places
   return formatWithThreshold(num, 0.0001, 'en-US', {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: minDecimals,
-    maximumFractionDigits: 4,
+    maximumFractionDigits: maxDecimals,
   });
 };
 

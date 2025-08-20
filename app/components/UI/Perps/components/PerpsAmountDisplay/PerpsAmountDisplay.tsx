@@ -7,6 +7,7 @@ import Text, {
 import { useTheme } from '../../../../../util/theme';
 import { formatPrice } from '../../utils/formatUtils';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { strings } from '../../../../../../locales/i18n';
 import createStyles from './PerpsAmountDisplay.styles';
 
 interface PerpsAmountDisplayProps {
@@ -77,11 +78,12 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         )}
       </View>
       <Text
-        variant={TextVariant.BodyMD}
+        variant={TextVariant.BodySM}
         color={TextColor.Alternative}
         style={styles.maxAmount}
       >
-        {formatPrice(maxAmount)} max
+        {strings('perps.available')}:{' '}
+        {formatPrice(maxAmount, { minimumDecimals: 2, maximumDecimals: 2 })}
       </Text>
       {showWarning && (
         <Text
