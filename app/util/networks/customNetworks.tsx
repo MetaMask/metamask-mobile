@@ -95,7 +95,7 @@ export const PopularList = [
   },
   {
     chainId: toHex('999'),
-    nickname: 'Hyperliquid',
+    nickname: 'HyperEVM',
     rpcUrl: 'https://rpc.hyperliquid.xyz/evm',
     ticker: 'HYPE',
     rpcPrefs: {
