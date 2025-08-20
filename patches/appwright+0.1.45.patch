@@ -12,10 +12,23 @@ index a51913b..8c0335c 100644
      use: {
          // TODO: Use this for actions
 diff --git a/node_modules/appwright/dist/providers/browserstack/index.js b/node_modules/appwright/dist/providers/browserstack/index.js
-index 638c5df..b0bd626 100644
+index 638c5df..3b55555 100644
 --- a/node_modules/appwright/dist/providers/browserstack/index.js
 +++ b/node_modules/appwright/dist/providers/browserstack/index.js
-@@ -250,10 +250,10 @@ class BrowserStackDeviceProvider {
+@@ -120,6 +120,12 @@ class BrowserStackDeviceProvider {
+         return this.sessionDetails?.app_details.app_name ?? "";
+     }
+     static async downloadVideo(sessionId, outputDir, fileName) {
++        // Check if video download is disabled via environment variable
++        if (process.env.DISABLE_VIDEO_DOWNLOAD === 'true') {
++            logger_1.logger.log('Video download disabled by environment variable DISABLE_VIDEO_DOWNLOAD');
++            return null;
++        }
++        
+         const sessionData = await getSessionDetails(sessionId);
+         const sessionDetails = sessionData?.automation_session;
+         const videoURL = sessionDetails?.video_url;
+@@ -250,10 +256,10 @@ class BrowserStackDeviceProvider {
                      osVersion: this.project.use.device.osVersion,
                      platformName: platformName,
                      deviceOrientation: this.project.use.device?.orientation,

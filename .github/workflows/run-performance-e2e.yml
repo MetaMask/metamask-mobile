@@ -29,6 +29,7 @@ env:
   TEST_SRP_1: ${{ secrets.TEST_SRP_1 }}
   TEST_SRP_2: ${{ secrets.TEST_SRP_2 }}
   TEST_SRP_3: ${{ secrets.TEST_SRP_3 }}
+  DISABLE_VIDEO_DOWNLOAD: true
 
 jobs:
   read-device-matrix:
