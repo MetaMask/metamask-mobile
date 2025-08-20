@@ -676,6 +676,8 @@ export class PerpsController extends BaseController<
       // Note: We intentionally don't set depositInProgress immediately to avoid
       // showing toasts before the user confirms the transaction
 
+      // TODO: @abretonc7s Find a better way to trigger our custom toast notification then having to toggle the state
+      // How to replace the system notifications?
       result
         .then((actualTxHash) => {
           // Transaction was successfully completed
