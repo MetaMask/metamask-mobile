@@ -7,6 +7,11 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 import { AddressList } from './AddressList';
 
+const ACCOUNT_WALLET_ID = 'entropy:wallet-id-1' as AccountWalletId;
+const ACCOUNT_GROUP_ID = 'entropy:wallet-id-1/1' as AccountGroupId;
+
+const TITLE = 'Test Address List';
+
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -17,8 +22,14 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-const ACCOUNT_WALLET_ID = 'entropy:wallet-id-1' as AccountWalletId;
-const ACCOUNT_GROUP_ID = `${ACCOUNT_WALLET_ID}/1` as AccountGroupId;
+jest.mock('../../../../util/navigation/navUtils', () => ({
+  useParams: jest.fn().mockReturnValue({
+    title: TITLE,
+    groupId: ACCOUNT_GROUP_ID,
+  }),
+  useRoute: jest.fn(),
+  createNavigationDetails: jest.fn(),
+}));
 
 const mockEthEoaAccount = {
   ...createMockInternalAccount(
@@ -41,14 +52,7 @@ const mockSolAccount = {
 };
 const shortenedSolAddress = 'FcdCd3m...GPZgj';
 
-const renderWithAddressList = (accountGroupId: AccountGroupId) => {
-  const mockRoute = {
-    params: {
-      groupId: accountGroupId,
-      title: 'Test Address List',
-    },
-  };
-
+const renderWithAddressList = () => {
   const mockAccountsControllerState = {
     internalAccounts: {
       accounts: {
@@ -127,7 +131,7 @@ const renderWithAddressList = (accountGroupId: AccountGroupId) => {
     },
   };
 
-  return renderWithProvider(<AddressList route={mockRoute} />, {
+  return renderWithProvider(<AddressList />, {
     state: mockState,
   });
 };
@@ -138,9 +142,9 @@ describe('AddressList', () => {
   });
 
   it('renders correctly with list of addresses from a specific account group', () => {
-    const { getAllByText, getByText } = renderWithAddressList(ACCOUNT_GROUP_ID);
+    const { getAllByText, getByText } = renderWithAddressList();
 
-    expect(getByText('Test Address List')).toBeDefined();
+    expect(getByText(TITLE)).toBeDefined();
 
     expect(getAllByText(shortenedEthAddress).length).toBe(3);
     expect(getByText('Ethereum')).toBeDefined();

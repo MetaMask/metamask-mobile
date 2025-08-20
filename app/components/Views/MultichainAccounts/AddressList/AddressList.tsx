@@ -19,22 +19,31 @@ import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import { AddressListIds } from '../../../../../e2e/selectors/MultichainAccounts/AddressList.selectors';
+import {
+  useParams,
+  createNavigationDetails,
+} from '../../../../util/navigation/navUtils';
+import Routes from '../../../../constants/navigation/Routes';
 
 import styleSheet from './styles';
-import type { Props as AddressListProps, AddressItem } from './types';
+import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
+
+export const createAddressListNavigationDetails =
+  createNavigationDetails<AddressListProps>(
+    Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+  );
 
 /**
  * AddressList component displays a list of addresses spread by scopes.
  *
- * @param props - Component properties.
  * @returns {JSX.Element} The rendered component.
  */
-export const AddressList = (props: AddressListProps) => {
+export const AddressList = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
-  const { groupId, title } = props.route.params;
+  const { groupId, title } = useParams<AddressListProps>();
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,

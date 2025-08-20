@@ -3,6 +3,7 @@ import React, { useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { AccountGroupId } from '@metamask/account-api';
 
 // External dependencies
 import {
@@ -13,13 +14,14 @@ import {
 import ClipboardManager from '../../../core/ClipboardManager';
 import { showAlert } from '../../../actions/alert';
 import { protectWalletModalVisible } from '../../../actions/user';
+
 import { strings } from '../../../../locales/i18n';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useStyles } from '../../../component-library/hooks';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
-import Routes from '../../../constants/navigation/Routes';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedAccountGroupId } from '../../../selectors/multichainAccounts/accountTreeController';
+import { createAddressListNavigationDetails } from '../../Views/MultichainAccounts/AddressList';
 
 // Internal dependencies
 import styleSheet from './AddressCopy.styles';
@@ -82,10 +84,14 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   ]);
 
   const navigateToAddressList = useCallback(() => {
-    navigate(Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST, {
-      groupId: selectedAccountGroupId,
-      title: `${strings('multichain_accounts.address_list.receiving_address')}`,
-    });
+    navigate(
+      ...createAddressListNavigationDetails({
+        groupId: selectedAccountGroupId as AccountGroupId,
+        title: `${strings(
+          'multichain_accounts.address_list.receiving_address',
+        )}`,
+      }),
+    );
   }, [navigate, selectedAccountGroupId]);
 
   const handleOnPress = useCallback(() => {
