@@ -127,7 +127,6 @@ describe('RecipientInput', () => {
       fromAccount: {} as any,
       from: '',
       updateAsset: jest.fn(),
-
       updateValue: jest.fn(),
       value: undefined,
     });
