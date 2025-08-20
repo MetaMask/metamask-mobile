@@ -62,6 +62,13 @@ export function setBasicFunctionality(basicFunctionalityEnabled) {
   };
 }
 
+export function setAvatarStyle(avatarStyle) {
+  return {
+    type: 'SET_AVATAR_STYLE',
+    avatarStyle,
+  };
+}
+
 // Thunk action creator for user-initiated toggles (includes MultichainAccountService integration)
 export function toggleBasicFunctionality(basicFunctionalityEnabled) {
   return async (dispatch) => {
