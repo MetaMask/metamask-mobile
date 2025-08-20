@@ -15,7 +15,7 @@ const SEEDLESS_ONBOARDING_ENABLED = process.env.SEEDLESS_ONBOARDING_ENABLED
   ? process.env.SEEDLESS_ONBOARDING_ENABLED
   : true;
 const SOLANA_MODAL_ENABLED = process.env.SOLANA_MODAL_ENABLED
-  ? process.env.SOLANA_MODAL_ENABLE
+  ? process.env.SOLANA_MODAL_ENABLED
   : false;
 export async function onboardingFlowImportSRP(device, srp) {
   WelcomeScreen.device = device;
