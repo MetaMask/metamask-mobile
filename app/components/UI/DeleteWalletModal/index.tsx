@@ -232,6 +232,7 @@ const DeleteWalletModal: React.FC = () => {
                   iconColor={IconColor.Default}
                   onPress={() => setIsResetWallet(false)}
                   testID={ForgotPasswordModalSelectorsIDs.BACK_BUTTON}
+                  isDisabled={isDeletingWallet}
                 />
               ) : (
                 <View style={styles.iconEmptyContainer} />
