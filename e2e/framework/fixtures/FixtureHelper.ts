@@ -13,7 +13,11 @@ import {
 } from './FixtureUtils';
 import Utilities from '../../utils/Utilities';
 import TestHelpers from '../../helpers';
-import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import {
+  startMockServer,
+  stopMockServer,
+  validateLiveRequests,
+} from '../../api-mocking/mock-server';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import http from 'http';
 import {
@@ -41,7 +45,7 @@ import { mockNotificationServices } from '../../specs/notifications/utils/mocks'
 import { type Mockttp } from 'mockttp';
 import { Buffer } from 'buffer';
 import crypto from 'crypto';
-import { DEFAULT_MOCKS } from '../../api-mocking/default-mocks';
+import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -366,7 +370,10 @@ const mergeWithDefaultMocks = (
 export const createMockAPIServer = async (
   mockServerInstance?: Mockttp,
   testSpecificMock?: TestSpecificMock,
-) => {
+): Promise<{
+  mockServer: Mockttp;
+  mockServerPort: number;
+}> => {
   // Handle mock server
   let mockServer: Mockttp | undefined;
   let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
@@ -385,10 +392,6 @@ export const createMockAPIServer = async (
     logger.debug(
       `Mock server started from mockServerInstance on port ${mockServerPort}`,
     );
-
-    const endpoints = await mockServer.getMockedEndpoints();
-
-    logger.debug(`Mocked endpoints: ${endpoints.length}`);
   }
 
   // testSpecificMock only
@@ -419,6 +422,9 @@ export const createMockAPIServer = async (
 
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
+
+  const endpoints = await mockServer.getMockedEndpoints();
+  logger.debug(`Mocked endpoints: ${endpoints.length}`);
 
   return {
     mockServer,
@@ -530,6 +536,8 @@ export async function withFixtures(
     logger.error('Error in withFixtures:', error);
     throw error;
   } finally {
+    validateLiveRequests(mockServer);
+
     if (endTestfn) {
       // Pass the mockServer to the endTestfn if it exists as we may want
       // to capture events before cleanup

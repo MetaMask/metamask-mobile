@@ -9,6 +9,8 @@ import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
+import { startMockServer } from '../../api-mocking/mock-server';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 
 const SAI_CONTRACT_ADDRESS: string =
   '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
@@ -17,6 +19,8 @@ describe(
   SmokeWalletPlatform('Request Token Flow with Unprotected Wallet'),
   (): void => {
     it('should complete request token flow from action button to wallet protection modal', async (): Promise<void> => {
+      const mockServerPort = getMockServerPort();
+      const mockServer = await startMockServer({}, mockServerPort);
       await withFixtures(
         {
           fixture: new FixtureBuilder()
@@ -24,6 +28,7 @@ describe(
             .withSeedphraseBackedUpDisabled()
             .build(),
           restartDevice: true,
+          mockServerInstance: mockServer,
         },
         async (): Promise<void> => {
           await loginToApp();
