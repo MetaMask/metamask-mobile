@@ -82,6 +82,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         await AccountListBottomSheet.swipeToDismissAccountsModal(); // the next action taps on the identicon again
 
         // Add SRP 2
+        await device.disableSynchronization();
         await goToImportSrp();
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
@@ -110,6 +111,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
             description: `Account with name "${SRP_2_SECOND_ACCOUNT}" should be visible`,
           },
         );
+        await device.enableSynchronization();
       },
     );
 
@@ -121,10 +123,12 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
       async () => {
         await loginToApp();
         await goToImportSrp();
+        await device.disableSynchronization();
         await inputSrp(IDENTITY_TEAM_SEED_PHRASE_2);
         await ImportSrpView.tapImportButton();
         await Assertions.expectElementToBeVisible(WalletView.container);
         await WalletView.tapIdenticon();
+        await device.enableSynchronization();
         const visibleAccounts = [
           DEFAULT_ACCOUNT_NAME,
           SECOND_ACCOUNT_NAME,
