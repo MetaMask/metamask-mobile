@@ -114,26 +114,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Restore node_modules cache
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/cache
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       
-      - name: Install dependencies (if cache miss)
-        if: steps.cache.outputs.cache-hit != 'true'
+      - name: Install dependencies
         run: yarn setup
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
@@ -200,26 +187,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Restore node_modules cache
-        id: cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/cache
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'yarn'
       
-      - name: Install dependencies (if cache miss)
-        if: steps.cache.outputs.cache-hit != 'true'
+      - name: Install dependencies
         run: yarn setup
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
