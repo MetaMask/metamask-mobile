@@ -1,3 +1,4 @@
+import { AvatarAccountType } from '../../../components/Avatars/Avatar';
 import { BadgeProps } from '../../../components/Badges/Badge/Badge.types';
 
 export interface AccountBaseProps {
@@ -41,5 +42,5 @@ export interface AccountBaseProps {
   /**
    * Account identicon
    */
-  useBlockieIcon: boolean;
+  avatarStyle: AvatarAccountType;
 }
