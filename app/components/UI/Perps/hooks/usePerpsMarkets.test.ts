@@ -176,7 +176,7 @@ describe('usePerpsMarkets', () => {
       );
       expect(mockLogger.log).toHaveBeenCalledWith(
         'Perps: Successfully fetched and transformed market data',
-        { marketCount: 2, livePricesEnabled: false },
+        { marketCount: 2 },
       );
     });
 
