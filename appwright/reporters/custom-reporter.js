@@ -1,4 +1,3 @@
-// reporters/custom-reporter.js
 class CustomReporter {
   constructor() {
     this.metrics = [];
@@ -21,8 +20,8 @@ class CustomReporter {
         console.log('─'.repeat(50));
         
         Object.entries(metrics).forEach(([key, value]) => {
-          if (key !== 'total') {
-            console.log(`${key.padEnd(30)}: ${value}ms`);
+          if (key !== 'total' && key !== 'device') {
+            console.log(`${key.padEnd(30)}: ${value} ms`);
           }
         });
         

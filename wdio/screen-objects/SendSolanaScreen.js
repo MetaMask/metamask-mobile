@@ -15,7 +15,7 @@ class SendSolanaScreen {
     if (AppwrightSelectors.isAndroid(this._device)) {
       return AppwrightSelectors.getElementByID(this._device, 'send-to-snap-ui-input');
     }
-    return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');
+    return AppwrightSelectors.getElementByID(this._device, 'textfield');
   }
 
   get amountField() {
@@ -40,17 +40,17 @@ class SendSolanaScreen {
 
   async fillAddressField(address) {
     const element = await this.addressField;
-    await element.fill(address);
+    await element.fill(`${address}\n`);
   }
 
   async fillAmountField(amount) {
     const element = await this.amountField;
     await element.fill(amount);
     const continueButton = await this.continueButton;
-    await appwrightExpect(continueButton).toBeVisible({ timeout: 10000 });  }
+    await appwrightExpect(continueButton).toBeVisible({ timeout: 10000 });
+  }
 
   async tapContinueButton() {
-    await this._device.waitForTimeout(2000); // wait for the spinner to dissapear
     const continueButton = await this.continueButton;
     await appwrightExpect(continueButton).toBeVisible({ timeout: 10000 });
     const timer1 = new TimerHelper(
