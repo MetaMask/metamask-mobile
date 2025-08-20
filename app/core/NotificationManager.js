@@ -18,7 +18,6 @@ import { SmartTransactionStatuses } from '@metamask/smart-transactions-controlle
 import Logger from '../util/Logger';
 import { TransactionStatus } from '@metamask/transaction-controller';
 import { endTrace, trace, TraceName } from '../util/trace';
-import { isE2E } from '../util/test/utils';
 
 export const constructTitleAndMessage = (notification) => {
   let title, message;
@@ -146,9 +145,6 @@ class NotificationManager {
   };
 
   _showNotification = async (data) => {
-    // Prevent showing notifications in E2E tests as they cause flakiness
-    if (isE2E) return;
-
     if (this._backgroundMode) {
       const { title, message } = constructTitleAndMessage(data);
       const id = data?.transaction?.id;
