@@ -25,6 +25,7 @@ export interface TypeTextOptions extends GestureOptions {
   clearFirst?: boolean;
   hideKeyboard?: boolean;
   sensitive?: boolean; // If true, the text will not be logged in the test report
+  delay?: number; // Delay before the type text action
 }
 
 export interface SwipeOptions extends GestureOptions {
@@ -39,6 +40,7 @@ export interface LongPressOptions extends GestureOptions {
 export interface ScrollOptions extends GestureOptions {
   direction?: 'up' | 'down' | 'left' | 'right';
   scrollAmount?: number;
+  delay?: number;
 }
 
 // Assertions
@@ -164,6 +166,8 @@ export interface TestSpecificMock {
 
 export interface MockApiEndpoint {
   urlEndpoint: string;
+  requestBody?: unknown;
+  ignoreFields?: string[];
   response: unknown;
   responseCode: number;
 }

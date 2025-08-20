@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+/* eslint-disable import/no-nodejs-modules */
 import { getLocal } from 'mockttp';
 import portfinder from 'portfinder';
 import _ from 'lodash';
@@ -70,6 +71,8 @@ const isUrlAllowed = (url) => {
   }
 };
 
+// Using shared port utilities from FixtureUtils
+
 /**
  * Starts the mock server and sets up mock events.
  *
@@ -81,7 +84,13 @@ export const startMockServer = async (events, port) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
 
-  await mockServer.start(port);
+  try {
+    await mockServer.start(port);
+  } catch (error) {
+    // If starting fails, log the error and throw it
+    logger.error(`Failed to start mock server on port ${port}: ${error}`);
+    throw new Error(`Failed to start mock server on port ${port}: ${error}`);
+  }
   console.log(`Mockttp server running at http://localhost:${port}`);
 
   await mockServer
@@ -95,24 +104,64 @@ export const startMockServer = async (events, port) => {
     .thenCallback(async (request) => {
       const urlEndpoint = new URL(request.url).searchParams.get('url');
       const method = request.method;
+      // Read the body ONCE for POST requests to avoid stream exhaustion
+      let requestBodyText;
+      let requestBodyJson;
+      if (method === 'POST') {
+        try {
+          requestBodyText = await request.body.getText();
+          try {
+            requestBodyJson = JSON.parse(requestBodyText);
+          } catch (e) {
+            requestBodyJson = undefined;
+          }
+        } catch (e) {
+          requestBodyText = undefined;
+        }
+      }
 
       // Find matching mock event
       const methodEvents = events[method] || [];
-      const matchingEvent = methodEvents.find(
-        (event) => event.urlEndpoint === urlEndpoint,
-      );
+      const candidateEvents = methodEvents.filter((event) => {
+        const eventUrl = event.urlEndpoint;
+        if (!eventUrl || !urlEndpoint) return false;
+        // Support exact match and prefix (partial) match to avoid leaking keys in tests
+        return urlEndpoint === eventUrl || urlEndpoint.startsWith(eventUrl);
+      });
+      let matchingEvent;
+
+      if (candidateEvents.length > 0) {
+        if (method === 'POST') {
+          // Prefer events whose requestBody matches (respecting ignoreFields)
+          matchingEvent = candidateEvents.find((event) => {
+            if (!event.requestBody || !requestBodyJson) return false;
+            const requestToCheck = _.cloneDeep(requestBodyJson);
+            const expectedRequest = _.cloneDeep(event.requestBody);
+            const ignoreFields = event.ignoreFields || [];
+            ignoreFields.forEach((field) => {
+              _.unset(requestToCheck, field);
+              _.unset(expectedRequest, field);
+            });
+            return _.isMatch(requestToCheck, expectedRequest);
+          });
+
+          // Fallback to an event without a requestBody matcher
+          if (!matchingEvent) {
+            matchingEvent = candidateEvents.find((event) => !event.requestBody);
+          }
+        } else {
+          // Non-POST requests: first candidate by URL
+          matchingEvent = candidateEvents[0];
+        }
+      }
 
       if (matchingEvent) {
-        console.log(`Mocking ${method} request to: ${urlEndpoint}`);
-        console.log(`Response status: ${matchingEvent.responseCode}`);
-        console.log('Response:', matchingEvent.response);
-
         // For POST requests, verify the request body if specified
         if (method === 'POST' && matchingEvent.requestBody) {
-          const requestBodyJson = await request.body.getJson();
+          const parsedRequestBodyJson = requestBodyJson;
 
           // Ensure both objects exist before comparison
-          if (!requestBodyJson || !matchingEvent.requestBody) {
+          if (!parsedRequestBodyJson || !matchingEvent.requestBody) {
             console.log('Request body validation failed: Missing request body');
             return {
               statusCode: 400,
@@ -121,7 +170,7 @@ export const startMockServer = async (events, port) => {
           }
 
           // Clone objects to avoid mutations
-          const requestToCheck = _.cloneDeep(requestBodyJson);
+          const requestToCheck = _.cloneDeep(parsedRequestBodyJson);
           const expectedRequest = _.cloneDeep(matchingEvent.requestBody);
 
           const ignoreFields = matchingEvent.ignoreFields || [];
@@ -140,12 +189,15 @@ export const startMockServer = async (events, port) => {
               'Expected:',
               JSON.stringify(matchingEvent.requestBody, null, 2),
             );
-            console.log('Received:', JSON.stringify(requestBodyJson, null, 2));
+            console.log(
+              'Received:',
+              JSON.stringify(parsedRequestBodyJson, null, 2),
+            );
             console.log(
               'Differences:',
               JSON.stringify(
                 _.differenceWith(
-                  [requestBodyJson],
+                  [parsedRequestBodyJson],
                   [matchingEvent.requestBody],
                   _.isEqual,
                 ),
@@ -159,7 +211,7 @@ export const startMockServer = async (events, port) => {
               body: JSON.stringify({
                 error: 'Request body validation failed',
                 expected: matchingEvent.requestBody,
-                received: requestBodyJson,
+                received: parsedRequestBodyJson,
               }),
             };
           }
@@ -182,13 +234,19 @@ export const startMockServer = async (events, port) => {
         const errorMessage = `Request going to live server: ${updatedUrl}`;
         logger.warn(errorMessage);
         global.liveServerRequest = new Error(errorMessage);
+      } else if (ALLOWLISTED_URLS.includes(updatedUrl)) {
+        // Explicit debug to help with debugging in CI
+        console.warn(`Allowed URL: ${updatedUrl}`);
+        if (method === 'POST') {
+          console.warn(`Request Body: ${requestBodyText}`);
+        }
       }
 
       return handleDirectFetch(
         updatedUrl,
         method,
         request.headers,
-        method === 'POST' ? await request.body.getText() : undefined,
+        method === 'POST' ? requestBodyText : undefined,
       );
     });
 
@@ -199,6 +257,12 @@ export const startMockServer = async (events, port) => {
       const errorMessage = `Request going to live server: ${request.url}`;
       logger.warn(errorMessage);
       global.liveServerRequest = new Error(errorMessage);
+    } else if (ALLOWLISTED_URLS.includes(request.url)) {
+      // Explicit debug to help with debugging in CI
+      console.warn(`Allowed URL: ${request.url}`);
+      if (request.method === 'POST') {
+        console.warn(`Request Body: ${await request.body.getText()}`);
+      }
     }
 
     return handleDirectFetch(
@@ -217,6 +281,10 @@ export const startMockServer = async (events, port) => {
  * @param {import('mockttp').Mockttp} mockServer
  */
 export const stopMockServer = async (mockServer) => {
-  await mockServer.stop();
   console.log('Mock server shutting down');
+  try {
+    await mockServer.stop();
+  } catch (error) {
+    console.error('Error stopping mock server:', error);
+  }
 };

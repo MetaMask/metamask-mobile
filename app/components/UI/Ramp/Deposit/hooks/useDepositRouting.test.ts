@@ -9,6 +9,7 @@ import {
 } from '../constants';
 import useHandleNewOrder from './useHandleNewOrder';
 import { createEnterEmailNavDetails } from '../Views/EnterEmail/EnterEmail';
+import { endTrace } from '../../../../../util/trace';
 
 jest.mock('@react-navigation/compat', () => ({
   withNavigation: jest.fn((component) => component),
@@ -148,6 +149,14 @@ jest.mock('../orderProcessor', () => ({
 }));
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
+
+jest.mock('../../../../../util/trace', () => ({
+  endTrace: jest.fn(),
+  TraceName: {
+    DepositContinueFlow: 'Deposit Continue Flow',
+    DepositInputOtp: 'Deposit Input OTP',
+  },
+}));
 
 const mockUseHandleNewOrder = jest.mocked(useHandleNewOrder);
 
@@ -314,6 +323,38 @@ describe('useDepositRouting', () => {
         params: {
           sourceUrl: 'https://payment.url',
           handleNavigationStateChange: expect.any(Function),
+        },
+      });
+    });
+
+    it('should call endTrace for both DepositContinueFlow and DepositInputOtp when navigating to WebviewModal', async () => {
+      const mockQuote = {} as BuyQuote;
+      const mockParams = {
+        cryptoCurrencyChainId: 'eip155:1',
+        paymentMethodId: 'credit_debit_card',
+      };
+
+      const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
+      mockEndTrace.mockClear();
+
+      const { result } = renderHook(() => useDepositRouting(mockParams));
+
+      await expect(
+        result.current.routeAfterAuthentication(mockQuote),
+      ).resolves.not.toThrow();
+
+      expect(mockEndTrace).toHaveBeenCalledTimes(2);
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Deposit Continue Flow',
+        data: {
+          destination: 'DepositWebviewModal',
+          isPaymentWebview: true,
+        },
+      });
+      expect(mockEndTrace).toHaveBeenCalledWith({
+        name: 'Deposit Input OTP',
+        data: {
+          destination: 'DepositWebviewModal',
         },
       });
     });

@@ -24,7 +24,7 @@ import { RetryOptions } from '../../framework';
 import { Json } from '@metamask/utils';
 
 export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/2.25.0/';
+  'https://metamask.github.io/snaps/test-snaps/2.28.1/';
 
 class TestSnaps {
   get getConnectSnapButton(): DetoxElement {
@@ -51,6 +51,12 @@ class TestSnaps {
     );
   }
 
+  get footerButton(): DetoxElement {
+    return Matchers.getElementByID(
+      TestSnapBottomSheetSelectorWebIDS.DEFAULT_FOOTER_BUTTON_ID,
+    );
+  }
+
   async checkResultSpan(
     selector: keyof typeof TestSnapResultSelectorWebIDS,
     expectedMessage: string,
@@ -68,6 +74,20 @@ class TestSnaps {
       const actualText = await webElement.getText();
       await Assertions.checkIfTextMatches(actualText, expectedMessage);
     }, options);
+  }
+
+  async checkInstalledSnaps(
+    expectedMessage: string,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    return await this.checkResultSpan(
+      'installedSnapResultSpan',
+      expectedMessage,
+      options,
+    );
   }
 
   async checkResultJson(
@@ -117,6 +137,26 @@ class TestSnaps {
     }, options);
   }
 
+  async checkResultSpanNotEmpty(
+    selector: keyof typeof TestSnapResultSelectorWebIDS,
+    options: Partial<RetryOptions> = {
+      timeout: 5_000,
+      interval: 100,
+    },
+  ): Promise<void> {
+    const webElement = await Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      TestSnapResultSelectorWebIDS[selector],
+    );
+
+    return await Utilities.executeWithRetry(async () => {
+      const actualText = await webElement.getText();
+      if (!actualText || actualText.trim() === '') {
+        throw new Error(`Result span is empty`);
+      }
+    }, options);
+  }
+
   async navigateToTestSnap(): Promise<void> {
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
@@ -152,6 +192,18 @@ class TestSnaps {
   async tapCancelButton() {
     const button = Matchers.getElementByText('Cancel');
     await Gestures.waitAndTap(button);
+  }
+
+  async tapFooterButton() {
+    await Gestures.waitAndTap(this.footerButton);
+  }
+
+  async dismissAlert() {
+    // Matches the native WebView alert on each platform
+    const button = Matchers.getElementByText(
+      device.getPlatform() === 'ios' ? 'Ok' : 'OK',
+    );
+    await Gestures.tap(button);
   }
 
   async getOptionValueByText(

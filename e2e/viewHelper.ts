@@ -181,8 +181,10 @@ export const importWalletWithRecoveryPhrase = async ({
   );
 
   await OnboardingView.tapHaveAnExistingWallet();
-  await OnboardingSheet.tapImportSeedButton();
 
+  if (SEEDLESS_ONBOARDING_ENABLED) {
+    await OnboardingSheet.tapImportSeedButton();
+  }
   // should import wallet with secret recovery phrase
   await ImportWalletView.clearSecretRecoveryPhraseInputBox();
   await ImportWalletView.enterSecretRecoveryPhrase(
@@ -214,7 +216,6 @@ export const importWalletWithRecoveryPhrase = async ({
   //'Should dismiss Enable device Notifications checks alert'
   // await skipNotificationsDeviceSettings();
 
-  // should dismiss the onboarding wizard
   // dealing with flakiness on bitrise.
   await closeOnboardingModals(fromResetWallet);
 };

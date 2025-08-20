@@ -48,7 +48,9 @@ import Toast, {
 } from '../../../component-library/components/Toast';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import { TokenSortBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenSortBottomSheet';
+import ProfilerManager from '../../../components/UI/ProfilerManager';
 import { TokenFilterBottomSheet } from '../../../components/UI/Tokens/TokensBottomSheet/TokenFilterBottomSheet';
+import NetworkManager from '../../../components/UI/NetworkManager';
 import AccountConnect from '../../../components/Views/AccountConnect';
 import AccountPermissions from '../../../components/Views/AccountPermissions';
 import { AccountPermissionsScreens } from '../../../components/Views/AccountPermissions/AccountPermissions.types';
@@ -78,6 +80,7 @@ import LedgerTransactionModal from '../../UI/LedgerModals/LedgerTransactionModal
 import AccountActions from '../../../components/Views/AccountActions';
 import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedSettings/FiatOnTestnetsFriction';
 import WalletActions from '../../Views/WalletActions';
+import FundActionMenu from '../../UI/FundActionMenu';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppModal from '../../Views/ReturnToAppModal';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
@@ -154,11 +157,11 @@ import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { SmartAccountUpdateModal } from '../../Views/confirmations/components/smart-account-update-modal';
-import PrivacyOverlay from '../../Views/PrivacyOverlay';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
 import { PayWithNetworkModal } from '../../Views/confirmations/components/modals/pay-with-network-modal/pay-with-network-modal';
 import { useMetrics } from '../../hooks/useMetrics';
@@ -352,6 +355,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={WalletActions}
     />
     <Stack.Screen
+      name={Routes.MODAL.FUND_ACTION_MENU}
+      component={FundActionMenu}
+    />
+    <Stack.Screen
       name={Routes.MODAL.DELETE_WALLET}
       component={DeleteWalletModal}
     />
@@ -440,6 +447,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.TOKEN_FILTER}
       component={TokenFilterBottomSheet}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.NETWORK_MANAGER}
+      component={NetworkManager}
     />
     <Stack.Screen
       name={Routes.SHEET.BASIC_FUNCTIONALITY}
@@ -825,6 +836,10 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
           component={MultichainAccountDetails}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
+          component={MultichainAccountActions}
         />
         <Stack.Screen
           name={Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS}
@@ -1231,7 +1246,7 @@ const App: React.FC = () => {
       <PPOMView />
       <AppFlow />
       <Toast ref={toastRef} />
-      <PrivacyOverlay />
+      <ProfilerManager />
     </>
   );
 };

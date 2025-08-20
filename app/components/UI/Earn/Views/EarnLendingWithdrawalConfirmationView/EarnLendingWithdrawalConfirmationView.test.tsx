@@ -293,6 +293,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -435,6 +436,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -520,6 +522,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '1000000',
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -570,6 +573,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
     ).toHaveBeenCalledWith({
       amount:
         '115792089237316195423570985008687907853269984665640564039457584007913129639935', // MaxUint256
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },
@@ -614,6 +618,7 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       Engine.context.EarnController.executeLendingWithdraw,
     ).toHaveBeenCalledWith({
       amount: '500000', // Actual amount, not MaxUint256
+      chainId: '0xe708',
       gasOptions: {
         gasLimit: 'none',
       },

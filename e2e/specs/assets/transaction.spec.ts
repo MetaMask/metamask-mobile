@@ -42,7 +42,7 @@ describe(Regression('Transaction'), () => {
         await TestHelpers.delay(2000);
 
         // Scroll to top first to ensure consistent starting position
-        await WalletView.scrollToBottomOfTokensList();
+        await WalletView.scrollToTopOfTokensList();
         await TestHelpers.delay(1000);
 
         // Then scroll to Ethereum with extra stability
