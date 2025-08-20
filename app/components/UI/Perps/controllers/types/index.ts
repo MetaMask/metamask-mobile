@@ -143,6 +143,14 @@ export interface PerpsMarketData {
    * Trading volume as formatted string (e.g., '$1.2B', '$850M')
    */
   volume: string;
+  /**
+   * Next funding time in milliseconds since epoch (optional, market-specific)
+   */
+  nextFundingTime?: number;
+  /**
+   * Funding interval in hours (optional, market-specific)
+   */
+  fundingIntervalHours?: number;
 }
 
 export interface ToggleTestnetResult {
@@ -340,6 +348,16 @@ export interface SubscribeOrderFillsParams {
   since?: number; // Future: only fills after timestamp
 }
 
+export interface SubscribeOrdersParams {
+  callback: (orders: Order[]) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+  includeHistory?: boolean; // Optional: include filled/canceled orders
+}
+
+export interface SubscribeAccountParams {
+  callback: (account: AccountState) => void;
+  accountId?: CaipAccountId; // Optional: defaults to selected account
+}
 export interface LiquidationPriceParams {
   entryPrice: number;
   leverage: number;
@@ -390,7 +408,13 @@ export interface Order {
   remainingSize: string; // Amount remaining
   status: 'open' | 'filled' | 'canceled' | 'rejected' | 'triggered' | 'queued'; // Normalized status
   timestamp: number; // Order timestamp
-  lastUpdated: number; // Last status update timestamp
+  lastUpdated?: number; // Last status update timestamp (optional - not provided by all APIs)
+  // TODO: Consider creating separate type for OpenOrders (UI Orders) potentially if optional properties muddy up the original Order type
+  takeProfitPrice?: string; // Take profit price (if set)
+  stopLossPrice?: string; // Stop loss price (if set)
+  detailedOrderType?: string; // Full order type from exchange (e.g., 'Take Profit Limit', 'Stop Market')
+  isTrigger?: boolean; // Whether this is a trigger order (TP/SL)
+  reduceOnly?: boolean; // Whether this is a reduce-only order
 }
 
 export interface Funding {
@@ -449,6 +473,14 @@ export interface IPerpsProvider {
   getOrders(params?: GetOrdersParams): Promise<Order[]>;
 
   /**
+   * Currently active open orders (real-time status).
+   * Purpose: Show orders that are currently open/pending execution (not historical states).
+   * Different from getOrders() which returns complete historical order lifecycle.
+   * Example: Shows only orders that are actually open right now in the exchange.
+   */
+  getOpenOrders(params?: GetOrdersParams): Promise<Order[]>;
+
+  /**
    * Historical funding payments - periodic costs/rewards for holding positions.
    * Purpose: Track ongoing expenses and income from position maintenance.
    * Example: Holding long ETH position → Funding payment of -$5.00 (you pay the funding)
@@ -465,6 +497,8 @@ export interface IPerpsProvider {
   subscribeToPrices(params: SubscribePricesParams): () => void;
   subscribeToPositions(params: SubscribePositionsParams): () => void;
   subscribeToOrderFills(params: SubscribeOrderFillsParams): () => void;
+  subscribeToOrders(params: SubscribeOrdersParams): () => void;
+  subscribeToAccount(params: SubscribeAccountParams): () => void;
 
   // Live data configuration
   setLiveDataConfig(config: Partial<LiveDataConfig>): void;

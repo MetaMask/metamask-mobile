@@ -3,8 +3,50 @@ import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Routes from '../../../../../constants/navigation/Routes';
-import PerpsTutorialCarousel from './PerpsTutorialCarousel';
+import PerpsTutorialCarousel, {
+  PERPS_RIVE_ARTBOARD_NAMES,
+} from './PerpsTutorialCarousel';
 import { strings } from '../../../../../../locales/i18n';
+
+// Mock .riv file to prevent Jest parsing binary data
+jest.mock(
+  '../../animations/perps-onboarding-carousel-v4.riv',
+  () => 'mocked-riv-file',
+);
+
+// Mock Rive component
+jest.mock('rive-react-native', () => {
+  const MockRive = ({
+    artboardName,
+    testID,
+  }: {
+    artboardName?: string;
+    testID?: string;
+  }) => {
+    const { View, Text } = jest.requireActual('react-native');
+    return (
+      <View testID={testID || 'mock-rive-animation'}>
+        <Text testID="mock-rive-artboard">
+          {artboardName || 'default-artboard'}
+        </Text>
+      </View>
+    );
+  };
+
+  return {
+    __esModule: true,
+    default: MockRive,
+    Fit: {
+      Cover: 'cover',
+      Contain: 'contain',
+    },
+    Alignment: {
+      Center: 'center',
+      TopCenter: 'topCenter',
+      BottomCenter: 'bottomCenter',
+    },
+  };
+});
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -15,11 +57,23 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),
 }));
 
-// Mock usePerpsFirstTimeUser hook
+// Mock hooks
 const mockMarkTutorialCompleted = jest.fn();
+const mockTrack = jest.fn();
+const mockDepositWithConfirmation = jest.fn().mockResolvedValue(undefined);
+
 jest.mock('../../hooks', () => ({
   usePerpsFirstTimeUser: () => ({
     markTutorialCompleted: mockMarkTutorialCompleted,
+  }),
+  usePerpsTrading: () => ({
+    depositWithConfirmation: mockDepositWithConfirmation,
+  }),
+}));
+
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({
+    track: mockTrack,
   }),
 }));
 
@@ -70,31 +124,48 @@ describe('PerpsTutorialCarousel', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockMarkTutorialCompleted.mockClear();
+    mockTrack.mockClear();
+    mockDepositWithConfirmation.mockClear();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSafeAreaInsets as jest.Mock).mockReturnValue({ top: 0, bottom: 0 });
   });
 
   describe('Component Rendering', () => {
-    it('should render tutorial content for the first screen', () => {
+    it('renders correct artboard names for each tutorial screen', async () => {
+      const expectedArtboards = [
+        PERPS_RIVE_ARTBOARD_NAMES.INTRO,
+        PERPS_RIVE_ARTBOARD_NAMES.SHORT_LONG,
+        PERPS_RIVE_ARTBOARD_NAMES.LEVERAGE,
+        PERPS_RIVE_ARTBOARD_NAMES.LIQUIDATION,
+        PERPS_RIVE_ARTBOARD_NAMES.CLOSE,
+        PERPS_RIVE_ARTBOARD_NAMES.READY,
+      ];
+
+      // Render component once
       render(<PerpsTutorialCarousel />);
 
-      expect(
-        screen.getByText(strings('perps.tutorial.what_are_perps.title')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.tutorial.what_are_perps.description')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.tutorial.what_are_perps.subtitle')),
-      ).toBeOnTheScreen();
+      // Check first screen artboard
+      expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
+        expectedArtboards[0],
+      );
 
-      // Button should say "Continue" for first screen
-      expect(
-        screen.getByText(strings('perps.tutorial.continue')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.tutorial.skip')),
-      ).toBeOnTheScreen();
+      // Navigate through each screen sequentially and verify artboards
+      for (let i = 1; i < expectedArtboards.length; i++) {
+        const continueButton = screen.getByText(
+          strings('perps.tutorial.continue'),
+        );
+        await act(async () => {
+          fireEvent.press(continueButton);
+        });
+
+        // Check that the correct artboard is rendered for current screen
+        expect(screen.getByTestId('mock-rive-animation')).toBeOnTheScreen();
+        expect(screen.getByTestId('mock-rive-artboard')).toHaveTextContent(
+          expectedArtboards[i],
+        );
+      }
     });
   });
 
@@ -127,11 +198,12 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.add_funds')));
       });
 
-      // Should mark tutorial as completed and navigate to deposit screen
+      // Should mark tutorial as completed and navigate to add funds screen
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
-        Routes.PERPS.DEPOSIT,
-      );
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+      expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
     it('should go back when pressing Skip on first screen', () => {
@@ -143,6 +215,7 @@ describe('PerpsTutorialCarousel', () => {
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
       expect(mockMarkTutorialCompleted).not.toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
 
     it('should mark tutorial as completed and go back when pressing Skip on last screen', async () => {
@@ -173,9 +246,10 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.got_it')));
       });
 
-      // Should mark tutorial as completed and go back
+      // Should mark tutorial as completed and go back, but NOT initialize deposit
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
       expect(mockNavigation.goBack).toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
     });
 
     it('should mark tutorial as completed when finishing tutorial', async () => {
@@ -196,11 +270,12 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.add_funds')));
       });
 
-      // Should mark tutorial as completed
+      // Should mark tutorial as completed and initialize deposit
       expect(mockMarkTutorialCompleted).toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
-    it('should navigate to deposit when on last screen', async () => {
+    it('should navigate to add funds screen when on last screen', async () => {
       render(<PerpsTutorialCarousel />);
 
       // Navigate through all screens by pressing Continue 5 times
@@ -218,8 +293,11 @@ describe('PerpsTutorialCarousel', () => {
         fireEvent.press(screen.getByText(strings('perps.tutorial.add_funds')));
       });
 
-      // Should navigate to deposit
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('PerpsDeposit');
+      // Should navigate to add funds screen and initialize deposit
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
+        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+      });
+      expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
   });
 });
