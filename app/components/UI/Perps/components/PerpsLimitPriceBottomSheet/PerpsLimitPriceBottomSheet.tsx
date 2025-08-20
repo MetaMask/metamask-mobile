@@ -256,12 +256,6 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.percentageButton}
-            onPress={() => setLimitPrice(calculatePriceForPercentage(-2))}
-          >
-            <Text variant={TextVariant.BodyMD}>-2%</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.percentageButton}
             onPress={() => setLimitPrice(calculatePriceForPercentage(-1))}
           >
             <Text variant={TextVariant.BodyMD}>-1%</Text>
