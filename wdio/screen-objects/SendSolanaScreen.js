@@ -21,6 +21,7 @@ class SendSolanaScreen {
 
   get amountField() {
     if (AppwrightSelectors.isAndroid(this._device)) {
+      return AppwrightSelectors.getElementByID(this._device, SendActionViewSelectorsIDs.SOLANA_INPUT_AMOUNT_FIELD);
     }
     return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[2]');
   }
