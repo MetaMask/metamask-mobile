@@ -34,6 +34,7 @@ export const ConfirmationAssetPollingProvider = ({
     <>
       <AssetPollingProvider
         chainIds={bridgeChainIds}
+        networkClientId={transactionMetaData.networkClientId}
         address={transactionMetaData.txParams.from as Hex}
       />
       {children}
