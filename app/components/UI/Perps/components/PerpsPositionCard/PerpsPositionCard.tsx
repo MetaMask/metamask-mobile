@@ -136,10 +136,11 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
   };
 
   const pnlNum = parseFloat(position.unrealizedPnl);
-  // ROE might be stored as decimal (0.171) or percentage (17.1)
-  // Check the magnitude to determine format
-  const roeValue = parseFloat(position.returnOnEquity);
-  const roe = Math.abs(roeValue) < 1 ? roeValue * 100 : roeValue;
+
+  // ROE is always stored as a decimal (e.g., 0.171 for 17.1%)
+  // Convert to percentage for display
+  const roeValue = parseFloat(position.returnOnEquity || '0');
+  const roe = isNaN(roeValue) ? 0 : roeValue * 100;
 
   const handleEditTPSL = () => {
     setSelectedPosition(position);
