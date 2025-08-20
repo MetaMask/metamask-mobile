@@ -36,7 +36,6 @@ import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import RemoteImage from '../../../../Base/RemoteImage';
 import {
   usePerpsMarkets,
-  usePerpsPositions,
   usePerpsTPSLUpdate,
   usePerpsClosePosition,
 } from '../../hooks';
@@ -70,32 +69,23 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
     null,
   );
 
-  const { loadPositions } = usePerpsPositions({
-    loadOnMount: true,
-    refreshOnFocus: true,
-  });
-
   const { handleUpdateTPSL, isUpdating } = usePerpsTPSLUpdate({
     onSuccess: () => {
-      // Refresh positions to show updated data
-      loadPositions({ isRefresh: true }).then(() => {
-        // Also call parent's position update callback if provided
-        if (onPositionUpdate) {
-          onPositionUpdate();
-        }
-      });
+      // Positions update automatically via WebSocket
+      // Call parent's position update callback if provided
+      if (onPositionUpdate) {
+        onPositionUpdate();
+      }
     },
   });
 
   const { handleClosePosition, isClosing } = usePerpsClosePosition({
     onSuccess: () => {
-      // Refresh positions after successful close
-      loadPositions({ isRefresh: true }).then(() => {
-        // Also call parent's position update callback if provided
-        if (onPositionUpdate) {
-          onPositionUpdate();
-        }
-      });
+      // Positions update automatically via WebSocket
+      // Call parent's position update callback if provided
+      if (onPositionUpdate) {
+        onPositionUpdate();
+      }
       setIsClosePositionVisible(false);
       setSelectedPosition(null);
     },

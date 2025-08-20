@@ -365,6 +365,10 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "currentDepositTxHash": null,
         "depositError": null,
         "depositStatus": "idle",
+        "hasPlacedFirstOrder": {
+          "mainnet": false,
+          "testnet": false,
+        },
         "isEligible": false,
         "isFirstTimeUser": {
           "mainnet": true,
@@ -991,6 +995,10 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "currentDepositTxHash": null,
         "depositError": null,
         "depositStatus": "idle",
+        "hasPlacedFirstOrder": {
+          "mainnet": false,
+          "testnet": false,
+        },
         "isEligible": false,
         "isFirstTimeUser": {
           "mainnet": true,

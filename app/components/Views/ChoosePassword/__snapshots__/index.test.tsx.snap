@@ -516,7 +516,6 @@ exports[`ChoosePassword render matches snapshot 1`] = `
               accessible={true}
               activeOpacity={1}
               disabled={true}
-              onPress={[Function]}
               onPressIn={[Function]}
               onPressOut={[Function]}
               style={

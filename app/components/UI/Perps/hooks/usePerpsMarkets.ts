@@ -108,7 +108,7 @@ export const usePerpsMarkets = (
         setIsRefreshing(false);
       }
     },
-    [], // Remove markets.length dependency to prevent unnecessary re-renders
+    [],
   );
 
   const refresh = useCallback(

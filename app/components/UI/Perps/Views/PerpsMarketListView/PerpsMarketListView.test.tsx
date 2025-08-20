@@ -7,7 +7,6 @@ import {
   useNavigation,
 } from '@react-navigation/native';
 import PerpsMarketListView from './PerpsMarketListView';
-import { usePerpsMarkets } from '../../hooks/usePerpsMarkets';
 import type { PerpsMarketData } from '../../controllers/types';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -19,6 +18,21 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/usePerpsMarkets', () => ({
   usePerpsMarkets: jest.fn(),
+}));
+
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
+}));
+
+jest.mock('../../hooks', () => ({
+  usePerpsPerformance: jest.fn(() => ({
+    startMeasure: jest.fn(),
+    endMeasure: jest.fn(),
+    measure: jest.fn(),
+    measureAsync: jest.fn(),
+  })),
 }));
 
 // Mock Animated to prevent act() warnings
@@ -181,6 +195,7 @@ describe('PerpsMarketListView', () => {
     setParams: jest.fn(),
   };
 
+  const { usePerpsMarkets } = jest.requireMock('../../hooks/usePerpsMarkets');
   const mockUsePerpsMarkets = usePerpsMarkets as jest.MockedFunction<
     typeof usePerpsMarkets
   >;

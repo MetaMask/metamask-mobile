@@ -41,19 +41,19 @@ jest.mock('react-native-gesture-handler', () => {
 // Mock react-native-linear-gradient
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
+import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import {
   usePerpsAccount,
   usePerpsLiquidationPrice,
   usePerpsMarketData,
   usePerpsNetwork,
-  usePerpsPaymentTokens,
+  usePerpsOrderExecution,
+  usePerpsOrderValidation,
   usePerpsPrices,
   usePerpsTrading,
-  usePerpsOrderValidation,
-  usePerpsOrderExecution,
 } from '../../hooks';
+import { PerpsStreamProvider } from '../../providers/PerpsStreamManager';
 import PerpsOrderView from './PerpsOrderView';
-import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -146,6 +146,15 @@ jest.mock('../../hooks', () => ({
     isLoading: false,
     error: null,
   })),
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
+  usePerpsPerformance: jest.fn(() => ({
+    startMeasure: jest.fn(),
+    endMeasure: jest.fn(),
+    measure: jest.fn(),
+    measureAsync: jest.fn(),
+  })),
 }));
 
 // Mock Redux selectors
@@ -165,6 +174,48 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   DevLogger: {
     log: jest.fn(),
+  },
+}));
+
+// Mock trace utilities
+jest.mock('../../../../../util/trace', () => ({
+  trace: jest.fn(),
+  endTrace: jest.fn(),
+  TraceName: {
+    PerpsOrderView: 'Perps Order View',
+  },
+  TraceOperation: {
+    UIStartup: 'ui.startup',
+  },
+}));
+
+// Mock useMetrics hook
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: jest.fn().mockReturnThis(),
+  build: jest.fn().mockReturnValue({}),
+}));
+jest.mock('../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+  MetaMetricsEvents: {
+    PERPS_TRADING_SCREEN_VIEWED: 'PERPS_TRADING_SCREEN_VIEWED',
+    PERPS_TRADE_TRANSACTION_EXECUTED: 'PERPS_TRADE_TRANSACTION_EXECUTED',
+    PERPS_LEVERAGE_CHANGED: 'PERPS_LEVERAGE_CHANGED',
+    PERPS_ORDER_SIZE_CHANGED: 'PERPS_ORDER_SIZE_CHANGED',
+    PERPS_ORDER_PREVIEW_SHOWN: 'PERPS_ORDER_PREVIEW_SHOWN',
+    PERPS_ORDER_SUBMIT_CLICKED: 'PERPS_ORDER_SUBMIT_CLICKED',
+    PERPS_TRADE_TRANSACTION_FAILED: 'PERPS_TRADE_TRANSACTION_FAILED',
+    PERPS_PAYMENT_TOKEN_SELECTED: 'PERPS_PAYMENT_TOKEN_SELECTED',
+    PERPS_STOP_LOSS_SET: 'PERPS_STOP_LOSS_SET',
+    PERPS_TAKE_PROFIT_SET: 'PERPS_TAKE_PROFIT_SET',
+    PERPS_ORDER_TYPE_CHANGED: 'PERPS_ORDER_TYPE_CHANGED',
+    PERPS_ORDER_TYPE_VIEWED: 'PERPS_ORDER_TYPE_VIEWED',
+    PERPS_TRADE_TRANSACTION_INITIATED: 'PERPS_TRADE_TRANSACTION_INITIATED',
+    PERPS_TRADE_TRANSACTION_SUBMITTED: 'PERPS_TRADE_TRANSACTION_SUBMITTED',
+    PERPS_ERROR_ENCOUNTERED: 'PERPS_ERROR_ENCOUNTERED',
   },
 }));
 
@@ -209,6 +260,39 @@ jest.mock('../../components/PerpsSlider', () => ({
     );
   },
 }));
+
+// Mock notifications utility
+jest.mock('../../../../../util/notifications', () => ({
+  ...jest.requireActual('../../../../../util/notifications'),
+  isNotificationsFeatureEnabled: jest.fn(() => true),
+}));
+
+// Mock PerpsNotificationTooltip
+jest.mock('../../components/PerpsNotificationTooltip', () => {
+  const MockReact = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: ({
+      orderSuccess,
+      onComplete,
+      testID,
+    }: {
+      orderSuccess: boolean;
+      onComplete: () => void;
+      testID: string;
+    }) =>
+      orderSuccess
+        ? MockReact.createElement(
+            'View',
+            {
+              testID,
+              onPress: onComplete,
+            },
+            'Notification Tooltip',
+          )
+        : null,
+  };
+});
 
 // Mock network utils - these are external utilities that should be mocked
 jest.mock('../../../../../util/networks', () => ({
@@ -304,6 +388,11 @@ const defaultMockHooks = {
   ],
 };
 
+// Wrapper component for tests
+const TestWrapper = ({ children }: { children: React.ReactNode }) => (
+  <PerpsStreamProvider>{children}</PerpsStreamProvider>
+);
+
 describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -328,9 +417,6 @@ describe('PerpsOrderView', () => {
     (usePerpsPrices as jest.Mock).mockReturnValue(
       defaultMockHooks.usePerpsPrices,
     );
-    (usePerpsPaymentTokens as jest.Mock).mockReturnValue(
-      defaultMockHooks.usePerpsPaymentTokens,
-    );
 
     // Mock the new hooks
     (usePerpsMarketData as jest.Mock).mockReturnValue({
@@ -353,7 +439,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('renders the order view', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Check if key elements are rendered
     await waitFor(() => {
@@ -362,7 +448,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('displays the correct asset from route params', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // The component should display ETH from the route params
     await waitFor(() => {
@@ -374,7 +460,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('navigates back when header is present', () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Since we mocked PerpsOrderHeader, we can't test the actual back button
     // But we can verify the navigation mock is set up correctly
@@ -388,7 +474,7 @@ describe('PerpsOrderView', () => {
       placeOrder: mockPlaceOrder,
     });
 
-    const { findByRole } = render(<PerpsOrderView />);
+    const { findByRole } = render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Find a button (since we don't have specific testIDs)
     const buttons = await findByRole('button');
@@ -399,7 +485,7 @@ describe('PerpsOrderView', () => {
     // usePerpsNetwork returns a string ('mainnet' or 'testnet'), not an object
     (usePerpsNetwork as jest.Mock).mockReturnValue('mainnet');
 
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Should show trading interface
     await waitFor(() => {
@@ -417,7 +503,7 @@ describe('PerpsOrderView', () => {
       },
     });
 
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Find leverage text
     await waitFor(() => {
@@ -427,7 +513,9 @@ describe('PerpsOrderView', () => {
   });
 
   it('handles amount display', async () => {
-    const { getByTestId } = render(<PerpsOrderView />);
+    const { getByTestId } = render(<PerpsOrderView />, {
+      wrapper: TestWrapper,
+    });
 
     // Since PerpsAmountDisplay is mocked as a string component,
     // we can't use findByType. The component is rendered on the screen
@@ -447,7 +535,7 @@ describe('PerpsOrderView', () => {
       getPositions: mockGetPositions,
     });
 
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // The order placement happens when button is pressed
     // Since our mock setup already has valid values, we can just verify the mock was set up
@@ -466,14 +554,14 @@ describe('PerpsOrderView', () => {
       placeOrder: mockPlaceOrder,
     });
 
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Verify the component renders with our mock
     expect(mockPlaceOrder).toBeDefined();
   });
 
   it('shows leverage bottom sheet when leverage pressed', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     const leverageText = await screen.findByText('Leverage');
     fireEvent.press(leverageText);
@@ -485,7 +573,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('shows order type bottom sheet when order type pressed', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Since PerpsOrderHeader is mocked, we need to test differently
     // The component should render without errors
@@ -493,7 +581,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('handles keypad input', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Press on amount display to activate keypad
     const amountDisplay = screen.getByTestId('perps-amount-display');
@@ -504,7 +592,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('handles percentage buttons when balance available', () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Percentage buttons are part of the UI but might not be visible in all states
     // Just verify the component renders
@@ -512,7 +600,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('handles MAX button press', () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // MAX button functionality is part of the component
     // Verify the component renders correctly
@@ -520,22 +608,39 @@ describe('PerpsOrderView', () => {
   });
 
   it('handles MIN button press', () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // MIN button functionality is part of the component
     // Verify the component renders correctly
     expect(screen.getByTestId('perps-amount-display')).toBeDefined();
   });
 
+  it('should track performance metrics on mount', () => {
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    // Verify trace was called for screen load
+    const traceModule = jest.requireMock('../../../../../util/trace');
+    expect(traceModule.trace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Perps Order View',
+        op: 'ui.startup',
+      }),
+    );
+
+    // Verify Mixpanel event was tracked
+    expect(mockCreateEventBuilder).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
   it('shows slider when not focused on input', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Slider should be visible initially
     expect(screen.getByTestId('perps-slider')).toBeDefined();
   });
 
   it('hides slider when focused on input', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Press amount to focus input
     const amountDisplay = screen.getByTestId('perps-amount-display');
@@ -550,7 +655,7 @@ describe('PerpsOrderView', () => {
   it('handles testnet defaults', async () => {
     (usePerpsNetwork as jest.Mock).mockReturnValue('testnet');
 
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Should use testnet defaults
     await waitFor(() => {
@@ -559,7 +664,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('shows TP/SL bottom sheet when pressed', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     const tpslText = await screen.findByText('Take profit');
     fireEvent.press(tpslText);
@@ -570,7 +675,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('shows limit price bottom sheet for limit orders', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Limit price is only shown for limit orders, skip this test for market orders
     expect(true).toBe(true);
@@ -584,7 +689,7 @@ describe('PerpsOrderView', () => {
       },
     });
 
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     const placeOrderButton = await screen.findByText('Short BTC');
     expect(placeOrderButton).toBeDefined();
@@ -598,7 +703,7 @@ describe('PerpsOrderView', () => {
       },
     });
 
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     await waitFor(() => {
       expect(screen.getByText('10x')).toBeDefined();
@@ -606,7 +711,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('calculates liquidation price', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     await waitFor(() => {
       expect(screen.getByText('Liquidation price')).toBeDefined();
@@ -614,7 +719,7 @@ describe('PerpsOrderView', () => {
   });
 
   it('shows margin required', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     await waitFor(() => {
       expect(screen.getByText('Margin')).toBeDefined();
@@ -622,14 +727,14 @@ describe('PerpsOrderView', () => {
   });
 
   it('shows position size', () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Position size is displayed in the order details
     expect(screen.getByTestId('perps-order-header')).toBeDefined();
   });
 
   it('should show estimated fees', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     await waitFor(() => {
       expect(screen.getByText('Fees')).toBeDefined();
@@ -648,7 +753,7 @@ describe('PerpsOrderView', () => {
       },
     });
 
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Should show warning when balance is zero
     await waitFor(() => {
@@ -669,7 +774,7 @@ describe('PerpsOrderView', () => {
       },
     });
 
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     const placeOrderButton = await screen.findByText(/Long|Short/);
     fireEvent.press(placeOrderButton);
@@ -692,14 +797,14 @@ describe('PerpsOrderView', () => {
       placeOrder: mockPlaceOrder,
     });
 
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Verify the component renders with our mock
     expect(mockPlaceOrder).toBeDefined();
   });
 
   it('shows PerpsBottomSheetTooltip when info icon is clicked', async () => {
-    render(<PerpsOrderView />);
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
 
     // Find and click the leverage info icon using its testID
     const leverageInfoIcon = screen.getByTestId(
@@ -732,7 +837,7 @@ describe('PerpsOrderView', () => {
         isPlacing: false,
       });
 
-      render(<PerpsOrderView />);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       // Button should render with text when not in loading state
       const placeOrderButton = await screen.findByText(/Long|Short/);
@@ -756,7 +861,7 @@ describe('PerpsOrderView', () => {
         isValidating: false,
       });
 
-      render(<PerpsOrderView />);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       // When placing order, button shows loading indicator instead of text
       const placeOrderButton = await screen.findByRole('button');
@@ -780,7 +885,7 @@ describe('PerpsOrderView', () => {
         isPlacing: false,
       });
 
-      render(<PerpsOrderView />);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       // Button should render with text when not in loading state
       const placeOrderButton = await screen.findByText(/Long|Short/);
@@ -803,7 +908,7 @@ describe('PerpsOrderView', () => {
         isPlacing: false,
       });
 
-      render(<PerpsOrderView />);
+      render(<PerpsOrderView />, { wrapper: TestWrapper });
 
       const placeOrderButton = await screen.findByText(/Long|Short/);
       expect(placeOrderButton).toBeDefined();
