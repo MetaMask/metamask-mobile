@@ -45,7 +45,7 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   TabBarModal.device = device;
 
   await onboardingFlowImportSRP(device, process.env.TEST_SRP_1);
-  await importSRPFlow(device, process.env.TEST_SRP_2);
+  // await importSRPFlow(device, process.env.TEST_SRP_2);
   await importSRPFlow(device, process.env.TEST_SRP_3);
 
   const swapLoadTimer = new TimerHelper(

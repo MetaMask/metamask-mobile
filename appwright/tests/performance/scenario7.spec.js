@@ -27,7 +27,9 @@ import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
 const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
 
-test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({ device }, testInfo) => {
+test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
+  device,
+}, testInfo) => {
   WelcomeScreen.device = device;
   TermOfUseScreen.device = device;
   OnboardingScreen.device = device;
@@ -63,7 +65,7 @@ test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
   await BridgeScreen.isVisible();
   timer1.stop();
 
-  await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL')
+  await BridgeScreen.selectNetworkAndTokenTo('Solana', 'SOL');
   await BridgeScreen.enterSourceTokenAmount('0.0001');
   const timer2 = new TimerHelper(
     'Time since the user enters the amount until the quote is displayed',
