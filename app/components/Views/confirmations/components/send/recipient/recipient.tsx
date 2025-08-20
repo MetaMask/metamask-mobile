@@ -1,17 +1,18 @@
 import React, { useCallback, useState } from 'react';
-import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { Platform, KeyboardAvoidingView, SafeAreaView } from 'react-native';
 import {
   Box,
   Button,
   ButtonVariant,
   ButtonBaseSize,
+  FontWeight,
+  TextColor,
+  TextVariant,
+  Text,
 } from '@metamask/design-system-react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import { strings } from '../../../../../../../locales/i18n';
-import Routes from '../../../../../../constants/navigation/Routes';
-import TabBar from '../../../../../../component-library/components-temp/TabBar/TabBar';
-import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { useSendContext } from '../../../context/send-context/send-context';
 import { useAccounts } from '../../../hooks/send/useAccounts';
 import { useContacts } from '../../../hooks/send/useContacts';
@@ -25,32 +26,35 @@ import { RecipientType } from '../../UI/recipient';
 import { styleSheet } from './recipient.styles';
 
 export const Recipient = () => {
-  const [addressInput, setAddressInput] = useState('');
-  const { updateTo } = useSendContext();
+  const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
+    useState(false);
+  const { to, updateTo } = useSendContext();
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
-  const { captureRecipientSelected, setRecipientInputMethod } =
-    useRecipientSelectionMetrics();
+  const {
+    captureRecipientSelected,
+    setRecipientInputMethodManual,
+    setRecipientInputMethodSelectAccount,
+    setRecipientInputMethodSelectContact,
+  } = useRecipientSelectionMetrics();
   const styles = styleSheet();
-  useSendNavbar({ currentRoute: Routes.SEND.RECIPIENT });
-  const { toAddressError } = useToAddressValidation(addressInput);
+  const { toAddressError } = useToAddressValidation();
+  const isReviewButtonDisabled = Boolean(toAddressError);
 
   const handleReview = useCallback(() => {
     if (toAddressError) {
       return;
     }
-    updateTo(addressInput);
-    handleSubmitPress(addressInput);
-    setRecipientInputMethod(RecipientInputMethod.Manual);
+    handleSubmitPress(to);
+    setRecipientInputMethodManual();
     captureRecipientSelected();
   }, [
-    addressInput,
+    to,
     toAddressError,
-    updateTo,
     handleSubmitPress,
     captureRecipientSelected,
-    setRecipientInputMethod,
+    setRecipientInputMethodManual,
   ]);
 
   const onRecipientSelected = useCallback(
@@ -60,17 +64,23 @@ export const Recipient = () => {
           | typeof RecipientInputMethod.SelectContact,
       ) =>
       (recipient: RecipientType) => {
-        const to = recipient.address;
-        updateTo(to);
-        setRecipientInputMethod(recipientType);
+        const selectedAddress = recipient.address;
+        setIsRecipientSelectedFromList(true);
+        updateTo(selectedAddress);
+        if (recipientType === RecipientInputMethod.SelectAccount) {
+          setRecipientInputMethodSelectAccount();
+        } else {
+          setRecipientInputMethodSelectContact();
+        }
+        handleSubmitPress(selectedAddress);
         captureRecipientSelected();
-        handleSubmitPress(to);
       },
     [
       updateTo,
       handleSubmitPress,
       captureRecipientSelected,
-      setRecipientInputMethod,
+      setRecipientInputMethodSelectAccount,
+      setRecipientInputMethodSelectContact,
     ],
   );
 
@@ -82,39 +92,41 @@ export const Recipient = () => {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
         <Box twClassName="flex-1">
-          <RecipientInput value={addressInput} onChangeText={setAddressInput} />
-          <Box twClassName="flex-1">
-            {addressInput.length === 0 && (
-              <ScrollableTabView renderTabBar={() => <TabBar />}>
-                <Box
-                  key="your-accounts"
-                  {...{ tabLabel: strings('send.accounts') }}
-                  twClassName="flex-1"
-                >
-                  <RecipientList
-                    data={accounts}
-                    onRecipientSelected={onRecipientSelected(
-                      RecipientInputMethod.SelectAccount,
-                    )}
-                  />
-                </Box>
-                <Box
-                  key="contacts"
-                  {...{ tabLabel: strings('send.contacts') }}
-                  twClassName="flex-1"
-                >
-                  <RecipientList
-                    data={contacts}
-                    onRecipientSelected={onRecipientSelected(
-                      RecipientInputMethod.SelectContact,
-                    )}
-                    emptyMessage={strings('send.no_contacts_found')}
-                  />
-                </Box>
-              </ScrollableTabView>
-            )}
-          </Box>
-          {addressInput.length > 0 && (
+          <RecipientInput
+            isRecipientSelectedFromList={isRecipientSelectedFromList}
+          />
+          <ScrollView>
+            <Text
+              twClassName="m-4"
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              fontWeight={FontWeight.Medium}
+            >
+              {strings('send.accounts')}
+            </Text>
+            <RecipientList
+              data={accounts}
+              onRecipientSelected={onRecipientSelected(
+                RecipientInputMethod.SelectAccount,
+              )}
+            />
+            <Text
+              twClassName="m-4"
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              fontWeight={FontWeight.Medium}
+            >
+              {strings('send.contacts')}
+            </Text>
+            <RecipientList
+              data={contacts}
+              onRecipientSelected={onRecipientSelected(
+                RecipientInputMethod.SelectContact,
+              )}
+              emptyMessage={strings('send.no_contacts_found')}
+            />
+          </ScrollView>
+          {(to || '').length > 0 && !isRecipientSelectedFromList && (
             <Box twClassName="px-4 py-4">
               <Button
                 variant={ButtonVariant.Primary}
@@ -124,7 +136,9 @@ export const Recipient = () => {
                 isDanger={Boolean(toAddressError)}
                 disabled={Boolean(toAddressError)}
               >
-                {strings('send.review')}
+                {isReviewButtonDisabled
+                  ? toAddressError
+                  : strings('send.review')}
               </Button>
             </Box>
           )}

@@ -280,6 +280,7 @@ const Routes = {
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',
+    ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },
   SOLANA_NEW_FEATURE_CONTENT: 'SolanaNewFeatureContentView',
   ///: BEGIN:ONLY_INCLUDE_IF(external-snaps)
