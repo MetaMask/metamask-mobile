@@ -55,36 +55,27 @@ const isHostBlocklisted = (host) => BLOCKLISTED_HOSTS.includes(host);
  * @param {string} url - The URL to potentially modify
  * @returns {string} The URL with localhost replaced by 127.0.0.1 on Android
  */
-const applyAndroidUrlReplacement = (url) => device.getPlatform() === 'android'
+const applyAndroidUrlReplacement = (url) =>
+  device.getPlatform() === 'android'
     ? url.replace('localhost', '127.0.0.1')
     : url;
 
 /**
- * Utility function to check if a URL is allowed
+ * Check if URL or hostname is allowlisted
  * @param {string} url - The URL to check
- * @returns {boolean} True if the URL is allowed, false otherwise
+ * @returns {boolean} True if URL or hostname is allowlisted
  */
-const isUrlAllowed = (url) => {
+const isAllowlisted = (url) => {
+  // Check exact URL match first
+  if (ALLOWLISTED_URLS.includes(url)) {
+    return true;
+  }
+
+  // Check exact hostname match
   try {
-    // First check if the exact URL is in the allowed URLs list
-    if (ALLOWLISTED_URLS.includes(url)) {
-      return true;
-    }
-
-    // Then check if the hostname is in the allowed hosts list
-    const parsedUrl = new URL(url);
-    const hostname = parsedUrl.hostname;
-
-    return ALLOWLISTED_HOSTS.some((allowedHost) => {
-      // Support exact match or wildcard subdomains (e.g., "*.example.com")
-      if (allowedHost.startsWith('*.')) {
-        const domain = allowedHost.slice(2);
-        return hostname === domain || hostname.endsWith(`.${domain}`);
-      }
-      return hostname === allowedHost;
-    });
+    const hostname = new URL(url).hostname;
+    return ALLOWLISTED_HOSTS.includes(hostname);
   } catch (error) {
-    logger.warn('Invalid URL:', url);
     return false;
   }
 };
@@ -275,8 +266,8 @@ export const startMockServer = async (events, port) => {
         logger.warn('Invalid URL in proxy:', urlEndpoint);
       }
 
-      // Step 2: Check if URL is allowlisted - pass through to live server
-      if (ALLOWLISTED_URLS.includes(urlEndpoint)) {
+      // Step 2: Check if URL or host is allowlisted - pass through to live server
+      if (isAllowlisted(urlEndpoint)) {
         logger.warn('Request going to allowlisted live server:', urlEndpoint);
 
         return handleDirectFetch(
