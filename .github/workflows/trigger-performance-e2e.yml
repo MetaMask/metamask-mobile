@@ -61,8 +61,10 @@ jobs:
           if [ -n "${{ github.event.inputs.device_matrix }}" ]; then
             # Use custom device matrix from input
             echo "Using custom device matrix from input"
-            echo "android=${{ github.event.inputs.device_matrix }}" >> $GITHUB_OUTPUT
-            echo "ios=${{ github.event.inputs.device_matrix }}" >> $GITHUB_OUTPUT
+            {
+              echo "android=${{ github.event.inputs.device_matrix }}"
+              echo "ios=${{ github.event.inputs.device_matrix }}"
+            } >> "$GITHUB_OUTPUT"
           else
             # Read from JSON file and filter by category
             echo "Reading device matrix from appwright/device-matrix.json"

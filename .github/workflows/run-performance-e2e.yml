@@ -152,7 +152,7 @@ jobs:
           fi
           
           # Store build slug for artifact download
-          echo "BUILD_SLUG=$BUILD_SLUG" >> $GITHUB_ENV
+          echo "BUILD_SLUG=$BUILD_SLUG" >> "$GITHUB_ENV"
           
           echo "Waiting for build to complete..."
           TIMEOUT=1800  # 30 minutes
@@ -209,8 +209,10 @@ jobs:
           fi
           
           # Store build IDs for artifact download
-          echo "ANDROID_BUILD_ID=$ANDROID_BUILD_ID" >> $GITHUB_ENV
-          echo "IOS_BUILD_ID=$IOS_BUILD_ID" >> $GITHUB_ENV
+          {
+            echo "ANDROID_BUILD_ID=$ANDROID_BUILD_ID"
+            echo "IOS_BUILD_ID=$IOS_BUILD_ID"
+          } >> "$GITHUB_ENV"
       
       - name: Download Build Artifacts
         id: download-artifacts
