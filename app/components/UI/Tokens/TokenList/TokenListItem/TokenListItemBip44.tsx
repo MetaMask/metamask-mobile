@@ -75,6 +75,7 @@ import {
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
+import { selectAsset } from '../../../../../selectors/tokenList';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -84,7 +85,7 @@ interface TokenListItemProps {
   showPercentageChange?: boolean;
 }
 
-export const TokenListItem = React.memo(
+export const TokenListItemBip44 = React.memo(
   ({
     assetKey,
     showRemoveMenu,
@@ -123,10 +124,20 @@ export const TokenListItem = React.memo(
     );
     ///: END:ONLY_INCLUDE_IF
 
+    const newAsset = useSelector((state: RootState) => selectAsset(state, {
+      address: assetKey.address,
+      chainId: assetKey.chainId ?? '',
+      isStaked: assetKey.isStaked,
+    }));
+
     let asset = isEvmNetworkSelected ? evmAsset : nonEvmAsset;
 
     if (asset?.chainId === '0x1' && asset?.address === '0x0000000000000000000000000000000000000000') {
-      console.log('ASSET', asset);
+      console.log('ASSET BIP44', {
+        assetKey,
+        asset,
+        newAsset,
+      });
     }
 
     const chainId = asset?.chainId as Hex;
@@ -439,6 +450,4 @@ export const TokenListItem = React.memo(
   },
 );
 
-TokenListItem.displayName = 'TokenListItem';
-
-export { TokenListItemBip44 } from './TokenListItemBip44';
+TokenListItemBip44.displayName = 'TokenListItemBip44';
