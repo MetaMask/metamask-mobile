@@ -46,10 +46,7 @@ const AccountGroupBalance = () => {
   })();
 
   return (
-    <View
-      style={styles.accountGroupBalance}
-      testID="account-group-balance-root"
-    >
+    <View style={styles.accountGroupBalance}>
       <View>
         {displayBalance ? (
           <TouchableOpacity
