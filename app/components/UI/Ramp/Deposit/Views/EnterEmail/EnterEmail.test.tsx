@@ -142,4 +142,22 @@ describe('EnterEmail Component', () => {
     });
     expect(screen.toJSON()).toMatchSnapshot();
   });
+
+  it('shows error when response missing stateToken', async () => {
+    mockSendEmail.mockResolvedValue({
+      isTncAccepted: false,
+      email: 'test@example.com',
+      expiresIn: 300,
+      // stateToken missing
+    });
+    render(EnterEmail);
+    const emailInput = screen.getByPlaceholderText('name@domain.com');
+    fireEvent.changeText(emailInput, 'test@example.com');
+    fireEvent.press(screen.getByRole('button', { name: 'Send email' }));
+    await waitFor(() => {
+      expect(
+        screen.getByText('State token is required for OTP verification'),
+      ).toBeOnTheScreen();
+    });
+  });
 });

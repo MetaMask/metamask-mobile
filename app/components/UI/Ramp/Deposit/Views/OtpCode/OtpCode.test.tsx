@@ -258,4 +258,19 @@ describe('OtpCode Screen', () => {
       });
     });
   });
+
+  it('shows error when resend response missing stateToken', async () => {
+    mockSendUserOtp.mockResolvedValue({
+      isTncAccepted: false,
+      email: EMAIL,
+      expiresIn: 300,
+      // stateToken missing
+    });
+    render(OtpCode);
+    const resendButton = screen.getByText('Resend it');
+    fireEvent.press(resendButton);
+    await waitFor(() => {
+      expect(screen.getByText('Contact support')).toBeOnTheScreen();
+    });
+  });
 });
