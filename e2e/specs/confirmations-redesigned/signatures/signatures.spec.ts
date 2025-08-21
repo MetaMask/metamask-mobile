@@ -13,7 +13,7 @@ import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/mockHelpers';
 
 const SIGNATURE_LIST = [
   {
@@ -52,7 +52,12 @@ describe(SmokeConfirmationsRedesigned('Signature Requests'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     const { urlEndpoint, response } =
       mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-    await mockProxyGet(mockServer, urlEndpoint, response);
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode: 200,
+    });
   };
 
   beforeAll(async () => {

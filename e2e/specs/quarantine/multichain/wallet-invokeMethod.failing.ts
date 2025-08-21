@@ -33,7 +33,7 @@ import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { DappVariants } from '../../../framework/Constants';
 import { LocalNodeType } from '../../../framework';
 import { AnvilNodeOptions } from '../../../framework/types';
-import { mockProxyGet } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 const ANVIL_NODE_OPTIONS_WITH_GATOR = [
@@ -47,7 +47,12 @@ const ANVIL_NODE_OPTIONS_WITH_GATOR = [
 ];
 const REMOTE_FEATURE_EIP_7702_MOCK = async (mockServer: Mockttp) => {
   const { urlEndpoint, response } = mockEvents.GET.remoteFeatureEip7702;
-  await mockProxyGet(mockServer, urlEndpoint, response);
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: urlEndpoint,
+    response,
+    responseCode: 200,
+  });
 };
 
 describe(SmokeMultiChainAPI('wallet_invokeMethod'), () => {

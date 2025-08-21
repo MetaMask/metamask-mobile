@@ -28,12 +28,21 @@ class ImportSrpView {
       elemDescription: 'Import button',
     });
   }
+  async enterSrpWord(srpIndex: number, word: string): Promise<void> {
+    const inputElement = this.inputOfIndex(srpIndex);
+    const elemDescription = `SRP word input at index ${srpIndex}`;
 
-  async enterSrpWord(srpIndex: number, word: string) {
-    // Using replaceText to avoid autocomplete from device
-    await Gestures.replaceText(this.inputOfIndex(srpIndex), word, {
-      elemDescription: `SRP word input at index ${srpIndex}`,
-    });
+    if (device.getPlatform() === 'ios') {
+      await Gestures.typeText(inputElement, word, {
+        elemDescription,
+        hideKeyboard: true,
+      });
+    } else {
+      // For Android, we use replaceText to avoid autocomplete issue
+      await Gestures.replaceText(inputElement, word, {
+        elemDescription,
+      });
+    }
   }
 
   async selectNWordSrp(numberOfWords: number) {

@@ -6,7 +6,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { WalletViewSelectorsText } from '../../../selectors/wallet/WalletView.selectors';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { loginToApp } from '../../../viewHelper';
-import { mockProxyGet } from '../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../api-mocking/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
@@ -18,7 +18,12 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           const { urlEndpoint, response } =
             mockEvents.GET.defiPositionsWithNoData;
-          await mockProxyGet(mockServer, urlEndpoint, response);
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: urlEndpoint,
+            response,
+            responseCode: 200,
+          });
         },
       },
       async () => {
@@ -48,7 +53,12 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
           const { urlEndpoint, response } = mockEvents.GET.defiPositionsError;
-          await mockProxyGet(mockServer, urlEndpoint, response);
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: urlEndpoint,
+            response,
+            responseCode: 200,
+          });
         },
       },
       async () => {
@@ -83,7 +93,12 @@ describe(SmokeNetworkAbstractions('View DeFi tab'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           const { urlEndpoint, response } =
             mockEvents.GET.defiPositionsWithData;
-          await mockProxyGet(mockServer, urlEndpoint, response);
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: urlEndpoint,
+            response,
+            responseCode: 200,
+          });
         },
         languageAndLocale: {
           language: 'en',

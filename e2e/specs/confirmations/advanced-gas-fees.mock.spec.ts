@@ -11,7 +11,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const testSpecificMock = async (mockServer: Mockttp) => {
@@ -19,8 +19,18 @@ const testSpecificMock = async (mockServer: Mockttp) => {
     mockEvents.GET.remoteFeatureFlagsOldConfirmations;
   const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
     mockEvents.GET.suggestedGasFeesApiGanache;
-  await mockProxyGet(mockServer, urlEndpoint, response);
-  await mockProxyGet(mockServer, gasUrlEndpoint, gasResponse);
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: urlEndpoint,
+    response,
+    responseCode: 200,
+  });
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: gasUrlEndpoint,
+    response: gasResponse,
+    responseCode: 200,
+  });
 };
 
 describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {

@@ -13,7 +13,7 @@ import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAcc
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
 import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token
@@ -24,7 +24,12 @@ const ACCOUNT_INDEX = 1;
 const testSpecificMock = async (mockServer: Mockttp) => {
   const { urlEndpoint, response } =
     mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false);
-  await mockProxyGet(mockServer, urlEndpoint, response);
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: urlEndpoint,
+    response,
+    responseCode: 200,
+  });
 };
 
 describe(

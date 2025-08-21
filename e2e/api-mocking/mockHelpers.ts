@@ -149,7 +149,10 @@ export const findMatchingPostEvent = (
   return matchingEvent;
 };
 
-async function mockAPICall(server: Mockttp, response: ResponseParam) {
+export async function setupMockRequest(
+  server: Mockttp,
+  response: ResponseParam,
+) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {
@@ -179,7 +182,6 @@ async function mockAPICall(server: Mockttp, response: ResponseParam) {
       const matches = url.includes(String(response.url));
       return matches;
     })
-    .asPriority(999)
     .thenCallback((request) => {
       logger.info(
         `Mocking ${request.method} request to: ${getDecodedProxiedURL(
@@ -195,35 +197,14 @@ async function mockAPICall(server: Mockttp, response: ResponseParam) {
 }
 
 /**
- * Helper to mock a GET request through the mobile proxy pattern with startMockServer processing
- * @param mockServer - The mock server instance
- * @param url - The actual URL to match (not /proxy URL) - supports string or RegExp
- * @param response - The response to return
- * @param statusCode - HTTP status code (default: 200)
- */
-export const mockProxyGet = async (
-  mockServer: Mockttp,
-  url: string | RegExp,
-  response: unknown,
-  statusCode: number = 200,
-) => {
-  await mockAPICall(mockServer, {
-    requestMethod: 'GET',
-    url,
-    response,
-    responseCode: statusCode,
-  });
-};
-
-/**
  * Helper to mock a POST request with complex body matching through the mobile proxy pattern
  * @param mockServer - The mock server instance
- * @param url - The actual URL to match (not /proxy URL) - supports string or RegExp
+ * @param url - The URL to match - supports string or RegExp
  * @param requestBody - Expected request body object to match against
  * @param response - The response to return
  * @param options - Additional options for matching and response
  */
-export const mockProxyPost = async (
+export const setupMockPostRequest = async (
   mockServer: Mockttp,
   url: string | RegExp,
   requestBody: unknown,
@@ -247,7 +228,6 @@ export const mockProxyPost = async (
       const matches = decodedUrl.includes(String(url));
       return matches;
     })
-    .asPriority(999)
     .thenCallback(async (request) => {
       const decodedUrl = getDecodedProxiedURL(request.url);
 
@@ -306,7 +286,7 @@ export const mockSimulation = async (
     responseCode?: number;
   },
 ) => {
-  await mockProxyPost(
+  await setupMockPostRequest(
     mockServer,
     simulationMock.urlEndpoint,
     simulationMock.requestBody,

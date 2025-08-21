@@ -11,7 +11,7 @@ import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 describe(SmokeConfirmations('ERC721 tokens'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
@@ -22,8 +22,18 @@ describe(SmokeConfirmations('ERC721 tokens'), () => {
         mockEvents.GET.remoteFeatureFlagsOldConfirmations;
       const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
         mockEvents.GET.suggestedGasFeesApiGanache;
-      await mockProxyGet(mockServer, urlEndpoint, response);
-      await mockProxyGet(mockServer, gasUrlEndpoint, gasResponse);
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode: 200,
+      });
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: gasUrlEndpoint,
+        response: gasResponse,
+        responseCode: 200,
+      });
     };
 
     await withFixtures(

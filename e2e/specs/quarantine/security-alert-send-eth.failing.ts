@@ -10,7 +10,10 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../tags';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet, mockProxyPost } from '../../api-mocking/mockHelpers';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../api-mocking/mockHelpers';
 
 const BENIGN_ADDRESS_MOCK = '0x50587E46C5B96a3F6f9792922EC647F13E6EFAE4';
 
@@ -41,9 +44,14 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       const { urlEndpoint, response } =
         mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-      await mockProxyGet(mockServer, urlEndpoint, response);
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode: 200,
+      });
 
-      await mockProxyPost(
+      await setupMockPostRequest(
         mockServer,
         /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
         {},
@@ -77,9 +85,14 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       const { urlEndpoint, response } =
         mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-      await mockProxyGet(mockServer, urlEndpoint, response);
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode: 200,
+      });
 
-      await mockProxyPost(
+      await setupMockPostRequest(
         mockServer,
         /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
         {},
@@ -116,18 +129,23 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       const { urlEndpoint, response } =
         mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-      await mockProxyGet(mockServer, urlEndpoint, response);
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode: 200,
+      });
 
-      await mockProxyGet(
-        mockServer,
-        'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
-        {
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: 'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
+        response: {
           message: 'Internal Server Error',
         },
-        500,
-      );
+        responseCode: 500,
+      });
 
-      await mockProxyPost(
+      await setupMockPostRequest(
         mockServer,
         /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
         {},

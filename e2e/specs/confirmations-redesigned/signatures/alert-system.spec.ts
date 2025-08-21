@@ -13,7 +13,10 @@ import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet, mockProxyPost } from '../../../api-mocking/mockHelpers';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../../api-mocking/mockHelpers';
 
 const typedSignRequestBody = {
   method: 'eth_signTypedData',
@@ -66,9 +69,14 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         const { urlEndpoint, response } =
           mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-        await mockProxyGet(mockServer, urlEndpoint, response);
+        await setupMockRequest(mockServer, {
+          requestMethod: 'GET',
+          url: urlEndpoint,
+          response,
+          responseCode: 200,
+        });
 
-        await mockProxyPost(
+        await setupMockPostRequest(
           mockServer,
           mockEvents.POST.securityAlertApiValidate.urlEndpoint,
           typedSignRequestBody,
@@ -97,9 +105,14 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         const { urlEndpoint, response } =
           mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-        await mockProxyGet(mockServer, urlEndpoint, response);
+        await setupMockRequest(mockServer, {
+          requestMethod: 'GET',
+          url: urlEndpoint,
+          response,
+          responseCode: 200,
+        });
 
-        await mockProxyPost(
+        await setupMockPostRequest(
           mockServer,
           'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
           typedSignRequestBody,
@@ -147,18 +160,23 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         const { urlEndpoint, response } =
           mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-        await mockProxyGet(mockServer, urlEndpoint, response);
+        await setupMockRequest(mockServer, {
+          requestMethod: 'GET',
+          url: urlEndpoint,
+          response,
+          responseCode: 200,
+        });
 
-        await mockProxyGet(
-          mockServer,
-          'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
-          {
+        await setupMockRequest(mockServer, {
+          requestMethod: 'GET',
+          url: 'https://static.cx.metamask.io/api/v1/confirmations/ppom/ppom_version.json',
+          response: {
             message: 'Internal Server Error',
           },
-          500,
-        );
+          responseCode: 500,
+        });
 
-        await mockProxyPost(
+        await setupMockPostRequest(
           mockServer,
           'https://security-alerts.api.cx.metamask.io/validate/0xaa36a7',
           typedSignRequestBody,
@@ -195,7 +213,12 @@ describe(SmokeConfirmationsRedesigned('Alert System - Signature'), () => {
       const testSpecificMock = async (mockServer: Mockttp) => {
         const { urlEndpoint, response } =
           mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-        await mockProxyGet(mockServer, urlEndpoint, response);
+        await setupMockRequest(mockServer, {
+          requestMethod: 'GET',
+          url: urlEndpoint,
+          response,
+          responseCode: 200,
+        });
       };
 
       await withFixtures(

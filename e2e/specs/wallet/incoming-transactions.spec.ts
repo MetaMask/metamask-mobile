@@ -10,7 +10,7 @@ import ActivitiesView from '../../pages/Transactions/ActivitiesView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ToastModal from '../../pages/wallet/ToastModal';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
-import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 const TOKEN_SYMBOL_MOCK = 'ABC';
@@ -88,12 +88,12 @@ function createAccountsTestSpecificMock(
 ): TestSpecificMock {
   return async (mockServer: Mockttp) => {
     const mock = mockAccountsApi(transactions);
-    await mockProxyGet(
-      mockServer,
-      mock.urlEndpoint,
-      mock.response,
-      mock.responseCode,
-    );
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: mock.urlEndpoint,
+      response: mock.response,
+      responseCode: mock.responseCode,
+    });
   };
 }
 

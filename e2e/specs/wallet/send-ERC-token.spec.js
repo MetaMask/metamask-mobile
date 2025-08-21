@@ -13,7 +13,7 @@ import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensVie
 import Assertions from '../../framework/Assertions';
 import { CustomNetworks } from '../../resources/networks.e2e';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 
@@ -40,7 +40,12 @@ describe(Regression('Send ERC Token'), () => {
         testSpecificMock: async (mockServer) => {
           const { urlEndpoint, response } =
             mockEvents.GET.remoteFeatureFlagsOldConfirmations;
-          await mockProxyGet(mockServer, urlEndpoint, response);
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: urlEndpoint,
+            response,
+            responseCode: 200,
+          });
         },
       },
       async () => {

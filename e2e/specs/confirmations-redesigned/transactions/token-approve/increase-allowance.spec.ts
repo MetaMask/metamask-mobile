@@ -15,7 +15,7 @@ import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-r
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet } from '../../../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../../../api-mocking/mockHelpers';
 
 describe(
   SmokeConfirmationsRedesigned('Token Approve - increaseAllowance method'),
@@ -25,12 +25,18 @@ describe(
     const testSpecificMock = async (mockServer: Mockttp) => {
       const { urlEndpoint, response } =
         mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-      await mockProxyGet(
-        mockServer,
-        SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
-        SIMULATION_ENABLED_NETWORKS_MOCK.response,
-      );
-      await mockProxyGet(mockServer, urlEndpoint, response);
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+        response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+        responseCode: 200,
+      });
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode: 200,
+      });
     };
 
     it('creates an approve transaction confirmation for given ERC 20, changes the spending cap and submits it', async () => {

@@ -15,7 +15,7 @@ import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 const EXPECTED_TOKEN_AMOUNT = '7';
@@ -25,10 +25,20 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
         mockEvents.GET.suggestedGasFeesApiGanache;
-      await mockProxyGet(mockServer, gasUrlEndpoint, gasResponse);
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: gasUrlEndpoint,
+        response: gasResponse,
+        responseCode: 200,
+      });
       const { urlEndpoint, response } =
         mockEvents.GET.remoteFeatureFlagsOldConfirmations;
-      await mockProxyGet(mockServer, urlEndpoint, response);
+      await setupMockRequest(mockServer, {
+        requestMethod: 'GET',
+        url: urlEndpoint,
+        response,
+        responseCode: 200,
+      });
     };
 
     await withFixtures(

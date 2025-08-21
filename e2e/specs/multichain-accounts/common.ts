@@ -7,7 +7,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
-import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 export interface Account {
   name: string;
@@ -37,7 +37,12 @@ export const withMultichainAccountDetailsEnabled = async (
   const testSpecificMock = async (mockServer: Mockttp) => {
     const { urlEndpoint, response } =
       mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails();
-    await mockProxyGet(mockServer, urlEndpoint, response);
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode: 200,
+    });
   };
   return await withFixtures(
     {

@@ -11,7 +11,7 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../viewHelper';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
-import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 const NEW_ACCOUNT_NAME = 'Edited Name';
@@ -22,7 +22,12 @@ const IMPORTED_ACCOUNT_INDEX = 1;
 const testSpecificMock = async (mockServer: Mockttp) => {
   const { urlEndpoint, response } =
     mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false);
-  await mockProxyGet(mockServer, urlEndpoint, response);
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: urlEndpoint,
+    response,
+    responseCode: 200,
+  });
 };
 
 // TODO: With this migration we also removed the need for ganache options and everything is simplified.

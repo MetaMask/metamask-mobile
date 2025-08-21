@@ -90,6 +90,9 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
         await waitUntilSyncedAccountsNumberEquals(3);
 
         await Assertions.expectElementToBeVisible(WalletView.container);
+        const secretPhraseImportedText = 'Secret Recovery Phrase 2 imported';
+        await Assertions.expectTextDisplayed(secretPhraseImportedText);
+        await Assertions.expectTextNotDisplayed(secretPhraseImportedText);
 
         // Create second account for SRP 2
         await WalletView.tapIdenticon();
@@ -112,6 +115,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
           },
         );
         await device.enableSynchronization();
+        await waitUntilEventsEmittedNumberEquals(6);
       },
     );
 

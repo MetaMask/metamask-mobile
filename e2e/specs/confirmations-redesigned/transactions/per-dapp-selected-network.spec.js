@@ -17,7 +17,7 @@ import Assertions from '../../../framework/Assertions';
 import Matchers from '../../../framework/Matchers';
 import { loginToApp } from '../../../viewHelper';
 import { DappVariants } from '../../../framework/Constants';
-import { mockProxyGet } from '../../../api-mocking/mockHelpers.ts';
+import { setupMockRequest } from '../../../api-mocking/mockHelpers.ts';
 
 const LOCAL_CHAIN_ID = '0x539';
 const LOCAL_CHAIN_NAME = 'Localhost';
@@ -44,7 +44,12 @@ describe(SmokeConfirmationsRedesigned('Per Dapp Selected Network'), () => {
   const testSpecificMock = async (mockServer) => {
     const { urlEndpoint, response } =
       mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-    await mockProxyGet(mockServer, urlEndpoint, response);
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode: 200,
+    });
   };
 
   // Some tests depend on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to false.

@@ -15,7 +15,7 @@ import TestHelpers from '../../helpers';
 import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import { MockApiEndpoint } from '../../framework';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 const AAVE_TENDERLY_MAINNET_DETAILS = {
   address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
@@ -85,11 +85,12 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await mockProxyGet(
-            mockServer,
-            TOKEN_RESPONSE.urlEndpoint,
-            TOKEN_RESPONSE.response,
-          );
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: TOKEN_RESPONSE.urlEndpoint,
+            response: TOKEN_RESPONSE.response,
+            responseCode: 200,
+          });
         },
       },
       async () => {
@@ -120,11 +121,12 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await mockProxyGet(
-            mockServer,
-            TOKEN_RESPONSE.urlEndpoint,
-            TOKEN_RESPONSE.response,
-          );
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: TOKEN_RESPONSE.urlEndpoint,
+            response: TOKEN_RESPONSE.response,
+            responseCode: 200,
+          });
         },
       },
       async () => {
@@ -162,11 +164,12 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await mockProxyGet(
-            mockServer,
-            TOKEN_RESPONSE.urlEndpoint,
-            TOKEN_RESPONSE.response,
-          );
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: TOKEN_RESPONSE.urlEndpoint,
+            response: TOKEN_RESPONSE.response,
+            responseCode: 200,
+          });
         },
       },
       async () => {

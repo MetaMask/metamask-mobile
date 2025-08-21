@@ -37,7 +37,7 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import axios, { AxiosResponse } from 'axios';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
-import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 interface ExitRequest {
   positionTicket: string;
@@ -316,12 +316,12 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     // Convert MockConfig to TestSpecificMockFn
     const testSpecificMockFn = async (mockServer: Mockttp) => {
       for (const endpoint of testSpecificMock.GET) {
-        await mockProxyGet(
-          mockServer,
-          endpoint.urlEndpoint,
-          endpoint.response,
-          endpoint.responseCode,
-        );
+        await setupMockRequest(mockServer, {
+          requestMethod: 'GET',
+          url: endpoint.urlEndpoint,
+          response: endpoint.response,
+          responseCode: endpoint.responseCode,
+        });
       }
     };
 

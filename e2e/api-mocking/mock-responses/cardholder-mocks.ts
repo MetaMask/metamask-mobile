@@ -1,6 +1,6 @@
 import { TestSpecificMock } from '../../framework/types';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder';
-import { mockProxyGet } from '../mockHelpers';
+import { setupMockRequest } from '../mockHelpers';
 
 /**
  * Mock responses for cardholder API calls
@@ -87,21 +87,24 @@ const clientConfig = {
 };
 
 export const testSpecificMock: TestSpecificMock = async (mockServer) => {
-  await mockProxyGet(
-    mockServer,
-    'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-    'PT',
-  );
-  await mockProxyGet(
-    mockServer,
-    clientConfig.urlEndpoint,
-    clientConfig.response,
-  );
-  await mockProxyGet(
-    mockServer,
-    /^https:\/\/accounts\.api\.cx\.metamask\.io\/v1\/metadata\?.*$/,
-    {
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+    response: 'PT',
+    responseCode: 200,
+  });
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: clientConfig.urlEndpoint,
+    response: clientConfig.response,
+    responseCode: 200,
+  });
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v1\/metadata\?.*$/,
+    response: {
       is: [`eip155:0:${DEFAULT_FIXTURE_ACCOUNT.toLowerCase()}`],
     },
-  );
+    responseCode: 200,
+  });
 };

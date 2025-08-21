@@ -13,7 +13,7 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import AccountActionsBottomSheet from '../../pages/wallet/AccountActionsBottomSheet';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet } from '../../api-mocking/mockHelpers.js';
+import { setupMockRequest } from '../../api-mocking/mockHelpers.js';
 
 // These keys are from the fixture and are used to test the reveal private key functionality
 const HD_ACCOUNT_1_PRIVATE_KEY =
@@ -30,7 +30,12 @@ describe(Regression('reveal private key'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     const { urlEndpoint, response } =
       mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false);
-    await mockProxyGet(mockServer, urlEndpoint, response);
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode: 200,
+    });
   };
 
   it('reveals the correct private key for selected hd account from settings', async () => {

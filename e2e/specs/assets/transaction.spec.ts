@@ -14,7 +14,7 @@ import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import ToastModal from '../../pages/wallet/ToastModal';
-import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
 import { Mockttp } from 'mockttp';
 
 describe(Regression('Transaction'), () => {
@@ -35,7 +35,12 @@ describe(Regression('Transaction'), () => {
         testSpecificMock: async (mockServer: Mockttp) => {
           const { urlEndpoint, response } =
             mockEvents.GET.remoteFeatureFlagsOldConfirmations;
-          await mockProxyGet(mockServer, urlEndpoint, response);
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: urlEndpoint,
+            response,
+            responseCode: 200,
+          });
         },
       },
       async () => {

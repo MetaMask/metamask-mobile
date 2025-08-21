@@ -19,7 +19,10 @@ import { DappVariants } from '../../../framework/Constants';
 import { EventPayload, getEventsPayloads } from '../../analytics/helpers';
 import SoftAssert from '../../../utils/SoftAssert';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet, mockSimulation } from '../../../api-mocking/mockHelpers';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../../api-mocking/mockHelpers';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',
@@ -41,13 +44,38 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     const { urlEndpoint, response } =
       mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-    await mockProxyGet(
+
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode: 200,
+    });
+
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      responseCode: 200,
+    });
+
+    const {
+      urlEndpoint: simulationEndpoint,
+      requestBody,
+      response: simulationResponse,
+      ignoreFields,
+    } = SEND_ETH_SIMULATION_MOCK;
+
+    await setupMockPostRequest(
       mockServer,
-      SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
-      SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      simulationEndpoint,
+      requestBody,
+      simulationResponse,
+      {
+        statusCode: 200,
+        ignoreFields,
+      },
     );
-    await mockProxyGet(mockServer, urlEndpoint, response);
-    await mockSimulation(mockServer, SEND_ETH_SIMULATION_MOCK);
   };
   let eventsToCheck: EventPayload[];
 

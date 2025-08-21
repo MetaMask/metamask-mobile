@@ -3,7 +3,7 @@ import { defaultGanacheOptions } from '../framework/Constants';
 import { CustomNetworks } from './networks.e2e';
 import { mockEvents } from '../api-mocking/mock-config/mock-events';
 import { Mockttp } from 'mockttp';
-import { mockProxyGet } from '../api-mocking/mockHelpers';
+import { setupMockRequest } from '../api-mocking/mockHelpers';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
@@ -58,7 +58,12 @@ export interface NetworkTestConfig {
  */
 export const testSpecificMock = async (mockServer: Mockttp): Promise<void> => {
   const { urlEndpoint, response } = mockEvents.GET.suggestedGasFeesApiGanache;
-  await mockProxyGet(mockServer, urlEndpoint, response);
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: urlEndpoint,
+    response,
+    responseCode: 200,
+  });
 };
 
 /**
@@ -69,14 +74,20 @@ export const redesignedTestSpecificMock = async (
 ): Promise<void> => {
   const { urlEndpoint, response } =
     mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-  await mockProxyGet(mockServer, urlEndpoint, response);
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: urlEndpoint,
+    response,
+    responseCode: 200,
+  });
 
   const gasFeesConfig = mockEvents.GET.suggestedGasFeesApiGanache;
-  await mockProxyGet(
-    mockServer,
-    gasFeesConfig.urlEndpoint,
-    gasFeesConfig.response,
-  );
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: gasFeesConfig.urlEndpoint,
+    response: gasFeesConfig.response,
+    responseCode: 200,
+  });
 };
 
 /**
