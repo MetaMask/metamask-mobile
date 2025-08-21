@@ -131,7 +131,11 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
           {strings('perps.hyperliquid_usdc_balance')}
         </Text>
         <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+          <Text
+            variant={TextVariant.HeadingSM}
+            color={TextColor.Default}
+            testID="perps-balance-value"
+          >
             {formatPerpsFiat(result.availableBalance || '0')}
           </Text>
         </Animated.View>

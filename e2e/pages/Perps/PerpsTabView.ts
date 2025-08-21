@@ -18,6 +18,10 @@ class PerpsTabView {
     return Matchers.getElementByID('perps-onboarding-button');
   }
 
+  get balanceValue(): DetoxElement {
+    return Matchers.getElementByID('perps-balance-value');
+  }
+
   async tapBalanceButton(): Promise<void> {
     await Gestures.waitAndTap(this.balanceButton, {
       elemDescription: 'Perps Balance Button',
@@ -40,6 +44,21 @@ class PerpsTabView {
     await Gestures.waitAndTap(this.onboardingButton, {
       elemDescription: 'Perps Onboarding Button',
     });
+  }
+
+  async getBalance(): Promise<number> {
+    const balanceElement = await this.balanceValue;
+    const attributes = await (
+      balanceElement as IndexableNativeElement
+    ).getAttributes();
+    const balanceText =
+      (attributes as { text: string; label: string }).text ||
+      (attributes as { text: string; label: string }).label ||
+      '0';
+
+    // Extract numeric value from balance text (remove currency symbols, commas, etc.)
+    const numericValue = balanceText.replace(/[^0-9.-]/g, '');
+    return parseFloat(numericValue) || 0;
   }
 }
 
