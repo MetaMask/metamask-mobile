@@ -135,7 +135,8 @@ export const useGetPriorityCardToken = (
   // Helper to check if cache is still valid (less than 5 minutes old)
   const isCacheValid = useCallback(() => {
     if (!lastFetched) return false;
-    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
     // Handle both Date objects and ISO date strings (from redux-persist)
     const lastFetchedDate =
       lastFetched instanceof Date ? lastFetched : new Date(lastFetched);
@@ -299,14 +300,6 @@ export const useGetPriorityCardToken = (
     if (!selectedAddress || !shouldFetch) {
       return;
     }
-
-    Logger.log('CardToken Cache Check:', {
-      selectedAddress,
-      shouldFetch,
-      cacheIsValid,
-      hasPriorityToken: !!priorityToken,
-      lastFetched,
-    });
 
     // If cache is valid and we have a priority token, don't fetch
     if (cacheIsValid && priorityToken !== null) {
