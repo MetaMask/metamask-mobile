@@ -44,10 +44,13 @@ export const Amount = () => {
     getNativeValue,
   } = useCurrencyConversions();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
+  const assetSymbol = asset?.ticker ?? asset?.symbol;
+  const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
   const { styles, theme } = useStyles(styleSheet, {
     inputError: Boolean(amountError),
     inputLength: amount.length,
     isNFT,
+    symbolLength: assetDisplaySymbol.length,
   });
   const {
     setAmountInputMethodManual,
@@ -99,8 +102,6 @@ export const Amount = () => {
     updateValue,
   ]);
 
-  const assetSymbol = asset?.ticker ?? asset?.symbol;
-
   return (
     <View style={styles.container}>
       <View style={styles.topSection}>
@@ -134,12 +135,11 @@ export const Amount = () => {
           </View>
           <Text
             color={amountError ? TextColor.Error : TextColor.Alternative}
+            numberOfLines={1}
             style={styles.tokenSymbol}
             variant={TextVariant.DisplayLG}
           >
-            {fiatMode
-              ? fiatCurrencySymbol
-              : assetSymbol ?? (isNFT ? 'NFT' : '')}
+            {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
           </Text>
         </View>
         {!isNFT && (

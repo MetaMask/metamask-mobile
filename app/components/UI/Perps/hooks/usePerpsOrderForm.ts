@@ -125,10 +125,12 @@ export function usePerpsOrderForm(
   const handlePercentageAmount = useCallback(
     (percentage: number) => {
       if (availableBalance === 0) return;
-      const newAmount = Math.floor(availableBalance * percentage).toString();
+      const newAmount = Math.floor(
+        availableBalance * orderForm.leverage * percentage,
+      ).toString();
       setOrderForm((prev) => ({ ...prev, amount: newAmount }));
     },
-    [availableBalance],
+    [availableBalance, orderForm.leverage],
   );
 
   // Handle max amount selection
@@ -136,7 +138,7 @@ export function usePerpsOrderForm(
     if (availableBalance === 0) return;
     setOrderForm((prev) => ({
       ...prev,
-      amount: Math.floor(availableBalance).toString(),
+      amount: Math.floor(availableBalance * prev.leverage).toString(),
     }));
   }, [availableBalance]);
 

@@ -950,8 +950,7 @@
       "fees": "Fees",
       "market": "Market",
       "limit": "Limit",
-      "take_profit": "Take profit",
-      "stop_loss": "Stop loss",
+      "max": "max",
       "cancel_order": "Cancel order",
       "filled": "filled",
       "reduce_only": "Reduce only",
@@ -1010,7 +1009,8 @@
         "market": "Market",
         "current_price": "Current price",
         "ask_price": "Ask price",
-        "bid_price": "Bid price"
+        "bid_price": "Bid price",
+        "difference_from_market": "Difference from market:"
       },
       "leverage_modal": {
         "title": "Set Leverage",
@@ -1048,7 +1048,7 @@
       "closing": "Closing position...",
       "pnl": "PnL",
       "fees": "Fees",
-      "receive": "You'll receive (Hyperliquid USDC)",
+      "receive": "You'll receive",
       "error_unknown": "Failed to close position",
       "success_title": "Position Closed Successfully",
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
@@ -1128,14 +1128,29 @@
       "withdrawFailed": "Failed to withdraw",
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
-      "depositFailed": "Deposit failed"
+      "depositFailed": "Deposit failed",
+      "connectionFailed": {
+        "title": "Connection Failed",
+        "description": "Unable to connect to Perps services. Please check your connection and try again.",
+        "retry": "Retry"
+      },
+      "networkError": {
+        "title": "Network Error",
+        "description": "There was a problem connecting to the network. Please try again.",
+        "retry": "Try Again"
+      },
+      "unknown": {
+        "title": "Something Went Wrong",
+        "description": "An unexpected error occurred. Please try again later.",
+        "retry": "Retry"
+      }
     },
     "position": {
       "title": "Positions",
       "card": {
         "entry_price": "Entry Price",
         "market_price": "Market Price",
-        "liquidity_price": "Liquidity Price",
+        "liquidation_price": "Liquidation Price",
         "take_profit": "Take Profit",
         "stop_loss": "Stop Loss",
         "margin": "Margin",
@@ -1294,7 +1309,7 @@
         "history_will_appear": "Your trading history will appear here"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by {{provider}}.",
+    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risks. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",
