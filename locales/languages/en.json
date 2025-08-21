@@ -1129,11 +1129,6 @@
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
       "depositFailed": "Deposit failed",
-      "nonEvmAccount": {
-        "title": "Ethereum Account Required",
-        "description": "Perps trading requires an Ethereum account. Please switch to an Ethereum account to continue.",
-        "switchAccount": "Switch Account"
-      },
       "connectionFailed": {
         "title": "Connection Failed",
         "description": "Unable to connect to Perps services. Please check your connection and try again.",

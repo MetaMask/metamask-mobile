@@ -222,17 +222,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     );
   };
 
-  // Check for non-EVM account first
-  if (!selectedEvmAccount) {
-    return (
-      <View style={styles.wrapper}>
-        <PerpsErrorState errorType={PerpsErrorType.NON_EVM_ACCOUNT} />
-      </View>
-    );
-  }
-
   // Check for connection errors
-  if (error && !isConnected) {
+  if (error && !isConnected && selectedEvmAccount) {
     return (
       <View style={styles.wrapper}>
         <PerpsErrorState

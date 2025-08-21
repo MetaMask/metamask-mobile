@@ -1,6 +1,5 @@
-import React, { useCallback } from 'react';
+import React from 'react';
 import { View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -17,11 +16,9 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
-import Routes from '../../../../../constants/navigation/Routes';
 import styleSheet from './PerpsErrorState.styles';
 
 export enum PerpsErrorType {
-  NON_EVM_ACCOUNT = 'non_evm_account',
   CONNECTION_FAILED = 'connection_failed',
   NETWORK_ERROR = 'network_error',
   UNKNOWN = 'unknown',
@@ -43,27 +40,9 @@ const PerpsErrorState: React.FC<PerpsErrorStateProps> = ({
   testID = 'perps-error-state',
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation();
-
-  const handleSwitchAccount = useCallback(() => {
-    // Navigate to account selector
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ACCOUNT_SELECTOR,
-    });
-  }, [navigation]);
 
   const getErrorContent = () => {
     switch (errorType) {
-      case PerpsErrorType.NON_EVM_ACCOUNT:
-        return {
-          icon: IconName.Wallet,
-          title: strings('perps.errors.nonEvmAccount.title'),
-          description: strings('perps.errors.nonEvmAccount.description'),
-          primaryAction: {
-            label: strings('perps.errors.nonEvmAccount.switchAccount'),
-            onPress: handleSwitchAccount,
-          },
-        };
       case PerpsErrorType.CONNECTION_FAILED:
         return {
           icon: IconName.Wifi,
