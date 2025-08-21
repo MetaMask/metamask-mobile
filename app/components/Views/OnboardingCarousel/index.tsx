@@ -9,7 +9,7 @@ import {
   View,
   ScrollView,
   StyleSheet,
-  Image as RNImage,
+  Image,
   Dimensions,
   Platform,
 } from 'react-native';
@@ -18,13 +18,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
-import {
-  Button,
-  ButtonVariant,
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
   ButtonSize,
-} from '@metamask/design-system-react-native';
-import { ThemeProvider, Theme } from '@metamask/design-system-twrnc-preset';
-import { baseStyles, onboardingCarouselColors } from '../../../styles/common';
+} from '../../../component-library/components/Buttons/Button';
+import {
+  baseStyles,
+  onboardingCarouselColors,
+  colors as constColors,
+} from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
@@ -167,6 +170,9 @@ const createStyles = (safeAreaInsets: { top: number; bottom: number }) =>
       textAlign: 'center',
       paddingVertical: 16,
     },
+    blackButton: {
+      backgroundColor: constColors.btnBlack,
+    },
   });
 
 const onboarding_carousel_1 = require('../../../images/onboarding-carousel-1.png'); // eslint-disable-line
@@ -178,20 +184,6 @@ const carousel_images = [
   onboarding_carousel_2,
   onboarding_carousel_3,
 ];
-
-// Light theme locked button components
-const LightThemeButtonInner: React.FC<React.ComponentProps<typeof Button>> = ({
-  children,
-  ...props
-}) => <Button {...props}>{children}</Button>;
-
-const LightThemeButton: React.FC<React.ComponentProps<typeof Button>> = (
-  props,
-) => (
-  <ThemeProvider theme={Theme.Light}>
-    <LightThemeButtonInner {...props} />
-  </ThemeProvider>
-);
 
 interface OnboardingCarouselProps {
   navigation: NavigationProp<ParamListBase>;
@@ -355,7 +347,7 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
                       )}
                     </View>
                     <View style={styles.carouselImageWrapper}>
-                      <RNImage
+                      <Image
                         source={carousel_images[index]}
                         style={[styles.carouselImage, styles[imgStyleKey]]}
                         resizeMethod={'auto'}
@@ -397,15 +389,22 @@ export const OnboardingCarousel: React.FC<OnboardingCarouselProps> = ({
           </View>
         </ScrollView>
         <View style={styles.ctas}>
-          <LightThemeButton
-            variant={ButtonVariant.Primary}
+          <Button
+            variant={ButtonVariants.Primary}
+            label={
+              <Text
+                variant={TextVariant.BodyMDMedium}
+                color={constColors.btnBlackText}
+              >
+                {strings('onboarding_carousel.get_started')}
+              </Text>
+            }
             onPress={onPressGetStarted}
-            isFullWidth
+            width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
             testID={OnboardingCarouselSelectorIDs.GET_STARTED_BUTTON_ID}
-          >
-            {strings('onboarding_carousel.get_started')}
-          </LightThemeButton>
+            style={styles.blackButton}
+          />
         </View>
       </OnboardingScreenWithBg>
       <FadeOutOverlay />
