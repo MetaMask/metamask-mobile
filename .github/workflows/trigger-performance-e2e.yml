@@ -79,4 +79,4 @@ jobs:
           echo "Running tests on branch: ${{ github.ref_name }}"
           echo "Device: ${{ env.BROWSERSTACK_DEVICE }}"
           echo "OS Version: ${{ env.BROWSERSTACK_OS_VERSION }}"
-          yarn npx appwright test --project browserstack-android --config appwright/appwright.config.ts
+          npx appwright test --project browserstack-android --config appwright/appwright.config.ts
