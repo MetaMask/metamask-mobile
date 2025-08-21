@@ -14,6 +14,7 @@ import type { CandleData } from '../../types';
 import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
+import { Platform } from 'react-native';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
