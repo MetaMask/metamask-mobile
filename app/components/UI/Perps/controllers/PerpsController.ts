@@ -1027,7 +1027,7 @@ export class PerpsController extends BaseController<
 
       let historicalPortfolioToUse = historicalPortfolio;
       // fallback to the current account total value if possible
-      if (!historicalPortfolio || !historicalPortfolio.accountValue1dAgo) {
+      if (!historicalPortfolio?.accountValue1dAgo) {
         historicalPortfolioToUse = {
           accountValue1dAgo: accountState.totalValue || '0',
           timestamp: 0,
