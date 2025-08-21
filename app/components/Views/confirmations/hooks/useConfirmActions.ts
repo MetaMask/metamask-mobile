@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { ApprovalType } from '@metamask/controller-utils';
@@ -57,30 +57,27 @@ export const useConfirmActions = () => {
   const waitForResult =
     isSignatureReq || (!shouldUseSmartTransaction && !quotes?.length);
 
-  const newTransactionMeta = useMemo(
-    () => cloneDeep(transactionMetadata),
-    [transactionMetadata],
-  );
-
   const handleSmartTransaction = useCallback(() => {
-    if (!selectedGasFeeToken || !newTransactionMeta) {
+    if (!selectedGasFeeToken || !transactionMetadata?.txParams) {
       return;
     }
 
-    newTransactionMeta.batchTransactions = [
+    const updatedTransactionMeta = cloneDeep(transactionMetadata);
+
+    updatedTransactionMeta.batchTransactions = [
       selectedGasFeeToken.transferTransaction,
     ];
-
-    newTransactionMeta.txParams.gas = selectedGasFeeToken.gas;
-    newTransactionMeta.txParams.maxFeePerGas = selectedGasFeeToken.maxFeePerGas;
-
-    newTransactionMeta.txParams.maxPriorityFeePerGas =
+    updatedTransactionMeta.txParams.gas = selectedGasFeeToken.gas;
+    updatedTransactionMeta.txParams.maxFeePerGas =
+      selectedGasFeeToken.maxFeePerGas;
+    updatedTransactionMeta.txParams.maxPriorityFeePerGas =
       selectedGasFeeToken.maxPriorityFeePerGas;
+
     updateTransaction(
-      newTransactionMeta,
+      updatedTransactionMeta,
       'Mobile:UseConfirmActions - batchTransactions and gas properties updated',
     );
-  }, [selectedGasFeeToken, newTransactionMeta]);
+  }, [selectedGasFeeToken, transactionMetadata]);
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false) => {
