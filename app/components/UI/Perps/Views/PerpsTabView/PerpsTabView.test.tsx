@@ -502,6 +502,69 @@ describe('PerpsTabView', () => {
 
       consoleSpy.mockRestore();
     });
+
+    it('should render connection error state when connection fails', () => {
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        error: 'CONNECTION_FAILED',
+        connect: jest.fn(),
+        resetError: jest.fn(),
+      });
+
+      render(<PerpsTabView />);
+
+      // Should show connection failed error
+      expect(
+        screen.getByText(strings('perps.errors.connectionFailed.title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.errors.connectionFailed.description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('should render network error state when network error occurs', () => {
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        error: 'NETWORK_ERROR',
+        connect: jest.fn(),
+        resetError: jest.fn(),
+      });
+
+      render(<PerpsTabView />);
+
+      // Should show network error
+      expect(
+        screen.getByText(strings('perps.errors.networkError.title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.errors.networkError.description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('should call connect when retry button is pressed on error', () => {
+      const mockConnect = jest.fn();
+      const mockResetError = jest.fn();
+
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        error: 'CONNECTION_FAILED',
+        connect: mockConnect,
+        resetError: mockResetError,
+      });
+
+      render(<PerpsTabView />);
+
+      const retryButton = screen.getByText(
+        strings('perps.errors.connectionFailed.retry'),
+      );
+      fireEvent.press(retryButton);
+
+      expect(mockResetError).toHaveBeenCalledTimes(1);
+      expect(mockConnect).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Accessibility', () => {

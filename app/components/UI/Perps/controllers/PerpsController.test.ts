@@ -1162,6 +1162,43 @@ describe('PerpsController', () => {
       });
     });
 
+    it('should throw error when no EVM account found in depositWithConfirmation', async () => {
+      withController(async ({ controller }) => {
+        // Arrange
+        const mockDepositRoute: AssetRoute = {
+          assetId:
+            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
+          chainId: 'eip155:42161' as CaipChainId,
+          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
+        };
+
+        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
+          mockDepositRoute,
+        ]);
+        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
+
+        // Mock AccountTreeController to return no EVM accounts
+        const Engine = jest.requireMock('../../../../core/Engine');
+        Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
+          [
+            {
+              address: 'solana:abc123',
+              id: 'solana-account',
+              type: 'solana:data-account',
+              metadata: { name: 'Solana Account' },
+            },
+          ],
+        );
+
+        await controller.initializeProviders();
+
+        // Act & Assert
+        await expect(controller.depositWithConfirmation()).rejects.toThrow(
+          'No EVM-compatible account found in selected account group',
+        );
+      });
+    });
+
     it('should handle user cancellation of deposit transaction', async () => {
       withController(async ({ controller }) => {
         // Arrange
