@@ -379,20 +379,26 @@
     "positions": [],
     "accountState": null,
     "pendingOrders": [],
-    "depositStatus": "idle",
-    "currentDepositTxHash": null,
-    "depositError": null,
-    "activeDepositTransactions": {},
+    "depositInProgress": false,
+    "lastDepositResult": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
-    "isFirstTimeUser": true
+    "isFirstTimeUser": {
+      "testnet": true,
+      "mainnet": true
+    },
+    "hasPlacedFirstOrder": {
+      "testnet": false,
+      "mainnet": false
+    }
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
     "remoteFeatureFlags": {}
   },
   "SeedlessOnboardingController": {
+    "isSeedlessOnboardingUserAuthenticated": false,
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {

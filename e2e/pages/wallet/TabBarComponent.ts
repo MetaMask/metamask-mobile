@@ -24,33 +24,44 @@ class TabBarComponent {
   }
 
   async tapBrowser(): Promise<void> {
+    await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarBrowserButton, {
       elemDescription: 'Tab Bar - Browser Button',
     });
+    await device.enableSynchronization();
   }
 
   async tapWallet(): Promise<void> {
+    await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarWalletButton, {
       elemDescription: 'Tab Bar - Wallet Button',
     });
+    await device.enableSynchronization();
   }
 
   async tapActions(): Promise<void> {
+    await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarActionButton, {
       elemDescription: 'Tab Bar - Actions Button',
     });
+    await device.enableSynchronization();
   }
 
   async tapSettings(): Promise<void> {
+    await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarSettingButton, {
       elemDescription: 'Tab Bar - Settings Button',
     });
+    await device.enableSynchronization();
   }
 
   async tapActivity(): Promise<void> {
+    await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarActivityButton, {
       elemDescription: 'Tab Bar - Activity Button',
+      delay: 2500,
     });
+    await device.enableSynchronization();
   }
 }
 

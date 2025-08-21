@@ -12,6 +12,8 @@ import {
   SolMethod,
   CaipChainId,
   AnyAccountType,
+  TrxAccountType,
+  TrxScope,
 } from '@metamask/keyring-api';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import {
@@ -63,6 +65,9 @@ function getAccountTypeScopes(accountType: KeyringAccountType): CaipChainId[] {
 
     // Solana account types
     [SolAccountType.DataAccount]: [SolScope.Mainnet],
+
+    // Tron account types
+    [TrxAccountType.Eoa]: [TrxScope.Mainnet],
 
     // Generic account type
     //
@@ -284,6 +289,7 @@ export const internalSolanaAccount1: InternalAccount = {
     mockSolanaAddress,
     'Solana Account',
     KeyringTypes.snap,
+    SolAccountType.DataAccount,
   ),
   options: {
     imported: true,

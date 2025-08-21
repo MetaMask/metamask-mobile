@@ -60,6 +60,8 @@ import { selectChainId } from '../../../selectors/networkController';
 const mockNetworkEnablementController = {
   enableNetwork: jest.fn(),
   disableNetwork: jest.fn(),
+  isNetworkEnabled: jest.fn(),
+  hasOneEnabledNetwork: jest.fn(),
 };
 
 describe('useNetworkEnablement', () => {
@@ -124,6 +126,8 @@ describe('useNetworkEnablement', () => {
       expect(result.current).toHaveProperty('enableNetwork');
       expect(result.current).toHaveProperty('disableNetwork');
       expect(result.current).toHaveProperty('toggleNetwork');
+      expect(result.current).toHaveProperty('isNetworkEnabled');
+      expect(result.current).toHaveProperty('hasOneEnabledNetwork');
     });
 
     it('returns functions for network operations', () => {
@@ -132,6 +136,8 @@ describe('useNetworkEnablement', () => {
       expect(typeof result.current.enableNetwork).toBe('function');
       expect(typeof result.current.disableNetwork).toBe('function');
       expect(typeof result.current.toggleNetwork).toBe('function');
+      expect(typeof result.current.isNetworkEnabled).toBe('function');
+      expect(typeof result.current.hasOneEnabledNetwork).toBe('boolean');
     });
 
     it('calculates namespace correctly', () => {
@@ -147,6 +153,87 @@ describe('useNetworkEnablement', () => {
         '0x1': true,
         '0x89': false,
       });
+    });
+  });
+
+  describe('hasOneEnabledNetwork', () => {
+    it('returns true when exactly one network is enabled', () => {
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      expect(result.current.hasOneEnabledNetwork).toBe(true);
+    });
+
+    it('returns false when no networks are enabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        const selectorStr = selector.toString();
+        if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
+          return {
+            eip155: {
+              '0x1': false,
+              '0x89': false,
+            },
+          };
+        }
+        if (selectorStr.includes('selectChainId')) {
+          return '0x1';
+        }
+        if (selectorStr.includes('selectIsEvmNetworkSelected')) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      expect(result.current.hasOneEnabledNetwork).toBe(false);
+    });
+
+    it('returns false when multiple networks are enabled', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        const selectorStr = selector.toString();
+        if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
+          return {
+            eip155: {
+              '0x1': true,
+              '0x89': true,
+              '0x38': true,
+            },
+          };
+        }
+        if (selectorStr.includes('selectChainId')) {
+          return '0x1';
+        }
+        if (selectorStr.includes('selectIsEvmNetworkSelected')) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      expect(result.current.hasOneEnabledNetwork).toBe(false);
+    });
+
+    it('returns false when enabled networks object is empty', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        const selectorStr = selector.toString();
+        if (selectorStr.includes('selectEnabledNetworksByNamespace')) {
+          return {
+            eip155: {},
+          };
+        }
+        if (selectorStr.includes('selectChainId')) {
+          return '0x1';
+        }
+        if (selectorStr.includes('selectIsEvmNetworkSelected')) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() => useNetworkEnablement());
+
+      expect(result.current.hasOneEnabledNetwork).toBe(false);
     });
   });
 
@@ -358,6 +445,7 @@ describe('useNetworkEnablement', () => {
         disableNetwork: expect.any(Function),
         toggleNetwork: expect.any(Function),
         isNetworkEnabled: expect.any(Function),
+        hasOneEnabledNetwork: true,
       });
     });
   });

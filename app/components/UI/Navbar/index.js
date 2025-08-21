@@ -43,7 +43,9 @@ import Icon, {
   IconColor,
 } from '../../../component-library/components/Icons/Icon';
 import { AddContactViewSelectorsIDs } from '../../../../e2e/selectors/Settings/Contacts/AddContactView.selectors';
-import HeaderBase from '../../../component-library/components/HeaderBase';
+import HeaderBase, {
+  HeaderBaseVariant,
+} from '../../../component-library/components/HeaderBase';
 import AddressCopy from '../AddressCopy';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
 import { createAccountSelectorNavDetails } from '../../../components/Views/AccountSelector';
@@ -1047,90 +1049,92 @@ export function getWalletNavbarOptions(
     navigation.navigate(Routes.CARD.ROOT);
   };
 
-  // Action buttons for right side
-  const actionButtons = (
-    <View style={innerStyles.actionButtonsContainer}>
-      <View testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}>
-        <AddressCopy
-          account={selectedInternalAccount}
-          hitSlop={innerStyles.touchAreaSlop}
-        />
-      </View>
-      {isCardholder ? (
-        <CardButton
-          onPress={handleCardPress}
-          touchAreaSlop={innerStyles.touchAreaSlop}
-        />
-      ) : null}
-      {isNotificationsFeatureEnabled() && (
-        <BadgeWrapper
-          position={BadgeWrapperPosition.TopRight}
-          positionAnchorShape={BadgeWrapperPositionAnchorShape.Circular}
-          badge={
-            isNotificationEnabled && unreadNotificationCount > 0 ? (
-              <BadgeStatus status={BadgeStatusStatus.Active} />
-            ) : null
-          }
-        >
-          <ButtonIcon
-            iconProps={{ color: MMDSIconColor.Default }}
-            onPress={handleNotificationOnPress}
-            iconName={IconName.Notification}
-            size={ButtonIconSize.Lg}
-            testID={WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON}
-            hitSlop={innerStyles.touchAreaSlop}
-          />
-        </BadgeWrapper>
-      )}
-    </View>
-  );
-
-  // Account picker component
-  const accountPicker = (
-    <PickerAccount
-      ref={accountActionsRef}
-      accountName={accountName}
-      onPress={() => {
-        trace({
-          name: TraceName.AccountList,
-          tags: getTraceTags(store.getState()),
-          op: TraceOperation.AccountList,
-        });
-        navigation.navigate(...createAccountSelectorNavDetails({}));
-      }}
-      testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
-      hitSlop={innerStyles.touchAreaSlop}
-    />
-  );
-
-  // Network picker component
-  const networkPicker = (
-    <PickerNetwork
-      onPress={onPressTitle}
-      label={networkName}
-      imageSource={networkImageSource}
-      testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
-      hideNetworkName
-      hitSlop={innerStyles.touchAreaSlop}
-      style={innerStyles.networkPickerStyle}
-    />
-  );
-
   return {
     header: () => (
       <HeaderBase
         includesTopInset
+        variant={
+          isFeatureFlagEnabled
+            ? HeaderBaseVariant.Display
+            : HeaderBaseVariant.Compact
+        }
         style={innerStyles.headerContainer}
         startAccessory={
-          <View style={innerStyles.startAccessoryContainer}>
-            {!isFeatureFlagEnabled ? networkPicker : accountPicker}
-          </View>
+          !isFeatureFlagEnabled && (
+            <View style={innerStyles.startAccessoryContainer}>
+              <PickerNetwork
+                onPress={onPressTitle}
+                label={networkName}
+                imageSource={networkImageSource}
+                testID={WalletViewSelectorsIDs.NAVBAR_NETWORK_BUTTON}
+                hideNetworkName
+                hitSlop={innerStyles.touchAreaSlop}
+                style={innerStyles.networkPickerStyle}
+              />
+            </View>
+          )
         }
         endAccessory={
-          <View style={innerStyles.endAccessoryContainer}>{actionButtons}</View>
+          <View style={innerStyles.endAccessoryContainer}>
+            {
+              <View style={innerStyles.actionButtonsContainer}>
+                <View
+                  testID={WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON}
+                >
+                  <AddressCopy
+                    account={selectedInternalAccount}
+                    hitSlop={innerStyles.touchAreaSlop}
+                  />
+                </View>
+                {isCardholder ? (
+                  <CardButton
+                    onPress={handleCardPress}
+                    touchAreaSlop={innerStyles.touchAreaSlop}
+                  />
+                ) : null}
+                {isNotificationsFeatureEnabled() && (
+                  <BadgeWrapper
+                    position={BadgeWrapperPosition.TopRight}
+                    positionAnchorShape={
+                      BadgeWrapperPositionAnchorShape.Circular
+                    }
+                    badge={
+                      isNotificationEnabled && unreadNotificationCount > 0 ? (
+                        <BadgeStatus status={BadgeStatusStatus.Active} />
+                      ) : null
+                    }
+                  >
+                    <ButtonIcon
+                      iconProps={{ color: MMDSIconColor.Default }}
+                      onPress={handleNotificationOnPress}
+                      iconName={IconName.Notification}
+                      size={ButtonIconSize.Lg}
+                      testID={
+                        WalletViewSelectorsIDs.WALLET_NOTIFICATIONS_BUTTON
+                      }
+                      hitSlop={innerStyles.touchAreaSlop}
+                    />
+                  </BadgeWrapper>
+                )}
+              </View>
+            }
+          </View>
         }
       >
-        {!isFeatureFlagEnabled ? accountPicker : null}
+        <PickerAccount
+          ref={accountActionsRef}
+          accountName={accountName}
+          onPress={() => {
+            trace({
+              name: TraceName.AccountList,
+              tags: getTraceTags(store.getState()),
+              op: TraceOperation.AccountList,
+            });
+            navigation.navigate(...createAccountSelectorNavDetails({}));
+          }}
+          testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+          hitSlop={innerStyles.touchAreaSlop}
+        />
       </HeaderBase>
     ),
   };
