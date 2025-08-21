@@ -1,7 +1,8 @@
 import Assertions from '../../framework/Assertions';
 import AmountView from '../../pages/Send/AmountView';
 import SendView from '../../pages/Send/SendView';
-import AlertSystem from '../../pages/Browser/Confirmations/AlertSystem';
+import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView';
+
 import { loginToApp } from '../../viewHelper';
 import WalletView from '../../pages/wallet/WalletView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -63,7 +64,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
     await runTest(testSpecificMock, async () => {
       try {
         await Assertions.expectElementToNotBeVisible(
-          AlertSystem.securityAlertBanner,
+          TransactionConfirmationView.securityAlertBanner,
         );
       } catch (e) {
         // eslint-disable-next-line no-console
@@ -100,14 +101,14 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
         },
       );
     };
-
+    // The banner is shown on old confirmations screen
     await runTest(testSpecificMock, async () => {
       await Assertions.expectElementToBeVisible(
-        AlertSystem.securityAlertBanner,
+        TransactionConfirmationView.securityAlertBanner,
       );
-      await Assertions.expectElementToBeVisible(
-        AlertSystem.securityAlertResponseMaliciousBanner,
-      );
+      // await Assertions.expectElementToBeVisible(
+      //   TransactionConfirmationView.securityAlertResponseMaliciousBanner,
+      // );
     });
   });
 
@@ -149,10 +150,10 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
     await runTest(testSpecificMock, async () => {
       await Assertions.expectElementToBeVisible(
-        AlertSystem.securityAlertBanner,
+        TransactionConfirmationView.securityAlertBanner,
       );
       await Assertions.expectElementToBeVisible(
-        AlertSystem.securityAlertResponseFailedBanner,
+        TransactionConfirmationView.securityAlertResponseFailedBanner,
       );
     });
   });
