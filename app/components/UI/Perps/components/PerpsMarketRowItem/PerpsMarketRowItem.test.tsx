@@ -417,21 +417,21 @@ describe('PerpsMarketRowItem', () => {
       const { rerender } = render(
         <PerpsMarketRowItem market={mockMarketData} />,
       );
-      expect(screen.getByText('$5.50B')).toBeOnTheScreen(); // Now shows 2 decimals
+      expect(screen.getByText('$5.50B')).toBeOnTheScreen(); // B shows 2 decimals
 
       // Test millions (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 750000000 },
       });
       rerender(<PerpsMarketRowItem market={mockMarketData} />);
-      expect(screen.getByText('$750.00M')).toBeOnTheScreen(); // Shows 2 decimals
+      expect(screen.getByText('$750.00M')).toBeOnTheScreen(); // M shows 2 decimals
 
-      // Test thousands (2 decimals with formatVolume)
+      // Test thousands (0 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({
         BTC: { price: '50000', volume24h: 50000 },
       });
       rerender(<PerpsMarketRowItem market={mockMarketData} />);
-      expect(screen.getByText('$50.00K')).toBeOnTheScreen(); // Shows 2 decimals
+      expect(screen.getByText('$50K')).toBeOnTheScreen(); // K shows no decimals
 
       // Test small values (2 decimals with formatVolume)
       mockUsePerpsLivePrices.mockReturnValue({

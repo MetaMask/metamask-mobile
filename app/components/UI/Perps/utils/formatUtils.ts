@@ -160,13 +160,16 @@ export const formatLargeNumber = (
 /**
  * Formats volume with appropriate magnitude suffixes
  * @param volume - Raw volume value
- * @param decimals - Number of decimal places to show (default 2)
- * @returns Format: "$X.XXB" / "$X.XXM" / "$X.XXK" / "$X.XX"
+ * @param decimals - Number of decimal places to show (optional, auto-determined by default)
+ * @returns Format: "$XB" / "$X.XXM" / "$XK" / "$X.XX"
  * @example formatVolume(1234567890) => "$1.23B"
  * @example formatVolume(12345678) => "$12.35M"
- * @example formatVolume(123456) => "$123.46K"
+ * @example formatVolume(123456) => "$123K"
  */
-export const formatVolume = (volume: string | number, decimals = 2): string => {
+export const formatVolume = (
+  volume: string | number,
+  decimals?: number,
+): string => {
   const num = typeof volume === 'string' ? parseFloat(volume) : volume;
 
   // Handle invalid inputs - return fallback display for NaN/Infinity
@@ -174,9 +177,31 @@ export const formatVolume = (volume: string | number, decimals = 2): string => {
     return '$---';
   }
 
+  const absNum = Math.abs(num);
+
+  // Auto-determine decimals based on magnitude if not specified
+  let autoDecimals = decimals;
+  if (decimals === undefined) {
+    if (absNum >= 1000000000) {
+      // Billions: 2 decimals
+      autoDecimals = 2;
+    } else if (absNum >= 1000000) {
+      // Millions: 2 decimals
+      autoDecimals = 2;
+    } else if (absNum >= 1000) {
+      // Thousands: 0 decimals
+      autoDecimals = 0;
+    } else {
+      // Under 1000: 2 decimals
+      autoDecimals = 2;
+    }
+  } else {
+    autoDecimals = decimals;
+  }
+
   const formatted = formatLargeNumber(volume, {
-    decimals,
-    rawDecimals: decimals,
+    decimals: autoDecimals,
+    rawDecimals: autoDecimals,
   });
 
   // Handle negative values - ensure dollar sign comes after negative sign

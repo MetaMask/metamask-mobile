@@ -633,7 +633,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$75.00K');
+      expect(result).toBe('$75K'); // K values have no decimals
     });
 
     it('formats small volume with two decimal places', () => {
@@ -677,7 +677,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$1.00K');
+      expect(result).toBe('$1K'); // K values have no decimals
     });
 
     it('formats decimal billions correctly', () => {
@@ -710,7 +710,7 @@ describe('marketDataTransform', () => {
       const result = formatVolume(volume);
 
       // Assert
-      expect(result).toBe('$12.35K'); // Now with 2 decimals
+      expect(result).toBe('$12K'); // K values have no decimals
     });
 
     it('handles very large numbers correctly', () => {

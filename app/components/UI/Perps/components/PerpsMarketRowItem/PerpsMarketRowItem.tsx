@@ -78,9 +78,9 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
     if (livePrice.volume24h !== undefined) {
       const volume = livePrice.volume24h;
 
-      // Use formatVolume with 2 decimals for consistent display
+      // Use formatVolume with auto-determined decimals based on magnitude
       if (volume > 0) {
-        updatedMarket.volume = formatVolume(volume, 2);
+        updatedMarket.volume = formatVolume(volume);
       } else {
         // Only show $0 if volume is truly 0
         updatedMarket.volume = '$0.00';
