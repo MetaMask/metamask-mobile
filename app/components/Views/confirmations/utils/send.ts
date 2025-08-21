@@ -12,11 +12,11 @@ import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
-import { sendMultichainTransactionForReview } from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
+import { sendMultichainTransactionForReview } from './multichain-snaps';
 
 export const isSendRedesignEnabled = () =>
   process.env.MM_SEND_REDESIGN_ENABLED === 'true';
