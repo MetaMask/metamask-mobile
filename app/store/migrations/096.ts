@@ -18,7 +18,7 @@ import { CONTROLLER_LIST } from '../persistConfig/constants';
  * @returns The updated state with engine data cleared from redux-persist.
  */
 export default async function migrate(state: unknown) {
-  if (!ensureValidState(state, 95)) {
+  if (!ensureValidState(state, 96)) {
     return state;
   }
 
@@ -51,7 +51,7 @@ export default async function migrate(state: unknown) {
           failedControllers++;
           captureException(
             new Error(
-              `Migration 95: Failed to migrate ${controllerName} to individual storage: ${String(
+              `Migration 96: Failed to migrate ${controllerName} to individual storage: ${String(
                 error,
               )}`,
             ),
@@ -76,7 +76,7 @@ export default async function migrate(state: unknown) {
       if (failedControllers > 0) {
         captureException(
           new Error(
-            `Migration 95: ${failedControllers} controllers failed to migrate, preserving their state in redux-persist`,
+            `Migration 96: ${failedControllers} controllers failed to migrate, preserving their state in redux-persist`,
           ),
         );
       }
@@ -88,7 +88,7 @@ export default async function migrate(state: unknown) {
   } catch (error) {
     captureException(
       new Error(
-        `Migration 95: Failed to migrate from redux-persist to individual controller storage: ${String(
+        `Migration 96: Failed to migrate from redux-persist to individual controller storage: ${String(
           error,
         )}`,
       ),
