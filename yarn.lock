@@ -6235,8 +6235,10 @@
     "@toruslabs/http-helpers" "^8.1.1"
     bn.js "^5.2.1"
 
-"@metamask/transaction-controller@file:.yalc/@metamask/transaction-controller":
-  version "59.2.0"
+"@metamask/transaction-controller@npm:@metamask-previews/transaction-controller@60.0.0-preview-f108d6a":
+  version "60.0.0-preview-f108d6a"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/transaction-controller/-/transaction-controller-60.0.0-preview-f108d6a.tgz#e442ac554adeeda532accebfec663471e7992531"
+  integrity sha512-1x/HF7njAaoI9pc65iW7tWHF5ign6y4OXyj2fqZ7NEYEqKhZeSWyXwvQMTFUu+j7U/KvpdBeZp91WcgQKDiGpw==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
     "@ethereumjs/tx" "^5.4.0"
@@ -6245,7 +6247,7 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@ethersproject/wallet" "^5.7.0"
-    "@metamask/base-controller" "^8.1.0"
+    "@metamask/base-controller" "^8.2.0"
     "@metamask/controller-utils" "^11.12.0"
     "@metamask/eth-query" "^4.0.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
