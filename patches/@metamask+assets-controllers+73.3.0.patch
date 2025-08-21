@@ -1,3 +1,5 @@
+diff --git a/node_modules/@metamask/assets-controllers/dist/NftController.cjs b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
+index 3e7b205..00ad856 100644
 --- a/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 +++ b/node_modules/@metamask/assets-controllers/dist/NftController.cjs
 @@ -13,7 +13,8 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
@@ -159,3 +161,35 @@ index 4a81bbc..6cd5476 100644
      collection?: Collection;
      address?: string;
      attributes?: Attributes[];
+diff --git a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
+index 2b0f164..282b0e0 100644
+--- a/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
++++ b/node_modules/@metamask/assets-controllers/dist/TokenBalancesController.cjs
+@@ -252,7 +252,7 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+                     if (chainTokens?.[account]) {
+                         Object.values(chainTokens[account]).forEach((token) => {
+                             var _a, _b;
+-                            const tokenAddress = token.address;
++                            const tokenAddress = token.address.toLowerCase();
+                             ((_b = ((_a = d.tokenBalances)[account] ?? (_a[account] = {})))[chainId] ?? (_b[chainId] = {}))[tokenAddress] = '0x0';
+                         });
+                     }
+@@ -261,7 +261,7 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+                     if (detectedChainTokens?.[account]) {
+                         Object.values(detectedChainTokens[account]).forEach((token) => {
+                             var _a, _b;
+-                            const tokenAddress = token.address;
++                            const tokenAddress = token.address.toLowerCase();
+                             ((_b = ((_a = d.tokenBalances)[account] ?? (_a[account] = {})))[chainId] ?? (_b[chainId] = {}))[tokenAddress] = '0x0';
+                         });
+                     }
+@@ -271,8 +271,7 @@ class TokenBalancesController extends (0, polling_controller_1.StaticIntervalPol
+             aggregated.forEach(({ success, value, account, token, chainId }) => {
+                 var _a, _b;
+                 if (success && value !== undefined) {
+-                    ((_b = ((_a = d.tokenBalances)[account] ?? (_a[account] = {})))[chainId] ?? (_b[chainId] = {}))[token] =
+-                        (0, controller_utils_1.toHex)(value);
++                    ((_b = ((_a = d.tokenBalances)[account] ?? (_a[account] = {})))[chainId] ?? (_b[chainId] = {}))[token.toLowerCase()] = (0, controller_utils_1.toHex)(value);
+                 }
+             });
+         });
