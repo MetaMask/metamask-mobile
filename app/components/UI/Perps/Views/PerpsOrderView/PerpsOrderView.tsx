@@ -650,7 +650,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={orderForm.amount}
-          maxAmount={availableBalance}
+          maxAmount={availableBalance * orderForm.leverage}
           showWarning={availableBalance === 0}
           onPress={handleAmountPress}
           isActive={isInputFocused}
@@ -663,7 +663,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
               value={parseFloat(orderForm.amount || '0')}
               onValueChange={(value) => setAmount(Math.floor(value).toString())}
               minimumValue={0}
-              maximumValue={availableBalance}
+              maximumValue={availableBalance * orderForm.leverage}
               step={1}
               showPercentageLabels
             />
