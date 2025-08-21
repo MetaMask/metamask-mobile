@@ -639,6 +639,10 @@
     "node": "^20.18.0",
     "yarn": "^1.22.22"
   },
+  "optionalDependencies": {
+    "@img/sharp-linux-x64": "^0.34.3",
+    "@img/sharp-libvips-linux-x64": "^1.2.1"
+  },
   "lavamoat": {
     "allowScripts": {
       "ethereumjs-abi>ethereumjs-util>ethereum-cryptography>keccak": true,
