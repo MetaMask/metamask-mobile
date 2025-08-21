@@ -89,7 +89,8 @@ if [[ "$IS_PR" == "true" ]]; then
         add_list=$(git diff --diff-filter=A --name-only "$base_ref"...HEAD 2>/dev/null || true)
         while IFS= read -r added_file; do
             if [[ -n "$added_file" ]] && [[ "$added_file" =~ ^e2e/specs/.*\.spec\.(js|ts)$ ]]; then
-                new_tests+=("$added_file")
+                # Normalize to match the leading "./" from find output
+                new_tests+=("./$added_file")
             fi
         done < <(echo "$add_list")
         if [ ${#new_tests[@]} -gt 0 ]; then
