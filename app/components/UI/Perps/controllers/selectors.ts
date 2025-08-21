@@ -27,3 +27,12 @@ export const selectHasPlacedFirstOrder = (
   }
   return state?.hasPlacedFirstOrder?.mainnet ?? false;
 };
+
+/**
+ * Select the extended account state containing historical data
+ * @param state - PerpsController state
+ * @returns extended account state or null if not available
+ */
+export const selectExtendedAccountState = (
+  state: PerpsControllerState | undefined,
+): { accountValue1dAgo?: string } | null => state?.extendedAccountState ?? null;

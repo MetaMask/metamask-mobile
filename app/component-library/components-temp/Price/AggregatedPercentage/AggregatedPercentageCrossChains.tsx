@@ -19,7 +19,9 @@ import {
 import { getFormattedAmountChange, getPercentageTextColor } from './utils';
 import { AggregatedPercentageCrossChainsProps } from './AggregatedPercentageCrossChains.types';
 import { toChecksumAddress } from '../../../../util/address';
-
+import { usePerpsBalance } from '../../../../components/UI/Perps/hooks/usePerpsBalance';
+import { selectPerpsEnabledFlag } from '../../../../components/UI/Perps';
+import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 export const getCalculatedTokenAmount1dAgo = (
   tokenFiatBalance: number,
   tokenPricePercentChange1dAgo: number,
@@ -39,6 +41,10 @@ const AggregatedPercentageCrossChains = ({
   const crossChainMarketData: MarketDataMapping = useSelector(
     selectTokenMarketData,
   );
+  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  // Get Perps balance data in display currency
+  const { perpsBalance, perpsBalance1dAgo } = usePerpsBalance();
 
   const totalFiat1dAgoCrossChains = useMemo(() => {
     const getPerChainTotalFiat1dAgo = (
@@ -94,14 +100,22 @@ const AggregatedPercentageCrossChains = ({
     );
   }, [tokenFiatBalancesCrossChains, crossChainMarketData]);
 
-  const totalCrossChainBalance: number = Number(totalFiatCrossChains);
-  const crossChainTotalBalance1dAgo = totalFiat1dAgoCrossChains;
+  let totalCrossChainBalance: number = Number(totalFiatCrossChains);
+  let crossChainTotalBalance1dAgo = totalFiat1dAgoCrossChains;
+
+  // Include Perps balances in total calculations
+  if (isPerpsEnabled && isEvmSelected) {
+    totalCrossChainBalance += perpsBalance;
+    crossChainTotalBalance1dAgo += perpsBalance1dAgo;
+  }
 
   const amountChangeCrossChains =
     totalCrossChainBalance - crossChainTotalBalance1dAgo;
 
   const percentageChangeCrossChains =
-    (amountChangeCrossChains / crossChainTotalBalance1dAgo) * 100 || 0;
+    crossChainTotalBalance1dAgo > 0
+      ? (amountChangeCrossChains / crossChainTotalBalance1dAgo) * 100
+      : 0;
 
   const validFormattedPercentChange = `(${
     percentageChangeCrossChains >= 0 ? '+' : ''

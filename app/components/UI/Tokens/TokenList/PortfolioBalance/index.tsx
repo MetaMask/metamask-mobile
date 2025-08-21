@@ -15,6 +15,12 @@ import { useSelectedAccountMultichainBalances } from '../../../../hooks/useMulti
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import NonEvmAggregatedPercentage from '../../../../../component-library/components-temp/Price/AggregatedPercentage/NonEvmAggregatedPercentage';
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
+import { formatWithThreshold } from '../../../../../util/assets';
+import I18n from '../../../../../../locales/i18n';
+import { usePerpsBalance } from '../../../Perps/hooks/usePerpsBalance';
+import { BigNumber } from 'bignumber.js';
+import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { selectPerpsEnabledFlag } from '../../../Perps/selectors/featureFlags';
 
 export const PortfolioBalance = React.memo(() => {
   const { PreferencesController } = Engine.context;
@@ -25,6 +31,10 @@ export const PortfolioBalance = React.memo(() => {
   const { selectedAccountMultichainBalance } =
     useSelectedAccountMultichainBalances();
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
+  const selectedCurrency = useSelector(selectCurrentCurrency);
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  // Get Perps balance in display currency
+  const { perpsBalance } = usePerpsBalance();
 
   const renderAggregatedPercentage = () => {
     if (
@@ -57,10 +67,31 @@ export const PortfolioBalance = React.memo(() => {
     [PreferencesController],
   );
 
+  const accountMultichainFiatBalance =
+    selectedAccountMultichainBalance?.totalFiatBalance || 0;
+  const accountMultichainDisplayBalance =
+    selectedAccountMultichainBalance?.displayBalance || 0;
+  let combinedTotalBalance = accountMultichainFiatBalance;
+  // Use the raw accountMultichainBalance balance in fiat to add to the perps balance if enabled
+  if (isPerpsEnabled && isEvmSelected) {
+    combinedTotalBalance = BigNumber(combinedTotalBalance)
+      .plus(perpsBalance)
+      .toNumber();
+  }
+
+  // Format combined display balance
+  const combinedDisplayBalance =
+    combinedTotalBalance > 0
+      ? formatWithThreshold(combinedTotalBalance, 0, I18n.locale, {
+          style: 'currency',
+          currency: selectedCurrency,
+        })
+      : accountMultichainDisplayBalance;
+
   return (
     <View style={styles.portfolioBalance}>
       <View>
-        {selectedAccountMultichainBalance?.displayBalance ? (
+        {accountMultichainDisplayBalance ? (
           <TouchableOpacity
             onPress={() => toggleIsBalanceAndAssetsHidden(!privacyMode)}
             testID="balance-container"
@@ -72,7 +103,7 @@ export const PortfolioBalance = React.memo(() => {
                 testID={WalletViewSelectorsIDs.TOTAL_BALANCE_TEXT}
                 variant={TextVariant.DisplayLG}
               >
-                {selectedAccountMultichainBalance.displayBalance}
+                {combinedDisplayBalance}
               </SensitiveText>
             </View>
 
