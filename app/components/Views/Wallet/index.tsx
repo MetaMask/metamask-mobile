@@ -707,16 +707,11 @@ const Wallet = ({
   useEffect(
     () => {
       requestAnimationFrame(async () => {
-        const { AccountTrackerController } = Engine.context;
+        const { TokenBalancesController } = Engine.context;
 
-        const networkClientIDs = Object.values(evmNetworkConfigurations)
-          .map(
-            ({ defaultRpcEndpointIndex, rpcEndpoints }) =>
-              rpcEndpoints[defaultRpcEndpointIndex].networkClientId,
-          )
-          .filter((c) => Boolean(c));
-
-        AccountTrackerController.refresh(networkClientIDs);
+        TokenBalancesController.updateBalances({
+          chainIds: Object.keys(evmNetworkConfigurations) as Hex[],
+        });
       });
     },
     /* eslint-disable-next-line */

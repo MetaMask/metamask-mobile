@@ -241,7 +241,6 @@ class NotificationManager {
         // Detect assets for ERC721 txs
         // right after a transaction was confirmed
         const pollPromises = [
-          AccountTrackerController.refresh([networkClientId]),
           TokenBalancesController.updateBalancesByChainId({
             chainId: transactionMeta.chainId,
           }),
@@ -445,11 +444,7 @@ class NotificationManager {
    */
   gotIncomingTransaction = async (incomingTransactions) => {
     try {
-      const {
-        AccountTrackerController,
-        AccountsController,
-        NetworkController,
-      } = Engine.context;
+      const { TokenBalancesController, AccountsController } = Engine.context;
 
       const selectedInternalAccount = AccountsController.getSelectedAccount();
 
@@ -498,11 +493,10 @@ class NotificationManager {
 
       const txChainId = filteredTransactions[0]?.chainId;
       if (txChainId) {
-        const networkClientId =
-          NetworkController.findNetworkClientIdByChainId(txChainId);
-
         // Update balance upon detecting a new incoming transaction
-        AccountTrackerController.refresh([networkClientId]);
+        TokenBalancesController.updateBalances({
+          chainIds: [txChainId],
+        });
       }
     } catch (error) {
       Logger.log(
