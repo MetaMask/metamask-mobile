@@ -116,6 +116,12 @@ export const startMockServer = async (
     .forGet('/health-check')
     .thenReply(200, 'Mock server is running');
 
+  await mockServer
+    .forGet(
+      /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\d+)?\/favicon\.ico$/,
+    )
+    .thenReply(200, 'favicon.ico');
+
   // Apply test-specific mocks first (takes precedence)
   if (testSpecificMock) {
     logger.info('Applying testSpecificMock function (takes precedence)');
