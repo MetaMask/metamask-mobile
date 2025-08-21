@@ -37,8 +37,9 @@ export function EditAmount({
     hasAlert,
   });
 
-  const { balanceFiat } = useTransactionPayToken();
+  const { payToken } = useTransactionPayToken();
   const { amountUnformatted, updateTokenAmount } = useTokenAmount();
+  const { balanceFiat } = payToken ?? {};
 
   const [amountHuman, setAmountHuman] = useState<string>(
     amountUnformatted ?? '0',

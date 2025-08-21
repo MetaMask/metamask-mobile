@@ -95,15 +95,6 @@ jest.mock('react-native-branch', () => ({
   getLatestReferringParams: jest.fn(),
 }));
 
-// Mock the PerpsCandlestickChart component that uses react-native-wagmi-charts
-jest.mock(
-  '../../../components/UI/Perps/components/PerpsCandlestickChart/PerpsCandlectickChart',
-  () => ({
-    __esModule: true,
-    default: () => null,
-  }),
-);
-
 jest.mock('../../../core/AppStateEventListener', () => ({
   AppStateEventProcessor: {
     setCurrentDeeplink: jest.fn(),
