@@ -29,7 +29,7 @@ export const getEvmBalance = ({
   contractBalances,
   from,
 }: GetEvmBalanceArgs) => {
-  if (!asset) {
+  if (!asset || !from) {
     return '0';
   }
   if (isNativeToken(asset)) {

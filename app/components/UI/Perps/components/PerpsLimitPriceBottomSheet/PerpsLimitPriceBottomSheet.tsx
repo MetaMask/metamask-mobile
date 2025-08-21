@@ -19,6 +19,7 @@ import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { ORDER_BOOK_SPREAD } from '../../constants/hyperLiquidConfig';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;
@@ -52,48 +53,26 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   });
   const currentPriceData = priceData[asset];
 
-  // Store price data in state to control when it updates
-  const [priceSnapshot, setPriceSnapshot] = useState(() => ({
-    currentPrice: passedCurrentPrice,
-    markPrice: passedCurrentPrice,
-    bestBid: passedCurrentPrice
-      ? passedCurrentPrice * ORDER_BOOK_SPREAD.DEFAULT_BID_MULTIPLIER
-      : undefined,
-    bestAsk: passedCurrentPrice
-      ? passedCurrentPrice * ORDER_BOOK_SPREAD.DEFAULT_ASK_MULTIPLIER
-      : undefined,
-  }));
+  // Use live data directly - updates automatically every 1000ms
+  const currentPrice = currentPriceData?.price
+    ? parseFloat(currentPriceData.price)
+    : passedCurrentPrice;
 
-  // Update price snapshot only when bottom sheet opens
-  useEffect(() => {
-    if (isVisible) {
-      const current = currentPriceData?.price
-        ? parseFloat(currentPriceData.price)
-        : passedCurrentPrice;
-      const mark = currentPriceData?.markPrice
-        ? parseFloat(currentPriceData.markPrice)
-        : current;
-      const bid = currentPriceData?.bestBid
-        ? parseFloat(currentPriceData.bestBid)
-        : current
-        ? current * ORDER_BOOK_SPREAD.DEFAULT_BID_MULTIPLIER
-        : undefined;
-      const ask = currentPriceData?.bestAsk
-        ? parseFloat(currentPriceData.bestAsk)
-        : current
-        ? current * ORDER_BOOK_SPREAD.DEFAULT_ASK_MULTIPLIER
-        : undefined;
+  const markPrice = currentPriceData?.markPrice
+    ? parseFloat(currentPriceData.markPrice)
+    : currentPrice;
 
-      setPriceSnapshot({
-        currentPrice: current,
-        markPrice: mark,
-        bestBid: bid,
-        bestAsk: ask,
-      });
-    }
-  }, [isVisible]); // eslint-disable-line react-hooks/exhaustive-deps
+  const bestBid = currentPriceData?.bestBid
+    ? parseFloat(currentPriceData.bestBid)
+    : currentPrice
+    ? currentPrice * ORDER_BOOK_SPREAD.DEFAULT_BID_MULTIPLIER
+    : undefined;
 
-  const { currentPrice, markPrice, bestBid, bestAsk } = priceSnapshot;
+  const bestAsk = currentPriceData?.bestAsk
+    ? parseFloat(currentPriceData.bestAsk)
+    : currentPrice
+    ? currentPrice * ORDER_BOOK_SPREAD.DEFAULT_ASK_MULTIPLIER
+    : undefined;
 
   useEffect(() => {
     if (isVisible) {
@@ -102,7 +81,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   }, [isVisible]);
 
   const handleConfirm = () => {
-    onConfirm(limitPrice);
+    // Remove any formatting (commas, dollar signs) before passing the value
+    const cleanPrice = limitPrice.replace(/[$,]/g, '');
+    onConfirm(cleanPrice);
     onClose();
   };
 
@@ -115,11 +96,8 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
   const calculatePriceForPercentage = useCallback(
     (percentage: number) => {
-      // Use the current limit price if set, otherwise use market price
-      const basePrice =
-        limitPrice && parseFloat(limitPrice) > 0
-          ? parseFloat(limitPrice)
-          : currentPrice;
+      // Use the current market price (not limit price) for percentage calculations
+      const basePrice = currentPrice;
 
       if (!basePrice || basePrice === 0) {
         return '';
@@ -127,19 +105,26 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
 
       const multiplier = 1 + percentage / 100;
       const calculatedPrice = basePrice * multiplier;
-      return calculatedPrice.toFixed(2);
+      return formatPrice(calculatedPrice, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
     },
-    [currentPrice, limitPrice],
+    [currentPrice],
   );
 
   const handleMidPrice = useCallback(() => {
     // Mid price is the average between ask and bid
     if (bestAsk && bestBid) {
       const midPrice = (bestAsk + bestBid) / 2;
-      setLimitPrice(midPrice.toFixed(2));
+      setLimitPrice(
+        formatPrice(midPrice, { minimumDecimals: 2, maximumDecimals: 2 }),
+      );
     } else if (currentPrice) {
       // Fallback to current price if we don't have bid/ask
-      setLimitPrice(currentPrice.toFixed(2));
+      setLimitPrice(
+        formatPrice(currentPrice, { minimumDecimals: 2, maximumDecimals: 2 }),
+      );
     }
   }, [currentPrice, bestAsk, bestBid]);
 
@@ -147,7 +132,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     // Use mark price if available, otherwise fall back to current price
     const priceToUse = markPrice || currentPrice;
     if (priceToUse) {
-      setLimitPrice(priceToUse.toFixed(2));
+      setLimitPrice(
+        formatPrice(priceToUse, { minimumDecimals: 2, maximumDecimals: 2 }),
+      );
     }
   }, [currentPrice, markPrice]);
 
@@ -158,7 +145,9 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
       size: ButtonSize.Lg,
       onPress: handleConfirm,
       disabled:
-        !limitPrice || limitPrice === '0' || parseFloat(limitPrice) <= 0,
+        !limitPrice ||
+        limitPrice === '0' ||
+        parseFloat(limitPrice.replace(/[$,]/g, '')) <= 0,
     },
   ];
 
@@ -196,7 +185,12 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               {strings('perps.order.limit_price_modal.current_price')} ({asset})
             </Text>
             <Text style={styles.priceValue}>
-              {currentPrice ? formatPrice(currentPrice) : '$---'}
+              {currentPrice
+                ? formatPrice(currentPrice, {
+                    minimumDecimals: 2,
+                    maximumDecimals: 2,
+                  })
+                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
             </Text>
           </View>
           <View style={styles.priceRow}>
@@ -204,7 +198,12 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               {strings('perps.order.limit_price_modal.ask_price')}
             </Text>
             <Text style={styles.priceValue}>
-              {displayAskPrice ? formatPrice(displayAskPrice) : '$---'}
+              {displayAskPrice
+                ? formatPrice(displayAskPrice, {
+                    minimumDecimals: 2,
+                    maximumDecimals: 2,
+                  })
+                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
             </Text>
           </View>
           <View style={styles.priceRow}>
@@ -212,7 +211,12 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               {strings('perps.order.limit_price_modal.bid_price')}
             </Text>
             <Text style={styles.priceValue}>
-              {displayBidPrice ? formatPrice(displayBidPrice) : '$---'}
+              {displayBidPrice
+                ? formatPrice(displayBidPrice, {
+                    minimumDecimals: 2,
+                    maximumDecimals: 2,
+                  })
+                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
             </Text>
           </View>
         </View>
@@ -229,7 +233,10 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
           >
             {!limitPrice || limitPrice === '0'
               ? strings('perps.order.limit_price')
-              : limitPrice}
+              : formatPrice(limitPrice, {
+                  minimumDecimals: 2,
+                  maximumDecimals: 2,
+                })}
           </Text>
           <Text style={styles.limitPriceCurrency}>USD</Text>
         </View>
