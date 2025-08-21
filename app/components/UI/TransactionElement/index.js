@@ -249,18 +249,19 @@ class TransactionElement extends PureComponent {
     const isUnifiedSwap =
       tx.type === TransactionType.swap &&
       this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
+
     if (tx.type === TransactionType.bridge || isUnifiedSwap) {
       handleUnifiedSwapsTxHistoryItemClick(
         this.props.navigation,
         tx,
         this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
       );
-    } else {
+    } else if (tx.type === TransactionType.perpsDeposit) {
       this.props.navigation.navigate(Routes.TRANSACTION_DETAILS, {
         transactionId: tx.id,
       });
-
-      // this.setState({ detailsModalVisible: true });
+    } else {
+      this.setState({ detailsModalVisible: true });
     }
   };
 
