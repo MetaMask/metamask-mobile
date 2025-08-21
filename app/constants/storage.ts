@@ -9,7 +9,6 @@ export const BIOMETRY_CHOICE_DISABLED = `${prefix}biometryChoiceDisabled`;
 export const PASSCODE_CHOICE = `${prefix}passcodeChoice`;
 export const PASSCODE_DISABLED = `${prefix}passcodeDisabled`;
 
-export const ONBOARDING_WIZARD = `${prefix}onboardingWizard`;
 export const METRICS_OPT_IN = `${prefix}metricsOptIn`;
 export const ANALYTICS_DATA_DELETION_TASK_ID = `${prefix}analyticsDataDeletionTaskId`;
 export const ANALYTICS_DATA_DELETION_DATE = `${prefix}analyticsDataDeletionDate`;

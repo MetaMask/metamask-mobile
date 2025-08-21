@@ -9,11 +9,14 @@ import { act } from '@testing-library/react-native';
 import * as confirmationReducer from '../../../../../core/redux/slices/confirmationMetrics';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { Hex } from '@metamask/utils';
+import { useAlerts } from '../../context/alert-system-context';
+import { AlertKeys } from '../../constants/alerts';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('./useTransactionPayTokenAmounts');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../../utils/bridge');
+jest.mock('../../context/alert-system-context');
 
 const TRANSACTION_ID_MOCK = '1234-5678';
 const CHAIN_ID_SOURCE_MOCK = '0x1';
@@ -37,6 +40,7 @@ function runHook() {
 describe('useTransactionBridgeQuotes', () => {
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
   const getBridgeQuotesMock = jest.mocked(getBridgeQuotes);
+  const useAlertsMock = jest.mocked(useAlerts);
 
   const useTransactionPayTokenAmountsMock = jest.mocked(
     useTransactionPayTokenAmounts,
@@ -58,12 +62,13 @@ describe('useTransactionBridgeQuotes', () => {
     } as unknown as TransactionMeta);
 
     useTransactionPayTokenMock.mockReturnValue({
-      balanceFiat: '123.456',
-      balanceHuman: '123.456',
-      decimals: 4,
       payToken: {
         address: TOKEN_ADDRESS_SOURCE_MOCK,
+        balance: '123.456',
+        balanceFiat: '123.456',
         chainId: CHAIN_ID_SOURCE_MOCK,
+        decimals: 4,
+        symbol: 'TST',
       },
       setPayToken: jest.fn(),
     });
@@ -82,6 +87,10 @@ describe('useTransactionBridgeQuotes', () => {
     } as ReturnType<typeof useTransactionPayTokenAmounts>);
 
     getBridgeQuotesMock.mockResolvedValue([QUOTE_MOCK, QUOTE_MOCK]);
+
+    useAlertsMock.mockReturnValue({
+      alerts: [],
+    } as unknown as ReturnType<typeof useAlerts>);
   });
 
   it('requests bridge quotes', () => {
@@ -135,7 +144,7 @@ describe('useTransactionBridgeQuotes', () => {
     });
   });
 
-  it('returns empty list if no selected pay token ', async () => {
+  it('returns empty list if no selected pay token', async () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
     } as unknown as ReturnType<typeof useTransactionPayToken>);
@@ -147,5 +156,43 @@ describe('useTransactionBridgeQuotes', () => {
     });
 
     expect(result.current.quotes).toStrictEqual([]);
+  });
+
+  it('returns empty list if blocking alert', async () => {
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          key: 'alert-key',
+          isBlocking: true,
+        },
+      ],
+    } as unknown as ReturnType<typeof useAlerts>);
+
+    const result = runHook();
+
+    await act(async () => {
+      // Intentionally empty
+    });
+
+    expect(result.current.quotes).toStrictEqual([]);
+  });
+
+  it('returns empty list if blocking alert unless no quotes alert', async () => {
+    useAlertsMock.mockReturnValue({
+      alerts: [
+        {
+          key: AlertKeys.NoPayTokenQuotes,
+          isBlocking: true,
+        },
+      ],
+    } as unknown as ReturnType<typeof useAlerts>);
+
+    const result = runHook();
+
+    await act(async () => {
+      // Intentionally empty
+    });
+
+    expect(result.current.quotes).toStrictEqual([QUOTE_MOCK, QUOTE_MOCK]);
   });
 });

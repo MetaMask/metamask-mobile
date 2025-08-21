@@ -58,6 +58,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
                 "borderBottomColor": "#b7bbc866",
                 "borderBottomWidth": 1,
                 "flexDirection": "row",
+                "gap": 16,
                 "height": 72,
               },
               {
@@ -168,7 +169,6 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -200,6 +200,7 @@ exports[`Wallet Conditional Rendering should render banner when basic functional
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1170,6 +1171,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
                 "borderBottomColor": "#b7bbc866",
                 "borderBottomWidth": 1,
                 "flexDirection": "row",
+                "gap": 16,
                 "height": 72,
               },
               {
@@ -1280,7 +1282,6 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -1312,6 +1313,7 @@ exports[`Wallet Conditional Rendering should render loader when no selected acco
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -2282,6 +2284,7 @@ exports[`Wallet should render correctly 1`] = `
                 "borderBottomColor": "#b7bbc866",
                 "borderBottomWidth": 1,
                 "flexDirection": "row",
+                "gap": 16,
                 "height": 72,
               },
               {
@@ -2392,7 +2395,6 @@ exports[`Wallet should render correctly 1`] = `
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -2424,6 +2426,7 @@ exports[`Wallet should render correctly 1`] = `
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3394,6 +3397,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
                 "borderBottomColor": "#b7bbc866",
                 "borderBottomWidth": 1,
                 "flexDirection": "row",
+                "gap": 16,
                 "height": 72,
               },
               {
@@ -3504,7 +3508,6 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -3536,6 +3539,7 @@ exports[`Wallet should render correctly when Solana support is enabled 1`] = `
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -4506,6 +4510,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
                 "borderBottomColor": "#b7bbc866",
                 "borderBottomWidth": 1,
                 "flexDirection": "row",
+                "gap": 16,
                 "height": 72,
               },
               {
@@ -4616,7 +4621,6 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
               {
                 "alignItems": "center",
                 "flex": 1,
-                "marginHorizontal": 16,
               }
             }
           >
@@ -4648,6 +4652,7 @@ exports[`Wallet should render correctly when there are no detected tokens 1`] = 
             >
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",

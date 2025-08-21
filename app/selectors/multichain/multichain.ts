@@ -184,7 +184,7 @@ export function selectMultichainAssetsMetadata(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsController.assetsMetadata;
 }
 
-export function selectMultichainAssetsRatesState(state: RootState) {
+function selectMultichainAssetsRatesState(state: RootState) {
   return state.engine.backgroundState.MultichainAssetsRatesController
     .conversionRates;
 }
@@ -192,6 +192,7 @@ export function selectMultichainAssetsRatesState(state: RootState) {
 export const selectMultichainAssetsRates = createDeepEqualSelector(
   selectMultichainAssetsRatesState,
   (conversionRates) => conversionRates,
+  { devModeChecks: { identityFunctionCheck: 'never' } },
 );
 
 export function selectMultichainHistoricalPrices(state: RootState) {
@@ -492,6 +493,50 @@ export const makeSelectNonEvmAssetById = () =>
 export const selectSolanaOnboardingModalEnabled = createDeepEqualSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => Boolean(remoteFeatureFlags.solanaOnboardingModal),
+);
+
+export const selectAccountsWithNativeBalanceByChainId = createDeepEqualSelector(
+  selectInternalAccounts,
+  selectMultichainBalances,
+  (_: RootState, params: { chainId: string }) => params.chainId,
+  (
+    internalAccounts,
+    multichainBalances,
+    chainId,
+  ): Record<string, Balance & { assetId: string }> => {
+    return internalAccounts.reduce((list, account) => {
+      const accountBalances = multichainBalances?.[account.id];
+
+      if (!accountBalances) {
+        return list;
+      }
+
+      const nativeBalanceAssetId = Object.keys(accountBalances).find(
+        (assetId) => {
+          const { chainId: assetChainId, assetNamespace } = parseCaipAssetType(
+            assetId as CaipAssetId,
+          );
+          return assetChainId === chainId && assetNamespace === 'slip44';
+        },
+      );
+
+      if (nativeBalanceAssetId) {
+        const accountNativeBalance = accountBalances[nativeBalanceAssetId];
+
+        return {
+          ...list,
+          [account.id]: {
+            assetId: nativeBalanceAssetId,
+            ...accountNativeBalance,
+          },
+        };
+
+        return list;
+      }
+
+      return list;
+    }, {});
+  },
 );
 
 ///: END:ONLY_INCLUDE_IF
