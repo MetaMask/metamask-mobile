@@ -6,22 +6,15 @@ import portfinder from 'portfinder';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
 import { createLogger } from '../framework/logger';
 import { findMatchingPostEvent, processPostRequestBody } from './mockHelpers';
+import {
+  MockApiEndpoint,
+  MockEventsObject,
+  TestSpecificMock,
+} from '../framework/index';
 
 const logger = createLogger({
   name: 'MockServer',
 });
-
-interface MockEvent {
-  urlEndpoint: string | RegExp;
-  requestBody?: any;
-  ignoreFields?: string[];
-  response: any;
-  responseCode: number;
-}
-
-interface MockEvents {
-  [method: string]: MockEvent[];
-}
 
 interface LiveRequest {
   url: string;
@@ -32,8 +25,6 @@ interface LiveRequest {
 interface MockServer extends Mockttp {
   _liveRequests?: LiveRequest[];
 }
-
-type TestSpecificMockFn = (mockServer: Mockttp) => Promise<void>;
 
 /**
  * Utility function to handle direct fetch requests
@@ -100,9 +91,9 @@ const isUrlAllowed = (url: string): boolean => {
  * Starts the mock server and sets up mock events.
  */
 export const startMockServer = async (
-  events: MockEvents,
+  events: MockEventsObject,
   port?: number,
-  testSpecificMock?: TestSpecificMockFn,
+  testSpecificMock?: TestSpecificMock,
 ): Promise<MockServer> => {
   const mockServer = getLocal() as MockServer;
   port = port || (await portfinder.getPortPromise());
@@ -164,7 +155,7 @@ export const startMockServer = async (
 
       // Find matching mock event
       const methodEvents = events[method] || [];
-      const candidateEvents = methodEvents.filter((event: MockEvent) => {
+      const candidateEvents = methodEvents.filter((event: MockApiEndpoint) => {
         const eventUrl = event.urlEndpoint;
         if (!eventUrl) return false;
         if (event.urlEndpoint instanceof RegExp) {
@@ -177,7 +168,7 @@ export const startMockServer = async (
         );
       });
 
-      let matchingEvent: MockEvent | undefined;
+      let matchingEvent: MockApiEndpoint | undefined;
 
       if (candidateEvents.length > 0) {
         if (method === 'POST') {

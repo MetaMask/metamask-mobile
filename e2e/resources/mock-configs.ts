@@ -173,7 +173,7 @@ export const testConfigurations: Record<string, TestConfiguration> = {
   megaEth: {
     ganacheOptions: megaEthLocalConfig,
     providerConfig: megaEthProviderConfig,
-    permissions: permissionConfigs.megaEth,
+    permissions: [...permissionConfigs.megaEth],
     testSpecificMock,
   },
 
@@ -183,7 +183,7 @@ export const testConfigurations: Record<string, TestConfiguration> = {
   monad: {
     ganacheOptions: monadLocalConfig,
     providerConfig: monadProviderConfig,
-    permissions: permissionConfigs.monad,
+    permissions: [...permissionConfigs.monad],
     testSpecificMock,
   },
 
@@ -193,7 +193,7 @@ export const testConfigurations: Record<string, TestConfiguration> = {
   sei: {
     ganacheOptions: seiLocalConfig,
     providerConfig: seiProviderConfig,
-    permissions: permissionConfigs.sei,
+    permissions: [...permissionConfigs.sei],
     testSpecificMock,
   },
 };
@@ -208,7 +208,7 @@ export const redesignedTestConfigurations: Record<string, TestConfiguration> = {
   megaEth: {
     ganacheOptions: megaEthLocalConfig,
     providerConfig: megaEthProviderConfig,
-    permissions: permissionConfigs.megaEth,
+    permissions: [...permissionConfigs.megaEth],
     testSpecificMock: redesignedTestSpecificMock,
   },
 
@@ -218,7 +218,7 @@ export const redesignedTestConfigurations: Record<string, TestConfiguration> = {
   monad: {
     ganacheOptions: monadLocalConfig,
     providerConfig: monadProviderConfig,
-    permissions: permissionConfigs.monad,
+    permissions: [...permissionConfigs.monad],
     testSpecificMock: redesignedTestSpecificMock,
   },
 
@@ -228,7 +228,7 @@ export const redesignedTestConfigurations: Record<string, TestConfiguration> = {
   sei: {
     ganacheOptions: seiLocalConfig,
     providerConfig: seiProviderConfig,
-    permissions: permissionConfigs.sei,
+    permissions: [...permissionConfigs.sei],
     testSpecificMock: redesignedTestSpecificMock,
   },
 };

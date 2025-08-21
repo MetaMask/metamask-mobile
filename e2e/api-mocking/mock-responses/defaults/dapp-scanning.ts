@@ -1,11 +1,11 @@
-import { MockObject } from '../../../framework';
+import { MockEventsObject } from '../../../framework';
 
 /**
  * Minimal mock data for MetaMask dapp scanning API endpoints used in E2E testing.
  * Returns basic feature flags structure to prevent API failures.
  * For specific swap tests, add detailed mocks in the test files.
  */
-export const DAPP_SCANNING_MOCKS: MockObject = {
+export const DAPP_SCANNING_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint:

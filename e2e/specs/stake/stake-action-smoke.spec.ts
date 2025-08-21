@@ -1,5 +1,5 @@
 import { ethers } from 'ethers';
-import { MockttpServer } from 'mockttp';
+import { Mockttp, MockttpServer } from 'mockttp';
 import { loginToApp } from '../../viewHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import ActivitiesView from '../../pages/Transactions/ActivitiesView';
@@ -37,6 +37,7 @@ import NetworkListModal from '../../pages/Network/NetworkListModal';
 import axios, { AxiosResponse } from 'axios';
 import NetworkEducationModal from '../../pages/Network/NetworkEducationModal';
 import { startMockServer, stopMockServer } from '../../api-mocking/mock-server';
+import { mockProxyGet } from '../../api-mocking/mockHelpers';
 
 interface ExitRequest {
   positionTicket: string;
@@ -311,7 +312,24 @@ describe.skip(SmokeTrade('Stake from Actions'), (): void => {
     await device.terminateApp();
 
     const mockServerPort: number = getMockServerPort();
-    mockServer = await startMockServer(testSpecificMock, mockServerPort);
+
+    // Convert MockConfig to TestSpecificMockFn
+    const testSpecificMockFn = async (mockServer: Mockttp) => {
+      for (const endpoint of testSpecificMock.GET) {
+        await mockProxyGet(
+          mockServer,
+          endpoint.urlEndpoint,
+          endpoint.response,
+          endpoint.responseCode,
+        );
+      }
+    };
+
+    mockServer = (await startMockServer(
+      {}, // empty events
+      mockServerPort,
+      testSpecificMockFn,
+    )) as MockttpServer;
 
     await TestHelpers.launchApp({
       launchArgs: {

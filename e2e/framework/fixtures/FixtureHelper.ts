@@ -31,7 +31,6 @@ import {
   AnvilNodeOptions,
   GanacheNodeOptions,
   TestSpecificMock,
-  MockObject,
 } from '../types';
 import {
   TestDapps,
@@ -336,7 +335,7 @@ export const createMockAPIServer = async (
 
   mockServerPort = getMockServerPort();
   const mockServer = await startMockServer(
-    DEFAULT_MOCKS as MockObject,
+    DEFAULT_MOCKS,
     mockServerPort,
     testSpecificMock, // Applied First, so any test-specific mocks take precedence
   );

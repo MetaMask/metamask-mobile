@@ -181,7 +181,7 @@ export interface TestSuiteParams {
  * };
  * ```
  */
-export interface MockObject {
+export interface MockEventsObject {
   GET?: MockApiEndpoint[];
   POST?: MockApiEndpoint[];
   PUT?: MockApiEndpoint[];
