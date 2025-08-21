@@ -19,6 +19,7 @@ module.exports = {
     },
     {
       files: ['**/specs/**/*.{js,ts}'],
+      excludedFiles: ['**/specs/**/*.failing.{js,ts}'],
       rules: {
         'no-restricted-imports': [
           'error',
