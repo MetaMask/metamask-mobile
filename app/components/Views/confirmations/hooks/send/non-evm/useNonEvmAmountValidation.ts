@@ -8,7 +8,10 @@ import { AssetType } from '../../../types/token';
 import { useSendContext } from '../../../context/send-context';
 import { validateAmountMultichain } from '../../../utils/multichain-snaps';
 
-interface SnapValidationResult { errors: { code: string }[]; valid: false }
+interface SnapValidationResult {
+  errors: { code: string }[];
+  valid: boolean;
+}
 
 export const validateAmountFn = async ({
   amount,
