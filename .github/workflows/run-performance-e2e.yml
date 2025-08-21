@@ -400,8 +400,8 @@ jobs:
       
       - name: Set Android Test Environment
         run: |
+          echo "Setting test environment for device: ${{ matrix.device.name }}"
           {
-            echo "Setting test environment for device: ${{ matrix.device.name }}"
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
             echo "BROWSERSTACK_ANDROID_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
@@ -493,8 +493,8 @@ jobs:
       
       - name: Set iOS Test Environment
         run: |
+          echo "Setting test environment for device: ${{ matrix.device.name }}"
           {
-            echo "Setting test environment for device: ${{ matrix.device.name }}"
             echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
             echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
             echo "BROWSERSTACK_IOS_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
