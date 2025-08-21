@@ -6,7 +6,6 @@ import * as TransactionUtils from '../../../../util/transaction-controller';
 // eslint-disable-next-line import/no-namespace
 import * as SendMultichainTransactionUtils from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { AssetType, TokenStandard } from '../types/token';
-import { SOLANA_ASSET } from '../__mocks__/send.mock';
 import { InitSendLocation } from '../constants/send';
 import {
   formatToFixedDecimals,
@@ -139,11 +138,17 @@ describe('submitEvmTransaction', () => {
 describe('submitNonEvmTransaction', () => {
   it('invokes function sendMultichainTransaction', () => {
     const mockSendMultichainTransaction = jest
-      .spyOn(SendMultichainTransactionUtils, 'sendMultichainTransaction')
+      .spyOn(
+        SendMultichainTransactionUtils,
+        'sendMultichainTransactionForReview',
+      )
       .mockImplementation(() => Promise.resolve());
-    submitNonEvmTransaction({
-      asset: SOLANA_ASSET,
-      fromAccount: { id: 'solana_account_id' } as InternalAccount,
+    submitNonEvmTransaction({ id: 'solana_account_id' } as InternalAccount, {
+      fromAccountId: 'solana_account_id',
+      assetId:
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      toAddress: '4Nd1mYdGQJkQ1tDk1H6rQhzX8ZcA5m9D7nFDJw3YcCVf',
+      amount: '1',
     });
     expect(mockSendMultichainTransaction).toHaveBeenCalled();
   });
