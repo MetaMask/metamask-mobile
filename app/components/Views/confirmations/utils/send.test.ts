@@ -150,7 +150,14 @@ describe('submitNonEvmTransaction', () => {
 });
 
 describe('formatToFixedDecimals', () => {
-  it('return `0` is value is equivalent to 0', () => {
+  it('return `0` if value is not defined', () => {
+    expect(formatToFixedDecimals(undefined as unknown as string)).toEqual('0');
+    expect(formatToFixedDecimals(null as unknown as string)).toEqual('0');
+  });
+  it('remove trailing zeros', () => {
+    expect(formatToFixedDecimals('1.0000')).toEqual('1');
+  });
+  it('return `0` if value is equivalent to 0', () => {
     expect(formatToFixedDecimals('0.0000')).toEqual('0');
   });
   it('return correct string for very small values', () => {
@@ -168,6 +175,9 @@ describe('formatToFixedDecimals', () => {
 describe('toBNWithDecimals', () => {
   it('converts value to bignumber correctly', () => {
     expect(toBNWithDecimals('1.20', 5).toString()).toEqual('120000');
+  });
+  it('remove addtional decimal part', () => {
+    expect(toBNWithDecimals('.123123', 3).toString()).toEqual('123');
   });
   it('converts value to bignumber correctly', () => {
     expect(toBNWithDecimals('.1', 5).toString()).toEqual('10000');

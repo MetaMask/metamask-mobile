@@ -1,6 +1,8 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef } from 'react';
 import { ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -21,6 +23,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import PerpsErrorState, {
+  PerpsErrorType,
+} from '../../components/PerpsErrorState';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -36,6 +41,7 @@ import {
   usePerpsPerformance,
   usePerpsLivePositions,
 } from '../../hooks';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import styleSheet from './PerpsTabView.styles';
 
 interface PerpsTabViewProps {}
@@ -43,8 +49,12 @@ interface PerpsTabViewProps {}
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:1',
+  );
   const { getAccountState } = usePerpsTrading();
-  const { isConnected, isInitialized } = usePerpsConnection();
+  const { isConnected, isInitialized, error, connect, resetError } =
+    usePerpsConnection();
   const { track } = usePerpsEventTracking();
   const cachedAccountState = usePerpsAccount();
 
@@ -64,15 +74,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
   }, [startMeasure]);
 
-  // Automatically load account state on mount and when network changes
+  // Automatically load account state on mount and when network or account changes
   useEffect(() => {
-    // Only load account state if we're connected and initialized
-    if (isConnected && isInitialized) {
+    // Only load account state if we're connected, initialized, and have an EVM account
+    if (isConnected && isInitialized && selectedEvmAccount) {
       // Fire and forget - errors are already handled in getAccountState
       // and stored in the controller's state
       getAccountState();
     }
-  }, [getAccountState, isConnected, isInitialized]);
+  }, [getAccountState, isConnected, isInitialized, selectedEvmAccount]);
 
   // Track homescreen tab viewed - only once when positions and account are loaded
   useEffect(() => {
@@ -122,6 +132,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       screen: Routes.PERPS.TUTORIAL,
     });
   }, [navigation]);
+
+  const handleRetryConnection = useCallback(() => {
+    resetError();
+    connect();
+  }, [connect, resetError]);
 
   const renderPositionsSection = () => {
     if (isInitialLoading) {
@@ -208,8 +223,20 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     );
   };
 
+  // Check for connection errors
+  if (error && !isConnected && selectedEvmAccount) {
+    return (
+      <View style={styles.wrapper}>
+        <PerpsErrorState
+          errorType={PerpsErrorType.CONNECTION_FAILED}
+          onRetry={handleRetryConnection}
+        />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.wrapper}>
+    <SafeAreaView style={styles.wrapper} edges={['bottom', 'left', 'right']}>
       {isFirstTimeUser ? (
         <View style={[styles.content, styles.firstTimeContent]}>
           <View style={styles.section}>{renderPositionsSection()}</View>
@@ -222,7 +249,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           </ScrollView>
         </>
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
