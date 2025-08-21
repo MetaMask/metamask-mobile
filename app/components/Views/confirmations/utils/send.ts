@@ -164,7 +164,6 @@ export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
 }
 
 export const toBNWithDecimals = (input: string, decimals: number) => {
-  const neg = String(input).trim().startsWith('-');
   const result = String(input).replace(/^-/, '').split('.');
   const intPart = result[0];
   let fracPart = result[1] ?? '';
@@ -175,11 +174,9 @@ export const toBNWithDecimals = (input: string, decimals: number) => {
 
   fracPart = fracPart.padEnd(decimals, '0');
 
-  const bn = new BN(intPart || '0')
+  return new BN(intPart || '0')
     .mul(new BN(10).pow(new BN(decimals)))
     .add(new BN(fracPart || '0'));
-
-  return neg ? bn.neg() : bn;
 };
 
 export const fromBNWithDecimals = (bnValue: BN, decimals: number) => {
