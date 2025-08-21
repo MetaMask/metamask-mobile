@@ -324,6 +324,7 @@ export const createMockAPIServer = async (
   testSpecificMock?: TestSpecificMock,
 ): Promise<{
   mockServer: Mockttp;
+  mockServerPort: number;
 }> => {
   const mockServerPort = getMockServerPort();
   const mockServer = await startMockServer(
