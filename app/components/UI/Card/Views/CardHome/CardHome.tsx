@@ -295,6 +295,7 @@ const CardHome = () => {
                 height={28}
                 width={'50%'}
                 style={styles.skeletonRounded}
+                testID={CardHomeSelectors.BALANCE_SKELETON}
               />
             ) : (
               balanceAmount ?? '0'
@@ -358,6 +359,7 @@ const CardHome = () => {
               height={50}
               width={'100%'}
               style={styles.skeletonRounded}
+              testID={CardHomeSelectors.CARD_ASSET_ITEM_SKELETON}
             />
           ) : (
             <CardAssetItem assetKey={priorityToken} privacyMode={privacyMode} />
@@ -375,6 +377,7 @@ const CardHome = () => {
               height={28}
               width={'100%'}
               style={styles.skeletonRounded}
+              testID={CardHomeSelectors.ADD_FUNDS_BUTTON_SKELETON}
             />
           ) : (
             <Button
