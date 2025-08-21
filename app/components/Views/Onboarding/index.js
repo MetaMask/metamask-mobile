@@ -62,6 +62,7 @@ import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandler
 import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import { withMetricsAwareness } from '../../hooks/useMetrics';
 import ErrorBoundary from '../ErrorBoundary';
+import AccountDiscovery from '../../../core/AccountDiscovery';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -628,6 +629,8 @@ class Onboarding extends PureComponent {
   };
 
   handleCtaActions = (actionType) => {
+    AccountDiscovery.clearPendingKeyring();
+
     if (SEEDLESS_ONBOARDING_ENABLED) {
       this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.ONBOARDING_SHEET,
