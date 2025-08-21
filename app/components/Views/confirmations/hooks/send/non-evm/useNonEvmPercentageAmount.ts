@@ -13,8 +13,6 @@ export const getPercentageValueFn = (percentage: number, asset?: AssetType) => {
   if (isNativeToken(asset) && percentage === 100) {
     return undefined;
   }
-  // todo: asset.balance has upto 5 decimal places, asset team will provide new field with complete decimals
-  // that should be used here
   if (percentage === 100) {
     return asset.balance;
   }

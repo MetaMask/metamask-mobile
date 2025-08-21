@@ -45,6 +45,7 @@ export const useSendActions = () => {
           assetId: asset.address as CaipAssetType,
           amount: value as string,
         });
+        navigation.navigate(Routes.WALLET_VIEW);
       }
     },
     [asset, chainId, navigation, fromAccount, from, isEvmSendType, to, value],
