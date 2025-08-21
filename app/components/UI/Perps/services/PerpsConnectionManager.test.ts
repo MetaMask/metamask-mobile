@@ -29,6 +29,13 @@ jest.mock('../../../../store', () => ({
 // Mock selectors
 jest.mock('../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
+  selectInternalAccounts: jest.fn(() => []),
+}));
+
+jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0x1234567890123456789012345678901234567890',
+  })),
 }));
 
 jest.mock('../selectors/perpsController', () => ({
@@ -50,7 +57,7 @@ jest.mock('../providers/PerpsStreamManager', () => ({
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { store } from '../../../../store';
-import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectPerpsNetwork } from '../selectors/perpsController';
 
 // Import PerpsConnectionManager after mocks are set up
@@ -406,8 +413,8 @@ describe('PerpsConnectionManager', () => {
 
       // Setup initial values for selectors
       (
-        selectSelectedInternalAccountAddress as unknown as jest.Mock
-      ).mockReturnValue('0xabc123');
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xabc123' }));
       (selectPerpsNetwork as unknown as jest.Mock).mockReturnValue('mainnet');
       (store.getState as jest.Mock).mockReturnValue({});
     });
@@ -443,8 +450,8 @@ describe('PerpsConnectionManager', () => {
 
       // Simulate account change
       (
-        selectSelectedInternalAccountAddress as unknown as jest.Mock
-      ).mockReturnValue('0xdef456');
+        selectSelectedInternalAccountByScope as unknown as jest.Mock
+      ).mockReturnValue(() => ({ address: '0xdef456' }));
 
       // Trigger the store callback with the changed value
       storeCallback();
@@ -515,8 +522,8 @@ describe('PerpsConnectionManager', () => {
 
         // Simulate account change
         (
-          selectSelectedInternalAccountAddress as unknown as jest.Mock
-        ).mockReturnValue('0xdef456');
+          selectSelectedInternalAccountByScope as unknown as jest.Mock
+        ).mockReturnValue(() => ({ address: '0xdef456' }));
 
         // Trigger the store callback with changed values
         storeCallback();
