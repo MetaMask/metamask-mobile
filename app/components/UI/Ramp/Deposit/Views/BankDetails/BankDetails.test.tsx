@@ -31,17 +31,22 @@ const mockOrderData = {
     orderType: 'buy',
     walletAddress: '0x123...',
     paymentMethod: 'sepa_bank_transfer',
-    paymentOptions: [
+    paymentDetails: [
       {
-        id: 'payment-option-id',
+        fiatCurrency: 'USD',
+        paymentMethod: 'sepa_bank_transfer',
         fields: [
-          { name: 'Amount', value: '$100.00' },
-          { name: 'First Name (Beneficiary)', value: 'john' },
-          { name: 'Last Name (Beneficiary)', value: 'doe' },
-          { name: 'Account Number', value: '1234567890' },
-          { name: 'Bank Name', value: 'test bank' },
-          { name: 'Recipient Address', value: '456 recipient street' },
-          { name: 'Bank Address', value: '123 bank street' },
+          { name: 'Amount', value: '$100.00', id: 'amount' },
+          { name: 'First Name (Beneficiary)', value: 'john', id: 'firstName' },
+          { name: 'Last Name (Beneficiary)', value: 'doe', id: 'lastName' },
+          { name: 'Account Number', value: '1234567890', id: 'accountNumber' },
+          { name: 'Bank Name', value: 'test bank', id: 'bankName' },
+          {
+            name: 'Recipient Address',
+            value: '456 recipient street',
+            id: 'recipientAddress',
+          },
+          { name: 'Bank Address', value: '123 bank street', id: 'bankAddress' },
         ],
       },
     ],
@@ -155,7 +160,7 @@ describe('BankDetails Component', () => {
     await waitFor(() => {
       expect(mockConfirmPayment).toHaveBeenCalledWith(
         'test-order-id',
-        'payment-option-id',
+        'sepa_bank_transfer',
       );
     });
   });
@@ -283,7 +288,7 @@ describe('BankDetails Component', () => {
     fireEvent.press(screen.getByTestId('main-action-button'));
     expect(mockConfirmPayment).toHaveBeenCalledWith(
       'test-order-id',
-      'payment-option-id',
+      'sepa_bank_transfer',
     );
     expect(mockLoggerError).toHaveBeenCalled();
   });

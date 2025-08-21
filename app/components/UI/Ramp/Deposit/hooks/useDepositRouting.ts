@@ -72,12 +72,6 @@ export const useDepositRouting = ({
     throws: true,
   });
 
-  const [, createReservation] = useDepositSdkMethod({
-    method: 'walletReserve',
-    onMount: false,
-    throws: true,
-  });
-
   const [, createOrder] = useDepositSdkMethod({
     method: 'createOrder',
     onMount: false,
@@ -385,16 +379,11 @@ export const useDepositRouting = ({
                 );
 
               if (isManualBankTransfer) {
-                const reservation = await createReservation(
+                const order = await createOrder(
                   quote,
                   selectedWalletAddress,
+                  paymentMethodId,
                 );
-
-                if (!reservation) {
-                  throw new Error('Missing reservation');
-                }
-
-                const order = await createOrder(reservation);
 
                 if (!order) {
                   throw new Error('Missing order');
@@ -523,7 +512,6 @@ export const useDepositRouting = ({
       navigateToBasicInfoCallback,
       trackEvent,
       navigateToAdditionalVerificationCallback,
-      createReservation,
       createOrder,
       requestOtt,
       generatePaymentUrl,
