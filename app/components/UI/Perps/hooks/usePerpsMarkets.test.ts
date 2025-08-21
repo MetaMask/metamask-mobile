@@ -3,6 +3,7 @@ import { waitFor } from '@testing-library/react-native';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import type { PerpsMarketData } from '../controllers/types';
+import Engine from '../../../../core/Engine/Engine';
 
 // Mock dependencies
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
@@ -43,6 +44,68 @@ const mockMarketDataArray: PerpsMarketData[] = [
   },
 ];
 
+const mockProvider = {
+  protocolId: 'hyperliquid' as const,
+  getMarketDataWithPrices: jest.fn(),
+  getDepositRoutes: jest.fn(),
+  getWithdrawalRoutes: jest.fn(),
+  placeOrder: jest.fn(),
+  editOrder: jest.fn(),
+  cancelOrder: jest.fn(),
+  closePosition: jest.fn(),
+  getPositions: jest.fn(),
+  getAccountState: jest.fn(),
+  getMarkets: jest.fn(),
+  getHistoricalPortfolio: jest.fn().mockResolvedValue({
+    totalBalance24hAgo: '10000',
+    totalBalance7dAgo: '9500',
+    totalBalance30dAgo: '9000',
+  }),
+  withdraw: jest.fn(),
+  subscribeToPrices: jest.fn(),
+  subscribeToPositions: jest.fn(),
+  subscribeToOrderFills: jest.fn(),
+  setLiveDataConfig: jest.fn(),
+  disconnect: jest.fn(),
+  toggleTestnet: jest.fn(),
+  initialize: jest.fn(),
+  isReadyToTrade: jest.fn(),
+  validateDeposit: jest.fn(),
+  calculateLiquidationPrice: jest.fn(),
+  calculateMaintenanceMargin: jest.fn(),
+  getMaxLeverage: jest.fn(),
+  calculateFees: jest.fn().mockResolvedValue({
+    feeRate: 0.00045,
+    feeAmount: 45,
+  }),
+  updatePositionTPSL: jest.fn().mockResolvedValue({
+    success: true,
+    orderId: '123',
+  }),
+  checkWithdrawalStatus: jest.fn().mockResolvedValue({
+    status: 'pending',
+    metadata: {},
+  }),
+  validateOrder: jest.fn().mockResolvedValue({ isValid: true }),
+  validateClosePosition: jest.fn().mockResolvedValue({ isValid: true }),
+  validateWithdrawal: jest.fn().mockResolvedValue({ isValid: true }),
+  getBlockExplorerUrl: jest.fn(),
+  getOrderFills: jest.fn(),
+  getOrders: jest.fn(),
+  getOpenOrders: jest.fn(),
+  getFunding: jest.fn(),
+  getIsFirstTimeUser: jest.fn(),
+  subscribeToOrders: jest.fn(),
+  unsubscribeFromOrders: jest.fn(),
+  unsubscribeFromPrices: jest.fn(),
+  unsubscribeFromPositions: jest.fn(),
+  unsubscribeFromOrderFills: jest.fn(),
+  subscribeToAccount: jest.fn(() => jest.fn()),
+};
+
+const mockPerpsController = Engine.context.PerpsController as jest.Mocked<
+  typeof Engine.context.PerpsController
+>;
 const mockLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 
 describe('usePerpsMarkets', () => {
