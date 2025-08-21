@@ -47,6 +47,39 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
   const [isChartReady, setIsChartReady] = useState(false);
   const [webViewError, setWebViewError] = useState<string | null>(null);
 
+  // Platform-specific WebView props
+  const platformSpecificProps = useMemo(() => {
+    const baseProps = {
+      javaScriptEnabled: true,
+      domStorageEnabled: true,
+      originWhitelist: ['*'],
+      mixedContentMode: 'compatibility' as const,
+      startInLoadingState: true,
+      scrollEnabled: false,
+      showsHorizontalScrollIndicator: false,
+      showsVerticalScrollIndicator: false,
+      scalesPageToFit: false,
+      webviewDebuggingEnabled: __DEV__,
+    };
+
+    if (Platform.OS === 'ios') {
+      return {
+        ...baseProps,
+        allowsInlineMediaPlayback: true,
+        mediaPlaybackRequiresUserAction: false,
+        cacheEnabled: false,
+        incognito: true,
+        bounces: false,
+        allowsFullscreenVideo: false,
+        allowsBackForwardNavigationGestures: false,
+        dataDetectorTypes: 'none' as const,
+      };
+    }
+
+    // Android-safe configuration
+    return baseProps;
+  }, []);
+
   const htmlContent = useMemo(
     () => createTradingViewChartTemplate(theme),
     [theme],
@@ -228,19 +261,8 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
             const { nativeEvent } = syntheticEvent;
             console.error('TradingViewChart: HTTP Error:', nativeEvent);
           }}
-          javaScriptEnabled
-          domStorageEnabled
-          scrollEnabled={false}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-          scalesPageToFit={false}
-          startInLoadingState={false}
-          allowsInlineMediaPlayback={false}
-          mediaPlaybackRequiresUserAction={false}
-          mixedContentMode="compatibility"
           testID={`${testID || TradingViewChartSelectorsIDs.CONTAINER}-webview`}
-          webviewDebuggingEnabled={__DEV__}
+          {...platformSpecificProps}
         />
       </Box>
     </Box>
