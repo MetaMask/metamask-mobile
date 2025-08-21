@@ -18,6 +18,8 @@ import { RootState } from '../../../../../../reducers';
 import { useSelector } from 'react-redux';
 import { selectTokensByChainIdAndAddress } from '../../../../../../selectors/tokensController';
 import { TokenI } from '../../../../../UI/Tokens/types';
+import { useTokenAsset } from '../../../hooks/useTokenAsset';
+import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
 
 export enum GasFeeTokenIconSize {
   Sm = 'sm',
@@ -32,6 +34,7 @@ export function GasFeeTokenIcon({
   tokenAddress: Hex;
 }) {
   const transactionMeta = useTransactionMetadataRequest();
+  const { asset } = useTokenAsset();
   const { chainId } = transactionMeta || {};
   const {
     networkImage,
@@ -41,6 +44,11 @@ export function GasFeeTokenIcon({
   const tokensResult = useSelector((state: RootState) =>
     selectTokensByChainIdAndAddress(state, chainId as Hex),
   );
+
+  const { styles } = useStyles(styleSheet, {
+    isLogoSizeMd: size === GasFeeTokenIconSize.Md,
+  });
+
   const token = Object.values(tokensResult || {}).find(
     (t) => t.address.toLowerCase() === tokenAddress.toLowerCase(),
   ) as TokenI | undefined;
@@ -61,10 +69,13 @@ export function GasFeeTokenIcon({
 
   return (
     <View testID="native-icon">
-      <AvatarToken
-        imageSource={networkImage}
-        name={nativeCurrency}
-        size={size === GasFeeTokenIconSize.Md ? AvatarSize.Md : AvatarSize.Xs}
+      <NetworkAssetLogo
+        chainId={asset.chainId as Hex}
+        style={styles.logoNative}
+        ticker={asset.ticker ?? asset.symbol}
+        big={false}
+        biggest={false}
+        testID={asset.name}
       />
     </View>
   );

@@ -7,6 +7,9 @@ import { transferTransactionStateMock } from '../../../__mocks__/transfer-transa
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../hooks/useNetworkInfo');
+jest.mock('../../../hooks/useTokenAsset', () => ({
+  useTokenAsset: jest.fn().mockReturnValue({ asset: { logo: 'logo.png' } }),
+}));
 
 describe('GasFeeTokenIcon', () => {
   const mockUseNetworkInfo = jest.mocked(useNetworkInfo);
