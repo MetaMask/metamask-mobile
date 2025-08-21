@@ -28,6 +28,7 @@ import {
 } from '../../../actions/onboarding';
 import { setAllowLoginWithRememberMe as setAllowLoginWithRememberMeUtil } from '../../../actions/security';
 import { connect, useSelector } from 'react-redux';
+import { Dispatch } from 'redux';
 import {
   passcodeType,
   updateAuthTypeStorageFlags,
