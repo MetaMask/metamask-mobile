@@ -47,6 +47,7 @@ import {
   selectSourceToken,
   selectIsEvmSolanaBridge,
 } from '../../../../../core/redux/slices/bridge';
+import BigNumber from 'bignumber.js';
 
 const ANIMATION_DURATION_MS = 50;
 
@@ -151,6 +152,10 @@ const QuoteDetailsCard = () => {
 
   const { networkFee, estimatedTime, rate, priceImpact, slippage } =
     formattedQuoteData;
+
+  const hasFee = activeQuote
+    ? new BigNumber(activeQuote.quote.feeData.metabridge.amount).gt(0)
+    : false;
 
   return (
     <Box>
@@ -361,13 +366,15 @@ const QuoteDetailsCard = () => {
           </Box>
         )}
       </Box>
-      <Text
-        variant={TextVariant.BodyMD}
-        color={TextColor.Alternative}
-        style={styles.disclaimerText}
-      >
-        {strings('bridge.fee_disclaimer')}
-      </Text>
+      {hasFee ? (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={TextColor.Alternative}
+          style={styles.disclaimerText}
+        >
+          {strings('bridge.fee_disclaimer')}
+        </Text>
+      ) : null}
     </Box>
   );
 };
