@@ -32,12 +32,7 @@ import {
   GanacheNodeOptions,
   TestSpecificMock,
 } from '../types';
-import {
-  TestDapps,
-  DappVariants,
-  defaultGanacheOptions,
-  DEFAULT_MOCKSERVER_PORT,
-} from '../Constants';
+import { TestDapps, DappVariants, defaultGanacheOptions } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
@@ -329,11 +324,8 @@ export const createMockAPIServer = async (
   testSpecificMock?: TestSpecificMock,
 ): Promise<{
   mockServer: Mockttp;
-  mockServerPort: number;
 }> => {
-  let mockServerPort: number = DEFAULT_MOCKSERVER_PORT;
-
-  mockServerPort = getMockServerPort();
+  const mockServerPort = getMockServerPort();
   const mockServer = await startMockServer(
     DEFAULT_MOCKS,
     mockServerPort,
