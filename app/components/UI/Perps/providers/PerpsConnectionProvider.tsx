@@ -193,7 +193,11 @@ export const PerpsConnectionProvider: React.FC<
 
   // Show skeleton loading UI while connection is initializing
   // This prevents components from trying to load data before the connection is ready
-  if (connectionState.isConnecting || !connectionState.isInitialized) {
+  // Don't show skeleton if there's an error (let the child components handle it)
+  if (
+    (connectionState.isConnecting || !connectionState.isInitialized) &&
+    !error
+  ) {
     return (
       <PerpsConnectionContext.Provider value={contextValue}>
         <PerpsLoadingSkeleton />

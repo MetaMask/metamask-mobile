@@ -1,5 +1,5 @@
 import React from 'react';
-import { TokenPill, TokenPillProps } from './token-pill';
+import { TokenIcon, TokenIconProps } from './token-icon';
 import { Hex } from '@metamask/utils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
@@ -17,13 +17,13 @@ const STATE_MOCK = {
   },
 };
 
-function render(props: TokenPillProps) {
-  return renderWithProvider(<TokenPill {...props} />, {
+function render(props: TokenIconProps) {
+  return renderWithProvider(<TokenIcon {...props} />, {
     state: STATE_MOCK,
   });
 }
 
-describe('TokenPill', () => {
+describe('TokenIcon', () => {
   const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
 
   beforeEach(() => {
@@ -39,31 +39,13 @@ describe('TokenPill', () => {
     ]);
   });
 
-  it('renders token symbol', () => {
-    const { getByTestId } = render({
-      address: ADDRESS_MOCK,
-      chainId: CHAIN_ID_MOCK,
-    });
-
-    expect(getByTestId('token-pill-symbol')).toHaveTextContent(SYMBOL_MOCK);
-  });
-
-  it('finds token using case-insensitive address', () => {
-    const { getByTestId } = render({
-      address: ADDRESS_MOCK.toUpperCase() as Hex,
-      chainId: CHAIN_ID_MOCK,
-    });
-
-    expect(getByTestId('token-pill-symbol')).toHaveTextContent(SYMBOL_MOCK);
-  });
-
   it('renders token icon', () => {
     const { getByTestId } = render({
       address: ADDRESS_MOCK,
       chainId: CHAIN_ID_MOCK,
     });
 
-    expect(getByTestId('token-pill-icon')).toHaveTextContent('T');
+    expect(getByTestId('token-icon')).toHaveTextContent('T');
   });
 
   it('renders nothing if token not found', () => {
@@ -72,16 +54,6 @@ describe('TokenPill', () => {
       chainId: CHAIN_ID_MOCK,
     });
 
-    expect(queryByTestId('token-pill-symbol')).toBeNull();
-  });
-
-  it('renders arrow if showArrow is true', () => {
-    const { getByTestId } = render({
-      address: ADDRESS_MOCK,
-      chainId: CHAIN_ID_MOCK,
-      showArrow: true,
-    });
-
-    expect(getByTestId('token-pill-arrow')).toBeDefined();
+    expect(queryByTestId('token-icon')).toBeNull();
   });
 });
