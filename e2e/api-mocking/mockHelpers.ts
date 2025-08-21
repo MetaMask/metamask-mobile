@@ -272,33 +272,6 @@ export const setupMockPostRequest = async (
 };
 
 /**
- * Convenience helper to mock simulation requests like SEND_ETH_SIMULATION_MOCK
- * @param mockServer - The mock server instance
- * @param simulationMock - Object with urlEndpoint, requestBody, ignoreFields, response, and responseCode
- */
-export const mockSimulation = async (
-  mockServer: Mockttp,
-  simulationMock: {
-    urlEndpoint: string | RegExp;
-    requestBody: unknown;
-    ignoreFields?: string[];
-    response: unknown;
-    responseCode?: number;
-  },
-) => {
-  await setupMockPostRequest(
-    mockServer,
-    simulationMock.urlEndpoint,
-    simulationMock.requestBody,
-    simulationMock.response,
-    {
-      statusCode: simulationMock.responseCode || 200,
-      ignoreFields: simulationMock.ignoreFields || [],
-    },
-  );
-};
-
-/**
  * Helper to intercept and transform URLs through the mobile proxy pattern
  * @param mockServer - The mock server instance
  * @param urlMatcher - Function to match URLs that need transformation
