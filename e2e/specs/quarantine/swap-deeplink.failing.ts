@@ -17,7 +17,7 @@ import {
 } from '../../framework/fixtures/FixtureUtils.ts';
 import { SmokeTrade } from '../../tags.js';
 import Assertions from '../../utils/Assertions.js';
-import { stopMockServer } from '../../api-mocking/mock-server.js';
+import { stopMockServer } from '../../api-mocking/mock-server';
 import QuoteView from '../../pages/Bridge/QuoteView.ts';
 import Matchers from '../../utils/Matchers.js';
 import Gestures from '../../utils/Gestures.js';

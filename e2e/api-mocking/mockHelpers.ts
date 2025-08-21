@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Mockttp } from 'mockttp';
+import _ from 'lodash';
 import { createLogger } from '../framework';
 import { getDecodedProxiedURL } from '../specs/notifications/utils/helpers';
 
@@ -13,6 +14,137 @@ interface ResponseParam {
   response: unknown;
   responseCode: number;
 }
+
+export interface PostRequestMatchingOptions {
+  ignoreFields?: string[];
+  allowPartialMatch?: boolean;
+}
+
+export interface PostRequestMatchResult {
+  matches: boolean;
+  error?: string;
+  requestBodyJson?: any;
+}
+
+/**
+ * Processes and validates POST request body against expected request body
+ * This is the unified logic extracted from mock-server.js
+ *
+ * @param requestBodyText - Raw request body text
+ * @param expectedRequestBody - Expected request body object to match against
+ * @param options - Options for matching behavior
+ * @returns Match result with validation status
+ */
+export const processPostRequestBody = (
+  requestBodyText: string | undefined,
+  expectedRequestBody: any,
+  options: PostRequestMatchingOptions = {},
+): PostRequestMatchResult => {
+  const { ignoreFields = [], allowPartialMatch = true } = options;
+
+  // Handle missing request body
+  if (!requestBodyText) {
+    return {
+      matches: false,
+      error: 'Missing request body',
+    };
+  }
+
+  let requestBodyJson: any;
+  try {
+    requestBodyJson = JSON.parse(requestBodyText);
+  } catch (e) {
+    return {
+      matches: false,
+      error: 'Invalid request body JSON',
+    };
+  }
+
+  // If no expected body specified, consider it a match
+  if (!expectedRequestBody) {
+    return {
+      matches: true,
+      requestBodyJson,
+    };
+  }
+
+  // Clone objects to avoid mutations (using lodash for consistency with mock-server.js)
+  const requestToCheck = _.cloneDeep(requestBodyJson);
+  const expectedRequest = _.cloneDeep(expectedRequestBody);
+
+  // Remove ignored fields from both objects for comparison
+  ignoreFields.forEach((field) => {
+    _.unset(requestToCheck, field);
+    _.unset(expectedRequest, field);
+  });
+
+  // Perform the matching using lodash isMatch (same as mock-server.js)
+  const matches = allowPartialMatch
+    ? _.isMatch(requestToCheck, expectedRequest)
+    : _.isEqual(requestToCheck, expectedRequest);
+
+  if (!matches) {
+    logger.warn('Request body validation failed:');
+    logger.info('Expected:', JSON.stringify(expectedRequestBody, null, 2));
+    logger.info('Received:', JSON.stringify(requestBodyJson, null, 2));
+    logger.info(
+      'Differences:',
+      JSON.stringify(
+        _.differenceWith([requestBodyJson], [expectedRequestBody], _.isEqual),
+        null,
+        2,
+      ),
+    );
+
+    return {
+      matches: false,
+      error: 'Request body validation failed',
+      requestBodyJson,
+    };
+  }
+
+  return {
+    matches: true,
+    requestBodyJson,
+  };
+};
+
+/**
+ * Finds a matching event from candidate events based on POST request body
+ * This implements the same logic as mock-server.js for finding the best match
+ *
+ * @param candidateEvents - Array of potential matching events
+ * @param requestBodyJson - Parsed request body JSON
+ * @returns The best matching event or undefined
+ */
+export const findMatchingPostEvent = (
+  candidateEvents: any[],
+  requestBodyJson: any,
+): any => {
+  if (!candidateEvents.length) {
+    return undefined;
+  }
+
+  // Prefer events whose requestBody matches (respecting ignoreFields)
+  const matchingEvent = candidateEvents.find((event) => {
+    if (!event.requestBody || !requestBodyJson) return false;
+
+    const result = processPostRequestBody(
+      JSON.stringify(requestBodyJson),
+      event.requestBody,
+      { ignoreFields: event.ignoreFields || [] },
+    );
+
+    return result.matches;
+  });
+
+  // Fallback to an event without a requestBody matcher
+  if (!matchingEvent) {
+    return candidateEvents.find((event) => !event.requestBody);
+  }
+
+  return matchingEvent;
+};
 
 async function mockAPICall(server: Mockttp, response: ResponseParam) {
   let requestRuleBuilder;
@@ -107,13 +239,9 @@ export const mockProxyPost = async (
 
       if (url instanceof RegExp) {
         const matches = url.test(decodedUrl);
-        logger.info(`🔍 RegExp match for ${url}: ${matches}`);
         return matches;
       }
       const matches = decodedUrl.includes(String(url));
-      logger.info(
-        `🔍 String match for "${String(url)}": ${matches} (in "${decodedUrl}")`,
-      );
       return matches;
     })
     .asPriority(999)
@@ -122,35 +250,23 @@ export const mockProxyPost = async (
 
       try {
         const requestBodyText = await request.body.getText();
-        if (!requestBodyText) {
-          logger.warn('Empty request body for', decodedUrl);
-          return {
-            statusCode: 400,
-            body: JSON.stringify({ error: 'Empty request body' }),
-          };
-        }
-        const requestBodyJson = JSON.parse(requestBodyText);
 
-        // Clone objects to avoid mutations
-        const requestToCheck = JSON.parse(JSON.stringify(requestBodyJson));
-        const expectedRequest = JSON.parse(JSON.stringify(requestBody));
-
-        // Remove ignored fields from both objects for comparison
-        ignoreFields.forEach((field) => {
-          deleteNestedProperty(requestToCheck, field);
-          deleteNestedProperty(expectedRequest, field);
+        const result = processPostRequestBody(requestBodyText, requestBody, {
+          ignoreFields,
         });
 
-        // Check if the request body matches the expected body
-        const matches = deepMatch(requestToCheck, expectedRequest);
-
-        if (!matches) {
+        if (!result.matches) {
           logger.warn('❌ Request body validation failed for', decodedUrl);
-          logger.debug('Expected:', expectedRequest);
-          logger.debug('Received:', requestToCheck);
+          logger.debug('Expected:', requestBody);
+          logger.debug('Received:', result.requestBodyJson);
           logger.debug('Ignored fields:', ignoreFields);
+          logger.debug('Error:', result.error);
           return {
-            statusCode,
+            statusCode:
+              result.error === 'Missing request body' ||
+              result.error === 'Invalid request body JSON'
+                ? 400
+                : statusCode,
             json: response,
           };
         }
@@ -163,95 +279,14 @@ export const mockProxyPost = async (
           json: response,
         };
       } catch (error) {
-        logger.error('Error parsing request body:', error);
+        logger.error('Error processing request:', error);
         return {
           statusCode: 400,
-          body: JSON.stringify({ error: 'Invalid request body' }),
+          body: JSON.stringify({ error: 'Error processing request' }),
         };
       }
     });
 };
-
-/**
- * Helper function to delete a nested property using dot notation (lodash unset equivalent)
- * @param obj - The object to modify
- * @param path - The path to the property (e.g., 'params.0.blockOverrides')
- */
-function deleteNestedProperty(obj: object, path: string): void {
-  const keys = path.split('.');
-  let current = obj;
-
-  for (let i = 0; i < keys.length - 1; i++) {
-    const key = keys[i];
-    // Handle both object properties and array indices
-    if (
-      current != null &&
-      (typeof current === 'object' || Array.isArray(current))
-    ) {
-      if (Array.isArray(current) && /^\d+$/.test(key)) {
-        // Convert string index to number for arrays
-        const index = parseInt(key, 10);
-        if (index >= 0 && index < current.length) {
-          current = current[index];
-        } else {
-          return; // Index out of bounds
-        }
-      } else if (key in current) {
-        current = current[key];
-      } else {
-        return; // Path doesn't exist
-      }
-    } else {
-      return; // Path doesn't exist
-    }
-  }
-
-  const lastKey = keys[keys.length - 1];
-  if (
-    current != null &&
-    (typeof current === 'object' || Array.isArray(current))
-  ) {
-    if (Array.isArray(current) && /^\d+$/.test(lastKey)) {
-      // Handle array index deletion
-      const index = parseInt(lastKey, 10);
-      if (index >= 0 && index < current.length) {
-        current.splice(index, 1);
-      }
-    } else {
-      delete current[lastKey];
-    }
-  }
-}
-
-/**
- * Helper function to perform deep matching between two objects (lodash isMatch equivalent)
- * @param received - The received object
- * @param expected - The expected object pattern
- * @returns true if the received object matches the expected pattern
- */
-function deepMatch(received: any, expected: any): boolean {
-  if (expected === received) return true;
-  if (expected == null || received == null) return expected === received;
-
-  if (Array.isArray(expected)) {
-    if (!Array.isArray(received) || received.length !== expected.length) {
-      return false;
-    }
-    return expected.every((item, index) => deepMatch(received[index], item));
-  }
-
-  if (typeof expected === 'object' && typeof received === 'object') {
-    // Similar to lodash isMatch - received can have more properties than expected
-    for (const key in expected) {
-      if (!(key in received) || !deepMatch(received[key], expected[key])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  return expected === received;
-}
 
 /**
  * Convenience helper to mock simulation requests like SEND_ETH_SIMULATION_MOCK

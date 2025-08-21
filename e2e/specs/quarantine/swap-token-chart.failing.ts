@@ -25,7 +25,7 @@ import Ganache from '../../../app/util/test/ganache';
 import { testSpecificMock } from '../swaps/helpers/constants';
 import AdvancedSettingsView from '../../pages/Settings/AdvancedView';
 import { submitSwapUnifiedUI } from '../swaps/helpers/swapUnifiedUI';
-import { stopMockServer } from '../../api-mocking/mock-server.js';
+import { stopMockServer } from '../../api-mocking/mock-server';
 import { startSwapsMockServer } from '../swaps/helpers/swap-mocks';
 import { defaultGanacheOptions } from '../../framework/Constants';
 
