@@ -23,7 +23,12 @@ export function useTransactionConfirm() {
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId, id: transactionId, type } = transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
-  const { formatted: totalFiat } = useTransactionTotalFiat();
+
+  const {
+    bridgeFeeFormatted: bridgeFeeFiat,
+    formatted: totalFiat,
+    totalGasFormatted: networkFeeFiat,
+  } = useTransactionTotalFiat();
 
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
     selectShouldUseSmartTransaction(state, chainId),
@@ -42,7 +47,9 @@ export function useTransactionConfirm() {
 
     const updatedMetadata = cloneDeep(transactionMetadata);
     updatedMetadata.metamaskPay = {};
+    updatedMetadata.metamaskPay.bridgeFeeFiat = bridgeFeeFiat;
     updatedMetadata.metamaskPay.chainId = payToken?.chainId;
+    updatedMetadata.metamaskPay.networkFeeFiat = networkFeeFiat;
     updatedMetadata.metamaskPay.tokenAddress = payToken?.address;
     updatedMetadata.metamaskPay.totalFiat = totalFiat;
 
@@ -66,9 +73,11 @@ export function useTransactionConfirm() {
     // Replace/remove this once we have redesigned send flow
     dispatch(resetTransaction());
   }, [
+    bridgeFeeFiat,
     dispatch,
     isFullScreenConfirmation,
     navigation,
+    networkFeeFiat,
     onRequestConfirm,
     payToken,
     totalFiat,
