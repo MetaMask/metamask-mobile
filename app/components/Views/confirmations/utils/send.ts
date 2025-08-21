@@ -140,22 +140,20 @@ export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
     const decimals = decimalsToShow < 5 ? decimalsToShow : 5;
     const result = String(value).replace(/^-/, '').split('.');
     const intPart = result[0];
-    let fracPart = `${result[1] ?? ''}${'0'.repeat(decimals)}`;
+    let fracPart = result[1] ?? '';
 
-    const val = new BN(`${intPart}${fracPart}`);
-    if (val.isZero()) {
+    if (new BN(`${intPart}${fracPart}`).isZero()) {
       return '0';
-    }
-
-    const minVal = Math.pow(10, decimals);
-    const minValBN = new BN(minVal);
-
-    if (val.lt(minValBN)) {
-      return `< ${1 / minVal}`;
     }
 
     if (fracPart.length > decimals) {
       fracPart = fracPart.slice(0, decimals);
+    } else {
+      fracPart = fracPart.padEnd(decimals, '0');
+    }
+
+    if (new BN(`${intPart}${fracPart}`).lt(new BN(1))) {
+      return `< ${1 / Math.pow(10, decimals)}`;
     }
 
     return `${intPart}.${fracPart}`
