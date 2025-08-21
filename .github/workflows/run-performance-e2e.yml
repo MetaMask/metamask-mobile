@@ -342,7 +342,6 @@ jobs:
       browserstack-android-url: ${{ steps.download-artifacts.outputs.browserstack-android-url }}
       browserstack-ios-url: ${{ steps.download-artifacts.outputs.browserstack-ios-url }}
 
-  # Sequential Android Tests on Multiple Devices
   android-tests:
     name: Android Tests
     runs-on: ubuntu-latest

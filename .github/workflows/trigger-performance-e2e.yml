@@ -105,7 +105,6 @@ jobs:
               exit 1
             fi
           fi
-  # Sequential Android Tests on Multiple Devices
   android-tests:
     name: Android Tests
     runs-on: ubuntu-latest
@@ -183,7 +182,6 @@ jobs:
             appwright/reporters/reports
           if-no-files-found: ignore
           retention-days: 7
-  # Sequential iOS Tests on Multiple Devices
   ios-tests:
     name: iOS Tests
     runs-on: ubuntu-latest
@@ -223,7 +221,7 @@ jobs:
       - name: Wait for BrowserStack Local
         run: |
           echo "Waiting for BrowserStack Local to be ready..."
-          sleep 30
+          sleep 15
           echo "BrowserStack Local should be ready now"
       
       - name: Set iOS Test Environment
