@@ -185,7 +185,7 @@ export const startMockServer = async (
       if (matchingEvent) {
         logger.info(`Mocking ${method} request to: ${urlEndpoint}`);
         logger.info(`Response status: ${matchingEvent.responseCode}`);
-        // logger.debug('Response:', matchingEvent.response);
+        logger.debug('Response:', matchingEvent.response);
         // For POST requests, verify the request body if specified
         if (method === 'POST' && matchingEvent.requestBody) {
           const result = processPostRequestBody(

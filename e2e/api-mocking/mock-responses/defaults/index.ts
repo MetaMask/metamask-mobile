@@ -16,6 +16,7 @@ import { METAMETRICS_API_MOCKS } from './metametrics-test';
 import { DEFAULT_ACCOUNTS_MOCK } from './accounts';
 import { getAuthMocks } from '../auth-mocks';
 import { USER_STORAGE_MOCK } from './user-storage';
+import { ON_RAMP_SDK_MOCKS } from '../on-ramp-sdk-mocks';
 
 // Get auth mocks
 const authMocks = getAuthMocks();
@@ -29,6 +30,7 @@ export const DEFAULT_MOCKS = {
     ...(SWAP_API_MOCKS.GET || []),
     ...(STAKING_MOCKS.GET || []),
     ...(ONRAMP_API_MOCKS.GET || []),
+    ...(ON_RAMP_SDK_MOCKS.GET || []),
     ...(TOKEN_API_MOCKS.GET || []),
     ...(DEFI_ADAPTERS_MOCKS.GET || []),
     ...(DEFAULT_ACCOUNTS_MOCK.GET || []),

@@ -12,7 +12,6 @@ export const ALLOWLISTED_HOSTS = [
   '*.infura.io',
   'carrot.megaeth.com',
   'testnet-rpc.monad.xyz',
-  'on-ramp-cache.uat-api.cx.metamask.io',
 ];
 
 export const ALLOWLISTED_URLS = [

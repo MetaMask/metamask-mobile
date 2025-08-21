@@ -14,7 +14,7 @@ import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { logger } from '../../framework/logger';
-import { testSpecificMock } from './helpers/swap-mocks.js';
+import { testSpecificMock } from './helpers/swap-mocks';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',

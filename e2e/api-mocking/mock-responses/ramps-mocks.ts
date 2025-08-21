@@ -234,6 +234,16 @@ const MOCK_REGIONS_RESPONSE = [
     recommended: false,
     detected: false,
   },
+  {
+    id: '/regions/us-ca',
+    name: 'California',
+    emoji: '🇺🇸',
+    currencies: ['/currencies/fiat/usd'],
+    support: { buy: true, sell: true, recurringBuy: true },
+    unsupported: false,
+    recommended: false,
+    detected: false,
+  },
 ];
 
 export const testSpecificMock: TestSpecificMock = async (
@@ -288,11 +298,6 @@ export const testSpecificMock: TestSpecificMock = async (
   await mockServer
     .forGet(/on-ramp\.dev-api\.cx\.metamask\.io\/regions$/)
     .thenReply(200, JSON.stringify(MOCK_REGIONS_RESPONSE));
-
-  // Mock analytics tracking
-  await mockServer
-    .forPost('https://api.segment.io/v1/track')
-    .thenReply(200, JSON.stringify({ success: true }));
 
   // Mock orders endpoint
   await mockServer
