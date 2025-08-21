@@ -175,7 +175,7 @@ export function renderAccountName(
     (acc) => toFormattedAddress(acc.address) === address,
   );
   if (account) {
-    const identityName = account.metadata.name;
+    const identityName = account.metadata.name; // Accounts: Needs to be updated to use the new accountGroup name*/
     const ensName = getCachedENSName(address, chainId) || '';
     return isDefaultAccountName(identityName) && ensName
       ? ensName

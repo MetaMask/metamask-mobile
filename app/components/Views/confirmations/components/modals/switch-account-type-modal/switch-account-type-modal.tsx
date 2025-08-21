@@ -67,6 +67,7 @@ const SwitchAccountTypeModal = () => {
               />
               <Text style={styles.account_name} variant={TextVariant.HeadingMD}>
                 {account?.metadata.name}
+                {/* // Confirmations: Needs to be updated to use the new accountGroup name*/}
               </Text>
             </View>
             <View>

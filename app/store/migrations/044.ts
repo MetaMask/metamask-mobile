@@ -149,12 +149,12 @@ export default function migrate(state: unknown) {
             if (
               isObject(identity) &&
               isObject(account.metadata) &&
-              identity?.name !== account.metadata.name
+              identity?.name !== account.metadata.name // Accounts/Backup and sync: Does this need to be updated to use the new accountGroup name?
             ) {
               (
                 accountsControllerState as AccountsControllerState
               ).internalAccounts.accounts[accountId].metadata.name =
-                identity.name as string;
+                identity.name as string; // Accounts/Backup and sync: Does this need to be updated to use the new accountGroup name?
             }
           }
         });

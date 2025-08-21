@@ -249,7 +249,7 @@ class AccountOverview extends PureComponent {
       selectedAddress,
       this.isAccountLabelDefined(accountLabel)
         ? accountLabel
-        : accountWithMatchingToAddress.metadata.name,
+        : accountWithMatchingToAddress.metadata.name, // Who owns this file? Confirmations?: Needs to be updated to use the new accountGroup name*/
     );
     this.setState({ accountLabelEditable: false });
   };

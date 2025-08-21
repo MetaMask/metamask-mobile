@@ -497,7 +497,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
                   label: (
                     <AccountTag
                       accountAddress={activeAccount?.address}
-                      accountName={activeAccount.metadata.name}
+                      accountName={activeAccount.metadata.name} // Earn: Needs to be updated to use the new accountGroup name
                       useBlockieIcon={useBlockieIcon}
                     />
                   ),

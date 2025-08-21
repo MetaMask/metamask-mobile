@@ -47,7 +47,7 @@ const SnapAccountCustomNameApproval = () => {
   };
 
   const checkIfNameTaken = (name: string) =>
-    internalAccounts.some((account) => account.metadata.name === name);
+    internalAccounts.some((account) => account.metadata.name === name); // Accounts: Needs to be updated to use the new accountGroup name*/
 
   useEffect(() => {
     const suggestedName =
