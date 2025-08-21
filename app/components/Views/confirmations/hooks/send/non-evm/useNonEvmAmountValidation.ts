@@ -1,18 +1,23 @@
+import { CaipAssetType } from '@metamask/utils';
+import { InternalAccount } from '@metamask/keyring-internal-api';
 import { useCallback } from 'react';
 
 import { strings } from '../../../../../../../locales/i18n';
 import { isDecimal } from '../../../../../../util/number';
 import { AssetType } from '../../../types/token';
-import { toBNWithDecimals } from '../../../utils/send';
 import { useSendContext } from '../../../context/send-context';
+import { validateAmountMultichain } from '../../../utils/multichain-snaps';
 
-// todo: once we integrate with solana snap for validations this can be fully / partially removed
-export const validateAmountFn = ({
+interface SnapValidationResult { errors: { code: string }[]; valid: false }
+
+export const validateAmountFn = async ({
   amount,
   asset,
+  fromAccount,
 }: {
   amount?: string;
   asset?: AssetType;
+  fromAccount: InternalAccount;
 }) => {
   if (!asset || amount === undefined || amount === null || amount === '') {
     return;
@@ -20,21 +25,36 @@ export const validateAmountFn = ({
   if (!isDecimal(amount) || Number(amount) < 0) {
     return strings('send.invalid_value');
   }
-  if (
-    toBNWithDecimals(amount, asset.decimals).gt(
-      toBNWithDecimals(asset.balance, asset.decimals),
-    )
-  ) {
-    return strings('send.insufficient_funds');
+  const { errors, valid } = (await validateAmountMultichain(
+    fromAccount as InternalAccount,
+    {
+      value: amount,
+      accountId: fromAccount.id,
+      assetId: asset.address as CaipAssetType,
+    },
+  )) as SnapValidationResult;
+  if (!valid) {
+    if (
+      errors.some(
+        ({ code }: { code: string }) => code === 'InsufficientBalance',
+      )
+    ) {
+      return strings('send.insufficient_funds');
+    }
   }
 };
 
 export const useNonEvmAmountValidation = () => {
-  const { asset, value } = useSendContext();
+  const { asset, fromAccount, value } = useSendContext();
 
   const validateNonEvmAmount = useCallback(
-    () => validateAmountFn({ amount: value, asset }),
-    [asset, value],
+    async () =>
+      await validateAmountFn({
+        amount: value,
+        asset,
+        fromAccount: fromAccount as InternalAccount,
+      }),
+    [asset, fromAccount, value],
   );
 
   return { validateNonEvmAmount };

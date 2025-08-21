@@ -3,7 +3,6 @@ import { BNToHex, toHex } from '@metamask/controller-utils';
 import { CaipAssetType, Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Nft } from '@metamask/assets-controllers';
-import { SnapId } from '@metamask/snaps-sdk';
 import { TransactionParams } from '@metamask/transaction-controller';
 
 import Engine from '../../../../core/Engine';
@@ -129,10 +128,7 @@ export const submitNonEvmTransaction = async (
     amount: string;
   },
 ) => {
-  await sendMultichainTransactionForReview(
-    fromAccount.metadata?.snap?.id as SnapId,
-    params,
-  );
+  await sendMultichainTransactionForReview(fromAccount, params);
 };
 
 export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
