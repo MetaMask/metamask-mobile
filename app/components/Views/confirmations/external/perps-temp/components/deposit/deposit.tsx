@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row/gas-fee-details-row';
 import { PayWithRow } from '../../../../components/rows/pay-with-row';
 import useNavbar from '../../../../hooks/ui/useNavbar';
 import { EditAmount } from '../../../../components/edit-amount';
@@ -16,6 +15,7 @@ import { Box } from '../../../../../../UI/Box/Box';
 import InfoRowDivider from '../../../../components/UI/info-row-divider';
 import { InfoRowDividerVariant } from '../../../../components/UI/info-row-divider/info-row-divider.styles';
 import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
+import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
 
 const AMOUNT_PREFIX = '$';
 
@@ -58,7 +58,7 @@ export function PerpsDeposit() {
         </InfoSection>
         {isFullView && (
           <InfoSection>
-            <GasFeesDetailsRow disableUpdate hideSpeed fiatOnly noSection />
+            <GasFeeFiatRow />
             <InfoRowDivider variant={InfoRowDividerVariant.Large} />
             <TotalRow />
           </InfoSection>
