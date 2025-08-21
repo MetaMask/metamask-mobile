@@ -19,6 +19,12 @@ import { TraceName, endTrace, trace } from '../util/trace';
 import { getTraceTags } from '../util/sentry/tags';
 import { store } from '../store';
 import { createDeepEqualSelector } from './util';
+import {
+  Asset,
+  selectAssetsBySelectedAccountGroup,
+} from '@metamask/assets-controllers';
+import { CaipChainId, Hex } from '@metamask/utils';
+import { selectEnabledNetworksByNamespace } from './networkEnablementController';
 
 const _selectSortedTokenKeys = createSelector(
   [
@@ -72,3 +78,117 @@ export const selectSortedTokenKeys = createDeepEqualSelector(
   _selectSortedTokenKeys,
   (keys) => keys.filter(({ address, chainId }) => address && chainId),
 );
+
+const _selectBip44Assets = createDeepEqualSelector(
+  (state: RootState) => {
+    const {
+      AccountTreeController,
+      AccountsController,
+      TokensController,
+      TokenBalancesController,
+      TokenRatesController,
+      MultichainAssetsController,
+      MultichainBalancesController,
+      MultichainAssetsRatesController,
+      CurrencyRateController,
+      AccountTrackerController,
+    } = state.engine.backgroundState;
+
+    return {
+      ...AccountTreeController,
+      ...AccountsController,
+      ...TokensController,
+      ...TokenBalancesController,
+      ...TokenRatesController,
+      ...MultichainAssetsController,
+      ...MultichainBalancesController,
+      ...MultichainAssetsRatesController,
+      ...CurrencyRateController,
+      ...(AccountTrackerController as {
+        accountsByChainId: Record<
+          Hex,
+          Record<
+            Hex,
+            {
+              balance: Hex | null;
+            }
+          >
+        >;
+      }),
+    };
+  },
+  (filteredState) => selectAssetsBySelectedAccountGroup(filteredState),
+);
+
+export const selectSortedTokenKeysBip44 = createDeepEqualSelector(
+  [_selectBip44Assets, selectEnabledNetworksByNamespace, selectTokenSortConfig],
+  (bip44Assets, enabledNetworksByNamespace, tokenSortConfig) => {
+    const enabledNetworks = Object.values(enabledNetworksByNamespace).flatMap(
+      (network) =>
+        Object.entries(network)
+          .filter(([_, enabled]) => enabled)
+          .map(([networkId]) => networkId),
+    );
+
+    const assets = Object.entries(bip44Assets)
+      .filter(
+        ([networkId, _]) =>
+          enabledNetworks.includes(networkId) || networkId.startsWith('0x'),
+      )
+      .flatMap(([_, assets]) => assets);
+
+    const tokensSorted = sortAssets(assets.map(assetToToken), tokenSortConfig);
+
+    return tokensSorted.map(({ address, chainId, isStaked }) => ({
+      address,
+      chainId,
+      isStaked,
+    }));
+  },
+);
+
+export const selectAsset = createDeepEqualSelector(
+  [
+    _selectBip44Assets,
+    (
+      _state: RootState,
+      params: { address: string; chainId: string; isStaked?: boolean },
+    ) => params,
+  ],
+  (assets, { address, chainId }) => {
+    const asset = assets[chainId]?.find((asset) => asset.assetId === address);
+
+    // if (address.toLowerCase() === '0xb1d018be7a9cfd7ac6c5cce00835a8f2386173d8'.toLowerCase()) {
+    //   console.log('ASSET', {
+    //     asset,
+    //   });
+    // }
+
+    return asset ? assetToToken(asset) : undefined;
+  },
+);
+
+function assetToToken(asset: Asset): TokenI {
+  return {
+    address: asset.assetId,
+    aggregators: [],
+    decimals: asset.decimals,
+    image: asset.image,
+    name: asset.name,
+    symbol: asset.symbol,
+    balance: asset.balance || '', // TODO: Check if it's possible to avoid this
+    balanceFiat: asset.fiatBalance,
+    logo: asset.image,
+    isETH:
+      asset.type === 'evm' &&
+      asset.address === '0x0000000000000000000000000000000000000000',
+    hasBalanceError: !asset.balance,
+    isStaked: false,
+    nativeAsset: undefined,
+    chainId: asset.chainId,
+    isNative:
+      asset.type === 'evm' &&
+      asset.address === '0x0000000000000000000000000000000000000000',
+    ticker: asset.symbol,
+  };
+}

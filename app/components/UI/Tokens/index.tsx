@@ -23,7 +23,8 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { TokenListControlBar } from './TokenListControlBar';
 import { selectSelectedInternalAccountId } from '../../../selectors/accountsController';
 import { ScamWarningModal } from './TokenList/ScamWarningModal';
-import { selectSortedTokenKeys } from '../../../selectors/tokenList';
+import { selectSortedTokenKeys, selectSortedTokenKeysBip44 } from '../../../selectors/tokenList';
+import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -55,7 +56,17 @@ const Tokens = memo(() => {
 
   const styles = createStyles(colors);
 
-  const sortedTokenKeys = useSelector(selectSortedTokenKeys);
+  const isMultichainAccountsState2Enabled = useSelector(selectMultichainAccountsState2Enabled);
+  const preBip44SortedTokenKeys = useSelector(selectSortedTokenKeys);
+  const bip44SortedTokenKeys = useSelector(selectSortedTokenKeysBip44);
+
+  const sortedTokenKeys = isMultichainAccountsState2Enabled ? preBip44SortedTokenKeys : bip44SortedTokenKeys;
+
+  // console.log('BIP 44 ASSETS', {
+  //   bip44Assets: JSON.stringify(bip44SortedTokenKeys, null, 2),
+  //   preBip44SortedTokenKeys: JSON.stringify(preBip44SortedTokenKeys, null, 2),
+  //   sortedTokenKeys: JSON.stringify(sortedTokenKeys, null, 2),
+  // });
 
   const showRemoveMenu = useCallback(
     (token: TokenI) => {

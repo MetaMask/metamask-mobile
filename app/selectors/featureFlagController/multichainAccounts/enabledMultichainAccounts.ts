@@ -73,6 +73,7 @@ export const isMultichainAccountsFeatureEnabled = (
  */
 const createMultichainAccountsStateSelector = (featureVersions: string[]) =>
   createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags): boolean => {
+    // return true;
     // Overrides the multichain accounts state 2 enabled flag based on the feature versions.
     // This is used to enable the feature locally for development/testing purposes.
     if (

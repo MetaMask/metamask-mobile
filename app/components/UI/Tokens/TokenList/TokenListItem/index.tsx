@@ -75,6 +75,8 @@ import {
 } from '../../../Earn/selectors/featureFlags';
 import { useTokenPricePercentageChange } from '../../hooks/useTokenPricePercentageChange';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
+import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
+import { selectAsset } from '../../../../../selectors/tokenList';
 
 interface TokenListItemProps {
   assetKey: FlashListAssetKey;
@@ -123,7 +125,38 @@ export const TokenListItem = React.memo(
     );
     ///: END:ONLY_INCLUDE_IF
 
-    let asset = isEvmNetworkSelected ? evmAsset : nonEvmAsset;
+    const isMultichainAccountsState2Enabled = useSelector(
+      selectMultichainAccountsState2Enabled,
+    );
+    const bip44Asset = useSelector((state: RootState) =>
+      selectAsset(state, {
+        address: assetKey.address,
+        chainId: assetKey.chainId ?? '',
+        isStaked: assetKey.isStaked,
+      }),
+    );
+    // const bip44Asset = undefined;
+
+    // let asset = isMultichainAccountsState2Enabled
+    //   ? bip44Asset
+    //   : isEvmNetworkSelected
+    //   ? evmAsset
+    //   : nonEvmAsset;
+
+    // let asset = bip44Asset?.address.startsWith('0x') ? bip44Asset : evmAsset;
+
+    let asset = isEvmNetworkSelected
+      ? evmAsset
+      : nonEvmAsset;
+
+    if (assetKey?.address === 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB') {
+      console.log('BIP44 ASSET', {
+        bip44Asset,
+        evmAsset,
+        nonEvmAsset,
+        asset,
+      });
+    }
 
     const chainId = asset?.chainId as Hex;
 
@@ -169,7 +202,30 @@ export const TokenListItem = React.memo(
 
     const { balanceFiat, balanceValueFormatted } = useMemo(
       () =>
-        isEvmNetworkSelected && asset
+        isMultichainAccountsState2Enabled ? {
+          balanceFiat: asset?.balanceFiat
+          ? formatWithThreshold(
+              parseFloat(asset.balanceFiat),
+              oneHundredths,
+              I18n.locale,
+              { style: 'currency', currency: currentCurrency },
+            )
+          : TOKEN_BALANCE_LOADING,
+          balanceValueFormatted: asset?.balance
+          ? formatWithThreshold(
+              parseFloat(asset.balance),
+              oneHundredThousandths,
+              I18n.locale,
+              {
+                minimumFractionDigits: 0,
+                maximumFractionDigits:
+                  MULTICHAIN_NETWORK_DECIMAL_PLACES[
+                    chainId as CaipChainId
+                  ] || 5,
+              },
+            )
+          : TOKEN_BALANCE_LOADING,
+        } : isEvmNetworkSelected && asset
           ? deriveBalanceFromAssetMarketDetails(
               asset,
               exchangeRates || {},
