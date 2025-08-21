@@ -39,7 +39,7 @@ describe(
           await AddContactView.typeInAddress('curtis.eth');
           await AddContactView.typeInMemo(MEMO);
           await AddContactView.tapAddContactButton();
-          await ContactsView.isContactAliasVisible('Curtis');
+          await ContactsView.expectContactIsVisible('Curtis');
           await device.terminateApp();
           await TestHelpers.launchApp({
             launchArgs: { fixtureServerPort: `${getFixturesServerPort()}` },
@@ -48,7 +48,7 @@ describe(
           await TabBarComponent.tapSettings();
           await SettingsView.tapContacts();
           await Assertions.expectElementToBeVisible(ContactsView.container);
-          await ContactsView.isContactAliasVisible('Curtis');
+          await ContactsView.expectContactIsVisible('Curtis');
           await TabBarComponent.tapWallet();
           await WalletView.tapWalletSendButton();
           await Assertions.expectTextDisplayed('Curtis');
