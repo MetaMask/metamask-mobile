@@ -11,8 +11,8 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { SafeAreaView, ScrollView, View, RefreshControl } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView, View, RefreshControl, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -53,9 +53,7 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
-import { useSelector } from 'react-redux';
-import { selectPerpsProvider } from '../../selectors/perpsController';
-import { capitalize } from '../../../../../util/general';
+
 import {
   usePerpsAccount,
   usePerpsConnection,
@@ -77,7 +75,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market, isNavigationFromOrderSuccess } = route.params || {};
-  const { top } = useSafeAreaInsets();
   const { track } = usePerpsEventTracking();
 
   // Track screen load time
@@ -103,8 +100,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   ] = useState(false);
   const [activeTabId, setActiveTabId] = useState('position');
   const [refreshing, setRefreshing] = useState(false);
-
-  const perpsProvider = useSelector(selectPerpsProvider);
 
   const account = usePerpsAccount();
 
@@ -284,6 +279,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     });
   };
 
+  const handleTradingViewPress = useCallback(() => {
+    Linking.openURL('https://www.tradingview.com/').catch((error: unknown) => {
+      console.error('Failed to open Trading View URL:', error);
+    });
+  }, []);
+
   // Determine if any action buttons will be visible
   const hasLongShortButtons = useMemo(
     () => !isLoadingPosition && !hasZeroBalance,
@@ -300,7 +301,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   if (!market) {
     return (
-      <SafeAreaView style={[styles.container, { paddingTop: top }]}>
+      <SafeAreaView style={styles.container}>
         <View
           style={styles.errorContainer}
           testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
@@ -315,7 +316,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   return (
     <SafeAreaView
-      style={[styles.mainContainer, { marginTop: top }]}
+      style={styles.mainContainer}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
       {/* Fixed Header Section */}
@@ -387,9 +388,14 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               variant={TextVariant.BodyXS}
               color={TextColor.Alternative}
             >
-              {strings('perps.risk_disclaimer', {
-                provider: capitalize(perpsProvider),
-              })}
+              {strings('perps.risk_disclaimer')}{' '}
+              <Text
+                variant={TextVariant.BodyXS}
+                color={TextColor.Alternative}
+                onPress={handleTradingViewPress}
+              >
+                Trading View
+              </Text>
             </Text>
           </View>
         </ScrollView>

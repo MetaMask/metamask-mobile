@@ -2,8 +2,9 @@ import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
-import { TokenStandard } from '../../../types/token';
+import { AssetType, TokenStandard } from '../../../types/token';
 import { Amount } from './amount';
+import { getFontSizeForInputLength } from './amount.styles';
 
 const mockUpdateValue = jest.fn();
 const mockSetAmountInputMethodManual = jest.fn();
@@ -18,7 +19,7 @@ const mockERC20Asset = {
   symbol: 'TEST',
   ticker: 'TEST',
   standard: TokenStandard.ERC20,
-};
+} as unknown as AssetType;
 
 const mockNFTAsset = {
   address: '0x4B3E2eD66631FE2dE488CB0c23eF3A91A41601f7',
@@ -26,7 +27,7 @@ const mockNFTAsset = {
   name: 'Test NFT',
   tokenId: '17',
   standard: TokenStandard.ERC1155,
-};
+} as unknown as AssetType;
 
 jest.mock('../../../context/send-context', () => ({
   useSendContext: jest.fn(),
@@ -34,7 +35,7 @@ jest.mock('../../../context/send-context', () => ({
 
 jest.mock('../../../hooks/send/useBalance', () => ({
   useBalance: () => ({
-    balance: '10.5',
+    balance: '10',
   }),
 }));
 
@@ -130,7 +131,7 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 const renderComponent = (
   primaryCurrency = 'ETH',
-  asset = mockERC20Asset,
+  asset: AssetType = mockERC20Asset,
   amountError: string | null = null,
 ) => {
   const mockUseSendContext = jest.requireMock(
@@ -168,7 +169,7 @@ describe('Amount Component', () => {
 
     expect(getByTestId('send_amount')).toBeTruthy();
     expect(getByText('TEST')).toBeTruthy();
-    expect(getByText('10.5 TEST available')).toBeTruthy();
+    expect(getByText('10 TEST available')).toBeTruthy();
   });
 
   it('renders correctly with NFT asset', () => {
@@ -181,6 +182,16 @@ describe('Amount Component', () => {
 
     expect(getByText('Test NFT')).toBeTruthy();
     expect(getByText('17')).toBeTruthy();
+    expect(queryByTestId('fiat_toggle')).toBeNull();
+  });
+
+  it('uses `NFT` in place of asset symbol if symbol is not present', () => {
+    const { getByText, queryByTestId } = renderComponent('ETH', mockNFTAsset);
+
+    expect(getByText('NFT')).toBeTruthy();
+    expect(getByText('Test NFT')).toBeTruthy();
+    expect(getByText('17')).toBeTruthy();
+    expect(getByText('10 units available')).toBeTruthy();
     expect(queryByTestId('fiat_toggle')).toBeNull();
   });
 
@@ -263,10 +274,17 @@ describe('Amount Component', () => {
   });
 
   it('prefers ticker over symbol', () => {
-    const assetWithBoth = { ...mockERC20Asset, symbol: 'SYM', ticker: 'TICK' };
-    const { getByText } = renderComponent('ETH', assetWithBoth);
+    const assetWithOne = {
+      ...mockERC20Asset,
+      symbol: 'SYM',
+      ticker: undefined,
+    };
+    let result = renderComponent('ETH', assetWithOne);
+    expect(result.getByText('SYM')).toBeTruthy();
 
-    expect(getByText('TICK')).toBeTruthy();
+    const assetWithBoth = { ...mockERC20Asset, symbol: 'SYM', ticker: 'TICK' };
+    result = renderComponent('ETH', assetWithBoth);
+    expect(result.getByText('TICK')).toBeTruthy();
   });
 
   it('clears amount when toggling currency mode', () => {
@@ -283,5 +301,17 @@ describe('Amount Component', () => {
     const { getByTestId } = renderComponent();
 
     expect(getByTestId('amount_keyboard')).toBeTruthy();
+  });
+});
+
+describe('getFontSizeForInputLength', () => {
+  it('return correct font size for character length', () => {
+    expect(getFontSizeForInputLength(5)).toEqual(60);
+    expect(getFontSizeForInputLength(8)).toEqual(60);
+    expect(getFontSizeForInputLength(12)).toEqual(48);
+    expect(getFontSizeForInputLength(15)).toEqual(32);
+    expect(getFontSizeForInputLength(20)).toEqual(24);
+    expect(getFontSizeForInputLength(25)).toEqual(18);
+    expect(getFontSizeForInputLength(30)).toEqual(18);
   });
 });
