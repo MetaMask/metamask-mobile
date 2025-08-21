@@ -166,7 +166,13 @@ jobs:
             export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
           fi
           
-          ./scripts/run-e2e-tags.sh
+          # Pass PR context to allow duplication of newly added tests on PRs
+          is_pr="${{ github.event_name == 'pull_request' && 'true' || 'false' }}"
+          base_sha="${{ github.event.pull_request.base.sha || '' }}"
+
+          ./scripts/run-e2e-tags.sh \
+            --is-pr "$is_pr" \
+            --pr-base-sha "$base_sha"
           
           echo "✅ Test execution completed"
 
