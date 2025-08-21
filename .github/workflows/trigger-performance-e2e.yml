@@ -29,7 +29,7 @@ on:
   #   - cron: '0 */3 * * *'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}
+  group: ${{ github.workflow }}-${{ github.ref }}-trigger-performance-e2e
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:

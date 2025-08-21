@@ -10,7 +10,7 @@ on:
     types: [opened, synchronize]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}
+  group: ${{ github.workflow }}-${{ github.ref }}-run-e2e-api-specs
   cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
 jobs:
