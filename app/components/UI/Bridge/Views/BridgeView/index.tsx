@@ -71,6 +71,7 @@ import AppConstants from '../../../../../core/AppConstants';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
+import ApprovalText from '../../components/ApprovalText';
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -401,6 +402,9 @@ const BridgeView = () => {
               !hasSufficientGas
             }
           />
+          {activeQuote?.approval && sourceAmount && sourceToken && (
+            <ApprovalText amount={sourceAmount} symbol={sourceToken.symbol} />
+          )}
           <Button
             variant={ButtonVariants.Link}
             label={

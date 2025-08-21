@@ -5150,7 +5150,10 @@
     "slippage_info_title": "Slippage",
     "slippage_info_description": "The % change in price you're willing to allow before your transaction is canceled.",
     "blockaid_error_title": "This transaction will be reverted",
-    "max": "Max"
+    "max": "Max",
+    "approval_needed": "This will approve {{amount}} {{symbol}} for swapping.",
+    "approval_tooltip_title": "Grant exact access",
+    "approval_tooltip_content": "You are allowing access to the specified amount, {{amount}} {{symbol}}. The contract will not access any additional funds."
   },
   "quote_expired_modal": {
     "title": "New quotes are available",
