@@ -28,7 +28,7 @@ export const validateAmountFn = async ({
   if (!isDecimal(amount) || Number(amount) < 0) {
     return strings('send.invalid_value');
   }
-  const { errors, valid } = (await validateAmountMultichain(
+  const result = (await validateAmountMultichain(
     fromAccount as InternalAccount,
     {
       value: amount,
@@ -36,6 +36,7 @@ export const validateAmountFn = async ({
       assetId: asset.address as CaipAssetType,
     },
   )) as SnapValidationResult;
+  const { errors, valid } = result ?? {};
   if (!valid) {
     if (
       errors.some(
