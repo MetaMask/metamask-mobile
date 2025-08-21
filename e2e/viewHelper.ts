@@ -161,7 +161,6 @@ export const importWalletWithRecoveryPhrase = async ({
   fromResetWallet?: boolean;
 }) => {
   // tap on import seed phrase button
-  await device.disableSynchronization();
 
   if (!fromResetWallet) {
     await Assertions.expectElementToBeVisible(
@@ -219,7 +218,6 @@ export const importWalletWithRecoveryPhrase = async ({
 
   // dealing with flakiness on bitrise.
   await closeOnboardingModals(fromResetWallet);
-  await device.enableSynchronization();
 };
 
 /**
