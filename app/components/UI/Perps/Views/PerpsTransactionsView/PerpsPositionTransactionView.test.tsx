@@ -342,10 +342,10 @@ describe('PerpsPositionTransactionView', () => {
   });
 
   it('should not navigate to block explorer when no selected account', () => {
-    // Mock the multichain selector to return null
+    // Mock the multichain selector to return undefined
     jest
       .mocked(selectSelectedInternalAccountByScope)
-      .mockReturnValueOnce(() => null);
+      .mockReturnValueOnce(() => undefined);
 
     const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
       state: mockInitialState,
