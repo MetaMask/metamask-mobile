@@ -26,7 +26,6 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   onManageBalancePress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
 

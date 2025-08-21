@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import type { PerpsMarketData } from '../controllers/types';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export interface UsePerpsMarketsResult {
   /**
@@ -82,7 +83,42 @@ export const usePerpsMarkets = (
         // Get markets with price data directly from the provider
         const marketDataWithPrices = await provider.getMarketDataWithPrices();
 
-        setMarkets(marketDataWithPrices);
+        // Sort markets by 24h volume (highest first)
+        const sortedMarkets = [...marketDataWithPrices].sort((a, b) => {
+          // Helper function to parse volume string and convert to number
+          const getVolumeNumber = (volumeStr: string | undefined): number => {
+            if (!volumeStr) return -1; // Put undefined at the end
+
+            // Handle special cases
+            if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1; // Put missing data at the end
+            if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
+
+            // Remove $ and commas, handle different suffixes
+            const cleaned = volumeStr.replace(/[$,]/g, '');
+
+            // Handle billion (B), million (M), thousand (K) suffixes
+            if (cleaned.includes('B')) {
+              return parseFloat(cleaned.replace('B', '')) * 1e9;
+            }
+            if (cleaned.includes('M')) {
+              return parseFloat(cleaned.replace('M', '')) * 1e6;
+            }
+            if (cleaned.includes('K')) {
+              return parseFloat(cleaned.replace('K', '')) * 1e3;
+            }
+
+            // Plain number without suffix (including 0)
+            const num = parseFloat(cleaned);
+            return isNaN(num) ? -1 : num;
+          };
+
+          const volumeA = getVolumeNumber(a.volume);
+          const volumeB = getVolumeNumber(b.volume);
+
+          return volumeB - volumeA; // Descending order
+        });
+
+        setMarkets(sortedMarkets);
 
         DevLogger.log(
           'Perps: Successfully fetched and transformed market data',
