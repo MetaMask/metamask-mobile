@@ -2,8 +2,8 @@ import { HandlerType } from '@metamask/snaps-utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { SnapId, CaipAssetType } from '@metamask/snaps-sdk';
 
-import { handleSnapRequest } from '../../../../core/Snaps/utils';
 import Engine from '../../../../core/Engine';
+import { handleSnapRequest } from '../../../../core/Snaps/utils';
 
 const controllerMessenger = Engine.controllerMessenger;
 

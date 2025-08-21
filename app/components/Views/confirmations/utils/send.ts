@@ -1,7 +1,6 @@
 import BN from 'bnjs4';
 import { BNToHex, toHex } from '@metamask/controller-utils';
-import { CaipAssetType, Hex } from '@metamask/utils';
-import { InternalAccount } from '@metamask/keyring-internal-api';
+import { Hex } from '@metamask/utils';
 import { Nft } from '@metamask/assets-controllers';
 import { TransactionParams } from '@metamask/transaction-controller';
 
@@ -15,7 +14,6 @@ import { toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
-import { sendMultichainTransactionForReview } from './multichain-snaps';
 
 export const isSendRedesignEnabled = () =>
   process.env.MM_SEND_REDESIGN_ENABLED === 'true';
@@ -117,18 +115,6 @@ export const submitEvmTransaction = async ({
     origin: MMM_ORIGIN,
     networkClientId,
   });
-};
-
-export const submitNonEvmTransaction = async (
-  fromAccount: InternalAccount,
-  params: {
-    fromAccountId: string;
-    toAddress: string;
-    assetId: CaipAssetType;
-    amount: string;
-  },
-) => {
-  await sendMultichainTransactionForReview(fromAccount, params);
 };
 
 export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
