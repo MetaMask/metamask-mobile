@@ -2,7 +2,6 @@ import React, { useCallback } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../core/Engine';
-import { useTheme } from '../../../../../util/theme';
 import createStyles from './AccountGroupBalance.styles';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import {
@@ -14,15 +13,14 @@ import SensitiveText, {
 } from '../../../../../component-library/components/Texts/SensitiveText';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { WalletViewSelectorsIDs } from '../../../../../../e2e/selectors/wallet/WalletView.selectors';
-import Loader from '../../../../../component-library/components-temp/Loader/Loader';
+import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { formatWithThreshold } from '../../../../../util/assets';
 import I18n from '../../../../../../locales/i18n';
 import AccountGroupBalanceChange from '../../components/BalanceChange/AccountGroupBalanceChange';
 
 const AccountGroupBalance = () => {
   const { PreferencesController } = Engine.context;
-  const { colors } = useTheme();
-  const styles = createStyles(colors);
+  const styles = createStyles();
 
   const privacyMode = useSelector(selectPrivacyMode);
   const groupBalance = useSelector(selectBalanceBySelectedAccountGroup);
@@ -48,7 +46,10 @@ const AccountGroupBalance = () => {
   })();
 
   return (
-    <View style={styles.portfolioBalance}>
+    <View
+      style={styles.accountGroupBalance}
+      testID="account-group-balance-root"
+    >
       <View>
         {displayBalance ? (
           <TouchableOpacity
@@ -77,8 +78,9 @@ const AccountGroupBalance = () => {
             )}
           </TouchableOpacity>
         ) : (
-          <View style={styles.loaderWrapper}>
-            <Loader />
+          <View style={styles.skeletonContainer}>
+            <Skeleton width={100} height={40} />
+            <Skeleton width={100} height={20} />
           </View>
         )}
       </View>
