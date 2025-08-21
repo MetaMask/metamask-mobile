@@ -2735,7 +2735,7 @@ describe('HyperLiquidProvider', () => {
     describe('calculateFees', () => {
       beforeEach(() => {
         // Reset userFees mock for each test
-        mockClientService.getInfoClient().userFees.mockClear();
+        (mockClientService.getInfoClient().userFees as jest.Mock).mockClear();
         // Default to throw error (will use base rates)
         mockWalletService.getUserAddressWithDefault.mockRejectedValue(
           new Error('No wallet connected'),
@@ -2798,8 +2798,10 @@ describe('HyperLiquidProvider', () => {
 
       it('should use cached user-specific fee rates when available', async () => {
         // Reset mock and set user address to trigger user fee fetching
-        mockClientService.getInfoClient().userFees.mockClear();
-        mockClientService.getInfoClient().userFees.mockResolvedValue({
+        (mockClientService.getInfoClient().userFees as jest.Mock).mockClear();
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
           feeSchedule: {
             cross: '0.00030', // 0.030% taker with discount
             add: '0.00010', // 0.010% maker with discount
@@ -2841,13 +2843,13 @@ describe('HyperLiquidProvider', () => {
 
       it('should fall back to base rates on API failure', async () => {
         // Reset and mock user address
-        mockClientService.getInfoClient().userFees.mockClear();
+        (mockClientService.getInfoClient().userFees as jest.Mock).mockClear();
         mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
 
         // Mock API failure
-        mockClientService
-          .getInfoClient()
-          .userFees.mockRejectedValue(new Error('API Error'));
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockRejectedValue(new Error('API Error'));
 
         const result = await provider.calculateFees({
           orderType: 'market',
@@ -2900,7 +2902,9 @@ describe('HyperLiquidProvider', () => {
         );
 
         // Mock user fees API response with discounted rates
-        mockClientService.getInfoClient().userFees.mockResolvedValue({
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
           feeSchedule: {
             cross: '0.0003', // 0.03% - discounted taker rate
             add: '0.0001', // 0.01% - discounted maker rate
@@ -2925,7 +2929,9 @@ describe('HyperLiquidProvider', () => {
           testAddress,
         );
 
-        mockClientService.getInfoClient().userFees.mockResolvedValue({
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
           feeSchedule: {
             cross: '0.0003',
             add: '0.0001',
@@ -2965,7 +2971,9 @@ describe('HyperLiquidProvider', () => {
         );
 
         // Mock user fees API response with invalid rates that will produce NaN
-        mockClientService.getInfoClient().userFees.mockResolvedValue({
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
           feeSchedule: {
             cross: 'invalid', // Will cause parseFloat to return NaN
             add: 'invalid',
@@ -2992,7 +3000,9 @@ describe('HyperLiquidProvider', () => {
         );
 
         // Mock user fees API response with negative rates
-        mockClientService.getInfoClient().userFees.mockResolvedValue({
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
           feeSchedule: {
             cross: '-0.0003', // Negative rate - invalid
             add: '0.0001',
@@ -3018,7 +3028,9 @@ describe('HyperLiquidProvider', () => {
           testAddress,
         );
 
-        mockClientService.getInfoClient().userFees.mockResolvedValue({
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
           feeSchedule: {
             cross: '0.0003', // Taker rate
             add: '0.0001', // Maker rate (lower)
