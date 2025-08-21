@@ -78,12 +78,78 @@ jest.mock(
 );
 
 jest.mock('../../token-list', () => ({
-  TokenList: ({ tokens }: { tokens: AssetType[] }) => {
-    const { View, Text } = jest.requireActual('react-native');
+  TokenList: ({
+    tokens,
+    hasActiveFilters,
+    onClearFilters,
+  }: {
+    tokens: AssetType[];
+    hasActiveFilters?: boolean;
+    onClearFilters?: () => void;
+  }) => {
+    const { View, Text, Pressable } = jest.requireActual('react-native');
 
     return (
       <View testID="token-list">
         <Text>TokenList with {tokens.length} tokens</Text>
+        {hasActiveFilters && (
+          <Text testID="has-active-filters">Has active filters</Text>
+        )}
+        {onClearFilters && (
+          <Pressable testID="clear-filters-button" onPress={onClearFilters}>
+            <Text>Clear filters</Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  },
+}));
+
+jest.mock('../../network-filter', () => ({
+  NetworkFilter: ({
+    tokens,
+    onFilteredTokensChange,
+    onNetworkFilterStateChange,
+    onExposeFilterControls,
+  }: {
+    tokens: AssetType[];
+    onFilteredTokensChange: (tokens: AssetType[]) => void;
+    onNetworkFilterStateChange: (hasActiveFilter: boolean) => void;
+    onExposeFilterControls: (clearFilters: () => void) => void;
+  }) => {
+    const { View, Pressable, Text } = jest.requireActual('react-native');
+    const { useState } = jest.requireActual('react');
+
+    const [isFiltered, setIsFiltered] = useState(false);
+
+    return (
+      <View testID="network-filter">
+        <Pressable
+          testID="apply-network-filter"
+          onPress={() => {
+            if (!isFiltered) {
+              const filteredTokens = [tokens[0]];
+              onFilteredTokensChange(filteredTokens);
+              onNetworkFilterStateChange(true);
+              setIsFiltered(true);
+            }
+          }}
+        >
+          <Text>Apply Network Filter</Text>
+        </Pressable>
+        <Pressable
+          testID="expose-clear-function"
+          onPress={() => {
+            const clearFunction = () => {
+              onFilteredTokensChange(tokens);
+              onNetworkFilterStateChange(false);
+              setIsFiltered(false);
+            };
+            onExposeFilterControls(clearFunction);
+          }}
+        >
+          <Text>Expose Clear Function</Text>
+        </Pressable>
       </View>
     );
   },
@@ -109,14 +175,13 @@ const mockUseSelectedEVMAccountTokens = jest.mocked(
 );
 const mockUseTokenSearch = jest.mocked(useTokenSearch);
 const mockUseAssetSelectionMetrics = jest.mocked(useAssetSelectionMetrics);
+const mockSetSearchQuery = jest.fn();
+const mockClearSearch = jest.fn();
+const mockSetAssetListSize = jest.fn();
+const mockSetNoneAssetFilterMethod = jest.fn();
+const mockSetSearchAssetFilterMethod = jest.fn();
 
 describe('Asset', () => {
-  const mockSetSearchQuery = jest.fn();
-  const mockClearSearch = jest.fn();
-  const mockSetAssetListSize = jest.fn();
-  const mockSetNoneAssetFilterMethod = jest.fn();
-  const mockSetSearchAssetFilterMethod = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -143,10 +208,7 @@ describe('Asset', () => {
     expect(screen.getByTestId('search-input')).toBeOnTheScreen();
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
     expect(screen.getByTestId('token-list')).toBeOnTheScreen();
-    expect(screen.getByText('NFTs')).toBeOnTheScreen();
-    expect(
-      screen.getByText('NFTs implementation coming soon.'),
-    ).toBeOnTheScreen();
+    expect(screen.getByTestId('network-filter')).toBeOnTheScreen();
   });
 
   it('displays search input with correct placeholder', () => {
@@ -244,7 +306,6 @@ describe('Asset', () => {
     render(<Asset />);
 
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
-    expect(screen.getByText('NFTs')).toBeOnTheScreen();
   });
 
   it('renders filtered tokens in TokenList', () => {
@@ -259,5 +320,175 @@ describe('Asset', () => {
     render(<Asset />);
 
     expect(screen.getByText('TokenList with 1 tokens')).toBeOnTheScreen();
+  });
+
+  it('renders NetworkFilter component', () => {
+    render(<Asset />);
+
+    expect(screen.getByTestId('network-filter')).toBeOnTheScreen();
+  });
+
+  it('updates filtered tokens when network filter changes', () => {
+    const mockSetSearchQueryLocal = jest.fn();
+    const mockClearSearchLocal = jest.fn();
+
+    mockUseTokenSearch.mockImplementation((tokens) => ({
+      searchQuery: '',
+      setSearchQuery: mockSetSearchQueryLocal,
+      filteredTokens: tokens,
+      clearSearch: mockClearSearchLocal,
+    }));
+
+    render(<Asset />);
+
+    expect(screen.getByText('TokenList with 2 tokens')).toBeOnTheScreen();
+
+    fireEvent.press(screen.getByTestId('apply-network-filter'));
+
+    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+  });
+
+  it('handles network filter state changes', () => {
+    render(<Asset />);
+
+    expect(screen.queryByTestId('has-active-filters')).toBeNull();
+
+    fireEvent.press(screen.getByTestId('apply-network-filter'));
+
+    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+  });
+
+  it('exposes clear filter controls', () => {
+    render(<Asset />);
+
+    fireEvent.press(screen.getByTestId('expose-clear-function'));
+
+    expect(screen.getByTestId('network-filter')).toBeOnTheScreen();
+  });
+
+  it('shows hasActiveFilters when search query exists', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: 'ETH',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [mockTokens[0]],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+  });
+
+  it('shows hasActiveFilters when network filter is active', () => {
+    render(<Asset />);
+
+    fireEvent.press(screen.getByTestId('apply-network-filter'));
+
+    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+  });
+
+  it('shows hasActiveFilters when both search and network filters are active', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: 'ETH',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [mockTokens[0]],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    fireEvent.press(screen.getByTestId('apply-network-filter'));
+
+    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+  });
+
+  it('does not show hasActiveFilters when no filters are active', () => {
+    render(<Asset />);
+
+    expect(screen.queryByTestId('has-active-filters')).toBeNull();
+  });
+
+  it('provides onClearFilters to TokenList when filters are active', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: 'ETH',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [mockTokens[0]],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    expect(screen.getByTestId('clear-filters-button')).toBeOnTheScreen();
+  });
+
+  it('calls clearSearch when onClearFilters is triggered', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: 'ETH',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [mockTokens[0]],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    fireEvent.press(screen.getByTestId('clear-filters-button'));
+
+    expect(mockClearSearch).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls both clearSearch and clearNetworkFilters when both are active', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: 'ETH',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [mockTokens[0]],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    fireEvent.press(screen.getByTestId('expose-clear-function'));
+    fireEvent.press(screen.getByTestId('apply-network-filter'));
+
+    fireEvent.press(screen.getByTestId('clear-filters-button'));
+
+    expect(mockClearSearch).toHaveBeenCalledTimes(1);
+  });
+
+  it('maintains existing search functionality with network filters', () => {
+    render(<Asset />);
+
+    const searchInput = screen.getByTestId('search-input');
+
+    fireEvent.changeText(searchInput, 'ETH');
+    expect(mockSetSearchQuery).toHaveBeenCalledWith('ETH');
+
+    fireEvent.press(screen.getByTestId('apply-network-filter'));
+    expect(screen.getByTestId('has-active-filters')).toBeOnTheScreen();
+  });
+
+  it('maintains asset list size tracking with network filtering', () => {
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: '',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: mockTokens,
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    expect(mockSetAssetListSize).toHaveBeenCalledWith('2');
+
+    mockSetAssetListSize.mockClear();
+
+    mockUseTokenSearch.mockReturnValue({
+      searchQuery: '',
+      setSearchQuery: mockSetSearchQuery,
+      filteredTokens: [mockTokens[0]],
+      clearSearch: mockClearSearch,
+    });
+
+    render(<Asset />);
+
+    expect(mockSetAssetListSize).toHaveBeenCalledWith('1');
   });
 });

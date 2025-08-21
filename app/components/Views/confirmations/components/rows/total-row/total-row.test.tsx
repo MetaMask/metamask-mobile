@@ -47,7 +47,7 @@ describe('TotalRow', () => {
     useTransactionTotalFiatMock.mockReturnValue({
       value: '123.456',
       formatted: TOTAL_FIAT_MOCK,
-    });
+    } as ReturnType<typeof useTransactionTotalFiat>);
   });
 
   it('renders the total amount', () => {
