@@ -71,7 +71,6 @@ perpsBalances: {
     totalValue: string;        // Current account value (USD)
     unrealizedPnl: string;     // P&L from open positions (USD)
     accountValue1dAgo: string; // 24h ago value (USD)
-    positions: Position[];     // Current positions
     lastUpdated: number;       // Timestamp
   }
 }

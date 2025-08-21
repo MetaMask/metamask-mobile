@@ -5,6 +5,10 @@ import { selectSelectedInternalAccountByScope } from '../../../../selectors/mult
 import { selectPerpsNetwork } from '../selectors/perpsController';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 
+// Constants for throttle timing
+const BALANCE_UPDATE_THROTTLE_MS = 15000; // Update at most every 15 seconds to reduce state updates
+const INITIAL_DATA_DELAY_MS = 100; // Delay to allow initial data to load
+
 /**
  * Singleton manager for Perps connection state
  * This ensures that both PerpsScreenStack and PerpsModalStack
@@ -25,7 +29,7 @@ class PerpsConnectionManagerClass {
   private previousAddress: string | undefined;
   private previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
   private lastBalanceUpdateTime = 0;
-  private balanceUpdateThrottleMs = 15000; // Update at most every 15 seconds
+  private balanceUpdateThrottleMs = BALANCE_UPDATE_THROTTLE_MS;
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -324,12 +328,7 @@ class PerpsConnectionManagerClass {
         controller.updatePerpsBalances(currentAccount);
         this.lastBalanceUpdateTime = now;
 
-        DevLogger.log(
-          ` ${new Date().toISOString()} PerpsConnectionManager: Updated persisted balances`,
-          {
-            currentAccount,
-          },
-        );
+        DevLogger.log('PerpsConnectionManager: Updated persisted balances');
       }
     } catch (error) {
       DevLogger.log('PerpsConnectionManager: Failed to update balances', error);
@@ -389,7 +388,9 @@ class PerpsConnectionManagerClass {
       );
 
       // Give subscriptions a moment to receive initial data
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) =>
+        setTimeout(resolve, INITIAL_DATA_DELAY_MS),
+      );
 
       DevLogger.log(
         'PerpsConnectionManager: Pre-loading complete with persistent subscriptions',

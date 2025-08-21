@@ -63,7 +63,7 @@ PortfolioBalance
 ```
 PerpsConnectionManager (Singleton)
   ├── preloadSubscriptions()
-  │   ├── StreamManager.account.subscribe() → throttled 5s
+  │   ├── StreamManager.account.subscribe() → throttled 15s
   │   └── StreamManager.positions.subscribe() → immediate
   └── updatePerpsBalances()
       └── Updates Redux state via PerpsController
@@ -78,7 +78,7 @@ PerpsConnectionManager (Singleton)
   "hyperliquid": {
     totalValue: "12500.50",      // USD value
     unrealizedPnl: "-234.12",     // USD P&L
-    positions: [...],             // Position details
+    accountValue1dAgo: "12000.00", // 24h ago value
     lastUpdated: 1735850000000   // Timestamp
   },
   // Future providers...
@@ -98,7 +98,7 @@ PerpsConnectionManager (Singleton)
 - Manages WebSocket lifecycle
 - Updates persisted balances via subscriptions
 - Ensures single instance (no duplicate computations)
-- Throttles price updates (5s), immediate position updates
+- Throttles account updates (15s), immediate position updates
 
 **Key Methods:**
 
@@ -144,11 +144,11 @@ if (isPerpsEnabled && isEvmSelected) {
 
 ## Update Throttling Strategy
 
-| Update Type      | Throttle Time | Reason                            |
-| ---------------- | ------------- | --------------------------------- |
-| Price Updates    | 5 seconds     | Reduce UI flicker, save resources |
-| Position Changes | Immediate     | Critical for accurate P&L         |
-| Account State    | 5 seconds     | Bundled with price updates        |
+| Update Type      | Throttle Time | Reason                               |
+| ---------------- | ------------- | ------------------------------------ |
+| Account Updates  | 15 seconds    | Reduce state changes, save resources |
+| Position Changes | Immediate     | Critical for accurate P&L            |
+| Price Updates    | Via account   | Bundled with account updates         |
 
 ## WebSocket Connection Lifecycle
 
