@@ -10,10 +10,12 @@ import { otherControllersMock } from '../../__mocks__/controllers/other-controll
 import { useTransactionMaxGasCost } from '../gas/useTransactionMaxGasCost';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
 import { TransactionBridgeQuote } from '../../utils/bridge';
+import { useFeeCalculations } from '../gas/useFeeCalculations';
 
 jest.mock('../gas/useTransactionMaxGasCost');
 jest.mock('./useTransactionRequiredFiat');
 jest.mock('./useTransactionRequiredTokens');
+jest.mock('../gas/useFeeCalculations');
 
 const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
 const ADDRESS_2_MOCK = '0xabcdef1234567890abcdef1234567890abcdef12';
@@ -38,6 +40,7 @@ function runHook({ quotes }: { quotes?: TransactionBridgeQuote[] } = {}) {
 
 describe('useTransactionTotalFiat', () => {
   const useTransactionMaxGasCostMock = jest.mocked(useTransactionMaxGasCost);
+  const useFeeCalculationsMock = jest.mocked(useFeeCalculations);
 
   const useTransactionRequiredFiatMock = jest.mocked(
     useTransactionRequiredFiat,
@@ -52,6 +55,10 @@ describe('useTransactionTotalFiat', () => {
       values: [],
       totalFiat: 0,
     });
+
+    useFeeCalculationsMock.mockReturnValue({
+      estimatedFeeFiatPrecise: '7.89',
+    } as ReturnType<typeof useFeeCalculations>);
   });
 
   it('includes quotes cost', () => {
@@ -82,10 +89,12 @@ describe('useTransactionTotalFiat', () => {
       ] as TransactionBridgeQuote[],
     });
 
-    expect(result.current).toStrictEqual({
-      value: '240.69',
-      formatted: '$240.69',
-    });
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '240.69',
+        formatted: '$240.69',
+      }),
+    );
   });
 
   it('includes balance cost', () => {
@@ -104,10 +113,12 @@ describe('useTransactionTotalFiat', () => {
 
     const { result } = runHook();
 
-    expect(result.current).toStrictEqual({
-      value: '35.79',
-      formatted: '$35.79',
-    });
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '35.79',
+        formatted: '$35.79',
+      }),
+    );
   });
 
   it('ignores balance cost if matching quote', () => {
@@ -145,9 +156,30 @@ describe('useTransactionTotalFiat', () => {
       ] as TransactionBridgeQuote[],
     });
 
-    expect(result.current).toStrictEqual({
-      value: '140',
-      formatted: '$140',
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '140',
+        formatted: '$140',
+      }),
+    );
+  });
+
+  it('returns total gas cost', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          totalMaxNetworkFee: {
+            valueInCurrency: '1.23',
+          },
+        },
+        {
+          totalMaxNetworkFee: {
+            valueInCurrency: '4.56',
+          },
+        },
+      ] as TransactionBridgeQuote[],
     });
+
+    expect(result.current.totalGasFormatted).toBe('$13.68');
   });
 });

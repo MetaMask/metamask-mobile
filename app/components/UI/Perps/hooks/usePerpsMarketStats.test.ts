@@ -22,10 +22,10 @@ jest.mock('../utils/formatUtils', () => ({
       maximumFractionDigits: 2,
     })}`,
   formatLargeNumber: (num: number) => {
-    if (num >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
-    if (num >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
-    if (num >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
-    return `$${num.toFixed(2)}`;
+    if (num >= 1e12) return `${Math.round(num / 1e12)}T`;
+    if (num >= 1e9) return `${Math.round(num / 1e9)}B`;
+    if (num >= 1e6) return `${Math.round(num / 1e6)}M`;
+    return num.toFixed(2);
   },
 }));
 
@@ -91,6 +91,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -100,8 +101,8 @@ describe('usePerpsMarketStats', () => {
     expect(result.current.currentPrice).toBe(45000);
     expect(result.current.high24h).toBe('$46,000.00');
     expect(result.current.low24h).toBe('$43,500.00');
-    expect(result.current.volume24h).toBe('$1.23B');
-    expect(result.current.openInterest).toBe('$987.65M');
+    expect(result.current.volume24h).toBe('$1B'); // No decimals in formatVolume
+    expect(result.current.openInterest).toBe('$988M'); // No decimals in formatLargeNumber
     expect(result.current.fundingRate).toBe('1.0000%');
     expect(result.current.isLoading).toBe(false);
   });
@@ -112,6 +113,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: null,
+      priceData: null,
       isLoadingHistory: true,
       refreshCandleData: jest.fn(),
     });
@@ -129,6 +131,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: null,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
@@ -159,14 +162,15 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
 
     const { result } = renderHook(() => usePerpsMarketStats('BTC'));
 
-    expect(result.current.volume24h).toBe('$12.35T');
-    expect(result.current.openInterest).toBe('$98.77T');
+    expect(result.current.volume24h).toBe('$12T'); // No decimals in formatVolume
+    expect(result.current.openInterest).toBe('$99T'); // No decimals in formatLargeNumber
   });
 
   it('should format negative funding rate correctly', () => {
@@ -184,6 +188,7 @@ describe('usePerpsMarketStats', () => {
 
     mockedUsePerpsPositionData.mockReturnValue({
       candleData: mockCandleData,
+      priceData: null,
       isLoadingHistory: false,
       refreshCandleData: jest.fn(),
     });
