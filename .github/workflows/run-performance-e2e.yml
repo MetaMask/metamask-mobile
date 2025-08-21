@@ -540,6 +540,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 14
     
+      - name: Check Test Results
         run: |
           if [ "${{ needs.android-tests.result }}" == "failure" ] || [ "${{ needs.ios-tests.result }}" == "failure" ]; then
             echo "Some tests failed. Check the individual job results above."
@@ -547,7 +548,8 @@ jobs:
             exit 1
           else
             echo "All test jobs completed successfully!"
-          fi     
+          fi
+      
       - name: Display QA Build Info
         run: |
           echo "=== QA Build Information ==="
