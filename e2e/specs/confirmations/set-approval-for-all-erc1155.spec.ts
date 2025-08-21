@@ -21,7 +21,7 @@ describe(SmokeConfirmations('ERC1155 token'), () => {
   it('approve all ERC1155 tokens', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
       const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
         mockEvents.GET.suggestedGasFeesApiGanache;
       await mockProxyGet(mockServer, urlEndpoint, response);

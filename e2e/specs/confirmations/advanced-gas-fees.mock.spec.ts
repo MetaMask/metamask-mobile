@@ -16,7 +16,7 @@ import { mockProxyGet } from '../../api-mocking/mockHelpers';
 const VALID_ADDRESS = '0xebe6CcB6B55e1d094d9c58980Bc10Fed69932cAb';
 const testSpecificMock = async (mockServer: Mockttp) => {
   const { urlEndpoint, response } =
-    mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+    mockEvents.GET.remoteFeatureFlagsOldConfirmations;
   const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
     mockEvents.GET.suggestedGasFeesApiGanache;
   await mockProxyGet(mockServer, urlEndpoint, response);

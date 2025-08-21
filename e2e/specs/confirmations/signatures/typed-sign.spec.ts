@@ -16,7 +16,7 @@ import { mockProxyGet } from '../../../api-mocking/mockHelpers';
 describe(SmokeConfirmations('Typed Sign'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
     const { urlEndpoint, response } =
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+      mockEvents.GET.remoteFeatureFlagsOldConfirmations;
     await mockProxyGet(mockServer, urlEndpoint, response);
   };
 

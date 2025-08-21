@@ -23,7 +23,7 @@ describe(SmokeConfirmations('Send to contract address'), () => {
 
     const testSpecificMock = async (mockServer: Mockttp) => {
       const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
       await mockProxyGet(mockServer, urlEndpoint, response);
     };
 

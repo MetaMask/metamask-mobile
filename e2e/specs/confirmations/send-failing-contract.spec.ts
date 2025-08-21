@@ -19,7 +19,7 @@ describe(SmokeConfirmations('Failing contracts'), () => {
   it('sends a failing contract transaction', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
       const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
         mockEvents.GET.suggestedGasFeesApiGanache;
       await mockProxyGet(mockServer, urlEndpoint, response);

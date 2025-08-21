@@ -44,11 +44,18 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
       await mockProxyPost(
         mockServer,
-        'https://security-alerts.api.cx.metamask.io/validate/0x539',
+        /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
         {},
         mockEvents.POST.securityAlertApiValidate.response,
         {
           statusCode: 201,
+          ignoreFields: [
+            'id',
+            'jsonrpc',
+            'toNative',
+            'networkClientId',
+            'traceContext',
+          ],
         },
       );
     };
@@ -73,7 +80,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
       await mockProxyPost(
         mockServer,
-        'https://security-alerts.api.cx.metamask.io/validate/0x539',
+        /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
         {},
         {
           block: 20733277,
@@ -81,6 +88,15 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
           reason: 'transfer_farming',
           description: '',
           features: ['Interaction with a known malicious address'],
+        },
+        {
+          ignoreFields: [
+            'id',
+            'jsonrpc',
+            'toNative',
+            'networkClientId',
+            'traceContext',
+          ],
         },
       );
     };
@@ -112,7 +128,7 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
 
       await mockProxyPost(
         mockServer,
-        'https://security-alerts.api.cx.metamask.io/validate/0x539',
+        /https:\/\/security-alerts\.api\.cx\.metamask\.io\/validate\/0x[0-9a-fA-F]+/,
         {},
         {
           error: 'Internal Server Error',
@@ -120,6 +136,13 @@ describe(SmokeConfirmationsRedesigned('Security Alert API - Send flow'), () => {
         },
         {
           statusCode: 500,
+          ignoreFields: [
+            'id',
+            'jsonrpc',
+            'toNative',
+            'networkClientId',
+            'traceContext',
+          ],
         },
       );
     };

@@ -23,12 +23,12 @@ const EXPECTED_TOKEN_AMOUNT = '7';
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   it('approve default ERC20 token amount from a dapp', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
-      const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
       const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
         mockEvents.GET.suggestedGasFeesApiGanache;
-      await mockProxyGet(mockServer, urlEndpoint, response);
       await mockProxyGet(mockServer, gasUrlEndpoint, gasResponse);
+      const { urlEndpoint, response } =
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
+      await mockProxyGet(mockServer, urlEndpoint, response);
     };
 
     await withFixtures(

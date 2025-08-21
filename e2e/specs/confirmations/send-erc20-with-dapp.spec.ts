@@ -23,7 +23,7 @@ describe(SmokeConfirmations('ERC20 tokens'), () => {
   it('send an ERC20 token from a dapp', async () => {
     const testSpecificMock = async (mockServer: Mockttp) => {
       const { urlEndpoint, response } =
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+        mockEvents.GET.remoteFeatureFlagsOldConfirmations;
       const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
         mockEvents.GET.suggestedGasFeesApiGanache;
       await mockProxyGet(mockServer, urlEndpoint, response);
