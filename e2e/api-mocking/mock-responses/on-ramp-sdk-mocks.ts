@@ -828,5 +828,75 @@ export const ON_RAMP_SDK_MOCKS: MockEventsObject = {
         ],
       },
     },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/countries\?.*$/,
+      responseCode: 200,
+      response: [
+        {
+          currencies: ['/currencies/fiat/eur'],
+          emoji: '🇵🇹',
+          id: '/regions/pt',
+          name: 'Portugal',
+          support: {
+            buy: true,
+            sell: true,
+          },
+          unsupported: false,
+          detected: false,
+        },
+        {
+          currencies: ['/currencies/fiat/eur'],
+          emoji: '🇫🇷',
+          id: '/regions/fr',
+          name: 'France',
+          support: {
+            buy: true,
+            sell: true,
+          },
+          unsupported: false,
+          detected: false,
+        },
+        {
+          currencies: ['/currencies/fiat/usd'],
+          emoji: '🇺🇸',
+          id: '/regions/us',
+          name: 'United States of America',
+          states: [
+            {
+              emoji: '🇺🇸',
+              id: '/regions/us-ca',
+              name: 'California',
+              stateId: 'ca',
+              support: {
+                buy: true,
+                sell: true,
+              },
+              unsupported: false,
+              detected: false,
+            },
+          ],
+          enableSell: true,
+          support: {
+            buy: false,
+            sell: false,
+          },
+          unsupported: true,
+          detected: true,
+        },
+        {
+          currencies: ['/currencies/fiat/eur'],
+          emoji: '🇪🇸',
+          id: '/regions/es',
+          name: 'Spain',
+          support: {
+            buy: true,
+            sell: true,
+          },
+          unsupported: false,
+          detected: false,
+        },
+      ],
+    },
   ],
 };
