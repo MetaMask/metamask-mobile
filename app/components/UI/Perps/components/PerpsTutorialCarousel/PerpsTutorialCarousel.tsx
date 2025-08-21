@@ -1,4 +1,9 @@
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import {
+  NavigationProp,
+  useNavigation,
+  useRoute,
+  RouteProp,
+} from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -91,9 +96,16 @@ const tutorialScreens: TutorialScreen[] = [
   },
 ];
 
+interface PerpsTutorialRouteParams {
+  isFromDeeplink?: boolean;
+}
+
 const PerpsTutorialCarousel: React.FC = () => {
   const { styles } = useStyles(createStyles, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const route =
+    useRoute<RouteProp<{ params: PerpsTutorialRouteParams }, 'params'>>();
+  const isFromDeeplink = route.params?.isFromDeeplink || false;
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const { depositWithConfirmation } = usePerpsTrading();
@@ -156,6 +168,8 @@ const PerpsTutorialCarousel: React.FC = () => {
       markTutorialCompleted();
 
       // Navigate immediately to confirmations screen for instant UI response
+      // Note: When from deeplink, user will go through deposit flow
+      // and should return to markets after completion
       navigation.navigate(Routes.PERPS.ROOT, {
         screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
       });
@@ -203,8 +217,27 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Mark tutorial as completed
       markTutorialCompleted();
     }
-    navigation.goBack();
-  }, [isLastScreen, markTutorialCompleted, navigation, currentTab, track]);
+
+    // Navigate based on deeplink flag
+    if (isFromDeeplink) {
+      // Navigate to wallet home when coming from deeplink
+      navigation.navigate(Routes.WALLET.HOME, {
+        screen: Routes.WALLET.TAB_STACK_FLOW,
+        params: {
+          screen: Routes.WALLET_VIEW,
+        },
+      });
+    } else {
+      navigation.goBack();
+    }
+  }, [
+    isLastScreen,
+    markTutorialCompleted,
+    navigation,
+    currentTab,
+    track,
+    isFromDeeplink,
+  ]);
 
   const renderTabBar = () => <View />;
 
