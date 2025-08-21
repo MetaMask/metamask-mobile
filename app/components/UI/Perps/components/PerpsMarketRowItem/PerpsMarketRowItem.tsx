@@ -19,8 +19,10 @@ import {
   formatPrice,
   formatPercentage,
   formatPnl,
+  formatVolume,
 } from '../../utils/formatUtils';
 import { getPerpsMarketRowItemSelector } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -39,9 +41,12 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
       return market;
     }
 
-    // Parse and format the price
+    // Parse and format the price with exactly 2 decimals for consistency
     const currentPrice = parseFloat(livePrice.price);
-    const formattedPrice = formatPrice(currentPrice);
+    const formattedPrice = formatPrice(currentPrice, {
+      minimumDecimals: 2,
+      maximumDecimals: 2,
+    });
 
     // Only update if price actually changed
     if (formattedPrice === market.price) {
@@ -70,17 +75,19 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
     }
 
     // Update volume if available
-    if (livePrice.volume24h) {
+    if (livePrice.volume24h !== undefined) {
       const volume = livePrice.volume24h;
-      if (volume >= 1e9) {
-        updatedMarket.volume = `$${(volume / 1e9).toFixed(1)}B`;
-      } else if (volume >= 1e6) {
-        updatedMarket.volume = `$${(volume / 1e6).toFixed(1)}M`;
-      } else if (volume >= 1e3) {
-        updatedMarket.volume = `$${(volume / 1e3).toFixed(1)}K`;
+
+      // Use formatVolume with auto-determined decimals based on magnitude
+      if (volume > 0) {
+        updatedMarket.volume = formatVolume(volume);
       } else {
-        updatedMarket.volume = `$${volume.toFixed(2)}`;
+        // Only show $0 if volume is truly 0
+        updatedMarket.volume = '$0.00';
       }
+    } else if (!market.volume || market.volume === '$0') {
+      // Fallback: ensure volume field always has a value
+      updatedMarket.volume = PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
 
     return updatedMarket;
@@ -97,16 +104,15 @@ const PerpsMarketRowItem = ({ market, onPress }: PerpsMarketRowItemProps) => {
       <View style={styles.leftSection}>
         <View style={styles.perpIcon}>
           {assetUrl ? (
-            <RemoteImage source={{ uri: assetUrl }} />
+            <RemoteImage source={{ uri: assetUrl }} style={styles.tokenIcon} />
           ) : (
             <Avatar
-              variant={AvatarVariant.Network}
+              variant={AvatarVariant.Token}
               name={displayMarket.symbol}
-              size={AvatarSize.Lg}
+              size={AvatarSize.Md}
               testID={getPerpsMarketRowItemSelector.rowItem(
                 displayMarket.symbol,
               )}
-              style={styles.networkAvatar}
             />
           )}
         </View>

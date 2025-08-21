@@ -59,6 +59,7 @@ class TabBarComponent {
     await device.disableSynchronization();
     await Gestures.waitAndTap(this.tabBarActivityButton, {
       elemDescription: 'Tab Bar - Activity Button',
+      delay: 2500,
     });
     await device.enableSynchronization();
   }
