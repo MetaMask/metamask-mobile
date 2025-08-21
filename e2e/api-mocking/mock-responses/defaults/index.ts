@@ -68,13 +68,14 @@ export const DEFAULT_MOCKS = {
       responseCode: 200,
       response: [],
     },
-    {
-      urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate',
-      responseCode: 200,
-      response: {
-        flagAsDangerous: 0,
-      },
-    },
+    // NOTE: Commented out default security alerts mock to avoid conflicts with test-specific mocks
+    // {
+    //   urlEndpoint: 'https://security-alerts.api.cx.metamask.io/validate',
+    //   responseCode: 200,
+    //   response: {
+    //     flagAsDangerous: 0,
+    //   },
+    // },
   ],
   PUT: [...(USER_STORAGE_MOCK.PUT || [])],
   DELETE: [],

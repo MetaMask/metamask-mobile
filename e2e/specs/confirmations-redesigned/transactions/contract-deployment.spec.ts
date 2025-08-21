@@ -13,14 +13,19 @@ import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { mockProxyGet } from '../../../api-mocking/mockHelpers';
 
 describe(SmokeConfirmationsRedesigned('Contract Deployment'), () => {
-  const testSpecificMock = {
-    POST: [],
-    GET: [
-      SIMULATION_ENABLED_NETWORKS_MOCK,
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-    ],
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    const { urlEndpoint, response } =
+      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+    await mockProxyGet(
+      mockServer,
+      SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      SIMULATION_ENABLED_NETWORKS_MOCK.response,
+    );
+    await mockProxyGet(mockServer, urlEndpoint, response);
   };
 
   beforeAll(async () => {

@@ -14,6 +14,8 @@ import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApprov
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../../framework/Constants';
+import { mockProxyGet } from '../../../../api-mocking/mockHelpers';
+import { Mockttp } from 'mockttp';
 
 describe(
   SmokeConfirmationsRedesigned('Token Approve - setApprovalForAll method'),
@@ -21,12 +23,15 @@ describe(
     const ERC_721_CONTRACT = SMART_CONTRACTS.NFTS;
     const ERC_1155_CONTRACT = SMART_CONTRACTS.ERC1155;
 
-    const testSpecificMock = {
-      POST: [],
-      GET: [
-        SIMULATION_ENABLED_NETWORKS_MOCK,
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      const { urlEndpoint, response } =
+        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+      await mockProxyGet(
+        mockServer,
+        SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+        SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      );
+      await mockProxyGet(mockServer, urlEndpoint, response);
     };
 
     it('creates an approve transaction confirmation for given ERC721 and submits it', async () => {

@@ -12,12 +12,20 @@ import AddAccountBottomSheet from '../../pages/wallet/AddAccountBottomSheet';
 import SuccessImportAccountView from '../../pages/importAccount/SuccessImportAccountView';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events.js';
 import { AccountListBottomSheetSelectorsText } from '../../selectors/wallet/AccountListBottomSheet.selectors';
+import { Mockttp } from 'mockttp';
+import { mockProxyGet } from '../../api-mocking/mockHelpers';
 
 // This key is for testing private key import only
 // It should NEVER hold any eth or token
 const TEST_PRIVATE_KEY =
   'cbfd798afcfd1fd8ecc48cbecb6dc7e876543395640b758a90e11d986e758ad1';
 const ACCOUNT_INDEX = 1;
+
+const testSpecificMock = async (mockServer: Mockttp) => {
+  const { urlEndpoint, response } =
+    mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false);
+  await mockProxyGet(mockServer, urlEndpoint, response);
+};
 
 describe(
   Regression('removes and reimports an account using a private key'),
@@ -29,13 +37,7 @@ describe(
             .withImportedAccountKeyringController()
             .build(),
           restartDevice: true,
-          testSpecificMock: {
-            GET: [
-              mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(
-                false,
-              ),
-            ],
-          },
+          testSpecificMock,
         },
         async () => {
           await loginToApp();

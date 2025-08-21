@@ -18,6 +18,8 @@ import TestDApp from '../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
 import { EventPayload, getEventsPayloads } from '../../analytics/helpers';
 import SoftAssert from '../../../utils/SoftAssert';
+import { Mockttp } from 'mockttp';
+import { mockProxyGet, mockSimulation } from '../../../api-mocking/mockHelpers';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',
@@ -36,14 +38,17 @@ const expectedEventNames = [
 ];
 
 describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
-  const testSpecificMock = {
-    POST: [SEND_ETH_SIMULATION_MOCK, mockEvents.POST.segmentTrack],
-    GET: [
-      SIMULATION_ENABLED_NETWORKS_MOCK,
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-    ],
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    const { urlEndpoint, response } =
+      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+    await mockProxyGet(
+      mockServer,
+      SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      SIMULATION_ENABLED_NETWORKS_MOCK.response,
+    );
+    await mockProxyGet(mockServer, urlEndpoint, response);
+    await mockSimulation(mockServer, SEND_ETH_SIMULATION_MOCK);
   };
-
   let eventsToCheck: EventPayload[];
 
   beforeAll(async () => {

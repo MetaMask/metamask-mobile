@@ -12,16 +12,20 @@ import ContractApprovalBottomSheet from '../../pages/Browser/ContractApprovalBot
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
+import { mockProxyGet } from '../../api-mocking/mockHelpers';
+import { Mockttp } from 'mockttp';
 
 describe(SmokeConfirmations('ERC721 token'), () => {
   const NFT_CONTRACT = SMART_CONTRACTS.NFTS;
 
   it('approve all ERC721 tokens', async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      const { urlEndpoint, response } =
+        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+      const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
+        mockEvents.GET.suggestedGasFeesApiGanache;
+      await mockProxyGet(mockServer, urlEndpoint, response);
+      await mockProxyGet(mockServer, gasUrlEndpoint, gasResponse);
     };
 
     await withFixtures(

@@ -14,18 +14,23 @@ import TokenApproveConfirmation from '../../../../pages/Confirmation/TokenApprov
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../../pages/Browser/TestDApp';
 import { DappVariants } from '../../../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { mockProxyGet } from '../../../../api-mocking/mockHelpers';
 
 describe(
   SmokeConfirmationsRedesigned('Token Approve - increaseAllowance method'),
   () => {
     const ERC_20_CONTRACT = SMART_CONTRACTS.HST;
 
-    const testSpecificMock = {
-      POST: [],
-      GET: [
-        SIMULATION_ENABLED_NETWORKS_MOCK,
-        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      const { urlEndpoint, response } =
+        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+      await mockProxyGet(
+        mockServer,
+        SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+        SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      );
+      await mockProxyGet(mockServer, urlEndpoint, response);
     };
 
     it('creates an approve transaction confirmation for given ERC 20, changes the spending cap and submits it', async () => {

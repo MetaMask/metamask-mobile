@@ -4,7 +4,7 @@ import Assertions from '../../framework/Assertions';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import { cardholderTestSpecificMock } from '../../api-mocking/mock-responses/cardholder-mocks';
+import { testSpecificMock } from '../../api-mocking/mock-responses/cardholder-mocks';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import CardHomeView from '../../pages/Card/CardHomeView';
 import SoftAssert from '../../utils/SoftAssert';
@@ -21,7 +21,7 @@ describe(SmokeCard('CardHome - Add Funds'), () => {
           .withNetworkController(CustomNetworks.Tenderly.Linea)
           .build(),
         restartDevice: true,
-        testSpecificMock: cardholderTestSpecificMock,
+        testSpecificMock,
         endTestfn: async ({ mockServer }) => {
           const events = await getEventsPayloads(mockServer);
           eventsToCheck.push(...events);

@@ -12,6 +12,8 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { DappVariants } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { mockProxyGet } from '../../api-mocking/mockHelpers';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
@@ -19,8 +21,10 @@ describe(SmokeConfirmations('Send to contract address'), () => {
   it('should send ETH to a contract from inside the wallet', async () => {
     const AMOUNT = '12';
 
-    const testSpecificMock = {
-      GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      const { urlEndpoint, response } =
+        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+      await mockProxyGet(mockServer, urlEndpoint, response);
     };
 
     await withFixtures(

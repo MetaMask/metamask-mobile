@@ -1,3 +1,4 @@
+import { Mockttp } from 'mockttp';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
@@ -6,6 +7,7 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import WalletView from '../../pages/wallet/WalletView';
 import { loginToApp } from '../../viewHelper';
+import { mockProxyGet } from '../../api-mocking/mockHelpers';
 
 export interface Account {
   name: string;
@@ -32,8 +34,10 @@ export const goToAccountDetails = async (account: Account) => {
 export const withMultichainAccountDetailsEnabled = async (
   testFn: () => Promise<void>,
 ) => {
-  const testSpecificMock = {
-    GET: [mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails()],
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    const { urlEndpoint, response } =
+      mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails();
+    await mockProxyGet(mockServer, urlEndpoint, response);
   };
   return await withFixtures(
     {

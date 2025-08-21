@@ -6,7 +6,6 @@ import Assertions from '../../framework/Assertions';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import ConnectBottomSheet from '../../pages/Browser/ConnectBottomSheet';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import RequestTypes from '../../pages/Browser/Confirmations/RequestTypes';
 
 jest.setTimeout(150_000);
@@ -17,9 +16,6 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockEvents.GET.remoteFeatureFlagsRedesignedConfirmationsFlask],
-        },
       },
       async () => {
         await loginToApp();

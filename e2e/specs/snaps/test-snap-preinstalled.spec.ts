@@ -5,7 +5,6 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestSnaps from '../../pages/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { getEventsPayloads } from '../analytics/helpers';
 import TestHelpers from '../../helpers';
 
@@ -42,7 +41,6 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
-        testSpecificMock: { POST: [mockEvents.POST.segmentTrack] },
       },
       async ({ mockServer }) => {
         if (!mockServer) {

@@ -1,5 +1,5 @@
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { LocalNodeType, TestSpecificMock } from '../../framework/types';
+import { LocalNodeType } from '../../framework/types';
 import SoftAssert from '../../utils/SoftAssert';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import Assertions from '../../framework/Assertions';
@@ -14,40 +14,13 @@ import { submitSwapUnifiedUI } from './helpers/swapUnifiedUI';
 import { loginToApp } from '../../viewHelper';
 import { prepareSwapsTestEnvironment } from './helpers/prepareSwapsTestEnvironment';
 import { logger } from '../../framework/logger';
-import { Mockttp } from 'mockttp';
-import {
-  GET_QUOTE_ETH_USDC_RESPONSE,
-  GET_QUOTE_ETH_WETH_RESPONSE,
-} from './helpers/constants';
-import { interceptProxyUrl, mockProxyGet } from '../../api-mocking/mockHelpers';
+import { testSpecificMock } from './helpers/swap-mocks.js';
 
 const EVENT_NAMES = {
   SWAP_STARTED: 'Swap Started',
   SWAP_COMPLETED: 'Swap Completed',
   SWAPS_OPENED: 'Swaps Opened',
   QUOTES_RECEIVED: 'Quotes Received',
-};
-
-const testSpecificMock: TestSpecificMock = async (mockServer: Mockttp) => {
-  // Mock ETH->USDC
-  await mockProxyGet(
-    mockServer,
-    /getQuote.*destTokenAddress=0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/i,
-    GET_QUOTE_ETH_USDC_RESPONSE,
-  );
-
-  // Mock ETH->WETH
-  await mockProxyGet(
-    mockServer,
-    /getQuote.*destTokenAddress=0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/i,
-    GET_QUOTE_ETH_WETH_RESPONSE,
-  );
-
-  await interceptProxyUrl(
-    mockServer,
-    (url) => url.includes('getQuote') && url.includes('insufficientBal=false'),
-    (url) => url.replace('insufficientBal=false', 'insufficientBal=true'),
-  );
 };
 
 describe(SmokeTrade('Swap from Actions'), (): void => {

@@ -14,16 +14,20 @@ import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { mockProxyGet } from '../../api-mocking/mockHelpers';
 
 const HST_CONTRACT = SMART_CONTRACTS.HST;
 
 describe(SmokeConfirmations('ERC20 tokens'), () => {
   it('send an ERC20 token from a dapp', async () => {
-    const testSpecificMock = {
-      GET: [
-        mockEvents.GET.suggestedGasFeesApiGanache,
-        mockEvents.GET.remoteFeatureFlagsOldConfirmations,
-      ],
+    const testSpecificMock = async (mockServer: Mockttp) => {
+      const { urlEndpoint, response } =
+        mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+      const { urlEndpoint: gasUrlEndpoint, response: gasResponse } =
+        mockEvents.GET.suggestedGasFeesApiGanache;
+      await mockProxyGet(mockServer, urlEndpoint, response);
+      await mockProxyGet(mockServer, gasUrlEndpoint, gasResponse);
     };
 
     await withFixtures(

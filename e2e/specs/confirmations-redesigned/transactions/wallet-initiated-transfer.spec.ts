@@ -16,17 +16,23 @@ import FooterActions from '../../../pages/Browser/Confirmations/FooterActions';
 import SendView from '../../../pages/Send/SendView';
 import AmountView from '../../../pages/Send/AmountView';
 import RowComponents from '../../../pages/Browser/Confirmations/RowComponents';
+import { Mockttp } from 'mockttp';
+import { mockProxyGet, mockSimulation } from '../../../api-mocking/mockHelpers';
 
 const RECIPIENT = '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb';
 const AMOUNT = '1';
 
 describe(SmokeConfirmationsRedesigned('Wallet Initiated Transfer'), () => {
-  const testSpecificMock = {
-    POST: [SEND_ETH_SIMULATION_MOCK],
-    GET: [
-      SIMULATION_ENABLED_NETWORKS_MOCK,
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations,
-    ],
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    const { urlEndpoint, response } =
+      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+    await mockProxyGet(
+      mockServer,
+      SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      SIMULATION_ENABLED_NETWORKS_MOCK.response,
+    );
+    await mockProxyGet(mockServer, urlEndpoint, response);
+    await mockSimulation(mockServer, SEND_ETH_SIMULATION_MOCK);
   };
 
   beforeAll(async () => {

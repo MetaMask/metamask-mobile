@@ -10,10 +10,14 @@ import Assertions from '../../../framework/Assertions';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { mockProxyGet } from '../../../api-mocking/mockHelpers';
 
 describe(SmokeConfirmations('Typed Sign V3'), () => {
-  const testSpecificMock = {
-    GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    const { urlEndpoint, response } =
+      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+    await mockProxyGet(mockServer, urlEndpoint, response);
   };
 
   beforeAll(async () => {

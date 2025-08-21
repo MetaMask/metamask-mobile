@@ -5,6 +5,8 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { mockEvents } from '../../../api-mocking/mock-config/mock-events';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { loginToApp } from '../../../viewHelper';
+import { Mockttp } from 'mockttp';
+import { mockProxyGet } from '../../../api-mocking/mockHelpers';
 
 describe(SmokeNetworkAbstractions('View DeFi details'), () => {
   it('open the Aave V3 position details', async () => {
@@ -12,8 +14,10 @@ describe(SmokeNetworkAbstractions('View DeFi details'), () => {
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockEvents.GET.defiPositionsWithData],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          const { urlEndpoint, response } =
+            mockEvents.GET.defiPositionsWithData;
+          await mockProxyGet(mockServer, urlEndpoint, response);
         },
         languageAndLocale: {
           language: 'en',
