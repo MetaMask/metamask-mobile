@@ -27,10 +27,7 @@ import {
   selectNetworkConfigurationsByCaipChainId,
 } from '../networkController';
 import { TEST_NETWORK_IDS } from '../../constants/network';
-import { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
-import { NetworkConfiguration } from '@metamask/network-controller';
 import { AccountGroupWithInternalAccounts } from './accounts.type';
-import { createSelector } from 'reselect';
 
 /**
  * Extracts the wallet ID from an account group ID.
