@@ -51,14 +51,6 @@ export const DEFAULT_MOCKS = {
         features: [],
       },
     },
-    {
-      urlEndpoint:
-        /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\d+)?\/favicon\.ico$/,
-      responseCode: 200,
-      response: {
-        status: 'success',
-      },
-    },
   ],
   POST: [
     ...authMocks.POST,
