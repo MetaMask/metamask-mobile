@@ -30,7 +30,7 @@ jobs:
       any: ${{ steps.set-outputs.outputs.any_changed }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
 
@@ -51,8 +51,8 @@ jobs:
               - 'app/components/**/android/**'     # Android UI components
               - 'app/util/**/android/**'           # Android utilities
               - 'package.json'                     # If native deps change
-              
- 
+
+
             ios:
               - 'ios/**'                           # All iOS project files
               - 'Podfile'                          # CocoaPods dependencies
@@ -66,8 +66,8 @@ jobs:
               - 'app/components/**/ios/**'         # iOS UI components
               - 'app/util/**/ios/**'               # iOS utilities
               - 'package.json'                     # If native deps change
-              
-              
+
+
             shared:
               - 'metro.config.js'                  # Metro bundler
               - 'tsconfig.json'                    # TypeScript config
@@ -89,7 +89,7 @@ jobs:
           android_direct="${{ steps.filter.outputs.android }}"
           ios_direct="${{ steps.filter.outputs.ios }}"
           shared_changed="${{ steps.filter.outputs.shared }}"
-          
+
           # Apply shared logic: if shared files changed, both platforms should build
           if [[ "$shared_changed" == 'true' ]]; then
             android_final="true"
@@ -98,11 +98,11 @@ jobs:
             android_final="$android_direct"
             ios_final="$ios_direct"
           fi
-          
+
           # Set outputs
           echo "android_final=$android_final" >> "${GITHUB_OUTPUT}"
           echo "ios_final=$ios_final" >> "${GITHUB_OUTPUT}"
-          
+
           # Set any_changed
           if [[ "$android_final" == 'true' || "$ios_final" == 'true' ]]; then
             echo "any_changed=true" >> "${GITHUB_OUTPUT}"

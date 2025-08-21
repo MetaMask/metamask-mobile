@@ -1,7 +1,7 @@
 name: Performance E2E Test Manual WorkFlow
- ## This is 1 out of 5 Prs which will enable us to trigger the performance e2e via a workflow dispatch  
+ ## This is 1 out of 5 Prs which will enable us to trigger the performance e2e via a workflow dispatch
  ## The infra to build the apps is not currently setup hence to trigger this workflow, you would need to
- ## grab the browserstack app_url from the build_android_qa workflow in github. 
+ ## grab the browserstack app_url from the build_android_qa workflow in github.
 on:
   workflow_dispatch:
     inputs:
@@ -28,6 +28,10 @@ on:
   #   # Every 3 hours on main branch
   #   - cron: '0 */3 * * *'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}
+  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
+
 jobs:
   run-performance-test:
     runs-on: ubuntu-latest
@@ -40,13 +44,13 @@ jobs:
       MM_TEST_ACCOUNT_SRP: ${{ secrets.MM_TEST_ACCOUNT_SRP }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-      
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: '.nvmrc'
-      
+
       - name: Install dependencies
         run: yarn setup
 
@@ -64,13 +68,13 @@ jobs:
           local-testing: start
           local-identifier: ${{ github.run_id }}
           local-args: --force-local --verbose
-      
+
       - name: Wait for BrowserStack Local
         run: |
           echo "Waiting for BrowserStack Local to be ready..."
           sleep 30
           echo "BrowserStack Local should be ready now"
-      
+
       - name: Run Android Performance Tests
         env:
           BROWSERSTACK_LOCAL: true

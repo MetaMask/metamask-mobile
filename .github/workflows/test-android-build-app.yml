@@ -26,7 +26,7 @@ jobs:
     steps:
       # Get the source code from the repository
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       # Install Android SDK, Node.js, and other Android development dependencies
       - name: Installing Android Environment Setup
@@ -130,7 +130,7 @@ jobs:
       # Upload the Android APK file for device installation and testing
       - name: Upload Android APK Artifact
         id: upload-apk
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: app-qa-release.apk
           path: android/app/build/outputs/apk/qa/release/app-qa-release.apk
@@ -141,7 +141,7 @@ jobs:
       # Upload the Android App Bundle (AAB) for Play Store distribution
       - name: Upload Android AAB Artifact
         id: upload-aab
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: app-qa-release.aab
           path: android/app/build/outputs/bundle/qaRelease/app-qa-release.aab
@@ -152,7 +152,7 @@ jobs:
       # Upload source map file for crash debugging and error tracking
       - name: Upload Android Source Map
         id: upload-sourcemap
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: index.android.bundle.map
           path: sourcemaps/android/index.android.bundle.map

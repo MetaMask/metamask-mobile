@@ -9,6 +9,10 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}
+  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
+
 jobs:
   api-specs-ios:
     name: "api-specs-ios"
@@ -31,18 +35,18 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           ref: ${{ github.head_ref || github.ref }}
           clean: true
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '20.18.0'
           cache: 'yarn'
-          
+
       - name: Enable Corepack and setup Yarn
         run: |
           corepack enable
@@ -68,13 +72,13 @@ jobs:
       - name: Build Detox framework cache for API specs
         run: |
           echo "🔧 Building Detox framework cache specifically for API specs..."
-          
+
           # Clean any existing cache first
           yarn detox clean-framework-cache
-          
+
           # Build fresh framework cache
           yarn detox build-framework-cache
-          
+
           # Verify the framework was built successfully
           if [[ -d ~/Library/Detox/ios/framework ]]; then
             echo "✅ Detox framework cache built successfully"
@@ -88,7 +92,7 @@ jobs:
         run: |
           echo "🚀 Setting up pre-built QA app for API specs..."
 
-          # Base URL for artifacts  
+          # Base URL for artifacts
           base_url="https://github.com/MetaMask/tmp-bitrise-migration-artifacts/releases/download/test5"
 
           # Create required directory
@@ -129,40 +133,40 @@ jobs:
       - name: Clean environment before API specs
         run: |
           echo "🧹 Cleaning environment before API specs tests..."
-          
+
           # Clean up any lock files
           find . -name "*.lock" -type f -delete 2>/dev/null || true
-          
+
           # Reset Detox lock file
           yarn detox reset-lock-file
-          
+
           # Clean any hanging processes
           pkill -f "Metro\|node\|npm" 2>/dev/null || true
-          
+
           echo "✅ Environment cleaned and ready for API specs"
 
       - name: Run API Specs tests
         run: |
           echo "🚀 Running API specs tests..."
           echo "Using Detox configuration: ios.sim.apiSpecs"
-          
+
           # Run API specs with retries
           yarn test:api-specs --retries 1
-          
+
           echo "✅ API specs tests completed"
 
       - name: Upload API specs test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: api-specs-test-results
           path: e2e/reports/
           retention-days: 7
-      
+
       - name: Upload API specs screenshots
         if: failure() || cancelled()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: api-specs-screenshots
           path: artifacts/
-          retention-days: 7 
+          retention-days: 7

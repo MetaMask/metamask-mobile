@@ -19,7 +19,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
           ref: ${{ vars.branch_name }}
@@ -27,7 +27,7 @@ jobs:
       - name: Get Node.js version
         id: nvm
         run: echo "NODE_VERSION=$(cat .nvmrc)" >> "$GITHUB_OUTPUT"
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
       - name: Create Cherry Pick PR
