@@ -1561,10 +1561,17 @@ workflows:
           run_if: '{{getenv "SSH_RSA_PRIVATE_KEY" | ne ""}}'
       - git-clone@6: {}
       - restore-cache@2:
-          title: Restore last successful build commit marker
+          title: Restore last successful iOS build commit marker
           is_skippable: true
           inputs:
-            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - key: 'last-e2e-build-commit-ios-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-ios-build-commit
+      - restore-cache@2:
+          title: Restore last successful Android build commit marker
+          is_skippable: true
+          inputs:
+            - key: 'last-e2e-build-commit-android-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-android-build-commit
       - script@1:
           title: Generate cache keys and check both iOS and Android builds
           inputs:
@@ -1721,21 +1728,21 @@ workflows:
                 ios/build/Build/Products/Release-iphonesimulator
                 ../Library/Detox/ios
       - script@1:
-          title: Save last successful build commit
+          title: Save last successful iOS build commit
           run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 # Create a marker file with the current commit
-                mkdir -p /tmp/last-build-commit
-                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-build-commit/commit
-                echo "Build completed successfully at $(date)" >> /tmp/last-build-commit/commit
+                mkdir -p /tmp/last-ios-build-commit
+                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-ios-build-commit/commit
+                echo "iOS build completed successfully at $(date)" >> /tmp/last-ios-build-commit/commit
       - save-cache@1:
-          title: Save last successful build commit marker
+          title: Save last successful iOS build commit marker
           run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
           inputs:
-            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
-            - paths: /tmp/last-build-commit
+            - key: 'last-e2e-build-commit-ios-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-ios-build-commit
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: |-
@@ -2251,21 +2258,21 @@ workflows:
             - paths: |-
                 /tmp/android-cache
       - script@1:
-          title: Save last successful build commit (Android)
+          title: Save last successful Android build commit
           run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 # Create a marker file with the current commit
-                mkdir -p /tmp/last-build-commit
-                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-build-commit/commit
-                echo "Build completed successfully at $(date)" >> /tmp/last-build-commit/commit
+                mkdir -p /tmp/last-android-build-commit
+                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-android-build-commit/commit
+                echo "Android build completed successfully at $(date)" >> /tmp/last-android-build-commit/commit
       - save-cache@1:
-          title: Save last successful build commit marker (Android)
+          title: Save last successful Android build commit marker
           run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
           inputs:
-            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
-            - paths: /tmp/last-build-commit
+            - key: 'last-e2e-build-commit-android-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-android-build-commit
 
   # Template for E2E Android builds
 
@@ -2382,21 +2389,21 @@ workflows:
             - paths: |-
                 /tmp/android-cache
       - script@1:
-          title: Save last successful build commit (Android)
+          title: Save last successful Android build commit
           run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 # Create a marker file with the current commit
-                mkdir -p /tmp/last-build-commit
-                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-build-commit/commit
-                echo "Android build completed successfully at $(date)" >> /tmp/last-build-commit/commit
+                mkdir -p /tmp/last-android-build-commit
+                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-android-build-commit/commit
+                echo "Android build completed successfully at $(date)" >> /tmp/last-android-build-commit/commit
       - save-cache@1:
-          title: Save last successful build commit marker (Android)
+          title: Save last successful Android build commit marker
           run_if: '{{getenv "GITHUB_PR_NUMBER" | ne ""}}'
           inputs:
-            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
-            - paths: /tmp/last-build-commit
+            - key: 'last-e2e-build-commit-android-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-android-build-commit
       - deploy-to-bitrise-io@2.2.3:
           inputs:
             - pipeline_intermediate_files: android/app/build/outputs:INTERMEDIATE_ANDROID_BUILD_DIR
@@ -3056,21 +3063,21 @@ workflows:
                 ios/build/Build/Products/Release-iphonesimulator
                 ../Library/Detox/ios
       - script@1:
-          title: Save last successful build commit
+          title: Save last successful iOS build commit
           run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
           inputs:
             - content: |-
                 #!/usr/bin/env bash
                 # Create a marker file with the current commit
-                mkdir -p /tmp/last-build-commit
-                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-build-commit/commit
-                echo "Build completed successfully at $(date)" >> /tmp/last-build-commit/commit
+                mkdir -p /tmp/last-ios-build-commit
+                echo "$(git rev-parse HEAD 2>/dev/null || echo ${BITRISE_GIT_COMMIT})" > /tmp/last-ios-build-commit/commit
+                echo "iOS build completed successfully at $(date)" >> /tmp/last-ios-build-commit/commit
       - save-cache@1:
-          title: Save last successful build commit marker
+          title: Save last successful iOS build commit marker
           run_if: '{{and (getenv "GITHUB_PR_NUMBER" | ne "") (getenv "SHARE_WITH_DETOX" | eq "true")}}'
           inputs:
-            - key: 'last-e2e-build-commit-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
-            - paths: /tmp/last-build-commit
+            - key: 'last-e2e-build-commit-ios-pr-{{ getenv "GITHUB_PR_NUMBER" }}'
+            - paths: /tmp/last-ios-build-commit
   # TODO: Remove this workflow once new build configuration is consolidated
   build_ios_release:
     after_run:

@@ -32,13 +32,35 @@ else
         fi
     fi
     
-    # Try to get the last successful build commit from cache
-    LAST_BUILD_COMMIT_CACHE_KEY="last-e2e-build-commit-pr-${GITHUB_PR_NUMBER}"
+    # Try to get the last successful build commits from cache
+    IOS_LAST_BUILD_COMMIT_CACHE_KEY="last-e2e-build-commit-ios-pr-${GITHUB_PR_NUMBER}"
+    ANDROID_LAST_BUILD_COMMIT_CACHE_KEY="last-e2e-build-commit-android-pr-${GITHUB_PR_NUMBER}"
     
-    # Read the last successful build commit if available
-    if [[ -f "/tmp/last-build-commit/commit" ]]; then
-        LAST_SUCCESSFUL_COMMIT=$(head -1 /tmp/last-build-commit/commit)
-        echo "Found last successful build commit: $LAST_SUCCESSFUL_COMMIT"
+    # Read the last successful build commits if available
+    # Check both iOS and Android commit files and use the most recent one
+    LAST_SUCCESSFUL_COMMIT=""
+    
+    IOS_COMMIT=""
+    ANDROID_COMMIT=""
+    
+    if [[ -f "/tmp/last-ios-build-commit/commit" ]]; then
+        IOS_COMMIT=$(head -1 /tmp/last-ios-build-commit/commit)
+        echo "Found last successful iOS build commit: $IOS_COMMIT"
+    fi
+    
+    if [[ -f "/tmp/last-android-build-commit/commit" ]]; then
+        ANDROID_COMMIT=$(head -1 /tmp/last-android-build-commit/commit)
+        echo "Found last successful Android build commit: $ANDROID_COMMIT"
+    fi
+    
+    # Use the iOS commit as the primary reference if available, otherwise use Android
+    # In most cases, both should be the same since they're built together
+    if [[ -n "$IOS_COMMIT" ]]; then
+        LAST_SUCCESSFUL_COMMIT="$IOS_COMMIT"
+        echo "Using iOS commit as reference: $LAST_SUCCESSFUL_COMMIT"
+    elif [[ -n "$ANDROID_COMMIT" ]]; then
+        LAST_SUCCESSFUL_COMMIT="$ANDROID_COMMIT"
+        echo "Using Android commit as reference: $LAST_SUCCESSFUL_COMMIT"
     else
         echo "No previous successful build commit found"
     fi
