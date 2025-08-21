@@ -1,4 +1,4 @@
-import { Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { InternalAccount } from '@metamask/keyring-internal-api';
@@ -17,7 +17,6 @@ export const useSendActions = () => {
   const navigation = useNavigation();
   const { isEvmSendType } = useSendType();
   const { captureSendExit } = useSendExitMetrics();
-
   const handleSubmitPress = useCallback(
     async (recipientAddress?: string) => {
       if (!chainId || !asset) {
@@ -36,16 +35,17 @@ export const useSendActions = () => {
           to: toAddress as Hex,
           value: value as string,
         });
+        navigation.navigate(
+          Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
+        );
       } else {
-        await submitNonEvmTransaction({
-          asset,
-          fromAccount: fromAccount as InternalAccount,
+        await submitNonEvmTransaction(fromAccount as InternalAccount, {
+          fromAccountId: fromAccount?.id as string,
+          toAddress: toAddress as string,
+          assetId: asset.address as CaipAssetType,
+          amount: value as string,
         });
       }
-
-      navigation.navigate(
-        Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      );
     },
     [asset, chainId, navigation, fromAccount, from, isEvmSendType, to, value],
   );

@@ -1,6 +1,6 @@
 import BN from 'bnjs4';
 import { BNToHex, toHex } from '@metamask/controller-utils';
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import { CaipAssetType, Hex } from '@metamask/utils';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { Nft } from '@metamask/assets-controllers';
 import { SnapId } from '@metamask/snaps-sdk';
@@ -12,7 +12,7 @@ import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
 import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
-import { sendMultichainTransaction } from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
+import { sendMultichainTransactionForReview } from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
@@ -120,19 +120,19 @@ export const submitEvmTransaction = async ({
   });
 };
 
-// todo: we need to figure out passing toAddress, amount also to the snap
-export const submitNonEvmTransaction = async ({
-  asset,
-  fromAccount,
-}: {
-  asset: AssetType;
-  fromAccount: InternalAccount;
-}) => {
-  await sendMultichainTransaction(fromAccount.metadata?.snap?.id as SnapId, {
-    account: fromAccount.id,
-    scope: asset.chainId as CaipChainId,
-    assetId: asset.address as CaipAssetType,
-  });
+export const submitNonEvmTransaction = async (
+  fromAccount: InternalAccount,
+  params: {
+    fromAccountId: string;
+    toAddress: string;
+    assetId: CaipAssetType;
+    amount: string;
+  },
+) => {
+  await sendMultichainTransactionForReview(
+    fromAccount.metadata?.snap?.id as SnapId,
+    params,
+  );
 };
 
 export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
