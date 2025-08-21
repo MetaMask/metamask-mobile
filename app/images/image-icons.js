@@ -38,6 +38,7 @@ import BERACHAIN_TOKEN from './berachain-token.png';
 import EDU from './edu.png';
 import ABSTRACT from './abstract.png';
 import OMNI_TOKEN from './omni-token.png';
+import TRON from './tron-logo.svg';
 import FRAX from './frax.png';
 
 export default {
@@ -61,6 +62,7 @@ export default {
   SOLANA,
   FOX_LOGO,
   BTC,
+  TRON,
   'BTC-TESTNET': BTC_TESTNET,
   'BTC-MUTINYNET': BTC_MUTINYNET,
   'BTC-SIGNET': BTC_SIGNET,
