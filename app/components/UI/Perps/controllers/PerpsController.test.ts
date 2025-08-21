@@ -132,6 +132,11 @@ describe('PerpsController', () => {
       toggleTestnet: jest.fn(),
       getPositions: jest.fn(),
       getAccountState: jest.fn(),
+      getHistoricalPortfolio: jest.fn().mockResolvedValue({
+        totalBalance24hAgo: '10000',
+        totalBalance7dAgo: '9500',
+        totalBalance30dAgo: '9000',
+      }),
       getMarkets: jest.fn(),
       placeOrder: jest.fn(),
       editOrder: jest.fn(),

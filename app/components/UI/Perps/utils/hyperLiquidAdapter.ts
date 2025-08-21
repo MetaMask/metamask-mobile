@@ -208,8 +208,7 @@ export function adaptAccountStateFromSDK(
           assetPos.position.returnOnEquity || '0',
         );
         acc.totalUnrealizedPnl += unrealizedPnl;
-        acc.weightedReturnOnEquity +=
-          acc.weightedReturnOnEquity + returnOnEquity * marginUsed;
+        acc.weightedReturnOnEquity += returnOnEquity * marginUsed;
         return acc;
       },
       {
