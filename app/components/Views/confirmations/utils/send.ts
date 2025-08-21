@@ -8,6 +8,8 @@ import { TransactionParams } from '@metamask/transaction-controller';
 
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
+import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 import { addTransaction } from '../../../../util/transaction-controller';
 import { generateTransferData } from '../../../../util/transactions';
 import { sendMultichainTransaction } from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
@@ -15,8 +17,6 @@ import { toTokenMinimalUnit, toWei } from '../../../../util/number';
 import { AssetType, TokenStandard } from '../types/token';
 import { MMM_ORIGIN } from '../constants/confirmations';
 import { isNativeToken } from '../utils/generic';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
 export const isSendRedesignEnabled = () =>
   process.env.MM_SEND_REDESIGN_ENABLED === 'true';
@@ -136,14 +136,31 @@ export const submitNonEvmTransaction = async ({
 };
 
 export function formatToFixedDecimals(value: string, decimalsToShow = 5) {
-  const decimals = decimalsToShow < 5 ? decimalsToShow : 5;
-  const val = parseFloat(value);
-  if (val) {
-    const minVal = 1 / Math.pow(10, decimals);
-    if (val < minVal) {
-      return `< ${minVal}`;
+  if (value) {
+    const decimals = decimalsToShow < 5 ? decimalsToShow : 5;
+    const result = String(value).replace(/^-/, '').split('.');
+    const intPart = result[0];
+    let fracPart = `${result[1] ?? ''}${'0'.repeat(decimals)}`;
+
+    const val = new BN(`${intPart}${fracPart}`);
+    if (val.isZero()) {
+      return '0';
     }
-    return val.toFixed(decimals).replace(/\.?0+$/, '');
+
+    const minVal = Math.pow(10, decimals);
+    const minValBN = new BN(minVal);
+
+    if (val.lt(minValBN)) {
+      return `< ${1 / minVal}`;
+    }
+
+    if (fracPart.length > decimals) {
+      fracPart = fracPart.slice(0, decimals);
+    }
+
+    return `${intPart}.${fracPart}`
+      .replace(/\.?[0]+$/, '')
+      .replace(/\.?[.]+$/, '');
   }
   return '0';
 }
