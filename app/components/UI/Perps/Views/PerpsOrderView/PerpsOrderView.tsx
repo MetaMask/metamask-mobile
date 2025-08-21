@@ -12,8 +12,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -109,7 +109,6 @@ interface OrderRouteParams {
 // Define component without React.memo first
 const PerpsOrderViewContentBase: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { top } = useSafeAreaInsets();
   const { colors } = useTheme();
 
   const styles = createStyles(colors);
@@ -633,7 +632,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   }, []);
 
   return (
-    <SafeAreaView style={[styles.container, { marginTop: top }]}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <PerpsOrderHeader
         asset={orderForm.asset}

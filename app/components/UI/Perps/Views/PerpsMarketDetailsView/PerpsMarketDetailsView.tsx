@@ -11,8 +11,11 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { SafeAreaView, ScrollView, View, RefreshControl } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView, View, RefreshControl } from 'react-native';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
