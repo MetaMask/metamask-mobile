@@ -1,13 +1,14 @@
 import React, { useEffect, useRef } from 'react';
-import { View, TouchableOpacity, Animated, Text as RNText } from 'react-native';
+import { Animated, Text as RNText, TouchableOpacity, View } from 'react-native';
+import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import Text, {
-  TextVariant,
   TextColor,
+  TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useTheme } from '../../../../../util/theme';
 import { formatPrice } from '../../utils/formatUtils';
-import { PerpsAmountDisplaySelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import createStyles from './PerpsAmountDisplay.styles';
+import { strings } from '../../../../../../locales/i18n';
 
 interface PerpsAmountDisplayProps {
   amount: string;
@@ -77,11 +78,12 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
         )}
       </View>
       <Text
-        variant={TextVariant.BodyMD}
+        variant={TextVariant.BodySM}
         color={TextColor.Alternative}
         style={styles.maxAmount}
       >
-        {formatPrice(maxAmount)} max
+        {formatPrice(maxAmount, { minimumDecimals: 2, maximumDecimals: 2 })}{' '}
+        {strings('perps.order.max')}
       </Text>
       {showWarning && (
         <Text

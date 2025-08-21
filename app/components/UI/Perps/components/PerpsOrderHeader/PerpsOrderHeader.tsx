@@ -19,8 +19,7 @@ import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../../constants/hyperLiquidCon
 import type { OrderType } from '../../controllers/types';
 import { PerpsOrderHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { createStyles } from './PerpsOrderHeader.styles';
-
-const FALLBACK_PRICE_DISPLAY = '$---';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 
 interface PerpsOrderHeaderProps {
   asset: string;
@@ -68,14 +67,14 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   const formattedPrice = useMemo(() => {
     // Handle invalid or edge case values
     if (!price || price <= 0 || !Number.isFinite(price)) {
-      return FALLBACK_PRICE_DISPLAY;
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
 
     try {
       return formatPrice(price);
     } catch {
       // Fallback if formatPrice throws
-      return FALLBACK_PRICE_DISPLAY;
+      return PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY;
     }
   }, [price]);
 

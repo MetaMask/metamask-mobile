@@ -160,11 +160,29 @@ const PerpsMarketListView = ({
   };
 
   const filteredMarkets = useMemo(() => {
+    // First filter out markets with no volume or $0 volume
+    const marketsWithVolume = markets.filter((market: PerpsMarketData) => {
+      // Check if volume exists and is not zero
+      if (
+        !market.volume ||
+        market.volume === '$0' ||
+        market.volume === '$0.00'
+      ) {
+        return false;
+      }
+      // Also filter out fallback display values
+      if (market.volume === '$---' || market.volume === '---') {
+        return false;
+      }
+      return true;
+    });
+
+    // Then apply search filter if needed
     if (!searchQuery.trim()) {
-      return markets;
+      return marketsWithVolume;
     }
     const query = searchQuery.toLowerCase().trim();
-    return markets.filter(
+    return marketsWithVolume.filter(
       (market: PerpsMarketData) =>
         market.symbol.toLowerCase().includes(query) ||
         market.name.toLowerCase().includes(query),
