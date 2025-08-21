@@ -40,64 +40,16 @@ env:
   DISABLE_VIDEO_DOWNLOAD: true
 
 jobs:
-  # Setup job to install dependencies once
-  setup:
-    name: Setup Dependencies
-    runs-on: ubuntu-latest
-    outputs:
-      cache-hit: ${{ steps.cache-deps.outputs.cache-hit }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'yarn'
-      
-      - name: Cache dependencies
-        id: cache-deps
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            .yarn/cache
-            .yarn/install-state.gz
-          key: ${{ runner.os }}-deps-${{ hashFiles('**/yarn.lock', '**/package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
-      
-      - name: Install dependencies
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: yarn setup
-      
-      - name: Upload dependencies as artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependencies
-          path: |
-            node_modules/
-            .yarn/
-          retention-days: 1
-
   # Job to read device matrix from JSON file
   read-device-matrix:
     name: Read Device Matrix
     runs-on: ubuntu-latest
-    needs: setup
     outputs:
       android_matrix: ${{ steps.matrix.outputs.android }}
       ios_matrix: ${{ steps.matrix.outputs.ios }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
-      - name: Download dependencies
-        uses: actions/download-artifact@v4
-        with:
-          name: dependencies
-          path: .
       
       - name: Read device matrix
         id: matrix
@@ -153,7 +105,7 @@ jobs:
   android-tests:
     name: Android Tests
     runs-on: ubuntu-latest
-    needs: [read-device-matrix, setup]
+    needs: read-device-matrix
     strategy:
       fail-fast: false
       matrix:
@@ -163,12 +115,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Download dependencies
-        uses: actions/download-artifact@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          name: dependencies
-          path: .
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
       
+      - name: Install dependencies
+        run: yarn setup
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -225,7 +179,7 @@ jobs:
   ios-tests:
     name: iOS Tests
     runs-on: ubuntu-latest
-    needs: [read-device-matrix, setup]
+    needs: read-device-matrix
     strategy:
       fail-fast: false
       matrix:
@@ -234,12 +188,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
-      - name: Download dependencies
-        uses: actions/download-artifact@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          name: dependencies
-          path: .
+          node-version-file: '.nvmrc'
+          cache: 'yarn'
       
+      - name: Install dependencies
+        run: yarn setup
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -298,16 +254,10 @@ jobs:
   gather-results:
     name: Gather Test Results
     runs-on: ubuntu-latest
-    needs: [read-device-matrix, setup, android-tests, ios-tests]
+    needs: [read-device-matrix, android-tests, ios-tests]
     if: always()
     
     steps:
-      - name: Download dependencies
-        uses: actions/download-artifact@v4
-        with:
-          name: dependencies
-          path: .
-      
       - name: Download All Test Results
         uses: actions/download-artifact@v4
         with:
