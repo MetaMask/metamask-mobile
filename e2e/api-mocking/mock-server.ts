@@ -1,7 +1,4 @@
-/* eslint-disable no-console */
-/* eslint-disable import/no-nodejs-modules */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { getLocal, Mockttp } from 'mockttp';
+import { getLocal, Headers, Mockttp } from 'mockttp';
 import portfinder from 'portfinder';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
 import { createLogger } from '../framework/logger';
@@ -32,13 +29,21 @@ interface MockServer extends Mockttp {
 const handleDirectFetch = async (
   url: string,
   method: string,
-  headers: any,
+  headers: Headers,
   requestBody?: string,
 ): Promise<{ statusCode: number; body: string }> => {
   try {
+    // Convert mockttp headers to satisfy fetch API requirements
+    const fetchHeaders: HeadersInit = {};
+    for (const [key, value] of Object.entries(headers)) {
+      if (value) {
+        fetchHeaders[key] = Array.isArray(value) ? value[0] : value;
+      }
+    }
+
     const response = await global.fetch(url, {
       method,
-      headers,
+      headers: fetchHeaders,
       body: ['POST', 'PUT', 'PATCH'].includes(method) ? requestBody : undefined,
     });
 
@@ -143,7 +148,7 @@ export const startMockServer = async (
       const method = request.method;
       // Read the body ONCE for POST requests to avoid stream exhaustion
       let requestBodyText: string | undefined;
-      let requestBodyJson: any;
+      let requestBodyJson: unknown;
       if (method === 'POST') {
         try {
           requestBodyText = await request.body.getText();
