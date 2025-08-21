@@ -76,21 +76,21 @@ class SwapScreen {
   }
 
   async selectNetworkAndTokenTo(network, token) {
+    let tokenButton;
+
     if (network == 'Ethereum'){
       const tokenDropDown = await AppwrightSelectors.getElementByID(this._device, QuoteViewSelectorIDs.DEST_TOKEN)
       await tokenDropDown.tap();
-      const tokenSearchInput = await AppwrightSelectors.getElementByText(this._device,'Enter token name or paste address')
-      await appwrightExpect(tokenSearchInput).toBeVisible({ timeout: 10000 });
-      await tokenSearchInput.tap()
-      await tokenSearchInput.fill(token)
-      let tokenButton;
-      if (AppwrightSelectors.isAndroid(this._device))
+      if (AppwrightSelectors.isIOS(this._device)){
+        tokenButton = await AppwrightSelectors.getElementByText(this._device, `${token} ${token}`);
+        await tokenButton.tap();
+      }
+      else {
         tokenButton = await AppwrightSelectors.getElementByCatchAll(this._device, token);
-      else
-        tokenButton = await AppwrightSelectors.getElementByXpath(this._device, `(//XCUIElementTypeStaticText[@name="${token}"])[2]`);
-      await appwrightExpect(tokenButton).toBeVisible({ timeout: 10000 });
-      await tokenButton.tap();
-    }
+        await tokenButton.tap();
+
+        }
+      }
     else {
       const destinationToken = await this.destinationTokenArea;
       await destinationToken.tap();

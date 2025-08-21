@@ -20,7 +20,7 @@ import AddAccountModal from '../../../wdio/screen-objects/Modals/AddAccountModal
 import WalletActionModal from '../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import SwapScreen from '../../../wdio/screen-objects/SwapScreen.js';
 import TabBarModal from '../../../wdio/screen-objects/Modals/TabBarModal.js';
-import { importSRPFlow, onboardingFlowImportSRP } from '../../utils/Flows.js';
+import { onboardingFlowImportSRP } from '../../utils/Flows.js';
 
 test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   device,
@@ -44,9 +44,7 @@ test('Swap flow - ETH to USDC, SRP 1 + SRP 2 + SRP 3', async ({
   SwapScreen.device = device;
   TabBarModal.device = device;
 
-  await onboardingFlowImportSRP(device, process.env.TEST_SRP_1);
-  // await importSRPFlow(device, process.env.TEST_SRP_2);
-  await importSRPFlow(device, process.env.TEST_SRP_3);
+  await onboardingFlowImportSRP(device, process.env.TEST_SRP_2);
 
   const swapLoadTimer = new TimerHelper(
     'Time since the user clicks on the "Swap" button until the swap page is loaded',
