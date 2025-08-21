@@ -12,10 +12,7 @@ import React, {
   useRef,
 } from 'react';
 import { ScrollView, View, RefreshControl } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -80,7 +77,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market, isNavigationFromOrderSuccess } = route.params || {};
-  const { top } = useSafeAreaInsets();
   const { track } = usePerpsEventTracking();
 
   // Track screen load time
@@ -303,7 +299,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   if (!market) {
     return (
-      <SafeAreaView style={[styles.container, { paddingTop: top }]}>
+      <SafeAreaView style={styles.container}>
         <View
           style={styles.errorContainer}
           testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
@@ -318,7 +314,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   return (
     <SafeAreaView
-      style={[styles.mainContainer, { marginTop: top }]}
+      style={styles.mainContainer}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
       {/* Fixed Header Section */}

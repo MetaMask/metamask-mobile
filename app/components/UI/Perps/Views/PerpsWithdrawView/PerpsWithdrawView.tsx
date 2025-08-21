@@ -8,10 +8,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView, View } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PerpsWithdrawViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
@@ -363,10 +360,8 @@ const PerpsWithdrawView: React.FC = () => {
     chainId: destToken.chainId,
   });
 
-  const { top } = useSafeAreaInsets();
-
   return (
-    <SafeAreaView style={[styles.screen, { marginTop: top }]}>
+    <SafeAreaView style={styles.screen}>
       <View style={styles.container}>
         <View style={styles.header}>
           <ButtonIcon

@@ -210,7 +210,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   };
 
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <SafeAreaView style={styles.wrapper} edges={['bottom', 'left', 'right']}>
       {isFirstTimeUser ? (
         <View style={[styles.content, styles.firstTimeContent]}>
           <View style={styles.section}>{renderPositionsSection()}</View>
