@@ -9,14 +9,17 @@ import { useTokensWithBalance } from '../../../../../../UI/Bridge/hooks/useToken
 import { emptySignatureControllerMock } from '../../../../__mocks__/controllers/signature-controller-mock';
 import { useGasFeeEstimates } from '../../../../hooks/gas/useGasFeeEstimates';
 import { ConfirmationRowComponentIDs } from '../../../../../../../../e2e/selectors/Confirmation/ConfirmationView.selectors';
-import { act, fireEvent } from '@testing-library/react-native';
 import { useTransactionPayToken } from '../../../../hooks/pay/useTransactionPayToken';
+import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
+import { useTokenAsset } from '../../../../hooks/useTokenAsset';
 
 jest.mock('../../../../hooks/ui/useNavbar');
 jest.mock('../../../../../../UI/Bridge/hooks/useTokensWithBalance');
 jest.mock('../../../../hooks/gas/useGasFeeEstimates');
 jest.mock('../../../../hooks/pay/useAutomaticTransactionPayToken');
 jest.mock('../../../../hooks/pay/useTransactionPayToken');
+jest.mock('../../hooks/usePerpsDepositView');
+jest.mock('../../../../hooks/useTokenAsset');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -35,6 +38,8 @@ describe('PerpsDeposit', () => {
   const useTokensWithBalanceMock = jest.mocked(useTokensWithBalance);
   const useGasFeeEstimatesMock = jest.mocked(useGasFeeEstimates);
   const useTransactionPayTokenMock = jest.mocked(useTransactionPayToken);
+  const usePerpsDepositViewMock = jest.mocked(usePerpsDepositView);
+  const useTokenAssetMock = jest.mocked(useTokenAsset);
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -46,15 +51,26 @@ describe('PerpsDeposit', () => {
     });
 
     useTransactionPayTokenMock.mockReturnValue({
-      balanceFiat: '0',
-      balanceHuman: '0',
-      decimals: 18,
       payToken: {
         address: '0x123',
         chainId: '0x1',
+        balance: '0',
+        balanceFiat: '0',
+        decimals: 18,
+        symbol: 'TST',
       },
       setPayToken: noop,
     });
+
+    usePerpsDepositViewMock.mockReturnValue({
+      isFullView: false,
+    });
+
+    useTokenAssetMock.mockReturnValue({
+      asset: {
+        address: '0xabc',
+      },
+    } as ReturnType<typeof useTokenAsset>);
   });
 
   it('renders pay token', () => {
@@ -69,8 +85,8 @@ describe('PerpsDeposit', () => {
     expect(getByText('Pay with')).toBeDefined();
   });
 
-  it('hides total while keyboard visible', async () => {
-    const { queryByTestId, getByTestId, getByText } = renderWithProvider(
+  it('hides total', async () => {
+    const { queryByTestId } = renderWithProvider(
       <PerpsDeposit />,
       {
         state: STATE_MOCK,
@@ -79,16 +95,10 @@ describe('PerpsDeposit', () => {
     );
 
     expect(queryByTestId('total-row')).toBeNull();
-
-    await act(async () => {
-      fireEvent.press(getByText('Done'));
-    });
-
-    expect(getByTestId('total-row')).toBeDefined();
   });
 
-  it('hides gas fee while keyboard visible', async () => {
-    const { queryByTestId, getByTestId, getByText } = renderWithProvider(
+  it('hides gas fee', async () => {
+    const { queryByTestId } = renderWithProvider(
       <PerpsDeposit />,
       {
         state: STATE_MOCK,
@@ -99,13 +109,5 @@ describe('PerpsDeposit', () => {
     expect(
       queryByTestId(ConfirmationRowComponentIDs.GAS_FEES_DETAILS),
     ).toBeNull();
-
-    await act(async () => {
-      fireEvent.press(getByText('Done'));
-    });
-
-    expect(
-      getByTestId(ConfirmationRowComponentIDs.GAS_FEES_DETAILS),
-    ).toBeDefined();
   });
 });

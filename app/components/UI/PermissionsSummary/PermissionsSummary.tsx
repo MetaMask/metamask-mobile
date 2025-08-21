@@ -362,7 +362,12 @@ const PermissionsSummary = ({
 
   function renderAccountPermissionsRequestInfoCard() {
     return (
-      <TouchableOpacity onPress={handleEditAccountsButtonPress}>
+      <TouchableOpacity
+        onPress={handleEditAccountsButtonPress}
+        testID={
+          ConnectedAccountsSelectorsIDs.NAVIGATE_TO_EDIT_ACCOUNTS_PERMISSIONS_BUTTON
+        }
+      >
         <View
           style={styles.accountPermissionRequestInfoCard}
           testID={PermissionSummaryBottomSheetSelectorsIDs.CONTAINER}

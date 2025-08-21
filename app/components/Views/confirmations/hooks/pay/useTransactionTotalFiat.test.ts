@@ -1,29 +1,36 @@
 import { merge } from 'lodash';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { useTransactionTotalFiat } from './useTransactionTotalFiat';
-import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
+import {
+  simpleSendTransactionControllerMock,
+  transactionIdMock,
+} from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { useTransactionMaxGasCost } from '../gas/useTransactionMaxGasCost';
 import { useTransactionRequiredFiat } from './useTransactionRequiredFiat';
-import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
-import { toHex } from '@metamask/controller-utils';
 import { TransactionBridgeQuote } from '../../utils/bridge';
+import { useFeeCalculations } from '../gas/useFeeCalculations';
 
 jest.mock('../gas/useTransactionMaxGasCost');
 jest.mock('./useTransactionRequiredFiat');
 jest.mock('./useTransactionRequiredTokens');
+jest.mock('../gas/useFeeCalculations');
+
+const ADDRESS_MOCK = '0x1234567890abcdef1234567890abcdef12345678';
+const ADDRESS_2_MOCK = '0xabcdef1234567890abcdef1234567890abcdef12';
 
 function runHook({ quotes }: { quotes?: TransactionBridgeQuote[] } = {}) {
   return renderHookWithProvider(useTransactionTotalFiat, {
     state: merge(
+      {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
       otherControllersMock,
       {
         confirmationMetrics: {
           transactionBridgeQuotesById: {
-            '699ca2f0-e459-11ef-b6f6-d182277cf5e1': quotes ?? [],
+            [transactionIdMock]: quotes ?? [],
           },
         },
       },
@@ -33,10 +40,7 @@ function runHook({ quotes }: { quotes?: TransactionBridgeQuote[] } = {}) {
 
 describe('useTransactionTotalFiat', () => {
   const useTransactionMaxGasCostMock = jest.mocked(useTransactionMaxGasCost);
-
-  const useTransactionRequiredTokensMock = jest.mocked(
-    useTransactionRequiredTokens,
-  );
+  const useFeeCalculationsMock = jest.mocked(useFeeCalculations);
 
   const useTransactionRequiredFiatMock = jest.mocked(
     useTransactionRequiredFiat,
@@ -52,53 +56,130 @@ describe('useTransactionTotalFiat', () => {
       totalFiat: 0,
     });
 
-    useTransactionRequiredTokensMock.mockReturnValue([]);
-  });
-
-  it('includes gas cost', () => {
-    useTransactionMaxGasCostMock.mockReturnValue(toHex('12345600000000000'));
-
-    const { result } = runHook();
-
-    expect(result.current).toStrictEqual({
-      value: 123.456,
-      formatted: '$123.46',
-    });
+    useFeeCalculationsMock.mockReturnValue({
+      estimatedFeeFiatPrecise: '7.89',
+    } as ReturnType<typeof useFeeCalculations>);
   });
 
   it('includes quotes cost', () => {
-    useTransactionRequiredFiatMock.mockReturnValue({
-      values: [],
-      totalFiat: 456.123,
-    });
-
-    const { result } = runHook();
-
-    expect(result.current).toStrictEqual({
-      value: 456.123,
-      formatted: '$456.12',
-    });
-  });
-
-  it('includes quotes gas cost', () => {
     const { result } = runHook({
       quotes: [
         {
+          adjustedReturn: {
+            valueInCurrency: '12.34',
+          },
+          cost: {
+            valueInCurrency: '23.45',
+          },
           totalMaxNetworkFee: {
-            valueInCurrency: '123.456',
+            valueInCurrency: '34.56',
           },
         },
         {
+          adjustedReturn: {
+            valueInCurrency: '45.67',
+          },
+          cost: {
+            valueInCurrency: '56.78',
+          },
           totalMaxNetworkFee: {
-            valueInCurrency: '456.123',
+            valueInCurrency: '67.89',
           },
         },
       ] as TransactionBridgeQuote[],
     });
 
-    expect(result.current).toStrictEqual({
-      value: 579.579,
-      formatted: '$579.58',
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '240.69',
+        formatted: '$240.69',
+      }),
+    );
+  });
+
+  it('includes balance cost', () => {
+    useTransactionRequiredFiatMock.mockReturnValue({
+      values: [
+        {
+          address: ADDRESS_MOCK,
+          amountFiat: 12.34,
+        },
+        {
+          address: ADDRESS_2_MOCK,
+          amountFiat: 23.45,
+        },
+      ],
+    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '35.79',
+        formatted: '$35.79',
+      }),
+    );
+  });
+
+  it('ignores balance cost if matching quote', () => {
+    useTransactionRequiredFiatMock.mockReturnValue({
+      values: [
+        {
+          address: ADDRESS_MOCK,
+          amountFiat: 1000,
+        },
+        {
+          address: ADDRESS_2_MOCK,
+          amountFiat: 20,
+        },
+      ],
+    } as unknown as ReturnType<typeof useTransactionRequiredFiat>);
+
+    const { result } = runHook({
+      quotes: [
+        {
+          adjustedReturn: {
+            valueInCurrency: '30',
+          },
+          cost: {
+            valueInCurrency: '40',
+          },
+          totalMaxNetworkFee: {
+            valueInCurrency: '50',
+          },
+          quote: {
+            destAsset: {
+              address: ADDRESS_MOCK,
+            },
+          },
+        },
+      ] as TransactionBridgeQuote[],
     });
+
+    expect(result.current).toStrictEqual(
+      expect.objectContaining({
+        value: '140',
+        formatted: '$140',
+      }),
+    );
+  });
+
+  it('returns total gas cost', () => {
+    const { result } = runHook({
+      quotes: [
+        {
+          totalMaxNetworkFee: {
+            valueInCurrency: '1.23',
+          },
+        },
+        {
+          totalMaxNetworkFee: {
+            valueInCurrency: '4.56',
+          },
+        },
+      ] as TransactionBridgeQuote[],
+    });
+
+    expect(result.current.totalGasFormatted).toBe('$13.68');
   });
 });

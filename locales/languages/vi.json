@@ -761,8 +761,7 @@
   },
   "perps": {
     "title": "Giao dịch hợp đồng vĩnh cửu",
-    "hyperliquid_usdc_balance": "Hyperliquid USDC balance",
-    "manage_balance": "Manage Balance",
+    "perp_account_balance": "Perp account balance",    "manage_balance": "Manage Balance",
     "total_balance": "Tổng số dư",
     "available_balance": "Số dư khả dụng",
     "margin_used": "Ký quỹ đã sử dụng",
@@ -1124,7 +1123,7 @@
     "chart": {
       "no_data": "Không có dữ liệu biểu đồ"
     },
-    "perpetual_markets": "Perpetual markets",
+    "perps_markets": "Perps markets",
     "token_volume": "Token Volume",
     "last_price_24h_change": "Last Price / 24h Change",
     "failed_to_load_market_data": "Failed to load market data",
