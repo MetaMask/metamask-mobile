@@ -449,7 +449,7 @@ export class Engine {
     networkControllerMessenger.subscribe(
       'NetworkController:rpcEndpointDegraded',
       async ({ chainId, endpointUrl, error }) => {
-        onRpcEndpointUnavailable({
+        onRpcEndpointDegraded({
           chainId,
           endpointUrl,
           error,
