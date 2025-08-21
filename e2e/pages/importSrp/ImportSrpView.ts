@@ -30,9 +30,9 @@ class ImportSrpView {
   }
 
   async enterSrpWord(srpIndex: number, word: string) {
-    await Gestures.typeText(this.inputOfIndex(srpIndex), word, {
+    // Using replaceText to avoid autocomplete from device
+    await Gestures.replaceText(this.inputOfIndex(srpIndex), word, {
       elemDescription: `SRP word input at index ${srpIndex}`,
-      hideKeyboard: true,
     });
   }
 
