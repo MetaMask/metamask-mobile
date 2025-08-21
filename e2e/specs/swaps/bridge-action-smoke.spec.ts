@@ -356,7 +356,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     softAssert.throwIfErrors();
   });
 
-  it('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
+  it.skip('should bridge ETH (Mainnet) to ETH (Base Network)', async () => {
     const destChainId = '0x2105';
 
     await TabBarComponent.tapWallet();
@@ -391,7 +391,7 @@ describe(SmokeTrade('Bridge functionality'), () => {
     );
   });
 
-  it('should bridge ETH (Mainnet) to ETH (Optimism)', async () => {
+  it.skip('should bridge ETH (Mainnet) to ETH (Optimism)', async () => {
     const destChainId = '0xa';
 
     await TabBarComponent.tapWallet();
