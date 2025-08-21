@@ -315,176 +315,445 @@ exports[`MultichainAddWalletActions renders correctly 1`] = `
                     <RCTSafeAreaView>
                       <View
                         style={
-                          {
-                            "alignItems": "center",
-                            "backgroundColor": "#ffffff",
-                            "flexDirection": "row",
-                            "height": 32,
-                            "justifyContent": "space-between",
-                            "margin": 16,
-                          }
+                          [
+                            {
+                              "backgroundColor": "#ffffff",
+                              "flexDirection": "row",
+                              "gap": 16,
+                              "padding": 16,
+                            },
+                            false,
+                          ]
                         }
+                        testID="header"
                       >
                         <View
                           style={
                             {
+                              "alignItems": "center",
                               "flex": 1,
                             }
                           }
-                        />
-                        <Text
-                          accessibilityRole="text"
-                          style={
-                            {
-                              "color": "#121314",
-                              "fontFamily": "Geist Bold",
-                              "fontSize": 18,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
-                          }
                         >
-                          Add wallet
-                        </Text>
+                          <Text
+                            accessibilityRole="text"
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist Bold",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              }
+                            }
+                            testID="header-title"
+                          >
+                            Add wallet
+                          </Text>
+                        </View>
+                      </View>
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": false,
+                            "expanded": undefined,
+                            "selected": undefined,
+                          }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onBlur={[Function]}
+                        onClick={[Function]}
+                        onFocus={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "paddingBottom": 12,
+                            "paddingLeft": 16,
+                            "paddingRight": 16,
+                            "paddingTop": 12,
+                          }
+                        }
+                        testID="add-account-srp-account"
+                      >
                         <View
                           style={
-                            {
-                              "alignItems": "flex-end",
-                              "flex": 1,
-                            }
+                            [
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "justifyContent": "space-between",
+                              },
+                              undefined,
+                            ]
                           }
-                        />
+                        >
+                          <View
+                            style={
+                              [
+                                {
+                                  "alignItems": "flex-start",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexDirection": "row",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                  "gap": 16,
+                                },
+                                undefined,
+                              ]
+                            }
+                          >
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "height": 24,
+                                    "justifyContent": "center",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <SvgMock
+                                fill="currentColor"
+                                name="Wallet"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "height": 20,
+                                      "width": 20,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              />
+                            </View>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Import a wallet
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
                       </View>
-                      <View>
-                        <TouchableOpacity
-                          disabled={false}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                              "paddingVertical": 16,
-                              "width": "100%",
-                            }
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": false,
+                            "expanded": undefined,
+                            "selected": undefined,
                           }
-                          testID="add-account-srp-account"
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onBlur={[Function]}
+                        onClick={[Function]}
+                        onFocus={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "paddingBottom": 12,
+                            "paddingLeft": 16,
+                            "paddingRight": 16,
+                            "paddingTop": 12,
+                          }
+                        }
+                        testID="add-account-import-account"
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "justifyContent": "space-between",
+                              },
+                              undefined,
+                            ]
+                          }
                         >
-                          <SvgMock
-                            color="#121314"
-                            fill="currentColor"
-                            height={20}
-                            name="Wallet"
+                          <View
                             style={
-                              {
-                                "color": "#121314",
-                                "height": 20,
-                                "marginHorizontal": 16,
-                                "width": 20,
-                              }
-                            }
-                            width={20}
-                          />
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist Medium",
-                                "fontSize": 18,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "alignItems": "flex-start",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexDirection": "row",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                  "gap": 16,
+                                },
+                                undefined,
+                              ]
                             }
                           >
-                            Import a wallet
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          disabled={false}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                              "paddingVertical": 16,
-                              "width": "100%",
-                            }
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "height": 24,
+                                    "justifyContent": "center",
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <SvgMock
+                                fill="currentColor"
+                                name="Download"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "height": 20,
+                                      "width": 20,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              />
+                            </View>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
+                              }
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Import an account
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
+                      </View>
+                      <View
+                        accessibilityState={
+                          {
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": false,
+                            "expanded": undefined,
+                            "selected": undefined,
                           }
-                          testID="add-account-import-account"
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onBlur={[Function]}
+                        onClick={[Function]}
+                        onFocus={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          {
+                            "backgroundColor": "#ffffff",
+                            "paddingBottom": 12,
+                            "paddingLeft": 16,
+                            "paddingRight": 16,
+                            "paddingTop": 12,
+                          }
+                        }
+                        testID="add-account-add-hardware-wallet"
+                      >
+                        <View
+                          style={
+                            [
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "justifyContent": "space-between",
+                              },
+                              undefined,
+                            ]
+                          }
                         >
-                          <SvgMock
-                            color="#121314"
-                            fill="currentColor"
-                            height={20}
-                            name="Download"
+                          <View
                             style={
-                              {
-                                "color": "#121314",
-                                "height": 20,
-                                "marginHorizontal": 16,
-                                "width": 20,
-                              }
-                            }
-                            width={20}
-                          />
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist Medium",
-                                "fontSize": 18,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "alignItems": "flex-start",
+                                  "display": "flex",
+                                  "flexBasis": "0%",
+                                  "flexDirection": "row",
+                                  "flexGrow": 1,
+                                  "flexShrink": 1,
+                                  "gap": 16,
+                                },
+                                undefined,
+                              ]
                             }
                           >
-                            Import an account
-                          </Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          disabled={false}
-                          onPress={[Function]}
-                          style={
-                            {
-                              "alignItems": "center",
-                              "flexDirection": "row",
-                              "paddingVertical": 16,
-                              "width": "100%",
-                            }
-                          }
-                          testID="add-account-add-hardware-wallet"
-                        >
-                          <SvgMock
-                            color="#121314"
-                            fill="currentColor"
-                            height={20}
-                            name="Usb"
-                            style={
-                              {
-                                "color": "#121314",
-                                "height": 20,
-                                "marginHorizontal": 16,
-                                "width": 20,
+                            <View
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "display": "flex",
+                                    "height": 24,
+                                    "justifyContent": "center",
+                                  },
+                                  undefined,
+                                ]
                               }
-                            }
-                            width={20}
-                          />
-                          <Text
-                            accessibilityRole="text"
-                            style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist Medium",
-                                "fontSize": 18,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
+                            >
+                              <SvgMock
+                                fill="currentColor"
+                                name="Usb"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "height": 20,
+                                      "width": 20,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              />
+                            </View>
+                            <View
+                              style={
+                                [
+                                  {
+                                    "display": "flex",
+                                    "flexBasis": "0%",
+                                    "flexGrow": 1,
+                                    "flexShrink": 1,
+                                  },
+                                  undefined,
+                                ]
                               }
-                            }
-                          >
-                            Add a hardware wallet
-                          </Text>
-                        </TouchableOpacity>
+                            >
+                              <Text
+                                accessibilityRole="text"
+                                style={
+                                  [
+                                    {
+                                      "color": "#121314",
+                                      "fontFamily": "Geist Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
+                                }
+                              >
+                                Add a hardware wallet
+                              </Text>
+                            </View>
+                          </View>
+                        </View>
                       </View>
                     </RCTSafeAreaView>
                   </View>
