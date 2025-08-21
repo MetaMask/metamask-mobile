@@ -65,6 +65,19 @@ class QuoteView {
     );
   }
 
+  async typeSearchToken(symbol: string) {
+    await Gestures.typeText(this.searchToken, symbol, {
+      elemDescription: `Search Token with symbol ${symbol}`,
+    });
+  }
+
+  async selectToken(symbol: string, index: number = 1): Promise<void> {
+    const token = Matchers.getElementByText(symbol, index);
+    await Gestures.waitAndTap(token, {
+      elemDescription: `Token with symbol ${symbol} at index ${index}`,
+    });
+  }
+
   async tapSourceToken(): Promise<void> {
     const token = Matchers.getElementByText('ETH');
     await Gestures.waitAndTap(token);

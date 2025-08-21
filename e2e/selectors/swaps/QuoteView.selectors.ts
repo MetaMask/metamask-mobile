@@ -14,4 +14,5 @@ export const QuoteViewSelectorIDs = {
   TOKEN_SEARCH_INPUT: 'bridge-token-search-input',
   EXPAND_QUOTE_DETAILS: 'expand-quote-details',
   DESTINATION_TOKEN_AREA: 'dest-token-area',
+  SOURCE_TOKEN_SELECTOR: 'select-source-token-selector',
 };

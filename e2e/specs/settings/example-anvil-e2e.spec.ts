@@ -28,18 +28,14 @@ describe.skip('NFT Details page', () => {
 
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapSwapButton();
-
-        await Assertions.expectElementToBeVisible(QuoteView.getQuotes);
-
-        await QuoteView.enterSwapAmount(quantity);
+        await QuoteView.enterAmount(quantity);
 
         //Select destination token
-        await QuoteView.tapOnSelectDestToken();
+        await QuoteView.tapDestToken();
         await QuoteView.tapSearchToken();
         await QuoteView.typeSearchToken(destTokenSymbol);
         await QuoteView.selectToken(destTokenSymbol);
 
-        await QuoteView.tapOnGetQuotes();
         await Assertions.expectElementToBeVisible(SwapView.quoteSummary);
         await Assertions.expectElementToBeVisible(SwapView.gasFee);
         await SwapView.tapIUnderstandPriceWarning();
