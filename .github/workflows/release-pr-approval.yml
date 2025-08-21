@@ -5,8 +5,6 @@ on:
     branches:
       - Version-v*
       - release/*
-      - main  # TEMPORARY: Remove after testing
-  workflow_dispatch:  # Allow manual triggering for testing
 
 jobs:
   check:
