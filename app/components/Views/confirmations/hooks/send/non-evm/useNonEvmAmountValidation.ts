@@ -13,15 +13,17 @@ interface SnapValidationResult {
   valid: boolean;
 }
 
+export interface ValidateAmountFnArgs {
+  amount?: string;
+  asset?: AssetType;
+  fromAccount: InternalAccount;
+}
+
 export const validateAmountFn = async ({
   amount,
   asset,
   fromAccount,
-}: {
-  amount?: string;
-  asset?: AssetType;
-  fromAccount: InternalAccount;
-}) => {
+}: ValidateAmountFnArgs) => {
   if (!asset || amount === undefined || amount === null || amount === '') {
     return;
   }

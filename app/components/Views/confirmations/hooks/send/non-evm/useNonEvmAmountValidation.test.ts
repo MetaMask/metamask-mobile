@@ -4,6 +4,7 @@ import { AssetType } from '../../../types/token';
 import {
   useNonEvmAmountValidation,
   validateAmountFn,
+  ValidateAmountFnArgs,
 } from './useNonEvmAmountValidation';
 
 const mockState = {
@@ -14,7 +15,7 @@ const getArguments = (params: Record<string, unknown>) => ({
   amount: '0',
   asset: { balance: '100' } as AssetType,
   ...params,
-});
+}) as unknown as ValidateAmountFnArgs;
 
 describe('validateAmountFn', () => {
   it('returns undefined if no value is passed', () => {
