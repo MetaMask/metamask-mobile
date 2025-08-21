@@ -359,12 +359,9 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       },
       "PerpsController": {
         "accountState": null,
-        "activeDepositTransactions": {},
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
-        "currentDepositTxHash": null,
-        "depositError": null,
-        "depositStatus": "idle",
+        "depositInProgress": false,
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
@@ -375,6 +372,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "testnet": true,
         },
         "isTestnet": false,
+        "lastDepositResult": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "pendingOrders": [],
@@ -989,12 +987,9 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       },
       "PerpsController": {
         "accountState": null,
-        "activeDepositTransactions": {},
         "activeProvider": "hyperliquid",
         "connectionStatus": "disconnected",
-        "currentDepositTxHash": null,
-        "depositError": null,
-        "depositStatus": "idle",
+        "depositInProgress": false,
         "hasPlacedFirstOrder": {
           "mainnet": false,
           "testnet": false,
@@ -1005,6 +1000,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "testnet": true,
         },
         "isTestnet": false,
+        "lastDepositResult": null,
         "lastError": null,
         "lastUpdateTimestamp": 0,
         "pendingOrders": [],

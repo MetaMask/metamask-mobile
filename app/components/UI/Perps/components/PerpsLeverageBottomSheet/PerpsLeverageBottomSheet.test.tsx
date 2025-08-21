@@ -12,8 +12,12 @@ jest.mock('react-native-gesture-handler', () => ({
   GestureDetector: 'View',
   Gesture: {
     Pan: jest.fn().mockReturnValue({
+      onBegin: jest.fn().mockReturnThis(),
       onUpdate: jest.fn().mockReturnThis(),
       onEnd: jest.fn().mockReturnThis(),
+      onFinalize: jest.fn().mockReturnThis(),
+      withSpring: jest.fn().mockReturnThis(),
+      runOnJS: jest.fn().mockReturnThis(),
     }),
     Tap: jest.fn().mockReturnValue({
       onEnd: jest.fn().mockReturnThis(),
