@@ -78,11 +78,13 @@ jobs:
             
             # Extract Android devices with optional category filtering
             ANDROID_MATRIX=$(jq -r ".android_devices $CATEGORY_FILTER | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
-            echo "android=$ANDROID_MATRIX" >> "$GITHUB_OUTPUT"
-            
             # Extract iOS devices with optional category filtering
             IOS_MATRIX=$(jq -r ".ios_devices $CATEGORY_FILTER | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
-            echo "ios=$IOS_MATRIX" >> "$GITHUB_OUTPUT"
+            
+            {
+              echo "android=$ANDROID_MATRIX"
+              echo "ios=$IOS_MATRIX"
+            } >> "$GITHUB_OUTPUT"
             
             echo "Android matrix: $ANDROID_MATRIX"
             echo "iOS matrix: $IOS_MATRIX"
@@ -123,6 +125,7 @@ jobs:
       
       - name: Install dependencies
         run: yarn setup
+      
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -130,6 +133,7 @@ jobs:
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
           build-name: ${{ github.repository }}-${{ github.ref_name }}-android-${{ matrix.device.name }}-${{ matrix.device.os_version }}-${{ github.run_number }}
           project-name: ${{ github.repository }}
+      
       - name: Setup BrowserStack Local
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -146,12 +150,14 @@ jobs:
       - name: Set Android Test Environment
         run: |
           echo "Setting test environment for device: ${{ matrix.device.name }}"
-          echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}" >> "$GITHUB_ENV"
-          echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}" >> "$GITHUB_ENV"
-          echo "BROWSERSTACK_ANDROID_APP_URL=${{ github.event.inputs.browserstack_app_url_android }}" >> "$GITHUB_ENV"
-          echo "BROWSERSTACK_BUILD_NAME=Android-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_ENV"
-          echo "TEST_PLATFORM=android" >> "$GITHUB_ENV"
-          echo "TEST_SUITE=${{ github.event.inputs.test_suite }}" >> "$GITHUB_ENV"
+          {
+            echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
+            echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
+            echo "BROWSERSTACK_ANDROID_APP_URL=${{ github.event.inputs.browserstack_app_url_android }}"
+            echo "BROWSERSTACK_BUILD_NAME=Android-Performance-${{ github.ref_name }}-Branch"
+            echo "TEST_PLATFORM=android"
+            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
+          } >> "$GITHUB_ENV"
       
       - name: Run Android Tests on ${{ matrix.device.name }}
         env:
@@ -196,6 +202,7 @@ jobs:
       
       - name: Install dependencies
         run: yarn setup
+      
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -203,6 +210,7 @@ jobs:
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
           build-name: ${{ github.repository }}-${{ github.ref_name }}-ios-${{ matrix.device.name }}-${{ matrix.device.os_version }}-${{ github.run_number }}
           project-name: ${{ github.repository }}
+      
       - name: Setup BrowserStack Local
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -219,11 +227,13 @@ jobs:
       - name: Set iOS Test Environment
         run: |
           echo "Setting test environment for device: ${{ matrix.device.name }}"
-          echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}" >> "$GITHUB_ENV"
-          echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}" >> "$GITHUB_ENV"
-          echo "BROWSERSTACK_IOS_APP_URL=${{ github.event.inputs.browserstack_app_url_ios }}" >> "$GITHUB_ENV"
-          echo "BROWSERSTACK_BUILD_NAME=iOS-Performance-${{ github.ref_name }}-Branch" >> "$GITHUB_ENV"
-          echo "TEST_SUITE=${{ github.event.inputs.test_suite }}" >> "$GITHUB_ENV"
+          {
+            echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
+            echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
+            echo "BROWSERSTACK_IOS_APP_URL=${{ github.event.inputs.browserstack_app_url_ios }}"
+            echo "BROWSERSTACK_BUILD_NAME=iOS-Performance-${{ github.ref_name }}-Branch"
+            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
+          } >> "$GITHUB_ENV"
       
       - name: Run iOS Tests on ${{ matrix.device.name }}
         env:

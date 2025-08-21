@@ -50,11 +50,13 @@ jobs:
           
           # Extract Android devices
           ANDROID_MATRIX=$(jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
-          echo "android=$ANDROID_MATRIX" >> "$GITHUB_OUTPUT"
-          
           # Extract iOS devices
           IOS_MATRIX=$(jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
-          echo "ios=$IOS_MATRIX" >> "$GITHUB_OUTPUT"
+          
+          {
+            echo "android=$ANDROID_MATRIX"
+            echo "ios=$IOS_MATRIX"
+          } >> "$GITHUB_OUTPUT"
           
           echo "Android matrix: $ANDROID_MATRIX"
           echo "iOS matrix: $IOS_MATRIX"
@@ -260,8 +262,10 @@ jobs:
               
               echo "Android BrowserStack URL: $ANDROID_BS_URL"
               echo "Android version: $ANDROID_VERSION"
-              echo "android-version=$ANDROID_VERSION" >> $GITHUB_OUTPUT
-              echo "browserstack-android-url=$ANDROID_BS_URL" >> $GITHUB_OUTPUT
+              {
+                echo "android-version=$ANDROID_VERSION"
+                echo "browserstack-android-url=$ANDROID_BS_URL"
+              } >> "$GITHUB_OUTPUT"
             else
               echo "Error: No Android browserstack JSON download URL found"
               exit 1
@@ -312,8 +316,10 @@ jobs:
               
               echo "iOS BrowserStack URL: $IOS_BS_URL"
               echo "iOS version: $IOS_VERSION"
-              echo "ios-version=$IOS_VERSION" >> $GITHUB_OUTPUT
-              echo "browserstack-ios-url=$IOS_BS_URL" >> $GITHUB_OUTPUT
+              {
+                echo "ios-version=$IOS_VERSION"
+                echo "browserstack-ios-url=$IOS_BS_URL"
+              } >> "$GITHUB_OUTPUT"
             else
               echo "Error: No iOS browserstack JSON download URL found"
               exit 1
