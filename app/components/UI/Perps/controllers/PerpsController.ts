@@ -113,7 +113,6 @@ export type PerpsControllerState = {
       totalValue: string; // Current total account value (cash + positions) in USD
       unrealizedPnl: string; // Current P&L from open positions in USD
       accountValue1dAgo: string; // Account value 24h ago for daily change calculation in USD
-      positions: Position[]; // Current open positions
       lastUpdated: number; // Timestamp of last update
     };
   };
@@ -946,7 +945,6 @@ export class PerpsController extends BaseController<
               existingBalance?.accountValue1dAgo ||
               state.accountState.totalValue ||
               '0',
-            positions,
             lastUpdated: Date.now(),
           };
         }
@@ -1070,7 +1068,6 @@ export class PerpsController extends BaseController<
           totalValue: accountState.totalValue || '0',
           unrealizedPnl: accountState.unrealizedPnl || '0',
           accountValue1dAgo: historicalPortfolioToUse.accountValue1dAgo || '0',
-          positions: state.positions,
           lastUpdated: Date.now(),
         };
         state.lastUpdateTimestamp = Date.now();
@@ -1455,11 +1452,10 @@ export class PerpsController extends BaseController<
 
   /**
    * Update perps balances for the current provider
-   * Called when account state or positions change
+   * Called when account state changes
    */
   updatePerpsBalances(
     accountState: AccountState,
-    positions: Position[],
     accountValue1dAgo?: string,
   ): void {
     const providerKey = this.state.activeProvider;
@@ -1474,7 +1470,6 @@ export class PerpsController extends BaseController<
           existingBalance?.accountValue1dAgo ||
           accountState.totalValue ||
           '0',
-        positions,
         lastUpdated: Date.now(),
       };
     });

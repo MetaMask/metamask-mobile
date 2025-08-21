@@ -318,18 +318,16 @@ class PerpsConnectionManagerClass {
     try {
       const controller = Engine.context.PerpsController;
       const currentAccount = controller.state.accountState;
-      const currentPositions = controller.state.positions || [];
 
       if (currentAccount) {
         // Update persisted balances
-        controller.updatePerpsBalances(currentAccount, currentPositions);
+        controller.updatePerpsBalances(currentAccount);
         this.lastBalanceUpdateTime = now;
 
         DevLogger.log(
           ` ${new Date().toISOString()} PerpsConnectionManager: Updated persisted balances`,
           {
             currentAccount,
-            currentPositions,
           },
         );
       }
