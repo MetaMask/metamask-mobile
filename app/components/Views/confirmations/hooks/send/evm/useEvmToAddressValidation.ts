@@ -163,17 +163,17 @@ export const validateToAddress = async ({
 export const useEvmToAddressValidation = () => {
   const addressBook = useSelector(selectAddressBook);
   const internalAccounts = useSelector(selectInternalAccounts);
-  const { chainId, to } = useSendContext();
+  const { chainId } = useSendContext();
 
   const validateEvmToAddress = useCallback(
-    async () =>
+    async (addressInputToValidate: string) =>
       await validateToAddress({
-        toAddress: to as Hex,
+        toAddress: addressInputToValidate as Hex,
         chainId: chainId as Hex,
         addressBook,
         internalAccounts,
       }),
-    [addressBook, chainId, internalAccounts, to],
+    [addressBook, chainId, internalAccounts],
   );
 
   return { validateEvmToAddress };

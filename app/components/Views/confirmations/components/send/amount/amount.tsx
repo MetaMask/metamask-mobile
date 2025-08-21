@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Nft } from '@metamask/assets-controllers';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 
@@ -16,17 +17,16 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import Routes from '../../../../../../constants/navigation/Routes';
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
+import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { formatToFixedDecimals } from '../../../utils/send';
+import { TokenStandard } from '../../../types/token';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
 import { useBalance } from '../../../hooks/send/useBalance';
 import { useCurrencyConversions } from '../../../hooks/send/useCurrencyConversions';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendContext } from '../../../context/send-context';
-import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
 import { AmountKeyboard } from './amount-keyboard';
 import { styleSheet } from './amount.styles';
 
@@ -43,9 +43,14 @@ export const Amount = () => {
     getNativeDisplayValue,
     getNativeValue,
   } = useCurrencyConversions();
+  const isNFT = asset?.standard === TokenStandard.ERC1155;
+  const assetSymbol = asset?.ticker ?? asset?.symbol;
+  const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
   const { styles, theme } = useStyles(styleSheet, {
     inputError: Boolean(amountError),
     inputLength: amount.length,
+    isNFT,
+    symbolLength: assetDisplaySymbol.length,
   });
   const {
     setAmountInputMethodManual,
@@ -53,7 +58,6 @@ export const Amount = () => {
     setAmountInputTypeToken,
   } = useAmountSelectionMetrics();
   useRouteParams();
-  useSendNavbar({ currentRoute: Routes.SEND.AMOUNT });
 
   useEffect(() => {
     setFiatMode(primaryCurrency === 'Fiat');
@@ -98,11 +102,25 @@ export const Amount = () => {
     updateValue,
   ]);
 
-  const assetSymbol = asset?.ticker ?? asset?.symbol;
-
   return (
     <View style={styles.container}>
       <View style={styles.topSection}>
+        {isNFT && (
+          <View style={styles.nftImageWrapper}>
+            <CollectibleMedia
+              style={styles.nftImage}
+              collectible={asset as Nft}
+              isTokenImage
+            />
+            <Text variant={TextVariant.BodyMDBold}>{asset?.name}</Text>
+            <Text
+              color={TextColor.Alternative}
+              variant={TextVariant.BodyMDBold}
+            >
+              {asset?.tokenId}
+            </Text>
+          </View>
+        )}
         <View style={styles.inputSection}>
           <View style={styles.inputWrapper}>
             <Input
@@ -117,26 +135,28 @@ export const Amount = () => {
           </View>
           <Text
             color={amountError ? TextColor.Error : TextColor.Alternative}
+            numberOfLines={1}
             style={styles.tokenSymbol}
             variant={TextVariant.DisplayLG}
           >
-            {fiatMode ? fiatCurrencySymbol : assetSymbol}
+            {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
           </Text>
         </View>
-        <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
-          <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
-          <ButtonIcon
-            iconColor={IconColor.Alternative}
-            iconName={IconName.SwapVertical}
-            onPress={toggleFiatMode}
-            testID="fiat_toggle"
-          />
-        </TagBase>
+        {!isNFT && (
+          <TagBase shape={TagShape.Pill} style={styles.currencyTag}>
+            <Text color={TextColor.Alternative}>{alternateDisplayValue}</Text>
+            <ButtonIcon
+              iconColor={IconColor.Alternative}
+              iconName={IconName.SwapVertical}
+              onPress={toggleFiatMode}
+              testID="fiat_toggle"
+            />
+          </TagBase>
+        )}
         <View style={styles.balanceSection}>
-          <Text color={TextColor.Alternative}>{`${formatToFixedDecimals(
-            balance,
-            asset?.decimals,
-          )} ${assetSymbol} ${strings('send.available')}`}</Text>
+          <Text color={TextColor.Alternative}>{`${balance} ${
+            assetSymbol ?? strings('send.units')
+          } ${strings('send.available')}`}</Text>
         </View>
       </View>
       <AmountKeyboard

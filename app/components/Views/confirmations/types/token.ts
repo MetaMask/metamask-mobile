@@ -8,7 +8,10 @@ export enum TokenStandard {
 }
 
 export interface AssetType extends TokenI {
+  accountId?: string;
   networkBadgeSource?: ImageSourcePropType;
   tokenId?: string;
   isSelected?: boolean;
+  standard?: TokenStandard;
+  description?: string;
 }

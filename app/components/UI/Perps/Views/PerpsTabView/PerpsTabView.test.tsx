@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { Position } from '../../controllers/types';
@@ -12,12 +13,54 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
+// Mock Redux
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+// Mock the multichain selector
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0x1234567890123456789012345678901234567890',
+    id: 'mock-account-id',
+    type: 'eip155:eoa',
+  })),
+}));
+
+// Mock PerpsConnectionProvider
+jest.mock('../../providers/PerpsConnectionProvider', () => ({
+  PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+  usePerpsConnection: jest.fn(() => ({
+    isConnected: true,
+    isInitialized: true,
+    isConnecting: false,
+    error: null,
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    resetError: jest.fn(),
+  })),
+}));
+
 // Mock hooks
 jest.mock('../../hooks', () => ({
   usePerpsConnection: jest.fn(),
-  usePerpsPositions: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsFirstTimeUser: jest.fn(),
+  usePerpsAccount: jest.fn(),
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
+  usePerpsPerformance: jest.fn(() => ({
+    startMeasure: jest.fn(),
+    endMeasure: jest.fn(),
+    measure: jest.fn(),
+    measureAsync: jest.fn(),
+  })),
+  usePerpsLivePositions: jest.fn(() => ({
+    positions: [],
+    isInitialLoading: false,
+  })),
 }));
 
 // Mock components
@@ -48,63 +91,16 @@ jest.mock('../../components/PerpsPositionCard', () => ({
     position: Position;
     rightAccessory?: React.ReactNode;
   }) => {
-    const { View, Text } = jest.requireActual('react-native');
+    const { View: RNView, Text } = jest.requireActual('react-native');
     return (
-      <View testID={`position-card-${position.coin}`}>
+      <RNView testID={`position-card-${position.coin}`}>
         <Text>{position.coin}</Text>
         <Text>{position.size}</Text>
         {rightAccessory}
-      </View>
+      </RNView>
     );
   },
 }));
-
-// Mock BottomSheet components
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => ({
-    __esModule: true,
-    default: ({
-      children,
-      onClose,
-    }: {
-      children: React.ReactNode;
-      onClose: () => void;
-    }) => {
-      const { View } = jest.requireActual('react-native');
-      return (
-        <View testID="bottom-sheet" onTouchEnd={onClose}>
-          {children}
-        </View>
-      );
-    },
-  }),
-);
-
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => ({
-    __esModule: true,
-    default: ({
-      children,
-      onClose,
-    }: {
-      children: React.ReactNode;
-      onClose: () => void;
-    }) => {
-      const { View, TouchableOpacity, Text } =
-        jest.requireActual('react-native');
-      return (
-        <View testID="bottom-sheet-header">
-          {children}
-          <TouchableOpacity testID="close-bottom-sheet" onPress={onClose}>
-            <Text>Close</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    },
-  }),
-);
 
 describe('PerpsTabView', () => {
   const mockNavigation = {
@@ -113,11 +109,12 @@ describe('PerpsTabView', () => {
 
   const mockUsePerpsConnection =
     jest.requireMock('../../hooks').usePerpsConnection;
-  const mockUsePerpsPositions =
-    jest.requireMock('../../hooks').usePerpsPositions;
+  const mockUsePerpsLivePositions =
+    jest.requireMock('../../hooks').usePerpsLivePositions;
   const mockUsePerpsTrading = jest.requireMock('../../hooks').usePerpsTrading;
   const mockUsePerpsFirstTimeUser =
     jest.requireMock('../../hooks').usePerpsFirstTimeUser;
+  const mockUsePerpsAccount = jest.requireMock('../../hooks').usePerpsAccount;
 
   const mockPosition: Position = {
     coin: 'ETH',
@@ -144,24 +141,29 @@ describe('PerpsTabView', () => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
 
+    // Mock useSelector for the multichain selector
+    (useSelector as jest.Mock).mockImplementation(() => () => ({
+      address: '0x1234567890123456789012345678901234567890',
+      id: 'mock-account-id',
+      type: 'eip155:eoa',
+    }));
+
     // Default hook mocks
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
       isInitialized: true,
+      error: null,
+      connect: jest.fn(),
+      resetError: jest.fn(),
     });
 
-    mockUsePerpsPositions.mockReturnValue({
+    mockUsePerpsLivePositions.mockReturnValue({
       positions: [],
-      isLoading: false,
-      isRefreshing: false,
-      loadPositions: jest.fn(),
+      isInitialLoading: false,
     });
 
     mockUsePerpsTrading.mockReturnValue({
       getAccountState: jest.fn(),
-      depositWithConfirmation: jest.fn().mockResolvedValue({
-        result: Promise.resolve(),
-      }),
     });
 
     mockUsePerpsFirstTimeUser.mockReturnValue({
@@ -170,6 +172,8 @@ describe('PerpsTabView', () => {
       error: null,
       refresh: jest.fn(),
     });
+
+    mockUsePerpsAccount.mockReturnValue(null);
   });
 
   describe('Component Rendering', () => {
@@ -208,11 +212,9 @@ describe('PerpsTabView', () => {
     });
 
     it('should render loading state when positions are loading', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
-        isLoading: true,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: true,
       });
 
       render(<PerpsTabView />);
@@ -223,11 +225,9 @@ describe('PerpsTabView', () => {
     });
 
     it('should render empty state when no positions exist', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -241,11 +241,9 @@ describe('PerpsTabView', () => {
     });
 
     it('should render positions when they exist', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -265,11 +263,9 @@ describe('PerpsTabView', () => {
         { ...mockPosition, coin: 'SOL', size: '50.0' },
       ];
 
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions,
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -380,7 +376,7 @@ describe('PerpsTabView', () => {
 
     it('should have pull-to-refresh functionality configured', async () => {
       const mockLoadPositions = jest.fn();
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
         isLoading: false,
         isRefreshing: false,
@@ -394,7 +390,7 @@ describe('PerpsTabView', () => {
       expect(mockLoadPositions).toHaveBeenCalledTimes(0); // Should not be called on render
     });
 
-    it('should open bottom sheet when manage balance is pressed', () => {
+    it('should navigate to balance modal when manage balance is pressed', () => {
       render(<PerpsTabView />);
 
       const manageBalanceButton = screen.getByTestId('manage-balance-button');
@@ -403,78 +399,20 @@ describe('PerpsTabView', () => {
         fireEvent.press(manageBalanceButton);
       });
 
-      expect(screen.getByTestId('bottom-sheet')).toBeOnTheScreen();
-      expect(screen.getByTestId('bottom-sheet-header')).toBeOnTheScreen();
-    });
-
-    it('should close bottom sheet when close button is pressed', () => {
-      render(<PerpsTabView />);
-
-      // Open bottom sheet first
-      act(() => {
-        fireEvent.press(screen.getByTestId('manage-balance-button'));
-      });
-
-      expect(screen.getByTestId('bottom-sheet')).toBeOnTheScreen();
-
-      // Close bottom sheet
-      act(() => {
-        fireEvent.press(screen.getByTestId('close-bottom-sheet'));
-      });
-
-      expect(screen.queryByTestId('bottom-sheet')).not.toBeOnTheScreen();
-    });
-
-    it('should trigger deposit when add funds is pressed', async () => {
-      render(<PerpsTabView />);
-
-      // Open bottom sheet
-      act(() => {
-        fireEvent.press(screen.getByTestId('manage-balance-button'));
-      });
-
-      // Press add funds button
-      const addFundsButton = screen.getByText(strings('perps.add_funds'));
-      await act(() => {
-        fireEvent.press(addFundsButton);
-      });
-
-      expect(mockUsePerpsTrading().depositWithConfirmation).toHaveBeenCalled();
-
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-      });
-
-      // Bottom sheet should be closed
-      expect(screen.queryByTestId('bottom-sheet')).not.toBeOnTheScreen();
-    });
-
-    it('should close bottom sheet when withdraw is pressed', () => {
-      render(<PerpsTabView />);
-
-      // Open bottom sheet
-      act(() => {
-        fireEvent.press(screen.getByTestId('manage-balance-button'));
-      });
-
-      // Press withdraw button
-      const withdrawButton = screen.getByText(strings('perps.withdraw'));
-      act(() => {
-        fireEvent.press(withdrawButton);
-      });
-
-      // Bottom sheet should be closed
-      expect(screen.queryByTestId('bottom-sheet')).not.toBeOnTheScreen();
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.PERPS.MODALS.ROOT,
+        {
+          screen: Routes.PERPS.MODALS.BALANCE_MODAL,
+        },
+      );
     });
   });
 
   describe('State Management', () => {
     it('should handle refresh state correctly', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
-        isLoading: false,
-        isRefreshing: true,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -484,31 +422,6 @@ describe('PerpsTabView', () => {
       expect(
         screen.getByText(strings('perps.position.list.empty_title')),
       ).toBeOnTheScreen();
-    });
-
-    it('should not show bottom sheet initially', () => {
-      render(<PerpsTabView />);
-
-      expect(screen.queryByTestId('bottom-sheet')).not.toBeOnTheScreen();
-    });
-
-    it('should maintain bottom sheet state correctly', () => {
-      render(<PerpsTabView />);
-
-      // Initially closed
-      expect(screen.queryByTestId('bottom-sheet')).not.toBeOnTheScreen();
-
-      // Open
-      act(() => {
-        fireEvent.press(screen.getByTestId('manage-balance-button'));
-      });
-      expect(screen.getByTestId('bottom-sheet')).toBeOnTheScreen();
-
-      // Close
-      act(() => {
-        fireEvent.press(screen.getByTestId('close-bottom-sheet'));
-      });
-      expect(screen.queryByTestId('bottom-sheet')).not.toBeOnTheScreen();
     });
   });
 
@@ -521,11 +434,9 @@ describe('PerpsTabView', () => {
         stopLossPrice: undefined,
       };
 
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [incompletePosition],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       expect(() => render(<PerpsTabView />)).not.toThrow();
@@ -533,11 +444,9 @@ describe('PerpsTabView', () => {
     });
 
     it('should handle empty positions array correctly', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -585,13 +494,76 @@ describe('PerpsTabView', () => {
       // Mock console.error to avoid noise in tests
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
-      mockUsePerpsPositions.mockImplementation(() => {
+      mockUsePerpsLivePositions.mockImplementation(() => {
         throw new Error('Hook error');
       });
 
       expect(() => render(<PerpsTabView />)).toThrow('Hook error');
 
       consoleSpy.mockRestore();
+    });
+
+    it('should render connection error state when connection fails', () => {
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        error: 'CONNECTION_FAILED',
+        connect: jest.fn(),
+        resetError: jest.fn(),
+      });
+
+      render(<PerpsTabView />);
+
+      // Should show connection failed error
+      expect(
+        screen.getByText(strings('perps.errors.connectionFailed.title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.errors.connectionFailed.description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('should render network error state when network error occurs', () => {
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        error: 'NETWORK_ERROR',
+        connect: jest.fn(),
+        resetError: jest.fn(),
+      });
+
+      render(<PerpsTabView />);
+
+      // Should show connection failed error (PerpsTabView always uses CONNECTION_FAILED)
+      expect(
+        screen.getByText(strings('perps.errors.connectionFailed.title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.errors.connectionFailed.description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('should call connect when retry button is pressed on error', () => {
+      const mockConnect = jest.fn();
+      const mockResetError = jest.fn();
+
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        error: 'CONNECTION_FAILED',
+        connect: mockConnect,
+        resetError: mockResetError,
+      });
+
+      render(<PerpsTabView />);
+
+      const retryButton = screen.getByText(
+        strings('perps.errors.connectionFailed.retry'),
+      );
+      fireEvent.press(retryButton);
+
+      expect(mockResetError).toHaveBeenCalledTimes(1);
+      expect(mockConnect).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -604,11 +576,9 @@ describe('PerpsTabView', () => {
     });
 
     it('should render text with proper variants and colors', () => {
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: [mockPosition],
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       render(<PerpsTabView />);
@@ -627,11 +597,9 @@ describe('PerpsTabView', () => {
         size: `${i + 1}.0`,
       }));
 
-      mockUsePerpsPositions.mockReturnValue({
+      mockUsePerpsLivePositions.mockReturnValue({
         positions: manyPositions,
-        isLoading: false,
-        isRefreshing: false,
-        loadPositions: jest.fn(),
+        isInitialLoading: false,
       });
 
       const startTime = performance.now();
@@ -649,7 +617,7 @@ describe('PerpsTabView', () => {
 
       // Simulate rapid state changes
       for (let i = 0; i < 5; i++) {
-        mockUsePerpsPositions.mockReturnValue({
+        mockUsePerpsLivePositions.mockReturnValue({
           positions: i % 2 === 0 ? [] : [mockPosition],
           isLoading: i % 3 === 0,
           isRefreshing: i % 4 === 0,
@@ -667,24 +635,56 @@ describe('PerpsTabView', () => {
 // Tests for PerpsTabViewWithProvider wrapper component
 describe('PerpsTabViewWithProvider', () => {
   beforeEach(() => {
-    // Mock the PerpsConnectionProvider for wrapper tests
-    jest.doMock('../../providers/PerpsConnectionProvider', () => {
-      const ReactModule = jest.requireActual('react');
-      return {
-        PerpsConnectionProvider: ({
-          children,
-        }: {
-          children: React.ReactNode;
-        }) => {
-          const { View } = jest.requireActual('react-native');
-          // Simulate the async initialization without causing act warnings
-          ReactModule.useEffect(() => {
-            // No-op - provider is mocked
-          }, []);
-          return <View testID="perps-connection-provider">{children}</View>;
-        },
-      };
+    // Setup mocks for wrapped component tests
+    const mockUsePerpsConnection = jest.requireMock('../../hooks')
+      .usePerpsConnection as jest.Mock;
+    const mockUsePerpsLivePositions = jest.requireMock('../../hooks')
+      .usePerpsLivePositions as jest.Mock;
+    const mockUsePerpsTrading = jest.requireMock('../../hooks')
+      .usePerpsTrading as jest.Mock;
+    const mockUsePerpsFirstTimeUser = jest.requireMock('../../hooks')
+      .usePerpsFirstTimeUser as jest.Mock;
+    const mockUsePerpsAccount = jest.requireMock('../../hooks')
+      .usePerpsAccount as jest.Mock;
+
+    // Setup default hook returns for wrapper tests
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
     });
+
+    mockUsePerpsLivePositions.mockReturnValue({
+      positions: [],
+      isInitialLoading: false,
+    });
+
+    mockUsePerpsTrading.mockReturnValue({
+      getAccountState: jest.fn(),
+    });
+
+    mockUsePerpsFirstTimeUser.mockReturnValue({
+      isFirstTimeUser: false,
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+
+    mockUsePerpsAccount.mockReturnValue(null);
+
+    // Mock the PerpsConnectionProvider for wrapper tests
+    jest.doMock('../../providers/PerpsConnectionProvider', () => ({
+      PerpsConnectionProvider: ({ children }: { children: React.ReactNode }) =>
+        children,
+      usePerpsConnection: () => ({
+        isConnected: true,
+        isInitialized: true,
+        isConnecting: false,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      }),
+    }));
   });
 
   describe('Component Rendering', () => {
