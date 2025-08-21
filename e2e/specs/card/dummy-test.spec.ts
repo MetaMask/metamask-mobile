@@ -8,6 +8,7 @@ describe(SmokeCard('Dummy Test'), () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().build(),
+        restartDevice: true,
       },
       async () => {
         await loginToApp();

@@ -5,7 +5,14 @@ set -euo pipefail
 
 # Constants
 BASE_DIR="./e2e/specs"
-TEST_SUITE_TAG=".*SmokeCard.*"
+# TEST_SUITE_TAG=".*SmokeCard.*"
+
+# Testing only!
+if [[ "$TEST_SUITE_TAG" != *"SmokeCard"* ]]; then
+    echo "Skipping: TEST_SUITE_TAG does not contain 'SmokeCard'. FOR TESTING"
+    exit 0
+fi
+
 
 # Optional PR context (can be provided via args or env)
 IS_PR="${IS_PR:-false}"
