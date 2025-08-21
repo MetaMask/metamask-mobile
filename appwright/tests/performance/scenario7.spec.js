@@ -25,7 +25,7 @@ import NetworksScreen from '../../../wdio/screen-objects/NetworksScreen.js';
 import NetworkEducationModal from '../../../wdio/screen-objects/Modals/NetworkEducationModal.js';
 import BridgeScreen from '../../../wdio/screen-objects/BridgeScreen.js';
 
-test.only('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
+test('Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3', async ({
   device,
 }, testInfo) => {
   WelcomeScreen.device = device;
