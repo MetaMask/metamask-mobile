@@ -2038,42 +2038,41 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
     // Try to get user-specific rates if wallet is connected
     try {
-      const userAddress = await this.getUserAddress();
-      if (userAddress) {
-        // Check cache first
-        if (this.isFeeCacheValid(userAddress)) {
-          const cached = this.userFeeCache.get(userAddress);
-          if (cached) {
-            feeRate = isMaker ? cached.perpsMakerRate : cached.perpsTakerRate;
-          }
-        } else {
-          // Fetch fresh rates from SDK
-          await this.ensureReady();
-          const infoClient = this.clientService.getInfoClient();
-          const userFees = await infoClient.userFees({
-            user: userAddress as `0x${string}`,
-          });
+      const userAddress = await this.walletService.getUserAddressWithDefault();
 
-          // Parse the rates (these already include all discounts!)
-          const rates = {
-            perpsTakerRate: parseFloat(userFees.feeSchedule.cross),
-            perpsMakerRate: parseFloat(userFees.feeSchedule.add),
-            spotTakerRate: parseFloat(userFees.feeSchedule.spotCross),
-            spotMakerRate: parseFloat(userFees.feeSchedule.spotAdd),
-            timestamp: Date.now(),
-            ttl: 5 * 60 * 1000, // 5 minutes
-          };
-
-          this.userFeeCache.set(userAddress, rates);
-          feeRate = isMaker ? rates.perpsMakerRate : rates.perpsTakerRate;
-
-          DevLogger.log('Fetched user fee rates', {
-            userAddress,
-            perpsTaker: rates.perpsTakerRate,
-            perpsMaker: rates.perpsMakerRate,
-            cacheExpiry: new Date(rates.timestamp + rates.ttl).toISOString(),
-          });
+      // Check cache first
+      if (this.isFeeCacheValid(userAddress)) {
+        const cached = this.userFeeCache.get(userAddress);
+        if (cached) {
+          feeRate = isMaker ? cached.perpsMakerRate : cached.perpsTakerRate;
         }
+      } else {
+        // Fetch fresh rates from SDK
+        await this.ensureReady();
+        const infoClient = this.clientService.getInfoClient();
+        const userFees = await infoClient.userFees({
+          user: userAddress as `0x${string}`,
+        });
+
+        // Parse the rates (these already include all discounts!)
+        const rates = {
+          perpsTakerRate: parseFloat(userFees.feeSchedule.cross),
+          perpsMakerRate: parseFloat(userFees.feeSchedule.add),
+          spotTakerRate: parseFloat(userFees.feeSchedule.spotCross),
+          spotMakerRate: parseFloat(userFees.feeSchedule.spotAdd),
+          timestamp: Date.now(),
+          ttl: 5 * 60 * 1000, // 5 minutes
+        };
+
+        this.userFeeCache.set(userAddress, rates);
+        feeRate = isMaker ? rates.perpsMakerRate : rates.perpsTakerRate;
+
+        DevLogger.log('Fetched user fee rates', {
+          userAddress,
+          perpsTaker: rates.perpsTakerRate,
+          perpsMaker: rates.perpsMakerRate,
+          cacheExpiry: new Date(rates.timestamp + rates.ttl).toISOString(),
+        });
       }
     } catch (error) {
       // Silently fall back to base rates
@@ -2092,21 +2091,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
       feeRate,
       feeAmount,
     };
-  }
-
-  /**
-   * Get the current user's wallet address
-   * @private
-   */
-  private async getUserAddress(): Promise<string | null> {
-    try {
-      // Use the existing wallet service which already handles address retrieval
-      const userAddress = await this.walletService.getUserAddressWithDefault();
-      return userAddress;
-    } catch (error) {
-      DevLogger.log('Failed to get user address:', error);
-      return null;
-    }
   }
 
   /**

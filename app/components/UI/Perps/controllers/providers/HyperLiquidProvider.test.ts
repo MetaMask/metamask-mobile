@@ -2736,8 +2736,10 @@ describe('HyperLiquidProvider', () => {
       beforeEach(() => {
         // Reset userFees mock for each test
         mockClientService.getInfoClient().userFees.mockClear();
-        // Default to no user address (will use base rates)
-        mockWalletService.getUserAddressWithDefault.mockResolvedValue(null);
+        // Default to throw error (will use base rates)
+        mockWalletService.getUserAddressWithDefault.mockRejectedValue(
+          new Error('No wallet connected'),
+        );
       });
 
       it('should calculate fees for market orders', async () => {
