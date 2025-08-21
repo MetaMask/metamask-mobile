@@ -104,20 +104,48 @@ if [[ "$IS_PR" == "true" ]]; then
     fi
 fi
 
-# Build final test list, duplicating any newly added tests
-declare -a final_files
-for file in "${matching_files[@]}"; do
-    final_files+=("$file")
-    if [[ "$IS_PR" == "true" && ${#new_tests[@]} -gt 0 ]]; then
+# On PRs, create physical "-retest" copies for newly added tests so Jest treats them as separate files
+declare -a retest_files
+if [[ "$IS_PR" == "true" && ${#new_tests[@]} -gt 0 ]]; then
+    for file in "${matching_files[@]}"; do
         for n in "${new_tests[@]}"; do
             if [[ "$file" == "$n" ]]; then
-                final_files+=("$file")
-                echo "Duplicating newly added test: $file"
+                # Compute retest file path by inserting -retest before .spec.(ts|js)
+                if [[ "$file" =~ \.spec\.ts$ ]]; then
+                    retest_file="${file%.spec.ts}-retest.spec.ts"
+                elif [[ "$file" =~ \.spec\.js$ ]]; then
+                    retest_file="${file%.spec.js}-retest.spec.js"
+                else
+                    # Not expected, skip
+                    continue
+                fi
+
+                # Create/overwrite retest file content
+                cp "$file" "$retest_file"
+                echo "Created retest copy: $retest_file"
+                retest_files+=("$retest_file")
                 break
             fi
         done
-    fi
-done
+    done
+fi
+
+# Ensure we clean up retest files on exit
+if [[ ${#retest_files[@]} -gt 0 ]]; then
+    cleanup_retests() {
+        # Delete only expected retest files within e2e/specs using a constrained find -exec
+        find ./e2e/specs \
+            -type f \
+            \( -name "*-retest.spec.ts" -o -name "*-retest.spec.js" \) \
+            -print \
+            -exec rm -f -- {} + 2>/dev/null || true
+    }
+    trap cleanup_retests EXIT
+fi
+
+# Build final test list: originals + any retest copies
+declare -a final_files
+final_files=("${matching_files[@]}" "${retest_files[@]}")
 
 # Display results
 echo -e "\n Found ${#matching_files[@]} matching test files:"
