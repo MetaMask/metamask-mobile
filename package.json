@@ -483,8 +483,6 @@
     "@cucumber/messages": "^22.0.0",
     "@ethersproject/contracts": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
-    "@img/sharp-darwin-arm64": "^0.34.3",
-    "@img/sharp-libvips-darwin-arm64": "^1.2.1",
     "@lavamoat/allow-scripts": "^3.0.4",
     "@lavamoat/git-safe-dependencies": "^0.2.1",
     "@metamask/browser-passworder": "^5.0.0",
@@ -640,6 +638,8 @@
     "yarn": "^1.22.22"
   },
   "optionalDependencies": {
+    "@img/sharp-darwin-arm64": "^0.34.3",
+    "@img/sharp-libvips-darwin-arm64": "^1.2.1",
     "@img/sharp-linux-x64": "^0.34.3",
     "@img/sharp-libvips-linux-x64": "^1.2.1"
   },
