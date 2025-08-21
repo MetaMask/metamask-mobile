@@ -3012,6 +3012,33 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBe(45);
       });
 
+      it('should always use taker rate for market orders regardless of isMaker', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        mockClientService.getInfoClient().userFees.mockResolvedValue({
+          feeSchedule: {
+            cross: '0.0003', // Taker rate
+            add: '0.0001', // Maker rate (lower)
+            spotCross: '0.0003',
+            spotAdd: '0.0001',
+          },
+        });
+
+        // Test market order with isMaker=true (should still use taker rate)
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: true, // This should be ignored for market orders
+          amount: '100000',
+        });
+
+        // Should use taker rate even though isMaker is true
+        expect(result.feeRate).toBe(0.0003); // Taker rate, not maker rate (0.0001)
+        expect(result.feeAmount).toBeCloseTo(30, 5);
+      });
+
       describe('placeholder methods for future implementation', () => {
         it('should have getUserVolume method returning 0', async () => {
           // Access private method for testing

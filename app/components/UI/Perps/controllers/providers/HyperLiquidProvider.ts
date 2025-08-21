@@ -2044,7 +2044,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
       if (this.isFeeCacheValid(userAddress)) {
         const cached = this.userFeeCache.get(userAddress);
         if (cached) {
-          feeRate = isMaker ? cached.perpsMakerRate : cached.perpsTakerRate;
+          // Market orders always use taker rate, limit orders check isMaker
+          feeRate =
+            orderType === 'market' || !isMaker
+              ? cached.perpsTakerRate
+              : cached.perpsMakerRate;
         }
       } else {
         // Fetch fresh rates from SDK
@@ -2084,7 +2088,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
         };
 
         this.userFeeCache.set(userAddress, rates);
-        feeRate = isMaker ? rates.perpsMakerRate : rates.perpsTakerRate;
+        // Market orders always use taker rate, limit orders check isMaker
+        feeRate =
+          orderType === 'market' || !isMaker
+            ? rates.perpsTakerRate
+            : rates.perpsMakerRate;
 
         DevLogger.log('Fetched user fee rates', {
           userAddress,
