@@ -36,6 +36,7 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../component-library/components/Toast';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 import NotificationsService from '../../../util/notifications/services/NotificationService';
 import Engine from '../../../core/Engine';
 import CollectibleContracts from '../../UI/CollectibleContracts';
@@ -143,20 +144,10 @@ import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
-import { selectIsConnectionRemoved } from '../../../reducers/user';
-import {
-  IconColor,
-  IconName,
-} from '../../../component-library/components/Icons/Icon';
-import { setIsConnectionRemoved } from '../../../actions/user';
-import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
-import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
-    base: {
-      paddingHorizontal: 16,
-    },
     wrapper: {
       flex: 1,
       backgroundColor: colors.background.default,
@@ -298,11 +289,13 @@ const Wallet = ({
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { colors } = theme;
   const dispatch = useDispatch();
-  const { navigateToSendPage } = useSendNavigation();
 
   const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
+  );
+  const solanaOnboardingModalEnabled = useSelector(
+    selectSolanaOnboardingModalEnabled,
   );
 
   /**
@@ -335,7 +328,7 @@ const Wallet = ({
   const { goToBridge, goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.TabBar,
     sourcePage: 'MainView',
-    sourceToken: {
+    token: {
       address: swapsUtils.NATIVE_SWAPS_TOKEN_ADDRESS,
       chainId: chainId as Hex,
       decimals: 18,
@@ -393,18 +386,18 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigateToSendPage();
+      navigate('SendFlowView', {});
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigateToSendPage();
+      navigate('SendFlowView', {});
     }
   }, [
     nativeCurrency,
-    navigateToSendPage,
+    navigate,
     dispatch,
     ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
     sendNonEvmAsset,
@@ -459,6 +452,12 @@ const Wallet = ({
   const accountName = useAccountName();
   useAccountsWithNetworkActivitySync();
 
+  const accountAvatarType = useSelector((state: RootState) =>
+    state.settings.useBlockieIcon
+      ? AvatarAccountType.Blockies
+      : AvatarAccountType.JazzIcon,
+  );
+
   useEffect(() => {
     if (
       isDataCollectionForMarketingEnabled === null &&
@@ -487,8 +486,10 @@ const Wallet = ({
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   useEffect(() => {
-    checkAndNavigateToSolanaFeature();
-  }, [checkAndNavigateToSolanaFeature]);
+    if (solanaOnboardingModalEnabled) {
+      checkAndNavigateToSolanaFeature();
+    }
+  }, [checkAndNavigateToSolanaFeature, solanaOnboardingModalEnabled]);
   ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
@@ -496,30 +497,6 @@ const Wallet = ({
       [UserProfileProperty.NUMBER_OF_HD_ENTROPIES]: hdKeyrings.length,
     });
   }, [addTraitsToUser, hdKeyrings.length]);
-
-  const isConnectionRemoved = useSelector(selectIsConnectionRemoved);
-  const isSocialLogin = useSelector(selectSeedlessOnboardingLoginFlow);
-
-  useEffect(() => {
-    if (isConnectionRemoved && isSocialLogin) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('connection_removed_modal.title'),
-          description: strings('connection_removed_modal.content'),
-          primaryButtonLabel: strings('connection_removed_modal.tryAgain'),
-          type: 'error',
-          icon: IconName.Danger,
-          iconColor: IconColor.Warning,
-          isInteractable: false,
-          closeOnPrimaryButtonPress: true,
-          onPrimaryButtonPress: () => {
-            dispatch(setIsConnectionRemoved(false));
-          },
-        },
-      });
-    }
-  }, [navigation, isConnectionRemoved, dispatch, isSocialLogin]);
 
   useEffect(() => {
     if (!shouldShowNewPrivacyToast) return;
@@ -576,10 +553,9 @@ const Wallet = ({
   );
 
   const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const selectedNetworkName = useSelector(selectNetworkName);
+  const name = useSelector(selectNetworkName);
 
-  const networkName =
-    networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
+  const networkName = networkConfigurations?.[chainId]?.name ?? name;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
@@ -708,6 +684,7 @@ const Wallet = ({
         walletRef,
         selectedInternalAccount,
         accountName,
+        accountAvatarType,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -722,11 +699,12 @@ const Wallet = ({
   }, [
     selectedInternalAccount,
     accountName,
+    accountAvatarType,
+    navigation,
+    colors,
     networkName,
     networkImageSource,
     onTitlePress,
-    navigation,
-    colors,
     isNotificationEnabled,
     isBackupAndSyncEnabled,
     unreadNotificationCount,

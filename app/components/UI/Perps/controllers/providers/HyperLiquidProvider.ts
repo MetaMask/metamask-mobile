@@ -4,11 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
-  FEE_RATES,
   getBridgeInfo,
   getChainId,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
-  TRADING_DEFAULTS,
+  FEE_RATES,
 } from '../../constants/hyperLiquidConfig';
 import {
   PERPS_CONSTANTS,
@@ -47,11 +46,7 @@ import type {
   EditOrderParams,
   FeeCalculationParams,
   FeeCalculationResult,
-  Funding,
   GetAccountStateParams,
-  GetFundingParams,
-  GetOrderFillsParams,
-  GetOrdersParams,
   GetPositionsParams,
   GetSupportedPathsParams,
   InitializeResult,
@@ -60,11 +55,9 @@ import type {
   LiveDataConfig,
   MaintenanceMarginParams,
   MarketInfo,
-  Order,
-  OrderFill,
-  OrderParams,
   OrderResult,
   PerpsMarketData,
+  OrderParams as PerpsOrderParams,
   Position,
   ReadyToTradeResult,
   SubscribeOrderFillsParams,
@@ -180,7 +173,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
   /**
    * Place an order using direct wallet signing (same as working debug test)
    */
-  async placeOrder(params: OrderParams): Promise<OrderResult> {
+  async placeOrder(params: PerpsOrderParams): Promise<OrderResult> {
     try {
       DevLogger.log('Placing order via HyperLiquid SDK:', params);
 
@@ -913,185 +906,6 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
-   * Get historical user fills (trade executions)
-   */
-  async getOrderFills(params?: GetOrderFillsParams): Promise<OrderFill[]> {
-    try {
-      DevLogger.log('Getting user fills via HyperLiquid SDK:', params);
-      await this.ensureReady();
-
-      const infoClient = this.clientService.getInfoClient();
-      const userAddress = await this.walletService.getUserAddressWithDefault(
-        params?.accountId,
-      );
-
-      const rawFills = await infoClient.userFills({
-        user: userAddress,
-        aggregateByTime: params?.aggregateByTime || false,
-      });
-
-      DevLogger.log('User fills received:', rawFills);
-
-      // Transform HyperLiquid fills to abstract OrderFill type
-      const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
-        // Perps only, no Spots
-        if (!['Buy', 'Sell'].includes(fill.dir)) {
-          acc.push({
-            orderId: fill.oid?.toString() || '',
-            symbol: fill.coin,
-            side: fill.side === 'A' ? 'sell' : 'buy',
-            startPosition: fill.startPosition,
-            size: fill.sz,
-            price: fill.px,
-            fee: fill.fee,
-            feeToken: fill.feeToken,
-            timestamp: fill.time,
-            pnl: fill.closedPnl,
-            direction: fill.dir,
-            success: true,
-          });
-        }
-
-        return acc;
-      }, []);
-
-      return fills;
-    } catch (error) {
-      DevLogger.log('Error getting user fills:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Get historical orders (order lifecycle)
-   */
-  async getOrders(params?: GetOrdersParams): Promise<Order[]> {
-    try {
-      DevLogger.log('Getting user orders via HyperLiquid SDK:', params);
-      await this.ensureReady();
-
-      const infoClient = this.clientService.getInfoClient();
-      const userAddress = await this.walletService.getUserAddressWithDefault(
-        params?.accountId,
-      );
-
-      const rawOrders = await infoClient.historicalOrders({
-        user: userAddress,
-      });
-
-      DevLogger.log('User orders received:', rawOrders);
-
-      // Transform HyperLiquid orders to abstract Order type
-      const orders: Order[] = (rawOrders || []).map((rawOrder) => {
-        const { order, status, statusTimestamp } = rawOrder;
-        // Normalize side: HyperLiquid uses 'A' (Ask/Sell) and 'B' (Bid/Buy)
-        const normalizedSide = order.side === 'B' ? 'buy' : 'sell';
-
-        // Normalize status
-        let normalizedStatus: Order['status'];
-        switch (status) {
-          case 'open':
-            normalizedStatus = 'open';
-            break;
-          case 'filled':
-            normalizedStatus = 'filled';
-            break;
-          case 'canceled':
-          case 'marginCanceled':
-          case 'vaultWithdrawalCanceled':
-          case 'openInterestCapCanceled':
-          case 'selfTradeCanceled':
-          case 'reduceOnlyCanceled':
-          case 'siblingFilledCanceled':
-          case 'delistedCanceled':
-          case 'liquidatedCanceled':
-          case 'scheduledCancel':
-          case 'reduceOnlyRejected':
-            normalizedStatus = 'canceled';
-            break;
-          case 'rejected':
-            // case 'minTradeNtlRejected':
-            normalizedStatus = 'rejected';
-            break;
-          case 'triggered':
-            normalizedStatus = 'triggered';
-            break;
-          default:
-            normalizedStatus = 'queued';
-        }
-
-        // Calculate filled and remaining size
-        const originalSize = parseFloat(order.origSz || order.sz);
-        const currentSize = parseFloat(order.sz);
-        const filledSize = originalSize - currentSize;
-
-        return {
-          orderId: order.oid?.toString() || '',
-          symbol: order.coin,
-          side: normalizedSide,
-          orderType: order.orderType?.toLowerCase().includes('limit')
-            ? 'limit'
-            : 'market',
-          size: order.sz,
-          originalSize: order.origSz || order.sz,
-          price: order.limitPx || '0',
-          filledSize: filledSize.toString(),
-          remainingSize: currentSize.toString(),
-          status: normalizedStatus,
-          timestamp: statusTimestamp,
-          lastUpdated: statusTimestamp,
-        };
-      });
-
-      return orders;
-    } catch (error) {
-      DevLogger.log('Error getting user orders:', error);
-      return [];
-    }
-  }
-
-  /**
-   * Get user funding history
-   */
-  async getFunding(params?: GetFundingParams): Promise<Funding[]> {
-    try {
-      DevLogger.log('Getting user funding via HyperLiquid SDK:', params);
-      await this.ensureReady();
-
-      const infoClient = this.clientService.getInfoClient();
-      const userAddress = await this.walletService.getUserAddressWithDefault(
-        params?.accountId,
-      );
-
-      const rawFunding = await infoClient.userFunding({
-        user: userAddress,
-        startTime: params?.startTime || 0,
-        endTime: params?.endTime,
-      });
-
-      DevLogger.log('User funding received:', rawFunding);
-
-      // Transform HyperLiquid funding to abstract Funding type
-      const funding: Funding[] = (rawFunding || []).map((rawFundingItem) => {
-        const { delta, hash, time } = rawFundingItem;
-
-        return {
-          symbol: delta.coin,
-          amountUsd: delta.usdc,
-          rate: delta.fundingRate,
-          timestamp: time,
-          transactionHash: hash,
-        };
-      });
-
-      return funding;
-    } catch (error) {
-      DevLogger.log('Error getting user funding:', error);
-      return [];
-    }
-  }
-
-  /**
    * Get account state
    */
   async getAccountState(params?: GetAccountStateParams): Promise<AccountState> {
@@ -1191,193 +1005,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Validate deposit parameters according to HyperLiquid-specific rules
    * This method enforces protocol-specific requirements like minimum amounts
    */
-  async validateDeposit(
-    params: DepositParams,
-  ): Promise<{ isValid: boolean; error?: string }> {
+  validateDeposit(params: DepositParams): { isValid: boolean; error?: string } {
     return validateDepositParams({
       amount: params.amount,
       assetId: params.assetId,
       isTestnet: this.clientService.isTestnetMode(),
     });
-  }
-
-  /**
-   * Validate order parameters according to HyperLiquid-specific rules
-   * This includes minimum order sizes, leverage limits, and other protocol requirements
-   */
-  async validateOrder(
-    params: OrderParams,
-  ): Promise<{ isValid: boolean; error?: string }> {
-    try {
-      // Basic parameter validation
-      const basicValidation = validateOrderParams({
-        coin: params.coin,
-        size: params.size,
-        price: params.price,
-      });
-      if (!basicValidation.isValid) {
-        return basicValidation;
-      }
-
-      // Check minimum order size using consistent defaults (matching useMinimumOrderAmount hook)
-      // Note: For full validation with market-specific limits, use async methods
-      const coinAmount = parseFloat(params.size || '0');
-      const minimumOrderSize = this.clientService.isTestnetMode()
-        ? TRADING_DEFAULTS.amount.testnet
-        : TRADING_DEFAULTS.amount.mainnet;
-
-      // Convert coin amount to USD value for comparison with minimum
-      // Price is required for proper validation
-      if (!params.currentPrice) {
-        return {
-          isValid: false,
-          error: strings('perps.order.validation.price_required'),
-        };
-      }
-
-      const orderValueUSD = coinAmount * params.currentPrice;
-
-      if (orderValueUSD < minimumOrderSize) {
-        return {
-          isValid: false,
-          error: strings('perps.order.validation.minimum_amount', {
-            amount: minimumOrderSize.toString(),
-          }),
-        };
-      }
-
-      // Asset-specific leverage validation
-      if (params.leverage && params.coin) {
-        try {
-          const maxLeverage = await this.getMaxLeverage(params.coin);
-          if (params.leverage < 1 || params.leverage > maxLeverage) {
-            return {
-              isValid: false,
-              error: strings('perps.order.validation.invalid_leverage', {
-                min: '1',
-                max: maxLeverage.toString(),
-              }),
-            };
-          }
-        } catch (error) {
-          // If we can't get max leverage, use the default as fallback
-          const defaultMaxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
-          if (params.leverage < 1 || params.leverage > defaultMaxLeverage) {
-            return {
-              isValid: false,
-              error: strings('perps.order.validation.invalid_leverage', {
-                min: '1',
-                max: defaultMaxLeverage.toString(),
-              }),
-            };
-          }
-        }
-      }
-
-      // Validate limit orders have a price
-      if (params.orderType === 'limit' && !params.price) {
-        return {
-          isValid: false,
-          error: strings('perps.order.validation.limit_price_required'),
-        };
-      }
-
-      return { isValid: true };
-    } catch (error) {
-      return {
-        isValid: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : strings('perps.errors.unknownError'),
-      };
-    }
-  }
-
-  /**
-   * Validate close position parameters according to HyperLiquid-specific rules
-   * Note: Full validation including remaining position size requires position data
-   * which should be passed from the UI layer
-   */
-  async validateClosePosition(
-    params: ClosePositionParams,
-  ): Promise<{ isValid: boolean; error?: string }> {
-    try {
-      // Basic validation
-      if (!params.coin) {
-        return {
-          isValid: false,
-          error: strings('perps.errors.orderValidation.coinRequired'),
-        };
-      }
-
-      // If closing with limit order, must have price
-      if (params.orderType === 'limit' && !params.price) {
-        return {
-          isValid: false,
-          error: strings('perps.order.validation.limit_price_required'),
-        };
-      }
-
-      // Validate close size if provided
-      if (params.size) {
-        const closeSize = parseFloat(params.size);
-        if (isNaN(closeSize) || closeSize <= 0) {
-          return {
-            isValid: false,
-            error: strings('perps.errors.orderValidation.sizePositive'),
-          };
-        }
-
-        // Note: Remaining position validation should be done in the UI layer
-        // where position data is available. The UI should check:
-        // 1. That closeSize doesn't exceed current position size
-        // 2. That remaining size meets minimum order requirements
-      }
-
-      // Validate minimum order value if we have the necessary data
-      if (params.currentPrice && params.size) {
-        const closeSize = parseFloat(params.size);
-        const price = parseFloat(params.currentPrice.toString());
-        const orderValueUSD = closeSize * price;
-
-        // Get minimum order size based on network
-        const minimumOrderSize = this.clientService.isTestnetMode()
-          ? TRADING_DEFAULTS.amount.testnet
-          : TRADING_DEFAULTS.amount.mainnet;
-
-        if (orderValueUSD < minimumOrderSize) {
-          return {
-            isValid: false,
-            error: strings('perps.order.validation.minimum_amount', {
-              amount: minimumOrderSize.toString(),
-            }),
-          };
-        }
-      }
-      // Note: For full closes (when size is undefined), the validation
-      // should be done in the UI layer where the full position size is known.
-
-      return { isValid: true };
-    } catch (error) {
-      return {
-        isValid: false,
-        error:
-          error instanceof Error
-            ? error.message
-            : strings('perps.errors.unknownError'),
-      };
-    }
-  }
-
-  /**
-   * Validate withdrawal parameters - placeholder for future implementation
-   */
-  async validateWithdrawal(
-    _params: WithdrawParams,
-  ): Promise<{ isValid: boolean; error?: string }> {
-    // Placeholder - to be implemented when needed
-    return { isValid: true };
   }
 
   /**
@@ -1799,33 +1432,17 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Get maximum leverage allowed for an asset
    */
   async getMaxLeverage(asset: string): Promise<number> {
-    try {
-      await this.ensureReady();
+    await this.ensureReady();
 
-      const infoClient = this.clientService.getInfoClient();
-      const meta = await infoClient.meta();
+    const infoClient = this.clientService.getInfoClient();
+    const meta = await infoClient.meta();
 
-      // Check if meta and universe exist
-      if (!meta?.universe) {
-        console.warn(
-          'Meta or universe not available, using default max leverage',
-        );
-        return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
-      }
-
-      const assetInfo = meta.universe.find((a) => a.name === asset);
-      if (!assetInfo) {
-        DevLogger.log(
-          `Asset ${asset} not found in universe, using default max leverage`,
-        );
-        return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
-      }
-
-      return assetInfo.maxLeverage;
-    } catch (error) {
-      DevLogger.log('Error getting max leverage:', error);
-      return PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+    const assetInfo = meta.universe.find((a) => a.name === asset);
+    if (!assetInfo) {
+      throw new Error(`Asset ${asset} not found`);
     }
+
+    return assetInfo.maxLeverage;
   }
 
   /**
@@ -1916,24 +1533,5 @@ export class HyperLiquidProvider implements IPerpsProvider {
     } catch (error) {
       return createErrorResult(error, { success: false });
     }
-  }
-
-  /**
-   * Get block explorer URL for an address or just the base URL
-   * @param address - Optional address to append to the base URL
-   * @returns Block explorer URL
-   */
-  getBlockExplorerUrl(address?: string): string {
-    const network = this.clientService.isTestnetMode() ? 'testnet' : 'mainnet';
-    const baseUrl =
-      network === 'testnet'
-        ? 'https://app.hyperliquid-testnet.xyz'
-        : 'https://app.hyperliquid.xyz';
-
-    if (address) {
-      return `${baseUrl}/explorer/address/${address}`;
-    }
-
-    return `${baseUrl}/explorer`;
   }
 }

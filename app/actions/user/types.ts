@@ -26,7 +26,6 @@ export enum UserActionType {
   CHECKED_AUTH = 'CHECKED_AUTH',
   SET_APP_SERVICES_READY = 'SET_APP_SERVICES_READY',
   SET_EXISTING_USER = 'SET_EXISTING_USER',
-  SET_IS_CONNECTION_REMOVED = 'SET_IS_CONNECTION_REMOVED',
 }
 
 // User actions
@@ -98,11 +97,6 @@ export type SetExistingUserAction = Action<UserActionType.SET_EXISTING_USER> & {
   payload: { existingUser: boolean };
 };
 
-export type SetIsConnectionRemovedAction =
-  Action<UserActionType.SET_IS_CONNECTION_REMOVED> & {
-    payload: { isConnectionRemoved: boolean };
-  };
-
 /**
  * User actions union type
  */
@@ -129,5 +123,4 @@ export type UserAction =
   | SetAppThemeAction
   | CheckedAuthAction
   | SetAppServicesReadyAction
-  | SetExistingUserAction
-  | SetIsConnectionRemovedAction;
+  | SetExistingUserAction;

@@ -44,7 +44,6 @@ const mockApprovalRow = [
     isUnlimitedApproval: false,
     nestedTransactionIndex: -1,
     tokenSymbol: 'DAI',
-    usdAmount: null,
   },
 ];
 
@@ -89,7 +88,6 @@ describe('useBatchApproveBalanceChanges', () => {
           fiatAmount: null,
           balance: new BigNumber(100),
           tokenSymbol: 'DAI',
-          usdAmount: null,
         },
       ],
     });

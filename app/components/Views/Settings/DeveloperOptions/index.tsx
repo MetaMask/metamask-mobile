@@ -9,9 +9,6 @@ import { useParams } from '../../../../util/navigation/navUtils';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet from './DeveloperOptions.styles';
 import SentryTest from './SentryTest';
-import { PerpsDeveloperOptionsSection } from '../../../UI/Perps/components/PerpsDeveloperOptionsSection/PerpsDeveloperOptionsSection';
-import { useSelector } from 'react-redux';
-import { selectPerpsEnabledFlag } from '../../../UI/Perps';
 
 const DeveloperOptions = () => {
   const navigation = useNavigation();
@@ -21,8 +18,6 @@ const DeveloperOptions = () => {
   const theme = useTheme();
   const { colors } = theme;
   const { styles } = useStyles(styleSheet, { theme });
-
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
   useEffect(
     () => {
@@ -43,7 +38,6 @@ const DeveloperOptions = () => {
   return (
     <ScrollView style={styles.wrapper}>
       <SentryTest />
-      {isPerpsEnabled && <PerpsDeveloperOptionsSection />}
     </ScrollView>
   );
 };

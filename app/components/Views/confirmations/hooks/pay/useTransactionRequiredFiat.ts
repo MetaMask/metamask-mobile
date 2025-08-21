@@ -1,9 +1,12 @@
+import { Hex, createProjectLogger } from '@metamask/utils';
 import { BigNumber } from 'bignumber.js';
 import { useEffect, useMemo } from 'react';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionRequiredTokens } from './useTransactionRequiredTokens';
 import { useTokenFiatRates } from '../tokens/useTokenFiatRates';
-import { createProjectLogger } from '@metamask/utils';
+import { selectTokensByChainIdAndAddress } from '../../../../../selectors/tokensController';
+import { useSelector } from 'react-redux';
+import { useDeepMemo } from '../useDeepMemo';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -19,6 +22,10 @@ export function useTransactionRequiredFiat() {
   const { chainId } = transactionMeta;
   const requiredTokens = useTransactionRequiredTokens();
 
+  const tokens = useSelector((state) =>
+    selectTokensByChainIdAndAddress(state, chainId),
+  );
+
   const fiatRequests = useMemo(
     () =>
       requiredTokens.map((token) => ({
@@ -30,57 +37,55 @@ export function useTransactionRequiredFiat() {
 
   const tokenFiatRates = useTokenFiatRates(fiatRequests);
 
-  const values = useMemo(
+  const tokenDecimals = useMemo(
+    () =>
+      requiredTokens.map(
+        (token) => tokens[token.address.toLowerCase()]?.decimals ?? 18,
+      ),
+    [requiredTokens, tokens],
+  );
+
+  const fiatValues = useDeepMemo(
     () =>
       requiredTokens.map((target, index) => {
-        const targetFiatRate = tokenFiatRates?.[index] as number;
+        const targetDecimals = tokenDecimals?.[index];
+        const targetFiatRate = tokenFiatRates?.[index];
 
-        const missingFiat = new BigNumber(target.missingHuman).multipliedBy(
-          targetFiatRate,
-        );
+        if (!targetFiatRate) {
+          return undefined;
+        }
 
-        const feeFiat = missingFiat.multipliedBy(
-          PAY_BRIDGE_SLIPPAGE + PAY_BRIDGE_FEE,
-        );
-
-        const balanceFiat = new BigNumber(target.balanceHuman).multipliedBy(
-          targetFiatRate,
-        );
-
-        const totalFiat = missingFiat.plus(feeFiat);
-        const totalWithBalanceFiat = totalFiat.plus(balanceFiat);
-
-        return {
-          balanceFiat: balanceFiat.toNumber(),
-          feeFiat: feeFiat.toNumber(),
-          missingFiat: missingFiat.toNumber(),
-          totalFiat: totalFiat.toNumber(),
-          totalWithBalanceFiat: totalWithBalanceFiat.toNumber(),
-        };
+        return calculateFiat(target.amount, targetDecimals, targetFiatRate);
       }),
-    [requiredTokens, tokenFiatRates],
+    [requiredTokens, tokenDecimals, tokenFiatRates],
   );
 
-  const totalFiat = values.reduce<number>(
-    (acc, value) => acc + value.totalFiat,
-    0,
-  );
-
-  const totalWithBalanceFiat = values.reduce<number>(
-    (acc, value) => acc + value.totalWithBalanceFiat,
+  const fiatTotal = fiatValues.reduce<number>(
+    (acc, value) => acc + (value ?? 0),
     0,
   );
 
   useEffect(() => {
-    log('Required fiat', values, {
-      totalFiat,
-      totalWithBalanceFiat,
+    log('Required fiat values', {
+      fiatValues,
+      fiatTotal,
     });
-  }, [values, totalFiat, totalWithBalanceFiat]);
+  }, [fiatValues, fiatTotal]);
 
   return {
-    values,
-    totalFiat,
-    totalWithBalanceFiat,
+    fiatTotal,
+    fiatValues,
   };
+}
+
+function calculateFiat(amountRaw: Hex, decimals: number, fiatRate: number) {
+  const amountDecimals = new BigNumber(amountRaw, 16).shiftedBy(-decimals);
+
+  const amountFiat = amountDecimals.multipliedBy(fiatRate);
+
+  const amountFiatWithFees = amountFiat
+    .multipliedBy(1 + PAY_BRIDGE_SLIPPAGE + PAY_BRIDGE_FEE)
+    .toNumber();
+
+  return amountFiatWithFees;
 }

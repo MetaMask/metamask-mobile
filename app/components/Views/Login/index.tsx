@@ -717,13 +717,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
             </Text>
 
             <View style={styles.field}>
-              <Label
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
-                style={styles.label}
-              >
-                {strings('login.password')}
-              </Label>
+              <View style={styles.labelContainer}>
+                <Label
+                  variant={TextVariant.BodyMDMedium}
+                  color={TextColor.Default}
+                >
+                  {strings('login.password')}
+                </Label>
+              </View>
               <TextField
                 size={TextFieldSize.Lg}
                 placeholder={strings('login.password_placeholder')}

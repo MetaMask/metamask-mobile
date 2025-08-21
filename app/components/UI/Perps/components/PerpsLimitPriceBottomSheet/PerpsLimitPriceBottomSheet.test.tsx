@@ -67,8 +67,8 @@ jest.mock('../../hooks/index', () => ({
   usePerpsConnection: jest.fn(),
 }));
 
-// Mock Keypad component from Base
-jest.mock('../../../../Base/Keypad', () => {
+// Mock Keypad component from Ramp/Aggregator
+jest.mock('../../../Ramp/Aggregator/components/Keypad', () => {
   const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
   return ({
     value,

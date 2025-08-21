@@ -13,7 +13,7 @@ import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import TestDApp from '../../pages/Browser/TestDApp';
 import WalletView from '../../pages/wallet/WalletView';
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../api-mocking/mock-responses/simulations';
-import { buildPermissions } from '../../framework/fixtures/FixtureUtils';
+import { buildPermissions } from '../../fixtures/utils';
 import { loginToApp } from '../../viewHelper';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import { SmokeConfirmationsRedesigned } from '../../tags';
