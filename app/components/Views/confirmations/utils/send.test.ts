@@ -3,10 +3,10 @@ import { TransactionMeta } from '@metamask/transaction-controller';
 
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
-// eslint-disable-next-line import/no-namespace
-import * as SendMultichainTransactionUtils from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { AssetType, TokenStandard } from '../types/token';
 import { InitSendLocation } from '../constants/send';
+// eslint-disable-next-line import/no-namespace
+import * as MultichainSnaps from './multichain-snaps.ts';
 import {
   formatToFixedDecimals,
   fromBNWithDecimals,
@@ -138,10 +138,7 @@ describe('submitEvmTransaction', () => {
 describe('submitNonEvmTransaction', () => {
   it('invokes function sendMultichainTransaction', () => {
     const mockSendMultichainTransaction = jest
-      .spyOn(
-        SendMultichainTransactionUtils,
-        'sendMultichainTransactionForReview',
-      )
+      .spyOn(MultichainSnaps, 'sendMultichainTransactionForReview')
       .mockImplementation(() => Promise.resolve());
     submitNonEvmTransaction({ id: 'solana_account_id' } as InternalAccount, {
       fromAccountId: 'solana_account_id',
