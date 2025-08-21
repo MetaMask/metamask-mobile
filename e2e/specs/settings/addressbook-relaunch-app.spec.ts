@@ -13,11 +13,12 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { TestSpecificMock } from '../../framework/types';
 
 const MEMO = 'Address for testing 123123123';
+const infuraUrlEndpoint = /^https:\/\/mainnet\.infura\.io\/v3\/.*$/;
 
 const testSpecificMock: TestSpecificMock = {
   POST: [
     {
-      urlEndpoint: 'https://mainnet.infura.io/v3/NON_EMPTY',
+      urlEndpoint: infuraUrlEndpoint,
       requestBody: {
         jsonrpc: '2.0',
         id: 2470556049218,
@@ -33,7 +34,7 @@ const testSpecificMock: TestSpecificMock = {
       ignoreFields: ['id'],
     },
     {
-      urlEndpoint: 'https://mainnet.infura.io/v3/NON_EMPTY',
+      urlEndpoint: infuraUrlEndpoint,
       requestBody: {
         jsonrpc: '2.0',
         id: 2470556049218,
@@ -56,7 +57,7 @@ const testSpecificMock: TestSpecificMock = {
       ignoreFields: ['id'],
     },
     {
-      urlEndpoint: 'https://mainnet.infura.io/v3/NON_EMPTY',
+      urlEndpoint: infuraUrlEndpoint,
       requestBody: {
         jsonrpc: '2.0',
         id: 2470556049218,
@@ -79,7 +80,7 @@ const testSpecificMock: TestSpecificMock = {
       ignoreFields: ['id'],
     },
     {
-      urlEndpoint: 'https://mainnet.infura.io/v3/NON_EMPTY',
+      urlEndpoint: infuraUrlEndpoint,
       requestBody: {
         jsonrpc: '2.0',
         id: 2470556049219,
@@ -102,7 +103,7 @@ const testSpecificMock: TestSpecificMock = {
       ignoreFields: ['id'],
     },
     {
-      urlEndpoint: 'https://mainnet.infura.io/v3/NON_EMPTY',
+      urlEndpoint: infuraUrlEndpoint,
       requestBody: {
         jsonrpc: '2.0',
         id: 2470556049220,
