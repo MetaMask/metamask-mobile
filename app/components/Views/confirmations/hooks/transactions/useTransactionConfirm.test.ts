@@ -50,6 +50,8 @@ jest.mock('@react-navigation/native', () => ({
 const CHAIN_ID_MOCK = '0x123';
 const TOKEN_ADDRESS_MOCK = '0x123456789abcdef1234567890abcdef12345678';
 const TOTAL_FIAT_MOCK = '$123.45';
+const NETWORK_FEE_MOCK = '$234.56';
+const BRIDGE_FEE_MOCK = '$345.67';
 
 function renderHook(
   { hasQuotes }: { hasQuotes: boolean } = {
@@ -122,6 +124,8 @@ describe('useTransactionConfirm', () => {
     useTransactionTotalFiatMock.mockReturnValue({
       value: '',
       formatted: TOTAL_FIAT_MOCK,
+      totalGasFormatted: NETWORK_FEE_MOCK,
+      bridgeFeeFormatted: BRIDGE_FEE_MOCK,
     });
 
     selectShouldUseSmartTransactionMock.mockReturnValue(false);
@@ -198,7 +202,9 @@ describe('useTransactionConfirm', () => {
     expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
       txMeta: expect.objectContaining({
         metamaskPay: {
+          bridgeFeeFiat: BRIDGE_FEE_MOCK,
           chainId: CHAIN_ID_MOCK,
+          networkFeeFiat: NETWORK_FEE_MOCK,
           tokenAddress: TOKEN_ADDRESS_MOCK,
           totalFiat: TOTAL_FIAT_MOCK,
         },
