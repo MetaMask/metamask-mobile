@@ -25,7 +25,13 @@ export function useTransactionConfirm() {
   const transactionMetadata = useTransactionMetadataRequest();
   const { chainId, id: transactionId, type } = transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
-  const { formatted: totalFiat } = useTransactionTotalFiat();
+
+  const {
+    bridgeFeeFormatted: bridgeFeeFiat,
+    formatted: totalFiat,
+    totalGasFormatted: networkFeeFiat,
+  } = useTransactionTotalFiat();
+
   const { tryEnableEvmNetwork } = useNetworkEnablement();
 
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
@@ -45,7 +51,9 @@ export function useTransactionConfirm() {
 
     const updatedMetadata = cloneDeep(transactionMetadata);
     updatedMetadata.metamaskPay = {};
+    updatedMetadata.metamaskPay.bridgeFeeFiat = bridgeFeeFiat;
     updatedMetadata.metamaskPay.chainId = payToken?.chainId;
+    updatedMetadata.metamaskPay.networkFeeFiat = networkFeeFiat;
     updatedMetadata.metamaskPay.tokenAddress = payToken?.address;
     updatedMetadata.metamaskPay.totalFiat = totalFiat;
 
@@ -74,10 +82,12 @@ export function useTransactionConfirm() {
       tryEnableEvmNetwork(chainId);
     }
   }, [
+    bridgeFeeFiat,
     chainId,
     dispatch,
     isFullScreenConfirmation,
     navigation,
+    networkFeeFiat,
     onRequestConfirm,
     payToken,
     totalFiat,
