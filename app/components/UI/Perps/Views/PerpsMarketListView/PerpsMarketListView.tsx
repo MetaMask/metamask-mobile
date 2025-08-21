@@ -1,11 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import {
-  View,
-  TouchableOpacity,
-  SafeAreaView,
-  Animated,
-  TextInput,
-} from 'react-native';
+import { View, TouchableOpacity, Animated, TextInput } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -29,7 +23,7 @@ import type {
 import { PerpsMarketListViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
 import {
   PerpsEventProperties,
@@ -104,7 +98,6 @@ const PerpsMarketListView = ({
   const { styles, theme } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const fadeAnimation = useRef(new Animated.Value(0)).current;
-  const { top } = useSafeAreaInsets();
   const hiddenButtonStyle = {
     position: 'absolute' as const,
     opacity: 0,
@@ -294,7 +287,7 @@ const PerpsMarketListView = ({
   };
 
   return (
-    <SafeAreaView style={[styles.container, { marginTop: top }]}>
+    <SafeAreaView style={styles.container}>
       {/* Hidden close button for navigation tests */}
       <TouchableOpacity
         onPress={handleClose}
