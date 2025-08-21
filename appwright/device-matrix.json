@@ -11,12 +11,6 @@
       "os_version": "14.0",
       "category": "high",
       "description": "High-end Google flagship device with Android 14"
-    },
-    {
-      "name": "Oppo Reno 6",
-      "os_version": "11.0",
-      "category": "low",
-      "description": "Low-end Google flagship device with Android 9"
     }
   ],
   "ios_devices": [
@@ -25,12 +19,6 @@
       "os_version": "18",
       "category": "high",
       "description": "High-end iPhone 16 Pro Max with iOS 18"
-    },
-    {
-      "name": "iPhone 14",
-      "os_version": "18",
-      "category": "medium",
-      "description": "Medium iPhone 14."
     },
     {
       "name": "iPhone 12",
@@ -45,7 +33,7 @@
     "low": "Low-end devices for backward compatibility and emerging market testing"
   },
   "os_coverage": {
-    "android": ["11.0", "13.0", "14.0"],
+    "android": ["13.0", "14.0"],
     "ios": ["16", "17"]
   },
   "notes": {
