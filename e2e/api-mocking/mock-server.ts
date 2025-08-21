@@ -1,5 +1,4 @@
 import { getLocal, Headers, Mockttp } from 'mockttp';
-import portfinder from 'portfinder';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
 import { createLogger } from '../framework/logger';
 import { findMatchingPostEvent, processPostRequestBody } from './mockHelpers';
@@ -97,11 +96,10 @@ const isUrlAllowed = (url: string): boolean => {
  */
 export const startMockServer = async (
   events: MockEventsObject,
-  port?: number,
+  port: number,
   testSpecificMock?: TestSpecificMock,
 ): Promise<MockServer> => {
   const mockServer = getLocal() as MockServer;
-  port = port || (await portfinder.getPortPromise());
 
   // Track live requests
   const liveRequests: LiveRequest[] = [];

@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Mockttp } from 'mockttp';
 import _ from 'lodash';
-import { createLogger } from '../framework';
+import { createLogger, MockApiEndpoint } from '../framework';
 import { getDecodedProxiedURL } from '../specs/notifications/utils/helpers';
 
 const logger = createLogger({
@@ -23,7 +22,7 @@ export interface PostRequestMatchingOptions {
 export interface PostRequestMatchResult {
   matches: boolean;
   error?: string;
-  requestBodyJson?: any;
+  requestBodyJson?: MockApiEndpoint['requestBody'];
 }
 
 /**
@@ -37,7 +36,7 @@ export interface PostRequestMatchResult {
  */
 export const processPostRequestBody = (
   requestBodyText: string | undefined,
-  expectedRequestBody: any,
+  expectedRequestBody: MockApiEndpoint['requestBody'],
   options: PostRequestMatchingOptions = {},
 ): PostRequestMatchResult => {
   const { ignoreFields = [], allowPartialMatch = true } = options;
@@ -50,7 +49,7 @@ export const processPostRequestBody = (
     };
   }
 
-  let requestBodyJson: any;
+  let requestBodyJson: MockApiEndpoint['requestBody'] | undefined;
   try {
     requestBodyJson = JSON.parse(requestBodyText);
   } catch (e) {
@@ -78,9 +77,13 @@ export const processPostRequestBody = (
     _.unset(expectedRequest, field);
   });
 
-  // Perform the matching using lodash isMatch (same as mock-server.js)
   const matches = allowPartialMatch
-    ? _.isMatch(requestToCheck, expectedRequest)
+    ? typeof requestToCheck === 'object' &&
+      requestToCheck !== null &&
+      typeof expectedRequest === 'object' &&
+      expectedRequest !== null
+      ? _.isMatch(requestToCheck, expectedRequest)
+      : false
     : _.isEqual(requestToCheck, expectedRequest);
 
   if (!matches) {
@@ -118,9 +121,9 @@ export const processPostRequestBody = (
  * @returns The best matching event or undefined
  */
 export const findMatchingPostEvent = (
-  candidateEvents: any[],
-  requestBodyJson: any,
-): any => {
+  candidateEvents: MockApiEndpoint[],
+  requestBodyJson: MockApiEndpoint['requestBody'],
+): MockApiEndpoint | undefined => {
   if (!candidateEvents.length) {
     return undefined;
   }
