@@ -27,12 +27,3 @@ export const selectHasPlacedFirstOrder = (
   }
   return state?.hasPlacedFirstOrder?.mainnet ?? false;
 };
-
-/**
- * Select perps balances for all providers
- * @param state - PerpsController state
- * @returns perps balances object or empty object if not available
- */
-export const selectPerpsBalances = (
-  state: PerpsControllerState | undefined,
-): PerpsControllerState['perpsBalances'] => state?.perpsBalances ?? {};
