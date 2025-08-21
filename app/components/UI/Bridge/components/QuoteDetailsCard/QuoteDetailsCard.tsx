@@ -139,24 +139,9 @@ const QuoteDetailsCard = () => {
     };
   });
 
-  const handleQuoteInfoPress = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.QUOTE_INFO_MODAL,
-    });
-  };
-
   const handleSlippagePress = () => {
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.SLIPPAGE_MODAL,
-    });
-  };
-
-  const handlePriceImpactWarningPress = () => {
-    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-      screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_WARNING_MODAL,
-      params: {
-        isGasIncluded: !!activeQuote?.quote.gasIncluded,
-      },
     });
   };
 
@@ -235,6 +220,31 @@ const QuoteDetailsCard = () => {
         </Box>
 
         {/* Always visible content */}
+        <KeyValueRow
+          field={{
+            label: {
+              text: strings('bridge.rate'),
+              variant: TextVariant.BodyMDMedium,
+            },
+            tooltip: {
+              title: strings('bridge.quote_info_title'),
+              content: strings('bridge.quote_info_content'),
+              size: TooltipSizes.Sm,
+            },
+          }}
+          value={{
+            label: (
+              <Text
+                variant={TextVariant.BodyMD}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
+              >
+                {rate}
+              </Text>
+            ),
+          }}
+        />
         {activeQuote?.quote.gasIncluded ? (
           <Box
             flexDirection={FlexDirection.Row}
@@ -249,14 +259,14 @@ const QuoteDetailsCard = () => {
               alignItems={AlignItems.center}
               gap={8}
             >
-              <Text variant={TextVariant.BodyMD}>
-                {strings('bridge.included')}
-              </Text>
               <Text
                 variant={TextVariant.BodyMD}
                 style={styles.strikethroughText}
               >
                 {networkFee}
+              </Text>
+              <Text variant={TextVariant.BodyMD}>
+                {strings('bridge.included')}
               </Text>
             </Box>
           </Box>
@@ -266,6 +276,11 @@ const QuoteDetailsCard = () => {
               label: {
                 text: strings('bridge.network_fee'),
                 variant: TextVariant.BodyMDMedium,
+              },
+              tooltip: {
+                title: strings('bridge.network_fee_info_title'),
+                content: strings('bridge.network_fee_info_content'),
+                size: TooltipSizes.Sm,
               },
             }}
             value={{
@@ -277,43 +292,35 @@ const QuoteDetailsCard = () => {
           />
         )}
 
-        <KeyValueRow
-          field={{
-            label: {
-              text: strings('bridge.time'),
-              variant: TextVariant.BodyMDMedium,
-            },
-          }}
-          value={{
-            label: {
-              text: estimatedTime,
-              variant: TextVariant.BodyMD,
-            },
-          }}
-        />
-
-        {/* Quote info with gradient overlay */}
-        <Box>
+        {priceImpact && (
           <KeyValueRow
             field={{
               label: {
-                text: strings('bridge.quote'),
+                text: strings('bridge.price_impact'),
                 variant: TextVariant.BodyMDMedium,
               },
               tooltip: {
-                title: strings('bridge.quote_info_title'),
-                content: strings('bridge.quote_info_content'),
-                onPress: handleQuoteInfoPress,
+                title: strings('bridge.price_impact_info_title'),
+                content: gasIncluded
+                  ? strings('bridge.price_impact_info_gasless_description')
+                  : strings('bridge.price_impact_info_description'),
                 size: TooltipSizes.Sm,
               },
             }}
             value={{
               label: {
-                text: rate,
+                text: priceImpact,
                 variant: TextVariant.BodyMD,
+                color: shouldShowPriceImpactWarning
+                  ? TextColor.Error
+                  : undefined,
               },
             }}
           />
+        )}
+
+        {/* Quote info with gradient overlay */}
+        <Box>
           {!isExpanded && (
             <Box style={styles.gradientContainer}>
               <Svg height="30" width="100%">
@@ -346,34 +353,6 @@ const QuoteDetailsCard = () => {
         {/* Expandable content */}
         {isExpanded && (
           <Box gap={12}>
-            {priceImpact && (
-              <KeyValueRow
-                field={{
-                  label: {
-                    text: strings('bridge.price_impact'),
-                    variant: TextVariant.BodyMDMedium,
-                  },
-                  ...(shouldShowPriceImpactWarning && {
-                    tooltip: {
-                      title: strings('bridge.price_impact_warning_title'),
-                      content: strings('bridge.price_impact_normal_warning'),
-                      onPress: handlePriceImpactWarningPress,
-                      size: TooltipSizes.Sm,
-                    },
-                  }),
-                }}
-                value={{
-                  label: {
-                    text: priceImpact,
-                    variant: TextVariant.BodyMD,
-                    color: shouldShowPriceImpactWarning
-                      ? TextColor.Error
-                      : undefined,
-                  },
-                }}
-              />
-            )}
-
             <KeyValueRow
               field={{
                 label: (
@@ -399,10 +378,30 @@ const QuoteDetailsCard = () => {
                     </TouchableOpacity>
                   </Box>
                 ),
+                tooltip: {
+                  title: strings('bridge.slippage_info_title'),
+                  content: strings('bridge.slippage_info_description'),
+                  size: TooltipSizes.Sm,
+                },
               }}
               value={{
                 label: {
                   text: slippage,
+                  variant: TextVariant.BodyMD,
+                },
+              }}
+            />
+
+            <KeyValueRow
+              field={{
+                label: {
+                  text: strings('bridge.time'),
+                  variant: TextVariant.BodyMDMedium,
+                },
+              }}
+              value={{
+                label: {
+                  text: estimatedTime,
                   variant: TextVariant.BodyMD,
                 },
               }}
