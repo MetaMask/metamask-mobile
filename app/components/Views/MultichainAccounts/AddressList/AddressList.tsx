@@ -51,8 +51,8 @@ export const AddressList = () => {
   const internalAccountsSpreadByScopes =
     selectInternalAccountsSpreadByScopes(groupId);
 
-  const copyAddressToClipboard = useCallback((address: string) => {
-    ClipboardManager.setString(address);
+  const copyAddressToClipboard = useCallback(async (address: string) => {
+    await ClipboardManager.setString(address);
   }, []);
 
   const renderAddressItem = useCallback(
