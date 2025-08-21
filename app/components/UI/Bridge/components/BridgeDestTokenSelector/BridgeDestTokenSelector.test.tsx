@@ -15,12 +15,14 @@ import { BridgeViewMode } from '../../types';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    dispatch: mockDispatch,
   }),
 }));
 
@@ -164,19 +166,25 @@ describe('BridgeDestTokenSelector', () => {
     // Press the info button
     fireEvent.press(infoButton);
 
-    // Verify navigation to Asset screen with the correct token params
-    expect(mockNavigate).toHaveBeenCalledWith(
-      'Asset',
+    // Verify navigation to Asset screen with the correct token params via dispatch
+    expect(mockDispatch).toHaveBeenCalledWith(
       expect.objectContaining({
-        address: ethToken2Address,
-        balance: '2.0',
-        balanceFiat: '$200000',
-        chainId: '0x1',
-        decimals: 18,
-        image: 'https://token2.com/logo.png',
-        name: 'Hello Token',
-        symbol: 'HELLO',
-        tokenFiatAmount: 200000,
+        type: 'NAVIGATE',
+        payload: expect.objectContaining({
+          name: 'Asset',
+          key: expect.stringMatching(/^Asset-.*-\d+$/), // Should match pattern "Asset-{address}-{chainId}-{timestamp}"
+          params: expect.objectContaining({
+            address: ethToken2Address,
+            balance: '2.0',
+            balanceFiat: '$200000',
+            chainId: '0x1',
+            decimals: 18,
+            image: 'https://token2.com/logo.png',
+            name: 'Hello Token',
+            symbol: 'HELLO',
+            tokenFiatAmount: 200000,
+          }),
+        }),
       }),
     );
   });
