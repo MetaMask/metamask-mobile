@@ -37,7 +37,6 @@ export const CardSDKProvider = ({
       const cardSDK = new CardSDK({
         cardFeatureFlag,
         rawChainId: LINEA_CHAIN_ID,
-        enableLogs: true,
       });
       setSdk(cardSDK);
     } else {
