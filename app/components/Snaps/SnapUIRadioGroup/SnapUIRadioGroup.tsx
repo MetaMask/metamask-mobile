@@ -35,7 +35,11 @@ export const SnapUIRadioGroup: FunctionComponent<SnapUIRadioGroupProps> = ({
   const [value, setValue] = useState(initialValue);
 
   useEffect(() => {
-    if (initialValue && value !== initialValue) {
+    if (
+      initialValue !== null &&
+      initialValue !== undefined &&
+      value !== initialValue
+    ) {
       setValue(initialValue);
     }
   }, [initialValue]); // eslint-disable-line react-hooks/exhaustive-deps
