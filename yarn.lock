@@ -6028,13 +6028,13 @@
     fast-json-patch "^3.1.0"
     lodash "^4.17.21"
 
-"@metamask/snaps-controllers@^14.2.1":
-  version "14.2.1"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-14.2.1.tgz#11ded99a695c66076c53aa61d075e52497382cd9"
-  integrity sha512-5TTaeeXZcN2nvD9OaLiIqlcEoB0ntjDmhPo7aumhmh7tBaHtCviPfTLl612WPRDS/NKUuoE9JpkKJOS26v55+g==
+"@metamask/snaps-controllers@^14.2.2":
+  version "14.2.2"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-controllers/-/snaps-controllers-14.2.2.tgz#f1e8acd81f27bd370d62e7607384bc78f1ad4f33"
+  integrity sha512-gSqa8t6oRo782fQJWO+uL1IyhYfKyrZBrfD3KS0afb9Z85LPz73y83icfY3nWL5hJ7WJvVGwe8eCOgH0AfjSsg==
   dependencies:
     "@metamask/approval-controller" "^7.1.3"
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.1.0"
     "@metamask/json-rpc-engine" "^10.0.2"
     "@metamask/json-rpc-middleware-stream" "^8.0.7"
     "@metamask/key-tree" "^10.1.1"
@@ -6046,7 +6046,7 @@
     "@metamask/snaps-registry" "^3.2.3"
     "@metamask/snaps-rpc-methods" "^13.5.0"
     "@metamask/snaps-sdk" "^9.3.0"
-    "@metamask/snaps-utils" "^11.4.0"
+    "@metamask/snaps-utils" "^11.5.0"
     "@metamask/utils" "^11.4.2"
     "@xstate/fsm" "^2.0.0"
     async-mutex "^0.5.0"
@@ -6124,14 +6124,14 @@
     "@metamask/superstruct" "^3.2.1"
     "@metamask/utils" "^11.4.2"
 
-"@metamask/snaps-utils@^11.0.0", "@metamask/snaps-utils@^11.3.0", "@metamask/snaps-utils@^11.4.0":
-  version "11.4.0"
-  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-11.4.0.tgz#fb09a75426bb1ebfa905fbf8162e1d81ac47f7e2"
-  integrity sha512-k7+dFUL9ElFoXM1yHemA4HjZnFZBLt6kH9x+NJ7iTQfEjOOhbzbP2vL0jZM91un8MKAb6ieH53AiE6Pi76rsLQ==
+"@metamask/snaps-utils@^11.0.0", "@metamask/snaps-utils@^11.3.0", "@metamask/snaps-utils@^11.4.0", "@metamask/snaps-utils@^11.5.0":
+  version "11.5.0"
+  resolved "https://registry.yarnpkg.com/@metamask/snaps-utils/-/snaps-utils-11.5.0.tgz#87a0216a35cdde886fd72c3b9c0f5428746d4e8c"
+  integrity sha512-XKYnfj8eXdYmUn8M4rYq+OOp09qIUJ943g9iZWl/hS4tCEx9zbe0LzFs3zYy38QTlDptj6gY7m9Z3+JitH8UGA==
   dependencies:
     "@babel/core" "^7.23.2"
     "@babel/types" "^7.23.0"
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.1.0"
     "@metamask/key-tree" "^10.1.1"
     "@metamask/permission-controller" "^11.0.6"
     "@metamask/rpc-errors" "^7.0.3"
