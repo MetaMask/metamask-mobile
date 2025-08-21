@@ -99,6 +99,7 @@ import {
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
+import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
@@ -467,6 +468,9 @@ const Wallet = ({
   const hdKeyrings = useSelector(selectHDKeyrings);
 
   const accountName = useAccountName();
+  const accountGroupName = useAccountGroupName();
+
+  const displayName = accountGroupName || accountName;
   useAccountsWithNetworkActivitySync();
 
   const { networks } = useNetworksByNamespace({
@@ -739,7 +743,7 @@ const Wallet = ({
       getWalletNavbarOptions(
         walletRef,
         selectedInternalAccount,
-        accountName,
+        displayName,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -754,7 +758,7 @@ const Wallet = ({
     );
   }, [
     selectedInternalAccount,
-    accountName,
+    displayName,
     networkName,
     networkImageSource,
     onTitlePress,
