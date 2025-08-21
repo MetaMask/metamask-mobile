@@ -42,6 +42,14 @@ jest.mock('react-native-safe-area-context', () => {
 const mockUseTheme = jest.fn();
 jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
+  mockTheme: {
+    colors: {
+      background: { default: '#FFFFFF' },
+      text: { default: '#000000', alternative: '#666666' },
+      border: { muted: '#CCCCCC' },
+      success: { default: '#00FF00' },
+    },
+  },
 }));
 
 // Mock format utilities

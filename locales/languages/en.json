@@ -891,7 +891,13 @@
         "completed": "Completed",
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
-      }
+      },
+      "success_toast": "Deposit Complete",
+      "success_message": "Your balance will update in a few moments",
+      "error_toast": "Deposit Failed",
+      "error_generic": "Something went wrong. Please try again.",
+      "in_progress": "Processing deposit",
+      "processing_message": "Processing your deposit..."
     },
     "withdrawal": {
       "title": "Withdraw",
@@ -5333,10 +5339,10 @@
   "card": {
     "card": "MetaMask Card",
     "add_funds_bottomsheet": {
-      "deposit": "Deposit",
-      "deposit_description": "Convert cash to {{symbol}} on Linea",
-      "swap": "Swap",
-      "swap_description": "Exchange tokens into {{symbol}} on Linea",
+      "deposit": "Fund with cash",
+      "deposit_description": "Low-cost card or bank transfer",
+      "swap": "Fund with crypto",
+      "swap_description": "Swap tokens into {{symbol}} on Linea",
       "select_method": "Select method"
     },
     "card_home": {
