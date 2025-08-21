@@ -427,12 +427,8 @@ export const selectIsSubmittingTx = createSelector(
 export const selectIsUnifiedSwapsEnabled = createSelector(
   selectBridgeFeatureFlags,
   selectChainId,
-  (bridgeFeatureFlags, chainId) => {
-    if (
-      isUnifiedSwapsEnvVarEnabled() &&
-      bridgeFeatureFlags.chains[formatChainIdToCaip(chainId)]
-        ?.isUnifiedUIEnabled
-    ) {
+  () => {
+    if (isUnifiedSwapsEnvVarEnabled()) {
       return true;
     }
     return false;
