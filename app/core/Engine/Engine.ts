@@ -435,6 +435,7 @@ export class Engine {
           chainId,
           endpointUrl,
           error,
+          infuraProjectId,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
               .addProperties(properties)
@@ -452,6 +453,7 @@ export class Engine {
           chainId,
           endpointUrl,
           error,
+          infuraProjectId,
           trackEvent: ({ event, properties }) => {
             const metricsEvent = MetricsEventBuilder.createEventBuilder(event)
               .addProperties(properties)
