@@ -2055,11 +2055,30 @@ export class HyperLiquidProvider implements IPerpsProvider {
         });
 
         // Parse the rates (these already include all discounts!)
+        const perpsTakerRate = parseFloat(userFees.feeSchedule.cross);
+        const perpsMakerRate = parseFloat(userFees.feeSchedule.add);
+        const spotTakerRate = parseFloat(userFees.feeSchedule.spotCross);
+        const spotMakerRate = parseFloat(userFees.feeSchedule.spotAdd);
+
+        // Validate all rates are valid numbers before caching
+        if (
+          isNaN(perpsTakerRate) ||
+          isNaN(perpsMakerRate) ||
+          isNaN(spotTakerRate) ||
+          isNaN(spotMakerRate) ||
+          perpsTakerRate < 0 ||
+          perpsMakerRate < 0 ||
+          spotTakerRate < 0 ||
+          spotMakerRate < 0
+        ) {
+          throw new Error('Invalid fee rates received from API');
+        }
+
         const rates = {
-          perpsTakerRate: parseFloat(userFees.feeSchedule.cross),
-          perpsMakerRate: parseFloat(userFees.feeSchedule.add),
-          spotTakerRate: parseFloat(userFees.feeSchedule.spotCross),
-          spotMakerRate: parseFloat(userFees.feeSchedule.spotAdd),
+          perpsTakerRate,
+          perpsMakerRate,
+          spotTakerRate,
+          spotMakerRate,
           timestamp: Date.now(),
           ttl: 5 * 60 * 1000, // 5 minutes
         };

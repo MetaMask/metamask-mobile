@@ -2893,6 +2893,125 @@ describe('HyperLiquidProvider', () => {
         expect(result).toBeInstanceOf(Promise);
       });
 
+      it('should fetch user-specific fee rates when wallet is connected', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        // Mock user fees API response with discounted rates
+        mockClientService.getInfoClient().userFees.mockResolvedValue({
+          feeSchedule: {
+            cross: '0.0003', // 0.03% - discounted taker rate
+            add: '0.0001', // 0.01% - discounted maker rate
+            spotCross: '0.0003',
+            spotAdd: '0.0001',
+          },
+        });
+
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        expect(result.feeRate).toBe(0.0003); // Discounted rate
+        expect(result.feeAmount).toBeCloseTo(30, 5);
+      });
+
+      it('should cache user fee rates and reuse them', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        mockClientService.getInfoClient().userFees.mockResolvedValue({
+          feeSchedule: {
+            cross: '0.0003',
+            add: '0.0001',
+            spotCross: '0.0003',
+            spotAdd: '0.0001',
+          },
+        });
+
+        // First call - should fetch from API
+        await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        expect(
+          mockClientService.getInfoClient().userFees,
+        ).toHaveBeenCalledTimes(1);
+
+        // Second call - should use cache
+        await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Should not call API again
+        expect(
+          mockClientService.getInfoClient().userFees,
+        ).toHaveBeenCalledTimes(1);
+      });
+
+      it('should fall back to base rates when API returns invalid fee rates', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        // Mock user fees API response with invalid rates that will produce NaN
+        mockClientService.getInfoClient().userFees.mockResolvedValue({
+          feeSchedule: {
+            cross: 'invalid', // Will cause parseFloat to return NaN
+            add: 'invalid',
+            spotCross: 'invalid',
+            spotAdd: 'invalid',
+          },
+        });
+
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Should fall back to base rates due to validation failure
+        expect(result.feeRate).toBe(0.00045); // Base taker rate
+        expect(result.feeAmount).toBe(45);
+      });
+
+      it('should fall back to base rates when API returns negative fee rates', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        // Mock user fees API response with negative rates
+        mockClientService.getInfoClient().userFees.mockResolvedValue({
+          feeSchedule: {
+            cross: '-0.0003', // Negative rate - invalid
+            add: '0.0001',
+            spotCross: '0.0003',
+            spotAdd: '0.0001',
+          },
+        });
+
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Should fall back to base rates due to validation failure
+        expect(result.feeRate).toBe(0.00045); // Base taker rate
+        expect(result.feeAmount).toBe(45);
+      });
+
       describe('placeholder methods for future implementation', () => {
         it('should have getUserVolume method returning 0', async () => {
           // Access private method for testing
