@@ -66,6 +66,12 @@ export type Position = {
   outcomeId: string;
   size: number;
   price: number;
+  conditionId: string;
+  icon: string;
+  title: string;
+  outcome: string;
+  cashPnl: number;
+  currentValue: number;
 };
 
 export interface IPredictProvider {
@@ -79,7 +85,15 @@ export interface IPredictProvider {
   getMarkets(): Promise<Market[]>;
 
   // User positions
-  getPositions(): Promise<Position[]>;
+  getPositions({
+    address,
+    limit,
+    offset,
+  }: {
+    address: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Position[]>;
 
   // Order management
   prepareOrder(params: OrderParams): Promise<Order>;

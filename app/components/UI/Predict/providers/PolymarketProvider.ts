@@ -10,6 +10,7 @@ import {
   OrderResult,
   Position,
 } from '../types';
+import { getPolymarketEndpoints } from '../utils/polymarketUtils';
 
 export type SignTypedMessageFn = (
   params: TypedMessageParams,
@@ -19,14 +20,9 @@ export type SignTypedMessageFn = (
 export class PolymarketProvider implements IPredictProvider {
   readonly providerId = 'polymarket';
 
-  #signTypedMessage: SignTypedMessageFn;
   #isTestnet: boolean;
 
-  constructor(options: {
-    signTypedMessage: SignTypedMessageFn;
-    isTestnet?: boolean;
-  }) {
-    this.#signTypedMessage = options.signTypedMessage;
+  constructor(options: { isTestnet?: boolean }) {
     this.#isTestnet = options.isTestnet || false;
   }
 
@@ -44,9 +40,29 @@ export class PolymarketProvider implements IPredictProvider {
     return [];
   }
 
-  async getPositions(): Promise<Position[]> {
-    // TODO: Implement polymarket getPositions
-    return [];
+  async getPositions({
+    address,
+    limit = 10,
+    offset = 0,
+  }: {
+    address: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Position[]> {
+    const { DATA_API_ENDPOINT } = getPolymarketEndpoints(false);
+
+    const response = await fetch(
+      `${DATA_API_ENDPOINT}/positions?limit=${limit}&offset=${offset}&user=${address}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
+    );
+    const positionsData = await response.json();
+
+    return positionsData;
   }
 
   async prepareOrder(params: OrderParams): Promise<Order> {
@@ -56,7 +72,7 @@ export class PolymarketProvider implements IPredictProvider {
       params,
       result: {
         status: 'error',
-        messsage: 'Not implemented',
+        message: 'Not implemented',
       },
       transactions: [],
       isOffchainTrade: false,
@@ -67,7 +83,7 @@ export class PolymarketProvider implements IPredictProvider {
     // TODO: Implement polymarket submitOrderTrade
     return {
       status: 'error',
-      messsage: 'Not implemented',
+      message: 'Not implemented',
     };
   }
 }

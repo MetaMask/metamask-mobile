@@ -356,7 +356,14 @@ export class PredictController extends BaseController<
   async getPositions(): Promise<Position[]> {
     try {
       const provider = this.getActiveProvider();
-      const positions = await provider.getPositions();
+
+      const { AccountsController } = Engine.context;
+
+      const selectedAddress = AccountsController.getSelectedAccount().address;
+
+      const positions = await provider.getPositions({
+        address: selectedAddress,
+      });
 
       // Only update state if the provider call succeeded
       this.update((state) => {

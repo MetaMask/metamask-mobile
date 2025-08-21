@@ -19,6 +19,7 @@ import BottomSheet, {
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { useNavigation } from '@react-navigation/native';
 import PredictPosition from '../../components/PredictPosition';
+import { usePredictPositions } from '../../hooks/usePredictPositions';
 
 interface PredictTabViewProps {}
 
@@ -27,31 +28,13 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
   const navigation = useNavigation();
   const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const { positions } = usePredictPositions({
+    loadOnMount: true,
+  });
 
   const handleCloseBottomSheet = useCallback(() => {
     setIsBottomSheetVisible(false);
   }, []);
-
-  const positions = [
-    {
-      id: 1,
-      image: 'https://placeholder.com/42',
-      title: 'What price will ETH hit in August?',
-      position: 21.03,
-      price: 20,
-      change: 2.3,
-      outcome: '$4,2000',
-    },
-    {
-      id: 2,
-      image: 'https://placeholder.com/43',
-      title: 'Best AI model by the end of August?',
-      position: 79.89,
-      price: 80,
-      change: 8.3,
-      outcome: 'OpenAI',
-    },
-  ];
 
   const handleCashOut = useCallback(() => {
     // todo: cash out 💸
@@ -62,13 +45,14 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
       <View style={styles.marketListContainer}>
         {positions.map((position) => (
           <TouchableOpacity
+            key={position.conditionId}
             style={styles.marketEntry}
             onPress={() => {
               setIsBottomSheetVisible(true);
             }}
           >
             <PredictPosition
-              key={position.id}
+              key={position.conditionId}
               image={position.image}
               title={position.title}
               position={position.position}
@@ -96,11 +80,10 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
             </Text>
             {/* note: hardcoded example */}
             <PredictPosition
-              image={positions[0].image}
               title={positions[0].title}
-              position={positions[0].position}
+              position={positions[0].currentValue}
               price={positions[0].price}
-              change={positions[0].change}
+              change={positions[0].cashPnl}
               outcome={positions[0].outcome}
             />
           </BottomSheetHeader>
@@ -110,7 +93,7 @@ const PredictTabView: React.FC<PredictTabViewProps> = () => {
               color={TextColor.Default}
               style={styles.bottomSheetAmount}
             >
-              ${positions[0].position}
+              ${positions[0].currentValue}
             </Text>
           </View>
           <View style={styles.bottomSheetContent}>
