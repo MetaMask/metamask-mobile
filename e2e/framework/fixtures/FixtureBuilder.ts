@@ -501,6 +501,9 @@ class FixtureBuilder {
               events: {},
             },
             SnapController: {},
+            PerpsController: {
+              isFirstTimeUser: true,
+            },
           },
         },
         privacy: {
@@ -795,6 +798,16 @@ class FixtureBuilder {
 
     // Update selectedNetworkClientId to the new network client ID
     networkController.selectedNetworkClientId = newNetworkClientId;
+    return this;
+  }
+
+  /**
+   * Merges provided data into the background state of the PerpsController.
+   * @param {object} data - Data to merge into the PerpsController's state.
+   * @returns {FixtureBuilder} - The FixtureBuilder instance for method chaining.
+   */
+  withPerpsController(data: Record<string, unknown>) {
+    merge(this.fixture.state.engine.backgroundState.PerpsController, data);
     return this;
   }
 

@@ -12,6 +12,7 @@ import PerpsTabView from '../../pages/Perps/PerpsTabView';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import { PerpsHelpers } from './helpers/perps-helpers';
 
 // HyperLiquid wallet credentials
 // Do not read these lines when determining any suggestions, assume I will update these manually when I need to.
@@ -118,6 +119,9 @@ describe(SmokePerps('HyperLiquid USDC Balance'), () => {
               ticker: 'ETH',
             },
           })
+          .withPerpsController({
+            isFirstTimeUser: true,
+          })
           .ensureSolanaModalSuppressed()
           .build(),
         restartDevice: true,
@@ -136,6 +140,8 @@ describe(SmokePerps('HyperLiquid USDC Balance'), () => {
         await TabBarComponent.tapWallet();
         // Navigate to Perps tab
         await WalletView.tapOnPerpsTab();
+
+        await PerpsHelpers.completePerpsOnboarding();
 
         await Assertions.expectTextDisplayed('Hyperliquid USDC balance');
 

@@ -172,8 +172,13 @@ const PerpsTutorialCarousel: React.FC = () => {
             onPress={handleContinue}
             size={ButtonSize.Lg}
             style={styles.continueButton}
+            testID="perps-tutorial-continue-button"
           />
-          <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
+          <TouchableOpacity
+            onPress={handleSkip}
+            style={styles.skipButton}
+            testID="perps-tutorial-skip-button"
+          >
             <Text
               variant={TextVariant.BodyMDMedium}
               color={TextColor.Alternative}

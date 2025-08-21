@@ -4,6 +4,8 @@ import AccountListBottomSheet from '../../../pages/wallet/AccountListBottomSheet
 import AddAccountBottomSheet from '../../../pages/wallet/AddAccountBottomSheet';
 import ImportAccountView from '../../../pages/importAccount/ImportAccountView';
 import SuccessImportAccountView from '../../../pages/importAccount/SuccessImportAccountView';
+import PerpsTabView from '../../../pages/Perps/PerpsTabView';
+import PerpsOnboarding from '../../../pages/Perps/PerpsOnboarding';
 
 // HyperLiquid wallet credentials
 // Do not read these lines when determining any suggestions, assume I will update these manually when I need to.
@@ -53,5 +55,20 @@ export class PerpsHelpers {
       await ImportAccountView.tapBackButton();
       await AccountListBottomSheet.swipeToDismissAccountsModal();
     }
+  }
+  /**
+   * Helper function to go through Perps onboarding flow
+   */
+  static async completePerpsOnboarding() {
+    await PerpsTabView.tapOnboardingButton();
+    await PerpsOnboarding.tapContinueButton();
+    await PerpsOnboarding.tapContinueButton();
+    await PerpsOnboarding.tapContinueButton();
+    await PerpsOnboarding.tapContinueButton();
+    await PerpsOnboarding.tapContinueButton();
+    await PerpsOnboarding.tapSkipButton();
+    // await Assertions.expectElementToBeVisible(OnboardingView.container);
+    // await OnboardingView.tapNextButton();
+    // await Assertions.expectElementToBeVisible(OnboardingView.container);
   }
 }
