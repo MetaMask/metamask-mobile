@@ -274,6 +274,7 @@ const Routes = {
   },
   MULTICHAIN_ACCOUNTS: {
     ACCOUNT_DETAILS: 'MultichainAccountDetails',
+    ACCOUNT_GROUP_DETAILS: 'MultichainAccountGroupDetails',
     WALLET_DETAILS: 'MultichainWalletDetails',
     ACCOUNT_CELL_ACTIONS: 'MultichainAccountActions',
   },

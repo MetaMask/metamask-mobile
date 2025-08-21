@@ -149,6 +149,7 @@ import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBack
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
+import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
@@ -621,6 +622,25 @@ const MultichainAccountDetails = () => {
   );
 };
 
+const MultichainAccountGroupDetails = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
+        component={AccountGroupDetails}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const MultichainAccountDetailsActions = () => {
   const route = useRoute();
 
@@ -836,6 +856,10 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
           component={MultichainAccountDetails}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
+          component={MultichainAccountGroupDetails}
         />
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
