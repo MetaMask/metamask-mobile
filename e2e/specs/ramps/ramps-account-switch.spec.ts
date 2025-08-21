@@ -9,7 +9,7 @@ import AccountListBottomSheet from '../../pages/wallet/AccountListBottomSheet';
 import BuildQuoteView from '../../pages/Ramps/BuildQuoteView';
 import { SmokeTrade } from '../../tags';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { getRampsApiMocks } from '../../api-mocking/mock-responses/ramps-mocks';
+import { testSpecificMock } from '../../api-mocking/mock-responses/ramps-mocks';
 import { LocalNodeType } from '../../framework/types';
 import { Hardfork } from '../../seeder/anvil-manager';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
@@ -21,9 +21,6 @@ const anvilLocalNodeOptions = {
     'drive manage close raven tape average sausage pledge riot furnace august tip',
   chainId: 1,
 };
-
-// Get ramps API mocks from the dedicated mock file
-const rampsApiMocks = getRampsApiMocks();
 
 const setupRampsAccountSwitchTest = async (
   testFunction: () => Promise<void>,
@@ -41,7 +38,7 @@ const setupRampsAccountSwitchTest = async (
           options: anvilLocalNodeOptions,
         },
       ],
-      testSpecificMock: rampsApiMocks,
+      testSpecificMock,
     },
     async () => {
       await loginToApp();

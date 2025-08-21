@@ -14,6 +14,8 @@ import ImportTokensView from '../../pages/wallet/ImportTokenFlow/ImportTokensVie
 import TestHelpers from '../../helpers';
 import { getFixturesServerPort } from '../../framework/fixtures/FixtureUtils';
 import { MockApiEndpoint } from '../../framework';
+import { Mockttp } from 'mockttp';
+import { mockProxyGet } from '../../api-mocking/mockHelpers';
 
 const AAVE_TENDERLY_MAINNET_DETAILS = {
   address: '0x7Fc66500c84A76Ad7e9c93437bFc5Ac33E2DDaE9',
@@ -82,8 +84,12 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .withNetworkController(CustomNetworks.Tenderly.Mainnet)
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [TOKEN_RESPONSE],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockProxyGet(
+            mockServer,
+            TOKEN_RESPONSE.urlEndpoint,
+            TOKEN_RESPONSE.response,
+          );
         },
       },
       async () => {
@@ -113,8 +119,12 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [TOKEN_RESPONSE],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockProxyGet(
+            mockServer,
+            TOKEN_RESPONSE.urlEndpoint,
+            TOKEN_RESPONSE.response,
+          );
         },
       },
       async () => {
@@ -151,8 +161,12 @@ describe(SmokeNetworkAbstractions('Import Tokens'), () => {
           .withTokens([AAVE_TENDERLY_MAINNET_DETAILS])
           .build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [TOKEN_RESPONSE],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await mockProxyGet(
+            mockServer,
+            TOKEN_RESPONSE.urlEndpoint,
+            TOKEN_RESPONSE.response,
+          );
         },
       },
       async () => {
