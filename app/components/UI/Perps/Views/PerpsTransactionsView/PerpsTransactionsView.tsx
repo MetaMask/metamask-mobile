@@ -44,6 +44,8 @@ import {
   transformOrdersToTransactions,
 } from '../../utils/transactionTransforms';
 import { styleSheet } from './PerpsTransactionsView.styles';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 
 const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -56,6 +58,12 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
 
   // Ref for FlashList to control scrolling
   const flashListRef = useRef(null);
+
+  // Track screen load performance
+  usePerpsScreenTracking({
+    screenName: PerpsMeasurementName.TRANSACTION_HISTORY_SCREEN_LOADED,
+    dependencies: [flatListData.length > 0],
+  });
 
   const { isConnected } = usePerpsConnection();
 
@@ -263,12 +271,14 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     }
 
     if (item.order) {
-      const statusStyle =
-        item.order.statusType === 'filled'
-          ? styles.statusFilled
-          : item.order.statusType === 'canceled'
-          ? styles.statusCanceled
-          : styles.statusPending;
+      let statusStyle;
+      if (item.order.statusType === 'filled') {
+        statusStyle = styles.statusFilled;
+      } else if (item.order.statusType === 'canceled') {
+        statusStyle = styles.statusCanceled;
+      } else {
+        statusStyle = styles.statusPending;
+      }
 
       return (
         <Text variant={TextVariant.BodySM} style={statusStyle}>

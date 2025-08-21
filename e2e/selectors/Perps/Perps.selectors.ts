@@ -110,10 +110,25 @@ export const getPerpsPayWithRowSelector = {
 // ========================================
 
 export const PerpsMarketListViewSelectorsIDs = {
-  TUTORIAL_BUTTON: 'tutorial-button',
-  SEARCH_TOGGLE_BUTTON: 'search-toggle-button',
-  CLOSE_BUTTON: 'close-button',
-  SEARCH_CLEAR_BUTTON: 'search-clear-button',
+  TUTORIAL_BUTTON: 'perps-market-list-tutorial-button',
+  SEARCH_TOGGLE_BUTTON: 'perps-market-list-search-toggle-button',
+  CLOSE_BUTTON: 'perps-market-list-close-button',
+  SEARCH_CLEAR_BUTTON: 'perps-market-list-search-clear-button',
+  SKELETON_ROW: 'perps-market-list-skeleton-row',
+};
+
+// ========================================
+// PERPS MARKET ROW ITEM SELECTORS
+// ========================================
+
+export const PerpsMarketRowItemSelectorsIDs = {
+  ROW_ITEM: 'perps-market-row-item',
+};
+
+// Helper functions for dynamic market row selectors
+export const getPerpsMarketRowItemSelector = {
+  rowItem: (symbol: string) =>
+    `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${symbol}`,
 };
 
 // ========================================
@@ -155,6 +170,7 @@ export const PerpsPositionsViewSelectorsIDs = {
 
 export const PerpsPositionDetailsViewSelectorsIDs = {
   CANDLESTICK_CHART: 'candlestick-chart',
+  TRADINGVIEW_CHART: 'tradingview-chart',
   // Bottom sheets
   TPSL_BOTTOMSHEET: 'perps-tpsl-bottomsheet',
   CLOSE_POSITION_BOTTOMSHEET: 'perps-close-position-bottomsheet',
@@ -165,6 +181,18 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
   CHART_CANDLES: 'chart-candles',
   CHART_CROSSHAIR: 'chart-crosshair',
   CHART_TOOLTIP: 'chart-tooltip',
+};
+
+// ========================================
+// TRADINGVIEW CHART SELECTORS
+// ========================================
+
+export const TradingViewChartSelectorsIDs = {
+  // Chart container and webview
+  CONTAINER: 'tradingview-chart-container',
+  WEBVIEW: 'tradingview-chart-webview',
+  ERROR_CONTAINER: 'tradingview-chart-error',
+  LOADING: 'tradingview-chart-loading',
 };
 
 // Helper functions for dynamic view selectors
@@ -204,6 +232,7 @@ export const PerpsWithdrawViewSelectorsIDs = {
 
 export const PerpsMarketDetailsViewSelectorsIDs = {
   CONTAINER: 'perps-market-details-view',
+  SCROLL_VIEW: 'perps-market-details-scroll-view',
   LOADING: 'perps-market-details-loading',
   ERROR: 'perps-market-details-error',
   HEADER: 'perps-market-header',
@@ -213,6 +242,7 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   STATISTICS_OPEN_INTEREST: 'perps-statistics-open-interest',
   STATISTICS_FUNDING_RATE: 'perps-statistics-funding-rate',
   STATISTICS_FUNDING_COUNTDOWN: 'perps-statistics-funding-countdown',
+  ADD_FUNDS_BUTTON: 'perps-market-details-add-funds-button',
   LONG_BUTTON: 'perps-market-details-long-button',
   SHORT_BUTTON: 'perps-market-details-short-button',
   CANDLE_PERIOD_BOTTOM_SHEET: 'perps-market-candle-period-bottom-sheet',
@@ -311,8 +341,52 @@ export const PerpsBottomSheetTooltipSelectorsIDs = {
 
 export const PerpsOrderViewSelectorsIDs = {
   BOTTOM_SHEET_TOOLTIP: 'perps-order-view-bottom-sheet-tooltip',
+  NOTIFICATION_TOOLTIP: 'perps-order-view-notification-tooltip',
   LEVERAGE_INFO_ICON: 'perps-order-view-leverage-info-icon',
   MARGIN_INFO_ICON: 'perps-order-view-margin-info-icon',
   LIQUIDATION_PRICE_INFO_ICON: 'perps-order-view-liquidation-price-info-icon',
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
+};
+
+// ========================================
+// PERPS OPEN ORDER CARD SELECTORS
+// ========================================
+
+export const PerpsOpenOrderCardSelectorsIDs = {
+  CARD: 'perps-open-order-card',
+  CANCEL_BUTTON: 'perps-open-order-card-cancel-button',
+  EDIT_BUTTON: 'perps-open-order-card-edit-button',
+};
+
+// ========================================
+// PERPS MARKET TABS SELECTORS
+// ========================================
+
+export const PerpsMarketTabsSelectorsIDs = {
+  // Container
+  CONTAINER: 'perps-market-tabs-container',
+
+  // Tab bar and tabs
+  TAB_BAR: 'perps-market-tabs-tab-bar',
+  POSITION_TAB: 'perps-market-tabs-position-tab',
+  ORDERS_TAB: 'perps-market-tabs-orders-tab',
+  STATISTICS_TAB: 'perps-market-tabs-statistics-tab',
+
+  // Tab content areas
+  TAB_CONTENT: 'perps-market-tabs-tab-content',
+  POSITION_CONTENT: 'perps-market-tabs-position-content',
+  ORDERS_CONTENT: 'perps-market-tabs-orders-content',
+  STATISTICS_CONTENT: 'perps-market-tabs-statistics-content',
+
+  // Empty states
+  ORDERS_EMPTY_STATE: 'perps-market-tabs-orders-empty-state',
+  ORDERS_EMPTY_ICON: 'perps-market-tabs-orders-empty-icon',
+  ORDERS_EMPTY_TEXT: 'perps-market-tabs-orders-empty-text',
+
+  // Statistics-only view
+  STATISTICS_ONLY_TITLE: 'perps-market-tabs-statistics-only-title',
+
+  // Loading states
+  SKELETON_TAB_BAR: 'perps-market-tabs-skeleton-tab-bar',
+  SKELETON_CONTENT: 'perps-market-tabs-skeleton-content',
 };

@@ -18,7 +18,10 @@ import {
 } from '../../../../../../selectors/tokenBalancesController';
 import { isTestNet } from '../../../../../../util/networks';
 import { createDeepEqualSelector } from '../../../../../../selectors/util';
-import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
+import {
+  selectSelectedInternalAccountAddress,
+  selectSelectedInternalAccountId,
+} from '../../../../../../selectors/accountsController';
 import { selectTokenMarketData } from '../../../../../../selectors/tokenRatesController';
 import {
   selectCurrencyRates,
@@ -85,6 +88,7 @@ const selectSelectedEVMAccountTokens = createSelector(
   [
     (state: RootState) => selectEvmTokens(state, true),
     selectSelectedInternalAccountAddress,
+    selectSelectedInternalAccountId,
     selectTokenMarketData,
     selectTokensBalances,
     selectNetworkConfigurations,
@@ -96,6 +100,7 @@ const selectSelectedEVMAccountTokens = createSelector(
   (
     evmTokens,
     selectedAccountAddress: string | undefined,
+    selectedAccountId: string | undefined,
     multiChainMarketData,
     multiChainTokenBalance,
     networkConfigurationsByChainId,
@@ -155,6 +160,7 @@ const selectSelectedEVMAccountTokens = createSelector(
 
         return {
           ...token,
+          accountId: selectedAccountId,
           balance: balance || '0',
           balanceFiat: balanceFiat?.toString() || '0',
           isSelected,

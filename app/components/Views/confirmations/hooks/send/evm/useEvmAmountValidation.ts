@@ -40,7 +40,7 @@ export const validateAmountFn = ({
   let weiBalance;
   if (isNativeToken(asset)) {
     const accountAddress = Object.keys(accounts).find(
-      (address) => address.toLowerCase() === from.toLowerCase(),
+      (address) => address?.toLowerCase() === from?.toLowerCase(),
     ) as Hex;
     const account = accounts[accountAddress];
     // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
@@ -52,7 +52,7 @@ export const validateAmountFn = ({
     }
     weiBalance = hexToBN(account?.balance ?? '0');
   } else {
-    weiValue = toTokenMinimalUnit(amount, asset.decimals);
+    weiValue = toTokenMinimalUnit(amount, asset.decimals ?? 0);
     weiBalance = hexToBN(contractBalances[asset.address as Hex]);
   }
   if (weiBalance.cmp(weiValue) === -1) {

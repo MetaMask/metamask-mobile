@@ -461,6 +461,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -567,6 +568,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -673,6 +675,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -779,6 +782,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -885,6 +889,7 @@ exports[`AssetOverview should render correctly 1`] = `
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1625,6 +1630,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1731,6 +1737,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1837,6 +1844,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -1943,6 +1951,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -2049,6 +2058,7 @@ exports[`AssetOverview should render native balances even if there are no accoun
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -2825,6 +2835,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -2931,6 +2942,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3037,6 +3049,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3143,6 +3156,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",
@@ -3249,6 +3263,7 @@ exports[`AssetOverview should render native balances when non evm network is sel
               />
               <Text
                 accessibilityRole="text"
+                numberOfLines={1}
                 style={
                   {
                     "color": "#121314",

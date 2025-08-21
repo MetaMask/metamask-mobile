@@ -95,6 +95,7 @@ import migration91 from './091';
 import migration92 from './092';
 import migration93 from './093';
 import migration94 from './094';
+import migration95 from './095';
 import migration96 from './096';
 
 // Add migrations above this line
@@ -207,6 +208,7 @@ export const migrationList: MigrationsList = {
   92: migration92,
   93: migration93,
   94: migration94,
+  95: migration95,
   96: migration96,
 };
 

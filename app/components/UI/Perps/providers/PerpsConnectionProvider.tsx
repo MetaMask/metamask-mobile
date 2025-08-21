@@ -10,6 +10,8 @@ import React, {
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import { strings } from '../../../../../locales/i18n';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
+import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
 
 interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -43,11 +45,25 @@ export const PerpsConnectionProvider: React.FC<
   const [error, setError] = useState<string | null>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout>();
 
+  // Enable deposit status monitoring and toasts at the provider level
+  // This ensures it runs only once for all Perps screens
+  usePerpsDepositStatus();
+
   // Poll connection state to sync with singleton
   useEffect(() => {
     const updateState = () => {
       const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
+      setConnectionState((prevState) => {
+        // Only update if state has actually changed
+        if (
+          prevState.isConnected !== state.isConnected ||
+          prevState.isConnecting !== state.isConnecting ||
+          prevState.isInitialized !== state.isInitialized
+        ) {
+          return state;
+        }
+        return prevState;
+      });
     };
 
     // Poll every 100ms for state changes
@@ -66,7 +82,17 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.connect();
       const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
+      setConnectionState((prevState) => {
+        // Only update if state has actually changed
+        if (
+          prevState.isConnected !== state.isConnected ||
+          prevState.isConnecting !== state.isConnecting ||
+          prevState.isInitialized !== state.isInitialized
+        ) {
+          return state;
+        }
+        return prevState;
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Unknown connection error';
@@ -79,7 +105,17 @@ export const PerpsConnectionProvider: React.FC<
     try {
       await PerpsConnectionManager.disconnect();
       const state = PerpsConnectionManager.getConnectionState();
-      setConnectionState(state);
+      setConnectionState((prevState) => {
+        // Only update if state has actually changed
+        if (
+          prevState.isConnected !== state.isConnected ||
+          prevState.isConnecting !== state.isConnecting ||
+          prevState.isInitialized !== state.isInitialized
+        ) {
+          return state;
+        }
+        return prevState;
+      });
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : 'Unknown disconnection error';
@@ -103,7 +139,17 @@ export const PerpsConnectionProvider: React.FC<
       try {
         await PerpsConnectionManager.connect();
         const state = PerpsConnectionManager.getConnectionState();
-        setConnectionState(state);
+        setConnectionState((prevState) => {
+          // Only update if state has actually changed
+          if (
+            prevState.isConnected !== state.isConnected ||
+            prevState.isConnecting !== state.isConnecting ||
+            prevState.isInitialized !== state.isInitialized
+          ) {
+            return state;
+          }
+          return prevState;
+        });
       } catch (err) {
         const errorMessage =
           err instanceof Error ? err.message : 'Unknown connection error';
@@ -144,6 +190,20 @@ export const PerpsConnectionProvider: React.FC<
       resetError,
     ],
   );
+
+  // Show skeleton loading UI while connection is initializing
+  // This prevents components from trying to load data before the connection is ready
+  // Don't show skeleton if there's an error (let the child components handle it)
+  if (
+    (connectionState.isConnecting || !connectionState.isInitialized) &&
+    !error
+  ) {
+    return (
+      <PerpsConnectionContext.Provider value={contextValue}>
+        <PerpsLoadingSkeleton />
+      </PerpsConnectionContext.Provider>
+    );
+  }
 
   return (
     <PerpsConnectionContext.Provider value={contextValue}>
