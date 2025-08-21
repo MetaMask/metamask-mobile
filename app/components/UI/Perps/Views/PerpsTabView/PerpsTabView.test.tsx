@@ -534,12 +534,12 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      // Should show network error
+      // Should show connection failed error (PerpsTabView always uses CONNECTION_FAILED)
       expect(
-        screen.getByText(strings('perps.errors.networkError.title')),
+        screen.getByText(strings('perps.errors.connectionFailed.title')),
       ).toBeOnTheScreen();
       expect(
-        screen.getByText(strings('perps.errors.networkError.description')),
+        screen.getByText(strings('perps.errors.connectionFailed.description')),
       ).toBeOnTheScreen();
     });
 

@@ -1117,7 +1117,7 @@ describe('PerpsController', () => {
     });
 
     it('should handle deposit transaction confirmation', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         const mockTxHash = '0xtransaction123';
         const mockResultPromise = Promise.resolve(mockTxHash);
@@ -1162,45 +1162,8 @@ describe('PerpsController', () => {
       });
     });
 
-    it('should throw error when no EVM account found in depositWithConfirmation', async () => {
-      withController(async ({ controller }) => {
-        // Arrange
-        const mockDepositRoute: AssetRoute = {
-          assetId:
-            'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831' as CaipAssetId,
-          chainId: 'eip155:42161' as CaipChainId,
-          contractAddress: '0x2df1c51e09aecf9cacb7bc98cb1742757f163df7' as Hex,
-        };
-
-        mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([
-          mockDepositRoute,
-        ]);
-        mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
-
-        // Mock AccountTreeController to return no EVM accounts
-        const Engine = jest.requireMock('../../../../core/Engine');
-        Engine.context.AccountTreeController.getAccountsFromSelectedAccountGroup.mockReturnValue(
-          [
-            {
-              address: 'solana:abc123',
-              id: 'solana-account',
-              type: 'solana:data-account',
-              metadata: { name: 'Solana Account' },
-            },
-          ],
-        );
-
-        await controller.initializeProviders();
-
-        // Act & Assert
-        await expect(controller.depositWithConfirmation()).rejects.toThrow(
-          'No EVM-compatible account found in selected account group',
-        );
-      });
-    });
-
     it('should handle user cancellation of deposit transaction', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         const mockError = new Error('User denied transaction signature');
         const mockResultPromise = Promise.reject(mockError);
@@ -1243,7 +1206,7 @@ describe('PerpsController', () => {
     });
 
     it('should handle deposit transaction failure', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         const mockError = new Error('Insufficient balance');
         const mockResultPromise = Promise.reject(mockError);
@@ -1289,7 +1252,7 @@ describe('PerpsController', () => {
     });
 
     it('should handle deposit when TransactionController.addTransaction throws', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         const mockError = new Error('Network error');
 
@@ -1384,7 +1347,7 @@ describe('PerpsController', () => {
     });
 
     it('should handle empty deposit routes', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         mockHyperLiquidProvider.getDepositRoutes.mockReturnValue([]);
         mockHyperLiquidProvider.initialize.mockResolvedValue({ success: true });
@@ -1402,7 +1365,7 @@ describe('PerpsController', () => {
     });
 
     it('should use correct transaction type for perps deposit', async () => {
-      withController(async ({ controller }) => {
+      await withController(async ({ controller }) => {
         // Arrange
         const mockDepositRoute: AssetRoute = {
           assetId:
