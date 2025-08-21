@@ -12,6 +12,11 @@ jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),
 }));
 
+// Mock i18n
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key) => key),
+}));
+
 const mockUseTheme = jest.fn();
 jest.mock('../../../../../util/theme', () => ({
   useTheme: mockUseTheme,
@@ -27,6 +32,28 @@ jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
   usePerpsAssetMetadata: jest.fn().mockReturnValue({
     assetUrl: 'https://example.com/eth.png',
   }),
+}));
+
+// Mock stream provider
+jest.mock('../../providers/PerpsStreamManager', () => ({
+  usePerpsStream: jest.fn(() => ({
+    subscribeToPrices: jest.fn(() => jest.fn()),
+    subscribeToPositions: jest.fn(() => jest.fn()),
+    subscribeToAccount: jest.fn(() => jest.fn()),
+    subscribeToOrders: jest.fn(() => jest.fn()),
+    subscribeToFills: jest.fn(() => jest.fn()),
+    connect: jest.fn(),
+    disconnect: jest.fn(),
+    isConnected: false,
+  })),
+  PerpsStreamProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
+}));
+
+// Mock stream hooks
+jest.mock('../../hooks/stream', () => ({
+  usePerpsLivePrices: jest.fn(() => ({})),
+  usePerpsLivePositions: jest.fn(() => ({})),
 }));
 
 // Mock the new hooks from ../../hooks
@@ -152,22 +179,32 @@ describe('PerpsPositionCard', () => {
 
   describe('Component Rendering', () => {
     it('renders position card with all sections', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      // Act - Render expanded to show all sections
+      render(<PerpsPositionCard position={mockPosition} expanded />);
 
       // Assert - Header section
       expect(screen.getByText(/10x\s+long/)).toBeOnTheScreen();
       expect(screen.getByText('2.50 ETH')).toBeOnTheScreen();
       expect(screen.getByText('$5,000.00')).toBeOnTheScreen();
 
-      // Assert - Body section
-      expect(screen.getByText('Entry Price')).toBeOnTheScreen();
+      // Assert - Body section - using string keys since strings() mock returns keys
+      expect(
+        screen.getByText('perps.position.card.entry_price'),
+      ).toBeOnTheScreen();
       expect(screen.getByText('$2,000.00')).toBeOnTheScreen();
-      expect(screen.getByText('Market Price')).toBeOnTheScreen();
-      expect(screen.getByText('Liquidity Price')).toBeOnTheScreen();
-      expect(screen.getByText('Take Profit')).toBeOnTheScreen();
-      expect(screen.getByText('Stop Loss')).toBeOnTheScreen();
-      expect(screen.getByText('Margin')).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.market_price'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.liquidation_price'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.take_profit'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText('perps.position.card.stop_loss'),
+      ).toBeOnTheScreen();
+      expect(screen.getByText('perps.position.card.margin')).toBeOnTheScreen();
       expect(screen.getByText('$500.00')).toBeOnTheScreen();
 
       // Assert - Footer section
@@ -198,22 +235,22 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={mockPosition} />);
 
-      // Assert
-      expect(screen.getByText(/\+\$250\.00.*\+5\.00%/)).toBeOnTheScreen();
+      // Assert - ROE is 12.5 * 100 = 1250%
+      expect(screen.getByText(/\+\$250\.00.*\+1250\.0%/)).toBeOnTheScreen();
     });
 
     it('handles missing PnL percentage data', () => {
-      // Arrange
-      const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
-        '../../utils/pnlCalculations',
-      );
-      calculatePnLPercentageFromUnrealized.mockReturnValueOnce(undefined);
+      // Arrange - Set returnOnEquity to empty string to test fallback
+      const positionWithoutROE = {
+        ...mockPosition,
+        returnOnEquity: '', // Use empty string instead of undefined
+      };
 
       // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      render(<PerpsPositionCard position={positionWithoutROE} />);
 
-      // Assert
-      expect(screen.getByText(/\+\$250\.00.*0\.00%/)).toBeOnTheScreen();
+      // Assert - Should show 0% when ROE is missing
+      expect(screen.getByText(/\+\$250\.00.*\+0\.0%/)).toBeOnTheScreen();
     });
 
     it('handles missing liquidation price', () => {
@@ -380,6 +417,7 @@ describe('PerpsPositionCard', () => {
       const positionWithZeroPnl = {
         ...mockPosition,
         unrealizedPnl: '0.00',
+        returnOnEquity: '0',
       };
       const { calculatePnLPercentageFromUnrealized } = jest.requireMock(
         '../../utils/pnlCalculations',
@@ -389,8 +427,8 @@ describe('PerpsPositionCard', () => {
       // Act
       render(<PerpsPositionCard position={positionWithZeroPnl} />);
 
-      // Assert
-      expect(screen.getByText(/\$0\.00.*\+0\.00%/)).toBeOnTheScreen();
+      // Assert - ROE is shown as 0.0% (not 0.00%)
+      expect(screen.getByText(/\$0\.00.*\+0\.0%/)).toBeOnTheScreen();
     });
 
     it('handles position with empty liquidation price', () => {
@@ -408,17 +446,17 @@ describe('PerpsPositionCard', () => {
     });
 
     it('renders all body items in correct order', () => {
-      // Act
-      render(<PerpsPositionCard position={mockPosition} />);
+      // Act - Render with expanded=true to show body items
+      render(<PerpsPositionCard position={mockPosition} expanded />);
 
       // Assert - Check that all 6 body items are present
       const bodyLabels = [
-        'Entry Price',
-        'Market Price',
-        'Liquidity Price',
-        'Take Profit',
-        'Stop Loss',
-        'Margin',
+        'perps.position.card.entry_price',
+        'perps.position.card.market_price',
+        'perps.position.card.liquidation_price',
+        'perps.position.card.take_profit',
+        'perps.position.card.stop_loss',
+        'perps.position.card.margin',
       ];
 
       bodyLabels.forEach((label) => {
