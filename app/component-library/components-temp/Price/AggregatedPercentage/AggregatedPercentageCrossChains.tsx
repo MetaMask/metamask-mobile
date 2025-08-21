@@ -19,7 +19,7 @@ import {
 import { getFormattedAmountChange, getPercentageTextColor } from './utils';
 import { AggregatedPercentageCrossChainsProps } from './AggregatedPercentageCrossChains.types';
 import { toChecksumAddress } from '../../../../util/address';
-import { usePerpsBalance } from '../../../../components/UI/Perps/hooks/usePerpsBalance';
+import { usePerpsPortfolioBalance } from '../../../../components/UI/Perps/hooks/usePerpsPortfolioBalance';
 import { selectPerpsEnabledFlag } from '../../../../components/UI/Perps';
 import { selectIsEvmNetworkSelected } from '../../../../selectors/multichainNetworkController';
 export const getCalculatedTokenAmount1dAgo = (
@@ -43,8 +43,8 @@ const AggregatedPercentageCrossChains = ({
   );
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  // Get Perps balance data in display currency
-  const { perpsBalance, perpsBalance1dAgo } = usePerpsBalance();
+  // Get Perps balance data in display currency - from persisted state, no stream needed
+  const { perpsBalance, perpsBalance1dAgo } = usePerpsPortfolioBalance();
 
   const totalFiat1dAgoCrossChains = useMemo(() => {
     const getPerChainTotalFiat1dAgo = (

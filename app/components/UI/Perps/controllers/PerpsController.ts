@@ -106,9 +106,17 @@ export type PerpsControllerState = {
   // Account data (persisted) - using HyperLiquid property names
   positions: Position[];
   accountState: AccountState | null;
-  extendedAccountState: {
-    accountValue1dAgo?: string;
-  } | null;
+
+  // Perps balances per provider for portfolio display
+  perpsBalances: {
+    [provider: string]: {
+      totalValue: string; // Current total account value (cash + positions) in USD
+      unrealizedPnl: string; // Current P&L from open positions in USD
+      accountValue1dAgo: string; // Account value 24h ago for daily change calculation in USD
+      positions: Position[]; // Current open positions
+      lastUpdated: number; // Timestamp of last update
+    };
+  };
 
   // Order management
   pendingOrders: OrderParams[];
@@ -150,7 +158,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
   connectionStatus: 'disconnected',
   positions: [],
   accountState: null,
-  extendedAccountState: null,
+  perpsBalances: {},
   pendingOrders: [],
   depositInProgress: false,
   lastDepositResult: null,
@@ -173,7 +181,7 @@ export const getDefaultPerpsControllerState = (): PerpsControllerState => ({
 const metadata = {
   positions: { persist: true, anonymous: false },
   accountState: { persist: true, anonymous: false },
-  extendedAccountState: { persist: true, anonymous: false },
+  perpsBalances: { persist: true, anonymous: false },
   isTestnet: { persist: true, anonymous: false },
   activeProvider: { persist: true, anonymous: false },
   connectionStatus: { persist: false, anonymous: false },
@@ -926,6 +934,22 @@ export class PerpsController extends BaseController<
       // Only update state if the provider call succeeded
       this.update((state) => {
         state.positions = positions;
+        // Update perps balances if we have account state
+        if (state.accountState) {
+          const providerKey = this.state.activeProvider;
+          // Preserve existing historical data if available
+          const existingBalance = state.perpsBalances[providerKey];
+          state.perpsBalances[providerKey] = {
+            totalValue: state.accountState.totalValue || '0',
+            unrealizedPnl: state.accountState.unrealizedPnl || '0',
+            accountValue1dAgo:
+              existingBalance?.accountValue1dAgo ||
+              state.accountState.totalValue ||
+              '0',
+            positions,
+            lastUpdated: Date.now(),
+          };
+        }
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
       });
@@ -1025,14 +1049,12 @@ export class PerpsController extends BaseController<
         }),
       ]);
 
-      let historicalPortfolioToUse = historicalPortfolio;
       // fallback to the current account total value if possible
-      if (!historicalPortfolio?.accountValue1dAgo) {
-        historicalPortfolioToUse = {
+      const historicalPortfolioToUse: HistoricalPortfolioResult =
+        historicalPortfolio ?? {
           accountValue1dAgo: accountState.totalValue || '0',
           timestamp: 0,
         };
-      }
 
       // Only update state if the provider call succeeded
       DevLogger.log(
@@ -1042,12 +1064,15 @@ export class PerpsController extends BaseController<
 
       this.update((state) => {
         state.accountState = accountState;
-        // Update extended account state with historical data
-        if (!state.extendedAccountState) {
-          state.extendedAccountState = {};
-        }
-        state.extendedAccountState.accountValue1dAgo =
-          historicalPortfolioToUse?.accountValue1dAgo;
+        // Update perps balances for the active provider
+        const providerKey = this.state.activeProvider;
+        state.perpsBalances[providerKey] = {
+          totalValue: accountState.totalValue || '0',
+          unrealizedPnl: accountState.unrealizedPnl || '0',
+          accountValue1dAgo: historicalPortfolioToUse.accountValue1dAgo || '0',
+          positions: state.positions,
+          lastUpdated: Date.now(),
+        };
         state.lastUpdateTimestamp = Date.now();
         state.lastError = null; // Clear any previous errors
       });
@@ -1099,15 +1124,8 @@ export class PerpsController extends BaseController<
       const provider = this.getActiveProvider();
       const result = await provider.getHistoricalPortfolio(params);
 
-      // Update the extended account state with the retrieved data
-      this.update((state) => {
-        if (!state.extendedAccountState) {
-          state.extendedAccountState = {};
-        }
-        state.extendedAccountState.accountValue1dAgo = result.accountValue1dAgo;
-        state.lastUpdateTimestamp = Date.now();
-        state.lastError = null; // Clear any previous errors
-      });
+      // Return the result without storing it in state
+      // Historical data can be fetched when needed
 
       return result;
     } catch (error) {
@@ -1433,6 +1451,33 @@ export class PerpsController extends BaseController<
   subscribeToAccount(params: SubscribeAccountParams): () => void {
     const provider = this.getActiveProvider();
     return provider.subscribeToAccount(params);
+  }
+
+  /**
+   * Update perps balances for the current provider
+   * Called when account state or positions change
+   */
+  updatePerpsBalances(
+    accountState: AccountState,
+    positions: Position[],
+    accountValue1dAgo?: string,
+  ): void {
+    const providerKey = this.state.activeProvider;
+    this.update((state) => {
+      // Preserve existing historical data if not provided
+      const existingBalance = state.perpsBalances[providerKey];
+      state.perpsBalances[providerKey] = {
+        totalValue: accountState.totalValue || '0',
+        unrealizedPnl: accountState.unrealizedPnl || '0',
+        accountValue1dAgo:
+          accountValue1dAgo ||
+          existingBalance?.accountValue1dAgo ||
+          accountState.totalValue ||
+          '0',
+        positions,
+        lastUpdated: Date.now(),
+      };
+    });
   }
 
   /**

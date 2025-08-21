@@ -17,7 +17,7 @@ import NonEvmAggregatedPercentage from '../../../../../component-library/compone
 import { selectIsEvmNetworkSelected } from '../../../../../selectors/multichainNetworkController';
 import { formatWithThreshold } from '../../../../../util/assets';
 import I18n from '../../../../../../locales/i18n';
-import { usePerpsBalance } from '../../../Perps/hooks/usePerpsBalance';
+import { usePerpsPortfolioBalance } from '../../../Perps/hooks/usePerpsPortfolioBalance';
 import { BigNumber } from 'bignumber.js';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { selectPerpsEnabledFlag } from '../../../Perps/selectors/featureFlags';
@@ -33,8 +33,10 @@ export const PortfolioBalance = React.memo(() => {
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  // Get Perps balance in display currency
-  const { perpsBalance } = usePerpsBalance();
+
+  // Get Perps balance in display currency from persisted state
+  // Also fetches initial balance on mount
+  const { perpsBalance } = usePerpsPortfolioBalance({ fetchOnMount: true });
 
   const renderAggregatedPercentage = () => {
     if (

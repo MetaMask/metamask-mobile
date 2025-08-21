@@ -29,10 +29,10 @@ export const selectHasPlacedFirstOrder = (
 };
 
 /**
- * Select the extended account state containing historical data
+ * Select perps balances for all providers
  * @param state - PerpsController state
- * @returns extended account state or null if not available
+ * @returns perps balances object or empty object if not available
  */
-export const selectExtendedAccountState = (
+export const selectPerpsBalances = (
   state: PerpsControllerState | undefined,
-): { accountValue1dAgo?: string } | null => state?.extendedAccountState ?? null;
+): PerpsControllerState['perpsBalances'] => state?.perpsBalances ?? {};

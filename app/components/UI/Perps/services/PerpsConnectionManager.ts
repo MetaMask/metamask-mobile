@@ -24,6 +24,8 @@ class PerpsConnectionManagerClass {
   private unsubscribeFromStore: (() => void) | null = null;
   private previousAddress: string | undefined;
   private previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
+  private lastBalanceUpdateTime = 0;
+  private balanceUpdateThrottleMs = 15000; // Update at most every 15 seconds
 
   private constructor() {
     // Private constructor to enforce singleton pattern
@@ -303,9 +305,44 @@ class PerpsConnectionManagerClass {
   }
 
   /**
+   * Update persisted perps balances in controller state
+   * This is called when account or position data changes
+   */
+  private updatePerpsBalances(): void {
+    const now = Date.now();
+    // Throttle updates to prevent too frequent state changes
+    if (now - this.lastBalanceUpdateTime < this.balanceUpdateThrottleMs) {
+      return;
+    }
+
+    try {
+      const controller = Engine.context.PerpsController;
+      const currentAccount = controller.state.accountState;
+      const currentPositions = controller.state.positions || [];
+
+      if (currentAccount) {
+        // Update persisted balances
+        controller.updatePerpsBalances(currentAccount, currentPositions);
+        this.lastBalanceUpdateTime = now;
+
+        DevLogger.log(
+          ` ${new Date().toISOString()} PerpsConnectionManager: Updated persisted balances`,
+          {
+            currentAccount,
+            currentPositions,
+          },
+        );
+      }
+    } catch (error) {
+      DevLogger.log('PerpsConnectionManager: Failed to update balances', error);
+    }
+  }
+
+  /**
    * Pre-load critical WebSocket subscriptions to populate cache
    * This ensures positions and orders are available immediately when components mount
    * Uses the StreamManager singleton to ensure single WebSocket connections
+   * Also sets up balance update subscriptions for portfolio integration
    */
   private async preloadSubscriptions(): Promise<void> {
     // Only pre-load once per session
@@ -331,11 +368,26 @@ class PerpsConnectionManagerClass {
       const accountCleanup = streamManager.account.prewarm();
       const marketDataCleanup = streamManager.marketData.prewarm();
 
+      // Add subscriptions that update persisted balances for portfolio
+      // Account updates (includes totalValue and unrealizedPnl) - throttled
+      const balanceAccountCleanup = streamManager.account.subscribe({
+        callback: () => this.updatePerpsBalances(),
+        throttleMs: this.balanceUpdateThrottleMs,
+      });
+
+      // Position updates (immediate, no throttling for actual position changes)
+      const balancePositionCleanup = streamManager.positions.subscribe({
+        callback: () => this.updatePerpsBalances(),
+        throttleMs: 0, // No throttling for position changes
+      });
+
       this.prewarmCleanups.push(
         positionCleanup,
         orderCleanup,
         accountCleanup,
         marketDataCleanup,
+        balanceAccountCleanup,
+        balancePositionCleanup,
       );
 
       // Give subscriptions a moment to receive initial data
