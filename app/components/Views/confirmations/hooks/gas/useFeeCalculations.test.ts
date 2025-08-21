@@ -1,5 +1,4 @@
 import { cloneDeep } from 'lodash';
-import { TransactionParams } from '@metamask/transaction-controller';
 
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { stakingDepositConfirmationState } from '../../../../../util/test/confirm-data-helpers';
@@ -38,30 +37,6 @@ describe('useFeeCalculations', () => {
   const transactionMeta =
     stakingDepositConfirmationState.engine.backgroundState.TransactionController
       .transactions[0];
-
-  it('returns no estimates for empty txParams', () => {
-    const clonedStateWithoutTxParams = cloneDeep(
-      stakingDepositConfirmationState,
-    );
-    clonedStateWithoutTxParams.engine.backgroundState.TransactionController.transactions[0].txParams =
-      undefined as unknown as TransactionParams;
-
-    const transactionMetaWithoutTxParams =
-      clonedStateWithoutTxParams.engine.backgroundState.TransactionController
-        .transactions[0];
-
-    const { result } = renderHookWithProvider(
-      () => useFeeCalculations(transactionMetaWithoutTxParams),
-      {
-        state: clonedStateWithoutTxParams,
-      },
-    );
-
-    expect(result.current.estimatedFeeFiat).toBe('< $0.01');
-    expect(result.current.estimatedFeeNative).toBe('0');
-    expect(result.current.preciseNativeFeeInHex).toBe('0x0');
-    expect(result.current.calculateGasEstimate).toBeDefined();
-  });
 
   it('returns fee calculations', () => {
     const { result } = renderHookWithProvider(

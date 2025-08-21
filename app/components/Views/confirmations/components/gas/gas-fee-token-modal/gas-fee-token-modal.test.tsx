@@ -4,8 +4,6 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { GasFeeTokenModal } from './gas-fee-token-modal';
 import { GasFeeToken } from '@metamask/transaction-controller';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
-import { useIsGaslessSupported } from '../../../hooks/gas/useIsGaslessSupported';
-import { useIsInsufficientBalance } from '../../../hooks/useIsInsufficientBalance';
 import { updateSelectedGasFeeToken } from '../../../../../../util/transaction-controller';
 import { transferTransactionStateMock } from '../../../__mocks__/transfer-transaction-mock';
 import { merge } from 'lodash';
@@ -19,11 +17,8 @@ import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { Hex } from '@metamask/utils';
 
 jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
-jest.mock('../../../hooks/gas/useIsGaslessSupported');
-jest.mock('../../../hooks/useIsInsufficientBalance');
 jest.mock('../../../../../../util/transaction-controller');
 jest.mock('../../../hooks/useNetworkInfo');
-jest.mock('../../../hooks/gas/useGasFeeToken');
 jest.mock('../../../hooks/gas/useGasFeeToken');
 
 const WETH_TOKEN_ADDRESS = '0x1234567890123456789012345678901234567894';
@@ -54,11 +49,6 @@ const GAS_FEE_TOKEN_2_MOCK: GasFeeToken = {
   symbol: 'WETH',
   tokenAddress: WETH_TOKEN_ADDRESS,
 };
-const NATIVE_TOKEN_MOCK: GasFeeToken = {
-  ...GAS_FEE_TOKEN_MOCK,
-  symbol: 'ETH',
-  tokenAddress: NATIVE_TOKEN_ADDRESS,
-};
 
 const MOCK_WETH_USE_GAS_FEE_TOKEN = {
   symbol: 'WETH',
@@ -84,8 +74,6 @@ describe('GasFeeTokenModal', () => {
   const mockUseTransactionMetadataRequest = jest.mocked(
     useTransactionMetadataRequest,
   );
-  const mockUseIsGaslessSupported = jest.mocked(useIsGaslessSupported);
-  const mockUseIsInsufficientBalance = jest.mocked(useIsInsufficientBalance);
   const mockUpdateSelectedGasFeeToken = jest.mocked(updateSelectedGasFeeToken);
   const mockUseSelectedGasFeeToken = jest.mocked(useSelectedGasFeeToken);
   const mockUseGasFeeToken = jest.mocked(useGasFeeToken);
@@ -96,15 +84,11 @@ describe('GasFeeTokenModal', () => {
     transactionId = 'test-transaction-id',
     gasFeeTokens = [],
     selectedGasFeeToken = undefined,
-    isSmartTransaction = false,
-    hasInsufficientBalance = false,
     mockGasFeeTokenResponse = undefined,
   }: {
     transactionId?: string;
     gasFeeTokens?: GasFeeToken[];
     selectedGasFeeToken?: string;
-    isSmartTransaction?: boolean;
-    hasInsufficientBalance?: boolean;
     mockGasFeeTokenResponse?: ReturnType<typeof useGasFeeToken>;
   } = {}) => {
     mockUseTransactionMetadataRequest.mockReturnValue({
@@ -123,12 +107,6 @@ describe('GasFeeTokenModal', () => {
     mockUseGasFeeToken.mockReturnValueOnce(
       mockGasFeeTokenResponse ?? MOCK_WETH_USE_GAS_FEE_TOKEN,
     );
-
-    mockUseIsGaslessSupported.mockReturnValue({
-      isSupported: true,
-      isSmartTransaction,
-    });
-    mockUseIsInsufficientBalance.mockReturnValue(hasInsufficientBalance);
 
     (useNetworkInfo as jest.Mock).mockReturnValue({
       networkNativeCurrency: 'ETH',
@@ -167,16 +145,11 @@ describe('GasFeeTokenModal', () => {
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  it('renders native token item by default', () => {
-    const { getByText } = setupTest();
-    expect(getByText('Pay with ETH')).toBeTruthy();
-  });
-
   it('renders multiple gas fee tokens', () => {
     mockUseGasFeeToken.mockReturnValueOnce(
       MOCK_USDC_USE_GAS_FEE_TOKEN as ReturnType<typeof useGasFeeToken>,
     );
-    const { getByTestId, getByText } = setupTest({
+    const { getByTestId } = setupTest({
       gasFeeTokens: [GAS_FEE_TOKEN_MOCK, GAS_FEE_TOKEN_2_MOCK],
       selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
     });
@@ -190,7 +163,6 @@ describe('GasFeeTokenModal', () => {
         `gas-fee-token-list-item-${MOCK_USDC_USE_GAS_FEE_TOKEN.symbol}`,
       ),
     ).toBeTruthy();
-    expect(getByText('Pay with other tokens')).toBeTruthy();
   });
 
   it('does not render other tokens section when no gas fee tokens available', () => {
@@ -246,42 +218,10 @@ describe('GasFeeTokenModal', () => {
     ).toBeTruthy();
   });
 
-  it('shows native toggle when future native token is available', () => {
-    const { getByTestId } = setupTest({
-      gasFeeTokens: [NATIVE_TOKEN_MOCK],
-      isSmartTransaction: true,
-      hasInsufficientBalance: true,
-    });
-    expect(getByTestId('native-toggle')).toBeTruthy();
-  });
-
-  it('does not show native toggle when not smart transaction', () => {
-    const { queryByTestId } = setupTest({
-      gasFeeTokens: [NATIVE_TOKEN_MOCK],
-      isSmartTransaction: false,
-      hasInsufficientBalance: true,
-    });
-    expect(queryByTestId('native-toggle')).toBeNull();
-  });
-
-  it('does not show native toggle when sufficient balance', () => {
-    const { queryByTestId } = setupTest({
-      gasFeeTokens: [NATIVE_TOKEN_MOCK],
-      isSmartTransaction: true,
-      hasInsufficientBalance: false,
-    });
-    expect(queryByTestId('native-toggle')).toBeNull();
-  });
-
   it('gracefully handles missing transaction metadata', () => {
     mockUseTransactionMetadataRequest.mockReturnValue(
       undefined as unknown as ReturnType<typeof useTransactionMetadataRequest>,
     );
-    mockUseIsGaslessSupported.mockReturnValue({
-      isSupported: false,
-      isSmartTransaction: false,
-    });
-    mockUseIsInsufficientBalance.mockReturnValue(false);
     const { getByTestId } = renderWithProvider(
       <GasFeeTokenModal onClose={mockOnClose} />,
       { state: transferTransactionStateMock },
@@ -299,11 +239,10 @@ describe('GasFeeTokenModal', () => {
   });
 
   it('handles empty gas fee tokens array', () => {
-    const { getByTestId, queryByText } = setupTest({
+    const { getByTestId } = setupTest({
       gasFeeTokens: [],
       mockGasFeeTokenResponse: MOCK_NATIVE_USE_GAS_FEE_TOKEN,
     });
     expect(getByTestId('native-icon')).toBeTruthy();
-    expect(queryByText('Pay with other tokens')).toBeNull();
   });
 });

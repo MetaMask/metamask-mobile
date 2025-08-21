@@ -16,6 +16,8 @@ import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from './ui/useFullScreenConfirmation';
+import { selectTransactionBridgeQuotesById } from '../../../../core/redux/slices/confirmationMetrics';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useSelectedGasFeeToken } from './gas/useGasFeeToken';
 import { cloneDeep } from 'lodash';
 import { updateTransaction } from '../../../../util/transaction-controller';
@@ -35,8 +37,10 @@ export const useConfirmActions = () => {
   const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
+  const { chainId, id: transactionId, type } = transactionMetadata ?? {};
+
   const shouldUseSmartTransaction = useSelector((state: RootState) =>
-    selectShouldUseSmartTransaction(state, transactionMetadata?.chainId),
+    selectShouldUseSmartTransaction(state, chainId),
   );
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const selectedGasFeeToken = useSelectedGasFeeToken();
@@ -45,6 +49,13 @@ export const useConfirmActions = () => {
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
   const isTransactionReq =
     approvalType && approvalType === ApprovalType.Transaction;
+
+  const quotes = useSelector((state: RootState) =>
+    selectTransactionBridgeQuotesById(state, transactionId ?? ''),
+  );
+
+  const waitForResult =
+    isSignatureReq || (!shouldUseSmartTransaction && !quotes?.length);
 
   const newTransactionMeta = useMemo(
     () => cloneDeep(transactionMetadata),
@@ -106,12 +117,14 @@ export const useConfirmActions = () => {
       return;
     }
     await onRequestConfirm({
-      waitForResult: isSignatureReq || !shouldUseSmartTransaction,
+      waitForResult,
       deleteAfterResult: true,
       handleErrors: false,
     });
 
-    if (isFullScreenConfirmation) {
+    if (isFullScreenConfirmation && type === TransactionType.perpsDeposit) {
+      navigation.navigate(Routes.WALLET_VIEW);
+    } else if (isFullScreenConfirmation) {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     } else {
       navigation.goBack();
@@ -127,19 +140,21 @@ export const useConfirmActions = () => {
       dispatch(resetTransaction());
     }
   }, [
-    captureSignatureMetrics,
-    dispatch,
-    handleSmartTransaction,
-    isFullScreenConfirmation,
+    shouldUseSmartTransaction,
+    ledgerSigningInProgress,
     isQRSigningInProgress,
+    onRequestConfirm,
+    waitForResult,
+    isFullScreenConfirmation,
+    type,
     isSignatureReq,
     isTransactionReq,
-    ledgerSigningInProgress,
-    navigation,
-    onRequestConfirm,
+    handleSmartTransaction,
     openLedgerSignModal,
     setScannerVisible,
-    shouldUseSmartTransaction,
+    navigation,
+    captureSignatureMetrics,
+    dispatch,
   ]);
 
   return { onConfirm, onReject };

@@ -38,6 +38,8 @@ import { getSeedlessOnboardingControllerMessenger } from './seedless-onboarding-
 
 import { getApprovalControllerMessenger } from './approval-controller-messenger';
 import { getPerpsControllerMessenger } from './perps-controller-messenger';
+import { getBridgeControllerMessenger } from './bridge-controller-messenger';
+import { getBridgeStatusControllerMessenger } from './bridge-status-controller-messenger';
 import { getMultichainAccountServiceMessenger } from './multichain-account-service-messenger/multichain-account-service-messenger';
 /**
  * The messengers for the controllers that have been.
@@ -145,6 +147,14 @@ export const CONTROLLER_MESSENGERS = {
   },
   PerpsController: {
     getMessenger: getPerpsControllerMessenger,
+    getInitMessenger: noop,
+  },
+  BridgeController: {
+    getMessenger: getBridgeControllerMessenger,
+    getInitMessenger: noop,
+  },
+  BridgeStatusController: {
+    getMessenger: getBridgeStatusControllerMessenger,
     getInitMessenger: noop,
   },
   MultichainAccountService: {

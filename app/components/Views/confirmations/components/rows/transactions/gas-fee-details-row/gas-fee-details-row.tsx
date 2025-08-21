@@ -38,7 +38,9 @@ const EstimationInfo = ({
   fiatOnly,
 }: {
   hideFiatForTestnet: boolean;
-  feeCalculations: ReturnType<typeof useFeeCalculations>;
+  feeCalculations:
+    | ReturnType<typeof useFeeCalculations>
+    | ReturnType<typeof useFeeCalculationsTransactionBatch>;
   fiatOnly: boolean;
 }) => {
   const gasFeeToken = useSelectedGasFeeToken();

@@ -5,6 +5,17 @@ import DeFiPositionsList from './DeFiPositionsList';
 import { RootState } from '../../../reducers';
 import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletView.selectors';
 
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn().mockReturnValue(false),
+}));
+
+jest.mock('../../../selectors/defiPositionsController', () => ({
+  ...jest.requireActual('../../../selectors/defiPositionsController'),
+  selectDeFiPositionsByAddress: jest.fn(),
+  selectDefiPositionsByEnabledNetworks: jest.fn(),
+}));
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -178,6 +189,18 @@ const mockInitialState = {
 describe('DeFiPositionsList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+
+    const defiPositionsModule = jest.requireMock(
+      '../../../selectors/defiPositionsController',
+    );
+    defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
+      mockInitialState.engine.backgroundState.DeFiPositionsController
+        .allDeFiPositions[MOCK_ADDRESS_1],
+    );
+    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+      mockInitialState.engine.backgroundState.DeFiPositionsController
+        .allDeFiPositions[MOCK_ADDRESS_1],
+    );
   });
 
   it('renders protocol name and aggregated value for selected account and chain', async () => {
@@ -242,21 +265,18 @@ describe('DeFiPositionsList', () => {
   });
 
   it('renders the loading positions message when positions are not yet available', async () => {
+    const defiPositionsModule = jest.requireMock(
+      '../../../selectors/defiPositionsController',
+    );
+    defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(undefined);
+    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+      undefined,
+    );
+
     const { queryByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
-        state: {
-          ...mockInitialState,
-          engine: {
-            ...mockInitialState.engine,
-            backgroundState: {
-              ...mockInitialState.engine.backgroundState,
-              DeFiPositionsController: {
-                allDeFiPositions: {},
-              },
-            },
-          },
-        },
+        state: mockInitialState,
       },
     );
 
@@ -267,23 +287,18 @@ describe('DeFiPositionsList', () => {
   });
 
   it('renders the error message when the positions fetching failed for that address', async () => {
+    const defiPositionsModule = jest.requireMock(
+      '../../../selectors/defiPositionsController',
+    );
+    defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(null);
+    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+      null,
+    );
+
     const { queryByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
-        state: {
-          ...mockInitialState,
-          engine: {
-            ...mockInitialState.engine,
-            backgroundState: {
-              ...mockInitialState.engine.backgroundState,
-              DeFiPositionsController: {
-                allDeFiPositions: {
-                  [MOCK_ADDRESS_1]: null,
-                },
-              },
-            },
-          },
-        },
+        state: mockInitialState,
       },
     );
 
@@ -295,22 +310,18 @@ describe('DeFiPositionsList', () => {
   });
 
   it('renders the no positions message when there are no positions for that chain', async () => {
+    const defiPositionsModule = jest.requireMock(
+      '../../../selectors/defiPositionsController',
+    );
+    defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue({});
+    defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+      {},
+    );
+
     const { findByTestId, findByText } = renderWithProvider(
       <DeFiPositionsList tabLabel="DeFi" />,
       {
-        state: {
-          ...mockInitialState,
-          engine: {
-            ...mockInitialState.engine,
-            backgroundState: {
-              ...mockInitialState.engine.backgroundState,
-              NetworkController: {
-                ...mockInitialState.engine.backgroundState.NetworkController,
-                selectedNetworkClientId: MOCK_CHAIN_ID_3_CLIENT_ID,
-              },
-            },
-          },
-        },
+        state: mockInitialState,
       },
     );
 
@@ -326,5 +337,208 @@ describe('DeFiPositionsList', () => {
     expect(
       await findByText(`We may not support your protocol yet.`),
     ).toBeOnTheScreen();
+  });
+
+  describe('when isRemoveGlobalNetworkSelectorEnabled is true', () => {
+    beforeEach(() => {
+      const networksModule = jest.requireMock('../../../util/networks');
+      networksModule.isRemoveGlobalNetworkSelectorEnabled.mockReturnValue(true);
+    });
+
+    it('uses defiPositionsByEnabledNetworks selector when feature flag is enabled', async () => {
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+
+      const mockDefiPositionsByEnabledNetworks = {
+        [MOCK_CHAIN_ID_1]: {
+          aggregatedMarketValue: 100,
+          protocols: {
+            protocol1: {
+              aggregatedMarketValue: 100,
+              protocolDetails: {
+                name: 'Protocol 1 (Filtered)',
+              },
+              positionTypes: {
+                stake: {
+                  aggregatedMarketValue: 100,
+                  positions: [
+                    [
+                      {
+                        address: '0x11',
+                        name: 'Protocol Token 1-1',
+                        symbol: 'PT11',
+                        decimals: 18,
+                        balance: 100,
+                        balanceRaw: '100',
+                        marketValue: 100,
+                        type: 'protocol',
+                        tokens: [
+                          {
+                            address: '0x111',
+                            name: 'Underlying Token 1-1-1',
+                            symbol: 'UT111',
+                            decimals: 18,
+                            balance: 100,
+                            balanceRaw: '100',
+                            marketValue: 100,
+                            price: 1,
+                            type: 'underlying',
+                            iconUrl: 'https://example.com/ut111.png',
+                          },
+                        ],
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
+          },
+        },
+      };
+
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+        mockDefiPositionsByEnabledNetworks,
+      );
+      defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
+        mockInitialState.engine.backgroundState.DeFiPositionsController
+          .allDeFiPositions[MOCK_ADDRESS_1],
+      );
+
+      const { findByTestId, findByText } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(
+        await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
+      ).toBeOnTheScreen();
+
+      // Should show the filtered protocol name
+      expect(await findByText('Protocol 1 (Filtered)')).toBeOnTheScreen();
+      expect(await findByText('$100.00')).toBeOnTheScreen();
+
+      const flatList = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+      );
+      expect(flatList.props.data.length).toEqual(1);
+    });
+
+    it('shows no positions when defiPositionsByEnabledNetworks returns empty data', async () => {
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+        {},
+      );
+      defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
+        mockInitialState.engine.backgroundState.DeFiPositionsController
+          .allDeFiPositions[MOCK_ADDRESS_1],
+      );
+
+      const { findByTestId, findByText } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(
+        await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        await findByTestId(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
+        ),
+      ).toBeOnTheScreen();
+      expect(
+        await findByText(`Can't find what you're looking for?`),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows control bar with enabled networks text when feature flag is enabled', async () => {
+      const defiPositionsModule = jest.requireMock(
+        '../../../selectors/defiPositionsController',
+      );
+      const singleProtocolData = {
+        [MOCK_CHAIN_ID_1]: {
+          aggregatedMarketValue: 100,
+          protocols: {
+            protocol1: {
+              aggregatedMarketValue: 100,
+              protocolDetails: {
+                name: 'Protocol 1',
+              },
+              positionTypes: {
+                stake: {
+                  aggregatedMarketValue: 100,
+                  positions: [
+                    [
+                      {
+                        address: '0x11',
+                        name: 'Protocol Token 1-1',
+                        symbol: 'PT11',
+                        decimals: 18,
+                        balance: 100,
+                        balanceRaw: '100',
+                        marketValue: 100,
+                        type: 'protocol',
+                        tokens: [
+                          {
+                            address: '0x111',
+                            name: 'Underlying Token 1-1-1',
+                            symbol: 'UT111',
+                            decimals: 18,
+                            balance: 100,
+                            balanceRaw: '100',
+                            marketValue: 100,
+                            price: 1,
+                            type: 'underlying',
+                            iconUrl: 'https://example.com/ut111.png',
+                          },
+                        ],
+                      },
+                    ],
+                  ],
+                },
+              },
+            },
+          },
+        },
+      };
+
+      defiPositionsModule.selectDefiPositionsByEnabledNetworks.mockReturnValue(
+        singleProtocolData,
+      );
+      defiPositionsModule.selectDeFiPositionsByAddress.mockReturnValue(
+        singleProtocolData,
+      );
+
+      const { findByTestId, findByText } = renderWithProvider(
+        <DeFiPositionsList tabLabel="DeFi" />,
+        {
+          state: mockInitialState,
+        },
+      );
+
+      expect(
+        await findByTestId(WalletViewSelectorsIDs.DEFI_POSITIONS_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        await findByTestId(
+          WalletViewSelectorsIDs.DEFI_POSITIONS_NETWORK_FILTER,
+        ),
+      ).toBeOnTheScreen();
+
+      expect(await findByText('Protocol 1')).toBeOnTheScreen();
+      expect(await findByText('$100.00')).toBeOnTheScreen();
+
+      const flatList = await findByTestId(
+        WalletViewSelectorsIDs.DEFI_POSITIONS_LIST,
+      );
+      expect(flatList.props.data.length).toEqual(1);
+    });
   });
 });

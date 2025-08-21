@@ -31,7 +31,7 @@ describe('usePerpsFirstTimeUser', () => {
   it('should return isFirstTimeUser: true when selector returns true', () => {
     // Arrange
     mockUsePerpsSelector.mockImplementation(
-      <T>(selector: (state: PerpsControllerState | undefined) => T) => {
+      <T>(selector: (state: PerpsControllerState) => T) => {
         // Verify the correct selector is passed
         expect(selector).toBe(selectIsFirstTimeUser);
         return true as T;
@@ -51,7 +51,7 @@ describe('usePerpsFirstTimeUser', () => {
   it('should return isFirstTimeUser: false when selector returns false', () => {
     // Arrange
     mockUsePerpsSelector.mockImplementation(
-      <T>(selector: (state: PerpsControllerState | undefined) => T) => {
+      <T>(selector: (state: PerpsControllerState) => T) => {
         // Verify the correct selector is passed
         expect(selector).toBe(selectIsFirstTimeUser);
         return false as T;
@@ -71,7 +71,7 @@ describe('usePerpsFirstTimeUser', () => {
   it('should default to isFirstTimeUser: true when selector returns undefined (simulating undefined state)', () => {
     // Arrange - mock the selector to return true (which is what the actual selector would do with undefined state)
     mockUsePerpsSelector.mockImplementation(
-      <T>(selector: (state: PerpsControllerState | undefined) => T) => {
+      <T>(selector: (state: PerpsControllerState) => T) => {
         // Verify the correct selector is passed
         expect(selector).toBe(selectIsFirstTimeUser);
         // Return true since selectIsFirstTimeUser returns true for undefined state
@@ -92,7 +92,7 @@ describe('usePerpsFirstTimeUser', () => {
   it('should call PerpsController.markTutorialCompleted when markTutorialCompleted is called', () => {
     // Arrange
     mockUsePerpsSelector.mockImplementation(
-      <T>(selector: (state: PerpsControllerState | undefined) => T) => {
+      <T>(selector: (state: PerpsControllerState) => T) => {
         expect(selector).toBe(selectIsFirstTimeUser);
         return true as T;
       },
@@ -111,7 +111,7 @@ describe('usePerpsFirstTimeUser', () => {
   it('should handle PerpsController being undefined gracefully', () => {
     // Arrange
     mockUsePerpsSelector.mockImplementation(
-      <T>(selector: (state: PerpsControllerState | undefined) => T) => {
+      <T>(selector: (state: PerpsControllerState) => T) => {
         expect(selector).toBe(selectIsFirstTimeUser);
         return true as T;
       },

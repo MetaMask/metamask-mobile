@@ -14,13 +14,12 @@ export function getEarnControllerMessenger(
     name: 'EarnController',
     allowedEvents: [
       'AccountsController:selectedAccountChange',
-      'NetworkController:stateChange',
       'TransactionController:transactionConfirmed',
+      'NetworkController:networkDidChange',
     ],
     allowedActions: [
       'AccountsController:getSelectedAccount',
       'NetworkController:getNetworkClientById',
-      'NetworkController:getState',
     ],
   });
 }
