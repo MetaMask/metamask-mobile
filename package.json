@@ -181,7 +181,9 @@
     "@ethereumjs/tx": "^5.4.0",
     "@metamask/controller-utils": "npm:@metamask/controller-utils@^11.11.0",
     "appium-adb/@appium/support/form-data": "^4.0.4",
-    "appium/@appium/support/form-data": "^4.0.0"
+    "appium/@appium/support/form-data": "^4.0.0",
+    "cipher-base": "1.0.5",
+    "sha.js": "2.4.12"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
