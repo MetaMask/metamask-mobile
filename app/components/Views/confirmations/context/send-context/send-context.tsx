@@ -4,19 +4,20 @@ import React, {
   createContext,
   useContext,
   useState,
+  useCallback,
 } from 'react';
+import { useSelector } from 'react-redux';
 import { isAddress as isEvmAddress } from 'ethers/lib/utils';
 import { toHex } from '@metamask/controller-utils';
-import { useSelector } from 'react-redux';
 
-import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { AssetType } from '../../types/token';
 
 export interface SendContextType {
   asset?: AssetType;
   chainId?: string;
-  fromAccount: InternalAccount;
-  from: string;
+  fromAccount?: InternalAccount;
+  from?: string;
   to?: string;
   updateAsset: (asset?: AssetType) => void;
   updateTo: (to: string) => void;
@@ -40,9 +41,24 @@ export const SendContextProvider: React.FC<{
   children: ReactElement[] | ReactElement;
 }> = ({ children }) => {
   const [asset, updateAsset] = useState<AssetType>();
-  const from = useSelector(selectSelectedInternalAccount);
   const [to, updateTo] = useState<string>();
   const [value, updateValue] = useState<string>();
+  const [fromAccount, updateFromAccount] = useState<InternalAccount>();
+  const accounts = useSelector(selectInternalAccountsById);
+
+  const handleUpdateAsset = useCallback(
+    (updatedAsset?: AssetType) => {
+      updateAsset(updatedAsset);
+      if (
+        updatedAsset?.accountId &&
+        updatedAsset.accountId !== fromAccount?.id
+      ) {
+        updateFromAccount(accounts[updatedAsset.accountId as string]);
+      }
+    },
+    [accounts, fromAccount?.id, updateAsset, updateFromAccount],
+  );
+
   const chainId =
     asset && isEvmAddress(asset.address) && asset.chainId
       ? toHex(asset.chainId)
@@ -53,10 +69,10 @@ export const SendContextProvider: React.FC<{
       value={{
         asset,
         chainId: chainId as string | undefined,
-        fromAccount: from as InternalAccount,
-        from: from?.address as string,
+        fromAccount,
+        from: fromAccount?.address as string,
         to,
-        updateAsset,
+        updateAsset: handleUpdateAsset,
         updateTo,
         updateValue,
         value,
