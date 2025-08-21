@@ -5,6 +5,8 @@ import type {
   AllMids,
   PredictedFunding,
 } from '@deeeed/hyperliquid-node20';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import { formatVolume } from './formatUtils';
 
 /**
  * HyperLiquid-specific market data structure
@@ -57,7 +59,8 @@ export function transformMarketData(
       : 0;
 
     // Format volume (dayNtlVlm is daily notional volume)
-    const volume = assetCtx ? parseFloat(assetCtx.dayNtlVlm) : 0;
+    // If assetCtx is missing or dayNtlVlm is not available, use NaN to indicate missing data
+    const volume = assetCtx?.dayNtlVlm ? parseFloat(assetCtx.dayNtlVlm) : NaN;
 
     // Extract funding time data if available
     let nextFundingTime: number | undefined;
@@ -92,7 +95,9 @@ export function transformMarketData(
       change24hPercent: isNaN(change24hPercent)
         ? '0.00%'
         : formatPercentage(change24hPercent),
-      volume: isNaN(volume) ? '$0' : formatVolume(volume),
+      volume: isNaN(volume)
+        ? PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY
+        : formatVolume(volume),
       nextFundingTime,
       fundingIntervalHours,
     };
@@ -176,20 +181,4 @@ export function formatPercentage(percent: number): string {
   }).format(percent / 100);
 
   return percent > 0 ? `+${formatted}` : formatted;
-}
-
-/**
- * Format volume with appropriate units
- */
-export function formatVolume(volume: number): string {
-  if (isNaN(volume) || !isFinite(volume)) return '$0';
-  if (volume === 0) return '$0';
-
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    notation: 'compact',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(volume);
 }
