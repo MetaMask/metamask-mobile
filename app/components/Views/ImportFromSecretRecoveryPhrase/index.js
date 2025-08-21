@@ -219,7 +219,7 @@ const ImportFromSecretRecoveryPhrase = ({
           ];
 
           // If the last character is a space, add an empty string for the next input
-          if (isEndWithSpace && index === newSeedPhrase.length - 1) {
+          if (isEndWithSpace && index === seedPhrase.length - 1) {
             newSeedPhrase.push('');
           }
 
