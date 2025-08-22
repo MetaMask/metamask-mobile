@@ -109,16 +109,13 @@ const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
       );
     },
     [
+      state,
       descriptors,
-      state.index,
-      colors.primary.default,
-      colors.primary.inverse,
-      colors.icon.muted,
       navigation,
-      tw,
+      chainId,
       trackEvent,
       createEventBuilder,
-      chainId,
+      tw,
       isRewardsEnabled,
     ],
   );
