@@ -19,6 +19,12 @@ import { TraceName, endTrace, trace } from '../util/trace';
 import { getTraceTags } from '../util/sentry/tags';
 import { store } from '../store';
 import { createDeepEqualSelector } from './util';
+import {
+  Asset,
+  selectAssetsBySelectedAccountGroup as _selectAssetsBySelectedAccountGroup,
+} from '@metamask/assets-controllers';
+import { Hex } from '@metamask/utils';
+import { selectEnabledNetworksByNamespace } from './networkEnablementController';
 
 const _selectSortedTokenKeys = createSelector(
   [
@@ -72,3 +78,117 @@ export const selectSortedTokenKeys = createDeepEqualSelector(
   _selectSortedTokenKeys,
   (keys) => keys.filter(({ address, chainId }) => address && chainId),
 );
+
+export const selectAssetsBySelectedAccountGroup = createDeepEqualSelector(
+  (state: RootState) => {
+    const {
+      AccountTreeController,
+      AccountsController,
+      TokensController,
+      TokenBalancesController,
+      TokenRatesController,
+      MultichainAssetsController,
+      MultichainBalancesController,
+      MultichainAssetsRatesController,
+      CurrencyRateController,
+      NetworkController,
+      AccountTrackerController,
+    } = state.engine.backgroundState;
+
+    return {
+      ...AccountTreeController,
+      ...AccountsController,
+      ...TokensController,
+      ...TokenBalancesController,
+      ...TokenRatesController,
+      ...MultichainAssetsController,
+      ...MultichainBalancesController,
+      ...MultichainAssetsRatesController,
+      ...CurrencyRateController,
+      ...NetworkController,
+      ...(AccountTrackerController as {
+        accountsByChainId: Record<
+          Hex,
+          Record<
+            Hex,
+            {
+              balance: Hex | null;
+            }
+          >
+        >;
+      }),
+    };
+  },
+  (filteredState) => _selectAssetsBySelectedAccountGroup(filteredState),
+);
+
+export const selectSortedAssetsBySelectedAccountGroup = createDeepEqualSelector(
+  [
+    selectAssetsBySelectedAccountGroup,
+    selectEnabledNetworksByNamespace,
+    selectTokenSortConfig,
+  ],
+  (bip44Assets, enabledNetworksByNamespace, tokenSortConfig) => {
+    const enabledNetworks = Object.values(enabledNetworksByNamespace).flatMap(
+      (network) =>
+        Object.entries(network)
+          .filter(([_, enabled]) => enabled)
+          .map(([networkId]) => networkId),
+    );
+
+    const assets = Object.entries(bip44Assets)
+      .filter(
+        ([networkId, _]) =>
+          enabledNetworks.includes(networkId) || networkId.startsWith('0x'),
+      )
+      .flatMap(([_, assets]) => assets);
+
+    const tokensSorted = sortAssets(assets.map(assetToToken), tokenSortConfig);
+
+    return tokensSorted.map(({ address, chainId, isStaked }) => ({
+      address,
+      chainId,
+      isStaked,
+    }));
+  },
+);
+
+export const selectAsset = createDeepEqualSelector(
+  [
+    selectAssetsBySelectedAccountGroup,
+    (
+      _state: RootState,
+      params: { address: string; chainId: string; isStaked?: boolean },
+    ) => params,
+  ],
+  (assets, { address, chainId }) => {
+    const asset = assets[chainId]?.find((asset) => asset.assetId === address);
+
+    return asset ? assetToToken(asset) : undefined;
+  },
+);
+
+function assetToToken(asset: Asset): TokenI {
+  return {
+    address: asset.assetId,
+    aggregators: [],
+    decimals: asset.decimals,
+    image: asset.image,
+    name: asset.name,
+    symbol: asset.symbol,
+    balance: asset.balance,
+    balanceFiat: asset.fiat?.balance
+      ? `$${asset.fiat.balance.toString()}` // TODO: Fix this
+      : asset.balance,
+    logo:
+      asset.type === 'evm' && asset.isNative
+        ? '../images/eth-logo-new.png'
+        : asset.image,
+    isETH: asset.type === 'evm' && asset.isNative && asset.symbol === 'ETH',
+    isStaked: false,
+    nativeAsset: undefined,
+    chainId: asset.chainId,
+    isNative: asset.isNative,
+    ticker: asset.symbol,
+  };
+}
