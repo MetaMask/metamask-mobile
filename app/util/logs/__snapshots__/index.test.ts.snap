@@ -450,6 +450,11 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
       },
+      "RewardsController": {
+        "lastAuthTime": 0,
+        "lastAuthenticatedAccount": null,
+        "subscription": null,
+      },
       "SeedlessOnboardingController": {
         "accessToken": true,
         "encryptedKeyringEncryptionKey": true,
@@ -1077,6 +1082,11 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "RemoteFeatureFlagController": {
         "cacheTimestamp": 0,
         "remoteFeatureFlags": {},
+      },
+      "RewardsController": {
+        "lastAuthTime": 0,
+        "lastAuthenticatedAccount": null,
+        "subscription": null,
       },
       "SeedlessOnboardingController": {
         "accessToken": false,
