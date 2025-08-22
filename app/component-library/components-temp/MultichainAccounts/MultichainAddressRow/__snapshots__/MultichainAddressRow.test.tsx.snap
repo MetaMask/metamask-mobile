@@ -14,7 +14,6 @@ exports[`MultichainAddressRow renders MultichainAddressRow correctly 1`] = `
   }
   testID="multichain-address-row"
 >
-   
   <View
     collapsable={false}
     pointerEvents="none"
