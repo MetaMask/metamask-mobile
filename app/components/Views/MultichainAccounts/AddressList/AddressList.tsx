@@ -8,12 +8,13 @@ import { FlashList } from '@shopify/flash-list';
 import { useStyles } from '../../../hooks/useStyles';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import HeaderBase from '../../../../component-library/components/HeaderBase';
-import { TextVariant } from '../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconSize,
-  IconName,
-} from '../../../../component-library/components/Icons/Icon';
-import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import { IconName } from '../../../../component-library/components/Icons/Icon';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  IconName as MMDSIconName,
+  IconColor as MMDSIconColor,
+} from '@metamask/design-system-react-native';
 import MultichainAddressRow, {
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
@@ -83,10 +84,11 @@ export const AddressList = () => {
       <HeaderBase
         style={styles.header}
         startAccessory={
-          <ButtonLink
+          <ButtonIcon
             testID={AddressListIds.GO_BACK}
-            labelTextVariant={TextVariant.BodyMDMedium}
-            label={<Icon name={IconName.ArrowLeft} size={IconSize.Md} />}
+            iconName={MMDSIconName.ArrowLeft}
+            size={ButtonIconSize.Md}
+            iconProps={{ color: MMDSIconColor.IconDefault }}
             onPress={() => navigation.goBack()}
           />
         }
