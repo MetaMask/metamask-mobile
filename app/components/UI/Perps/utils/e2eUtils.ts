@@ -6,6 +6,7 @@
  */
 
 import { isE2E } from '../../../../util/test/utils';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 
 /**
  * Check if we're running in E2E test environment
@@ -59,20 +60,102 @@ export const getE2EMockPosition = () => ({
   stopLossPrice: undefined,
 });
 
+// State management for E2E mock data
+let e2ePositions: ReturnType<typeof getE2EMockPosition>[] = [
+  getE2EMockPosition(),
+];
+let e2eAccountState = {
+  totalBalance: '100.00',
+  marginUsed: '45.00',
+  availableBalance: '55.00',
+  accountValue: '100.00',
+  time: Date.now(),
+  type: 'user' as const,
+};
+
+// Subscription mechanism for reactive updates
+type MockDataUpdateCallback = () => void;
+const mockDataSubscribers: MockDataUpdateCallback[] = [];
+
 /**
- * Mock data for E2E testing
- * Can be customized for different test scenarios (with/without positions)
+ * Subscribe to mock data changes
  */
-export const getE2EMockData = (includePosition = true) => ({
-  positions: includePosition ? [getE2EMockPosition()] : [],
-  accountState: {
-    totalBalance: '100.00', // E2E test balance
-    marginUsed: includePosition ? '45.00' : '0.00', // Margin used for positions
-    availableBalance: includePosition ? '55.00' : '100.00', // Available for trading
+export const subscribeToE2EMockDataChanges = (
+  callback: MockDataUpdateCallback,
+) => {
+  mockDataSubscribers.push(callback);
+  return () => {
+    const index = mockDataSubscribers.indexOf(callback);
+    if (index !== -1) {
+      mockDataSubscribers.splice(index, 1);
+    }
+  };
+};
+
+/**
+ * Notify all subscribers of mock data changes
+ */
+const notifyMockDataSubscribers = () => {
+  mockDataSubscribers.forEach((callback) => callback());
+};
+
+/**
+ * Remove a position from E2E mock data (simulate closing a position)
+ */
+export const removeE2EMockPosition = (coinSymbol: string) => {
+  const positionIndex = e2ePositions.findIndex((p) => p.coin === coinSymbol);
+  if (positionIndex !== -1) {
+    const removedPosition = e2ePositions[positionIndex];
+    e2ePositions.splice(positionIndex, 1);
+
+    // Update account state to reflect the closed position
+    const marginFreed = parseFloat(removedPosition.marginUsed || '0');
+    const currentMarginUsed = parseFloat(e2eAccountState.marginUsed);
+    const currentAvailableBalance = parseFloat(
+      e2eAccountState.availableBalance,
+    );
+
+    e2eAccountState = {
+      ...e2eAccountState,
+      marginUsed: Math.max(0, currentMarginUsed - marginFreed).toFixed(2),
+      availableBalance: (currentAvailableBalance + marginFreed).toFixed(2),
+      time: Date.now(),
+    };
+
+    DevLogger.log(
+      `[E2E Mock] Position ${coinSymbol} closed, margin freed: ${marginFreed}`,
+    );
+
+    // Notify all subscribers of the change
+    notifyMockDataSubscribers();
+  }
+};
+
+/**
+ * Reset E2E mock data to initial state
+ */
+export const resetE2EMockData = () => {
+  e2ePositions = [getE2EMockPosition()];
+  e2eAccountState = {
+    totalBalance: '100.00',
+    marginUsed: '45.00',
+    availableBalance: '55.00',
     accountValue: '100.00',
     time: Date.now(),
     type: 'user' as const,
-  },
+  };
+
+  // Notify all subscribers of the reset
+  notifyMockDataSubscribers();
+};
+
+/**
+ * Mock data for E2E testing
+ * Uses dynamic state that can be updated during test execution
+ */
+export const getE2EMockData = () => ({
+  positions: [...e2ePositions], // Return copy of current positions
+  accountState: { ...e2eAccountState }, // Return copy of current account state
   orders: [],
   prices: {
     BTC: {

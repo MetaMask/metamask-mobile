@@ -65,14 +65,6 @@ export function usePerpsOrderExecution(
           };
           setLastResult(mockResult);
 
-          // Measure order submission toast loaded (mock timing)
-          const submissionDuration = performance.now() - orderSubmissionStart;
-          setMeasurement(
-            PerpsMeasurementName.ORDER_SUBMISSION_TOAST_LOADED,
-            submissionDuration,
-            'millisecond',
-          );
-
           DevLogger.log(
             'usePerpsOrderExecution: Mock order placed successfully (E2E mode)',
             mockResult,

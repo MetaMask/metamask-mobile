@@ -10,8 +10,16 @@ class PerpsView {
     return Matchers.getElementByID('bottomsheetfooter-button');
   }
 
+  get closePositionBottomSheetButton() {
+    return Matchers.getElementByID('bottomsheetfooter-button');
+  }
+
   get placeOrderButton() {
     return Matchers.getElementByID('perps-order-view-place-order-button');
+  }
+
+  get orderSuccessToastDismissButton() {
+    return Matchers.getElementByID('perps-order-success-toast-dismiss-button');
   }
 
   async tapClosePositionButton() {
@@ -44,6 +52,14 @@ class PerpsView {
 
   async tapPlaceOrderButton() {
     await Gestures.waitAndTap(this.placeOrderButton);
+  }
+
+  async tapOrderSuccessToastDismissButton() {
+    await Gestures.waitAndTap(this.orderSuccessToastDismissButton);
+  }
+
+  async tapClosePositionBottomSheetButton() {
+    await Gestures.waitAndTap(this.closePositionBottomSheetButton);
   }
 }
 

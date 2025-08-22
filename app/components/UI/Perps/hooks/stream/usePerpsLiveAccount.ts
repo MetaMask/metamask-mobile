@@ -3,6 +3,7 @@ import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import {
   shouldDisablePerpsStreaming,
   getE2EMockData,
+  subscribeToE2EMockDataChanges,
 } from '../../utils/e2eUtils';
 import type { AccountState } from '../../controllers/types';
 
@@ -31,11 +32,29 @@ export interface UsePerpsLiveAccountReturn {
 export function usePerpsLiveAccount(
   options: UsePerpsLiveAccountOptions = {},
 ): UsePerpsLiveAccountReturn {
-  // E2E Mode: Return mock account data immediately without streaming
+  const [e2eAccountState, setE2eAccountState] = useState<AccountState | null>(
+    null,
+  );
+
+  // E2E Mode: Use reactive mock account data
   if (shouldDisablePerpsStreaming()) {
-    const mockData = getE2EMockData();
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+      // Initialize with current mock data
+      const mockData = getE2EMockData();
+      setE2eAccountState(mockData.accountState);
+
+      // Subscribe to changes
+      const unsubscribe = subscribeToE2EMockDataChanges(() => {
+        const updatedMockData = getE2EMockData();
+        setE2eAccountState(updatedMockData.accountState);
+      });
+
+      return unsubscribe;
+    }, []);
+
     return {
-      account: mockData.accountState,
+      account: e2eAccountState,
       isInitialLoading: false,
     };
   }

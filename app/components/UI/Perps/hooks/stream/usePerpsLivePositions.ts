@@ -4,6 +4,7 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
   shouldDisablePerpsStreaming,
   getE2EMockData,
+  subscribeToE2EMockDataChanges,
 } from '../../utils/e2eUtils';
 import type { Position } from '../../controllers/types';
 
@@ -35,11 +36,31 @@ export interface UsePerpsLivePositionsReturn {
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  // E2E Mode: Return mock data immediately without streaming
+  const [e2ePositions, setE2ePositions] = useState<Position[]>([]);
+
+  // E2E Mode: Use reactive mock data
   if (shouldDisablePerpsStreaming()) {
-    const mockData = getE2EMockData();
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useEffect(() => {
+      // Initialize with current mock data
+      const mockData = getE2EMockData();
+      setE2ePositions(mockData.positions as Position[]);
+
+      // Subscribe to changes
+      const unsubscribe = subscribeToE2EMockDataChanges(() => {
+        const updatedMockData = getE2EMockData();
+        setE2ePositions(updatedMockData.positions as Position[]);
+        DevLogger.log(
+          'usePerpsLivePositions: E2E mock positions updated',
+          updatedMockData.positions,
+        );
+      });
+
+      return unsubscribe;
+    }, []);
+
     return {
-      positions: mockData.positions as Position[],
+      positions: e2ePositions,
       isInitialLoading: false,
     };
   }

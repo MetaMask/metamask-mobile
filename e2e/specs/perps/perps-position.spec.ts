@@ -12,6 +12,7 @@ import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arb
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 import PerpsView from '../../pages/Perps/PerpsView';
+import TestHelpers from '../../helpers';
 
 describe(SmokePerps('Perps Position'), () => {
   // Set E2E environment to disable Perps streaming
@@ -83,6 +84,21 @@ describe(SmokePerps('Perps Position'), () => {
           await PerpsView.tapStopLossPercentageButton(1);
           await PerpsView.tapSetTpslButton();
           await PerpsView.tapPlaceOrderButton();
+          // Wait for order success toast to dismiss
+          // await PerpsView.tapOrderSuccessToastDismissButton();
+          await TestHelpers.delay(2500);
+          // now I need to scroll to the bottom of the page
+          await PerpsHelpers.scrollToBottom();
+
+          await TestHelpers.delay(1000);
+
+          // then I need to tap the close position button
+          await PerpsView.tapClosePositionButton();
+
+          await TestHelpers.delay(1000);
+
+          // Now I need to press Close Position button
+          await PerpsView.tapClosePositionBottomSheetButton();
         });
       },
     );

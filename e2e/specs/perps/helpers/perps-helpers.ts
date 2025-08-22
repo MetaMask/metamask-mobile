@@ -211,4 +211,20 @@ export class PerpsHelpers {
       amount,
     });
   }
+
+  /**
+   * Scroll to bottom of the current view
+   * Uses the same pattern as other page objects (WalletView.scrollToBottomOfTokensList)
+   */
+  static async scrollToBottom() {
+    // Try to use the Perps market details scroll view, fallback to main container
+    const scrollContainer = Matchers.getElementByID(
+      'perps-market-details-scroll-view',
+    );
+
+    await Gestures.swipe(scrollContainer, 'up', {
+      speed: 'fast',
+      percentage: 0.7,
+    });
+  }
 }

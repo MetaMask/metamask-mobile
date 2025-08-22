@@ -59,27 +59,27 @@ const PerpsClosePositionBottomSheet: React.FC<
   const styles = createStyles(theme);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const hasTrackedCloseView = useRef(false);
-  const { track } = usePerpsEventTracking();
+  // const { track } = usePerpsEventTracking();
 
-  // Track screen load performance
-  usePerpsScreenTracking({
-    screenName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
-    dependencies: [isVisible],
-  });
+  // // Track screen load performance
+  // usePerpsScreenTracking({
+  //   screenName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
+  //   dependencies: [isVisible],
+  // });
 
-  // State for order type tabs
+  // // State for order type tabs
   const [orderType, setOrderType] = useState<OrderType>('market');
 
-  // State for close amount
+  // // State for close amount
   const [closePercentage, setClosePercentage] = useState(100); // Default to 100% (full close)
   const [closeAmount, setCloseAmount] = useState(position.size);
-  const [closeAmountUSD, setCloseAmountUSD] = useState(0);
+  // const [closeAmountUSD, setCloseAmountUSD] = useState(0);
 
-  // State for limit price
+  // // State for limit price
   const [limitPrice, setLimitPrice] = useState('');
-  const [limitPriceInputFocused, setLimitPriceInputFocused] = useState(false);
+  // const [limitPriceInputFocused, setLimitPriceInputFocused] = useState(false);
 
-  // Subscribe to real-time price with 1s debounce for position closing
+  // // Subscribe to real-time price with 1s debounce for position closing
   const priceData = usePerpsLivePrices({
     symbols: isVisible ? [position.coin] : [],
     throttleMs: 1000,
@@ -88,22 +88,22 @@ const PerpsClosePositionBottomSheet: React.FC<
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);
 
-  // Determine position direction
+  // // Determine position direction
   const isLong = parseFloat(position.size) > 0;
   const absSize = Math.abs(parseFloat(position.size));
 
-  // Calculate position value and effective margin
+  // // Calculate position value and effective margin
   const positionValue = absSize * currentPrice;
-  // Calculate effective margin from position value and leverage
+  // // Calculate effective margin from position value and leverage
   const leverage = position.leverage
     ? parseFloat(position.leverage.value.toString())
     : 1;
   const effectiveMargin = positionValue / leverage;
 
-  // Use unrealized PnL from position
+  // // Use unrealized PnL from position
   const pnl = parseFloat(position.unrealizedPnl);
 
-  // Calculate fees using the unified fee hook
+  // // Calculate fees using the unified fee hook
   const closingValue = positionValue * (closePercentage / 100);
   const feeResults = usePerpsOrderFees({
     orderType,
@@ -111,98 +111,98 @@ const PerpsClosePositionBottomSheet: React.FC<
     isMaker: false, // Closing positions are typically taker orders
   });
 
-  // Calculate what user will receive (effective margin + pnl - fees)
+  // // Calculate what user will receive (effective margin + pnl - fees)
   const receiveAmount =
     (closePercentage / 100) * effectiveMargin +
     (closePercentage / 100) * pnl -
     feeResults.totalFee;
 
-  // Get minimum order amount for this asset
-  const { minimumOrderAmount } = useMinimumOrderAmount({
-    asset: position.coin,
-  });
+  // // Get minimum order amount for this asset
+  // const { minimumOrderAmount } = useMinimumOrderAmount({
+  //   asset: position.coin,
+  // });
 
-  // Calculate remaining position value after partial close
-  const remainingPositionValue = positionValue * (1 - closePercentage / 100);
-  const isPartialClose = closePercentage < 100;
+  // // Calculate remaining position value after partial close
+  // const remainingPositionValue = positionValue * (1 - closePercentage / 100);
+  // const isPartialClose = closePercentage < 100;
 
-  // Use the validation hook
-  const validationResult = usePerpsClosePositionValidation({
-    coin: position.coin,
-    closePercentage,
-    closeAmount: closeAmount.toString(),
-    orderType,
-    limitPrice,
-    currentPrice,
-    positionSize: absSize,
-    positionValue,
-    minimumOrderAmount,
-    closingValue,
-    remainingPositionValue,
-    receiveAmount,
-    isPartialClose,
-  });
+  // // Use the validation hook
+  // const validationResult = usePerpsClosePositionValidation({
+  //   coin: position.coin,
+  //   closePercentage,
+  //   closeAmount: closeAmount.toString(),
+  //   orderType,
+  //   limitPrice,
+  //   currentPrice,
+  //   positionSize: absSize,
+  //   positionValue,
+  //   minimumOrderAmount,
+  //   closingValue,
+  //   remainingPositionValue,
+  //   receiveAmount,
+  //   isPartialClose,
+  // });
 
-  // Open bottom sheet when visible
-  useEffect(() => {
-    if (isVisible) {
-      bottomSheetRef.current?.onOpenBottomSheet();
-    } else {
-      // Reset the flag when the bottom sheet is closed
-      hasTrackedCloseView.current = false;
-    }
-  }, [isVisible]);
+  // // Open bottom sheet when visible
+  // useEffect(() => {
+  //   if (isVisible) {
+  //     bottomSheetRef.current?.onOpenBottomSheet();
+  //   } else {
+  //     // Reset the flag when the bottom sheet is closed
+  //     hasTrackedCloseView.current = false;
+  //   }
+  // }, [isVisible]);
 
-  // Track position close screen viewed event - separate concern
-  useEffect(() => {
-    if (isVisible && !hasTrackedCloseView.current) {
-      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
-        [PerpsEventProperties.ASSET]: position.coin,
-        [PerpsEventProperties.DIRECTION]: isLong
-          ? PerpsEventValues.DIRECTION.LONG
-          : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.POSITION_SIZE]: absSize,
-        [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
-      });
-      hasTrackedCloseView.current = true;
-    }
-  }, [isVisible, position.coin, isLong, absSize, pnl, track]);
+  // // Track position close screen viewed event - separate concern
+  // useEffect(() => {
+  //   if (isVisible && !hasTrackedCloseView.current) {
+  //     track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
+  //       [PerpsEventProperties.ASSET]: position.coin,
+  //       [PerpsEventProperties.DIRECTION]: isLong
+  //         ? PerpsEventValues.DIRECTION.LONG
+  //         : PerpsEventValues.DIRECTION.SHORT,
+  //       [PerpsEventProperties.POSITION_SIZE]: absSize,
+  //       [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
+  //     });
+  //     hasTrackedCloseView.current = true;
+  //   }
+  // }, [isVisible, position.coin, isLong, absSize, pnl, track]);
 
-  // Update close amount when percentage changes
-  useEffect(() => {
-    const newAmount = (closePercentage / 100) * absSize;
-    setCloseAmount(newAmount.toString());
-    setCloseAmountUSD(newAmount * currentPrice);
+  // // Update close amount when percentage changes
+  // useEffect(() => {
+  //   const newAmount = (closePercentage / 100) * absSize;
+  //   setCloseAmount(newAmount.toString());
+  //   setCloseAmountUSD(newAmount * currentPrice);
 
-    // Track position close value changed
-    if (isVisible && closePercentage !== 100) {
-      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_VALUE_CHANGED, {
-        [PerpsEventProperties.ASSET]: position.coin,
-        [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
-        [PerpsEventProperties.CLOSE_VALUE]: newAmount * currentPrice,
-      });
-    }
-  }, [closePercentage, absSize, currentPrice, isVisible, position.coin, track]);
+  //   // Track position close value changed
+  //   if (isVisible && closePercentage !== 100) {
+  //     track(MetaMetricsEvents.PERPS_POSITION_CLOSE_VALUE_CHANGED, {
+  //       [PerpsEventProperties.ASSET]: position.coin,
+  //       [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
+  //       [PerpsEventProperties.CLOSE_VALUE]: newAmount * currentPrice,
+  //     });
+  //   }
+  // }, [closePercentage, absSize, currentPrice, isVisible, position.coin, track]);
 
   const handleConfirm = () => {
     // Track position close initiated
-    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED, {
-      [PerpsEventProperties.ASSET]: position.coin,
-      [PerpsEventProperties.DIRECTION]: isLong
-        ? PerpsEventValues.DIRECTION.LONG
-        : PerpsEventValues.DIRECTION.SHORT,
-      [PerpsEventProperties.ORDER_TYPE]: orderType,
-      [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
-      [PerpsEventProperties.CLOSE_VALUE]: closingValue,
-      [PerpsEventProperties.PNL_DOLLAR]: pnl * (closePercentage / 100),
-      [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
-    });
+    // track(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED, {
+    //   [PerpsEventProperties.ASSET]: position.coin,
+    //   [PerpsEventProperties.DIRECTION]: isLong
+    //     ? PerpsEventValues.DIRECTION.LONG
+    //     : PerpsEventValues.DIRECTION.SHORT,
+    //   [PerpsEventProperties.ORDER_TYPE]: orderType,
+    //   [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
+    //   [PerpsEventProperties.CLOSE_VALUE]: closingValue,
+    //   [PerpsEventProperties.PNL_DOLLAR]: pnl * (closePercentage / 100),
+    //   [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
+    // });
 
     // Track position close submitted
-    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SUBMITTED, {
-      [PerpsEventProperties.ASSET]: position.coin,
-      [PerpsEventProperties.ORDER_TYPE]: orderType,
-    });
+    // track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SUBMITTED, {
+    //   [PerpsEventProperties.ASSET]: position.coin,
+    //   [PerpsEventProperties.ORDER_TYPE]: orderType,
+    // });
 
     // For full close, don't send size parameter
     const sizeToClose = closePercentage === 100 ? undefined : closeAmount;
@@ -219,14 +219,14 @@ const PerpsClosePositionBottomSheet: React.FC<
     );
   };
 
-  const handleLimitPriceChange = (text: string) => {
-    // Allow only numbers and decimal point
-    const sanitized = text.replace(/[^0-9.]/g, '');
-    // Prevent multiple decimal points
-    const parts = sanitized.split('.');
-    if (parts.length > 2) return;
-    setLimitPrice(sanitized);
-  };
+  // const handleLimitPriceChange = (text: string) => {
+  //   // Allow only numbers and decimal point
+  //   const sanitized = text.replace(/[^0-9.]/g, '');
+  //   // Prevent multiple decimal points
+  //   const parts = sanitized.split('.');
+  //   if (parts.length > 2) return;
+  //   setLimitPrice(sanitized);
+  // };
 
   const footerButtonProps = [
     {
@@ -236,15 +236,14 @@ const PerpsClosePositionBottomSheet: React.FC<
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
-      isDisabled:
-        isClosing ||
-        (orderType === 'limit' &&
-          (!limitPrice || parseFloat(limitPrice) <= 0)) ||
-        (orderType === 'market' && closePercentage === 0) ||
-        receiveAmount <= 0 ||
-        !validationResult.isValid,
+      isDisabled: false,
+      // isClosing ||
+      // (orderType === 'limit' &&
+      //   (!limitPrice || parseFloat(limitPrice) <= 0)) ||
+      // (orderType === 'market' && closePercentage === 0) ||
+      // receiveAmount <= 0 ||
+      // !validationResult.isValid,
       loading: isClosing,
-      testID: 'close-position-confirm-button',
     },
   ];
 
@@ -264,7 +263,7 @@ const PerpsClosePositionBottomSheet: React.FC<
 
       <View style={styles.container}>
         {/* Order Type Tabs */}
-        <View style={styles.tabContainer} testID="order-type-tabs">
+        {/* <View style={styles.tabContainer} testID="order-type-tabs">
           <TouchableOpacity
             testID="market-order-tab"
             style={[styles.tab, orderType === 'market' && styles.tabActive]}
@@ -315,10 +314,10 @@ const PerpsClosePositionBottomSheet: React.FC<
               {strings('perps.order.limit')}
             </Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Position Size Display */}
-        <View style={styles.sizeDisplay} testID="position-size-display">
+        {/* <View style={styles.sizeDisplay} testID="position-size-display">
           <Text
             variant={TextVariant.DisplayMD}
             style={styles.sizeAmount}
@@ -337,10 +336,10 @@ const PerpsClosePositionBottomSheet: React.FC<
             {formatPositionSize((absSize * (closePercentage / 100)).toString())}{' '}
             {position.coin}
           </Text>
-        </View>
+        </View> */}
 
         {/* Slider */}
-        <View style={styles.sliderContainer}>
+        {/* <View style={styles.sliderContainer}>
           <PerpsSlider
             value={closePercentage}
             onValueChange={setClosePercentage}
@@ -349,10 +348,10 @@ const PerpsClosePositionBottomSheet: React.FC<
             step={1}
             showPercentageLabels
           />
-        </View>
+        </View> */}
 
         {/* Limit Price Input (only for limit orders) */}
-        {orderType === 'limit' && (
+        {/* {orderType === 'limit' && (
           <View style={styles.limitPriceSection}>
             <Text
               variant={TextVariant.BodyMD}
@@ -389,10 +388,10 @@ const PerpsClosePositionBottomSheet: React.FC<
               </Text>
             </View>
           </View>
-        )}
+        )} */}
 
         {/* Position Details */}
-        <View style={styles.detailsSection}>
+        {/* <View style={styles.detailsSection}>
           <View style={styles.detailRow}>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('perps.close_position.pnl')}
@@ -475,7 +474,7 @@ const PerpsClosePositionBottomSheet: React.FC<
               ))}
             </View>
           )}
-        </View>
+        </View> */}
       </View>
 
       <BottomSheetFooter buttonPropsArray={footerButtonProps} />
@@ -502,13 +501,13 @@ const PerpsClosePositionBottomSheet: React.FC<
 PerpsClosePositionBottomSheet.displayName = 'PerpsClosePositionBottomSheet';
 
 // Enable WDYR tracking in development
-if (__DEV__) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (PerpsClosePositionBottomSheet as any).whyDidYouRender = {
-    logOnDifferentValues: true,
-    customName: 'PerpsClosePositionBottomSheet',
-  };
-}
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   (PerpsClosePositionBottomSheet as any).whyDidYouRender = {
+//     logOnDifferentValues: true,
+//     customName: 'PerpsClosePositionBottomSheet',
+//   };
+// }
 
 export default memo(
   PerpsClosePositionBottomSheet,
