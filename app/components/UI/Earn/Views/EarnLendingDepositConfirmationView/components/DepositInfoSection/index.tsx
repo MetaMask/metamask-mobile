@@ -9,13 +9,13 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../../../component-library/components/Texts/Text';
-import { RootState } from '../../../../../../../reducers';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import InfoSection from '../../../../../../Views/confirmations/components/UI/info-row/info-section';
 import ContractTag from '../../../../../Stake/components/StakingConfirmation/ContractTag/ContractTag';
 import { TokenI } from '../../../../../Tokens/types';
 import useEarnToken from '../../../../hooks/useEarnToken';
 import styleSheet from './DepositInfoSection.styles';
+import { selectAvatarStyle } from '../../../../../../../selectors/settings';
 
 export const DEPOSIT_DETAILS_SECTION_TEST_ID = 'depositDetailsSection';
 
@@ -36,9 +36,7 @@ const DepositInfoSection = ({
 }: DepositInfoSectionProps) => {
   const { styles } = useStyles(styleSheet, {});
 
-  const useBlockieIcon = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  );
+  const avatarStyle = useSelector(selectAvatarStyle);
 
   const { earnToken, getEstimatedAnnualRewardsForAmount } = useEarnToken(token);
 
@@ -157,7 +155,7 @@ const DepositInfoSection = ({
               <ContractTag
                 contractAddress={lendingContractAddress}
                 contractName={lendingProtocol}
-                useBlockieIcon={useBlockieIcon}
+                avatarStyle={avatarStyle}
               />
             ),
           }}

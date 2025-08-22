@@ -13,7 +13,7 @@ import { AccountTagProps } from './AccountTag.types';
 const AccountTag = ({
   accountAddress,
   accountName,
-  useBlockieIcon = false,
+  avatarStyle = AvatarAccountType.Maskicon,
 }: AccountTagProps) => (
   <TagBase
     startAccessory={
@@ -21,11 +21,7 @@ const AccountTag = ({
         variant={AvatarVariant.Account}
         size={AvatarSize.Xs}
         accountAddress={accountAddress}
-        type={
-          useBlockieIcon
-            ? AvatarAccountType.Blockies
-            : AvatarAccountType.JazzIcon
-        }
+        type={avatarStyle}
       />
     }
     shape={TagShape.Pill}
