@@ -18,23 +18,34 @@ on:
         description: 'The Cucumber tag expression to use for filtering tests'
         required: true
         type: string
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}
-  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
-
+      split_number:
+        description: 'Which split number to run (1-based index)'
+        required: false
+        type: number
+        default: 1
+      total_splits:
+        description: 'Total number of splits to divide tests into'
+        required: false
+        type: number
+        default: 1
 
 jobs:
 
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
-    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-large' }}
+    runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
+    continue-on-error: true
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
+      cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
     env:
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
       GITHUB_CI: 'true'
+      SPLIT_NUMBER: ${{ inputs.split_number }}
+      TOTAL_SPLITS: ${{ inputs.total_splits }}
       MM_UNIFIED_SWAPS_ENABLED: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       MM_BRIDGE_ENABLED: 'true'
@@ -165,7 +176,10 @@ jobs:
             export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
           fi
           
-          ./scripts/run-e2e-tags.sh
+          # Always use the splitting script (handles both split and non-split cases)
+          echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
+
+          ./scripts/run-e2e-tags-gha.sh
           
           echo "✅ Test execution completed"
 
