@@ -121,8 +121,8 @@ jobs:
           path: "all-test-results/**/*.xml"
           reporter: "jest-junit"
           fail-on-error: false
-          list-suites: "all"
-          list-tests: "all"
+          list-suites: "failed"
+          list-tests: "failed"
 
       - name: Upload merged report
         uses: actions/upload-artifact@v4
