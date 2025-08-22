@@ -137,6 +137,45 @@ export function* basicFunctionalityToggle() {
   }
 }
 
+export function* handleSDKInit() {
+  // Initialize SDKConnect
+  while (true) {
+    const action = (yield take([
+      UserActionType.LOGIN,
+      SET_COMPLETED_ONBOARDING,
+    ])) as LoginAction | SetCompletedOnboardingAction;
+
+    let completedOnboarding: boolean;
+    if (action.type === SET_COMPLETED_ONBOARDING) {
+      completedOnboarding = action.completedOnboarding;
+    } else {
+      completedOnboarding = yield select(selectCompletedOnboarding);
+    }
+
+    const { KeyringController } = Engine.context;
+    const isUnlocked = KeyringController.isUnlocked();
+
+    if (
+      action.type === UserActionType.LOGIN ||
+      (completedOnboarding && isUnlocked)
+    ) {
+      try {
+        yield call(SDKConnect.init, { context: 'Nav/App' });
+      } catch (e) {
+        Logger.log('Failed to initialize SDKConnect', e);
+      }
+      break;
+    }
+  }
+
+  // Initialize WalletConnect V2
+  try {
+    yield call(WC2Manager.init, {});
+  } catch (e) {
+    Logger.log('Failed to initialize services', e);
+  }
+}
+
 export function* handleDeeplinkSaga() {
   while (true) {
     // Handle parsing deeplinks after login or when the lock manager is resolved
@@ -193,14 +232,6 @@ export function* startAppServices() {
   // Start AppStateEventProcessor
   AppStateEventProcessor.start();
 
-  try {
-    yield all([
-      call(WC2Manager.init, {}),
-      call(SDKConnect.init, { context: 'Nav/App' }),
-    ]);
-  } catch (e) {
-    Logger.log('Failed to initialize services', e);
-  }
   // Unblock the ControllersGate
   yield put(setAppServicesReady());
 }
@@ -210,5 +241,6 @@ export function* rootSaga() {
   yield fork(startAppServices);
   yield fork(authStateMachine);
   yield fork(basicFunctionalityToggle);
+  yield fork(handleSDKInit);
   yield fork(handleDeeplinkSaga);
 }
