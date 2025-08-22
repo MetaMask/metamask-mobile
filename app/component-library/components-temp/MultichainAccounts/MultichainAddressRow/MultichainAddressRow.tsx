@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Avatar, {
   AvatarSize,
@@ -22,7 +28,7 @@ import {
   MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
 } from './MultichainAddressRow.constants';
 
-export const DEFAULT_SUCCESS_DURATION = 1200; // 1.4 seconds
+export const DEFAULT_SUCCESS_DURATION = 1200; // 1.2 seconds
 
 const MultichainAddressRow = ({
   chainId,
@@ -32,6 +38,7 @@ const MultichainAddressRow = ({
   style,
   copyParams,
   testID = MULTICHAIN_ADDRESS_ROW_TEST_ID,
+  ...viewProps
 }: MultichainAddressRowProps) => {
   const { styles } = useStyles(styleSheet, { style });
   const networkImageSource = getNetworkImageSource({ chainId });
@@ -43,7 +50,9 @@ const MultichainAddressRow = ({
   // Animated overlay for the green flash
   const progress = useRef(new Animated.Value(0)).current;
   const [showSuccess, setShowSuccess] = useState(false);
-  const successTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Using correct type for setTimeout in React Native
+  const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearSuccessTimer = useCallback(() => {
     if (successTimer.current) {
@@ -70,24 +79,46 @@ const MultichainAddressRow = ({
         useNativeDriver: false,
       }),
     );
-    Animated.sequence(steps).start();
+
+    // Start and properly manage animated sequence lifecycle
+    const animation = Animated.sequence(steps);
+    animation.start();
+
+    // Cancel animation on unmount to avoid memory leaks
+    return () => animation.stop();
   }, [progress]);
 
   const triggerSuccess = useCallback(() => {
+    if (!copyParams) {
+      return; // Prevent triggering feedback when copyParams are undefined
+    }
+
     setShowSuccess(true);
     clearSuccessTimer();
     successTimer.current = setTimeout(() => {
       setShowSuccess(false);
     }, DEFAULT_SUCCESS_DURATION);
-  }, [clearSuccessTimer]);
+  }, [clearSuccessTimer, copyParams]);
 
   const handleCopy = useCallback(() => {
+    if (!copyParams) {
+      return; // Prevent copying or triggering animations when copyParams are undefined
+    }
+
     startBlink();
     triggerSuccess();
     copyParams?.callback();
   }, [copyParams, startBlink, triggerSuccess]);
 
-  // Wrap icon callbacks to also blink + show message
+  // Hook for cleanup of success timer when the component unmounts
+  useEffect(
+    () => () => {
+      clearSuccessTimer();
+    },
+    [clearSuccessTimer],
+  );
+
+  // Render additional icons passed to the component
   const renderIcons = () =>
     icons
       ? icons.map((icon: Icon, index: number) => (
@@ -111,7 +142,7 @@ const MultichainAddressRow = ({
   ];
 
   return (
-    <View style={styles.base} testID={testID}>
+    <View style={styles.base} testID={testID} {...viewProps}>
       <Animated.View
         pointerEvents="none"
         style={[overlayStyle, styles.overlay]}
@@ -145,9 +176,8 @@ const MultichainAddressRow = ({
           </Text>
         )}
       </View>
-
       <View style={styles.actions}>
-        {copyParams ? (
+        {copyParams && (
           <ButtonIcon
             iconName={IconName.Copy}
             size={ButtonIconSizes.Md}
@@ -155,7 +185,7 @@ const MultichainAddressRow = ({
             iconColor={showSuccess ? IconColor.Success : IconColor.Default}
             testID={MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID}
           />
-        ) : null}
+        )}
         {renderIcons()}
       </View>
     </View>
