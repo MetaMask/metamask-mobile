@@ -5271,7 +5271,6 @@
       "account_name": "Account Name",
       "networks": "Networks",
       "account_address": "Account Address",
-      "networks": "Networks",
       "wallet": "Wallet",
       "private_key": "Private key",
       "private_keys": "Private keys",
@@ -5287,10 +5286,6 @@
       "receiving_address": "Receiving address",
       "copied": "Address copied"
     },
-    "address_list" : {
-      "addresses": "Addresses",
-      "receiving_address": "Receiving address"
-    },
     "private_key_list": {
       "list_title": "Private keys",
       "warning_title": "Don't share your private key",
@@ -5299,6 +5294,7 @@
       "enter_password": "Enter your password",
       "password_placeholder": "Password",
       "wrong_password": "Wrong password",
+      "copied": "Private key copied",
       "continue": "Continue",
       "cancel": "Cancel"
     },

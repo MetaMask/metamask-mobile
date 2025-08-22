@@ -21,7 +21,6 @@ import {
   selectInternalAccountsByGroupId,
 } from '../../../../selectors/multichainAccounts/accounts';
 // Components
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import MultichainAddressRow from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import SheetHeader from '../../../../component-library/components/Sheet/SheetHeader';
 import BottomSheet, {
@@ -40,9 +39,19 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../component-library/components/Buttons/Button';
+import {
+  useParams,
+  createNavigationDetails,
+} from '../../../../util/navigation/navUtils';
+import Routes from '../../../../constants/navigation/Routes';
 
 import styleSheet from './styles';
-import type { Props as AddressListProps, AddressItem } from './types';
+import type { Params as PrivateKeyListParams, AddressItem } from './types';
+
+export const createPrivateKeyListNavigationDetails =
+  createNavigationDetails<PrivateKeyListParams>(
+    Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
+  );
 
 /**
  * Check if the account has the private key available according to its keyring type.
@@ -61,8 +70,8 @@ const hasPrivateKeyAvailable = (account: InternalAccount) =>
  * @param props - Component properties.
  * @returns {JSX.Element} The rendered component.
  */
-export const PrivateKeyList = (props: AddressListProps) => {
-  const { groupId, title } = props.route.params;
+export const PrivateKeyList = () => {
+  const { groupId, title } = useParams<PrivateKeyListParams>();
 
   const { styles } = useStyles(styleSheet, {});
   const sheetRef = useRef<BottomSheetRef>(null);
@@ -149,18 +158,16 @@ export const PrivateKeyList = (props: AddressListProps) => {
         chainId={item.scope}
         networkName={item.networkName}
         address={item.account.address}
-        icons={[
-          {
-            name: IconName.Copy,
-            callback: async () => {
-              // TODO: Add feedback to user that private key was copied
-              await ClipboardManager.setStringExpire(
-                privateKeys[item.account.address],
-              );
-            },
-            testId: '',
+        copyParams={{
+          successMessage: strings(
+            'multichain_accounts.private_key_list.copied',
+          ),
+          callback: async () => {
+            await ClipboardManager.setStringExpire(
+              privateKeys[item.account.address],
+            );
           },
-        ]}
+        }}
       />
     ),
     [privateKeys],
