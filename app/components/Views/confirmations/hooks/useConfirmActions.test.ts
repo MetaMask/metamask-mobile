@@ -12,6 +12,9 @@ import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-cont
 // eslint-disable-next-line import/no-namespace
 import * as LedgerContext from '../context/ledger-context/ledger-context';
 import { useConfirmActions } from './useConfirmActions';
+import { useTransactionConfirm } from './transactions/useTransactionConfirm';
+
+jest.mock('./transactions/useTransactionConfirm');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -52,15 +55,21 @@ const createUseLedgerContextSpy = (mockedValues = {}) => {
 };
 
 describe('useConfirmAction', () => {
+  const useTransactionConfirmMock = jest.mocked(useTransactionConfirm);
   const useNavigationMock = jest.mocked(useNavigation);
   const navigateMock = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+
     useNavigationMock.mockReturnValue({
       goBack: jest.fn(),
       navigate: navigateMock,
     } as unknown as ReturnType<typeof useNavigation>);
+
+    useTransactionConfirmMock.mockReturnValue({
+      onConfirm: jest.fn(),
+    });
   });
 
   it('call setScannerVisible if QR signing is in progress', async () => {
@@ -110,7 +119,6 @@ describe('useConfirmAction', () => {
       state: stakingDepositConfirmationState,
     });
     result?.current?.onConfirm();
-    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(1);
     await flushPromises();
     expect(mockCaptureSignatureMetrics).not.toHaveBeenCalled();
     expect(clearSecurityAlertResponseSpy).not.toHaveBeenCalled();
