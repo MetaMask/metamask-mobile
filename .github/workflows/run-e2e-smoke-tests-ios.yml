@@ -14,7 +14,7 @@ jobs:
     with:
       test-suite-name: smoke-confirmations-ios
       platform: ios
-      test_suite_tag: ".*SmokeConfirmations.*"
+      test_suite_tag: "SmokeConfirmations"
     secrets: inherit
 
   smoke-confirmations-redesigned-ios:
@@ -23,7 +23,7 @@ jobs:
     with:
       test-suite-name: smoke-confirmations-redesigned-ios
       platform: ios
-      test_suite_tag: ".*SmokeConfirmationsRedesigned.*"
+      test_suite_tag: "SmokeConfirmationsRedesigned"
     secrets: inherit
 
   smoke-trade-ios:
@@ -32,7 +32,7 @@ jobs:
     with:
       test-suite-name: smoke-trade-ios
       platform: ios
-      test_suite_tag: ".*SmokeTrade.*"
+      test_suite_tag: "SmokeTrade"
     secrets: inherit
 
   smoke-wallet-platform-ios:
@@ -41,7 +41,7 @@ jobs:
     with:
       test-suite-name: smoke-wallet-platform-ios
       platform: ios
-      test_suite_tag: ".*SmokeWalletPlatform.*"
+      test_suite_tag: "SmokeWalletPlatform"
     secrets: inherit
 
   smoke-identity-ios:
@@ -50,7 +50,7 @@ jobs:
     with:
       test-suite-name: smoke-identity-ios
       platform: ios
-      test_suite_tag: ".*SmokeIdentity.*"
+      test_suite_tag: "SmokeIdentity"
     secrets: inherit
 
   smoke-accounts-ios:
@@ -59,7 +59,7 @@ jobs:
     with:
       test-suite-name: smoke-accounts-ios
       platform: ios
-      test_suite_tag: ".*SmokeAccounts.*"
+      test_suite_tag: "SmokeAccounts"
     secrets: inherit
 
   smoke-network-abstraction-ios:
@@ -68,7 +68,7 @@ jobs:
     with:
       test-suite-name: smoke-network-abstraction-ios
       platform: ios
-      test_suite_tag: ".*SmokeNetworkAbstraction.*"
+      test_suite_tag: "SmokeNetworkAbstractions"
     secrets: inherit
 
   smoke-network-expansion-ios:
@@ -77,7 +77,7 @@ jobs:
     with:
       test-suite-name: smoke-network-expansion-ios
       platform: ios
-      test_suite_tag: ".*NetworkExpansion.*"
+      test_suite_tag: "SmokeNetworkExpansion"
     secrets: inherit
 
   smoke-performance-ios:
@@ -86,7 +86,7 @@ jobs:
     with:
       test-suite-name: smoke-performance-ios
       platform: ios
-      test_suite_tag: ".*Performance.*"
+      test_suite_tag: "SmokePerformance"
     secrets: inherit
 
   smoke-card-ios:
@@ -95,7 +95,7 @@ jobs:
     with:
       test-suite-name: smoke-card-ios
       platform: ios
-      test_suite_tag: ".*SmokeCard.*"
+      test_suite_tag: "SmokeCard"
     secrets: inherit
 
   report-ios-smoke-tests:
@@ -131,8 +131,8 @@ jobs:
           path: "all-test-results/**/*.xml"
           reporter: "jest-junit"
           fail-on-error: false
-          list-suites: "all"
-          list-tests: "all"
+          list-suites: "failed"
+          list-tests: "failed"
 
       - name: Upload merged report
         uses: actions/upload-artifact@v4
