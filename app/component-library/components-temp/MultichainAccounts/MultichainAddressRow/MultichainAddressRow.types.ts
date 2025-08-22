@@ -20,6 +20,20 @@ export interface Icon {
   testId: string;
 }
 
+/**
+ * Parameters for the copy operation.
+ */
+export interface CopyParams {
+  /**
+   * Success message
+   */
+  successMessage?: string;
+  /**
+   * Callback function to execute when the copy action is successful
+   */
+  callback: () => void;
+}
+
 export interface MultichainAddressRowProps {
   /**
    * Chain ID to identify the network
@@ -34,12 +48,16 @@ export interface MultichainAddressRowProps {
    */
   address: string;
   /**
+   * Copy operation parameters
+   */
+  copyParams?: CopyParams;
+  /**
    * Object containing icons to display in the row.
    * Each icon should have a name, a callback function, and test ID.
    * The callback will be executed when the icon is pressed.
    * Icons are displayed in the order they are provided.
    */
-  icons: Icon[];
+  icons?: Icon[];
   /**
    * Optional style object for the container
    */
