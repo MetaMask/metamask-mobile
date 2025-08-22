@@ -1,9 +1,10 @@
 import NavigationService from '../../NavigationService';
 import Routes from '../../../constants/navigation/Routes';
-import Engine from '../../Engine';
 import { PerpsMarketData } from '../../../components/UI/Perps/controllers/types';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { PERFORMANCE_CONFIG } from '../../../components/UI/Perps/constants/perpsConfig';
+import { store } from '../../../store';
+import { selectIsFirstTimePerpsUser } from '../../../components/UI/Perps/selectors/perpsController';
 
 interface HandlePerpsUrlParams {
   perpsPath: string;
@@ -12,33 +13,6 @@ interface HandlePerpsUrlParams {
 interface HandlePerpsAssetUrlParams {
   assetPath: string;
 }
-
-/**
- * Check if the user is a first-time perps user
- * @returns true if the user has not completed the tutorial
- */
-const isFirstTimePerpsUser = (): boolean => {
-  try {
-    const state = Engine.context.PerpsController?.state;
-    // isFirstTimeUser might be an object with testnet/mainnet flags
-    const isFirstTime = state?.isFirstTimeUser;
-
-    // Handle both boolean and object types
-    if (typeof isFirstTime === 'boolean') {
-      return isFirstTime;
-    } else if (typeof isFirstTime === 'object' && isFirstTime !== null) {
-      // For object type, check the current network
-      // Default to testnet if not specified
-      return isFirstTime.testnet ?? true;
-    }
-
-    // Default to showing tutorial if we can't determine status
-    return true;
-  } catch (error) {
-    // Default to showing tutorial if we can't determine status
-    return true;
-  }
-};
 
 /**
  * Handles deeplinks for the perps market details
@@ -58,8 +32,8 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
     perpsPath,
   );
   try {
-    // Check if user is first-time perps user
-    const isFirstTime = isFirstTimePerpsUser();
+    // Check if user is first-time perps user using selector
+    const isFirstTime = selectIsFirstTimePerpsUser(store.getState());
     DevLogger.log('[handlePerpsUrl] isFirstTimeUser:', isFirstTime);
 
     if (isFirstTime) {

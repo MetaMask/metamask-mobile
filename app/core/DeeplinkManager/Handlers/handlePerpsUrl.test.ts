@@ -1,19 +1,21 @@
 import { handlePerpsUrl, handlePerpsAssetUrl } from './handlePerpsUrl';
 import NavigationService from '../../NavigationService';
 import Routes from '../../../constants/navigation/Routes';
-import Engine from '../../Engine';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
 import { PERFORMANCE_CONFIG } from '../../../components/UI/Perps/constants/perpsConfig';
+import { store } from '../../../store';
+import { selectIsFirstTimePerpsUser } from '../../../components/UI/Perps/selectors/perpsController';
 
 // Mock dependencies
 jest.mock('../../NavigationService');
-jest.mock('../../Engine');
 jest.mock('../../SDKConnect/utils/DevLogger');
+jest.mock('../../../store');
+jest.mock('../../../components/UI/Perps/selectors/perpsController');
 
 describe('handlePerpsUrl', () => {
   let mockNavigate: jest.Mock;
   let mockSetParams: jest.Mock;
-  const originalEngineContext = Engine.context;
+  let mockGetState: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -29,34 +31,21 @@ describe('handlePerpsUrl', () => {
 
     // Mock DevLogger
     (DevLogger.log as jest.Mock) = jest.fn();
+
+    // Mock store.getState
+    mockGetState = jest.fn();
+    (store.getState as jest.Mock) = mockGetState;
   });
 
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
-    // Restore original Engine context
-    Object.defineProperty(Engine, 'context', {
-      value: originalEngineContext,
-      writable: true,
-      configurable: true,
-    });
   });
 
   describe('handlePerpsUrl', () => {
     it('should navigate to tutorial for first-time users', async () => {
       // Mock first-time user
-      Object.defineProperty(Engine, 'context', {
-        value: {
-          ...originalEngineContext,
-          PerpsController: {
-            state: {
-              isFirstTimeUser: true,
-            },
-          },
-        } as unknown as typeof Engine.context,
-        writable: true,
-        configurable: true,
-      });
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -71,18 +60,7 @@ describe('handlePerpsUrl', () => {
 
     it('should navigate to wallet home with Perps tab for returning users', async () => {
       // Mock returning user
-      Object.defineProperty(Engine, 'context', {
-        value: {
-          ...originalEngineContext,
-          PerpsController: {
-            state: {
-              isFirstTimeUser: false,
-            },
-          },
-        } as unknown as typeof Engine.context,
-        writable: true,
-        configurable: true,
-      });
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -97,23 +75,9 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should handle isFirstTimeUser as object with testnet property', async () => {
-      // Mock first-time user with object structure
-      Object.defineProperty(Engine, 'context', {
-        value: {
-          ...originalEngineContext,
-          PerpsController: {
-            state: {
-              isFirstTimeUser: {
-                testnet: true,
-                mainnet: false,
-              },
-            },
-          },
-        } as unknown as typeof Engine.context,
-        writable: true,
-        configurable: true,
-      });
+    it('should handle first-time user on testnet', async () => {
+      // Mock first-time user on testnet
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -125,18 +89,9 @@ describe('handlePerpsUrl', () => {
       });
     });
 
-    it('should default to tutorial when isFirstTimeUser is undefined', async () => {
-      // Mock undefined state
-      Object.defineProperty(Engine, 'context', {
-        value: {
-          ...originalEngineContext,
-          PerpsController: {
-            state: {},
-          },
-        } as unknown as typeof Engine.context,
-        writable: true,
-        configurable: true,
-      });
+    it('should default to tutorial when state is undefined', async () => {
+      // Mock undefined state returning true (default)
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(true);
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -149,15 +104,8 @@ describe('handlePerpsUrl', () => {
     });
 
     it('should fallback to markets list on error', async () => {
-      // Mock error in PerpsController
-      Object.defineProperty(Engine, 'context', {
-        value: {
-          ...originalEngineContext,
-          PerpsController: null,
-        } as unknown as typeof Engine.context,
-        writable: true,
-        configurable: true,
-      });
+      // Mock selector to return false (returning user)
+      jest.mocked(selectIsFirstTimePerpsUser).mockReturnValue(false);
 
       // Mock navigation.navigate to throw an error for the first call
       mockNavigate.mockImplementationOnce(() => {
@@ -280,135 +228,6 @@ describe('handlePerpsUrl', () => {
         '[handlePerpsAssetUrl] Navigating directly to market details for:',
         'SOL',
       );
-    });
-  });
-
-  describe('isFirstTimePerpsUser helper', () => {
-    it('should return boolean value when isFirstTimeUser is boolean', async () => {
-      Object.defineProperty(Engine, 'context', {
-        value: {
-          ...originalEngineContext,
-          PerpsController: {
-            state: {
-              isFirstTimeUser: false,
-            },
-          },
-        } as unknown as typeof Engine.context,
-        writable: true,
-        configurable: true,
-      });
-
-      await handlePerpsUrl({ perpsPath: 'perps' });
-
-      // Should navigate to wallet (returning user flow)
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-
-      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
-
-      expect(mockSetParams).toHaveBeenCalledWith({
-        initialTab: 'perps',
-        shouldSelectPerpsTab: true,
-      });
-    });
-
-    it('should handle object with testnet/mainnet properties', async () => {
-      Object.defineProperty(Engine, 'context', {
-        value: {
-          ...originalEngineContext,
-          PerpsController: {
-            state: {
-              isFirstTimeUser: {
-                testnet: false,
-                mainnet: true,
-              },
-            },
-          },
-        } as unknown as typeof Engine.context,
-        writable: true,
-        configurable: true,
-      });
-
-      await handlePerpsUrl({ perpsPath: 'perps' });
-
-      // Should navigate to wallet (testnet = false)
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
-
-      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
-
-      expect(mockSetParams).toHaveBeenCalledWith({
-        initialTab: 'perps',
-        shouldSelectPerpsTab: true,
-      });
-    });
-
-    it('should default to true when testnet is not specified', async () => {
-      Object.defineProperty(Engine, 'context', {
-        value: {
-          ...originalEngineContext,
-          PerpsController: {
-            state: {
-              isFirstTimeUser: {
-                mainnet: false,
-              },
-            },
-          },
-        } as unknown as typeof Engine.context,
-        writable: true,
-        configurable: true,
-      });
-
-      await handlePerpsUrl({ perpsPath: 'perps' });
-
-      // Should navigate to tutorial (default to true)
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TUTORIAL,
-        params: {
-          isFromDeeplink: true,
-        },
-      });
-    });
-
-    it('should handle missing PerpsController gracefully', async () => {
-      Object.defineProperty(Engine, 'context', {
-        value: {} as unknown as typeof Engine.context,
-        writable: true,
-        configurable: true,
-      });
-
-      await handlePerpsUrl({ perpsPath: 'perps' });
-
-      // Should default to tutorial
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TUTORIAL,
-        params: {
-          isFromDeeplink: true,
-        },
-      });
-    });
-
-    it('should handle null isFirstTimeUser', async () => {
-      Object.defineProperty(Engine, 'context', {
-        value: {
-          ...originalEngineContext,
-          PerpsController: {
-            state: {
-              isFirstTimeUser: null,
-            },
-          },
-        } as unknown as typeof Engine.context,
-        writable: true,
-        configurable: true,
-      });
-
-      await handlePerpsUrl({ perpsPath: 'perps' });
-
-      // Should default to tutorial
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.TUTORIAL,
-        params: {
-          isFromDeeplink: true,
-        },
-      });
     });
   });
 });
