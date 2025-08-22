@@ -8,9 +8,22 @@ export enum TokenStandard {
 }
 
 export interface AssetType extends TokenI {
+  accountId?: string;
   networkBadgeSource?: ImageSourcePropType;
   tokenId?: string;
   isSelected?: boolean;
   standard?: TokenStandard;
   description?: string;
+}
+
+export interface Nft {
+  address: string;
+  standard: 'ERC721' | 'ERC1155';
+  name?: string;
+  collectionName?: string;
+  image?: string;
+  chainId: string;
+  tokenId: string;
+  accountId: string;
+  networkBadgeSource: ImageSourcePropType;
 }

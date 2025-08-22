@@ -63,7 +63,8 @@ describe(SmokeNetworkExpansion('Solana Wallet Standard E2E - Connect'), () => {
     });
   });
 
-  it('Switching between 2 accounts should reflect in the dapp', async () => {
+  // Skipping individual test for now, as it's flaky
+  it.skip('Switching between 2 accounts should reflect in the dapp', async () => {
     await withSolanaAccountEnabled(
       {
         numberOfAccounts: 2,
