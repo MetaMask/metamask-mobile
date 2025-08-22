@@ -105,6 +105,8 @@ import {
   selectBalanceChangeForAllWallets,
   selectBalanceChangeByAccountGroup,
   selectBalancePercentChangeByAccountGroup,
+  selectBalanceBySelectedAccountGroup,
+  selectBalanceChangeBySelectedAccountGroup,
 } from './balances';
 
 // Enhanced state factory with realistic data
@@ -399,6 +401,87 @@ describe('assets balance and balance change selectors (mobile)', () => {
         '1d',
       );
       expect(selector(state)).toBe(4.2);
+    });
+  });
+
+  describe('selectBalanceBySelectedAccountGroup', () => {
+    it('returns selected group balance when group exists', () => {
+      const state = makeState() as unknown as RootState;
+      const result = selectBalanceBySelectedAccountGroup(state);
+
+      expect(result).toEqual({
+        walletId: 'wallet-1',
+        groupId: 'wallet-1/group-1',
+        totalBalanceInUserCurrency: 500,
+        userCurrency: 'usd',
+      });
+    });
+
+    it('returns zeroed fallback when selected group does not exist', () => {
+      const state = makeState() as unknown as RootState;
+      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+        'keyring:wallet-1/group-999';
+
+      const result = selectBalanceBySelectedAccountGroup(state);
+      expect(result).toEqual({
+        walletId: 'keyring:wallet-1',
+        groupId: 'keyring:wallet-1/group-999',
+        totalBalanceInUserCurrency: 0,
+        userCurrency: 'usd',
+      });
+    });
+
+    it('returns null when no selected account group', () => {
+      const state = makeState() as unknown as RootState;
+      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+        '';
+
+      const result = selectBalanceBySelectedAccountGroup(state);
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectBalanceChangeBySelectedAccountGroup', () => {
+    it('returns change for selected wallet-1 group (1d)', () => {
+      const state = makeState() as unknown as RootState;
+      const selector = selectBalanceChangeBySelectedAccountGroup('1d');
+      const result = selector(state);
+
+      expect(result).toEqual({
+        period: '1d',
+        currentTotalInUserCurrency: 500,
+        previousTotalInUserCurrency: 490,
+        amountChangeInUserCurrency: 10,
+        percentChange: 2.1,
+        userCurrency: 'usd',
+      });
+    });
+
+    it('returns change for selected wallet-2 group (1d)', () => {
+      const state = makeState() as unknown as RootState;
+      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+        'keyring:wallet-2/group-1';
+
+      const selector = selectBalanceChangeBySelectedAccountGroup('1d');
+      const result = selector(state);
+
+      expect(result).toEqual({
+        period: '1d',
+        currentTotalInUserCurrency: 2000,
+        previousTotalInUserCurrency: 1920,
+        amountChangeInUserCurrency: 80,
+        percentChange: 4.2,
+        userCurrency: 'usd',
+      });
+    });
+
+    it('returns null when no selected account group', () => {
+      const state = makeState() as unknown as RootState;
+      state.engine.backgroundState.AccountTreeController.accountTree.selectedAccountGroup =
+        '';
+
+      const selector = selectBalanceChangeBySelectedAccountGroup('1d');
+      expect(selector(state)).toBeNull();
     });
   });
 });
