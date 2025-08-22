@@ -29,7 +29,6 @@ jobs:
   test-e2e-mobile:
     name: ${{ inputs.test-suite-name }}
     runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-large' }}
-    continue-on-error: true
 
     env:
       METAMASK_ENVIRONMENT: 'qa'
