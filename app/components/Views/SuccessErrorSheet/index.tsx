@@ -20,7 +20,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { useNavigation } from '@react-navigation/native';
+
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
   onButtonPress?: () => void;
@@ -67,7 +67,8 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
 
   const { colors } = useTheme();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+
+  const dismissModal = (): void => sheetRef?.current?.onCloseBottomSheet();
 
   const handleClose = () => {
     if (onClose) {
@@ -76,14 +77,14 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   };
 
   const handleSecondaryButtonPress = () => {
-    closeOnSecondaryButtonPress && navigation.goBack();
+    closeOnSecondaryButtonPress && dismissModal();
     if (onSecondaryButtonPress) {
       onSecondaryButtonPress();
     }
   };
 
   const handlePrimaryButtonPress = () => {
-    closeOnPrimaryButtonPress && navigation.goBack();
+    closeOnPrimaryButtonPress && dismissModal();
     if (onPrimaryButtonPress) {
       onPrimaryButtonPress();
     }
