@@ -14,7 +14,7 @@ jobs:
     with:
       test-suite-name: smoke-confirmations-android
       platform: android
-      test_suite_tag: ".*SmokeConfirmations.*"
+      test_suite_tag: "SmokeConfirmations"
     secrets: inherit
 
   smoke-trade-android:
@@ -23,7 +23,7 @@ jobs:
     with:
       test-suite-name: smoke-trade-android
       platform: android
-      test_suite_tag: ".*SmokeTrade.*"
+      test_suite_tag: "SmokeTrade"
     secrets: inherit
 
   smoke-wallet-platform-android:
@@ -32,7 +32,7 @@ jobs:
     with:
       test-suite-name: smoke-wallet-platform-android
       platform: android
-      test_suite_tag: ".*SmokeWalletPlatform.*"
+      test_suite_tag: "SmokeWalletPlatform"
     secrets: inherit
 
   smoke-identity-android:
@@ -41,7 +41,7 @@ jobs:
     with:
       test-suite-name: smoke-identity-android
       platform: android
-      test_suite_tag: ".*SmokeIdentity.*"
+      test_suite_tag: "SmokeIdentity"
     secrets: inherit
 
   smoke-accounts-android:
@@ -50,7 +50,7 @@ jobs:
     with:
       test-suite-name: smoke-accounts-android
       platform: android
-      test_suite_tag: ".*SmokeAccounts.*"
+      test_suite_tag: "SmokeAccounts"
     secrets: inherit
 
   smoke-network-abstraction-android:
@@ -59,7 +59,7 @@ jobs:
     with:
       test-suite-name: smoke-network-abstraction-android
       platform: android
-      test_suite_tag: ".*SmokeNetworkAbstraction.*"
+      test_suite_tag: "SmokeNetworkAbstractions"
     secrets: inherit
 
   smoke-network-expansion-android:
@@ -68,7 +68,7 @@ jobs:
     with:
       test-suite-name: smoke-network-expansion-android
       platform: android
-      test_suite_tag: ".*NetworkExpansion.*"
+      test_suite_tag: "SmokeNetworkExpansion"
     secrets: inherit
 
   smoke-performance-android:
@@ -77,7 +77,7 @@ jobs:
     with:
       test-suite-name: smoke-performance-android
       platform: android
-      test_suite_tag: ".*Performance.*"
+      test_suite_tag: "SmokePerformance"
     secrets: inherit
 
   smoke-card-android:
@@ -86,7 +86,7 @@ jobs:
     with:
       test-suite-name: smoke-card-android
       platform: android
-      test_suite_tag: ".*SmokeCard.*"
+      test_suite_tag: "SmokeCard"
     secrets: inherit
 
   report-android-smoke-tests:
@@ -121,8 +121,8 @@ jobs:
           path: "all-test-results/**/*.xml"
           reporter: "jest-junit"
           fail-on-error: false
-          list-suites: "all"
-          list-tests: "all"
+          list-suites: "failed"
+          list-tests: "failed"
 
       - name: Upload merged report
         uses: actions/upload-artifact@v4
