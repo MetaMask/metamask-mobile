@@ -6,7 +6,7 @@ import Engine from '../Engine';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { validate, Network } from 'bitcoin-address-validation';
 import { MULTICHAIN_NETWORK_BLOCK_EXPLORER_FORMAT_URLS_MAP } from './constants';
-import { formatAddress } from '../../util/address';
+import { formatAddress, isEthAddress } from '../../util/address';
 import {
   formatBlockExplorerAddressUrl,
   formatBlockExplorerTransactionUrl,
@@ -60,12 +60,9 @@ export function isSolanaAccount(account: InternalAccount): boolean {
  * @returns `true` if the address is a non-EVM address, `false` otherwise.
  */
 export function isNonEvmAddress(address: string): boolean {
-  return (
-    isSolanaAddress(address) ||
-    isBtcMainnetAddress(address) ||
-    isBtcTestnetAddress(address) ||
-    isBtcRegtestAddress(address)
-  );
+  // Instead of checking all other possible non-EVM addresses, we can just check if it's an EVM address
+  // This is much faster than doing multiple checks if it's a Solana, Bitcoin, etc. address
+  return !isEthAddress(address);
 }
 
 export function lastSelectedAccountAddressByNonEvmNetworkChainId(
