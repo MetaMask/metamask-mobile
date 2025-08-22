@@ -7,9 +7,6 @@ import TestSnaps from '../../pages/Browser/TestSnaps';
 import Assertions from '../../framework/Assertions';
 import { getEventsPayloads } from '../analytics/helpers';
 import TestHelpers from '../../helpers';
-import { Mockttp } from 'mockttp';
-import { mockEvents } from '../../api-mocking/mock-config/mock-events';
-import { setupMockRequest } from '../../api-mocking/mockHelpers';
 
 jest.setTimeout(150_000);
 
@@ -21,16 +18,6 @@ describe(FlaskBuildTests('Preinstalled Snap Tests'), () => {
       {
         fixture: new FixtureBuilder().withMetaMetricsOptIn().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          const { urlEndpoint, response } =
-            mockEvents.GET.remoteFeatureFlagsRedesignedConfirmationsFlask;
-          await setupMockRequest(mockServer, {
-            url: urlEndpoint,
-            requestMethod: 'GET',
-            response,
-            responseCode: 200,
-          });
-        },
       },
       async () => {
         await loginToApp();

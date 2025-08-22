@@ -91,6 +91,7 @@ describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
 
         await Assertions.expectElementToBeVisible(WalletView.container);
         const secretPhraseImportedText = 'Secret Recovery Phrase 2 imported';
+        // Waiting for toast notification to appear and disappear
         await Assertions.expectTextDisplayed(secretPhraseImportedText);
         await Assertions.expectTextNotDisplayed(secretPhraseImportedText);
 
