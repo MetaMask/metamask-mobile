@@ -15,7 +15,7 @@ import {
   removeChannel,
   watchConnection,
 } from './ConnectionManagement';
-import { init, postInit } from './InitializationManagement';
+import { init } from './InitializationManagement';
 import {
   ApprovedHosts,
   ConnectedSessions,
@@ -83,8 +83,6 @@ describe('SDKConnect', () => {
 
   const mockInit = init as jest.MockedFunction<typeof init>;
 
-  const mockPostInit = postInit as jest.MockedFunction<typeof postInit>;
-
   const mockPause = pause as jest.MockedFunction<typeof pause>;
 
   const mockResume = resume as jest.MockedFunction<typeof resume>;
@@ -151,9 +149,7 @@ describe('SDKConnect', () => {
   describe('Initialization Management', () => {
     describe('init', () => {
       it('should initialize the SDKConnect instance', async () => {
-        await SDKConnect.init({
-          context: 'testContext',
-        });
+        await SDKConnect.init({ context: 'testContext' });
 
         expect(mockInit).toHaveBeenCalledTimes(1);
         expect(mockInit).toHaveBeenCalledWith({
@@ -162,12 +158,10 @@ describe('SDKConnect', () => {
           instance: sdkConnect,
         });
       });
-    });
 
-    describe('postInit', () => {
-      it('should perform post-initialization tasks', async () => {
-        await sdkConnect.postInit();
-
+      it('should call postInit and execute provided callback', async () => {
+        const mockPostInit = jest.spyOn(sdkConnect, 'postInit');
+        await SDKConnect.init({ context: 'testContext' });
         expect(mockPostInit).toHaveBeenCalledTimes(1);
       });
     });
