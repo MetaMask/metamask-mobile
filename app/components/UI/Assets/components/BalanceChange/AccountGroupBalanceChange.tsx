@@ -13,16 +13,16 @@ import {
   getFormattedPercentageChange,
   getPercentageTextColor,
 } from '../../../../../component-library/components-temp/Price/AggregatedPercentage/utils';
+import { useSelector } from 'react-redux';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 
 interface AccountGroupBalanceChangeProps {
-  privacyMode?: boolean;
   amountChangeInUserCurrency: number;
   percentChange: number;
   userCurrency: string;
 }
 
 const AccountGroupBalanceChange = ({
-  privacyMode = false,
   amountChangeInUserCurrency,
   percentChange,
   userCurrency,
@@ -32,6 +32,8 @@ const AccountGroupBalanceChange = ({
     amountChangeInUserCurrency,
     userCurrency,
   );
+
+  const privacyMode = useSelector(selectPrivacyMode);
   const percentText = getFormattedPercentageChange(percentChange, 'en-US');
   const percentageTextColor = getPercentageTextColor(
     Boolean(privacyMode),

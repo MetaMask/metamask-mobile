@@ -65,7 +65,6 @@ const AccountGroupBalance = () => {
             </View>
             {balanceChange1d && (
               <AccountGroupBalanceChange
-                privacyMode={privacyMode}
                 amountChangeInUserCurrency={
                   balanceChange1d.amountChangeInUserCurrency
                 }
