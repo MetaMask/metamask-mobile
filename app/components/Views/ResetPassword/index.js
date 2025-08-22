@@ -849,7 +849,7 @@ class ResetPassword extends PureComponent {
           'reset_password.warning_password_change_button',
         ),
         onPrimaryButtonPress: this.onPressCreate,
-        closeOnPrimaryButtonPress: true,
+        closeOnPrimaryButtonPress: false,
       },
     });
   };
