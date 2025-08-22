@@ -165,6 +165,9 @@ jobs:
   build-android-apks:
     name: "Build Android APKs"
     if: ${{ github.event_name != 'merge_group' }}
+    permissions:
+      contents: read
+      id-token: write
     uses: ./.github/workflows/build-android-e2e.yml
     secrets: inherit
 
