@@ -16,7 +16,7 @@ export const styleSheet = (params: {
       backgroundColor: continueDisabled
         ? theme.colors.error.default
         : theme.colors.primary.default,
-      marginBottom: 6,
+      marginBottom: 12,
     },
   });
 };

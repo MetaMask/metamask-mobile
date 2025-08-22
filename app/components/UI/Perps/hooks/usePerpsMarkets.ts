@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import type { PerpsMarketData } from '../controllers/types';
-import { usePerpsLivePrices } from './stream';
+import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export interface UsePerpsMarketsResult {
   /**
@@ -43,16 +43,6 @@ export interface UsePerpsMarketsOptions {
    * @default false
    */
   skipInitialFetch?: boolean;
-  /**
-   * Enable real-time price updates via WebSocket
-   * @default false
-   */
-  enableLivePrices?: boolean;
-  /**
-   * Debounce interval for live price updates in milliseconds
-   * @default 5000 (5 seconds)
-   */
-  livePriceDebounceMs?: number;
 }
 
 /**
@@ -67,26 +57,12 @@ export const usePerpsMarkets = (
     enablePolling = false,
     pollingInterval = 60000, // 1 minute default
     skipInitialFetch = false,
-    enableLivePrices = false,
-    livePriceDebounceMs = 5000, // 5 seconds default for market list
   } = options;
 
   const [markets, setMarkets] = useState<PerpsMarketData[]>([]);
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Extract symbols from markets for live price subscription
-  const marketSymbols = useMemo(
-    () => markets.map((market) => market.symbol),
-    [markets],
-  );
-
-  // Conditionally subscribe to live prices if enabled
-  const livePrices = usePerpsLivePrices({
-    symbols: enableLivePrices ? marketSymbols : [],
-    throttleMs: livePriceDebounceMs,
-  });
 
   const fetchMarketData = useCallback(
     async (isRefresh = false): Promise<void> => {
@@ -107,14 +83,47 @@ export const usePerpsMarkets = (
         // Get markets with price data directly from the provider
         const marketDataWithPrices = await provider.getMarketDataWithPrices();
 
-        setMarkets(marketDataWithPrices);
+        // Sort markets by 24h volume (highest first)
+        const sortedMarkets = [...marketDataWithPrices].sort((a, b) => {
+          // Helper function to parse volume string and convert to number
+          const getVolumeNumber = (volumeStr: string | undefined): number => {
+            if (!volumeStr) return -1; // Put undefined at the end
+
+            // Handle special cases
+            if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1; // Put missing data at the end
+            if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
+
+            // Remove $ and commas, handle different suffixes
+            const cleaned = volumeStr.replace(/[$,]/g, '');
+
+            // Handle billion (B), million (M), thousand (K) suffixes
+            if (cleaned.includes('B')) {
+              return parseFloat(cleaned.replace('B', '')) * 1e9;
+            }
+            if (cleaned.includes('M')) {
+              return parseFloat(cleaned.replace('M', '')) * 1e6;
+            }
+            if (cleaned.includes('K')) {
+              return parseFloat(cleaned.replace('K', '')) * 1e3;
+            }
+
+            // Plain number without suffix (including 0)
+            const num = parseFloat(cleaned);
+            return isNaN(num) ? -1 : num;
+          };
+
+          const volumeA = getVolumeNumber(a.volume);
+          const volumeB = getVolumeNumber(b.volume);
+
+          return volumeB - volumeA; // Descending order
+        });
+
+        setMarkets(sortedMarkets);
 
         DevLogger.log(
           'Perps: Successfully fetched and transformed market data',
           {
             marketCount: marketDataWithPrices.length,
-            livePricesEnabled: enableLivePrices,
-            ...(enableLivePrices && { livePriceDebounceMs }),
           },
         );
       } catch (err) {
@@ -135,7 +144,7 @@ export const usePerpsMarkets = (
         setIsRefreshing(false);
       }
     },
-    [enableLivePrices, livePriceDebounceMs],
+    [],
   );
 
   const refresh = useCallback(
@@ -161,73 +170,8 @@ export const usePerpsMarkets = (
     return () => clearInterval(intervalId);
   }, [enablePolling, pollingInterval, fetchMarketData]);
 
-  // Merge live prices into market data if live prices are enabled
-  const marketsWithLivePrices = useMemo(() => {
-    if (!enableLivePrices || Object.keys(livePrices).length === 0) {
-      // Live prices not enabled or no live prices yet, return markets as-is
-      return markets;
-    }
-
-    // Update market data with live prices
-    return markets.map((market) => {
-      const livePrice = livePrices[market.symbol];
-      if (livePrice) {
-        // Create updated market with live price data
-        // Note: PerpsMarketData uses formatted strings, so we need to format the live prices
-        const currentPrice = parseFloat(livePrice.price);
-        const updatedMarket: PerpsMarketData = {
-          ...market,
-          // Update price with live data (formatted with consistent precision)
-          // Match the original format: $50,000.00 (2 decimal places with commas)
-          price: `$${currentPrice.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`,
-        };
-
-        // Update 24h change percentage if available
-        if (livePrice.percentChange24h) {
-          const changePercent = parseFloat(livePrice.percentChange24h);
-
-          // Format change24hPercent WITH percentage sign (as per type definition comment)
-          // This matches the format expected in PerpsMarketRowItem.test.tsx
-          updatedMarket.change24hPercent = `${
-            changePercent >= 0 ? '+' : ''
-          }${changePercent.toFixed(2)}%`;
-
-          // Calculate dollar change if we have both old and new price
-          // This is approximate since we don't have the exact 24h ago price
-          const priceChange =
-            (currentPrice * changePercent) / (100 + changePercent);
-          updatedMarket.change24h = `${priceChange >= 0 ? '+' : ''}$${Math.abs(
-            priceChange,
-          ).toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`;
-        }
-
-        // Update volume if available
-        if (livePrice.volume24h) {
-          // Format volume in millions/billions
-          const volume = livePrice.volume24h;
-          if (volume >= 1e9) {
-            updatedMarket.volume = `$${(volume / 1e9).toFixed(1)}B`;
-          } else if (volume >= 1e6) {
-            updatedMarket.volume = `$${(volume / 1e6).toFixed(1)}M`;
-          } else {
-            updatedMarket.volume = `$${volume.toLocaleString()}`;
-          }
-        }
-
-        return updatedMarket;
-      }
-      return market;
-    });
-  }, [markets, livePrices, enableLivePrices]);
-
   return {
-    markets: enableLivePrices ? marketsWithLivePrices : markets,
+    markets,
     isLoading,
     error,
     refresh,

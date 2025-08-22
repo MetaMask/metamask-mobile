@@ -1,12 +1,18 @@
 import { useEffect, useState, useMemo } from 'react';
+// import { useTheme } from '../../../../util/theme'; // Available for future dark mode support
 import { HYPERLIQUID_ASSET_ICONS_BASE_URL } from '../constants/hyperLiquidConfig';
 
 export const usePerpsAssetMetadata = (assetSymbol: string | undefined) => {
   const [assetUrl, setAssetUrl] = useState('');
   const [error, setError] = useState<string | null>(null);
+  // Note: useTheme() is available here for future dark mode logo support
+  // const { colors } = useTheme();
 
   const url = useMemo(() => {
     if (!assetSymbol) return '';
+    // For now, we use the same SVG for both themes
+    // In the future, we could add logic here to use different URLs based on theme
+    // e.g., `${base}${symbol}_${isDarkMode ? 'dark' : 'light'}.svg`
     return `${HYPERLIQUID_ASSET_ICONS_BASE_URL}${assetSymbol.toUpperCase()}.svg`;
   }, [assetSymbol]);
 

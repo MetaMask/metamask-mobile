@@ -526,6 +526,10 @@
     "contacts": "Contacts",
     "no_contacts_found": "No contacts found",
     "review": "Review",
+    "all_networks": "All",
+    "no_tokens_match_filters": "No tokens match your filters",
+    "clear_filters": "Clear filters",
+    "no_tokens_available": "No tokens available",
     "sign": "Sign",
     "network_not_found_title": "Network not found",
     "network_not_found_description": "Network with chain id {{chain_id}} not found in your wallet. Please add the network first.",
@@ -887,7 +891,13 @@
         "completed": "Completed",
         "view_balance": "View Balance",
         "view_transaction": "View Transaction"
-      }
+      },
+      "success_toast": "Deposit Complete",
+      "success_message": "Your balance will update in a few moments",
+      "error_toast": "Deposit Failed",
+      "error_generic": "Something went wrong. Please try again.",
+      "in_progress": "Processing deposit",
+      "processing_message": "Processing your deposit..."
     },
     "withdrawal": {
       "title": "Withdraw",
@@ -940,8 +950,7 @@
       "fees": "Fees",
       "market": "Market",
       "limit": "Limit",
-      "take_profit": "Take profit",
-      "stop_loss": "Stop loss",
+      "max": "max",
       "cancel_order": "Cancel order",
       "filled": "filled",
       "reduce_only": "Reduce only",
@@ -1000,7 +1009,8 @@
         "market": "Market",
         "current_price": "Current price",
         "ask_price": "Ask price",
-        "bid_price": "Bid price"
+        "bid_price": "Bid price",
+        "difference_from_market": "Difference from market:"
       },
       "leverage_modal": {
         "title": "Set Leverage",
@@ -1038,7 +1048,7 @@
       "closing": "Closing position...",
       "pnl": "PnL",
       "fees": "Fees",
-      "receive": "You'll receive (Hyperliquid USDC)",
+      "receive": "You'll receive",
       "error_unknown": "Failed to close position",
       "success_title": "Position Closed Successfully",
       "success_description": "Your {{direction}} position for {{asset}} has been closed",
@@ -1118,14 +1128,29 @@
       "withdrawFailed": "Failed to withdraw",
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
-      "depositFailed": "Deposit failed"
+      "depositFailed": "Deposit failed",
+      "connectionFailed": {
+        "title": "Connection Failed",
+        "description": "Unable to connect to Perps services. Please check your connection and try again.",
+        "retry": "Retry"
+      },
+      "networkError": {
+        "title": "Network Error",
+        "description": "There was a problem connecting to the network. Please try again.",
+        "retry": "Try Again"
+      },
+      "unknown": {
+        "title": "Something Went Wrong",
+        "description": "An unexpected error occurred. Please try again later.",
+        "retry": "Retry"
+      }
     },
     "position": {
       "title": "Positions",
       "card": {
         "entry_price": "Entry Price",
         "market_price": "Market Price",
-        "liquidity_price": "Liquidity Price",
+        "liquidation_price": "Liquidation Price",
         "take_profit": "Take Profit",
         "stop_loss": "Stop Loss",
         "margin": "Margin",
@@ -1284,7 +1309,7 @@
         "history_will_appear": "Your trading history will appear here"
       }
     },
-    "risk_disclaimer": "Perpetual contracts are very risky, and you could suddenly and without notice lose your entire investment. You trade entirely at your own risk.  Market data provided by {{provider}}.",
+    "risk_disclaimer": "Perps trading is risky, and you could suddenly and without notice lose your entire margin. You trade entirely at your own risks. Market data provided by Hyperliquid. Price chart powered by",
     "tutorial": {
       "continue": "Continue",
       "skip": "Skip",
@@ -5241,8 +5266,13 @@
       "header_title": "Account Details",
       "account_name": "Account Name",
       "account_address": "Account Address",
+      "networks": "Networks",
       "wallet": "Wallet",
       "private_key": "Private key"
+    },
+    "address_list" : {
+      "addresses": "Addresses",
+      "receiving_address": "Receiving address"
     },
     "accounts_list": {
       "details": "Details"
@@ -5329,10 +5359,10 @@
   "card": {
     "card": "MetaMask Card",
     "add_funds_bottomsheet": {
-      "deposit": "Deposit",
-      "deposit_description": "Convert cash to {{symbol}} on Linea",
-      "swap": "Swap",
-      "swap_description": "Exchange tokens into {{symbol}} on Linea",
+      "deposit": "Fund with cash",
+      "deposit_description": "Low-cost card or bank transfer",
+      "swap": "Fund with crypto",
+      "swap_description": "Swap tokens into {{symbol}} on Linea",
       "select_method": "Select method"
     },
     "card_home": {
