@@ -112,16 +112,13 @@ const DeleteWalletModal: React.FC = () => {
   const deleteWallet = async () => {
     try {
       setIsDeletingWallet(true);
-      await dispatch(
-        clearHistory(isEnabled(), isDataCollectionForMarketingEnabled),
-      );
+      dispatch(clearHistory(isEnabled(), isDataCollectionForMarketingEnabled));
       signOut();
       await CookieManager.clearAll(true);
       await resetWalletState();
       await deleteUser();
       await StorageWrapper.removeItem(OPTIN_META_METRICS_UI_SEEN);
-      await dispatch(setCompletedOnboarding(false));
-      triggerClose();
+      dispatch(setCompletedOnboarding(false));
       // Track analytics for successful deletion
       track(MetaMetricsEvents.RESET_WALLET_CONFIRMED, {});
       InteractionManager.runAfterInteractions(() => {
@@ -129,13 +126,14 @@ const DeleteWalletModal: React.FC = () => {
       });
     } catch (error) {
       console.error('Error during wallet deletion:', error);
+      triggerClose();
     } finally {
       setIsDeletingWallet(false);
     }
   };
 
   return (
-    <BottomSheet ref={modalRef} isInteractable={false}>
+    <BottomSheet ref={modalRef} isInteractable={!isDeletingWallet}>
       {!isResetWallet && !isResetWalletFromParams ? (
         <View
           style={styles.forgotPasswordContainer}
