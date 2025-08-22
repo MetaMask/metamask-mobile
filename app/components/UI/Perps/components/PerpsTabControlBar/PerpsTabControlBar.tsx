@@ -26,7 +26,6 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   onManageBalancePress,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-
   // Use live account data with 1 second throttle for balance display
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
 
@@ -81,11 +80,13 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
         >
           {strings('perps.perp_account_balance')}
         </Text>
-        <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
-          <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
-            {formatPerpsFiat(perpsAccount?.availableBalance || '0')}
-          </Text>
-        </Animated.View>
+        <View style={styles.balanceRow}>
+          <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
+            <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+              {formatPerpsFiat(perpsAccount?.availableBalance || '0')}
+            </Text>
+          </Animated.View>
+        </View>
       </View>
       <View style={styles.arrowContainer}>
         <Icon

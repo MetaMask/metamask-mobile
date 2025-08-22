@@ -49,12 +49,14 @@ jobs:
           echo "Reading device matrix from appwright/device-matrix.json"
           
           # Extract Android devices
-          ANDROID_MATRIX=$(cat appwright/device-matrix.json | jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson")
-          echo "android=$ANDROID_MATRIX" >> $GITHUB_OUTPUT
-          
+          ANDROID_MATRIX=$(jq -r ".android_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
           # Extract iOS devices
-          IOS_MATRIX=$(cat appwright/device-matrix.json | jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson")
-          echo "ios=$IOS_MATRIX" >> $GITHUB_OUTPUT
+          IOS_MATRIX=$(jq -r ".ios_devices | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
+          
+          {
+            echo "android=$ANDROID_MATRIX"
+            echo "ios=$IOS_MATRIX"
+          } >> "$GITHUB_OUTPUT"
           
           echo "Android matrix: $ANDROID_MATRIX"
           echo "iOS matrix: $IOS_MATRIX"
@@ -108,6 +110,7 @@ jobs:
         env:
           BITRISE_APP_ID: ${{ env.BITRISE_APP_ID }}
           BITRISE_BUILD_TRIGGER_TOKEN: ${{ env.BITRISE_BUILD_TRIGGER_TOKEN }}
+          BITRISE_API_TOKEN: ${{ env.BITRISE_API_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Triggering Bitrise QA builds..."
@@ -126,7 +129,7 @@ jobs:
               },
               "hook_info": {
                 "type": "bitrise",
-                "build_trigger_token": "'$BITRISE_BUILD_TRIGGER_TOKEN'"
+                "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
               },
               "triggered_by": "GitHub Actions Performance E2E"
             }')
@@ -150,13 +153,13 @@ jobs:
           fi
           
           # Store build slug for artifact download
-          echo "BUILD_SLUG=$BUILD_SLUG" >> $GITHUB_ENV
+          echo "BUILD_SLUG=$BUILD_SLUG" >> "$GITHUB_ENV"
           
           echo "Waiting for build to complete..."
           TIMEOUT=1800  # 30 minutes
           ELAPSED=0
           
-          while [ $ELAPSED -lt $TIMEOUT ]; do
+          while [ "$ELAPSED" -lt "$TIMEOUT" ]; do
             # Check pipeline status using the correct v0.1 API endpoint
             echo "Checking pipeline status for slug: $BUILD_SLUG"
             PIPELINE_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
@@ -183,7 +186,7 @@ jobs:
             ELAPSED=$((ELAPSED + 30))
           done
           
-          if [ $ELAPSED -ge $TIMEOUT ]; then
+          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
             echo "Timeout waiting for pipeline to complete"
             echo "Final pipeline status: $PIPELINE_STATUS"
             echo "Pipeline slug: $BUILD_SLUG"
@@ -207,8 +210,10 @@ jobs:
           fi
           
           # Store build IDs for artifact download
-          echo "ANDROID_BUILD_ID=$ANDROID_BUILD_ID" >> $GITHUB_ENV
-          echo "IOS_BUILD_ID=$IOS_BUILD_ID" >> $GITHUB_ENV
+          {
+            echo "ANDROID_BUILD_ID=$ANDROID_BUILD_ID"
+            echo "IOS_BUILD_ID=$IOS_BUILD_ID"
+          } >> "$GITHUB_ENV"
       
       - name: Download Build Artifacts
         id: download-artifacts
@@ -225,7 +230,8 @@ jobs:
           ANDROID_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
             "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts")
           
-          if [[ $? -ne 0 ]]; then
+          if ! curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$ANDROID_BUILD_ID/artifacts" > /dev/null; then
             echo "Error: Failed to fetch Android artifacts"
             exit 1
           fi
@@ -248,19 +254,21 @@ jobs:
               echo "Downloading Android browserstack JSON..."
               wget -O "android_browserstack_apps.json" "$ANDROID_BS_DOWNLOAD_URL"
               
-              if [[ $? -ne 0 ]]; then
+              if ! wget -O "android_browserstack_apps.json" "$ANDROID_BS_DOWNLOAD_URL"; then
                 echo "Error: Failed to download Android browserstack JSON"
                 exit 1
               fi
               
               # Extract the first Android APK app_url
-              ANDROID_BS_URL=$(cat "android_browserstack_apps.json" | jq -r '.[] | select(.app_name | endswith(".apk")) | .app_url' | head -1)
-              ANDROID_VERSION=$(cat "android_browserstack_apps.json" | jq -r '.[] | select(.app_name | endswith(".apk")) | .app_version' | head -1)
+              ANDROID_BS_URL=$(jq -r '.[] | select(.app_name | endswith(".apk")) | .app_url' "android_browserstack_apps.json" | head -1)
+              ANDROID_VERSION=$(jq -r '.[] | select(.app_name | endswith(".apk")) | .app_version' "android_browserstack_apps.json" | head -1)
               
               echo "Android BrowserStack URL: $ANDROID_BS_URL"
               echo "Android version: $ANDROID_VERSION"
-              echo "android-version=$ANDROID_VERSION" >> $GITHUB_OUTPUT
-              echo "browserstack-android-url=$ANDROID_BS_URL" >> $GITHUB_OUTPUT
+              {
+                echo "android-version=$ANDROID_VERSION"
+                echo "browserstack-android-url=$ANDROID_BS_URL"
+              } >> "$GITHUB_OUTPUT"
             else
               echo "Error: No Android browserstack JSON download URL found"
               exit 1
@@ -275,7 +283,8 @@ jobs:
           IOS_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
             "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_BUILD_ID/artifacts")
           
-          if [[ $? -ne 0 ]]; then
+          if ! curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+            "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$IOS_BUILD_ID/artifacts" > /dev/null; then
             echo "Error: Failed to fetch iOS artifacts"
             exit 1
           fi
@@ -299,19 +308,21 @@ jobs:
               echo "Downloading iOS browserstack JSON..."
               wget -O "ios_browserstack_apps.json" "$IOS_BS_DOWNLOAD_URL"
               
-              if [[ $? -ne 0 ]]; then
+              if ! wget -O "ios_browserstack_apps.json" "$IOS_BS_DOWNLOAD_URL"; then
                 echo "Error: Failed to download iOS browserstack JSON"
                 exit 1
               fi
               
               # Extract the first iOS IPA app_url
-              IOS_BS_URL=$(cat "ios_browserstack_apps.json" | jq -r '.[] | select(.app_name | endswith(".ipa")) | .app_url' | head -1)
-              IOS_VERSION=$(cat "ios_browserstack_apps.json" | jq -r '.[] | select(.app_name | endswith(".ipa")) | .app_version' | head -1)
+              IOS_BS_URL=$(jq -r '.[] | select(.app_name | endswith(".ipa")) | .app_url' "ios_browserstack_apps.json" | head -1)
+              IOS_VERSION=$(jq -r '.[] | select(.app_name | endswith(".ipa")) | .app_version' "ios_browserstack_apps.json" | head -1)
               
               echo "iOS BrowserStack URL: $IOS_BS_URL"
               echo "iOS version: $IOS_VERSION"
-              echo "ios-version=$IOS_VERSION" >> $GITHUB_OUTPUT
-              echo "browserstack-ios-url=$IOS_BS_URL" >> $GITHUB_OUTPUT
+              {
+                echo "ios-version=$IOS_VERSION"
+                echo "browserstack-ios-url=$IOS_BS_URL"
+              } >> "$GITHUB_OUTPUT"
             else
               echo "Error: No iOS browserstack JSON download URL found"
               exit 1
@@ -331,7 +342,6 @@ jobs:
       browserstack-android-url: ${{ steps.download-artifacts.outputs.browserstack-android-url }}
       browserstack-ios-url: ${{ steps.download-artifacts.outputs.browserstack-ios-url }}
 
-  # Sequential Android Tests on Multiple Devices
   android-tests:
     name: Android Tests
     runs-on: ubuntu-latest
@@ -391,12 +401,14 @@ jobs:
       - name: Set Android Test Environment
         run: |
           echo "Setting test environment for device: ${{ matrix.device.name }}"
-          echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}" >> $GITHUB_ENV
-          echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}" >> $GITHUB_ENV
-          echo "BROWSERSTACK_ANDROID_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}" >> $GITHUB_ENV
-          echo "TEST_PLATFORM=android" >> $GITHUB_ENV
-          echo "TEST_SUITE=${{ github.event.inputs.test_suite }}" >> $GITHUB_ENV
-          echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.android-version }}" >> $GITHUB_ENV
+          {
+            echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
+            echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
+            echo "BROWSERSTACK_ANDROID_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-android-url }}"
+            echo "TEST_PLATFORM=android"
+            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
+            echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.android-version }}"
+          } >> "$GITHUB_ENV"
       
       - name: Run Android Tests on ${{ matrix.device.name }}
         env:
@@ -482,11 +494,13 @@ jobs:
       - name: Set iOS Test Environment
         run: |
           echo "Setting test environment for device: ${{ matrix.device.name }}"
-          echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}" >> $GITHUB_ENV
-          echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}" >> $GITHUB_ENV
-          echo "BROWSERSTACK_IOS_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}" >> $GITHUB_ENV
-          echo "TEST_SUITE=${{ github.event.inputs.test_suite }}" >> $GITHUB_ENV
-          echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.ios-version }}" >> $GITHUB_ENV
+          {
+            echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
+            echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
+            echo "BROWSERSTACK_IOS_APP_URL=${{ needs.trigger-qa-builds-and-upload.outputs.browserstack-ios-url }}"
+            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
+            echo "QA_APP_VERSION=${{ needs.trigger-qa-builds-and-upload.outputs.ios-version }}"
+          } >> "$GITHUB_ENV"
       
       - name: Run iOS Tests on ${{ matrix.device.name }}
         env:

@@ -61,8 +61,10 @@ jobs:
           if [ -n "${{ github.event.inputs.device_matrix }}" ]; then
             # Use custom device matrix from input
             echo "Using custom device matrix from input"
-            echo "android=${{ github.event.inputs.device_matrix }}" >> $GITHUB_OUTPUT
-            echo "ios=${{ github.event.inputs.device_matrix }}" >> $GITHUB_OUTPUT
+            {
+              echo "android=${{ github.event.inputs.device_matrix }}"
+              echo "ios=${{ github.event.inputs.device_matrix }}"
+            } >> "$GITHUB_OUTPUT"
           else
             # Read from JSON file and filter by category
             echo "Reading device matrix from appwright/device-matrix.json"
@@ -77,12 +79,14 @@ jobs:
             fi
             
             # Extract Android devices with optional category filtering
-            ANDROID_MATRIX=$(cat appwright/device-matrix.json | jq -r ".android_devices $CATEGORY_FILTER | map({name: .name, os_version: .os_version, category: .category}) | tojson")
-            echo "android=$ANDROID_MATRIX" >> $GITHUB_OUTPUT
-            
+            ANDROID_MATRIX=$(jq -r ".android_devices $CATEGORY_FILTER | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
             # Extract iOS devices with optional category filtering
-            IOS_MATRIX=$(cat appwright/device-matrix.json | jq -r ".ios_devices $CATEGORY_FILTER | map({name: .name, os_version: .os_version, category: .category}) | tojson")
-            echo "ios=$IOS_MATRIX" >> $GITHUB_OUTPUT
+            IOS_MATRIX=$(jq -r ".ios_devices $CATEGORY_FILTER | map({name: .name, os_version: .os_version, category: .category}) | tojson" appwright/device-matrix.json)
+            
+            {
+              echo "android=$ANDROID_MATRIX"
+              echo "ios=$IOS_MATRIX"
+            } >> "$GITHUB_OUTPUT"
             
             echo "Android matrix: $ANDROID_MATRIX"
             echo "iOS matrix: $IOS_MATRIX"
@@ -101,7 +105,6 @@ jobs:
               exit 1
             fi
           fi
-  # Sequential Android Tests on Multiple Devices
   android-tests:
     name: Android Tests
     runs-on: ubuntu-latest
@@ -123,6 +126,7 @@ jobs:
       
       - name: Install dependencies
         run: yarn setup
+      
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -130,6 +134,7 @@ jobs:
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
           build-name: ${{ github.repository }}-${{ github.ref_name }}-android-${{ matrix.device.name }}-${{ matrix.device.os_version }}-${{ github.run_number }}
           project-name: ${{ github.repository }}
+      
       - name: Setup BrowserStack Local
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -146,19 +151,21 @@ jobs:
       - name: Set Android Test Environment
         run: |
           echo "Setting test environment for device: ${{ matrix.device.name }}"
-          echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}" >> $GITHUB_ENV
-          echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}" >> $GITHUB_ENV
-          echo "BROWSERSTACK_ANDROID_APP_URL=${{ github.event.inputs.browserstack_app_url_android }}" >> $GITHUB_ENV
-          echo "BROWSERSTACK_BUILD_NAME=Android-Performance-${{ github.ref_name }}-Branch" >> $GITHUB_ENV
-          echo "TEST_PLATFORM=android" >> $GITHUB_ENV
-          echo "TEST_SUITE=${{ github.event.inputs.test_suite }}" >> $GITHUB_ENV
+          {
+            echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
+            echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
+            echo "BROWSERSTACK_ANDROID_APP_URL=${{ github.event.inputs.browserstack_app_url_android }}"
+            echo "BROWSERSTACK_BUILD_NAME=Android-Performance-${{ github.ref_name }}-Branch"
+            echo "TEST_PLATFORM=android"
+            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
+          } >> "$GITHUB_ENV"
       
       - name: Run Android Tests on ${{ matrix.device.name }}
         env:
           BROWSERSTACK_LOCAL: true
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
         run: |
-          echo "=== Testing ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
+          echo "=== Testing ${{ matrix.device.name }} (${{ matrix.device.category }}) ==="
           echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Category: ${{ matrix.device.category }}"
           echo "Branch: ${{ github.ref_name }}"
@@ -175,7 +182,6 @@ jobs:
             appwright/reporters/reports
           if-no-files-found: ignore
           retention-days: 7
-  # Sequential iOS Tests on Multiple Devices
   ios-tests:
     name: iOS Tests
     runs-on: ubuntu-latest
@@ -196,6 +202,7 @@ jobs:
       
       - name: Install dependencies
         run: yarn setup
+      
       - name: BrowserStack Env Setup
         uses: browserstack/github-actions/setup-env@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -203,6 +210,7 @@ jobs:
           access-key: ${{ env.BROWSERSTACK_ACCESS_KEY }}
           build-name: ${{ github.repository }}-${{ github.ref_name }}-ios-${{ matrix.device.name }}-${{ matrix.device.os_version }}-${{ github.run_number }}
           project-name: ${{ github.repository }}
+      
       - name: Setup BrowserStack Local
         uses: browserstack/github-actions/setup-local@4478e16186f38e5be07721931642e65a028713c3
         with:
@@ -213,24 +221,26 @@ jobs:
       - name: Wait for BrowserStack Local
         run: |
           echo "Waiting for BrowserStack Local to be ready..."
-          sleep 30
+          sleep 15
           echo "BrowserStack Local should be ready now"
       
       - name: Set iOS Test Environment
         run: |
           echo "Setting test environment for device: ${{ matrix.device.name }}"
-          echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}" >> $GITHUB_ENV
-          echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}" >> $GITHUB_ENV
-          echo "BROWSERSTACK_IOS_APP_URL=${{ github.event.inputs.browserstack_app_url_ios }}" >> $GITHUB_ENV
-          echo "BROWSERSTACK_BUILD_NAME=iOS-Performance-${{ github.ref_name }}-Branch" >> $GITHUB_ENV
-          echo "TEST_SUITE=${{ github.event.inputs.test_suite }}" >> $GITHUB_ENV
+          {
+            echo "BROWSERSTACK_DEVICE=${{ matrix.device.name }}"
+            echo "BROWSERSTACK_OS_VERSION=${{ matrix.device.os_version }}"
+            echo "BROWSERSTACK_IOS_APP_URL=${{ github.event.inputs.browserstack_app_url_ios }}"
+            echo "BROWSERSTACK_BUILD_NAME=iOS-Performance-${{ github.ref_name }}-Branch"
+            echo "TEST_SUITE=${{ github.event.inputs.test_suite }}"
+          } >> "$GITHUB_ENV"
       
       - name: Run iOS Tests on ${{ matrix.device.name }}
         env:
           BROWSERSTACK_LOCAL: true
           BROWSERSTACK_LOCAL_IDENTIFIER: ${{ github.run_id }}
         run: |
-          echo "=== Testing ${{ matrix.device.name }} (${{ matrix.device.category }} Class) ==="
+          echo "=== Testing ${{ matrix.device.name }} (${{ matrix.device.category }}) ==="
           echo "OS Version: ${{ matrix.device.os_version }}"
           echo "Category: ${{ matrix.device.category }}"
           echo "Branch: ${{ github.ref_name }}"

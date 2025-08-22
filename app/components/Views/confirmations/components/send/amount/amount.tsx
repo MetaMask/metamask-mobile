@@ -20,7 +20,7 @@ import Text, {
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { TokenStandard } from '../../../types/token';
+import { AssetType, TokenStandard } from '../../../types/token';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
 import { useBalance } from '../../../hooks/send/useBalance';
@@ -44,10 +44,15 @@ export const Amount = () => {
     getNativeValue,
   } = useCurrencyConversions();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
+  const assetSymbol = isNFT
+    ? undefined
+    : (asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol;
+  const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
   const { styles, theme } = useStyles(styleSheet, {
     inputError: Boolean(amountError),
     inputLength: amount.length,
     isNFT,
+    symbolLength: assetDisplaySymbol.length,
   });
   const {
     setAmountInputMethodManual,
@@ -99,8 +104,6 @@ export const Amount = () => {
     updateValue,
   ]);
 
-  const assetSymbol = asset?.ticker ?? asset?.symbol;
-
   return (
     <View style={styles.container}>
       <View style={styles.topSection}>
@@ -134,12 +137,11 @@ export const Amount = () => {
           </View>
           <Text
             color={amountError ? TextColor.Error : TextColor.Alternative}
+            numberOfLines={1}
             style={styles.tokenSymbol}
             variant={TextVariant.DisplayLG}
           >
-            {fiatMode
-              ? fiatCurrencySymbol
-              : assetSymbol ?? (isNFT ? 'NFT' : '')}
+            {fiatMode ? fiatCurrencySymbol : assetDisplaySymbol}
           </Text>
         </View>
         {!isNFT && (

@@ -99,6 +99,7 @@ import {
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
+import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
@@ -133,12 +134,14 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import { newAssetTransaction } from '../../../actions/transaction';
 import { getEther } from '../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import AppConstants from '../../../core/AppConstants';
 import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import {
+  selectIsSwapsLive,
+  selectIsUnifiedSwapsEnabled,
+} from '../../../core/redux/slices/bridge';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
@@ -351,7 +354,9 @@ const Wallet = ({
   );
 
   const [isNetworkRampSupported] = useRampNetwork();
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector((state: RootState) =>
+    selectIsSwapsLive(state, chainId),
+  );
   const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   // Setup for AssetDetailsActions
@@ -465,6 +470,9 @@ const Wallet = ({
   const hdKeyrings = useSelector(selectHDKeyrings);
 
   const accountName = useAccountName();
+  const accountGroupName = useAccountGroupName();
+
+  const displayName = accountGroupName || accountName;
   useAccountsWithNetworkActivitySync();
 
   const { networks } = useNetworksByNamespace({
@@ -733,7 +741,7 @@ const Wallet = ({
       getWalletNavbarOptions(
         walletRef,
         selectedInternalAccount,
-        accountName,
+        displayName,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -748,7 +756,7 @@ const Wallet = ({
     );
   }, [
     selectedInternalAccount,
-    accountName,
+    displayName,
     networkName,
     networkImageSource,
     onTitlePress,
