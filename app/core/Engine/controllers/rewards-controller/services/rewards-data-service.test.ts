@@ -98,6 +98,7 @@ describe('RewardsDataService', () => {
           headers: {
             'Content-Type': 'application/json',
           },
+          signal: expect.any(AbortSignal),
         },
       );
     });
@@ -153,6 +154,147 @@ describe('RewardsDataService', () => {
           credentials: 'omit',
         }),
       );
+    });
+  });
+
+  describe('timeout functionality', () => {
+    it('should include AbortSignal in requests', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLoginResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await rewardsDataService.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xabc',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+
+    it('should timeout with custom timeout', async () => {
+      // Mock fetch to throw AbortError immediately
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      // Test the makeRequest method directly with a custom timeout
+      const makeRequestPromise = (
+        rewardsDataService as unknown as {
+          makeRequest: (
+            endpoint: string,
+            options?: RequestInit,
+            subscriptionId?: string,
+            timeoutMs?: number,
+          ) => Promise<Response>;
+        }
+      ).makeRequest(
+        '/test-endpoint',
+        { method: 'GET' },
+        undefined,
+        2000, // 2 second timeout
+      );
+
+      await expect(makeRequestPromise).rejects.toThrow(
+        'Request timeout after 2000ms',
+      );
+    });
+
+    it('should handle AbortError correctly', async () => {
+      // Mock fetch to throw AbortError
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
+
+      const loginPromise = rewardsDataService.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xabc',
+      });
+
+      await expect(loginPromise).rejects.toThrow(
+        'Request timeout after 10000ms',
+      );
+    });
+
+    it('should pass through non-timeout errors', async () => {
+      // Mock fetch to throw a different error
+      const networkError = new Error('Network connection failed');
+      networkError.name = 'NetworkError';
+      mockFetch.mockRejectedValue(networkError);
+
+      const loginPromise = rewardsDataService.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xabc',
+      });
+
+      await expect(loginPromise).rejects.toThrow('Network connection failed');
+    });
+
+    it('should include AbortController signal in fetch options', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLoginResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await rewardsDataService.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xabc',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+        }),
+      );
+    });
+
+    it('should clear timeout on successful response', async () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLoginResponse),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await rewardsDataService.login({
+        account: '0x123',
+        timestamp: 1234567890,
+        signature: '0xabc',
+      });
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      clearTimeoutSpy.mockRestore();
+    });
+
+    it('should clear timeout on error response', async () => {
+      const clearTimeoutSpy = jest.spyOn(global, 'clearTimeout');
+
+      const networkError = new Error('Network error');
+      mockFetch.mockRejectedValue(networkError);
+
+      await expect(
+        rewardsDataService.login({
+          account: '0x123',
+          timestamp: 1234567890,
+          signature: '0xabc',
+        }),
+      ).rejects.toThrow('Network error');
+
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+      clearTimeoutSpy.mockRestore();
     });
   });
 
