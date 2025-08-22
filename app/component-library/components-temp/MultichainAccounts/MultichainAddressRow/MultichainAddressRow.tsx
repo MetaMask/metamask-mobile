@@ -47,13 +47,13 @@ const MultichainAddressRow = ({
     [address],
   );
 
-  // Animated overlay for the green flash
   const progress = useRef(new Animated.Value(0)).current;
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Using correct type for setTimeout in React Native
   const successTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const animationCleanupRef = useRef<(() => void) | null>(null);
 
+  // Cleanup timer
   const clearSuccessTimer = useCallback(() => {
     if (successTimer.current) {
       clearTimeout(successTimer.current);
@@ -61,6 +61,7 @@ const MultichainAddressRow = ({
     }
   }, []);
 
+  // Animation function now returns a cleanup function, which we track and call on unmount!
   const startBlink = useCallback(() => {
     const steps: Animated.CompositeAnimation[] = [];
     steps.push(
@@ -79,11 +80,9 @@ const MultichainAddressRow = ({
         useNativeDriver: false,
       }),
     );
-
     // Start and properly manage animated sequence lifecycle
     const animation = Animated.sequence(steps);
     animation.start();
-
     // Cancel animation on unmount to avoid memory leaks
     return () => animation.stop();
   }, [progress]);
@@ -92,7 +91,6 @@ const MultichainAddressRow = ({
     if (!copyParams) {
       return; // Prevent triggering feedback when copyParams are undefined
     }
-
     setShowSuccess(true);
     clearSuccessTimer();
     successTimer.current = setTimeout(() => {
@@ -104,16 +102,27 @@ const MultichainAddressRow = ({
     if (!copyParams) {
       return; // Prevent copying or triggering animations when copyParams are undefined
     }
-
-    startBlink();
+    // Clean up previous animation if running
+    if (animationCleanupRef.current) {
+      animationCleanupRef.current();
+      animationCleanupRef.current = null;
+    }
+    // Start new animation and retain its cleanup
+    animationCleanupRef.current = startBlink();
     triggerSuccess();
-    copyParams?.callback();
+    if (copyParams?.callback) {
+      copyParams.callback();
+    }
   }, [copyParams, startBlink, triggerSuccess]);
 
-  // Hook for cleanup of success timer when the component unmounts
+  // Cleanup effect for timers and animation
   useEffect(
     () => () => {
       clearSuccessTimer();
+      if (animationCleanupRef.current) {
+        animationCleanupRef.current();
+        animationCleanupRef.current = null;
+      }
     },
     [clearSuccessTimer],
   );
