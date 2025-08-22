@@ -717,6 +717,7 @@
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>@reown/appkit-utils>viem>ws>bufferutil": false,
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>viem>ws>bufferutil": false,
       "@metamask/test-dapp-solana>@solana/web3.js>rpc-websockets>bufferutil": false,
+      "@metamask/mobile-wallet-protocol-core>centrifuge>protobufjs": false,
       "appwright>appium": false,
       "appwright>appium>@appium/support>sharp": false,
       "appwright>webdriver>@wdio/utils>edgedriver": false,
@@ -724,8 +725,7 @@
       "appium-xcuitest-driver>appium-ios-simulator>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-remote-debugger>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-webdriveragent>@appium/support>sharp": false,
-      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false,
-      "@metamask/mobile-wallet-protocol-core>centrifuge>protobufjs": false
+      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false
     }
   },
   "packageManager": "yarn@1.22.22",
