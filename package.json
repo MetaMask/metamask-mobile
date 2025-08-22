@@ -252,6 +252,8 @@
     "@metamask/logging-controller": "^6.0.4",
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/metamask-eth-abis": "3.1.1",
+    "@metamask/mobile-wallet-protocol-core": "^0.0.6",
+    "@metamask/mobile-wallet-protocol-wallet-client": "^0.0.6",
     "@metamask/multichain-account-service": "^0.4.0",
     "@metamask/multichain-api-client": "^0.6.5",
     "@metamask/multichain-api-middleware": "^0.4.0",
@@ -722,7 +724,8 @@
       "appium-xcuitest-driver>appium-ios-simulator>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-remote-debugger>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-webdriveragent>@appium/support>sharp": false,
-      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false
+      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false,
+      "@metamask/mobile-wallet-protocol-core>centrifuge>protobufjs": false
     }
   },
   "packageManager": "yarn@1.22.22",
