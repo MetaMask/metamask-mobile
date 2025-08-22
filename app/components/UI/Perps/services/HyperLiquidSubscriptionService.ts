@@ -31,6 +31,7 @@ import type {
 import {
   adaptPositionFromSDK,
   adaptOrderFromSDK,
+  adaptAccountStateFromSDK,
 } from '../utils/hyperLiquidAdapter';
 import type { HyperLiquidClientService } from './HyperLiquidClientService';
 import type { HyperLiquidWalletService } from './HyperLiquidWalletService';
@@ -329,20 +330,10 @@ export class HyperLiquidSubscriptionService {
           });
 
           // Extract account data from clearinghouseState (with null checks)
-          const accountState: AccountState = {
-            totalBalance:
-              data.clearinghouseState?.marginSummary?.accountValue || '0',
-            availableBalance: data.clearinghouseState?.withdrawable || '0',
-            marginUsed:
-              data.clearinghouseState?.marginSummary?.totalMarginUsed || '0',
-            // Calculate unrealized PnL from all positions
-            unrealizedPnl: positionsWithTPSL
-              .reduce((total, pos) => {
-                const pnl = parseFloat(pos.unrealizedPnl || '0');
-                return total + pnl;
-              }, 0)
-              .toString(),
-          };
+          const accountState: AccountState = adaptAccountStateFromSDK(
+            data.clearinghouseState,
+            data.spotState,
+          );
 
           //TODO: @abretonc7s - We need to revisit this logic for increased performance.
           // Check if data actually changed

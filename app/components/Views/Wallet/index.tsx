@@ -218,6 +218,7 @@ const WalletTokensTabView = React.memo(
   }) => {
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
+    const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
     const theme = useTheme();
     const styles = useMemo(() => createStyles(theme), [theme]);
@@ -279,7 +280,7 @@ const WalletTokensTabView = React.memo(
           onChangeTab={onChangeTab}
         >
           <Tokens {...tokensTabProps} key={tokensTabProps.key} />
-          {isPerpsEnabled && (
+          {isPerpsEnabled && isEvmSelected && (
             <PerpsTabView {...perpsTabProps} key={perpsTabProps.key} />
           )}
           {defiEnabled && (

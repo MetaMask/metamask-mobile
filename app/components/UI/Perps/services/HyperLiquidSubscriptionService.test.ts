@@ -46,6 +46,14 @@ jest.mock('../utils/hyperLiquidAdapter', () => ({
     isTrigger: false,
     reduceOnly: false,
   })),
+  adaptAccountStateFromSDK: jest.fn(() => ({
+    availableBalance: '1000.00',
+    totalBalance: '10000.00',
+    marginUsed: '500.00',
+    unrealizedPnl: '100.00',
+    returnOnEquity: '20.0',
+    totalValue: '10100.00',
+  })),
 }));
 
 // Mock DevLogger

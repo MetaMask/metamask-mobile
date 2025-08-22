@@ -43,6 +43,7 @@ jest.mock('../../hooks/stream', () => ({
       availableBalance: '1000.50',
       marginUsed: '9000.00',
       unrealizedPnl: '100.50',
+      returnOnEquity: '0.15',
     },
     isInitialLoading: false,
   })),
@@ -52,10 +53,27 @@ jest.mock('../../utils/formatUtils', () => ({
   formatPerpsFiat: jest.fn(
     (balance: string) => `$${parseFloat(balance || '0').toFixed(2)}`,
   ),
+  formatPnl: jest.fn((value) => {
+    const num = parseFloat(value);
+    return num >= 0
+      ? `+$${Math.abs(num).toFixed(2)}`
+      : `-$${Math.abs(num).toFixed(2)}`;
+  }),
+  formatPercentage: jest.fn((value) => `${parseFloat(value).toFixed(2)}%`),
 }));
 
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
+}));
+
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string) => {
+    const translations: Record<string, string> = {
+      'perps.available_balance': 'Available Balance',
+      'perps.unrealized_pnl': 'Unrealized P&L',
+    };
+    return translations[key] || key;
+  }),
 }));
 
 // Mock Animated.Value and animation methods
@@ -92,7 +110,7 @@ jest.mock('react-native', () => {
 describe('PerpsTabControlBar', () => {
   // Helper function to get TouchableOpacity
   const getTouchableOpacity = () => {
-    const balanceText = screen.getByText('Perp account balance');
+    const balanceText = screen.getByText('Available Balance');
     const touchableOpacity = balanceText.parent?.parent;
     if (!touchableOpacity) {
       throw new Error('TouchableOpacity not found');
@@ -179,12 +197,12 @@ describe('PerpsTabControlBar', () => {
 
       render(<PerpsTabControlBar />);
 
-      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
+      expect(screen.getByText('Available Balance')).toBeOnTheScreen();
       expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Initial balance when no data
 
       // Find TouchableOpacity by its content
-      const touchableOpacity = screen.getByText('Perp account balance').parent
-        ?.parent;
+      const touchableOpacity =
+        screen.getByText('Available Balance').parent?.parent;
       expect(touchableOpacity).toBeTruthy();
     });
 
@@ -356,7 +374,7 @@ describe('PerpsTabControlBar', () => {
       render(<PerpsTabControlBar />);
 
       // Should still render without crashing
-      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
+      expect(screen.getByText('Available Balance')).toBeOnTheScreen();
       expect(screen.getByText('$0.00')).toBeOnTheScreen(); // Should show default value
     });
 
@@ -421,7 +439,7 @@ describe('PerpsTabControlBar', () => {
 
       await waitFor(() => {
         expect(DevLogger.log).toHaveBeenCalledWith(
-          'PerpsTabControlBar: Animation error:',
+          'PerpsTabControlBar: Balance animation error:',
           expect.any(Error),
         );
       });
@@ -436,7 +454,7 @@ describe('PerpsTabControlBar', () => {
       render(<PerpsTabControlBar />);
 
       // Should still render without crashing
-      expect(screen.getByText('Perp account balance')).toBeOnTheScreen();
+      expect(screen.getByText('Available Balance')).toBeOnTheScreen();
       expect(screen.getByText('$0.00')).toBeOnTheScreen();
     });
   });

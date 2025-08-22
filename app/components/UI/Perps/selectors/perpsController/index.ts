@@ -42,10 +42,16 @@ const selectPerpsNetwork = createSelector(
     perpsControllerState?.isTestnet ? 'testnet' : 'mainnet',
 );
 
+const selectPerpsBalances = createSelector(
+  selectPerpsControllerState,
+  (perpsControllerState) => perpsControllerState?.perpsBalances || {},
+);
+
 export {
   selectPerpsProvider,
   selectPerpsAccountState,
   selectPerpsDepositState,
   selectPerpsEligibility,
   selectPerpsNetwork,
+  selectPerpsBalances,
 };

@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback, useRef, useMemo } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import { useSelector } from 'react-redux';
@@ -132,7 +132,11 @@ const ActivityView = () => {
 
   const tabViewRef = useRef();
   const params = useParams();
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
+  const isPerpsEnabled = useMemo(
+    () => perpsEnabledFlag && isEvmSelected,
+    [perpsEnabledFlag, isEvmSelected],
+  );
 
   const openAccountSelector = useCallback(() => {
     navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {

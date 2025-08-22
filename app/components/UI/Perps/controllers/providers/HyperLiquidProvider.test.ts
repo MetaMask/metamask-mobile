@@ -146,6 +146,11 @@ describe('HyperLiquidProvider', () => {
       }),
       getInfoClient: jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -198,7 +203,6 @@ describe('HyperLiquidProvider', () => {
             accountValue: '10000',
             totalMarginUsed: '5000',
           },
-          withdrawable: '5000',
         }),
         spotClearinghouseState: jest.fn().mockResolvedValue({
           balances: [{ coin: 'USDC', hold: '1000', total: '10000' }],
@@ -611,6 +615,11 @@ describe('HyperLiquidProvider', () => {
       // Position without TP/SL
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -663,6 +672,11 @@ describe('HyperLiquidProvider', () => {
       // Mock position with TP/SL
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -762,6 +776,11 @@ describe('HyperLiquidProvider', () => {
       // Mock position with TP/SL
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -857,6 +876,11 @@ describe('HyperLiquidProvider', () => {
       // Position exists but no open TP/SL orders
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -923,6 +947,11 @@ describe('HyperLiquidProvider', () => {
     it('should handle close position when position not found', async () => {
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [], // No positions
         }),
         frontendOpenOrders: jest.fn().mockResolvedValue([]),
@@ -947,6 +976,11 @@ describe('HyperLiquidProvider', () => {
       // Mock short position with TP/SL
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -1058,6 +1092,11 @@ describe('HyperLiquidProvider', () => {
       // Mock position exists with TP/SL in positions call
       mockClientService.getInfoClient = jest.fn().mockReturnValue({
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -3261,6 +3300,11 @@ describe('HyperLiquidProvider', () => {
           referredBy: null, // User has no referral set
         }),
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -3345,6 +3389,11 @@ describe('HyperLiquidProvider', () => {
           referredBy: null, // User has no referral set
         }),
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -3435,6 +3484,11 @@ describe('HyperLiquidProvider', () => {
           referredBy: null, // User has no referral set
         }),
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -3545,6 +3599,11 @@ describe('HyperLiquidProvider', () => {
           referredBy: null, // User has no referral set
         }),
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -3624,6 +3683,11 @@ describe('HyperLiquidProvider', () => {
           referredBy: null, // User has no referral set
         }),
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -3703,6 +3767,11 @@ describe('HyperLiquidProvider', () => {
           referredBy: null,
         }),
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {
@@ -3769,6 +3838,11 @@ describe('HyperLiquidProvider', () => {
           referredBy: { code: 'EXISTING_REFERRAL' }, // User already has referral
         }),
         clearinghouseState: jest.fn().mockResolvedValue({
+          marginSummary: {
+            totalMarginUsed: '500',
+            accountValue: '10500',
+          },
+          withdrawable: '9500',
           assetPositions: [
             {
               position: {

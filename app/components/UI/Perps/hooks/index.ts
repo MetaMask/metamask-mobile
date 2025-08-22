@@ -11,6 +11,8 @@ export { usePerpsConnection } from '../providers/PerpsConnectionProvider';
 
 // State hooks (Redux selectors)
 export { usePerpsAccount } from './usePerpsAccount';
+// Portfolio balance hook (for wallet integration)
+export { usePerpsPortfolioBalance } from './usePerpsPortfolioBalance';
 
 // Live data hooks (WebSocket subscriptions)
 export { usePerpsPositionData } from './usePerpsPositionData';

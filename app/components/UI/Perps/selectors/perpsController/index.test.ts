@@ -90,6 +90,8 @@ describe('PerpsController Selectors', () => {
         totalBalance: '5000',
         marginUsed: '1000',
         unrealizedPnl: '50',
+        returnOnEquity: '10.0',
+        totalValue: '5500',
       };
 
       const mockState = createMockState({
@@ -134,6 +136,8 @@ describe('PerpsController Selectors', () => {
         totalBalance: '0',
         marginUsed: '0',
         unrealizedPnl: '0',
+        returnOnEquity: '10.0',
+        totalValue: '5500',
       };
 
       const mockState = createMockState({
@@ -156,6 +160,8 @@ describe('PerpsController Selectors', () => {
         totalBalance: '6000',
         marginUsed: '1000',
         unrealizedPnl: '500',
+        returnOnEquity: '100.0',
+        totalValue: '6000',
       };
 
       const mockState = createMockState({
@@ -177,6 +183,8 @@ describe('PerpsController Selectors', () => {
         totalBalance: '4500',
         marginUsed: '2000',
         unrealizedPnl: '-500',
+        returnOnEquity: '-25.0',
+        totalValue: '4000',
       };
 
       const mockState = createMockState({

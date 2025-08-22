@@ -197,13 +197,32 @@ export function adaptAccountStateFromSDK(
   spotState?: SpotClearinghouseState,
 ): AccountState {
   // Calculate total unrealized PnL from all positions
-  const totalUnrealizedPnl = perpsState.assetPositions
-    .reduce(
-      (sum: number, assetPos: AssetPosition) =>
-        sum + parseFloat(assetPos.position.unrealizedPnl),
-      0,
-    )
-    .toString();
+  const { totalUnrealizedPnl, weightedReturnOnEquity } =
+    perpsState.assetPositions.reduce(
+      (acc, assetPos: AssetPosition) => {
+        const unrealizedPnl = parseFloat(
+          assetPos.position.unrealizedPnl || '0',
+        );
+        const marginUsed = parseFloat(assetPos.position.marginUsed || '0');
+        const returnOnEquity = parseFloat(
+          assetPos.position.returnOnEquity || '0',
+        );
+        acc.totalUnrealizedPnl += unrealizedPnl;
+        acc.weightedReturnOnEquity += returnOnEquity * marginUsed;
+        return acc;
+      },
+      {
+        totalUnrealizedPnl: 0,
+        weightedReturnOnEquity: 0,
+      },
+    );
+  const totalMarginUsed = parseFloat(
+    perpsState.marginSummary.totalMarginUsed || '0',
+  );
+  const totalReturnOnEquityPercentage = (
+    (weightedReturnOnEquity / totalMarginUsed) *
+    100
+  ).toFixed(1);
 
   // TODO: BALANCE DISPLAY DECISION NEEDED
   //
@@ -245,10 +264,12 @@ export function adaptAccountStateFromSDK(
   const totalBalance = (spotBalance + perpsBalance).toString();
 
   const accountState: AccountState = {
-    availableBalance: perpsState.withdrawable, // Always Perps withdrawable
-    totalBalance, // Combined or Perps-only? See TODO above
-    marginUsed: perpsState.crossMarginSummary.totalMarginUsed,
-    unrealizedPnl: totalUnrealizedPnl,
+    availableBalance: perpsState.withdrawable || '0', // Always Perps withdrawable
+    totalBalance: totalBalance || '0', // Combined or Perps-only? See TODO above
+    marginUsed: perpsState.marginSummary.totalMarginUsed || '0', // margin used including cross margin
+    unrealizedPnl: totalUnrealizedPnl.toString() || '0',
+    returnOnEquity: totalReturnOnEquityPercentage || '0',
+    totalValue: perpsState.marginSummary.accountValue || '0', // vaults + margin + pnl + perps balance
   };
 
   return accountState;

@@ -637,7 +637,7 @@ describe('hyperLiquidAdapter', () => {
               unrealizedPnl: '50.0',
               returnOnEquity: '0.1',
               liquidationPx: '40000',
-              marginUsed: '25000',
+              marginUsed: '250',
               maxLeverage: 100,
               cumFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
             },
@@ -653,7 +653,7 @@ describe('hyperLiquidAdapter', () => {
               unrealizedPnl: '-25.5',
               returnOnEquity: '-0.02',
               liquidationPx: '2500',
-              marginUsed: '500',
+              marginUsed: '50.25',
               maxLeverage: 50,
               cumFunding: { allTime: '0', sinceOpen: '0', sinceChange: '0' },
             },
@@ -669,6 +669,8 @@ describe('hyperLiquidAdapter', () => {
         totalBalance: '1000.5', // Perps only
         marginUsed: '300.25',
         unrealizedPnl: '24.5', // 50.0 + (-25.5)
+        returnOnEquity: '8.0', // Calculated from weighted return and margin
+        totalValue: '1000.50',
       });
     });
 
@@ -711,6 +713,8 @@ describe('hyperLiquidAdapter', () => {
         totalBalance: '1000.5', // 500.0 + 200.0 + 300.5
         marginUsed: '150.0',
         unrealizedPnl: '100',
+        returnOnEquity: '0.0', // No positions with returnOnEquity, so 0
+        totalValue: '500.0',
       });
     });
 
@@ -748,6 +752,8 @@ describe('hyperLiquidAdapter', () => {
         totalBalance: '1000', // Spot balances default to 0
         marginUsed: '200.0',
         unrealizedPnl: '0',
+        returnOnEquity: '0.0',
+        totalValue: '1000.0',
       });
     });
 

@@ -79,6 +79,8 @@ import type {
   UpdatePositionTPSLParams,
   WithdrawParams,
   WithdrawResult,
+  GetHistoricalPortfolioParams,
+  HistoricalPortfolioResult,
 } from '../types';
 
 /**
@@ -1241,6 +1243,79 @@ export class HyperLiquidProvider implements IPerpsProvider {
     } catch (error) {
       DevLogger.log('Error getting user funding:', error);
       return [];
+    }
+  }
+
+  /**
+   * Get historical portfolio data for percentage calculations
+   */
+  async getHistoricalPortfolio(
+    params?: GetHistoricalPortfolioParams,
+  ): Promise<HistoricalPortfolioResult> {
+    try {
+      DevLogger.log(
+        'Getting historical portfolio via HyperLiquid SDK:',
+        params,
+      );
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      // Get portfolio data
+      const portfolioData = await infoClient.portfolio({
+        user: userAddress,
+      });
+
+      // Calculate target time (default to 24 hours ago)
+      const targetTime = Date.now() - 24 * 60 * 60 * 1000;
+
+      // Get UTC 00:00 of the target day
+      const targetDate = new Date(targetTime);
+      const targetTimestamp = targetDate.getTime();
+
+      // Get the account value history from the last week's data
+      const weeklyPeriod = portfolioData?.[1];
+      const weekData = weeklyPeriod?.[1];
+      const accountValueHistory = weekData?.accountValueHistory || [];
+
+      // Find entries that are before the target timestamp, then get the closest one
+      const entriesBeforeTarget = accountValueHistory.filter(
+        ([timestamp]) => timestamp < targetTimestamp,
+      );
+
+      let closestEntry = null;
+      let smallestDiff = Infinity;
+      for (const entry of entriesBeforeTarget) {
+        const [timestamp] = entry;
+        const diff = targetTimestamp - timestamp;
+        if (diff < smallestDiff) {
+          smallestDiff = diff;
+          closestEntry = entry;
+        }
+      }
+
+      const result: HistoricalPortfolioResult = closestEntry
+        ? {
+            accountValue1dAgo: closestEntry[1] || '0',
+            timestamp: closestEntry[0] || 0,
+          }
+        : {
+            accountValue1dAgo:
+              accountValueHistory?.[accountValueHistory.length - 1]?.[1] || '0',
+            timestamp: 0,
+          };
+
+      DevLogger.log('Historical portfolio result:', result);
+      return result;
+    } catch (error) {
+      DevLogger.log('Error getting historical portfolio:', error);
+      return {
+        accountValue1dAgo: '0',
+        timestamp: 0,
+      };
     }
   }
 

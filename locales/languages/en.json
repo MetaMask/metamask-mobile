@@ -1179,7 +1179,8 @@
         "total_balance": "Total Balance",
         "available_balance": "Available Balance",
         "margin_used": "Margin Used",
-        "total_unrealized_pnl": "Total Unrealized P&L"
+        "total_unrealized_pnl": "Total Unrealized P&L",
+        "unrealized_pnl": "Unrealized P&L"
       },
       "tpsl": {
         "update_success": "TP/SL updated successfully"

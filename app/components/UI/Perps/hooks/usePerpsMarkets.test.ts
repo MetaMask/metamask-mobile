@@ -67,6 +67,11 @@ const mockProvider = {
   getPositions: jest.fn(),
   getAccountState: jest.fn(),
   getMarkets: jest.fn(),
+  getHistoricalPortfolio: jest.fn().mockResolvedValue({
+    totalBalance24hAgo: '10000',
+    totalBalance7dAgo: '9500',
+    totalBalance30dAgo: '9000',
+  }),
   withdraw: jest.fn(),
   subscribeToPrices: jest.fn(),
   subscribeToPositions: jest.fn(),
