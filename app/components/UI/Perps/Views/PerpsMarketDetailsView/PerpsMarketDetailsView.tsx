@@ -11,14 +11,8 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  View,
-  RefreshControl,
-  Linking,
-} from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView, View, RefreshControl, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
   ButtonSize,
@@ -35,7 +29,6 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
-import CandlestickChartComponent from '../../components/PerpsCandlestickChart/PerpsCandlectickChart';
 import PerpsMarketHeader from '../../components/PerpsMarketHeader';
 import PerpsCandlePeriodBottomSheet from '../../components/PerpsCandlePeriodBottomSheet';
 import type {
@@ -71,6 +64,8 @@ import PerpsMarketTabs from '../../components/PerpsMarketTabs/PerpsMarketTabs';
 import PerpsNotificationTooltip from '../../components/PerpsNotificationTooltip';
 import { isNotificationsFeatureEnabled } from '../../../../../util/notifications';
 import { PERPS_NOTIFICATIONS_FEATURE_ENABLED } from '../../constants/perpsConfig';
+import TradingViewChart from '../../components/TradingViewChart';
+import PerpsTimeDurationSelector from '../../components/PerpsTimeDurationSelector';
 interface MarketDetailsRouteParams {
   market: PerpsMarketData;
   isNavigationFromOrderSuccess?: boolean;
@@ -81,7 +76,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const route =
     useRoute<RouteProp<{ params: MarketDetailsRouteParams }, 'params'>>();
   const { market, isNavigationFromOrderSuccess } = route.params || {};
-  const { top } = useSafeAreaInsets();
   const { track } = usePerpsEventTracking();
 
   // Track screen load time
@@ -95,11 +89,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [startMeasure]);
 
   const [selectedDuration, setSelectedDuration] = useState<TimeDuration>(
-    TimeDuration.ONE_DAY,
+    TimeDuration.ONE_HOUR,
   );
   const [selectedCandlePeriod, setSelectedCandlePeriod] =
     useState<CandlePeriod>(() =>
-      getDefaultCandlePeriodForDuration(TimeDuration.ONE_DAY),
+      getDefaultCandlePeriodForDuration(TimeDuration.ONE_HOUR),
     );
   const [
     isCandlePeriodBottomSheetVisible,
@@ -287,7 +281,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   };
 
   const handleTradingViewPress = useCallback(() => {
-    Linking.openURL('https://www.tradingview.com/').catch((error) => {
+    Linking.openURL('https://www.tradingview.com/').catch((error: unknown) => {
       console.error('Failed to open Trading View URL:', error);
     });
   }, []);
@@ -308,7 +302,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   if (!market) {
     return (
-      <SafeAreaView style={[styles.container, { paddingTop: top }]}>
+      <SafeAreaView style={styles.container}>
         <View
           style={styles.errorContainer}
           testID={PerpsMarketDetailsViewSelectorsIDs.ERROR}
@@ -323,7 +317,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   return (
     <SafeAreaView
-      style={[styles.mainContainer, { marginTop: top }]}
+      style={styles.mainContainer}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
       {/* Fixed Header Section */}
@@ -351,26 +345,31 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             />
           }
         >
-          {/* Chart Section */}
+          {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
-            <CandlestickChartComponent
+            <TradingViewChart
               candleData={candleData}
-              isLoading={isLoadingHistory}
               height={350}
-              selectedDuration={selectedDuration}
               tpslLines={
                 existingPosition
                   ? {
+                      entryPrice: existingPosition.entryPrice,
                       takeProfitPrice: existingPosition.takeProfitPrice,
                       stopLossPrice: existingPosition.stopLossPrice,
-                      entryPrice: existingPosition.entryPrice,
-                      liquidationPrice: existingPosition.liquidationPrice,
-                      currentPrice: marketStats.currentPrice?.toString(),
+                      liquidationPrice:
+                        existingPosition.liquidationPrice || undefined,
                     }
                   : undefined
               }
+              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-tradingview-chart`}
+            />
+
+            {/* Duration Selector - Independent from TradingViewChart */}
+            <PerpsTimeDurationSelector
+              selectedDuration={selectedDuration}
               onDurationChange={handleDurationChange}
               onGearPress={handleGearPress}
+              testID={`${PerpsMarketDetailsViewSelectorsIDs.CONTAINER}-duration-selector`}
             />
           </View>
 
