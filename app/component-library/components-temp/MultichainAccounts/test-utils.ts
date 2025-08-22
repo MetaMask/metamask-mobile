@@ -120,6 +120,32 @@ export const createMockState = (
             selectedAccount: Object.keys(internalAccounts)[0],
           },
         },
+        // Minimal controllers required by balance selectors used in AccountCell
+        TokenBalancesController: {
+          tokenBalances: {},
+        },
+        TokenRatesController: {
+          marketData: {},
+        },
+        MultichainBalancesController: {
+          balances: {},
+        },
+        MultichainAssetsRatesController: {
+          conversionRates: {},
+        },
+        TokensController: {
+          allTokens: {},
+          allIgnoredTokens: {},
+          allDetectedTokens: {},
+        },
+        // Optional but safe defaults to avoid downstream selector assumptions
+        CurrencyRateController: {
+          currentCurrency: 'usd',
+          currencyRates: {},
+        },
+        NetworkEnablementController: {
+          enabledNetworkMap: {},
+        },
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
             enableMultichainAccounts: {
