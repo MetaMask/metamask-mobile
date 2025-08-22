@@ -6,7 +6,7 @@ import {
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
-import type { RewardsDataServiceMobileLoginAction } from '../../controllers/rewards-controller/services/rewards-data-service';
+import type { RewardsDataServiceLoginAction } from '../../controllers/rewards-controller/services/rewards-data-service';
 import type { ControllerGetStateAction } from '@metamask/base-controller';
 import type { RewardsControllerState } from '../../controllers/rewards-controller/types';
 
@@ -20,7 +20,7 @@ import type { RewardsControllerState } from '../../controllers/rewards-controlle
 export type RewardsControllerMessengerActions =
   | AccountsControllerGetSelectedMultichainAccountAction
   | KeyringControllerSignPersonalMessageAction
-  | RewardsDataServiceMobileLoginAction
+  | RewardsDataServiceLoginAction
   | ControllerGetStateAction<'RewardsController', RewardsControllerState>;
 
 /**

@@ -1222,7 +1222,7 @@ export class Engine {
     new RewardsDataService({
       messenger: this.controllerMessenger.getRestricted({
         name: 'RewardsDataService',
-        allowedActions: ['RewardsController:getState'],
+        allowedActions: [],
         allowedEvents: [],
       }),
       fetch,

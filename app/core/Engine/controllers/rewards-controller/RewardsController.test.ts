@@ -87,7 +87,7 @@ describe('RewardsController', () => {
         if (actionType === 'KeyringController:signPersonalMessage') {
           return '0xmocksignature';
         }
-        if (actionType === 'RewardsDataService:mobileLogin') {
+        if (actionType === 'RewardsDataService:login') {
           return Promise.resolve(mockLoginResponse);
         }
         throw new Error(`Unexpected action: ${actionType}`);
@@ -205,7 +205,7 @@ describe('RewardsController', () => {
           if (actionType === 'KeyringController:signPersonalMessage') {
             return '0xmocksignature';
           }
-          if (actionType === 'RewardsDataService:mobileLogin') {
+          if (actionType === 'RewardsDataService:login') {
             return Promise.resolve(mockLoginResponse);
           }
           throw new Error(`Unexpected action: ${actionType}`);
@@ -239,7 +239,7 @@ describe('RewardsController', () => {
         }),
       );
       expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsDataService:mobileLogin',
+        'RewardsDataService:login',
         expect.objectContaining({
           account: mockAccount.address,
           timestamp: expect.any(Number),
@@ -277,8 +277,8 @@ describe('RewardsController', () => {
           if (actionType === 'KeyringController:signPersonalMessage') {
             return '0xmocksignature';
           }
-          if (actionType === 'RewardsDataService:mobileLogin') {
-            throw new Error('Mobile login failed: 401');
+          if (actionType === 'RewardsDataService:login') {
+            throw new Error('Login failed: 401');
           }
           throw new Error(`Unexpected action: ${actionType}`);
         },
@@ -356,7 +356,7 @@ describe('RewardsController', () => {
           if (actionType === 'KeyringController:signPersonalMessage') {
             return '0xmocksignature';
           }
-          if (actionType === 'RewardsDataService:mobileLogin') {
+          if (actionType === 'RewardsDataService:login') {
             return Promise.resolve(mockLoginResponse);
           }
           throw new Error(`Unexpected action: ${actionType}`);
@@ -375,7 +375,7 @@ describe('RewardsController', () => {
         'AccountsController:getSelectedMultichainAccount',
       );
       expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:mobileLogin',
+        'RewardsDataService:login',
         expect.anything(),
       );
     });
@@ -443,7 +443,7 @@ describe('RewardsController', () => {
 
       // Should only call login service once due to concurrent protection
       const loginCalls = mockMessenger.call.mock.calls.filter(
-        (call) => call[0] === 'RewardsDataService:mobileLogin',
+        (call) => call[0] === 'RewardsDataService:login',
       );
       expect(loginCalls).toHaveLength(1);
     });
@@ -471,7 +471,7 @@ describe('RewardsController', () => {
           if (actionType === 'KeyringController:signPersonalMessage') {
             return '0xmocksignature';
           }
-          if (actionType === 'RewardsDataService:mobileLogin') {
+          if (actionType === 'RewardsDataService:login') {
             return Promise.resolve(mockLoginResponse);
           }
           throw new Error(`Unexpected action: ${actionType}`);
@@ -521,7 +521,7 @@ describe('RewardsController', () => {
           if (actionType === 'KeyringController:signPersonalMessage') {
             return '0xmocksignature';
           }
-          if (actionType === 'RewardsDataService:mobileLogin') {
+          if (actionType === 'RewardsDataService:login') {
             return Promise.resolve(mockLoginResponse);
           }
           throw new Error(`Unexpected action: ${actionType}`);
@@ -550,7 +550,7 @@ describe('RewardsController', () => {
           if (actionType === 'KeyringController:signPersonalMessage') {
             return '0xmocksignature';
           }
-          if (actionType === 'RewardsDataService:mobileLogin') {
+          if (actionType === 'RewardsDataService:login') {
             throw new Error('Network error');
           }
           throw new Error(`Unexpected action: ${actionType}`);
@@ -609,7 +609,7 @@ describe('RewardsController', () => {
       await new Promise((resolve) => setTimeout(resolve, 0));
 
       expect(freshMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:mobileLogin',
+        'RewardsDataService:login',
         expect.anything(),
       );
     });

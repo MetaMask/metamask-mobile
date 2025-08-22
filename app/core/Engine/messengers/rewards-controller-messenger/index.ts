@@ -25,7 +25,7 @@ export function getRewardsControllerMessenger(
     allowedActions: [
       'AccountsController:getSelectedMultichainAccount',
       'KeyringController:signPersonalMessage',
-      'RewardsDataService:mobileLogin',
+      'RewardsDataService:login',
     ],
     allowedEvents: [
       'AccountsController:selectedAccountChange',
