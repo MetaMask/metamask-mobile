@@ -17,8 +17,8 @@ import ScrollableTabView from 'react-native-scrollable-tab-view';
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const CustomTabView = ScrollView as any;
-import { store } from '../../../store';
 import StorageWrapper from '../../../store/storage-wrapper';
+import { store } from '../../../store';
 import ActionView from '../../UI/ActionView';
 import ButtonReveal from '../../UI/ButtonReveal';
 import Button, {
@@ -470,7 +470,7 @@ const RevealPrivateCredential = ({
           >
             <QRCode
               value={clipboardPrivateCredential}
-              size={Dimensions.get('window').width - 200}
+              size={Dimensions.get('window').width - 176}
             />
           </View>
         </CustomTabView>
@@ -661,10 +661,6 @@ const RevealPrivateCredential = ({
         contentContainerStyle={styles.stretch}
         // The cancel button here is not named correctly. When it is unlocked, the button is shown as "Done"
         showCancelButton={Boolean(showCancelButton || unlocked)}
-        enableOnAndroid
-        enableAutomaticScroll
-        extraScrollHeight={40}
-        showsVerticalScrollIndicator={false}
       >
         <ScrollView>
           <View style={[styles.rowWrapper, styles.normalText]}>

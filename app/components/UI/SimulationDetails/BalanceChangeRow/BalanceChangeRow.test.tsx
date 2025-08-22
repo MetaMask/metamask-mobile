@@ -21,7 +21,6 @@ const balanceChangeMock: BalanceChange = {
   },
   amount: new BigNumber(100),
   fiatAmount: 0,
-  usdAmount: 0,
 } as BalanceChange;
 
 describe('BalanceChangeList', () => {

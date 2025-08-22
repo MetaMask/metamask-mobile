@@ -7120,7 +7120,12 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                 {
                                   "paddingHorizontal": 25,
                                 },
-                                undefined,
+                                [
+                                  {
+                                    "backgroundColor": "#f3f5f9",
+                                    "paddingHorizontal": 24,
+                                  },
+                                ],
                               ]
                             }
                           >
@@ -7145,7 +7150,20 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -7188,7 +7206,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -7209,7 +7231,20 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -7252,7 +7287,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -7273,7 +7312,20 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -7316,7 +7368,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -7346,7 +7402,20 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -7389,7 +7458,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -7410,7 +7483,20 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -7453,7 +7539,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -7474,7 +7564,20 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -7517,7 +7620,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -7547,7 +7654,20 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -7590,7 +7710,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -7611,7 +7735,20 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -7654,7 +7791,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -7675,7 +7816,20 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -7718,7 +7872,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -7746,7 +7904,12 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderRadius": 8,
+                                      "margin": 3.5,
+                                      "paddingVertical": 0,
+                                    },
                                   ]
                                 }
                               >
@@ -7789,7 +7952,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -7810,7 +7977,20 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -7853,7 +8033,11 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -7874,7 +8058,12 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderRadius": 8,
+                                      "margin": 3.5,
+                                      "paddingVertical": 0,
+                                    },
                                   ]
                                 }
                                 testID="keypad-delete-button"
@@ -7885,22 +8074,12 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                   style={
                                     [
                                       {
-                                        "color": undefined,
-                                        "fontSize": 12,
+                                        "color": "#121314",
+                                        "fontSize": 24,
                                       },
-                                      [
-                                        {
-                                          "color": "#121314",
-                                          "fontSize": 30,
-                                          "textAlign": "center",
-                                        },
-                                        {
-                                          "fontSize": 25,
-                                          "marginTop": 5,
-                                        },
-                                      ],
+                                      undefined,
                                       {
-                                        "fontFamily": "Ionicons",
+                                        "fontFamily": "Feather",
                                         "fontStyle": "normal",
                                         "fontWeight": "normal",
                                       },
@@ -7908,7 +8087,7 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                     ]
                                   }
                                 >
-                                  
+                                  
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -12500,7 +12679,12 @@ exports[`BuildQuote View renders correctly 1`] = `
                                 {
                                   "paddingHorizontal": 25,
                                 },
-                                undefined,
+                                [
+                                  {
+                                    "backgroundColor": "#f3f5f9",
+                                    "paddingHorizontal": 24,
+                                  },
+                                ],
                               ]
                             }
                           >
@@ -12525,7 +12709,20 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -12568,7 +12765,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -12589,7 +12790,20 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -12632,7 +12846,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -12653,7 +12871,20 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -12696,7 +12927,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -12726,7 +12961,20 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -12769,7 +13017,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -12790,7 +13042,20 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -12833,7 +13098,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -12854,7 +13123,20 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -12897,7 +13179,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -12927,7 +13213,20 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -12970,7 +13269,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -12991,7 +13294,20 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -13034,7 +13350,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -13055,7 +13375,20 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -13098,7 +13431,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -13126,7 +13463,12 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderRadius": 8,
+                                      "margin": 3.5,
+                                      "paddingVertical": 0,
+                                    },
                                   ]
                                 }
                               >
@@ -13169,7 +13511,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -13190,7 +13536,20 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -13233,7 +13592,11 @@ exports[`BuildQuote View renders correctly 1`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -13254,7 +13617,12 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderRadius": 8,
+                                      "margin": 3.5,
+                                      "paddingVertical": 0,
+                                    },
                                   ]
                                 }
                                 testID="keypad-delete-button"
@@ -13265,22 +13633,12 @@ exports[`BuildQuote View renders correctly 1`] = `
                                   style={
                                     [
                                       {
-                                        "color": undefined,
-                                        "fontSize": 12,
+                                        "color": "#121314",
+                                        "fontSize": 24,
                                       },
-                                      [
-                                        {
-                                          "color": "#121314",
-                                          "fontSize": 30,
-                                          "textAlign": "center",
-                                        },
-                                        {
-                                          "fontSize": 25,
-                                          "marginTop": 5,
-                                        },
-                                      ],
+                                      undefined,
                                       {
-                                        "fontFamily": "Ionicons",
+                                        "fontFamily": "Feather",
                                         "fontStyle": "normal",
                                         "fontWeight": "normal",
                                       },
@@ -13288,7 +13646,7 @@ exports[`BuildQuote View renders correctly 1`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  
                                 </Text>
                               </TouchableOpacity>
                             </View>
@@ -15313,7 +15671,12 @@ exports[`BuildQuote View renders correctly 2`] = `
                                 {
                                   "paddingHorizontal": 25,
                                 },
-                                undefined,
+                                [
+                                  {
+                                    "backgroundColor": "#f3f5f9",
+                                    "paddingHorizontal": 24,
+                                  },
+                                ],
                               ]
                             }
                           >
@@ -15338,7 +15701,20 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -15381,7 +15757,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -15402,7 +15782,20 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -15445,7 +15838,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -15466,7 +15863,20 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -15509,7 +15919,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -15539,7 +15953,20 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -15582,7 +16009,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -15603,7 +16034,20 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -15646,7 +16090,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -15667,7 +16115,20 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -15710,7 +16171,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -15740,7 +16205,20 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -15783,7 +16261,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -15804,7 +16286,20 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -15847,7 +16342,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -15868,7 +16367,20 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -15911,7 +16423,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -15939,7 +16455,12 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderRadius": 8,
+                                      "margin": 3.5,
+                                      "paddingVertical": 0,
+                                    },
                                   ]
                                 }
                               >
@@ -15982,7 +16503,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -16003,7 +16528,20 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "#ffffff",
+                                      "borderRadius": 8,
+                                      "elevation": 1,
+                                      "margin": 3.5,
+                                      "paddingVertical": 5,
+                                      "shadowColor": "#0000001a",
+                                      "shadowOffset": {
+                                        "height": 2,
+                                        "width": 0,
+                                      },
+                                      "shadowOpacity": 1,
+                                      "shadowRadius": 4,
+                                    },
                                   ]
                                 }
                               >
@@ -16046,7 +16584,11 @@ exports[`BuildQuote View renders correctly 2`] = `
                                           "fontSize": 30,
                                           "textAlign": "center",
                                         },
-                                        undefined,
+                                        {
+                                          "color": "#121314",
+                                          "fontSize": 20,
+                                          "padding": 0,
+                                        },
                                       ],
                                     ]
                                   }
@@ -16067,7 +16609,12 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       "paddingHorizontal": 20,
                                       "paddingVertical": 12,
                                     },
-                                    undefined,
+                                    {
+                                      "backgroundColor": "transparent",
+                                      "borderRadius": 8,
+                                      "margin": 3.5,
+                                      "paddingVertical": 0,
+                                    },
                                   ]
                                 }
                                 testID="keypad-delete-button"
@@ -16078,22 +16625,12 @@ exports[`BuildQuote View renders correctly 2`] = `
                                   style={
                                     [
                                       {
-                                        "color": undefined,
-                                        "fontSize": 12,
+                                        "color": "#121314",
+                                        "fontSize": 24,
                                       },
-                                      [
-                                        {
-                                          "color": "#121314",
-                                          "fontSize": 30,
-                                          "textAlign": "center",
-                                        },
-                                        {
-                                          "fontSize": 25,
-                                          "marginTop": 5,
-                                        },
-                                      ],
+                                      undefined,
                                       {
-                                        "fontFamily": "Ionicons",
+                                        "fontFamily": "Feather",
                                         "fontStyle": "normal",
                                         "fontWeight": "normal",
                                       },
@@ -16101,7 +16638,7 @@ exports[`BuildQuote View renders correctly 2`] = `
                                     ]
                                   }
                                 >
-                                  
+                                  
                                 </Text>
                               </TouchableOpacity>
                             </View>
