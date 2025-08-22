@@ -78,21 +78,14 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
         '[handlePerpsUrl] Navigating to wallet home with Perps tab selected for returning user',
       );
 
-      // Navigation approach for tab selection:
-      // 1. Navigate to the wallet home screen first
-      // 2. Set params after navigation to select the Perps tab
-      //
-      // The timeout is required because React Navigation needs time to:
-      // - Complete the navigation transition
-      // - Mount the Wallet component
-      // - Make the navigation context available for setParams
-      //
-      // Without this delay, setParams may fail silently as the navigation
-      // state isn't ready yet. This pattern is used elsewhere in the codebase
-      // for similar navigation scenarios.
-
+      // Navigate to wallet home first
       NavigationService.navigation.navigate(Routes.WALLET.HOME);
 
+      // The timeout is REQUIRED - React Navigation needs time to:
+      // 1. Complete the navigation transition
+      // 2. Mount the Wallet component
+      // 3. Make navigation context available for setParams
+      // Without this delay, the tab selection will fail
       setTimeout(() => {
         NavigationService.navigation.setParams({
           initialTab: 'perps',

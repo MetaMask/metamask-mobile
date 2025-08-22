@@ -221,13 +221,11 @@ const PerpsTutorialCarousel: React.FC = () => {
 
     // Navigate based on deeplink flag
     if (isFromDeeplink) {
-      // When coming from a deeplink, we need to navigate to the wallet
-      // and ensure the Perps tab is selected. This uses the same pattern
-      // as handlePerpsUrl to ensure params are set after navigation completes.
+      // Navigate to wallet home first
       navigation.navigate(Routes.WALLET.HOME);
 
-      // Set params after navigation to select Perps tab
-      // The delay ensures the navigation state is ready
+      // The timeout is REQUIRED - React Navigation needs time to complete
+      // the navigation before params can be set on the new screen
       setTimeout(() => {
         navigation.setParams({
           initialTab: 'perps',

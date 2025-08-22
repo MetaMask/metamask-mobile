@@ -394,10 +394,7 @@ describe('PerpsTutorialCarousel', () => {
 
       // Should use goBack instead of navigate
       expect(mockNavigation.goBack).toHaveBeenCalled();
-      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
-        Routes.WALLET.HOME,
-      );
-      expect(mockNavigation.setParams).not.toHaveBeenCalled();
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
     it('should handle undefined route params gracefully', () => {
@@ -415,9 +412,7 @@ describe('PerpsTutorialCarousel', () => {
 
       // Should default to goBack behavior
       expect(mockNavigation.goBack).toHaveBeenCalled();
-      expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
-        Routes.WALLET.HOME,
-      );
+      expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
     it('should handle deposit confirmation error gracefully', async () => {

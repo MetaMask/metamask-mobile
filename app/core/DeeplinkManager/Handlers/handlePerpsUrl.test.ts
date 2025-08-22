@@ -302,6 +302,13 @@ describe('handlePerpsUrl', () => {
 
       // Should navigate to wallet (returning user flow)
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+
+      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: 'perps',
+        shouldSelectPerpsTab: true,
+      });
     });
 
     it('should handle object with testnet/mainnet properties', async () => {
@@ -325,6 +332,13 @@ describe('handlePerpsUrl', () => {
 
       // Should navigate to wallet (testnet = false)
       expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+
+      jest.advanceTimersByTime(PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+
+      expect(mockSetParams).toHaveBeenCalledWith({
+        initialTab: 'perps',
+        shouldSelectPerpsTab: true,
+      });
     });
 
     it('should default to true when testnet is not specified', async () => {
