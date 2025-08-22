@@ -182,6 +182,5 @@ function transformNftWithCollection(nft: any): Nft | null {
     tokenId,
     accountId,
     networkBadgeSource: getNetworkBadgeSource(chainId as Hex),
-    type: 'nft',
   };
 }
