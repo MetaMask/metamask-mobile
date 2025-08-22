@@ -286,28 +286,24 @@ exports[`Login renders matching snapshot 1`] = `
               Unlock
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
+          <Text
+            accessibilityRole="link"
             accessible={true}
-            activeOpacity={1}
-            disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
               {
-                "alignItems": "center",
-                "alignSelf": "center",
                 "backgroundColor": "transparent",
-                "borderRadius": 12,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
                 "marginVertical": 14,
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
               }
             }
+            suppressHighlighting={true}
             testID="reset-wallet-button"
           >
             <Text
@@ -324,7 +320,7 @@ exports[`Login renders matching snapshot 1`] = `
             >
               Forgot password?
             </Text>
-          </TouchableOpacity>
+          </Text>
         </View>
       </View>
     </View>
@@ -632,28 +628,24 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
               Unlock
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            accessibilityRole="button"
+          <Text
+            accessibilityRole="link"
             accessible={true}
-            activeOpacity={1}
-            disabled={false}
             onPress={[Function]}
             onPressIn={[Function]}
             onPressOut={[Function]}
             style={
               {
-                "alignItems": "center",
-                "alignSelf": "center",
                 "backgroundColor": "transparent",
-                "borderRadius": 12,
-                "flexDirection": "row",
-                "height": 48,
-                "justifyContent": "center",
+                "color": "#121314",
+                "fontFamily": "Geist Regular",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
                 "marginVertical": 14,
-                "overflow": "hidden",
-                "paddingHorizontal": 16,
               }
             }
+            suppressHighlighting={true}
             testID="reset-wallet-button"
           >
             <Text
@@ -670,7 +662,7 @@ exports[`Login renders matching snapshot when password input is focused 1`] = `
             >
               Forgot password?
             </Text>
-          </TouchableOpacity>
+          </Text>
         </View>
       </View>
     </View>
