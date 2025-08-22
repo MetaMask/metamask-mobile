@@ -86,6 +86,28 @@ export const TOKEN_API_TOKENS_RESPONSE = [
     occurrences: 19,
   },
   {
+    address: '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359',
+    symbol: 'SAI',
+    decimals: 18,
+    name: 'Sai Stablecoin v1.0',
+    iconUrl:
+      'https://static.cx.metamask.io/api/v1/tokenIcons/1337/0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359.png',
+    aggregators: [
+      'metamask',
+      'cmc',
+      'coinGecko',
+      'coinMarketCap',
+      'zerion',
+      'oneInch',
+      'liFi',
+      'socket',
+      'rubic',
+      'sonarwatch',
+      'bancor',
+    ],
+    occurrences: 11,
+  },
+  {
     address: '0x6b3595068778dd592e39a122f4f5a5cf09c90fe2',
     symbol: 'SUSHI',
     decimals: 18,
