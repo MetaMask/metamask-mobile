@@ -2,7 +2,7 @@
 export type {
   RewardsDataServiceActions,
   RewardsDataServiceEvents,
-  RewardsDataServiceMobileLoginAction,
+  RewardsDataServiceLoginAction,
   RewardsDataServiceMessenger,
 } from './rewards-data-service';
 

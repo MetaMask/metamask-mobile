@@ -236,7 +236,7 @@ export class RewardsController extends BaseController<
       Logger.log('RewardsController: Performing silent auth for', address);
 
       const loginResponse: LoginResponseDto = await this.messagingSystem.call(
-        'RewardsDataService:mobileLogin',
+        'RewardsDataService:login',
         requestBody,
       );
 

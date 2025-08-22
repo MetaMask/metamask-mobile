@@ -2,7 +2,7 @@ import {
   RewardsDataService,
   type RewardsDataServiceMessenger,
 } from './rewards-data-service';
-import type { LoginResponseDto, RewardsControllerState } from '../types';
+import type { LoginResponseDto } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import AppConstants from '../../../../AppConstants';
 
@@ -20,15 +20,6 @@ describe('RewardsDataService', () => {
   let mockMessenger: jest.Mocked<RewardsDataServiceMessenger>;
   let mockFetch: jest.MockedFunction<typeof fetch>;
   let rewardsDataService: RewardsDataService;
-
-  const mockRewardsState: RewardsControllerState = {
-    lastAuthenticatedAccount: '0x123',
-    lastAuthTime: Date.now(),
-    subscription: {
-      id: 'test-subscription-id',
-      referralCode: 'test-referral-code',
-    },
-  };
 
   const mockLoginResponse: LoginResponseDto = {
     sessionId: 'test-session-id',
@@ -57,16 +48,6 @@ describe('RewardsDataService', () => {
       token: 'test-bearer-token',
     });
 
-    // Mock successful messenger call by default
-    mockMessenger.call.mockImplementation(
-      (actionType: string, ..._args: unknown[]) => {
-        if (actionType === 'RewardsController:getState') {
-          return mockRewardsState;
-        }
-        throw new Error(`Unexpected action: ${actionType}`);
-      },
-    );
-
     // Create service instance
     rewardsDataService = new RewardsDataService({
       messenger: mockMessenger,
@@ -75,9 +56,9 @@ describe('RewardsDataService', () => {
   });
 
   describe('constructor', () => {
-    it('should register the mobileLogin action handler', () => {
+    it('should register the login action handler', () => {
       expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-        'RewardsDataService:mobileLogin',
+        'RewardsDataService:login',
         expect.any(Function),
       );
     });
@@ -88,7 +69,7 @@ describe('RewardsDataService', () => {
     });
   });
 
-  describe('mobileLogin', () => {
+  describe('login', () => {
     const mockLoginBody = {
       account: '0x123456789',
       timestamp: 1234567890,
@@ -104,8 +85,8 @@ describe('RewardsDataService', () => {
       mockFetch.mockResolvedValue(mockResponse);
     });
 
-    it('should successfully perform mobile login', async () => {
-      const result = await rewardsDataService.mobileLogin(mockLoginBody);
+    it('should successfully login', async () => {
+      const result = await rewardsDataService.login(mockLoginBody);
 
       expect(result).toEqual(mockLoginResponse);
       expect(mockFetch).toHaveBeenCalledWith(
@@ -116,97 +97,9 @@ describe('RewardsDataService', () => {
           body: JSON.stringify(mockLoginBody),
           headers: {
             'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
           },
         },
       );
-    });
-
-    it('should include bearer token when subscription exists', async () => {
-      await rewardsDataService.mobileLogin(mockLoginBody);
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'RewardsController:getState',
-      );
-      expect(mockGetSubscriptionToken).toHaveBeenCalledWith(
-        'test-subscription-id',
-      );
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            'rewards-api-key': 'test-bearer-token',
-          }),
-        }),
-      );
-    });
-
-    it('should work without bearer token when subscription does not exist', async () => {
-      // Mock state without subscription
-      const stateWithoutSubscription: RewardsControllerState = {
-        ...mockRewardsState,
-        subscription: undefined,
-      };
-      mockMessenger.call.mockImplementation(
-        (actionType: string, ..._args: unknown[]) => {
-          if (actionType === 'RewardsController:getState') {
-            return stateWithoutSubscription;
-          }
-          throw new Error(`Unexpected action: ${actionType}`);
-        },
-      );
-
-      await rewardsDataService.mobileLogin(mockLoginBody);
-
-      expect(mockGetSubscriptionToken).not.toHaveBeenCalled();
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }),
-      );
-    });
-
-    it('should work without bearer token when token retrieval fails', async () => {
-      mockGetSubscriptionToken.mockResolvedValue({
-        success: false,
-        error: 'Token not found',
-      });
-
-      await rewardsDataService.mobileLogin(mockLoginBody);
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }),
-      );
-    });
-
-    it('should continue without bearer token when messenger call fails', async () => {
-      mockMessenger.call.mockRejectedValue(new Error('Messenger error'));
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-
-      await rewardsDataService.mobileLogin(mockLoginBody);
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to retrieve bearer token:',
-        expect.any(Error),
-      );
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }),
-      );
-
-      consoleSpy.mockRestore();
     });
 
     it('should throw error when response is not ok', async () => {
@@ -216,18 +109,18 @@ describe('RewardsDataService', () => {
       } as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      await expect(
-        rewardsDataService.mobileLogin(mockLoginBody),
-      ).rejects.toThrow('Mobile login failed: 401');
+      await expect(rewardsDataService.login(mockLoginBody)).rejects.toThrow(
+        'Login failed: 401',
+      );
     });
 
     it('should throw error when fetch fails', async () => {
       const fetchError = new Error('Network error');
       mockFetch.mockRejectedValue(fetchError);
 
-      await expect(
-        rewardsDataService.mobileLogin(mockLoginBody),
-      ).rejects.toThrow('Network error');
+      await expect(rewardsDataService.login(mockLoginBody)).rejects.toThrow(
+        'Network error',
+      );
     });
 
     it('should throw error when response parsing fails', async () => {
@@ -237,28 +130,13 @@ describe('RewardsDataService', () => {
       } as unknown as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
-      await expect(
-        rewardsDataService.mobileLogin(mockLoginBody),
-      ).rejects.toThrow('Invalid JSON');
-    });
-
-    it('should merge custom headers with default headers', async () => {
-      // This test verifies the makeRequest method's header merging behavior
-      await rewardsDataService.mobileLogin(mockLoginBody);
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-            'rewards-api-key': 'test-bearer-token',
-          }),
-        }),
+      await expect(rewardsDataService.login(mockLoginBody)).rejects.toThrow(
+        'Invalid JSON',
       );
     });
 
     it('should use correct API endpoint', async () => {
-      await rewardsDataService.mobileLogin(mockLoginBody);
+      await rewardsDataService.login(mockLoginBody);
 
       expect(mockFetch).toHaveBeenCalledWith(
         'https://api.rewards.test/auth/mobile-login',
@@ -267,7 +145,7 @@ describe('RewardsDataService', () => {
     });
 
     it('should set credentials to omit', async () => {
-      await rewardsDataService.mobileLogin(mockLoginBody);
+      await rewardsDataService.login(mockLoginBody);
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.any(String),
@@ -279,10 +157,10 @@ describe('RewardsDataService', () => {
   });
 
   describe('action handler registration', () => {
-    it('should bind the mobileLogin method correctly', async () => {
+    it('should bind the login method correctly', async () => {
       // Get the registered handler function
       const registeredHandler = mockMessenger.registerActionHandler.mock
-        .calls[0][1] as typeof rewardsDataService.mobileLogin;
+        .calls[0][1] as typeof rewardsDataService.login;
 
       // Mock successful response
       const mockResponse = {

@@ -1,23 +1,20 @@
 import type { RestrictedMessenger } from '@metamask/base-controller';
 import AppConstants from '../../../../AppConstants';
-import type { LoginResponseDto, RewardsControllerState } from '../types';
+import type { LoginResponseDto } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 
 const SERVICE_NAME = 'RewardsDataService';
 
 // Auth endpoint action types
 
-export interface RewardsDataServiceMobileLoginAction {
-  type: `${typeof SERVICE_NAME}:mobileLogin`;
-  handler: RewardsDataService['mobileLogin'];
+export interface RewardsDataServiceLoginAction {
+  type: `${typeof SERVICE_NAME}:login`;
+  handler: RewardsDataService['login'];
 }
 
-export type RewardsDataServiceActions = RewardsDataServiceMobileLoginAction;
+export type RewardsDataServiceActions = RewardsDataServiceLoginAction;
 
-interface AllowedActions {
-  type: 'RewardsController:getState';
-  handler: () => RewardsControllerState;
-}
+type AllowedActions = never;
 
 export type RewardsDataServiceEvents = never;
 
@@ -25,8 +22,8 @@ type AllowedEvents = never;
 
 export type RewardsDataServiceMessenger = RestrictedMessenger<
   typeof SERVICE_NAME,
-  RewardsDataServiceActions | AllowedActions,
-  RewardsDataServiceEvents | AllowedEvents,
+  RewardsDataServiceActions,
+  RewardsDataServiceEvents,
   AllowedActions['type'],
   AllowedEvents['type']
 >;
@@ -51,17 +48,22 @@ export class RewardsDataService {
 
     // Register all action handlers
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:mobileLogin`,
-      this.mobileLogin.bind(this),
+      `${SERVICE_NAME}:login`,
+      this.login.bind(this),
     );
   }
 
   /**
-   * Make an authenticated request to the rewards API
+   * Make a request to the rewards API
+   * @param endpoint - The endpoint to request
+   * @param options - The options for the request
+   * @param subscriptionId - The subscription ID to use for the request, used for authenticated requests
+   * @returns The response from the request
    */
   private async makeRequest(
     endpoint: string,
     options: RequestInit = {},
+    subscriptionId?: string,
   ): Promise<Response> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -69,11 +71,6 @@ export class RewardsDataService {
 
     // Add bearer token for authenticated requests
     try {
-      const rewardsState = await this.#messenger.call(
-        'RewardsController:getState',
-      );
-      const subscriptionId = rewardsState.subscription?.id;
-
       if (subscriptionId) {
         const tokenResult = await getSubscriptionToken(subscriptionId);
         if (tokenResult.success && tokenResult.token) {
@@ -98,22 +95,24 @@ export class RewardsDataService {
   }
 
   /**
-   * Perform mobile login for the current account.
+   * Perform login via signature for the current account.
    * @param body - The login request body containing account, timestamp, and signature.
    * @returns The login response DTO.
    */
-  async mobileLogin(body: {
+  async login(body: {
     account: string;
     timestamp: number;
     signature: string;
   }): Promise<LoginResponseDto> {
+    // For now, we're using the mobile-login endpoint for these types of login requests.
+    // Our previous login endpoint had a slightly different flow as it was not based around silent auth.
     const response = await this.makeRequest('/auth/mobile-login', {
       method: 'POST',
       body: JSON.stringify(body),
     });
 
     if (!response.ok) {
-      throw new Error(`Mobile login failed: ${response.status}`);
+      throw new Error(`Login failed: ${response.status}`);
     }
 
     return (await response.json()) as LoginResponseDto;
