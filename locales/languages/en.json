@@ -5269,10 +5269,18 @@
     "account_details": {
       "header_title": "Account Details",
       "account_name": "Account Name",
+      "networks": "Networks",
       "account_address": "Account Address",
       "networks": "Networks",
       "wallet": "Wallet",
-      "private_key": "Private key"
+      "private_key": "Private key",
+      "private_keys": "Private keys",
+      "unlock_to_reveal": "Unlock to reveal",
+      "smart_account": "Smart account",
+      "set_up": "Set up",
+      "secret_recovery_phrase": "Secret Recovery Phrase",
+      "back_up": "Back up",
+      "remove_account": "Remove account"
     },
     "address_list" : {
       "addresses": "Addresses",
