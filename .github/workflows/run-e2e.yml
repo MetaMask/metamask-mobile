@@ -25,7 +25,7 @@ jobs:
     with:
       test-suite-name: smoke-confirmations-ios
       platform: ios
-      test_suite_tag: ".*SmokeConfirmations(?!Redesigned).*"
+      test_suite_tag: ".*SmokeConfirmations.*"
     secrets: inherit
 
   smoke-confirmations-android:
@@ -36,7 +36,7 @@ jobs:
     with:
       test-suite-name: smoke-confirmations-android
       platform: android
-      test_suite_tag: ".*SmokeConfirmations(?!Redesigned).*"
+      test_suite_tag: ".*SmokeConfirmations.*"
     secrets: inherit
 
   smoke-confirmations-redesigned-ios:
