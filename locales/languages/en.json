@@ -477,7 +477,8 @@
     "home": "Home",
     "browser": "Browser",
     "activity": "Activity",
-    "settings": "Settings"
+    "settings": "Settings",
+    "rewards": "Rewards"
   },
   "drawer": {
     "send_button": "Send",
