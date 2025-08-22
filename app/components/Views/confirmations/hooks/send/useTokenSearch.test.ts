@@ -40,7 +40,6 @@ const mockNfts: Nft[] = [
     tokenId: '1',
     accountId: 'account1',
     networkBadgeSource: { uri: 'image1.png' },
-    type: 'nft',
   },
   {
     address: '0x2222222222222222222222222222222222222222',
@@ -62,7 +61,6 @@ const mockNfts: Nft[] = [
     tokenId: '5',
     accountId: 'account1',
     networkBadgeSource: { uri: 'image3.png' },
-    type: 'nft',
   },
   {
     address: '0x4444444444444444444444444444444444444444',
@@ -73,7 +71,6 @@ const mockNfts: Nft[] = [
     tokenId: '200',
     accountId: 'account1',
     networkBadgeSource: { uri: 'image4.png' },
-    type: 'nft',
   },
 ] as Nft[];
 
@@ -356,7 +353,6 @@ describe('useTokenSearch', () => {
           tokenId: '999',
           accountId: 'account1',
           networkBadgeSource: { uri: 'image5.png' },
-          type: 'nft',
         },
       ];
 

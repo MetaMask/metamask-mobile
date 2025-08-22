@@ -54,7 +54,6 @@ const mockNfts: Nft[] = [
     tokenId: '1',
     accountId: 'account1',
     networkBadgeSource: { uri: 'https://example.com/badge.png' },
-    type: 'nft',
   },
   {
     address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
@@ -66,7 +65,6 @@ const mockNfts: Nft[] = [
     tokenId: '2',
     accountId: 'account1',
     networkBadgeSource: { uri: 'https://example.com/badge.png' },
-    type: 'nft',
   },
 ];
 
@@ -80,7 +78,6 @@ const manyNfts: Nft[] = Array.from({ length: 12 }, (_, i) => ({
   tokenId: i.toString(),
   accountId: 'account1',
   networkBadgeSource: { uri: 'https://example.com/badge.png' },
-  type: 'nft' as const,
 }));
 
 describe('NftList', () => {
