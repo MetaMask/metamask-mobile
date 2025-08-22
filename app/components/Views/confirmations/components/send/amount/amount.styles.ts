@@ -8,16 +8,16 @@ import {
 } from '../../../../../UI/Box/box.types';
 
 export const getFontSizeForInputLength = (contentLength: number) => {
-  if (contentLength <= 10) {
+  if (contentLength < 10) {
     return 60;
   }
-  if (contentLength <= 12) {
+  if (contentLength < 12) {
     return 48;
   }
-  if (contentLength <= 18) {
+  if (contentLength < 18) {
     return 32;
   }
-  if (contentLength <= 24) {
+  if (contentLength < 24) {
     return 24;
   }
   return 18;
