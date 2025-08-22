@@ -43,7 +43,7 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it.only('exports private key', async () => {
+  it('exports private key', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
       await goToAccountDetails(HD_ACCOUNT);
       await exportPrivateKey();
