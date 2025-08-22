@@ -74,12 +74,10 @@ describe('RecipientList', () => {
     {
       name: 'Alice',
       address: '0x1234567890123456789012345678901234567890',
-      fiatValue: '$100.00',
     },
     {
       name: 'Bob',
       address: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-      fiatValue: '$50.00',
     },
     {
       name: 'Charlie',
