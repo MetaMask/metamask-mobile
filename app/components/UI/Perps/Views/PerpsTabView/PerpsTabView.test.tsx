@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { act, fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import type { Position } from '../../controllers/types';
@@ -10,6 +11,20 @@ import PerpsTabViewWithProvider, { PerpsTabViewRaw } from './index';
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
+}));
+
+// Mock Redux
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+// Mock the multichain selector
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0x1234567890123456789012345678901234567890',
+    id: 'mock-account-id',
+    type: 'eip155:eoa',
+  })),
 }));
 
 // Mock PerpsConnectionProvider
@@ -126,10 +141,20 @@ describe('PerpsTabView', () => {
     jest.clearAllMocks();
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
 
+    // Mock useSelector for the multichain selector
+    (useSelector as jest.Mock).mockImplementation(() => () => ({
+      address: '0x1234567890123456789012345678901234567890',
+      id: 'mock-account-id',
+      type: 'eip155:eoa',
+    }));
+
     // Default hook mocks
     mockUsePerpsConnection.mockReturnValue({
       isConnected: true,
       isInitialized: true,
+      error: null,
+      connect: jest.fn(),
+      resetError: jest.fn(),
     });
 
     mockUsePerpsLivePositions.mockReturnValue({
@@ -476,6 +501,69 @@ describe('PerpsTabView', () => {
       expect(() => render(<PerpsTabView />)).toThrow('Hook error');
 
       consoleSpy.mockRestore();
+    });
+
+    it('should render connection error state when connection fails', () => {
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        error: 'CONNECTION_FAILED',
+        connect: jest.fn(),
+        resetError: jest.fn(),
+      });
+
+      render(<PerpsTabView />);
+
+      // Should show connection failed error
+      expect(
+        screen.getByText(strings('perps.errors.connectionFailed.title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.errors.connectionFailed.description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('should render network error state when network error occurs', () => {
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        error: 'NETWORK_ERROR',
+        connect: jest.fn(),
+        resetError: jest.fn(),
+      });
+
+      render(<PerpsTabView />);
+
+      // Should show connection failed error (PerpsTabView always uses CONNECTION_FAILED)
+      expect(
+        screen.getByText(strings('perps.errors.connectionFailed.title')),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByText(strings('perps.errors.connectionFailed.description')),
+      ).toBeOnTheScreen();
+    });
+
+    it('should call connect when retry button is pressed on error', () => {
+      const mockConnect = jest.fn();
+      const mockResetError = jest.fn();
+
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isInitialized: false,
+        error: 'CONNECTION_FAILED',
+        connect: mockConnect,
+        resetError: mockResetError,
+      });
+
+      render(<PerpsTabView />);
+
+      const retryButton = screen.getByText(
+        strings('perps.errors.connectionFailed.retry'),
+      );
+      fireEvent.press(retryButton);
+
+      expect(mockResetError).toHaveBeenCalledTimes(1);
+      expect(mockConnect).toHaveBeenCalledTimes(1);
     });
   });
 

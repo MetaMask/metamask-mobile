@@ -342,7 +342,8 @@ describe('PerpsLimitPriceBottomSheet', () => {
       render(<PerpsLimitPriceBottomSheet {...props} />);
 
       // Assert
-      expect(screen.getAllByText('3100')).toHaveLength(2); // Initial limit price + keypad value
+      expect(screen.getByText('$3100.00')).toBeOnTheScreen(); // Formatted limit price display
+      expect(screen.getByText('3100')).toBeOnTheScreen(); // Keypad value
     });
 
     it('renders quick action buttons', () => {
