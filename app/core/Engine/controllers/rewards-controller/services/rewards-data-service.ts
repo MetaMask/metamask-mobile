@@ -5,6 +5,9 @@ import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 
 const SERVICE_NAME = 'RewardsDataService';
 
+// Default timeout for all API requests (10 seconds)
+const DEFAULT_REQUEST_TIMEOUT_MS = 10000;
+
 // Auth endpoint action types
 
 export interface RewardsDataServiceLoginAction {
@@ -58,12 +61,14 @@ export class RewardsDataService {
    * @param endpoint - The endpoint to request
    * @param options - The options for the request
    * @param subscriptionId - The subscription ID to use for the request, used for authenticated requests
+   * @param timeoutMs - Custom timeout in milliseconds, defaults to DEFAULT_REQUEST_TIMEOUT_MS
    * @returns The response from the request
    */
   private async makeRequest(
     endpoint: string,
     options: RequestInit = {},
     subscriptionId?: string,
+    timeoutMs: number = DEFAULT_REQUEST_TIMEOUT_MS,
   ): Promise<Response> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -84,14 +89,35 @@ export class RewardsDataService {
 
     const url = `${AppConstants.REWARDS_API_URL}${endpoint}`;
 
-    return this.#fetch(url, {
-      credentials: 'omit',
-      ...options,
-      headers: {
-        ...headers,
-        ...options.headers,
-      },
-    });
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, timeoutMs);
+
+    try {
+      const response = await this.#fetch(url, {
+        credentials: 'omit',
+        ...options,
+        headers: {
+          ...headers,
+          ...options.headers,
+        },
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      // Check if the error is due to timeout
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error(`Request timeout after ${timeoutMs}ms`);
+      }
+
+      throw error;
+    }
   }
 
   /**
