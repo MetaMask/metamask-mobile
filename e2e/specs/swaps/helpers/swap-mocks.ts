@@ -54,7 +54,10 @@ const handleDirectFetch = async (
  * @param {number} [port] - Optional port number. If not provided, a free port will be used.
  * @returns {Promise} Resolves to the running mock server.
  */
-export const startMockServer = async (events: MockEvents, port: number) => {
+export const startSwapsMockServer = async (
+  events: MockEvents,
+  port: number,
+) => {
   const mockServer = getLocal();
   port = port || (await portfinder.getPortPromise());
 

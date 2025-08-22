@@ -71,7 +71,7 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
       if (error instanceof OAuthError) {
         throw error;
       } else if (error instanceof Error) {
-        if (error.message.includes('cancelled')) {
+        if (error.message.toLowerCase().includes('cancel')) {
           throw new OAuthError(
             'handleGoogleLogin: User cancelled the login process',
             OAuthErrorType.UserCancelled,

@@ -12,8 +12,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ScrollView, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 import { strings } from '../../../../../../locales/i18n';
 import Button, {
@@ -109,7 +109,6 @@ interface OrderRouteParams {
 // Define component without React.memo first
 const PerpsOrderViewContentBase: React.FC = () => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { top } = useSafeAreaInsets();
   const { colors } = useTheme();
 
   const styles = createStyles(colors);
@@ -144,7 +143,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     setOrderType,
     handlePercentageAmount,
     handleMaxAmount,
-    handleMinAmount,
     calculations,
   } = usePerpsOrderContext();
 
@@ -525,10 +523,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
     handleMaxAmount();
   };
 
-  const handleMinPress = () => {
-    handleMinAmount();
-  };
-
   const handleDonePress = () => {
     setIsInputFocused(false);
   };
@@ -638,7 +632,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
   }, []);
 
   return (
-    <SafeAreaView style={[styles.container, { marginTop: top }]}>
+    <SafeAreaView style={styles.container}>
       {/* Header */}
       <PerpsOrderHeader
         asset={orderForm.asset}
@@ -655,7 +649,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
         {/* Amount Display */}
         <PerpsAmountDisplay
           amount={orderForm.amount}
-          maxAmount={availableBalance}
+          maxAmount={availableBalance * orderForm.leverage}
           showWarning={availableBalance === 0}
           onPress={handleAmountPress}
           isActive={isInputFocused}
@@ -668,7 +662,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
               value={parseFloat(orderForm.amount || '0')}
               onValueChange={(value) => setAmount(Math.floor(value).toString())}
               minimumValue={0}
-              maximumValue={availableBalance}
+              maximumValue={availableBalance * orderForm.leverage}
               step={1}
               showPercentageLabels
             />
@@ -867,23 +861,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
             <Button
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
-              label="75%"
-              onPress={() => handlePercentagePress(0.75)}
-              style={styles.percentageButton}
-            />
-          </View>
-
-          <View style={styles.percentageButtonsContainer}>
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="Min"
-              onPress={handleMinPress}
-              style={styles.percentageButton}
-            />
-            <Button
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
               label={strings('perps.deposit.max_button')}
               onPress={handleMaxPress}
               style={styles.percentageButton}
@@ -902,6 +879,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             onChange={handleKeypadChange}
             currency="USD"
             decimals={0}
+            style={styles.keypad}
           />
         </View>
       )}

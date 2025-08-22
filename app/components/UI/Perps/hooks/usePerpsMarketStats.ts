@@ -103,13 +103,25 @@ export const usePerpsMarketStats = (
 
     return {
       // 24h high/low from candlestick data, with fallback estimates
-      high24h: high > 0 ? formatPrice(high) : formatPrice(fallbackPrice),
-      low24h: low > 0 ? formatPrice(low) : formatPrice(fallbackPrice),
+      high24h:
+        high > 0
+          ? formatPrice(high, { minimumDecimals: 2, maximumDecimals: 2 })
+          : formatPrice(fallbackPrice, {
+              minimumDecimals: 2,
+              maximumDecimals: 2,
+            }),
+      low24h:
+        low > 0
+          ? formatPrice(low, { minimumDecimals: 2, maximumDecimals: 2 })
+          : formatPrice(fallbackPrice, {
+              minimumDecimals: 2,
+              maximumDecimals: 2,
+            }),
       volume24h: marketData.volume24h
-        ? formatLargeNumber(marketData.volume24h)
+        ? `$${formatLargeNumber(marketData.volume24h)}`
         : '$0.00',
       openInterest: marketData.openInterest
-        ? formatLargeNumber(marketData.openInterest)
+        ? `$${formatLargeNumber(marketData.openInterest)}`
         : '$0.00',
       fundingRate: marketData.funding
         ? `${(marketData.funding * 100).toFixed(4)}%`

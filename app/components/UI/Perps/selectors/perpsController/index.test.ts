@@ -1,5 +1,5 @@
 import { RootState } from '../../../../../reducers';
-import type { AccountState, DepositStatus } from '../../controllers/types';
+import type { AccountState } from '../../controllers/types';
 import {
   selectPerpsProvider,
   selectPerpsAccountState,
@@ -202,18 +202,16 @@ describe('PerpsController Selectors', () => {
 
       // Assert
       expect(result).toEqual({
-        status: 'idle',
-        currentTxHash: null,
-        error: null,
+        inProgress: false,
+        lastResult: null,
       });
     });
 
     it('returns deposit state from PerpsController', () => {
       // Arrange
       const mockState = createMockState({
-        depositStatus: 'depositing',
-        currentDepositTxHash: '0x123',
-        depositError: null,
+        depositInProgress: true,
+        lastDepositResult: null,
       });
 
       // Act
@@ -221,51 +219,58 @@ describe('PerpsController Selectors', () => {
 
       // Assert
       expect(result).toEqual({
-        status: 'depositing',
-        currentTxHash: '0x123',
-        error: null,
+        inProgress: true,
+        lastResult: null,
       });
     });
 
     it('handles error state', () => {
       // Arrange
       const mockState = createMockState({
-        depositStatus: 'error',
-        currentDepositTxHash: null,
-        depositError: 'Transaction failed',
+        depositInProgress: false,
+        lastDepositResult: {
+          success: false,
+          error: 'Transaction failed',
+        },
       });
 
       // Act
       const result = selectPerpsDepositState(mockState);
 
       // Assert
-      expect(result.status).toBe('error');
-      expect(result.error).toBe('Transaction failed');
-      expect(result.currentTxHash).toBeNull();
+      expect(result.inProgress).toBe(false);
+      expect(result.lastResult).toEqual({
+        success: false,
+        error: 'Transaction failed',
+      });
     });
 
     it('handles success state', () => {
       // Arrange
       const mockState = createMockState({
-        depositStatus: 'success',
-        currentDepositTxHash: '0x456',
-        depositError: null,
+        depositInProgress: false,
+        lastDepositResult: {
+          success: true,
+          txHash: '0x456',
+        },
       });
 
       // Act
       const result = selectPerpsDepositState(mockState);
 
       // Assert
-      expect(result.status).toBe('success');
-      expect(result.currentTxHash).toBe('0x456');
-      expect(result.error).toBeNull();
+      expect(result.inProgress).toBe(false);
+      expect(result.lastResult).toEqual({
+        success: true,
+        txHash: '0x456',
+      });
     });
 
     it('handles missing optional fields with defaults', () => {
       // Arrange
       const mockState = createMockState({
-        depositStatus: 'depositing',
-        // Missing currentDepositTxHash and depositError
+        depositInProgress: true,
+        // Missing lastDepositResult
       });
 
       // Act
@@ -273,18 +278,15 @@ describe('PerpsController Selectors', () => {
 
       // Assert
       expect(result).toEqual({
-        status: 'depositing',
-        currentTxHash: null,
-        error: null,
+        inProgress: true,
+        lastResult: null,
       });
     });
 
-    it('uses idle status when depositStatus is undefined', () => {
+    it('uses defaults when deposit state is undefined', () => {
       // Arrange
       const mockState = createMockState({
-        // depositStatus is not defined
-        currentDepositTxHash: '0x789',
-        depositError: null,
+        // depositInProgress and lastDepositResult not defined
       });
 
       // Act
@@ -292,35 +294,49 @@ describe('PerpsController Selectors', () => {
 
       // Assert
       expect(result).toEqual({
-        status: 'idle',
-        currentTxHash: '0x789',
-        error: null,
+        inProgress: false,
+        lastResult: null,
       });
     });
 
-    it('handles all deposit status values', () => {
-      // Test each possible status
-      const statuses: DepositStatus[] = [
-        'idle',
-        'preparing',
-        'depositing',
-        'success',
-        'error',
-      ];
-
-      statuses.forEach((status) => {
-        const mockState = createMockState({
-          depositStatus: status,
-          currentDepositTxHash: '0xabc',
-          depositError: status === 'error' ? 'Error message' : null,
-        });
-
-        const result = selectPerpsDepositState(mockState);
-
-        expect(result.status).toBe(status);
-        expect(result.currentTxHash).toBe('0xabc');
-        expect(result.error).toBe(status === 'error' ? 'Error message' : null);
+    it('handles all deposit state combinations', () => {
+      // Test in progress state
+      let mockState = createMockState({
+        depositInProgress: true,
+        lastDepositResult: null,
       });
+
+      let result = selectPerpsDepositState(mockState);
+      expect(result.inProgress).toBe(true);
+      expect(result.lastResult).toBeNull();
+
+      // Test success state
+      mockState = createMockState({
+        depositInProgress: false,
+        lastDepositResult: {
+          success: true,
+          txHash: '0xabc',
+        },
+      });
+
+      result = selectPerpsDepositState(mockState);
+      expect(result.inProgress).toBe(false);
+      expect(result.lastResult?.success).toBe(true);
+      expect(result.lastResult?.txHash).toBe('0xabc');
+
+      // Test error state
+      mockState = createMockState({
+        depositInProgress: false,
+        lastDepositResult: {
+          success: false,
+          error: 'Error message',
+        },
+      });
+
+      result = selectPerpsDepositState(mockState);
+      expect(result.inProgress).toBe(false);
+      expect(result.lastResult?.success).toBe(false);
+      expect(result.lastResult?.error).toBe('Error message');
     });
   });
 
@@ -518,9 +534,8 @@ describe('PerpsController Selectors', () => {
           marginUsed: '0',
           unrealizedPnl: '0',
         },
-        depositStatus: 'idle' as DepositStatus,
-        currentDepositTxHash: null,
-        depositError: null,
+        depositInProgress: false,
+        lastDepositResult: null,
         isEligible: true,
         isTestnet: false,
       });
@@ -561,9 +576,11 @@ describe('PerpsController Selectors', () => {
           marginUsed: '1000',
           unrealizedPnl: '100',
         },
-        depositStatus: 'success',
-        currentDepositTxHash: '0xnested',
-        depositError: null,
+        depositInProgress: false,
+        lastDepositResult: {
+          success: true,
+          txHash: '0xnested',
+        },
         isEligible: true,
         isTestnet: true,
         // Other properties that should be ignored
@@ -587,9 +604,11 @@ describe('PerpsController Selectors', () => {
         unrealizedPnl: '100',
       });
       expect(deposit).toEqual({
-        status: 'success',
-        currentTxHash: '0xnested',
-        error: null,
+        inProgress: false,
+        lastResult: {
+          success: true,
+          txHash: '0xnested',
+        },
       });
       expect(eligibility).toBe(true);
       expect(network).toBe('testnet');

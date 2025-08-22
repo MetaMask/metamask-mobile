@@ -2,13 +2,9 @@ import { AccountGroupId } from '@metamask/account-api';
 import { type CaipChainId } from '@metamask/utils';
 import { type InternalAccount } from '@metamask/keyring-internal-api';
 
-export interface Props {
-  route: {
-    params: {
-      title: string;
-      groupId: AccountGroupId;
-    };
-  };
+export interface AddressListProps {
+  groupId: AccountGroupId;
+  title: string;
 }
 
 export interface AddressItem {

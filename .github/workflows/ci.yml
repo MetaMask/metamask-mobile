@@ -6,6 +6,10 @@ on:
   merge_group:
     types: [checks_requested]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
+
 jobs:
   check-diff:
     runs-on: macos-latest
@@ -157,6 +161,23 @@ jobs:
           else
             echo "No changes detected"
           fi
+
+  build-android-apks:
+    name: "Build Android APKs"
+    if: ${{ github.event_name != 'merge_group' }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/build-android-e2e.yml
+    secrets: inherit
+
+  e2e-smoke-tests-android:
+    permissions:
+      contents: read
+      id-token: write
+    needs: [build-android-apks]
+    uses: ./.github/workflows/run-e2e-smoke-tests-android.yml
+    secrets: inherit
 
   js-bundle-size-check:
     runs-on: ubuntu-latest

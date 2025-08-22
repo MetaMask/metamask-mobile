@@ -1,11 +1,9 @@
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, ScrollView, View } from 'react-native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -25,6 +23,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import PerpsPositionCard from '../../components/PerpsPositionCard';
 import { PerpsTabControlBar } from '../../components/PerpsTabControlBar';
+import PerpsErrorState, {
+  PerpsErrorType,
+} from '../../components/PerpsErrorState';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -38,8 +39,9 @@ import {
   usePerpsFirstTimeUser,
   usePerpsTrading,
   usePerpsPerformance,
+  usePerpsLivePositions,
 } from '../../hooks';
-import { usePerpsLivePositions } from '../../hooks/stream';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import styleSheet from './PerpsTabView.styles';
 
 interface PerpsTabViewProps {}
@@ -47,21 +49,22 @@ interface PerpsTabViewProps {}
 const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
-  const { getAccountState, depositWithConfirmation } = usePerpsTrading();
-  const { isConnected, isInitialized } = usePerpsConnection();
+  const selectedEvmAccount = useSelector(selectSelectedInternalAccountByScope)(
+    'eip155:1',
+  );
+  const { getAccountState } = usePerpsTrading();
+  const { isConnected, isInitialized, error, connect, resetError } =
+    usePerpsConnection();
   const { track } = usePerpsEventTracking();
   const cachedAccountState = usePerpsAccount();
 
-  const [isBottomSheetVisible, setIsBottomSheetVisible] = useState(false);
   const hasTrackedHomescreen = useRef(false);
   const { startMeasure, endMeasure } = usePerpsPerformance();
 
-  const bottomSheetRef = useRef<BottomSheetRef>(null);
-
-  // Get real-time positions via WebSocket
   const { positions, isInitialLoading } = usePerpsLivePositions({
     throttleMs: 1000, // Update positions every second
   });
+
   const { isFirstTimeUser } = usePerpsFirstTimeUser();
 
   const firstTimeUserIconSize = 48 as unknown as IconSize;
@@ -71,15 +74,15 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     startMeasure(PerpsMeasurementName.POSITION_DATA_LOADED_PERP_TAB);
   }, [startMeasure]);
 
-  // Automatically load account state on mount and when network changes
+  // Automatically load account state on mount and when network or account changes
   useEffect(() => {
-    // Only load account state if we're connected and initialized
-    if (isConnected && isInitialized) {
+    // Only load account state if we're connected, initialized, and have an EVM account
+    if (isConnected && isInitialized && selectedEvmAccount) {
       // Fire and forget - errors are already handled in getAccountState
       // and stored in the controller's state
       getAccountState();
     }
-  }, [getAccountState, isConnected, isInitialized]);
+  }, [getAccountState, isConnected, isInitialized, selectedEvmAccount]);
 
   // Track homescreen tab viewed - only once when positions and account are loaded
   useEffect(() => {
@@ -118,31 +121,8 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
   ]);
 
   const handleManageBalancePress = useCallback(() => {
-    setIsBottomSheetVisible(true);
-  }, []);
-
-  const handleCloseBottomSheet = useCallback(() => {
-    setIsBottomSheetVisible(false);
-  }, []);
-
-  const handleAddFunds = useCallback(() => {
-    setIsBottomSheetVisible(false);
-
-    // Navigate immediately to confirmations screen for instant UI response
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS,
-    });
-
-    // Initialize deposit in the background without blocking
-    depositWithConfirmation().catch((error) => {
-      console.error('Failed to initialize deposit:', error);
-    });
-  }, [depositWithConfirmation, navigation]);
-
-  const handleWithdrawFunds = useCallback(() => {
-    setIsBottomSheetVisible(false);
-    navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.WITHDRAW,
+    navigation.navigate(Routes.PERPS.MODALS.ROOT, {
+      screen: Routes.PERPS.MODALS.BALANCE_MODAL,
     });
   }, [navigation]);
 
@@ -152,6 +132,11 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
       screen: Routes.PERPS.TUTORIAL,
     });
   }, [navigation]);
+
+  const handleRetryConnection = useCallback(() => {
+    resetError();
+    connect();
+  }, [connect, resetError]);
 
   const renderPositionsSection = () => {
     if (isInitialLoading) {
@@ -238,8 +223,20 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
     );
   };
 
+  // Check for connection errors
+  if (error && !isConnected && selectedEvmAccount) {
+    return (
+      <View style={styles.wrapper}>
+        <PerpsErrorState
+          errorType={PerpsErrorType.CONNECTION_FAILED}
+          onRetry={handleRetryConnection}
+        />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.wrapper}>
+    <SafeAreaView style={styles.wrapper} edges={['bottom', 'left', 'right']}>
       {isFirstTimeUser ? (
         <View style={[styles.content, styles.firstTimeContent]}>
           <View style={styles.section}>{renderPositionsSection()}</View>
@@ -252,43 +249,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
           </ScrollView>
         </>
       )}
-
-      {isBottomSheetVisible && (
-        <Modal visible transparent animationType="fade">
-          <BottomSheet
-            ref={bottomSheetRef}
-            onClose={handleCloseBottomSheet}
-            shouldNavigateBack={false}
-          >
-            <BottomSheetHeader onClose={handleCloseBottomSheet}>
-              <Text variant={TextVariant.HeadingMD}>
-                {strings('perps.manage_balance')}
-              </Text>
-            </BottomSheetHeader>
-            <View style={styles.bottomSheetContent}>
-              <Button
-                variant={ButtonVariants.Primary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('perps.add_funds')}
-                onPress={handleAddFunds}
-                style={styles.actionButton}
-                startIconName={IconName.Add}
-              />
-              <Button
-                variant={ButtonVariants.Secondary}
-                size={ButtonSize.Lg}
-                width={ButtonWidthTypes.Full}
-                label={strings('perps.withdraw')}
-                onPress={handleWithdrawFunds}
-                style={styles.actionButton}
-                startIconName={IconName.Minus}
-              />
-            </View>
-          </BottomSheet>
-        </Modal>
-      )}
-    </View>
+    </SafeAreaView>
   );
 };
 

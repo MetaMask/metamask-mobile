@@ -10,17 +10,24 @@ import { selectMultichainWallets } from '../../../../../selectors/multichainAcco
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { isSolanaAccount } from '../../../../../core/Multichain/utils';
 import { type RecipientType } from '../../components/UI/recipient';
+import { useSendContext } from '../../context/send-context';
 import { useSendType } from './useSendType';
 
 export const useAccounts = (): RecipientType[] => {
   const multichainWallets = useSelector(selectMultichainWallets);
   const internalAccountsById = useSelector(selectInternalAccountsById);
+  const { from } = useSendContext();
   const { isEvmSendType, isSolanaSendType } = useSendType();
 
   const isAccountCompatible = useMemo(
     () => (accountId: string) => {
       const account = internalAccountsById[accountId];
       if (!account) return false;
+
+      // We don't want to show the selected account in the accounts list
+      if (from === account.address) {
+        return false;
+      }
 
       if (isEvmSendType) {
         return isEvmAccountType(account.type);
@@ -30,7 +37,7 @@ export const useAccounts = (): RecipientType[] => {
       }
       return false;
     },
-    [internalAccountsById, isEvmSendType, isSolanaSendType],
+    [internalAccountsById, isEvmSendType, isSolanaSendType, from],
   );
 
   const processAccountGroup = useMemo(
@@ -42,12 +49,10 @@ export const useAccounts = (): RecipientType[] => {
       if (compatibleAccounts.length === 0) return null;
 
       return {
-        name: compatibleAccounts[0].metadata.name,
+        name: accountGroup.metadata.name,
         // We expect a single account in the account group as we already filtered out the incompatible accounts by blockchain type
         // There might be some edge cases for BTC as there are two accounts in the account group
         address: compatibleAccounts[0].address,
-        //Temporary fiat value
-        fiatValue: '$1,000.00',
       };
     },
     [isAccountCompatible, internalAccountsById],

@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FlashList } from '@shopify/flash-list';
 
-import ClipboardManager from '../../../../core/ClipboardManager';
 import { useStyles } from '../../../hooks/useStyles';
 import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../selectors/multichainAccounts/accounts';
 import HeaderBase from '../../../../component-library/components/HeaderBase';
@@ -15,23 +14,36 @@ import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
-import MultichainAddressRow from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
+import MultichainAddressRow, {
+  MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
+} from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import { AddressListIds } from '../../../../../e2e/selectors/MultichainAccounts/AddressList.selectors';
+import {
+  useParams,
+  createNavigationDetails,
+} from '../../../../util/navigation/navUtils';
+import Routes from '../../../../constants/navigation/Routes';
 
 import styleSheet from './styles';
-import type { Props as AddressListProps, AddressItem } from './types';
+import type { AddressListProps, AddressItem } from './types';
+import ClipboardManager from '../../../../core/ClipboardManager';
+import { strings } from '../../../../../locales/i18n';
+
+export const createAddressListNavigationDetails =
+  createNavigationDetails<AddressListProps>(
+    Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+  );
 
 /**
  * AddressList component displays a list of addresses spread by scopes.
  *
- * @param props - Component properties.
  * @returns {JSX.Element} The rendered component.
  */
-export const AddressList = (props: AddressListProps) => {
+export const AddressList = () => {
   const navigation = useNavigation();
   const { styles } = useStyles(styleSheet, {});
 
-  const { groupId, title } = props.route.params;
+  const { groupId, title } = useParams<AddressListProps>();
 
   const selectInternalAccountsSpreadByScopes = useSelector(
     selectInternalAccountListSpreadByScopesByGroupId,
@@ -39,33 +51,32 @@ export const AddressList = (props: AddressListProps) => {
   const internalAccountsSpreadByScopes =
     selectInternalAccountsSpreadByScopes(groupId);
 
-  const renderAddressItem = useCallback(
-    ({ item }: { item: AddressItem }) => (
+  const renderAddressItem = useCallback(({ item }: { item: AddressItem }) => {
+    const copyAddressToClipboard = async () => {
+      await ClipboardManager.setString(item.account.address);
+    };
+
+    return (
       <MultichainAddressRow
         chainId={item.scope}
         networkName={item.networkName}
         address={item.account.address}
+        copyParams={{
+          successMessage: strings('multichain_accounts.address_list.copied'),
+          callback: copyAddressToClipboard,
+        }}
         icons={[
-          {
-            name: IconName.Copy,
-            callback: async () => {
-              // TODO: Add feedback to user that address was copied
-              await ClipboardManager.setString(item.account.address);
-            },
-            testId: '',
-          },
           {
             name: IconName.QrCode,
             callback: () => {
-              // TODO: Add navigation to QR Code screen
+              // TODO: Implement navigation to QR code screen when it is ready
             },
-            testId: '',
+            testId: `${MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID}-${item.scope}`,
           },
         ]}
       />
-    ),
-    [],
-  );
+    );
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>

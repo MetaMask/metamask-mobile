@@ -24,6 +24,9 @@ jest.mock('../components/PerpsLoadingSkeleton', () => ({
     return <View testID="perps-loading-skeleton" />;
   },
 }));
+jest.mock('../hooks/usePerpsDepositStatus', () => ({
+  usePerpsDepositStatus: jest.fn(() => ({ depositInProgress: false })),
+}));
 
 // Test component that uses the hook
 interface ConnectionState {
