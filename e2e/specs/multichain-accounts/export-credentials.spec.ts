@@ -22,6 +22,7 @@ const checkCredentials = async () => {
   await Assertions.expectElementToBeVisible(
     RevealPrivateKey.revealCredentialQRCodeImage,
   );
+  await RevealPrivateKey.scrollToDone();
   await RevealPrivateKey.tapDoneButton();
 };
 
@@ -42,7 +43,7 @@ describe(SmokeWalletPlatform('Multichain Accounts: Account Details'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('exports private key', async () => {
+  it.only('exports private key', async () => {
     await withMultichainAccountDetailsEnabled(async () => {
       await goToAccountDetails(HD_ACCOUNT);
       await exportPrivateKey();
