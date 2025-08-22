@@ -2,6 +2,7 @@
 import React, { useCallback, useState, useMemo, memo } from 'react';
 import { View } from 'react-native';
 import { KnownCaipNamespace, CaipChainId } from '@metamask/utils';
+import { ScrollView } from 'react-native-gesture-handler';
 
 // external dependencies
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -168,8 +169,9 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
   );
 
   return (
-    <View
+    <ScrollView
       style={styles.bodyContainer}
+      contentContainerStyle={styles.scrollContentContainer}
       testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CONTAINER}
     >
       {renderSelectAllCheckbox()}
@@ -180,7 +182,7 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
         onSelectNetwork={selectPopularNetwork}
         additionalNetworksComponent={additionalNetworksComponent}
       />
-    </View>
+    </ScrollView>
   );
 };
 
