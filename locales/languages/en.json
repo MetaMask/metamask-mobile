@@ -1128,7 +1128,22 @@
       "withdrawFailed": "Failed to withdraw",
       "connectionRequired": "usePerpsConnection must be used within a PerpsConnectionProvider",
       "assetMappingFailed": "Failed to build asset mapping",
-      "depositFailed": "Deposit failed"
+      "depositFailed": "Deposit failed",
+      "connectionFailed": {
+        "title": "Connection Failed",
+        "description": "Unable to connect to Perps services. Please check your connection and try again.",
+        "retry": "Retry"
+      },
+      "networkError": {
+        "title": "Network Error",
+        "description": "There was a problem connecting to the network. Please try again.",
+        "retry": "Try Again"
+      },
+      "unknown": {
+        "title": "Something Went Wrong",
+        "description": "An unexpected error occurred. Please try again later.",
+        "retry": "Retry"
+      }
     },
     "position": {
       "title": "Positions",
@@ -5251,8 +5266,13 @@
       "header_title": "Account Details",
       "account_name": "Account Name",
       "account_address": "Account Address",
+      "networks": "Networks",
       "wallet": "Wallet",
       "private_key": "Private key"
+    },
+    "address_list" : {
+      "addresses": "Addresses",
+      "receiving_address": "Receiving address"
     },
     "accounts_list": {
       "details": "Details"

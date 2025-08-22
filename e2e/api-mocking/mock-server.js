@@ -102,6 +102,12 @@ export const startMockServer = async (events, port) => {
     .forGet('/health-check')
     .thenReply(200, 'Mock server is running');
 
+  await mockServer
+    .forGet(
+      /^http:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2)(:\d+)?\/favicon\.ico$/,
+    )
+    .thenReply(200, 'favicon.ico');
+
   // Handle all /proxy requests
   await mockServer
     .forAnyRequest()

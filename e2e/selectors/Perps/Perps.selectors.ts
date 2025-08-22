@@ -170,6 +170,7 @@ export const PerpsPositionsViewSelectorsIDs = {
 
 export const PerpsPositionDetailsViewSelectorsIDs = {
   CANDLESTICK_CHART: 'candlestick-chart',
+  TRADINGVIEW_CHART: 'tradingview-chart',
   // Bottom sheets
   TPSL_BOTTOMSHEET: 'perps-tpsl-bottomsheet',
   CLOSE_POSITION_BOTTOMSHEET: 'perps-close-position-bottomsheet',
@@ -180,6 +181,18 @@ export const PerpsPositionDetailsViewSelectorsIDs = {
   CHART_CANDLES: 'chart-candles',
   CHART_CROSSHAIR: 'chart-crosshair',
   CHART_TOOLTIP: 'chart-tooltip',
+};
+
+// ========================================
+// TRADINGVIEW CHART SELECTORS
+// ========================================
+
+export const TradingViewChartSelectorsIDs = {
+  // Chart container and webview
+  CONTAINER: 'tradingview-chart-container',
+  WEBVIEW: 'tradingview-chart-webview',
+  ERROR_CONTAINER: 'tradingview-chart-error',
+  LOADING: 'tradingview-chart-loading',
 };
 
 // Helper functions for dynamic view selectors
