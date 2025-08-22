@@ -19,23 +19,26 @@ on:
         required: true
         type: string
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}
-  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
-
-
 jobs:
 
   test-e2e-mobile:
-    name: ${{ inputs.test-suite-name }}
+    name: ${{ inputs.test-suite-name }}-shard-${{ matrix.shard }}
     runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
     continue-on-error: true
+    strategy:
+      matrix:
+        shard: [1, 2, 3]
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ matrix.shard }}
+      cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
     env:
       METAMASK_ENVIRONMENT: 'qa'
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
       GITHUB_CI: 'true'
+      TOTAL_SHARDS: 3
+      SHARD_INDEX: ${{ matrix.shard }}
       MM_UNIFIED_SWAPS_ENABLED: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       MM_BRIDGE_ENABLED: 'true'
@@ -174,7 +177,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-test-results
+          name: ${{ inputs.test-suite-name }}-shard-${{ matrix.shard }}-test-results
           path: e2e/reports/
           retention-days: 7
       
@@ -208,6 +211,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-screenshots
+          name: ${{ inputs.test-suite-name }}-shard-${{ matrix.shard }}-screenshots
           path: artifacts/
           retention-days: 7
