@@ -67,6 +67,11 @@ export const PERFORMANCE_CONFIG = {
   // Order validation debounce delay (milliseconds)
   // Prevents excessive validation calls during rapid form input changes
   VALIDATION_DEBOUNCE_MS: 1000,
+
+  // Navigation params delay (milliseconds)
+  // Required for React Navigation to complete state transitions before setting params
+  // This ensures navigation context is available when programmatically selecting tabs
+  NAVIGATION_PARAMS_DELAY_MS: 100,
 } as const;
 
 /**

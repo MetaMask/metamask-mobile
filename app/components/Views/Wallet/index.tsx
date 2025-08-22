@@ -103,6 +103,7 @@ import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
 import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
+import { PERFORMANCE_CONFIG } from '../../UI/Perps/constants/perpsConfig';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
@@ -319,7 +320,7 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
               initialTab: undefined,
             });
           }
-        }, 100);
+        }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
 
         return () => clearTimeout(timer);
       }

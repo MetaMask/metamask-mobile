@@ -30,6 +30,7 @@ import {
   PerpsEventProperties,
   PerpsEventValues,
 } from '../../constants/eventNames';
+import { PERFORMANCE_CONFIG } from '../../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../../controllers/types';
 import { usePerpsFirstTimeUser, usePerpsTrading } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -232,7 +233,7 @@ const PerpsTutorialCarousel: React.FC = () => {
           initialTab: 'perps',
           shouldSelectPerpsTab: true,
         });
-      }, 100);
+      }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
     } else {
       navigation.goBack();
     }

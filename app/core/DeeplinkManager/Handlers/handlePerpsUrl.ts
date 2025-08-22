@@ -3,6 +3,7 @@ import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../Engine';
 import { PerpsMarketData } from '../../../components/UI/Perps/controllers/types';
 import DevLogger from '../../SDKConnect/utils/DevLogger';
+import { PERFORMANCE_CONFIG } from '../../../components/UI/Perps/constants/perpsConfig';
 
 interface HandlePerpsUrlParams {
   perpsPath: string;
@@ -97,7 +98,7 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
           initialTab: 'perps',
           shouldSelectPerpsTab: true,
         });
-      }, 100);
+      }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
     }
   } catch (error) {
     DevLogger.log('Failed to handle perps deeplink:', error);
