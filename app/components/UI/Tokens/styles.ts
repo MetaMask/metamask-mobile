@@ -177,6 +177,7 @@ const createStyles = (colors: Colors) =>
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
+      marginVertical: 8,
     },
     controlButtonOuterWrapper: {
       flexDirection: 'row',
@@ -191,17 +192,19 @@ const createStyles = (colors: Colors) =>
     controlButton: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
-      marginRight: 4,
+      borderWidth: 1,
+      borderRadius: 8,
       maxWidth: '60%',
-      paddingHorizontal: 0,
+      paddingHorizontal: 8,
     },
     controlButtonDisabled: {
       backgroundColor: colors.background.default,
       borderColor: colors.border.default,
+      borderWidth: 1,
+      borderRadius: 8,
       marginRight: 4,
       maxWidth: '60%',
-      paddingHorizontal: 0,
-      opacity: 0.5,
+      paddingHorizontal: 12,
     },
     controlButtonText: {
       color: colors.text.default,
@@ -240,6 +243,12 @@ const createStyles = (colors: Colors) =>
     },
     badge: {
       marginTop: 8,
+    },
+    networkManagerWrapper: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
   });
 

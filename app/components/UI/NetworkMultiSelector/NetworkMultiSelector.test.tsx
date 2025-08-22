@@ -248,26 +248,6 @@ describe('NetworkMultiSelector', () => {
       expect(selectAllText.props.children).toBe('networks.select_all');
     });
 
-    it('displays "deselect all" text when all networks are selected', () => {
-      mockUseNetworksByNamespace.mockReturnValue({
-        networks: mockNetworks,
-        selectedNetworks: mockNetworks,
-        selectedCount: 2,
-        areAllNetworksSelected: true,
-        areAnyNetworksSelected: true,
-        networkCount: 2,
-      });
-
-      const { getByTestId } = render(
-        <NetworkMultiSelector openModal={mockOpenModal} />,
-      );
-
-      const selectAllText = getByTestId(
-        NETWORK_MULTI_SELECTOR_TEST_IDS.SELECT_ALL_TEXT,
-      );
-      expect(selectAllText.props.children).toBe('networks.deselect_all');
-    });
-
     it('calls toggleAll when select all text is pressed', () => {
       const { getByTestId } = render(
         <NetworkMultiSelector openModal={mockOpenModal} />,

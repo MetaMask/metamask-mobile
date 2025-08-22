@@ -3,7 +3,10 @@ import { View } from 'react-native';
 import ButtonBase from '../../../../component-library/components/Buttons/Button/foundation/ButtonBase';
 import { useTheme } from '../../../../util/theme';
 import createStyles from '../styles';
-import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../util/networks';
+import {
+  isRemoveGlobalNetworkSelectorEnabled,
+  getNetworkImageSource,
+} from '../../../../util/networks';
 import { useSelector } from 'react-redux';
 import {
   selectIsAllNetworks,
@@ -28,6 +31,11 @@ import { useCurrentNetworkInfo } from '../../../hooks/useCurrentNetworkInfo';
 import TextComponent, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+
+import Avatar, {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../../component-library/components/Avatars/Avatar';
 
 interface TokenListNavigationParamList {
   AddAsset: { assetType: string };
@@ -72,6 +80,11 @@ export const TokenListControlBar = ({
   const showSortControls = useCallback(() => {
     navigation.navigate(...createTokensBottomSheetNavDetails({}));
   }, [navigation]);
+  // TODO: Placeholder variable for now until we update the network enablement controller
+  const firstEnabledChainId = enabledNetworks[0]?.chainId || '';
+  const networkImageSource = getNetworkImageSource({
+    chainId: firstEnabledChainId,
+  });
 
   return (
     <View style={styles.actionBarWrapper}>
@@ -81,15 +94,23 @@ export const TokenListControlBar = ({
           label={
             <>
               {isRemoveGlobalNetworkSelectorEnabled() ? (
-                <TextComponent
-                  variant={TextVariant.BodyMDMedium}
-                  style={styles.controlButtonText}
-                  numberOfLines={1}
-                >
-                  {enabledNetworks.length > 1
-                    ? strings('networks.enabled_networks')
-                    : currentNetworkName ?? strings('wallet.current_network')}
-                </TextComponent>
+                <View style={styles.networkManagerWrapper}>
+                  <Avatar
+                    variant={AvatarVariant.Network}
+                    size={AvatarSize.Xs}
+                    name={networkName}
+                    imageSource={networkImageSource}
+                  />
+                  <TextComponent
+                    variant={TextVariant.BodyMDMedium}
+                    style={styles.controlButtonText}
+                    numberOfLines={1}
+                  >
+                    {enabledNetworks.length > 1
+                      ? strings('networks.enabled_networks')
+                      : currentNetworkName ?? strings('wallet.current_network')}
+                  </TextComponent>
+                </View>
               ) : (
                 <TextComponent
                   variant={TextVariant.BodyMDMedium}
@@ -111,6 +132,7 @@ export const TokenListControlBar = ({
           }
           disabled={isDisabled}
         />
+
         <View style={styles.controlButtonInnerWrapper}>
           <ButtonIcon
             testID={WalletViewSelectorsIDs.SORT_BY}

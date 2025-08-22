@@ -5,15 +5,11 @@ import { KnownCaipNamespace, CaipChainId } from '@metamask/utils';
 
 // external dependencies
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
-import { useTheme } from '../../../util/theme';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import { ExtendedNetwork } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
 import { PopularList } from '../../../util/networks/customNetworks';
 import CustomNetwork from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { strings } from '../../../../locales/i18n';
-import Text, {
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 import NetworkMultiSelectorList from '../NetworkMultiSelectorList/NetworkMultiSelectorList';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import {
@@ -39,11 +35,6 @@ const initialModalState: ModalState = {
   showWarningModal: false,
 };
 
-const SELECT_ALL_STRINGS = {
-  select: strings('networks.select_all'),
-  deselect: strings('networks.deselect_all'),
-} as const;
-
 const CUSTOM_NETWORK_PROPS = {
   switchTab: undefined,
   shouldNetworkSwitchPopToWallet: false,
@@ -56,8 +47,7 @@ const CUSTOM_NETWORK_PROPS = {
 } as const;
 
 const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
-  const { colors } = useTheme();
-  const { styles } = useStyles(stylesheet, { colors });
+  const { styles } = useStyles(stylesheet, {});
 
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
 
@@ -76,14 +66,6 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
           enabledNetworksByNamespace[namespace]?.[chainId as CaipChainId],
       ) as CaipChainId[],
     [enabledNetworksByNamespace, namespace],
-  );
-
-  const selectAllText = useMemo(
-    () =>
-      areAllNetworksSelected
-        ? SELECT_ALL_STRINGS.deselect
-        : SELECT_ALL_STRINGS.select,
-    [areAllNetworksSelected],
   );
 
   const showNetworkModal = useCallback(
@@ -138,22 +120,6 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
     ],
   );
 
-  const renderSelectAllCheckbox = useCallback(
-    (): React.JSX.Element => (
-      <View>
-        <Text
-          style={styles.selectAllText}
-          onPress={toggleAll}
-          variant={TextVariant.BodyMD}
-          testID={NETWORK_MULTI_SELECTOR_TEST_IDS.SELECT_ALL_TEXT}
-        >
-          {selectAllText}
-        </Text>
-      </View>
-    ),
-    [styles.selectAllText, selectAllText, toggleAll],
-  );
-
   const additionalNetworksComponent = useMemo(
     () =>
       namespace === KnownCaipNamespace.Eip155 ? (
@@ -172,7 +138,6 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
       style={styles.bodyContainer}
       testID={NETWORK_MULTI_SELECTOR_TEST_IDS.CONTAINER}
     >
-      {renderSelectAllCheckbox()}
       <NetworkMultiSelectorList
         openModal={openModal}
         networks={networks}

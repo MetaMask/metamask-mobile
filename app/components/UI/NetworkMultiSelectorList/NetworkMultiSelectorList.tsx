@@ -219,8 +219,8 @@ const NetworkMultiSelectList = ({
       return (
         <View testID={`${name}-${isSelected ? 'selected' : 'not-selected'}`}>
           <Cell
-            variant={CellVariant.MultiSelectWithMenu}
-            isSelected={isSelected}
+            variant={CellVariant.SelectWithMenu}
+            // isSelected={isSelected}
             title={name}
             onPress={() => debouncedSelectNetwork(caipChainId)}
             avatarProps={createAvatarProps(network)}
