@@ -370,7 +370,6 @@ class ChoosePassword extends PureComponent {
       endTrace({ name: TraceName.OnboardingPasswordSetupAttempt });
       this.passwordSetupAttemptTraceCtx = null;
     }
-    this.setState({ loading: false });
   }
 
   isOAuthPasswordCreationError = (error, authType) =>
