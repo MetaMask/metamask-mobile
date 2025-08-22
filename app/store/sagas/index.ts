@@ -139,10 +139,11 @@ export function* basicFunctionalityToggle() {
 }
 
 export function* handleSDKInit() {
+  yield take([NavigationActionType.ON_NAVIGATION_READY]);
+
   // Initialize SDKConnect
   while (true) {
     const action = (yield take([
-      NavigationActionType.ON_NAVIGATION_READY,
       UserActionType.LOGIN,
       SET_COMPLETED_ONBOARDING,
     ])) as LoginAction | SetCompletedOnboardingAction;
