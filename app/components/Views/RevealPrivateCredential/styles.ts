@@ -46,7 +46,7 @@ export const createStyles = (theme: Theme) =>
       padding: 20,
     },
     tabContentContainer: {
-      minHeight: 320,
+      minHeight: Platform.OS === 'android' ? 320 : 0,
       flexGrow: 1,
       flexShrink: 0,
       marginBottom: Platform.OS === 'android' ? 20 : 0,
@@ -99,9 +99,6 @@ export const createStyles = (theme: Theme) =>
     boldText: {
       color: theme.colors.text.default,
       ...fontStyles.bold,
-    },
-    tabContent: {
-      paddingVertical: 20,
     },
     tabContainer: {
       paddingHorizontal: 16,
