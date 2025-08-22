@@ -27,6 +27,7 @@ import { createStyles } from './PerpsTPSLBottomSheet.styles';
 import { usePerpsPerformance } from '../../hooks';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
 import {
   PerpsEventProperties,
   PerpsEventValues,
@@ -477,7 +478,9 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
               {strings('perps.tpsl.current_price')}
             </Text>
             <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-              {currentPrice ? formatPrice(currentPrice) : '$---'}
+              {currentPrice
+                ? formatPrice(currentPrice)
+                : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
             </Text>
           </View>
           {position?.liquidationPrice && (
