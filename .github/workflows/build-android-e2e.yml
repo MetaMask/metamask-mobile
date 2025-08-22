@@ -28,10 +28,10 @@ jobs:
       apk-uploaded: ${{ steps.upload-apk.outcome == 'success' }}
       aab-uploaded: ${{ steps.upload-aab.outcome == 'success' }}
       sourcemap-uploaded: ${{ steps.upload-sourcemap.outcome == 'success' }}
-    
+
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       - name: Setup Android Build Environment
         uses: MetaMask/github-tools/.github/actions/setup-e2e-env@self-hosted-runners-config
@@ -42,7 +42,7 @@ jobs:
           target: qa
 
       - name: Cache Gradle dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@0400d5f644dc74513175e3cd8d07132dd4860809 # v4.2.4
         with:
           path: |
             ~/.gradle/caches
@@ -56,7 +56,7 @@ jobs:
         run: |
           echo "🚀 Setting up project..."
           yarn setup:github-ci --no-build-ios
-          
+
           echo "🏗 Building Android E2E APKs..."
           export NODE_OPTIONS="--max-old-space-size=8192"
           cp android/gradle.properties.github android/gradle.properties
@@ -98,7 +98,7 @@ jobs:
 
       - name: Upload Android APK
         id: upload-apk
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: app-prod-release.apk
           path: android/app/build/outputs/apk/prod/release/app-prod-release.apk
@@ -107,7 +107,7 @@ jobs:
 
       - name: Upload Android Test APK
         id: upload-test-apk
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: app-prod-release-androidTest.apk
           path: android/app/build/outputs/apk/androidTest/prod/release/app-prod-release-androidTest.apk
@@ -116,7 +116,7 @@ jobs:
 
       - name: Upload Android AAB
         id: upload-aab
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: app-prod-release.aab
           path: android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
@@ -126,7 +126,7 @@ jobs:
 
       - name: Upload Android Source Map
         id: upload-sourcemap
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: index.android.bundle.map
           path: sourcemaps/android/index.android.bundle.map

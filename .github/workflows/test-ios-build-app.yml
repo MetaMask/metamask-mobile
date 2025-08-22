@@ -28,7 +28,7 @@ jobs:
     steps:
       # Get the source code from the repository
       - name: Checkout repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
       # Display system information for debugging purposes
       - name: Detect CPU architecture
@@ -109,7 +109,7 @@ jobs:
       # Upload the iOS .app file that works in simulators (no certificates needed)
       - name: Upload iOS APP Artifact (Simulator)
         id: upload-app
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: MetaMask-QA.app
           path: ios/build/Build/Products/Release-iphonesimulator/MetaMask-QA.app
@@ -120,7 +120,7 @@ jobs:
       # Upload iOS .ipa file for device installation (requires certificates - may not exist)
       - name: Upload iOS IPA Artifact (Device)
         id: upload-ipa
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: MetaMask-QA.ipa
           path: ios/build/output/MetaMask-QA.ipa
@@ -131,7 +131,7 @@ jobs:
       # Upload iOS .xcarchive file for debugging and re-signing (requires certificates - may not exist)
       - name: Upload iOS Archive Artifact
         id: upload-archive
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: MetaMask-QA.xcarchive
           path: ios/build/MetaMask-QA.xcarchive
@@ -142,7 +142,7 @@ jobs:
       # Upload source map file for crash debugging and error tracking if exists
       - name: Upload iOS Source Map
         id: upload-sourcemap
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: index.js.map
           path: sourcemaps/ios/index.js.map
