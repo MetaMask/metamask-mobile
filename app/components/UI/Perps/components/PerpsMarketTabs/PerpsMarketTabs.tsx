@@ -25,6 +25,7 @@ import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
 import { Order } from '../../controllers/types';
+import { isE2E } from '../../../../../util/test/utils';
 
 const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   marketStats,
@@ -44,12 +45,15 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
 
   // Fade in animation when loading completes
   useEffect(() => {
-    if (!isLoadingPosition) {
+    if (!isLoadingPosition && !isE2E) {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
+    } else if (isE2E) {
+      // In E2E mode, set opacity to 1 immediately without animation
+      fadeAnim.setValue(1);
     }
   }, [isLoadingPosition, fadeAnim]);
 
@@ -121,8 +125,8 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     );
   }, [selectedTooltip, handleTooltipClose]);
 
-  // Show loading skeleton while position data is loading
-  if (isLoadingPosition) {
+  // Show loading skeleton while position data is loading (but skip in E2E to prevent timer blocking)
+  if (isLoadingPosition && !isE2E) {
     return (
       <>
         {/* Tab bar skeleton */}
@@ -221,7 +225,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
               position={position}
               expanded
               showIcon
-              onPositionUpdate={onPositionUpdate}
             />
           </View>
         );

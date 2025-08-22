@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
+import { shouldDisablePerpsStreaming, getE2EMockData } from '../utils/e2eUtils';
 import type { PerpsMarketData } from '../controllers/types';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export interface UsePerpsMarketsResult {
   /**
@@ -66,6 +66,15 @@ export const usePerpsMarkets = (
 
   const fetchMarketData = useCallback(
     async (isRefresh = false): Promise<void> => {
+      // E2E Mode: Return mock data immediately
+      if (shouldDisablePerpsStreaming()) {
+        const mockData = getE2EMockData();
+        setMarkets(mockData.markets as unknown as PerpsMarketData[]);
+        setIsLoading(false);
+        setIsRefreshing(false);
+        return;
+      }
+
       if (isRefresh) {
         setIsRefreshing(true);
       } else {
@@ -90,7 +99,7 @@ export const usePerpsMarkets = (
             if (!volumeStr) return -1; // Put undefined at the end
 
             // Handle special cases
-            if (volumeStr === PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY) return -1; // Put missing data at the end
+            if (volumeStr === '--' || volumeStr === 'N/A') return -1; // Put missing data at the end
             if (volumeStr === '$<1') return 0.5; // Treat as very small but not zero
 
             // Remove $ and commas, handle different suffixes
@@ -159,9 +168,9 @@ export const usePerpsMarkets = (
     }
   }, [fetchMarketData, skipInitialFetch]);
 
-  // Polling effect
+  // Polling effect - disabled in E2E mode to prevent timer issues
   useEffect(() => {
-    if (!enablePolling) return;
+    if (!enablePolling || shouldDisablePerpsStreaming()) return;
 
     const intervalId = setInterval(() => {
       fetchMarketData(true);

@@ -1,6 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import {
+  shouldDisablePerpsStreaming,
+  getE2EMockData,
+} from '../../utils/e2eUtils';
 import type { Position } from '../../controllers/types';
 
 // Stable empty array reference to prevent re-renders
@@ -31,6 +35,15 @@ export interface UsePerpsLivePositionsReturn {
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
+  // E2E Mode: Return mock data immediately without streaming
+  if (shouldDisablePerpsStreaming()) {
+    const mockData = getE2EMockData();
+    return {
+      positions: mockData.positions as Position[],
+      isInitialLoading: false,
+    };
+  }
+
   const { throttleMs = 0 } = options; // No throttling by default for instant updates
   const stream = usePerpsStream();
   const [positions, setPositions] = useState<Position[]>(EMPTY_POSITIONS);

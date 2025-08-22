@@ -502,7 +502,10 @@ class FixtureBuilder {
             },
             SnapController: {},
             PerpsController: {
-              isFirstTimeUser: false,
+              isFirstTimeUser: {
+                testnet: false,
+                mainnet: false,
+              },
             },
           },
         },

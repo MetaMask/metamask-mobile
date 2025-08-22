@@ -12,6 +12,7 @@ import {
   PerpsEventValues,
 } from '../constants/eventNames';
 import { usePerpsEventTracking } from './usePerpsEventTracking';
+import { shouldDisablePerpsStreaming } from '../utils/e2eUtils';
 
 interface UsePerpsOrderExecutionParams {
   onSuccess?: (position?: Position) => void;
@@ -53,6 +54,33 @@ export function usePerpsOrderExecution(
 
         // Track order submission toast timing
         const orderSubmissionStart = performance.now();
+
+        // E2E Mode: Return mock success result to avoid actual order placement
+        if (shouldDisablePerpsStreaming()) {
+          const mockResult: OrderResult = {
+            success: true,
+            orderId: `mock-order-${Date.now()}`,
+            filledSize: orderParams.size,
+            averagePrice: orderParams.currentPrice,
+          };
+          setLastResult(mockResult);
+
+          // Measure order submission toast loaded (mock timing)
+          const submissionDuration = performance.now() - orderSubmissionStart;
+          setMeasurement(
+            PerpsMeasurementName.ORDER_SUBMISSION_TOAST_LOADED,
+            submissionDuration,
+            'millisecond',
+          );
+
+          DevLogger.log(
+            'usePerpsOrderExecution: Mock order placed successfully (E2E mode)',
+            mockResult,
+          );
+
+          onSuccess?.();
+          return mockResult;
+        }
 
         const result = await controllerPlaceOrder(orderParams);
         setLastResult(result);

@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
+import {
+  shouldDisablePerpsStreaming,
+  getE2EMockData,
+} from '../../utils/e2eUtils';
 import type { AccountState } from '../../controllers/types';
 
 export interface UsePerpsLiveAccountOptions {
@@ -27,6 +31,15 @@ export interface UsePerpsLiveAccountReturn {
 export function usePerpsLiveAccount(
   options: UsePerpsLiveAccountOptions = {},
 ): UsePerpsLiveAccountReturn {
+  // E2E Mode: Return mock account data immediately without streaming
+  if (shouldDisablePerpsStreaming()) {
+    const mockData = getE2EMockData();
+    return {
+      account: mockData.accountState,
+      isInitialLoading: false,
+    };
+  }
+
   const { throttleMs = 1000 } = options;
   const [account, setAccount] = useState<AccountState | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);

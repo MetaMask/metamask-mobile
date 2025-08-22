@@ -5,6 +5,7 @@ import Text, {
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
 import { calculateFundingCountdown } from '../../utils/marketUtils';
+import { shouldDisablePerpsStreaming } from '../../utils/e2eUtils';
 
 interface FundingCountdownProps {
   variant?: TextVariant;
@@ -47,6 +48,11 @@ const FundingCountdown: React.FC<FundingCountdownProps> = ({
 
     // Update immediately
     updateCountdown();
+
+    // Don't set up interval in E2E mode to prevent timer issues
+    if (shouldDisablePerpsStreaming()) {
+      return;
+    }
 
     // Then update every second
     const interval = setInterval(updateCountdown, 1000);

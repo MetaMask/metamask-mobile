@@ -31,10 +31,11 @@ import {
 } from '../../constants/eventNames';
 import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { usePerpsPerformance } from '../../hooks';
+import { usePerpsPerformance } from '../../hooks/usePerpsPerformance';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { isE2E } from '../../../../../util/test/utils';
 
 const PerpsMarketRowItemSkeleton = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -42,7 +43,7 @@ const PerpsMarketRowItemSkeleton = () => {
   return (
     <View
       style={styles.skeletonContainer}
-      testID={PerpsMarketListViewSelectorsIDs.SKELETON_ROW}
+      testID={PerpsMarketListViewSelectorsIDs.MARKET_LIST_SKELETON_ROW}
     >
       <View style={styles.skeletonLeftSection}>
         {/* Avatar skeleton */}
@@ -120,12 +121,15 @@ const PerpsMarketListView = ({
   });
 
   useEffect(() => {
-    if (markets.length > 0) {
+    if (markets.length > 0 && !isE2E) {
       Animated.timing(fadeAnimation, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
+    } else if (isE2E) {
+      // In E2E mode, set opacity to 1 immediately without animation
+      fadeAnimation.setValue(1);
     }
   }, [markets.length, fadeAnimation]);
 
@@ -229,7 +233,7 @@ const PerpsMarketListView = ({
   }, [markets, track]);
   const renderMarketList = () => {
     // Skeleton List - show immediately while loading
-    if (isLoadingMarkets) {
+    if (isLoadingMarkets && !isE2E) {
       return (
         <View>
           <PerpsMarketListHeader />

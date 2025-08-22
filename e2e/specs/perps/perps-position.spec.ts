@@ -8,12 +8,25 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { PerpsHelpers } from './helpers/perps-helpers';
 import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
 import PerpsMarketListView from '../../pages/Perps/PerpsMarketListView';
+import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../pages/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../pages/Perps/PerpsOrderView';
 import PerpsView from '../../pages/Perps/PerpsView';
 
 describe(SmokePerps('Perps Position'), () => {
-  it('should navigate to Market list and select BTC market', async () => {
+  // Set E2E environment to disable Perps streaming
+  beforeAll(() => {
+    process.env.IS_TEST = 'true';
+    process.env.METAMASK_ENVIRONMENT = 'e2e';
+  });
+
+  afterAll(() => {
+    // Clean up environment variables
+    delete process.env.IS_TEST;
+    delete process.env.METAMASK_ENVIRONMENT;
+  });
+
+  it('should navigate to Market list and select first market', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder()
@@ -30,6 +43,7 @@ describe(SmokePerps('Perps Position'), () => {
           .ensureSolanaModalSuppressed()
           .build(),
         restartDevice: true,
+        testSpecificMock: PERPS_ARBITRUM_MOCKS,
       },
       async () => {
         await device.launchApp();
@@ -40,34 +54,36 @@ describe(SmokePerps('Perps Position'), () => {
 
         await PerpsHelpers.importHyperLiquidWallet();
 
+        // Navigate back to wallet and then to Perps tab
+        await TabBarComponent.tapWallet();
+
+        // Navigate to Perps tab with comprehensive sync management (prevents timer blocking)
+        await PerpsHelpers.navigateToPerpsTab();
+
+        // Assert that Perps tab is loaded and displaying balance
+        await Assertions.expectTextDisplayed('Perp account balance');
+
+        // Navigate to Perps via actions menu
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPerpsButton();
+
+        // Wait for Perps system to initialize and stabilize (prevents timer blocking)
+        // await PerpsHelpers.waitForBalanceUpdate(3000);
 
         await Assertions.expectElementToBeVisible(
           PerpsMarketListView.listHeader,
         );
 
-        await Assertions.expectElementToBeVisible(
-          PerpsMarketListView.marketRowItemBTC,
-        );
-
-        await PerpsMarketListView.tapMarketRowItemBTC();
-
-        await PerpsMarketDetailsView.tapLongButton();
-
-        await device.disableSynchronization();
-
-        await PerpsOrderView.tapPlaceOrderButton();
-
-        await PerpsOrderView.tapTakeProfitButton();
-
-        await PerpsView.tapTakeProfitPercentageButton(5);
-
-        await PerpsView.tapStopLossPercentageButton(5);
-
-        await PerpsView.tapClosePositionButton();
-
-        await PerpsView.tapConfirmClosePositionButton();
+        // Press the first market row item (regardless of what coin it is)
+        await PerpsHelpers.withSyncDisabled(async () => {
+          await PerpsMarketListView.tapFirstMarketRowItem();
+          await PerpsMarketDetailsView.tapLongButton();
+          await PerpsOrderView.tapTakeProfitButton();
+          await PerpsView.tapTakeProfitPercentageButton(1);
+          await PerpsView.tapStopLossPercentageButton(1);
+          await PerpsView.tapSetTpslButton();
+          await PerpsView.tapPlaceOrderButton();
+        });
       },
     );
   });

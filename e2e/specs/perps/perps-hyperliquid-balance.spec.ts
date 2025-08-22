@@ -6,16 +6,28 @@ import WalletView from '../../pages/wallet/WalletView';
 import TabBarComponent from '../../pages/wallet/TabBarComponent';
 import PerpsTabView from '../../pages/Perps/PerpsTabView';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import TestHelpers from '../../helpers';
 import {
+  FUNDER_ADDRESS,
   HYPERLIQUID_FUNDER_PRIVATE_KEY,
   HYPERLIQUID_PRIVATE_KEY,
-  FUNDER_ADDRESS,
-  USER_ADDRESS,
   PerpsHelpers,
+  USER_ADDRESS,
 } from './helpers/perps-helpers';
+import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 
 describe(SmokePerps('HyperLiquid USDC Balance'), () => {
+  // Set E2E environment to disable Perps streaming
+  beforeAll(() => {
+    process.env.IS_TEST = 'true';
+    process.env.METAMASK_ENVIRONMENT = 'e2e';
+  });
+
+  afterAll(() => {
+    // Clean up environment variables
+    delete process.env.IS_TEST;
+    delete process.env.METAMASK_ENVIRONMENT;
+  });
+
   it('should navigate to Perps tab and display HyperLiquid balance section, and update in real time as Perps balance changes', async () => {
     await withFixtures(
       {
@@ -33,6 +45,7 @@ describe(SmokePerps('HyperLiquid USDC Balance'), () => {
           .ensureSolanaModalSuppressed()
           .build(),
         restartDevice: true,
+        testSpecificMock: PERPS_ARBITRUM_MOCKS,
       },
       async () => {
         // Login to the existing wallet
@@ -44,25 +57,33 @@ describe(SmokePerps('HyperLiquid USDC Balance'), () => {
 
         // Navigate back to wallet and then to Perps tab
         await TabBarComponent.tapWallet();
-        // Navigate to Perps tab
-        await WalletView.tapOnPerpsTab();
 
-        await Assertions.expectTextDisplayed('Hyperliquid USDC balance');
+        // Navigate to Perps tab with comprehensive sync management (prevents timer blocking)
+        await PerpsHelpers.navigateToPerpsTab();
 
-        // extract balance value from the UI
-        const balance = await PerpsTabView.getBalance();
+        // Assert that Perps tab is loaded and displaying balance
+        await Assertions.expectTextDisplayed('Perp account balance');
 
+        // Example of balance testing with proper sync management (currently commented out)
+        // Uncomment and modify these when ready to test balance updates:
+
+        // // Extract initial balance with sync management
+        const balance = await PerpsHelpers.getBalanceWithSyncManagement();
+
+        // // Transfer USDC (external operation - no sync issues)
+        // // Note: You'll need to import these constants when uncommenting:
+        // // import { HYPERLIQUID_FUNDER_PRIVATE_KEY, USER_ADDRESS } from './helpers/perps-helpers';
         await PerpsHelpers.transferTestnetUSDC({
           funderPrivateKey: HYPERLIQUID_FUNDER_PRIVATE_KEY,
           recipientAddress: USER_ADDRESS,
           amount: '1',
         });
 
-        // Expect balance two to be greater than balance one
+        // Wait for balance update with comprehensive sync management
+        await PerpsHelpers.waitForBalanceUpdate();
 
-        await TestHelpers.delay(2000);
-
-        const balance2 = await PerpsTabView.getBalance();
+        // Get updated balance
+        const balance2 = await PerpsHelpers.getBalanceWithSyncManagement();
         if (balance2 <= balance) {
           throw new Error(
             `Expected balance after seeding (${balance2}) to be greater than initial balance (${balance})`,
@@ -75,9 +96,11 @@ describe(SmokePerps('HyperLiquid USDC Balance'), () => {
           amount: '1',
         });
 
-        await TestHelpers.delay(2000);
+        // Wait for balance update with comprehensive sync management
+        await PerpsHelpers.waitForBalanceUpdate();
 
-        const balance3 = await PerpsTabView.getBalance();
+        // Get updated balance
+        const balance3 = await PerpsHelpers.getBalanceWithSyncManagement();
         if (balance2 <= balance3) {
           throw new Error(
             `Expected balance after seeding (${balance3}) to be less than initial balance (${balance2})`,

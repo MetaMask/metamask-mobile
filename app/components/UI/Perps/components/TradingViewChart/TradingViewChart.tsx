@@ -15,6 +15,7 @@ import { TradingViewChartSelectorsIDs } from '../../../../../../e2e/selectors/Pe
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';
+import { shouldDisablePerpsStreaming } from '../../utils/e2eUtils';
 export interface TPSLLines {
   takeProfitPrice?: string;
   stopLossPrice?: string;
@@ -229,6 +230,21 @@ const TradingViewChart: React.FC<TradingViewChartProps> = ({
     },
     [],
   );
+
+  // E2E Mode: Render simple placeholder to avoid WebView animations and timer blocking
+  if (shouldDisablePerpsStreaming()) {
+    return (
+      <Box
+        twClassName="bg-default rounded-lg flex-1 items-center justify-center"
+        style={{ height, width: '100%' }} // eslint-disable-line react-native/no-inline-styles
+        testID={testID || TradingViewChartSelectorsIDs.CONTAINER}
+      >
+        <Text variant={TextVariant.BodyMd} twClassName="text-muted">
+          Chart (E2E Mode)
+        </Text>
+      </Box>
+    );
+  }
 
   if (webViewError) {
     return (

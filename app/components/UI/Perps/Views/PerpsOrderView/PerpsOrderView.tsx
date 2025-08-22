@@ -80,14 +80,15 @@ import {
   usePerpsOrderExecution,
   usePerpsOrderFees,
   usePerpsOrderValidation,
-  usePerpsPerformance,
 } from '../../hooks';
+import { usePerpsPerformance } from '../../hooks/usePerpsPerformance';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { calculatePositionSize } from '../../utils/orderCalculations';
 import createStyles from './PerpsOrderView.styles';
+import { shouldDisablePerpsStreaming } from '../../utils/e2eUtils';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -275,10 +276,15 @@ const PerpsOrderViewContentBase: React.FC = () => {
   useEffect(() => {
     if (cachedAccountState?.availableBalance !== undefined) {
       startMeasure(PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED);
-      // Use requestAnimationFrame to measure after actual DOM update
-      requestAnimationFrame(() => {
+      // Use requestAnimationFrame to measure after actual DOM update (disabled in E2E mode to prevent animation blocking)
+      if (shouldDisablePerpsStreaming()) {
+        // In E2E mode, call synchronously to avoid animation frame blocking
         endMeasure(PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED);
-      });
+      } else {
+        requestAnimationFrame(() => {
+          endMeasure(PerpsMeasurementName.ASSET_BALANCES_DISPLAYED_UPDATED);
+        });
+      }
     }
   }, [cachedAccountState?.availableBalance, startMeasure, endMeasure]);
 
@@ -454,10 +460,15 @@ const PerpsOrderViewContentBase: React.FC = () => {
       // - liquidationPrice (from hook)
       // - orderValidation (from hook)
 
-      // Use requestAnimationFrame to measure after React has updated
-      requestAnimationFrame(() => {
+      // Use requestAnimationFrame to measure after React has updated (disabled in E2E mode to prevent animation blocking)
+      if (shouldDisablePerpsStreaming()) {
+        // In E2E mode, call synchronously to avoid animation frame blocking
         endMeasure(PerpsMeasurementName.UPDATE_DEPENDENT_METRICS_ON_INPUT);
-      });
+      } else {
+        requestAnimationFrame(() => {
+          endMeasure(PerpsMeasurementName.UPDATE_DEPENDENT_METRICS_ON_INPUT);
+        });
+      }
 
       prevInputValuesRef.current = {
         amount: orderForm.amount,
@@ -726,7 +737,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
           {/* Take profit */}
           <View style={styles.detailItem}>
-            <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
+            <TouchableOpacity
+              onPress={() => setIsTPSLVisible(true)}
+              testID={'perps-order-view-take-profit-button'}
+            >
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <Text variant={TextVariant.BodyLGMedium}>
@@ -746,7 +760,10 @@ const PerpsOrderViewContentBase: React.FC = () => {
 
           {/* Stop loss */}
           <View style={[styles.detailItem, styles.detailItemLast]}>
-            <TouchableOpacity onPress={() => setIsTPSLVisible(true)}>
+            <TouchableOpacity
+              onPress={() => setIsTPSLVisible(true)}
+              testID={'perps-order-view-stop-loss-button'}
+            >
               <ListItem>
                 <ListItemColumn widthType={WidthType.Fill}>
                   <Text variant={TextVariant.BodyLGMedium}>
@@ -900,6 +917,7 @@ const PerpsOrderViewContentBase: React.FC = () => {
             </View>
           )}
           <Button
+            testID={'perps-order-view-place-order-button'}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}
@@ -997,8 +1015,6 @@ const PerpsOrderViewContentBase: React.FC = () => {
           setIsOrderTypeVisible(false);
         }}
         currentOrderType={orderForm.type}
-        asset={orderForm.asset}
-        direction={orderForm.direction}
       />
       {selectedTooltip && (
         <PerpsBottomSheetTooltip
@@ -1014,13 +1030,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
 };
 
 // Enable WDYR tracking BEFORE wrapping with React.memo
-if (__DEV__) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (PerpsOrderViewContentBase as any).whyDidYouRender = {
-    logOnDifferentValues: true,
-    customName: 'PerpsOrderViewContent',
-  };
-}
+// if (__DEV__) {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   (PerpsOrderViewContentBase as any).whyDidYouRender = {
+//     logOnDifferentValues: true,
+//     customName: 'PerpsOrderViewContent',
+//   };
+// }
 
 // Now wrap with React.memo AFTER setting whyDidYouRender
 const PerpsOrderViewContent = React.memo(PerpsOrderViewContentBase);

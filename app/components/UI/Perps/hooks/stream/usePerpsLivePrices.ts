@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
+import {
+  shouldDisablePerpsStreaming,
+  getE2EMockData,
+} from '../../utils/e2eUtils';
 import type { PriceUpdate } from '../../controllers/types';
 
 export interface UsePerpsLivePricesOptions {
@@ -24,6 +28,12 @@ export interface UsePerpsLivePricesOptions {
 export function usePerpsLivePrices(
   options: UsePerpsLivePricesOptions,
 ): Record<string, PriceUpdate> {
+  // E2E Mode: Return mock prices immediately without streaming
+  if (shouldDisablePerpsStreaming()) {
+    const mockData = getE2EMockData();
+    return mockData.prices;
+  }
+
   const { symbols, throttleMs = 1000 } = options; // 1 second default for balanced performance
   const stream = usePerpsStream();
   const [prices, setPrices] = useState<Record<string, PriceUpdate>>({});

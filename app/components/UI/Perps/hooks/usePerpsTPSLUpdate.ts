@@ -39,11 +39,27 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
 
       try {
-        const result = await updatePositionTPSL({
-          coin: position.coin,
-          takeProfitPrice,
-          stopLossPrice,
-        });
+        // E2E Mode: Return mock success result to avoid actual TP/SL updates
+        let result;
+        if (shouldDisablePerpsStreaming()) {
+          result = {
+            success: true,
+            orderId: `mock-tpsl-${Date.now()}`,
+            filledSize: position.size,
+            averagePrice: position.entryPrice,
+          };
+
+          DevLogger.log(
+            'usePerpsTPSLUpdate: Mock TP/SL updated successfully (E2E mode)',
+            { coin: position.coin, takeProfitPrice, stopLossPrice },
+          );
+        } else {
+          result = await updatePositionTPSL({
+            coin: position.coin,
+            takeProfitPrice,
+            stopLossPrice,
+          });
+        }
 
         if (result.success) {
           DevLogger.log('Position TP/SL updated successfully:', result);

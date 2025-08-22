@@ -31,6 +31,88 @@ export async function createExchangeClient(privateKey: string) {
  */
 export class PerpsHelpers {
   /**
+   * Disable Detox synchronization to prevent waiting for Perps streaming timers
+   * Use this before navigating to Perps tab or performing Perps operations
+   */
+  static async disableDetoxSync() {
+    await device.disableSynchronization();
+  }
+
+  /**
+   * Re-enable Detox synchronization for reliable test assertions
+   * Use this before making assertions that need to wait for UI updates
+   */
+  static async enableDetoxSync() {
+    await device.enableSynchronization();
+  }
+
+  /**
+   * Perform action with Detox sync temporarily disabled
+   * Automatically re-enables sync after the action completes
+   * @param action - The async action to perform with sync disabled
+   */
+  static async withSyncDisabled<T>(action: () => Promise<T>): Promise<T> {
+    await PerpsHelpers.disableDetoxSync();
+    try {
+      const result = await action();
+      return result;
+    } finally {
+      await PerpsHelpers.enableDetoxSync();
+    }
+  }
+
+  /**
+   * Navigate to Perps tab with comprehensive sync management
+   * Handles the streaming system initialization to prevent timer blocking
+   */
+  static async navigateToPerpsTab() {
+    // Disable sync before any Perps interaction
+    await PerpsHelpers.disableDetoxSync();
+
+    // Navigate to Perps tab
+    await WalletView.tapOnPerpsTab();
+
+    // Wait for all streaming components to initialize
+    // - WebSocket connections: ~1000ms
+    // - Initial data loading: ~1000ms
+    // - Timer setup stabilization: ~1000ms
+    // - Buffer for safety: +2000ms
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    // Re-enable sync for UI assertions
+    await PerpsHelpers.enableDetoxSync();
+
+    // Small additional wait for sync to re-stabilize
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  /**
+   * Wait for balance updates while managing sync appropriately
+   * Use this when expecting balance changes that might trigger streaming updates
+   * @param delayMs - Time to wait for balance update (default: 5000ms)
+   */
+  static async waitForBalanceUpdate(delayMs: number = 5000) {
+    // Disable sync during balance update period (streaming causes timers)
+    await PerpsHelpers.disableDetoxSync();
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+    // Re-enable for subsequent assertions
+    await PerpsHelpers.enableDetoxSync();
+    // Small stabilization delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  /**
+   * Get balance with sync management
+   * Disables sync, gets balance, then re-enables sync
+   */
+  static async getBalanceWithSyncManagement() {
+    await PerpsHelpers.disableDetoxSync();
+    const balance = await PerpsTabView.getBalance();
+    await PerpsHelpers.enableDetoxSync();
+    return balance;
+  }
+
+  /**
    * Helper function to import HyperLiquid wallet via private key after login
    */
   static async importHyperLiquidWallet() {
@@ -43,21 +125,15 @@ export class PerpsHelpers {
     await AddAccountBottomSheet.tapImportAccount();
     await Assertions.expectElementToBeVisible(ImportAccountView.container);
 
-    if (HYPERLIQUID_PRIVATE_KEY) {
-      await ImportAccountView.enterPrivateKey(HYPERLIQUID_PRIVATE_KEY);
+    await ImportAccountView.enterPrivateKey(HYPERLIQUID_PRIVATE_KEY);
 
-      await SuccessImportAccountView.tapCloseButton();
+    await SuccessImportAccountView.tapCloseButton();
 
-      // Dismiss the account list modal
-      await AccountListBottomSheet.swipeToDismissAccountsModal();
+    // Dismiss the account list modal
+    await AccountListBottomSheet.swipeToDismissAccountsModal();
 
-      // Ensure we're back to the wallet view
-      await Assertions.expectElementToBeVisible(WalletView.container);
-    } else {
-      // Just close the import screen
-      await ImportAccountView.tapBackButton();
-      await AccountListBottomSheet.swipeToDismissAccountsModal();
-    }
+    // Ensure we're back to the wallet view
+    await Assertions.expectElementToBeVisible(WalletView.container);
   }
   /**
    * Helper function to go through Perps onboarding flow

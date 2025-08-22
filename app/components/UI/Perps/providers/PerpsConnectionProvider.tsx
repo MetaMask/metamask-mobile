@@ -12,6 +12,10 @@ import { strings } from '../../../../../locales/i18n';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
 import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton';
 import { usePerpsDepositStatus } from '../hooks/usePerpsDepositStatus';
+import {
+  shouldDisablePerpsStreaming,
+  getE2ENoOpFunctions,
+} from '../utils/e2eUtils';
 
 interface PerpsConnectionContextValue {
   isConnected: boolean;
@@ -39,6 +43,29 @@ interface PerpsConnectionProviderProps {
 export const PerpsConnectionProvider: React.FC<
   PerpsConnectionProviderProps
 > = ({ children }) => {
+  // E2E Mode: Return mock connection state without any actual connections or timers
+  if (shouldDisablePerpsStreaming()) {
+    const noOpFunctions = getE2ENoOpFunctions();
+
+    const mockContextValue: PerpsConnectionContextValue = {
+      isConnected: true,
+      isConnecting: false,
+      isInitialized: true,
+      error: null,
+      connect: noOpFunctions.connect,
+      disconnect: noOpFunctions.disconnect,
+      resetError: () => {
+        /* no-op for E2E */
+      },
+    };
+
+    return (
+      <PerpsConnectionContext.Provider value={mockContextValue}>
+        {children}
+      </PerpsConnectionContext.Provider>
+    );
+  }
+
   const [connectionState, setConnectionState] = useState(() =>
     PerpsConnectionManager.getConnectionState(),
   );

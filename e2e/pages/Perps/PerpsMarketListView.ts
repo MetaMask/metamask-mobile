@@ -42,8 +42,18 @@ class PerpsMarketListView {
     return Matchers.getElementByID('perps-market-row-item-BTC');
   }
 
+  // Generic selector for first market row item (regardless of coin)
+  get firstMarketRowItem() {
+    // Match any element with testID that starts with 'perps-market-row-item-' and get the first one
+    return Matchers.getElementByID(/^perps-market-row-item-.*/, 0);
+  }
+
   async tapMarketRowItemBTC() {
     await Gestures.tap(this.marketRowItemBTC);
+  }
+
+  async tapFirstMarketRowItem() {
+    await Gestures.waitAndTap(this.firstMarketRowItem);
   }
 
   // Token selector elements

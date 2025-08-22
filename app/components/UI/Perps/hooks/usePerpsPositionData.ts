@@ -8,6 +8,7 @@ import {
   CandlePeriod,
 } from '../constants/chartConfig';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
+import { shouldDisablePerpsStreaming } from '../utils/e2eUtils';
 
 interface UsePerpsPositionDataProps {
   coin: string;
@@ -127,7 +128,9 @@ export const usePerpsPositionData = ({
   // Periodically refresh candle data to get new completed candles
   useEffect(() => {
     // Only set up refresh if we have initial data and not loading
-    if (!candleData || isLoadingHistory) return;
+    // Disable in E2E mode to prevent timer issues
+    if (!candleData || isLoadingHistory || shouldDisablePerpsStreaming())
+      return;
 
     // Calculate refresh interval based on candle period
     const getRefreshInterval = (interval: CandlePeriod): number => {

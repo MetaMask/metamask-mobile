@@ -1,16 +1,17 @@
 import { PerpsPositionCardSelectorsIDs } from '../../selectors/Perps/Perps.selectors';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
-
 class PerpsView {
   get closePositionButton() {
     return Matchers.getElementByID(PerpsPositionCardSelectorsIDs.CLOSE_BUTTON);
   }
 
-  get confirmClosePositionButton() {
-    return Matchers.getElementByID(
-      PerpsClosePositionBottomSheetSelectorsIDs.CONFIRM_CLOSE_POSITION_BUTTON,
-    );
+  get setTpslButton() {
+    return Matchers.getElementByID('bottomsheetfooter-button');
+  }
+
+  get placeOrderButton() {
+    return Matchers.getElementByID('perps-order-view-place-order-button');
   }
 
   async tapClosePositionButton() {
@@ -18,23 +19,31 @@ class PerpsView {
   }
 
   async tapConfirmClosePositionButton() {
-    await Gestures.waitAndTap(this.confirmClosePositionButton, {
+    await Gestures.waitAndTap(this.closePositionButton, {
       elemDescription: 'Confirm close position button',
     });
   }
 
   async tapTakeProfitPercentageButton(percentage: number) {
     const button = Matchers.getElementByID(
-      `take-profit-percentage-button-${percentage}`,
+      `perps-tpsl-take-profit-percentage-button-${percentage}`,
     );
     await Gestures.waitAndTap(button);
   }
 
   async tapStopLossPercentageButton(percentage: number) {
     const button = Matchers.getElementByID(
-      `stop-loss-percentage-button-${percentage}`,
+      `perps-tpsl-stop-loss-percentage-button-${percentage}`,
     );
     await Gestures.waitAndTap(button);
+  }
+
+  async tapSetTpslButton() {
+    await Gestures.waitAndTap(this.setTpslButton);
+  }
+
+  async tapPlaceOrderButton() {
+    await Gestures.waitAndTap(this.placeOrderButton);
   }
 }
 
