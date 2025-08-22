@@ -93,11 +93,6 @@ jobs:
       test_suite_tag: ".*SmokeCard.*"
     secrets: inherit
 
-  # smoke-api-specs:
-  #   name: "API Specs E2E"
-  #   uses: ./.github/workflows/run-e2e-api-specs.yml
-  #   secrets: inherit
-
   report-android-smoke-tests:
     name: Report Android Smoke Tests
     runs-on: ubuntu-latest
