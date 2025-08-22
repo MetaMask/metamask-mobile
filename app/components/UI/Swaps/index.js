@@ -80,11 +80,14 @@ import { selectContractBalances } from '../../../selectors/tokenBalancesControll
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import AccountSelector from '../Ramp/Aggregator/components/AccountSelector';
 import { QuoteViewSelectorIDs } from '../../../../e2e/selectors/swaps/QuoteView.selectors';
-import { getDecimalChainId } from '../../../util/networks';
+import { getDecimalChainId, isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 import { useMetrics } from '../../../components/hooks/useMetrics';
 import { getSwapsLiveness } from '../../../reducers/swaps/utils';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 import { useStablecoinsDefaultSlippage } from './useStablecoinsDefaultSlippage';
+import { selectNetworkImageSourceByChainId } from '../../../selectors/networkInfos';
+import ContextualNetworkPicker from '../ContextualNetworkPicker/ContextualNetworkPicker';
+import Routes from '../../../constants/navigation/Routes';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useChainRedirect } from './useChainRedirect';
 import Text, {
@@ -203,6 +206,8 @@ function SwapsAmountView({
   currentCurrency,
   setLiveness,
   shouldUseSmartTransaction,
+  networkName,
+  networkImageSource,
 }) {
   const accounts = accountsByChainId[chainId];
   const navigation = useNavigation();
@@ -212,6 +217,7 @@ function SwapsAmountView({
   const styles = createStyles(colors);
 
   const previousSelectedAddress = useRef();
+  const previousChainId = useRef();
 
   // Use the new hook for chain redirection
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -437,10 +443,10 @@ function SwapsAmountView({
   }, [isTokenInBalances, selectedAddress, sourceToken]);
 
   /**
-   * Reset the state when account changes
+   * Reset the state when account or chain changes
    */
   useEffect(() => {
-    if (selectedAddress !== previousSelectedAddress.current) {
+    if (selectedAddress !== previousSelectedAddress.current || chainId !== previousChainId.current) {
       setAmount('0');
       setSourceToken(
         swapsTokens?.find((token) =>
@@ -450,8 +456,9 @@ function SwapsAmountView({
       setDestinationToken(null);
       setSlippage(AppConstants.SWAPS.DEFAULT_SLIPPAGE);
       previousSelectedAddress.current = selectedAddress;
+      previousChainId.current = chainId;
     }
-  }, [selectedAddress, swapsTokens, initialSource]);
+  }, [selectedAddress, swapsTokens, initialSource, chainId]);
 
   const hasInvalidDecimals = useMemo(() => {
     if (sourceToken) {
@@ -688,6 +695,12 @@ function SwapsAmountView({
     setDestinationToken(sourceToken);
   }, [destinationToken, sourceToken]);
 
+  const onNetworkSelectorPress = useCallback(() => {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.NETWORK_SELECTOR,
+    });
+  }, [navigation]);
+
   const disabledView =
     !destinationTokenHasEnoughOcurrances && !hasDismissedTokenAlert;
 
@@ -703,6 +716,13 @@ function SwapsAmountView({
       contentContainerStyle={styles.screen}
       keyboardShouldPersistTaps="handled"
     >
+      {isRemoveGlobalNetworkSelectorEnabled() ? (
+        <ContextualNetworkPicker
+          networkName={networkName}
+          networkImageSource={networkImageSource}
+          onPress={onNetworkSelectorPress}
+        />
+      ) : null}
       <View style={styles.content}>
         <View style={styles.accountSelector}>
           <AccountSelector />
@@ -754,10 +774,10 @@ function SwapsAmountView({
               <Text style={styles.amountInvalid}>
                 {hasInvalidDecimals
                   ? strings('swaps.allows_up_to_decimals', {
-                      symbol: sourceToken.symbol,
-                      decimals: sourceToken.decimals,
-                      // eslint-disable-next-line no-mixed-spaces-and-tabs
-                    })
+                    symbol: sourceToken.symbol,
+                    decimals: sourceToken.decimals,
+                    // eslint-disable-next-line no-mixed-spaces-and-tabs
+                  })
                   : strings('swaps.not_enough', { symbol: sourceToken.symbol })}
               </Text>
             ) : isAmountZero ? (
@@ -825,7 +845,7 @@ function SwapsAmountView({
         </View>
         <View>
           {Boolean(destinationToken) &&
-          !isSwapsNativeAsset(destinationToken) ? (
+            !isSwapsNativeAsset(destinationToken) ? (
             destinationTokenHasEnoughOcurrances ? (
               <TouchableOpacity
                 onPress={explorer.isValid ? handleVerifyPress : undefined}
@@ -852,7 +872,7 @@ function SwapsAmountView({
               <ActionAlert
                 type={
                   !destinationToken.occurances ||
-                  isDynamicToken(destinationToken)
+                    isDynamicToken(destinationToken)
                     ? AlertType.Error
                     : AlertType.Warning
                 }
@@ -869,19 +889,19 @@ function SwapsAmountView({
                   >
                     <Text style={textStyle} bold centered>
                       {!destinationToken.occurrences ||
-                      isDynamicToken(destinationToken)
+                        isDynamicToken(destinationToken)
                         ? strings('swaps.added_manually', {
-                            symbol: destinationToken.symbol,
-                            // eslint-disable-next-line no-mixed-spaces-and-tabs
-                          })
+                          symbol: destinationToken.symbol,
+                          // eslint-disable-next-line no-mixed-spaces-and-tabs
+                        })
                         : strings('swaps.only_verified_on', {
-                            symbol: destinationToken.symbol,
-                            occurrences: destinationToken.occurrences,
-                            // eslint-disable-next-line no-mixed-spaces-and-tabs
-                          })}
+                          symbol: destinationToken.symbol,
+                          occurrences: destinationToken.occurrences,
+                          // eslint-disable-next-line no-mixed-spaces-and-tabs
+                        })}
                     </Text>
                     {!destinationToken.occurrences ||
-                    isDynamicToken(destinationToken) ? (
+                      isDynamicToken(destinationToken) ? (
                       <Text style={textStyle} centered>
                         {`${strings('swaps.verify_this_token_on')} `}
                         {explorer.isValid ? (
@@ -1042,6 +1062,14 @@ SwapsAmountView.propTypes = {
    * Whether to use smart transactions
    */
   shouldUseSmartTransaction: PropTypes.bool,
+  /**
+   * Network name
+   */
+  networkName: PropTypes.string,
+  /**
+   * Network image source
+   */
+  networkImageSource: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({
@@ -1062,6 +1090,8 @@ const mapStateToProps = (state) => ({
     state,
     selectEvmChainId(state),
   ),
+  networkName: selectEvmNetworkConfigurationsByChainId(state)?.[selectEvmChainId(state)]?.name || '',
+  networkImageSource: selectNetworkImageSourceByChainId(state, selectEvmChainId(state)),
 });
 
 const mapDispatchToProps = (dispatch) => ({
