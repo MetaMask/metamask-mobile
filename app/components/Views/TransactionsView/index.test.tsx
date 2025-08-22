@@ -126,6 +126,7 @@ jest.mock('../../../selectors/networkEnablementController', () => ({
       '0x1': true,
     },
   })),
+  selectEVMEnabledNetworks: jest.fn(() => ['0x1']),
 }));
 
 jest.mock('@metamask/keyring-api', () => ({
