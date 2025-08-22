@@ -1,3 +1,7 @@
+/* eslint-disable */
+// import fs from 'fs';
+// import path from 'path';
+
 class CustomReporter {
   constructor() {
     this.metrics = [];
@@ -40,8 +44,6 @@ class CustomReporter {
   }
 
   onEnd() {
-    const fs = require('fs');
-    const path = require('path');
     // Create a timestamp for unique filenames
 
     const timestamp = new Date()
@@ -196,4 +198,4 @@ class CustomReporter {
   }
 }
 
-module.exports = CustomReporter;
+export default CustomReporter;

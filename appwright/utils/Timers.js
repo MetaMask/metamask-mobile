@@ -10,6 +10,7 @@ class Timers {
   // Create a new timer
   createTimer(id) {
     if (this.timers.has(id)) {
+      /* eslint-disable no-console */
       console.log(`Timer with id "${id}" already exists.`);
       return this.timers.get(id);
     }
