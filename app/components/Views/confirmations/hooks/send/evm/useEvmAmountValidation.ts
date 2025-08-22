@@ -70,7 +70,7 @@ export const useEvmAmountValidation = () => {
       validateAmountFn({
         accounts,
         amount: value,
-        asset,
+        asset: asset as AssetType,
         contractBalances,
         from: from as Hex,
       }),
