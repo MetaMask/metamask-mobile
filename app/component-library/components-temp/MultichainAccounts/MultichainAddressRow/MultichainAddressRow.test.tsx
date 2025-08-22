@@ -59,15 +59,35 @@ describe('MultichainAddressRow', () => {
     expect(networkIcon).toBeTruthy();
   });
 
-  it('should render copy and QR buttons', () => {
+  it('renders copy and QR buttons', () => {
+    const mockCallback = jest.fn();
+    const copyParams = {
+      callback: mockCallback,
+      successMessage: 'Copied to clipboard!',
+    };
+
     const { getByTestId } = render(
-      <MultichainAddressRow {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS} />,
+      <MultichainAddressRow
+        {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS}
+        copyParams={copyParams}
+      />,
     );
+
     const copyButton = getByTestId(MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID);
     const qrButton = getByTestId(MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID);
 
     expect(copyButton).toBeTruthy();
     expect(qrButton).toBeTruthy();
+  });
+
+  it('does not render copy button if copyParams are missing', () => {
+    const { queryByTestId } = render(
+      <MultichainAddressRow {...SAMPLE_MULTICHAIN_ADDRESS_ROW_PROPS} />,
+    );
+
+    expect(
+      queryByTestId(MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID),
+    ).toBeNull();
   });
 
   it('should accept custom testID', () => {

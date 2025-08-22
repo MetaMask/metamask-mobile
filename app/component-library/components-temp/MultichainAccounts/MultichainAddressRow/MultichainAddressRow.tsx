@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { View, Animated, Easing, StyleSheet, ViewProps } from 'react-native';
+import { View, Animated, Easing, StyleSheet } from 'react-native';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -32,7 +32,7 @@ const MultichainAddressRow = ({
   style,
   copyParams,
   testID = MULTICHAIN_ADDRESS_ROW_TEST_ID,
-}: MultichainAddressRowProps & ViewProps) => {
+}: MultichainAddressRowProps) => {
   const { styles } = useStyles(styleSheet, { style });
   const networkImageSource = getNetworkImageSource({ chainId });
   const truncatedAddress = useMemo(
@@ -147,13 +147,15 @@ const MultichainAddressRow = ({
       </View>
 
       <View style={styles.actions}>
-        <ButtonIcon
-          iconName={IconName.Copy}
-          size={ButtonIconSizes.Md}
-          onPress={handleCopy}
-          iconColor={showSuccess ? IconColor.Success : IconColor.Default}
-          testID={MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID}
-        />
+        {copyParams ? (
+          <ButtonIcon
+            iconName={IconName.Copy}
+            size={ButtonIconSizes.Md}
+            onPress={handleCopy}
+            iconColor={showSuccess ? IconColor.Success : IconColor.Default}
+            testID={MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID}
+          />
+        ) : null}
         {renderIcons()}
       </View>
     </View>
