@@ -21,7 +21,6 @@ import type {
   ToggleTestnetResult,
 } from '../types';
 import { PolymarketProvider } from '../providers/PolymarketProvider';
-import Engine from '../../../../core/Engine';
 
 /**
  * Error codes for PredictController
@@ -271,13 +270,14 @@ export class PredictController extends BaseController<
         existingProviders.map((provider) => provider.disconnect()),
       );
     }
-    const { KeyringController } = Engine.context;
+    // note: temporarily removing as causing "Engine does not exist"
+    // const { KeyringController } = Engine.context;
     this.providers.clear();
     this.providers.set(
       'polymarket',
       new PolymarketProvider({
         isTestnet: this.state.isTestnet,
-        signTypedMessage: KeyringController.signTypedMessage,
+        signTypedMessage: () => Promise.resolve(''), // signTypedMessage: KeyringController.signTypedMessage,
       }),
     );
 
@@ -393,7 +393,7 @@ export class PredictController extends BaseController<
     // 3. Submit off-chain trade (if applicable)
     return {
       status: 'error',
-      messsage: 'Place order not implemented',
+      message: 'Place order not implemented',
     };
   }
 

@@ -52,7 +52,7 @@ describe('PolymarketProvider', () => {
     expect(order.isOffchainTrade).toBe(false);
     expect(order.result.status).toBe('error');
     // Current implementation uses a misspelled key; assert defensively
-    expect((order.result as unknown as { messsage?: string }).messsage).toBe(
+    expect((order.result as unknown as { message?: string }).message).toBe(
       'Not implemented',
     );
   });
@@ -71,7 +71,7 @@ describe('PolymarketProvider', () => {
 
     expect(result.status).toBe('error');
     // Current implementation uses a misspelled key; assert defensively
-    expect((result as unknown as { messsage?: string }).messsage).toBe(
+    expect((result as unknown as { message?: string }).message).toBe(
       'Not implemented',
     );
   });

@@ -286,6 +286,12 @@ import type {
   RewardsControllerActions,
 } from './controllers/rewards-controller/types';
 import {
+  PredictController,
+  PredictControllerState,
+  PredictControllerActions,
+  PredictControllerEvents,
+} from '../../components/UI/Predict/controllers/PredictController';
+import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
   SeedlessOnboardingControllerEvents,
@@ -408,6 +414,7 @@ type GlobalActions =
   | BridgeStatusControllerActions
   | EarnControllerActions
   | PerpsControllerActions
+  | PredictControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
   | AppMetadataControllerActions
@@ -468,6 +475,7 @@ type GlobalEvents =
   | BridgeStatusControllerEvents
   | EarnControllerEvents
   | PerpsControllerEvents
+  | PredictControllerEvents
   | RewardsControllerEvents
   | AppMetadataControllerEvents
   | SeedlessOnboardingControllerEvents
@@ -552,6 +560,7 @@ export type Controllers = {
   BridgeStatusController: BridgeStatusController;
   EarnController: EarnController;
   PerpsController: PerpsController;
+  PredictController: PredictController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
@@ -622,6 +631,7 @@ export type EngineState = {
   BridgeStatusController: BridgeStatusControllerState;
   EarnController: EarnControllerState;
   PerpsController: PerpsControllerState;
+  PredictController: PredictControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
 };
@@ -683,6 +693,7 @@ export type ControllersToInitialize =
   | 'SeedlessOnboardingController'
   | 'TransactionController'
   | 'PerpsController'
+  | 'PredictController'
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
