@@ -1,68 +1,89 @@
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
-import { evmSendStateMock } from '../../../__mocks__/send.mock';
+import { evmSendStateMock, SOLANA_ASSET } from '../../../__mocks__/send.mock';
 import { AssetType } from '../../../types/token';
+// eslint-disable-next-line import/no-namespace
+import * as MultichainSnapsUtils from '../../../utils/multichain-snaps';
 import {
   useNonEvmAmountValidation,
   validateAmountFn,
+  ValidateAmountFnArgs,
 } from './useNonEvmAmountValidation';
 
 const mockState = {
   state: evmSendStateMock,
 };
 
-const getArguments = (params: Record<string, unknown>) => ({
-  amount: '0',
-  asset: { balance: '100' } as AssetType,
-  ...params,
-});
+const getArguments = (params: Record<string, unknown>) =>
+  ({
+    amount: '0',
+    asset: { balance: '100' } as AssetType,
+    ...params,
+  } as unknown as ValidateAmountFnArgs);
 
 describe('validateAmountFn', () => {
-  it('returns undefined if no value is passed', () => {
-    expect(validateAmountFn(getArguments({ amount: undefined }))).toStrictEqual(
-      undefined,
-    );
-    expect(validateAmountFn(getArguments({ amount: null }))).toStrictEqual(
-      undefined,
-    );
-    expect(validateAmountFn(getArguments({ amount: '' }))).toStrictEqual(
-      undefined,
-    );
-  });
-
-  it('returns invalid value error if value passed is not correct positive decimal', () => {
-    expect(validateAmountFn(getArguments({ amount: 'abc' }))).toStrictEqual(
-      'Invalid value',
-    );
-    expect(validateAmountFn(getArguments({ amount: '-100' }))).toStrictEqual(
-      'Invalid value',
-    );
-  });
-
-  it('does not return error if amount is less than user balance', () => {
+  it('returns undefined if no value is passed', async () => {
     expect(
-      validateAmountFn(
+      await validateAmountFn(getArguments({ amount: undefined })),
+    ).toStrictEqual(undefined);
+    expect(
+      await validateAmountFn(getArguments({ amount: null })),
+    ).toStrictEqual(undefined);
+    expect(await validateAmountFn(getArguments({ amount: '' }))).toStrictEqual(
+      undefined,
+    );
+  });
+
+  it('returns invalid value error if value passed is not correct positive decimal', async () => {
+    expect(
+      await validateAmountFn(
+        getArguments({
+          amount: 'abc',
+          fromAccount: { id: '123' },
+          asset: SOLANA_ASSET,
+        }),
+      ),
+    ).toStrictEqual('Invalid value');
+    expect(
+      await validateAmountFn(
+        getArguments({
+          amount: '-100',
+          fromAccount: { id: '123' },
+          asset: SOLANA_ASSET,
+        }),
+      ),
+    ).toStrictEqual('Invalid value');
+  });
+
+  it('does not return error if validateAmountMultichain return no error', async () => {
+    jest
+      .spyOn(MultichainSnapsUtils, 'validateAmountMultichain')
+      .mockImplementation(() => Promise.resolve({ valid: true }));
+    expect(
+      await validateAmountFn(
         getArguments({
           amount: '50',
+          fromAccount: { id: '123' },
+          asset: SOLANA_ASSET,
         }),
       ),
     ).toStrictEqual(undefined);
   });
 
-  it('does not return error if amount is equal to user balance', () => {
-    expect(
-      validateAmountFn(
-        getArguments({
-          amount: '100',
+  it('return error if amount is greater than user balance', async () => {
+    jest
+      .spyOn(MultichainSnapsUtils, 'validateAmountMultichain')
+      .mockImplementation(() =>
+        Promise.resolve({
+          valid: false,
+          errors: [{ code: 'InsufficientBalance' }],
         }),
-      ),
-    ).toStrictEqual(undefined);
-  });
-
-  it('return error if amount is greater than user balance', () => {
+      );
     expect(
-      validateAmountFn(
+      await validateAmountFn(
         getArguments({
           amount: '200',
+          fromAccount: { id: '123' },
+          asset: SOLANA_ASSET,
         }),
       ),
     ).toStrictEqual('Insufficient funds');
