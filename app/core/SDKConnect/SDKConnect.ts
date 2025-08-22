@@ -355,24 +355,18 @@ export class SDKConnect {
     return this.state.connections;
   }
 
-  public static async init({
-    context,
-    postInitCallback,
-  }: {
-    context?: string;
-    postInitCallback?: () => void;
-  }) {
+  public static async init({ context }: { context?: string }) {
     const navigation = NavigationService.navigation;
     const instance = SDKConnect.getInstance();
 
     analytics.setGlobalProperty('platform', 'mobile');
     analytics.enable();
     await init({ navigation, context, instance });
-    await instance.postInit(postInitCallback);
+    await instance.postInit();
   }
 
-  async postInit(callback?: () => void) {
-    return postInit(this, callback);
+  async postInit() {
+    return postInit(this);
   }
 
   hasInitialized() {
