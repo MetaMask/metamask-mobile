@@ -74,15 +74,30 @@ export const handlePerpsUrl = async ({ perpsPath }: HandlePerpsUrlParams) => {
       });
     } else {
       DevLogger.log(
-        '[handlePerpsUrl] Navigating to wallet home for returning user',
+        '[handlePerpsUrl] Navigating to wallet home with Perps tab selected for returning user',
       );
-      // Navigate to wallet home for returning users
-      NavigationService.navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+
+      // Navigation approach for tab selection:
+      // 1. Navigate to the wallet home screen first
+      // 2. Set params after navigation to select the Perps tab
+      //
+      // The timeout is required because React Navigation needs time to:
+      // - Complete the navigation transition
+      // - Mount the Wallet component
+      // - Make the navigation context available for setParams
+      //
+      // Without this delay, setParams may fail silently as the navigation
+      // state isn't ready yet. This pattern is used elsewhere in the codebase
+      // for similar navigation scenarios.
+
+      NavigationService.navigation.navigate(Routes.WALLET.HOME);
+
+      setTimeout(() => {
+        NavigationService.navigation.setParams({
+          initialTab: 'perps',
+          shouldSelectPerpsTab: true,
+        });
+      }, 100);
     }
   } catch (error) {
     DevLogger.log('Failed to handle perps deeplink:', error);

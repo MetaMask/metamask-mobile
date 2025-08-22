@@ -72,6 +72,9 @@ import {
   NavigationProp,
   ParamListBase,
   useNavigation,
+  useRoute,
+  RouteProp,
+  useFocusEffect,
 } from '@react-navigation/native';
 import BannerAlert from '../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
 import { BannerAlertSeverity } from '../../../component-library/components/Banners/Banner';
@@ -209,96 +212,147 @@ interface WalletProps {
   hideNftFetchingLoadingIndicator: () => void;
 }
 
-const WalletTokensTabView = React.memo(
-  (props: {
-    navigation: WalletProps['navigation'];
-    onChangeTab: (value: ChangeTabProperties) => void;
-    defiEnabled: boolean;
-    collectiblesEnabled: boolean;
-  }) => {
-    const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-    const { navigation, onChangeTab, defiEnabled, collectiblesEnabled } = props;
+interface WalletTokensTabViewProps {
+  navigation: WalletProps['navigation'];
+  onChangeTab: (value: ChangeTabProperties) => void;
+  defiEnabled: boolean;
+  collectiblesEnabled: boolean;
+  navigationParams?: {
+    shouldSelectPerpsTab?: boolean;
+    initialTab?: string;
+  };
+}
 
-    const theme = useTheme();
-    const styles = useMemo(() => createStyles(theme), [theme]);
+const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
+  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+  const {
+    navigation,
+    onChangeTab,
+    defiEnabled,
+    collectiblesEnabled,
+    navigationParams,
+  } = props;
+  const route = useRoute<RouteProp<ParamListBase, string>>();
+  // Type augmentation needed as @types/react-native-scrollable-tab-view doesn't expose goToPage method
+  const scrollableTabViewRef = useRef<
+    ScrollableTabView & { goToPage: (pageNumber: number) => void }
+  >(null);
 
-    const renderTabBar = useCallback(
-      (tabBarProps: Record<string, unknown>) => (
-        <TabBar
-          style={styles.tabBar}
-          {...tabBarProps}
-          tabStyle={styles.tabStyle}
-          textStyle={{
-            ...(theme.typography.sBodySMBold as TextStyle),
-          }}
-        />
-      ),
-      [styles, theme],
-    );
+  const theme = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
-    const tokensTabProps = useMemo(
-      () => ({
-        key: 'tokens-tab',
-        tabLabel: strings('wallet.tokens'),
-        navigation,
-      }),
-      [navigation],
-    );
+  const renderTabBar = useCallback(
+    (tabBarProps: Record<string, unknown>) => (
+      <TabBar
+        style={styles.tabBar}
+        {...tabBarProps}
+        tabStyle={styles.tabStyle}
+        textStyle={{
+          ...(theme.typography.sBodySMBold as TextStyle),
+        }}
+      />
+    ),
+    [styles, theme],
+  );
 
-    const perpsTabProps = useMemo(
-      () => ({
-        key: 'perps-tab',
-        tabLabel: strings('wallet.perps'),
-        navigation,
-      }),
-      [navigation],
-    );
+  const tokensTabProps = useMemo(
+    () => ({
+      key: 'tokens-tab',
+      tabLabel: strings('wallet.tokens'),
+      navigation,
+    }),
+    [navigation],
+  );
 
-    const defiPositionsTabProps = useMemo(
-      () => ({
-        key: 'defi-tab',
-        tabLabel: strings('wallet.defi'),
-        navigation,
-      }),
-      [navigation],
-    );
+  const perpsTabProps = useMemo(
+    () => ({
+      key: 'perps-tab',
+      tabLabel: strings('wallet.perps'),
+      navigation,
+    }),
+    [navigation],
+  );
 
-    const collectibleContractsTabProps = useMemo(
-      () => ({
-        key: 'nfts-tab',
-        tabLabel: strings('wallet.collectibles'),
-        navigation,
-      }),
-      [navigation],
-    );
+  const defiPositionsTabProps = useMemo(
+    () => ({
+      key: 'defi-tab',
+      tabLabel: strings('wallet.defi'),
+      navigation,
+    }),
+    [navigation],
+  );
 
-    return (
-      <View style={styles.tabContainer}>
-        <ScrollableTabView
-          renderTabBar={renderTabBar}
-          onChangeTab={onChangeTab}
-        >
-          <Tokens {...tokensTabProps} key={tokensTabProps.key} />
-          {isPerpsEnabled && (
-            <PerpsTabView {...perpsTabProps} key={perpsTabProps.key} />
-          )}
-          {defiEnabled && (
-            <DeFiPositionsList
-              {...defiPositionsTabProps}
-              key={defiPositionsTabProps.key}
-            />
-          )}
-          {collectiblesEnabled && (
-            <CollectibleContracts
-              {...collectibleContractsTabProps}
-              key={collectibleContractsTabProps.key}
-            />
-          )}
-        </ScrollableTabView>
-      </View>
-    );
-  },
-);
+  const collectibleContractsTabProps = useMemo(
+    () => ({
+      key: 'nfts-tab',
+      tabLabel: strings('wallet.collectibles'),
+      navigation,
+    }),
+    [navigation],
+  );
+
+  // Handle tab selection from navigation params (e.g., from deeplinks)
+  // This uses useFocusEffect to ensure the tab selection happens when the screen receives focus
+  useFocusEffect(
+    useCallback(() => {
+      // Check both navigationParams prop and route params for tab selection
+      // Type assertion needed as route params are not strongly typed in navigation
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const params = navigationParams || (route.params as any);
+      const shouldSelectPerpsTab = params?.shouldSelectPerpsTab;
+      const initialTab = params?.initialTab;
+
+      if ((shouldSelectPerpsTab || initialTab === 'perps') && isPerpsEnabled) {
+        // Calculate the index of the Perps tab
+        // Tokens is always at index 0, Perps is at index 1 when enabled
+        const perpsTabIndex = 1;
+
+        // Small delay ensures the ScrollableTabView is fully rendered before selection
+        const timer = setTimeout(() => {
+          scrollableTabViewRef.current?.goToPage(perpsTabIndex);
+
+          // Clear the params to prevent re-selection on subsequent focuses
+          // This is important for navigation state management
+          if (navigation?.setParams) {
+            navigation.setParams({
+              shouldSelectPerpsTab: false,
+              initialTab: undefined,
+            });
+          }
+        }, 100);
+
+        return () => clearTimeout(timer);
+      }
+    }, [route.params, isPerpsEnabled, navigationParams, navigation]),
+  );
+
+  return (
+    <View style={styles.tabContainer}>
+      <ScrollableTabView
+        ref={scrollableTabViewRef}
+        renderTabBar={renderTabBar}
+        onChangeTab={onChangeTab}
+      >
+        <Tokens {...tokensTabProps} key={tokensTabProps.key} />
+        {isPerpsEnabled && (
+          <PerpsTabView {...perpsTabProps} key={perpsTabProps.key} />
+        )}
+        {defiEnabled && (
+          <DeFiPositionsList
+            {...defiPositionsTabProps}
+            key={defiPositionsTabProps.key}
+          />
+        )}
+        {collectiblesEnabled && (
+          <CollectibleContracts
+            {...collectibleContractsTabProps}
+            key={collectibleContractsTabProps.key}
+          />
+        )}
+      </ScrollableTabView>
+    </View>
+  );
+});
 
 /**
  * Main view for the wallet
@@ -312,8 +366,10 @@ const Wallet = ({
   hideNftFetchingLoadingIndicator,
 }: WalletProps) => {
   const { navigate } = useNavigation();
+  const route = useRoute<RouteProp<ParamListBase, string>>();
   const walletRef = useRef(null);
   const theme = useTheme();
+
   const { toastRef } = useContext(ToastContext);
   const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -998,6 +1054,7 @@ const Wallet = ({
             onChangeTab={onChangeTab}
             defiEnabled={defiEnabled}
             collectiblesEnabled={isEvmSelected}
+            navigationParams={route.params}
           />
         </>
       </View>
@@ -1020,6 +1077,7 @@ const Wallet = ({
       swapsIsLive,
       onReceive,
       onSend,
+      route.params,
     ],
   );
   const renderLoader = useCallback(
