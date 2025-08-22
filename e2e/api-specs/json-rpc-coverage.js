@@ -158,7 +158,7 @@ const main = async () => {
 
   const testSpecificMock = async (mockServer) => {
     const { urlEndpoint, response } =
-      mockEvents.GET.remoteFeatureMultichainAccountsAccountDetails(false);
+      mockEvents.GET.remoteFeatureFlagsOldConfirmations;
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
       url: urlEndpoint,

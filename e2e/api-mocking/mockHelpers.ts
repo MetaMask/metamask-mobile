@@ -152,6 +152,7 @@ export const findMatchingPostEvent = (
 export async function setupMockRequest(
   server: Mockttp,
   response: ResponseParam,
+  priority?: number,
 ) {
   let requestRuleBuilder;
 
@@ -182,6 +183,7 @@ export async function setupMockRequest(
       const matches = url.includes(String(response.url));
       return matches;
     })
+    .asPriority(priority ?? 999) // Adding priority to this mock request helper as we want TestSpecificMocks to always take precedence
     .thenCallback((request) => {
       logger.info(
         `Mocking ${request.method} request to: ${getDecodedProxiedURL(
@@ -198,11 +200,15 @@ export async function setupMockRequest(
 
 /**
  * Helper to mock a POST request with complex body matching through the mobile proxy pattern
+ *
  * @param mockServer - The mock server instance
  * @param url - The URL to match - supports string or RegExp
  * @param requestBody - Expected request body object to match against
  * @param response - The response to return
  * @param options - Additional options for matching and response
+ * @param options.statusCode - HTTP status code to return (default: 200)
+ * @param options.ignoreFields - Array of field paths to ignore during request body comparison
+ * @param options.priority - Set the rule priority. Any matching rule with a higher priority will always take precedence over a matching lower-priority rule, unless the higher rule has an explicit completion check (like .once()) that has already been completed. The RulePriority enum defines the standard values useful for most cases, but any positive number may be used for advanced configurations. (default: 999)
  */
 export const setupMockPostRequest = async (
   mockServer: Mockttp,
@@ -212,9 +218,10 @@ export const setupMockPostRequest = async (
   options: {
     statusCode?: number;
     ignoreFields?: string[];
+    priority?: number;
   } = {},
 ) => {
-  const { statusCode = 200, ignoreFields = [] } = options;
+  const { statusCode = 200, ignoreFields = [], priority = 999 } = options;
 
   await mockServer
     .forPost('/proxy')
@@ -228,6 +235,7 @@ export const setupMockPostRequest = async (
       const matches = decodedUrl.includes(String(url));
       return matches;
     })
+    .asPriority(priority) // Adding priority to this mock request helper as we want TestSpecificMocks to always take precedence
     .thenCallback(async (request) => {
       const decodedUrl = getDecodedProxiedURL(request.url);
 

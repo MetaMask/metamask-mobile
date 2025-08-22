@@ -153,7 +153,7 @@ export type LocalNode = AnvilManager | Ganache;
 
 export interface TestSuiteParams {
   contractRegistry?: ContractAddressRegistry;
-  mockServer?: Mockttp;
+  mockServer: Mockttp;
   localNodes?: LocalNode[];
 }
 
