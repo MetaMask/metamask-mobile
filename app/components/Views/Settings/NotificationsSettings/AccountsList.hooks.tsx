@@ -1,14 +1,13 @@
 import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
-import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 import { useAccounts } from '../../../hooks/useAccounts';
-import { RootState } from '../../../../reducers';
 import { useFetchAccountNotifications } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { getValidNotificationAccounts } from '../../../../selectors/notifications';
 import {
   areAddressesEqual,
   toFormattedAddress,
 } from '../../../../util/address';
+import { selectAvatarStyle } from '../../../../selectors/settings';
 
 export function useNotificationAccountListProps(addresses: string[]) {
   const { update, initialLoading, accountsBeingUpdated, data } =
@@ -43,11 +42,7 @@ export function useNotificationAccountListProps(addresses: string[]) {
 export function useAccountProps() {
   const accountAddresses = useSelector(getValidNotificationAccounts);
   const { accounts: allAccounts } = useAccounts();
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectAvatarStyle);
 
   const accounts = useMemo(
     () =>

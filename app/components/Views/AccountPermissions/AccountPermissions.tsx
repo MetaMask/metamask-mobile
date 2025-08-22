@@ -41,7 +41,6 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { getActiveTabUrl } from '../../../util/transactions';
 import { strings } from '../../../../locales/i18n';
-import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectAccountsLength } from '../../../selectors/accountTrackerController';
 import {
   selectEvmChainId,
@@ -92,6 +91,7 @@ import styleSheet from './AccountPermissions.styles';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import AddNewAccount from '../AddNewAccount';
 import { trace, endTrace, TraceName } from '../../../util/trace';
+import { selectAvatarStyle } from '../../../selectors/settings';
 
 const AccountPermissions = (props: AccountPermissionsProps) => {
   const { navigate } = useNavigation();
@@ -105,11 +105,7 @@ const AccountPermissions = (props: AccountPermissionsProps) => {
     initialScreen = AccountPermissionsScreens.Connected,
     isNonDappNetworkSwitch = false,
   } = props.route.params;
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectAvatarStyle);
 
   const accountsLength = useSelector(selectAccountsLength);
   const currentEvmChainId = useSelector(selectEvmChainId);
