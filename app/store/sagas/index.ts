@@ -142,6 +142,7 @@ export function* handleSDKInit() {
   // Initialize SDKConnect
   while (true) {
     const action = (yield take([
+      NavigationActionType.ON_NAVIGATION_READY,
       UserActionType.LOGIN,
       SET_COMPLETED_ONBOARDING,
     ])) as LoginAction | SetCompletedOnboardingAction;
