@@ -110,21 +110,25 @@ export const Recipient = () => {
                 RecipientInputMethod.SelectAccount,
               )}
             />
-            <Text
-              twClassName="m-4"
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-              fontWeight={FontWeight.Medium}
-            >
-              {strings('send.contacts')}
-            </Text>
-            <RecipientList
-              data={contacts}
-              onRecipientSelected={onRecipientSelected(
-                RecipientInputMethod.SelectContact,
-              )}
-              emptyMessage={strings('send.no_contacts_found')}
-            />
+            {contacts.length > 0 && (
+              <>
+                <Text
+                  twClassName="m-4"
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
+                  fontWeight={FontWeight.Medium}
+                >
+                  {strings('send.contacts')}
+                </Text>
+                <RecipientList
+                  data={contacts}
+                  onRecipientSelected={onRecipientSelected(
+                    RecipientInputMethod.SelectContact,
+                  )}
+                  emptyMessage={strings('send.no_contacts_found')}
+                />
+              </>
+            )}
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (
             <Box twClassName="px-4 py-4">

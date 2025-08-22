@@ -9,6 +9,7 @@ import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 import { useCallback } from 'react';
 import { RootState } from '../../../../../reducers';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
+import { Hex } from '@metamask/utils';
 
 export function useTransactionPayToken() {
   const dispatch = useDispatch();
@@ -49,16 +50,13 @@ export function useTransactionPayToken() {
     };
   }
 
-  const decimals = token.decimals;
-  const balanceHuman = token.balance;
-  const balanceFiat = token.tokenFiatAmount?.toString();
-
-  const payToken = selectedPayToken;
+  const payToken = {
+    ...token,
+    address: token.address as Hex,
+    chainId: token.chainId as Hex,
+  };
 
   return {
-    balanceFiat,
-    balanceHuman,
-    decimals,
     payToken,
     setPayToken,
   };

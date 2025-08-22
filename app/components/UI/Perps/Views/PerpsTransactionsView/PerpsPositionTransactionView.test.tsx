@@ -3,6 +3,7 @@ import { fireEvent } from '@testing-library/react-native';
 import PerpsPositionTransactionView from './PerpsPositionTransactionView';
 import { usePerpsNetwork, usePerpsBlockExplorerUrl } from '../../hooks';
 import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
@@ -52,6 +53,13 @@ jest.mock('../../../../../selectors/accountsController', () => ({
   selectSelectedInternalAccountAddress: jest.fn(),
   selectSelectedInternalAccountFormattedAddress: jest.fn(),
   selectHasCreatedSolanaMainnetAccount: jest.fn(),
+  selectInternalAccounts: jest.fn(() => []),
+}));
+
+jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => () => ({
+    address: '0x1234567890abcdef1234567890abcdef12345678',
+  })),
 }));
 
 const mockTransaction = {
@@ -334,9 +342,11 @@ describe('PerpsPositionTransactionView', () => {
   });
 
   it('should not navigate to block explorer when no selected account', () => {
-    (selectSelectedInternalAccount as unknown as jest.Mock).mockReturnValue(
-      null,
-    );
+    // Mock the multichain selector to return undefined
+    jest
+      .mocked(selectSelectedInternalAccountByScope)
+      .mockReturnValueOnce(() => undefined);
+
     const { getByText } = renderWithProvider(<PerpsPositionTransactionView />, {
       state: mockInitialState,
     });
