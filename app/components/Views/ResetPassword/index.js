@@ -544,7 +544,7 @@ class ResetPassword extends PureComponent {
 
       this.setState({ loading: false });
       // Ensure we land directly on SecuritySettings within the Settings stack
-      this.props.navigation.replace('SecuritySettings');
+      this.props.navigation.replace(Routes.ONBOARDING.SECURITY_SETTINGS);
       InteractionManager.runAfterInteractions(() => {
         NotificationManager.showSimpleNotification({
           status: 'success',
