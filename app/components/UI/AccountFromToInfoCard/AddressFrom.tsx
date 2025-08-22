@@ -27,6 +27,7 @@ import {
   selectEvmNetworkName,
 } from '../../../selectors/networkInfos';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
+import { selectAvatarStyle } from '../../../selectors/settings';
 
 interface Asset {
   isETH?: boolean;
@@ -77,9 +78,7 @@ const AddressFrom = ({
   const globalNetworkName = useSelector(selectEvmNetworkName);
   const globalNetworkImage = useSelector(selectEvmNetworkImageSource);
 
-  const useBlockieIcon = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  );
+  const avatarStyle = useSelector(selectAvatarStyle);
 
   const activeAddress = useMemo(() => toChecksumAddress(from), [from]);
   const isContextualNetworkEnabled = useMemo(
@@ -173,7 +172,7 @@ const AddressFrom = ({
         accountTypeLabel={accountTypeLabel as string}
         accountNetwork={String(displayNetworkName)}
         badgeProps={badgeProps}
-        useBlockieIcon={useBlockieIcon}
+        avatarStyle={avatarStyle}
       />
     </View>
   );

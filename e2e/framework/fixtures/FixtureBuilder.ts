@@ -22,6 +22,7 @@ import {
 } from '../../resources/networks.e2e';
 import { BackupAndSyncSettings, RampsRegion } from '../types';
 import { MULTIPLE_ACCOUNTS_ACCOUNTS_CONTROLLER } from './constants';
+import { AvatarAccountType } from '../../../app/component-library/components/Avatars/Avatar';
 
 export const DEFAULT_FIXTURE_ACCOUNT_CHECKSUM =
   '0x76cf1CdD1fcC252442b50D6e97207228aA4aefC3';
@@ -531,7 +532,7 @@ class FixtureBuilder {
           searchEngine: 'Google',
           primaryCurrency: 'ETH',
           lockTime: 30000,
-          useBlockieIcon: true,
+          avatarStyle: AvatarAccountType.Maskicon,
           hideZeroBalanceTokens: false,
           basicFunctionalityEnabled: true,
         },
