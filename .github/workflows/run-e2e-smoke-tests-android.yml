@@ -87,7 +87,7 @@ jobs:
     name: "Network Abstraction Smoke (Android) - ${{ matrix.split }}"
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -95,14 +95,14 @@ jobs:
       platform: android
       test_suite_tag: "SmokeNetworkAbstractions"
       split_number: ${{ matrix.split }}
-      total_splits: 3
+      total_splits: 2
     secrets: inherit
 
   smoke-network-expansion-android:
     name: "Network Expansion Smoke (Android) - ${{ matrix.split }}"
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -110,7 +110,7 @@ jobs:
       platform: android
       test_suite_tag: "SmokeNetworkExpansion"
       split_number: ${{ matrix.split }}
-      total_splits: 3
+      total_splits: 2
     secrets: inherit
 
   smoke-performance-android:
@@ -132,7 +132,7 @@ jobs:
     name: "Card Smoke (Android) - ${{ matrix.split }}"
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -140,7 +140,7 @@ jobs:
       platform: android
       test_suite_tag: "SmokeCard"
       split_number: ${{ matrix.split }}
-      total_splits: 2
+      total_splits: 1
     secrets: inherit
 
   report-android-smoke-tests:
