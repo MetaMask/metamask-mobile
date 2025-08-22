@@ -59,7 +59,7 @@ jobs:
     with:
       test-suite-name: smoke-network-abstraction-android
       platform: android
-      test_suite_tag: "SmokeNetworkAbstraction"
+      test_suite_tag: "SmokeNetworkAbstractions"
     secrets: inherit
 
   smoke-network-expansion-android:
@@ -68,7 +68,7 @@ jobs:
     with:
       test-suite-name: smoke-network-expansion-android
       platform: android
-      test_suite_tag: "NetworkExpansion"
+      test_suite_tag: "SmokeNetworkExpansion"
     secrets: inherit
 
   smoke-performance-android:
@@ -77,7 +77,7 @@ jobs:
     with:
       test-suite-name: smoke-performance-android
       platform: android
-      test_suite_tag: "Performance"
+      test_suite_tag: "SmokePerformance"
     secrets: inherit
 
   smoke-card-android:
