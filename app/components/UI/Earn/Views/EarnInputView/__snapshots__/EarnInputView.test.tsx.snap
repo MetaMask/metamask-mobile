@@ -1543,6 +1543,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                             activeOpacity={1}
                             disabled={true}
                             loading={false}
+                            onPress={[Function]}
                             onPressIn={[Function]}
                             onPressOut={[Function]}
                             style={
@@ -3133,6 +3134,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                             activeOpacity={1}
                             disabled={true}
                             loading={false}
+                            onPress={[Function]}
                             onPressIn={[Function]}
                             onPressOut={[Function]}
                             style={
