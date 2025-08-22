@@ -101,7 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        shard: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        shard: [1]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
@@ -111,7 +111,7 @@ jobs:
       - run: yarn setup --node
       # The "10" in this command is the total number of shards. It must be kept
       # in sync with the length of matrix.shard
-      - run: yarn test:unit --shard=${{ matrix.shard }}/10 --forceExit --silent --coverageReporters=json
+      - run: yarn test:unit --shard=${{ matrix.shard }}/1 --forceExit --silent --coverageReporters=json
         env:
           NODE_OPTIONS: --max_old_space_size=20480
       - name: Rename coverage report to include shard number
