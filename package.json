@@ -185,7 +185,18 @@
     "appium-adb/@appium/support/form-data": "^4.0.4",
     "appium/@appium/support/form-data": "^4.0.0",
     "cipher-base": "1.0.5",
-    "sha.js": "2.4.12"
+    "sha.js": "2.4.12",
+    "@empiricalrun/llm": "npm:noop@1.0.0",
+    "@ffmpeg-installer/ffmpeg": "npm:noop@1.0.0",
+    "fluent-ffmpeg": "npm:noop@1.0.0",
+    "@ffmpeg-installer/darwin-arm64": "npm:noop@1.0.0",
+    "@ffmpeg-installer/darwin-x64": "npm:noop@1.0.0",
+    "@ffmpeg-installer/linux-arm": "npm:noop@1.0.0",
+    "@ffmpeg-installer/linux-arm64": "npm:noop@1.0.0",
+    "@ffmpeg-installer/linux-ia32": "npm:noop@1.0.0",
+    "@ffmpeg-installer/linux-x64": "npm:noop@1.0.0",
+    "@ffmpeg-installer/win32-ia32": "npm:noop@1.0.0",
+    "@ffmpeg-installer/win32-x64": "npm:noop@1.0.0"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -704,8 +715,6 @@
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>@reown/appkit-utils>viem>ws>bufferutil": false,
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>viem>ws>bufferutil": false,
       "@metamask/test-dapp-solana>@solana/web3.js>rpc-websockets>bufferutil": false,
-      "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/darwin-arm64": false,
-      "appwright>@ffmpeg-installer/ffmpeg>@ffmpeg-installer/linux-x64": false,
       "appwright>appium": false,
       "appwright>appium>@appium/support>sharp": false,
       "appwright>webdriver>@wdio/utils>edgedriver": false,
@@ -713,8 +722,7 @@
       "appium-xcuitest-driver>appium-ios-simulator>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-remote-debugger>@appium/support>sharp": false,
       "appium-xcuitest-driver>appium-webdriveragent>@appium/support>sharp": false,
-      "appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false,
-      "appwright>@empiricalrun/llm>sharp": false
+      "appwright>appium-xcuitest-driver>appium-webdriveragent>appium-ios-device>@appium/support>sharp": false
     }
   },
   "packageManager": "yarn@1.22.22",
