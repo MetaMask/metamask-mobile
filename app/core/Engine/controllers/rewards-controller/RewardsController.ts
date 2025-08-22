@@ -34,7 +34,7 @@ const metadata = {
 export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   lastAuthenticatedAccount: null,
   lastAuthTime: 0,
-  subscription: undefined,
+  subscription: null,
 });
 
 export const defaultRewardsControllerState = getRewardsControllerDefaultState();
@@ -73,15 +73,6 @@ export class RewardsController extends BaseController<
    * Initialize event subscriptions based on feature flag state
    */
   #initializeEventSubscriptions(): void {
-    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
-
-    if (!rewardsEnabled) {
-      Logger.log(
-        'RewardsController: Feature flag disabled, skipping event subscriptions',
-      );
-      return;
-    }
-
     // Subscribe to account changes for silent authentication
     this.messagingSystem.subscribe(
       'AccountsController:selectedAccountChange',
@@ -142,6 +133,14 @@ export class RewardsController extends BaseController<
    * Handle authentication triggers (account changes, keyring unlock)
    */
   async #handleAuthenticationTrigger(reason?: string): Promise<void> {
+    const rewardsEnabled = selectRewardsEnabledFlag(store.getState());
+
+    if (!rewardsEnabled) {
+      Logger.log(
+        'RewardsController: Feature flag disabled, skipping silent auth',
+      );
+      return;
+    }
     Logger.log('RewardsController: handleAuthenticationTrigger', reason);
 
     try {
@@ -264,7 +263,7 @@ export class RewardsController extends BaseController<
 
         // Update state so that we remember this account is not opted in
         this.update((state: RewardsControllerState) => {
-          state.subscription = undefined;
+          state.subscription = null;
           state.lastAuthenticatedAccount = address;
           state.lastAuthTime = Date.now();
         });

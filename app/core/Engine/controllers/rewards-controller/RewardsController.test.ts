@@ -121,8 +121,9 @@ describe('RewardsController', () => {
       expect(rewardsController.state.lastAuthTime).toBe(1234567890);
     });
 
-    it('should subscribe to events when feature flag is enabled', () => {
-      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+    it('should always subscribe to events during initialization', () => {
+      // Feature flag state shouldn't matter for constructor
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
 
       rewardsController = new RewardsController({
         messenger: mockMessenger,
@@ -137,15 +138,87 @@ describe('RewardsController', () => {
         expect.any(Function),
       );
     });
+  });
 
-    it('should not subscribe to events when feature flag is disabled', () => {
-      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+  describe('feature flag handling in authentication trigger', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+
+      // Re-setup messenger mock
+      (mockMessenger.call as jest.Mock).mockImplementation(
+        (...args: unknown[]) => {
+          const [actionType] = args;
+          if (
+            actionType === 'AccountsController:getSelectedMultichainAccount'
+          ) {
+            return mockAccount;
+          }
+          if (actionType === 'KeyringController:signPersonalMessage') {
+            return '0xmocksignature';
+          }
+          if (actionType === 'RewardsDataService:login') {
+            return Promise.resolve(mockLoginResponse);
+          }
+          throw new Error(`Unexpected action: ${actionType}`);
+        },
+      );
 
       rewardsController = new RewardsController({
         messenger: mockMessenger,
       });
+    });
 
-      expect(mockMessenger.subscribe).not.toHaveBeenCalled();
+    it('should skip authentication when feature flag is disabled', async () => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(false);
+
+      // Get the handler before clearing mocks
+      const accountChangeHandler = mockMessenger.subscribe.mock.calls.find(
+        (call) => call[0] === 'AccountsController:selectedAccountChange',
+      )?.[1];
+
+      // Clear any calls from controller initialization
+      jest.clearAllMocks();
+
+      expect(accountChangeHandler).toBeDefined();
+      await accountChangeHandler?.(mockAccount.address, mockAccount);
+
+      // Should not call any authentication methods after the trigger
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'AccountsController:getSelectedMultichainAccount',
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.anything(),
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:login',
+        expect.anything(),
+      );
+    });
+
+    it('should proceed with authentication when feature flag is enabled', async () => {
+      mockSelectRewardsEnabledFlag.mockReturnValue(true);
+
+      // Trigger authentication by calling the account change handler
+      const accountChangeHandler = mockMessenger.subscribe.mock.calls.find(
+        (call) => call[0] === 'AccountsController:selectedAccountChange',
+      )?.[1];
+
+      expect(accountChangeHandler).toBeDefined();
+      await accountChangeHandler?.(mockAccount.address, mockAccount);
+
+      // Wait for async operations
+      await new Promise((resolve) => setTimeout(resolve, 0));
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'AccountsController:getSelectedMultichainAccount',
+      );
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'KeyringController:signPersonalMessage',
+        expect.objectContaining({
+          from: mockAccount.address,
+        }),
+      );
     });
   });
 
@@ -178,7 +251,7 @@ describe('RewardsController', () => {
       expect(defaultState).toEqual({
         lastAuthenticatedAccount: null,
         lastAuthTime: 0,
-        subscription: undefined,
+        subscription: null,
       });
     });
   });
@@ -291,7 +364,7 @@ describe('RewardsController', () => {
       await accountChangeHandler?.(mockAccount.address, mockAccount);
       await new Promise((resolve) => setTimeout(resolve, 0));
 
-      expect(freshController.state.subscription).toBeUndefined();
+      expect(freshController.state.subscription).toBeNull();
       expect(freshController.state.lastAuthenticatedAccount).toBe(
         mockAccount.address,
       );
@@ -340,7 +413,7 @@ describe('RewardsController', () => {
         state: {
           lastAuthenticatedAccount: mockAccount.address,
           lastAuthTime: Date.now() - 5 * 60 * 1000, // 5 minutes ago
-          subscription: undefined,
+          subscription: null,
         },
       });
 

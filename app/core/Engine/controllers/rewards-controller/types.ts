@@ -15,7 +15,7 @@ export interface SubscriptionDto {
 export type RewardsControllerState = {
   lastAuthenticatedAccount: string | null;
   lastAuthTime: number;
-  subscription?: SubscriptionDto;
+  subscription: SubscriptionDto | null;
 };
 
 /**
