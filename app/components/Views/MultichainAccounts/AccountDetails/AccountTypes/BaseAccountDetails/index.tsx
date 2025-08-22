@@ -22,7 +22,6 @@ import Icon, {
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
@@ -30,13 +29,13 @@ import HeaderBase from '../../../../../../component-library/components/HeaderBas
 import { useStyles } from '../../../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../../../reducers';
 import {
   selectWalletByAccount,
   selectAccountToGroupMap,
 } from '../../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
+import { selectAvatarStyle } from '../../../../../../selectors/settings';
 
 export const createEditAccountNameNavigationDetails = createNavigationDetails<{
   accountGroup: AccountGroupObject;
@@ -54,11 +53,7 @@ export const BaseAccountDetails = ({
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
-  const accountAvatarType = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  )
-    ? AvatarAccountType.Blockies
-    : AvatarAccountType.JazzIcon;
+  const accountAvatarType = useSelector(selectAvatarStyle);
   const selectWallet = useSelector(selectWalletByAccount);
   const wallet = selectWallet?.(account.id);
 

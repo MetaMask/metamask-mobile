@@ -13,11 +13,7 @@ import { Box } from '../../../Box/Box';
 import Cell, {
   CellVariant,
 } from '../../../../../component-library/components/Cells/Cell';
-import {
-  AvatarAccountType,
-  AvatarVariant,
-} from '../../../../../component-library/components/Avatars/Avatar';
-import { RootState } from '../../../../../reducers';
+import { AvatarVariant } from '../../../../../component-library/components/Avatars/Avatar';
 import { formatAddress } from '../../../../../util/address';
 import { View, StyleSheet } from 'react-native';
 import ButtonIcon from '../../../../../component-library/components/Buttons/ButtonIcon';
@@ -33,6 +29,7 @@ import {
   selectSelectedAccountGroup,
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts';
+import { selectAvatarStyle } from '../../../../../selectors/settings';
 
 const createStyles = ({ colors }: Theme) =>
   StyleSheet.create({
@@ -97,11 +94,7 @@ const DestinationAccountSelector = () => {
 
   const privacyMode = useSelector(selectPrivacyMode);
   const destAddress = useSelector(selectDestAddress);
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectAvatarStyle);
 
   const isEvmToSolana = useSelector(selectIsEvmToSolana);
   const isSolanaToEvm = useSelector(selectIsSolanaToEvm);
