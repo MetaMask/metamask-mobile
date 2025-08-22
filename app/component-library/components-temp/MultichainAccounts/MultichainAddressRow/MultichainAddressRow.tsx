@@ -69,7 +69,7 @@ const MultichainAddressRow = ({
         toValue: 1,
         duration: DEFAULT_SUCCESS_DURATION / 3,
         easing: Easing.out(Easing.quad),
-        useNativeDriver: false,
+        useNativeDriver: true,
       }),
     );
     steps.push(
@@ -77,7 +77,7 @@ const MultichainAddressRow = ({
         toValue: 0,
         duration: (2 * DEFAULT_SUCCESS_DURATION) / 3,
         easing: Easing.in(Easing.quad),
-        useNativeDriver: false,
+        useNativeDriver: true,
       }),
     );
     // Start and properly manage animated sequence lifecycle
