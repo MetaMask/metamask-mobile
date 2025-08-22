@@ -13,6 +13,7 @@ jest.mock('../../SDKConnect/utils/DevLogger');
 describe('handlePerpsUrl', () => {
   let mockNavigate: jest.Mock;
   let mockSetParams: jest.Mock;
+  const originalEngineContext = Engine.context;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -33,18 +34,29 @@ describe('handlePerpsUrl', () => {
   afterEach(() => {
     jest.runOnlyPendingTimers();
     jest.useRealTimers();
+    // Restore original Engine context
+    Object.defineProperty(Engine, 'context', {
+      value: originalEngineContext,
+      writable: true,
+      configurable: true,
+    });
   });
 
   describe('handlePerpsUrl', () => {
     it('should navigate to tutorial for first-time users', async () => {
       // Mock first-time user
-      Engine.context = {
-        PerpsController: {
-          state: {
-            isFirstTimeUser: true,
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          ...originalEngineContext,
+          PerpsController: {
+            state: {
+              isFirstTimeUser: true,
+            },
           },
-        },
-      } as typeof Engine.context;
+        } as unknown as typeof Engine.context,
+        writable: true,
+        configurable: true,
+      });
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -59,13 +71,18 @@ describe('handlePerpsUrl', () => {
 
     it('should navigate to wallet home with Perps tab for returning users', async () => {
       // Mock returning user
-      Engine.context = {
-        PerpsController: {
-          state: {
-            isFirstTimeUser: false,
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          ...originalEngineContext,
+          PerpsController: {
+            state: {
+              isFirstTimeUser: false,
+            },
           },
-        },
-      } as typeof Engine.context;
+        } as unknown as typeof Engine.context,
+        writable: true,
+        configurable: true,
+      });
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -82,16 +99,21 @@ describe('handlePerpsUrl', () => {
 
     it('should handle isFirstTimeUser as object with testnet property', async () => {
       // Mock first-time user with object structure
-      Engine.context = {
-        PerpsController: {
-          state: {
-            isFirstTimeUser: {
-              testnet: true,
-              mainnet: false,
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          ...originalEngineContext,
+          PerpsController: {
+            state: {
+              isFirstTimeUser: {
+                testnet: true,
+                mainnet: false,
+              },
             },
           },
-        },
-      } as typeof Engine.context;
+        } as unknown as typeof Engine.context,
+        writable: true,
+        configurable: true,
+      });
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -105,11 +127,16 @@ describe('handlePerpsUrl', () => {
 
     it('should default to tutorial when isFirstTimeUser is undefined', async () => {
       // Mock undefined state
-      Engine.context = {
-        PerpsController: {
-          state: {},
-        },
-      } as typeof Engine.context;
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          ...originalEngineContext,
+          PerpsController: {
+            state: {},
+          },
+        } as unknown as typeof Engine.context,
+        writable: true,
+        configurable: true,
+      });
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -123,9 +150,14 @@ describe('handlePerpsUrl', () => {
 
     it('should fallback to markets list on error', async () => {
       // Mock error in PerpsController
-      Engine.context = {
-        PerpsController: null,
-      } as typeof Engine.context;
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          ...originalEngineContext,
+          PerpsController: null,
+        } as unknown as typeof Engine.context,
+        writable: true,
+        configurable: true,
+      });
 
       // Mock navigation.navigate to throw an error for the first call
       mockNavigate.mockImplementationOnce(() => {
@@ -253,13 +285,18 @@ describe('handlePerpsUrl', () => {
 
   describe('isFirstTimePerpsUser helper', () => {
     it('should return boolean value when isFirstTimeUser is boolean', async () => {
-      Engine.context = {
-        PerpsController: {
-          state: {
-            isFirstTimeUser: false,
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          ...originalEngineContext,
+          PerpsController: {
+            state: {
+              isFirstTimeUser: false,
+            },
           },
-        },
-      } as typeof Engine.context;
+        } as unknown as typeof Engine.context,
+        writable: true,
+        configurable: true,
+      });
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -268,16 +305,21 @@ describe('handlePerpsUrl', () => {
     });
 
     it('should handle object with testnet/mainnet properties', async () => {
-      Engine.context = {
-        PerpsController: {
-          state: {
-            isFirstTimeUser: {
-              testnet: false,
-              mainnet: true,
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          ...originalEngineContext,
+          PerpsController: {
+            state: {
+              isFirstTimeUser: {
+                testnet: false,
+                mainnet: true,
+              },
             },
           },
-        },
-      } as typeof Engine.context;
+        } as unknown as typeof Engine.context,
+        writable: true,
+        configurable: true,
+      });
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -286,15 +328,20 @@ describe('handlePerpsUrl', () => {
     });
 
     it('should default to true when testnet is not specified', async () => {
-      Engine.context = {
-        PerpsController: {
-          state: {
-            isFirstTimeUser: {
-              mainnet: false,
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          ...originalEngineContext,
+          PerpsController: {
+            state: {
+              isFirstTimeUser: {
+                mainnet: false,
+              },
             },
           },
-        },
-      } as typeof Engine.context;
+        } as unknown as typeof Engine.context,
+        writable: true,
+        configurable: true,
+      });
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -308,7 +355,11 @@ describe('handlePerpsUrl', () => {
     });
 
     it('should handle missing PerpsController gracefully', async () => {
-      Engine.context = {} as typeof Engine.context;
+      Object.defineProperty(Engine, 'context', {
+        value: {} as unknown as typeof Engine.context,
+        writable: true,
+        configurable: true,
+      });
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
@@ -322,13 +373,18 @@ describe('handlePerpsUrl', () => {
     });
 
     it('should handle null isFirstTimeUser', async () => {
-      Engine.context = {
-        PerpsController: {
-          state: {
-            isFirstTimeUser: null,
+      Object.defineProperty(Engine, 'context', {
+        value: {
+          ...originalEngineContext,
+          PerpsController: {
+            state: {
+              isFirstTimeUser: null,
+            },
           },
-        },
-      } as typeof Engine.context;
+        } as unknown as typeof Engine.context,
+        writable: true,
+        configurable: true,
+      });
 
       await handlePerpsUrl({ perpsPath: 'perps' });
 
