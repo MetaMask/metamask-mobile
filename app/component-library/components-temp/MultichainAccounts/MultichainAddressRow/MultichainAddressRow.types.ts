@@ -31,7 +31,7 @@ export interface CopyParams {
   /**
    * Callback function to execute when the copy action is successful
    */
-  callback: () => void;
+  callback: () => Promise<void>;
 }
 
 export interface MultichainAddressRowProps {

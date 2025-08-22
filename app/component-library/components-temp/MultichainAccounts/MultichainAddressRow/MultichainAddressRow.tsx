@@ -98,7 +98,7 @@ const MultichainAddressRow = ({
     }, DEFAULT_SUCCESS_DURATION);
   }, [clearSuccessTimer, copyParams]);
 
-  const handleCopy = useCallback(() => {
+  const handleCopy = useCallback(async () => {
     if (!copyParams) {
       return; // Prevent copying or triggering animations when copyParams are undefined
     }
@@ -111,7 +111,7 @@ const MultichainAddressRow = ({
     animationCleanupRef.current = startBlink();
     triggerSuccess();
     if (copyParams?.callback) {
-      copyParams.callback();
+      await copyParams.callback();
     }
   }, [copyParams, startBlink, triggerSuccess]);
 
