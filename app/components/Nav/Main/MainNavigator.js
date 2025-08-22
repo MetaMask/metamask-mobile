@@ -245,26 +245,8 @@ const RewardsHome = () => {
   if (!isRewardsEnabled) {
     return null;
   }
-
-  return (
-    <Stack.Navigator>
-      <Stack.Screen
-        name={Routes.REWARDS_VIEW}
-        component={RewardsView}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={Routes.REWARDS_TERMS}
-        component={RewardsTerms}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name={Routes.REWARDS_DASHBOARD}
-        component={RewardsDashboard}
-        options={{ headerShown: false }}
-      />
-    </Stack.Navigator>
-  );
+  // TODO: Return RewardsNavigator
+  return null;
 };
 
 /* eslint-disable react/prop-types */
@@ -554,16 +536,14 @@ const HomeTabs = () => {
       rootScreenName: Routes.TRANSACTIONS_VIEW,
       unmountOnBlur: true,
     },
-    activity: {
-      tabBarIconKey: TabBarIconKey.Activity,
+    rewards: {
+      tabBarIconKey: TabBarIconKey.Rewards,
       callback: () => {
         trackEvent(
-          createEventBuilder(
-            MetaMetricsEvents.NAVIGATION_TAPS_TRANSACTION_HISTORY,
-          ).build(),
+          createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_REWARDS).build(),
         );
       },
-      rootScreenName: Routes.TRANSACTIONS_VIEW,
+      rootScreenName: Routes.REWARDS_VIEW,
     },
     settings: {
       tabBarIconKey: TabBarIconKey.Setting,
