@@ -4,6 +4,7 @@ import { CardToken, CardTokenAllowance, AllowanceState } from '../types';
 import { useGetPriorityCardToken } from './useGetPriorityCardToken';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
+import { LINEA_CHAIN_ID } from '@metamask/swaps-controller/dist/constants';
 
 jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
@@ -1007,5 +1008,177 @@ describe('useGetPriorityCardToken', () => {
     );
     expect(mockGetPriorityToken).toHaveBeenCalledTimes(2);
     expect(result.current.isLoading).toBe(false);
+  });
+
+  it('should return fallback token when no allowances are returned', async () => {
+    // Mock empty allowances array
+    mockFetchAllowances.mockResolvedValue([]);
+
+    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+
+    // Wait for the hook to complete its async operations
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // Should dispatch the first supported token as fallback
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'card/setCardPriorityToken',
+        payload: expect.objectContaining({
+          address: '0xToken1',
+          symbol: 'TKN1',
+          name: 'Token 1',
+          allowanceState: AllowanceState.NotEnabled,
+          isStaked: false,
+          chainId: LINEA_CHAIN_ID,
+        }),
+      }),
+    );
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'card/setCardPriorityTokenLastFetched',
+        payload: expect.any(Date),
+      }),
+    );
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(false);
+    expect(mockGetPriorityToken).not.toHaveBeenCalled();
+  });
+
+  it('should return null when no allowances and no supported tokens exist', async () => {
+    // Mock empty allowances and no supported tokens
+    mockFetchAllowances.mockResolvedValue([]);
+
+    // Override SDK to have no supported tokens
+    (useCardSDK as jest.Mock).mockReturnValue({
+      sdk: {
+        ...mockSDK,
+        supportedTokens: [],
+      },
+    });
+
+    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+
+    // Wait for the hook to complete its async operations
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // Should dispatch null when no fallback tokens available
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'card/setCardPriorityToken',
+        payload: null,
+      }),
+    );
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'card/setCardPriorityTokenLastFetched',
+        payload: expect.any(Date),
+      }),
+    );
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(false);
+    expect(mockGetPriorityToken).not.toHaveBeenCalled();
+  });
+
+  it('should handle error when getSupportedTokensAllowances returns null', async () => {
+    // Mock null response from getSupportedTokensAllowances (which causes fetchAllowances to throw)
+    mockFetchAllowances.mockResolvedValue(null);
+
+    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+
+    // Wait for the hook to complete its async operations
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // This should trigger an error since fetchAllowances tries to map over null
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(true);
+    expect(result.current.priorityToken).toBeNull();
+    expect(mockGetPriorityToken).not.toHaveBeenCalled();
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      'useGetPriorityCardToken::error fetching priority token',
+    );
+  });
+
+  it('should return first token when all allowances have zero balance', async () => {
+    // Create allowances where all have zero allowance amounts
+    const zeroAllowanceTokens = [
+      createMockSDKTokenData('0xToken1', '0'), // Zero allowance
+      createMockSDKTokenData('0xToken2', '0'), // Zero allowance
+      createMockSDKTokenData('0xToken3', '0'), // Zero allowance
+    ];
+
+    mockFetchAllowances.mockResolvedValue(zeroAllowanceTokens);
+
+    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+
+    // Wait for the hook to complete its async operations
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // Should dispatch the first token even though it has zero allowance
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'card/setCardPriorityToken',
+        payload: expect.objectContaining({
+          address: '0xToken1',
+          symbol: 'TKN1',
+          name: 'Token 1',
+          allowanceState: AllowanceState.NotEnabled, // Zero allowance = NotEnabled
+        }),
+      }),
+    );
+
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'card/setCardPriorityTokenLastFetched',
+        payload: expect.any(Date),
+      }),
+    );
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(false);
+    expect(mockGetPriorityToken).not.toHaveBeenCalled(); // Should not call getPriorityToken if no valid allowances
+  });
+
+  it('should handle case when all tokens have zero allowance and no supported tokens', async () => {
+    // Create allowances where all have zero allowance amounts
+    const zeroAllowanceTokens = [
+      createMockSDKTokenData('0xUnknownToken', '0'), // Zero allowance, not in supported tokens
+    ];
+
+    mockFetchAllowances.mockResolvedValue(zeroAllowanceTokens);
+
+    const { result } = renderHook(() => useGetPriorityCardToken(mockAddress));
+
+    // Wait for the hook to complete its async operations
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    });
+
+    // Should dispatch null since the token is not in supported tokens (filtered out)
+    // and falls back to the fallback token logic
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'card/setCardPriorityToken',
+        payload: expect.objectContaining({
+          address: '0xToken1', // First supported token as fallback
+          allowanceState: AllowanceState.NotEnabled,
+        }),
+      }),
+    );
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(false);
   });
 });
