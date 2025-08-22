@@ -39,8 +39,7 @@ import AccountCell from '../../../../../component-library/components-temp/Multic
 import { selectAccountGroupsByWallet } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectMultichainAccountsState2Enabled } from '../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import AccountItem from './components/AccountItem';
-import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
-import { RootState } from '../../../../../reducers';
+import { selectAvatarStyle } from '../../../../../selectors/settings';
 
 interface BaseWalletDetailsProps {
   wallet: AccountWalletObject;
@@ -73,11 +72,7 @@ export const BaseWalletDetails = ({
   const { formattedWalletTotalBalance, multichainBalancesForAllAccounts } =
     useWalletBalances(wallet.id);
 
-  const accountAvatarType = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  )
-    ? AvatarAccountType.Blockies
-    : AvatarAccountType.JazzIcon;
+  const accountAvatarType = useSelector(selectAvatarStyle);
 
   const handleRevealSRP = useCallback(() => {
     if (keyringId) {

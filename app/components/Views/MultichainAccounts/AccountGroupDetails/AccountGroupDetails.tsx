@@ -19,7 +19,6 @@ import Icon, {
   IconSize,
 } from '../../../../component-library/components/Icons/Icon';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../component-library/components/Avatars/Avatar';
@@ -27,7 +26,6 @@ import HeaderBase from '../../../../component-library/components/HeaderBase';
 import { useStyles } from '../../../hooks/useStyles';
 import { AccountDetailsIds } from '../../../../../e2e/selectors/MultichainAccounts/AccountDetails.selectors';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../../../reducers';
 import { selectWalletById } from '../../../../selectors/multichainAccounts/accountTreeController';
 import {
   selectInternalAccountListSpreadByScopesByGroupId,
@@ -39,6 +37,7 @@ import { selectInternalAccountsById } from '../../../../selectors/accountsContro
 import { SecretRecoveryPhrase, Wallet, RemoveAccount } from './components';
 import { createAddressListNavigationDetails } from '../AddressList';
 import { createPrivateKeyListNavigationDetails } from '../PrivateKeyList/PrivateKeyList';
+import { selectAvatarStyle } from '../../../../selectors/settings';
 
 interface AccountGroupDetailsProps {
   route: {
@@ -57,11 +56,7 @@ export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const walletId = useMemo(() => getWalletIdFromAccountGroup(id), [id]);
   const { styles, theme } = useStyles(styleSheet, {});
   const { colors } = theme;
-  const accountAvatarType = useSelector(
-    (state: RootState) => state.settings.useBlockieIcon,
-  )
-    ? AvatarAccountType.Blockies
-    : AvatarAccountType.JazzIcon;
+  const accountAvatarType = useSelector(selectAvatarStyle);
 
   const selectWallet = useSelector(selectWalletById);
   const wallet = selectWallet?.(walletId);

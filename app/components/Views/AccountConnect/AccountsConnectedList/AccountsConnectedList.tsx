@@ -13,17 +13,13 @@ import {
 
 // external dependencies
 import Engine from '../../../../core/Engine';
-import { RootState } from '../../../../reducers';
 import { strings } from '../../../../../locales/i18n';
 import { isDefaultAccountName } from '../../../../util/ENSUtils';
 import { areAddressesEqual, formatAddress } from '../../../../util/address';
 import { useStyles } from '../../../../component-library/hooks';
 import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
 import { EnsByAccountAddress, Account } from '../../../hooks/useAccounts';
-import {
-  AvatarAccountType,
-  AvatarVariant,
-} from '../../../../component-library/components/Avatars/Avatar';
+import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
 import Cell, {
   CellVariant,
 } from '../../../../component-library/components/Cells/Cell';
@@ -43,6 +39,7 @@ import {
 // internal dependencies
 import { NetworkAvatarProps } from '../AccountConnect.types';
 import styleSheet from './AccountsConnectedList.styles';
+import { selectAvatarStyle } from '../../../../selectors/settings';
 
 const AccountsConnectedList = ({
   selectedAddresses,
@@ -67,13 +64,7 @@ const AccountsConnectedList = ({
       : MAX_VISIBLE_ITEMS;
 
   const { styles } = useStyles(styleSheet, { itemHeight: MAX_HEIGHT });
-  const accountAvatarType = useSelector(
-    (state: RootState) =>
-      state.settings.useBlockieIcon
-        ? AvatarAccountType.Blockies
-        : AvatarAccountType.JazzIcon,
-    shallowEqual,
-  );
+  const accountAvatarType = useSelector(selectAvatarStyle, shallowEqual);
 
   const getFilteredNetworkAvatars = useCallback(
     (accountScopes: CaipChainId[] = []) => {

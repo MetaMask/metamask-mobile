@@ -2,7 +2,6 @@ import React from 'react';
 import { Pressable, View, ViewStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import Avatar, {
-  AvatarAccountType,
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
@@ -13,13 +12,13 @@ import Icon, {
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import { RootState } from '../../../../../reducers';
 import { ModalFieldAddress } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import EthereumAddress from '../../../../UI/EthereumAddress';
 import useCopyClipboard, {
   CopyClipboardAlertMessage,
 } from '../hooks/useCopyClipboard';
 import useStyles from '../useStyles';
+import { selectAvatarStyle } from '../../../../../selectors/settings';
 
 type AddressFieldProps = ModalFieldAddress;
 
@@ -28,11 +27,7 @@ function AddressField(props: AddressFieldProps) {
   const { styles } = useStyles();
   const copyToClipboard = useCopyClipboard();
 
-  const accountAvatarType = useSelector((state: RootState) =>
-    state.settings.useBlockieIcon
-      ? AvatarAccountType.Blockies
-      : AvatarAccountType.JazzIcon,
-  );
+  const accountAvatarType = useSelector(selectAvatarStyle);
 
   return (
     <View style={styles.row}>

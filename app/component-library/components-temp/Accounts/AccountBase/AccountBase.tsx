@@ -3,7 +3,6 @@ import { View } from 'react-native';
 
 import Badge from '../../../../component-library/components/Badges/Badge';
 import Avatar, { AvatarVariant } from '../../../components/Avatars/Avatar';
-import { AvatarAccountType } from '../../../components/Avatars/Avatar/variants/AvatarAccount';
 import BadgeWrapper from '../../../components/Badges/BadgeWrapper';
 import Text, { TextVariant } from '../../../components/Texts/Text';
 import {
@@ -23,7 +22,7 @@ const AccountBase = ({
   accountBalanceLabel,
   accountAddress,
   badgeProps,
-  useBlockieIcon,
+  avatarStyle,
 }: AccountBaseProps) => (
   <View style={styles.body} testID={ACCOUNT_BASE_TEST_ID}>
     <View style={styles.container}>
@@ -34,11 +33,7 @@ const AccountBase = ({
       >
         <Avatar
           variant={AvatarVariant.Account}
-          type={
-            useBlockieIcon
-              ? AvatarAccountType.Blockies
-              : AvatarAccountType.JazzIcon
-          }
+          type={avatarStyle}
           testID={ACCOUNT_BALANCE_AVATAR_TEST_ID}
           accountAddress={accountAddress}
         />
