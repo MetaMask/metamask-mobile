@@ -18,18 +18,25 @@ on:
         description: 'The Cucumber tag expression to use for filtering tests'
         required: true
         type: string
+      split_number:
+        description: 'Which split number to run (1-based index)'
+        required: false
+        type: number
+        default: 1
+      total_splits:
+        description: 'Total number of splits to divide tests into'
+        required: false
+        type: number
+        default: 1
 
 jobs:
 
   test-e2e-mobile:
-    name: ${{ inputs.test-suite-name }}-shard-${{ matrix.shard }}
+    name: ${{ inputs.test-suite-name }}
     runs-on: ${{ inputs.platform == 'ios' && 'macos-latest-xlarge' || 'gha-mmsdk-scale-set-ubuntu-22.04-amd64-xl' }}
     continue-on-error: true
-    strategy:
-      matrix:
-        shard: [1, 2, 3]
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ matrix.shard }}
+      group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.platform }}-${{ inputs.test-suite-name }}-${{ inputs.split_number }}
       cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
 
     env:
@@ -37,8 +44,8 @@ jobs:
       METAMASK_BUILD_TYPE: 'main'
       TEST_SUITE_TAG: ${{ inputs.test_suite_tag }}
       GITHUB_CI: 'true'
-      TOTAL_SHARDS: 3
-      SHARD_INDEX: ${{ matrix.shard }}
+      SPLIT_NUMBER: ${{ inputs.split_number }}
+      TOTAL_SPLITS: ${{ inputs.total_splits }}
       MM_UNIFIED_SWAPS_ENABLED: 'true'
       RAMP_INTERNAL_BUILD: 'true'
       MM_BRIDGE_ENABLED: 'true'
@@ -169,7 +176,10 @@ jobs:
             export BITRISE_TRIGGERED_WORKFLOW_ID="android_workflow"
           fi
           
-          ./scripts/run-e2e-tags.sh
+          # Always use the splitting script (handles both split and non-split cases)
+          echo "Running split ${{ inputs.split_number }} of ${{ inputs.total_splits }}"
+
+          ./scripts/run-e2e-tags-gha.sh
           
           echo "✅ Test execution completed"
 
@@ -177,7 +187,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-shard-${{ matrix.shard }}-test-results
+          name: ${{ inputs.test-suite-name }}-test-results
           path: e2e/reports/
           retention-days: 7
       
@@ -211,6 +221,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.test-suite-name }}-shard-${{ matrix.shard }}-screenshots
+          name: ${{ inputs.test-suite-name }}-screenshots
           path: artifacts/
           retention-days: 7
