@@ -1,2 +1,2 @@
 export { PrivateKeyList } from './PrivateKeyList';
-export type { Props as PrivateKeyProps, AddressItem } from './types';
+export type { Params as PrivateKeyParams, AddressItem } from './types';
