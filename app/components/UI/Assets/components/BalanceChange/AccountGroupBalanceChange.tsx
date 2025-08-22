@@ -10,6 +10,7 @@ import {
 } from './constants';
 import {
   getFormattedAmountChange,
+  getFormattedPercentageChange,
   getPercentageTextColor,
 } from '../../../../../component-library/components-temp/Price/AggregatedPercentage/utils';
 
@@ -31,8 +32,7 @@ const AccountGroupBalanceChange = ({
     amountChangeInUserCurrency,
     userCurrency,
   );
-  const percPrefix = percentChange >= 0 ? '+' : '';
-  const percentText = `(${percPrefix}${percentChange.toFixed(2)}%)`;
+  const percentText = getFormattedPercentageChange(percentChange, 'en-US');
   const percentageTextColor = getPercentageTextColor(
     Boolean(privacyMode),
     percentChange,
