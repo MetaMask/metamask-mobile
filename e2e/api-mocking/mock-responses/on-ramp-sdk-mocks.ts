@@ -6,7 +6,7 @@ import { MockEventsObject } from '../../framework';
  * Uses regex patterns to handle both iOS (mobile-ios) and Android (mobile-android) contexts
  */
 
-const ON_RAMP_CACHE_DEFAULT_RESPONSE = {
+const ON_RAMP_CACHE_LIGHT_RESPONSE = {
   parameters: {
     appleMerchantId: '',
     disableLimits: false,
@@ -804,99 +804,121 @@ const ON_RAMP_CACHE_DEFAULT_RESPONSE = {
   },
 };
 
+const ON_RAMP_CACHE_NETWORKS_RESPONSE = {
+  networks: [
+    {
+      active: true,
+      chainId: '1',
+      chainName: 'Ethereum Mainnet',
+      shortName: 'Ethereum',
+      nativeTokenSupported: true,
+    },
+  ],
+};
+
+const ON_RAMP_CACHE_COUNTRIES_RESPONSE = [
+  {
+    currencies: ['/currencies/fiat/eur'],
+    emoji: '🇵🇹',
+    id: '/regions/pt',
+    name: 'Portugal',
+    support: {
+      buy: true,
+      sell: true,
+    },
+    unsupported: false,
+    detected: false,
+  },
+  {
+    currencies: ['/currencies/fiat/eur'],
+    emoji: '🇫🇷',
+    id: '/regions/fr',
+    name: 'France',
+    support: {
+      buy: true,
+      sell: true,
+    },
+    unsupported: false,
+    detected: false,
+  },
+  {
+    currencies: ['/currencies/fiat/usd'],
+    emoji: '🇺🇸',
+    id: '/regions/us',
+    name: 'United States of America',
+    states: [
+      {
+        emoji: '🇺🇸',
+        id: '/regions/us-ca',
+        name: 'California',
+        stateId: 'ca',
+        support: {
+          buy: true,
+          sell: true,
+        },
+        unsupported: false,
+        detected: false,
+      },
+    ],
+    enableSell: true,
+    support: {
+      buy: false,
+      sell: false,
+    },
+    unsupported: true,
+    detected: true,
+  },
+  {
+    currencies: ['/currencies/fiat/eur'],
+    emoji: '🇪🇸',
+    id: '/regions/es',
+    name: 'Spain',
+    support: {
+      buy: true,
+      sell: true,
+    },
+    unsupported: false,
+    detected: false,
+  },
+];
+
 export const ON_RAMP_SDK_MOCKS: MockEventsObject = {
   GET: [
     {
       urlEndpoint:
+        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/[^/]+\/light\?sdk=2\.1\.10&context=mobile-(?:ios|android)&keys=&fiat=%2Fcurrencies%2Ffiat%2Fusd&crypto=%2Fcurrencies%2Fcrypto%2F1%2F0x0000000000000000000000000000000000000000&action=buy&multiplePayments=true$/,
+      responseCode: 200,
+      response: ON_RAMP_CACHE_LIGHT_RESPONSE,
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/networks\?sdk=2\.1\.10&context=mobile-(?:ios|android)&keys=$/,
+      responseCode: 200,
+      response: ON_RAMP_CACHE_NETWORKS_RESPONSE,
+    },
+    {
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/countries\?.*$/,
+      responseCode: 200,
+      response: ON_RAMP_CACHE_COUNTRIES_RESPONSE,
+    },
+    {
+      urlEndpoint:
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/[^/]+\/light\?sdk=2\.1\.10&context=mobile-(?:ios|android)&keys=&fiat=%2Fcurrencies%2Ffiat%2Fusd&crypto=%2Fcurrencies%2Fcrypto%2F1%2F0x0000000000000000000000000000000000000000&action=buy&multiplePayments=true$/,
       responseCode: 200,
-      response: ON_RAMP_CACHE_DEFAULT_RESPONSE,
+      response: ON_RAMP_CACHE_LIGHT_RESPONSE,
     },
     {
       urlEndpoint:
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/networks\?sdk=2\.1\.10&context=mobile-(?:ios|android)&keys=$/,
       responseCode: 200,
-      response: {
-        networks: [
-          {
-            active: true,
-            chainId: '1',
-            chainName: 'Ethereum Mainnet',
-            shortName: 'Ethereum',
-            nativeTokenSupported: true,
-          },
-        ],
-      },
+      response: ON_RAMP_CACHE_NETWORKS_RESPONSE,
     },
     {
       urlEndpoint:
         /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/countries\?.*$/,
       responseCode: 200,
-      response: [
-        {
-          currencies: ['/currencies/fiat/eur'],
-          emoji: '🇵🇹',
-          id: '/regions/pt',
-          name: 'Portugal',
-          support: {
-            buy: true,
-            sell: true,
-          },
-          unsupported: false,
-          detected: false,
-        },
-        {
-          currencies: ['/currencies/fiat/eur'],
-          emoji: '🇫🇷',
-          id: '/regions/fr',
-          name: 'France',
-          support: {
-            buy: true,
-            sell: true,
-          },
-          unsupported: false,
-          detected: false,
-        },
-        {
-          currencies: ['/currencies/fiat/usd'],
-          emoji: '🇺🇸',
-          id: '/regions/us',
-          name: 'United States of America',
-          states: [
-            {
-              emoji: '🇺🇸',
-              id: '/regions/us-ca',
-              name: 'California',
-              stateId: 'ca',
-              support: {
-                buy: true,
-                sell: true,
-              },
-              unsupported: false,
-              detected: false,
-            },
-          ],
-          enableSell: true,
-          support: {
-            buy: false,
-            sell: false,
-          },
-          unsupported: true,
-          detected: true,
-        },
-        {
-          currencies: ['/currencies/fiat/eur'],
-          emoji: '🇪🇸',
-          id: '/regions/es',
-          name: 'Spain',
-          support: {
-            buy: true,
-            sell: true,
-          },
-          unsupported: false,
-          detected: false,
-        },
-      ],
+      response: ON_RAMP_CACHE_COUNTRIES_RESPONSE,
     },
   ],
 };
