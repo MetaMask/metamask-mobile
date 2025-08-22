@@ -32,13 +32,15 @@ import {
 import { selectTokens } from '../../../selectors/tokensController';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectSortedTransactions } from '../../../selectors/transactionController';
-import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
+import {
+  selectEnabledNetworksByNamespace,
+  selectEVMEnabledNetworks,
+} from '../../../selectors/networkEnablementController';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactions } from '../../../selectors/multichain';
 import { isEvmAccountType } from '@metamask/keyring-api';
 ///: END:ONLY_INCLUDE_IF
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { PopularList } from '../../../util/networks/customNetworks';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
@@ -99,29 +101,34 @@ const TransactionsView = ({
           tx,
           tokens,
           selectedAddress,
-          networkId,
-          chainId,
           tokenNetworkFilter,
         );
 
         if (!filter) return false;
 
-        tx.insertImportTime = addAccountTimeFlagFilter(
+        const insertImportTime = addAccountTimeFlagFilter(
           tx,
           addedAccountTime,
           accountAddedTimeInsertPointFound,
         );
-        if (tx.insertImportTime) accountAddedTimeInsertPointFound = true;
+
+        // Create a new transaction object with the insertImportTime property
+        const updatedTx = {
+          ...tx,
+          insertImportTime,
+        };
+
+        if (updatedTx.insertImportTime) accountAddedTimeInsertPointFound = true;
 
         switch (tx.status) {
           case TX_SUBMITTED:
           case TX_SIGNED:
           case TX_UNAPPROVED:
           case TX_PENDING:
-            submittedTxs.push(tx);
+            submittedTxs.push(updatedTx);
             return false;
           case TX_CONFIRMED:
-            confirmedTxs.push(tx);
+            confirmedTxs.push(updatedTx);
             break;
         }
 
@@ -172,9 +179,11 @@ const TransactionsView = ({
         allTransactionsFiltered &&
         allTransactionsFiltered.length
       ) {
-        allTransactionsFiltered[
-          allTransactionsFiltered.length - 1
-        ].insertImportTime = true;
+        const lastIndex = allTransactionsFiltered.length - 1;
+        allTransactionsFiltered[lastIndex] = {
+          ...allTransactionsFiltered[lastIndex],
+          insertImportTime: true,
+        };
       }
 
       setAllTransactions(allTransactionsFiltered);
@@ -286,7 +295,7 @@ const mapStateToProps = (state) => {
     transactions: allTransactions,
     networkType: selectProviderType(state),
     chainId,
-    tokenNetworkFilter: selectTokenNetworkFilter(state),
+    tokenNetworkFilter: selectEnabledNetworksByNamespace(state),
   };
 };
 

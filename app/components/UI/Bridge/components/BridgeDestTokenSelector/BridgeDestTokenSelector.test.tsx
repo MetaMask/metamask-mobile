@@ -41,6 +41,7 @@ jest.mock('../../../../Views/NetworkSelector/useSwitchNetworks', () => ({
   useSwitchNetworks: () => ({
     onSetRpcTarget: jest.fn(),
     onNetworkChange: jest.fn(),
+    onEnableNetwork: jest.fn(),
   }),
 }));
 

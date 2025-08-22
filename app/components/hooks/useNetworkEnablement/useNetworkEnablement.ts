@@ -1,10 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import {
   parseCaipChainId,
   CaipChainId,
   Hex,
   KnownCaipNamespace,
+  toCaipChainId,
+  isHexString,
 } from '@metamask/utils';
 import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { toHex } from '@metamask/controller-utils';
@@ -15,14 +17,28 @@ import { selectChainId } from '../../../selectors/networkController';
 
 /**
  * Manages network enablement state across namespaces (EVM, Bitcoin, etc).
- * Provides methods to enable, disable, and toggle networks.
+ * Provides methods to enable, disable, toggle, and conditionally enable networks.
+ *
  * @returns Network enablement methods and state
  * @example
+ * ```tsx
+ * const {
+ *   enableNetwork,
+ *   toggleNetwork,
+ *   tryEnableEvmNetwork,
+ *   isNetworkEnabled
+ * } = useNetworkEnablement();
  *
- * const { enableNetwork, toggleNetwork } = useNetworkEnablement();
+ * // Direct network operations
  * enableNetwork('eip155:1'); // Enable Ethereum mainnet
- * toggleNetwork('eip155:137'); // Toggle Polygon
+ * toggleNetwork('eip155:137'); // Toggle Polygon on/off
  *
+ * // Conditional enablement for transactions/swaps
+ * tryEnableEvmNetwork('0x1'); // Enable if global selector is enabled and network is disabled
+ *
+ * // Check network status
+ * const isEnabled = isNetworkEnabled('eip155:1');
+ * ```
  */
 export const useNetworkEnablement = () => {
   const enabledNetworksByNamespace = useSelector(
@@ -84,14 +100,39 @@ export const useNetworkEnablement = () => {
   const toggleNetwork = useMemo(
     () => (chainId: CaipChainId) => {
       const networkEnabled = isNetworkEnabled(chainId);
+      // This is needed because we should have 1 network at minimum enabled
+      // despite if the user deselects all networks
+      const isSingleNetworkEnabled =
+        Object.keys(enabledNetworksByNamespace[namespace] || {}).filter(
+          (key) => enabledNetworksByNamespace[namespace]?.[key as Hex],
+        ).length === 1;
 
-      if (networkEnabled) {
+      if (networkEnabled && !isSingleNetworkEnabled) {
         disableNetwork(chainId);
       } else {
         enableNetwork(chainId);
       }
     },
-    [isNetworkEnabled, enableNetwork, disableNetwork],
+    [
+      isNetworkEnabled,
+      enableNetwork,
+      disableNetwork,
+      enabledNetworksByNamespace,
+      namespace,
+    ],
+  );
+
+  const tryEnableEvmNetwork = useCallback(
+    (chainId?: string) => {
+      if (chainId && isHexString(chainId)) {
+        const caipChainId = toCaipChainId(KnownCaipNamespace.Eip155, chainId);
+        const isEnabled = isNetworkEnabled(caipChainId);
+        if (!isEnabled) {
+          enableNetwork(caipChainId);
+        }
+      }
+    },
+    [isNetworkEnabled, enableNetwork],
   );
 
   return {
@@ -104,5 +145,6 @@ export const useNetworkEnablement = () => {
     toggleNetwork,
     isNetworkEnabled,
     hasOneEnabledNetwork,
+    tryEnableEvmNetwork,
   };
 };
