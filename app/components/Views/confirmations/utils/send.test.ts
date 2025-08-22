@@ -1,12 +1,8 @@
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
-// eslint-disable-next-line import/no-namespace
-import * as SendMultichainTransactionUtils from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
 import { AssetType, TokenStandard } from '../types/token';
-import { SOLANA_ASSET } from '../__mocks__/send.mock';
 import { InitSendLocation } from '../constants/send';
 import {
   formatToFixedDecimals,
@@ -14,7 +10,6 @@ import {
   handleSendPageNavigation,
   prepareEVMTransaction,
   submitEvmTransaction,
-  submitNonEvmTransaction,
   toBNWithDecimals,
 } from './send';
 
@@ -136,19 +131,6 @@ describe('submitEvmTransaction', () => {
   });
 });
 
-describe('submitNonEvmTransaction', () => {
-  it('invokes function sendMultichainTransaction', () => {
-    const mockSendMultichainTransaction = jest
-      .spyOn(SendMultichainTransactionUtils, 'sendMultichainTransaction')
-      .mockImplementation(() => Promise.resolve());
-    submitNonEvmTransaction({
-      asset: SOLANA_ASSET,
-      fromAccount: { id: 'solana_account_id' } as InternalAccount,
-    });
-    expect(mockSendMultichainTransaction).toHaveBeenCalled();
-  });
-});
-
 describe('formatToFixedDecimals', () => {
   it('return `0` if value is not defined', () => {
     expect(formatToFixedDecimals(undefined as unknown as string)).toEqual('0');
@@ -179,10 +161,10 @@ describe('toBNWithDecimals', () => {
   it('remove addtional decimal part', () => {
     expect(toBNWithDecimals('.123123', 3).toString()).toEqual('123');
   });
-  it('converts value to bignumber correctly', () => {
+  it('converts decimal value to bignumber correctly', () => {
     expect(toBNWithDecimals('.1', 5).toString()).toEqual('10000');
   });
-  it('converts value to bignumber correctly', () => {
+  it('converts 0 value to bignumber correctly', () => {
     expect(toBNWithDecimals('0', 5).toString()).toEqual('0');
   });
 });
@@ -193,12 +175,12 @@ describe('fromBNWithDecimals', () => {
       fromBNWithDecimals(toBNWithDecimals('1.20', 5), 5).toString(),
     ).toEqual('1.2');
   });
-  it('converts value to bignumber correctly', () => {
+  it('converts decimal value to bignumber correctly', () => {
     expect(fromBNWithDecimals(toBNWithDecimals('.1', 5), 5).toString()).toEqual(
       '0.1',
     );
   });
-  it('converts value to bignumber correctly', () => {
+  it('converts 0 value to bignumber correctly', () => {
     expect(fromBNWithDecimals(toBNWithDecimals('0', 5), 5).toString()).toEqual(
       '0',
     );

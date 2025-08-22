@@ -149,6 +149,7 @@ import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBack
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
+import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
 import ShareAddress from '../../Views/MultichainAccounts/sheets/ShareAddress';
 import DeleteAccount from '../../Views/MultichainAccounts/sheets/DeleteAccount';
 import RevealPrivateKey from '../../Views/MultichainAccounts/sheets/RevealPrivateKey';
@@ -157,6 +158,7 @@ import SolanaNewFeatureContent from '../../UI/SolanaNewFeatureContent';
 import { DeepLinkModal } from '../../UI/DeepLinkModal';
 import { checkForDeeplink } from '../../../actions/user';
 import { WalletDetails } from '../../Views/MultichainAccounts/WalletDetails/WalletDetails';
+import { AddressList as AccountAddressList } from '../../Views/MultichainAccounts/AddressList';
 import MultichainAccountActions from '../../Views/MultichainAccounts/sheets/MultichainAccountActions/MultichainAccountActions';
 import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
@@ -621,6 +623,25 @@ const MultichainAccountDetails = () => {
   );
 };
 
+const MultichainAccountGroupDetails = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
+        component={AccountGroupDetails}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
 const MultichainAccountDetailsActions = () => {
   const route = useRoute();
 
@@ -706,6 +727,25 @@ const MultichainWalletDetails = () => {
       <Stack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
         component={WalletDetails}
+        initialParams={route?.params}
+      />
+    </Stack.Navigator>
+  );
+};
+
+const MultichainAddressList = () => {
+  const route = useRoute();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animationEnabled: false,
+      }}
+    >
+      <Stack.Screen
+        name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+        component={AccountAddressList}
         initialParams={route?.params}
       />
     </Stack.Navigator>
@@ -838,6 +878,10 @@ const AppFlow = () => {
           component={MultichainAccountDetails}
         />
         <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_GROUP_DETAILS}
+          component={MultichainAccountGroupDetails}
+        />
+        <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_CELL_ACTIONS}
           component={MultichainAccountActions}
         />
@@ -848,6 +892,10 @@ const AppFlow = () => {
         <Stack.Screen
           name={Routes.MULTICHAIN_ACCOUNTS.WALLET_DETAILS}
           component={MultichainWalletDetails}
+        />
+        <Stack.Screen
+          name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
+          component={MultichainAddressList}
         />
         <Stack.Screen
           name={Routes.SOLANA_NEW_FEATURE_CONTENT}
