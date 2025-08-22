@@ -11,7 +11,6 @@ describe('Recipient', () => {
   ): RecipientType => ({
     name: 'John Doe',
     address: '0x1234567890123456789012345678901234567890',
-    fiatValue: '$1,234.56',
     ...overrides,
   });
 
@@ -38,9 +37,7 @@ describe('Recipient', () => {
   });
 
   it('displays fiat value when provided', () => {
-    const mockRecipient = createMockRecipient({
-      fiatValue: '$2,500.00',
-    });
+    const mockRecipient = createMockRecipient();
 
     const { getByText } = renderWithProvider(
       <Recipient
@@ -54,9 +51,7 @@ describe('Recipient', () => {
   });
 
   it('does not display fiat value when not provided', () => {
-    const mockRecipient = createMockRecipient({
-      fiatValue: undefined,
-    });
+    const mockRecipient = createMockRecipient();
 
     const { queryByText } = renderWithProvider(
       <Recipient
