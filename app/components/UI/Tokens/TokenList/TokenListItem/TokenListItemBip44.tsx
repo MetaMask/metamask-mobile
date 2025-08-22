@@ -132,13 +132,13 @@ export const TokenListItemBip44 = React.memo(
 
     let asset = isEvmNetworkSelected ? evmAsset : nonEvmAsset;
 
-    if (asset?.chainId === '0x1' && asset?.address === '0x0000000000000000000000000000000000000000') {
-      console.log('ASSET BIP44', {
-        assetKey,
-        asset,
-        newAsset,
-      });
-    }
+    // if (asset?.chainId === '0x1' && asset?.address === '0x0000000000000000000000000000000000000000') {
+    //   console.log('ASSET BIP44', {
+    //     assetKey,
+    //     asset,
+    //     newAsset,
+    //   });
+    // }
 
     const chainId = asset?.chainId as Hex;
 

@@ -4844,10 +4844,8 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^74.0.0":
+"@metamask/assets-controllers@file:../metamask-core/packages/assets-controllers":
   version "74.0.0"
-  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/assets-controllers/-/assets-controllers-74.0.0.tgz#b21cd2ffb8b0fa00c873f8436fb5005a014de19f"
-  integrity sha512-sjihbrm2+3AYmh40v1jCuE/x0NBpuC4K9TpNWrCsHcBkoLEylFGcexqtXRhvGXR6TjDt3IqAyicUgjWGZ/FGLA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4856,7 +4854,7 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.3"
-    "@metamask/base-controller" "^8.1.0"
+    "@metamask/base-controller" "^8.2.0"
     "@metamask/contract-metadata" "^2.4.0"
     "@metamask/controller-utils" "^11.12.0"
     "@metamask/eth-query" "^4.0.0"
@@ -4907,6 +4905,15 @@
   resolved "https://registry.yarnpkg.com/@metamask/base-controller/-/base-controller-8.1.0.tgz#dd8746f8ec95fb564251c284f84e9264427816f1"
   integrity sha512-pwWHTBntzPE6yBMH9qiXMaslQW2kS7Izw1g+4D8QhGIxNWBt1nz1uavTGcSBUFgO3eMDKe2QPU04xgThqCPv+g==
   dependencies:
+    "@metamask/utils" "^11.4.2"
+    immer "^9.0.6"
+
+"@metamask/base-controller@^8.2.0":
+  version "8.2.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/base-controller/-/base-controller-8.2.0.tgz#1b6f0fcdef517013af92c16af0e50de2ad0628e4"
+  integrity sha512-Wd7W2R1lutAeQsTH5qI2AeICGIXJYCfddVxvrPKDbwhl6pMaD3FgJS27PSCXWu++jKs4ODAXljk+Z0QwnaYNFA==
+  dependencies:
+    "@metamask/messenger" "^0.1.0"
     "@metamask/utils" "^11.4.2"
     immer "^9.0.6"
 
@@ -5510,6 +5517,11 @@
   version "1.1.2"
   resolved "https://registry.npmjs.org/@metamask/message-signing-snap/-/message-signing-snap-1.1.2.tgz#701ace646077976ba22feda85e7968a1ea4c8642"
   integrity sha512-TANi87ujo7WwyHubWy0iFoYFIh5t5ztvfZ/OqrA0rdZ2d58+6Bvj89jbi1tFWQPT//azwCF5jwQBnJAIVlAwBQ==
+
+"@metamask/messenger@^0.1.0":
+  version "0.1.0"
+  resolved "https://consensys.jfrog.io/artifactory/api/npm/npm/@metamask/messenger/-/messenger-0.1.0.tgz#3ceb310573b8b32c328a92c67da7199564444523"
+  integrity sha512-UqYOFvPb8CvRML26h/ftrwFhiQiB0VENoRnUlM0Tl9QjGh17un2emyxpsib3c2rdzP5U/VskXH2KlzPBtfFLYw==
 
 "@metamask/metamask-eth-abis@3.1.1", "@metamask/metamask-eth-abis@^3.1.1":
   version "3.1.1"
