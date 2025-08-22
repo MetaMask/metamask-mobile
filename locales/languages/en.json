@@ -5284,7 +5284,8 @@
     },
     "address_list" : {
       "addresses": "Addresses",
-      "receiving_address": "Receiving address"
+      "receiving_address": "Receiving address",
+      "copied": "Address copied"
     },
     "accounts_list": {
       "details": "Details"
