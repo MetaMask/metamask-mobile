@@ -3,10 +3,6 @@ name: iOS E2E Smoke Tests
 on:
   workflow_call:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ !(contains(github.ref, 'refs/heads/main') || contains(github.ref, 'refs/heads/stable')) }}
-
 permissions:
   contents: read
   id-token: write
