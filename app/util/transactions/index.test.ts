@@ -1258,6 +1258,7 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     TransactionType.stakingUnstake,
     TransactionType.lendingDeposit,
     TransactionType.lendingWithdraw,
+    TransactionType.perpsDeposit,
   ])('returns transaction type if type is %s', async (type) => {
     const transaction = { type };
     const chainId = '1';

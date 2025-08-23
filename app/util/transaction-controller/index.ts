@@ -170,6 +170,13 @@ export const getNetworkNonce = async (
   return nextNonce;
 };
 
+export function updateRequiredTransactionIds(
+  ...args: Parameters<BaseTransactionController['updateRequiredTransactionIds']>
+) {
+  const { TransactionController } = Engine.context;
+  return TransactionController.updateRequiredTransactionIds(...args);
+}
+
 function sanitizeTransactionParamsGasValues(
   transactionId: string,
   requestedTransactionParamsToUpdate: Partial<TransactionParams>,
