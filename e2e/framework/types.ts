@@ -160,6 +160,7 @@ export interface TestSuiteParams {
 /**
  * ONLY TO BE USED BY DEFAULT MOCKS
  *
+ * If you are using individual mocks for specific tests
  * Use the `testSpecificMock` function instead for improved mock management and type safety.
  *
  * Interface representing a collection of mock API endpoints grouped by HTTP methods.

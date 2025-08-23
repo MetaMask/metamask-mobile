@@ -12,6 +12,7 @@ export const ALLOWLISTED_HOSTS = [
   '*.infura.io',
   'carrot.megaeth.com',
   'testnet-rpc.monad.xyz',
+  'virtual.linea.rpc.tenderly.co',
 ];
 
 export const ALLOWLISTED_URLS = [

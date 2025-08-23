@@ -12,18 +12,25 @@ import QuotesView from '../../pages/Ramps/QuotesView';
 import SoftAssert from '../../utils/SoftAssert';
 import { EventPayload, getEventsPayloads } from '../analytics/helpers';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
 const eventsToCheck: EventPayload[] = [];
 
 const setupOnRampTest = async (testFn: () => Promise<void>) => {
+  const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
+
   await withFixtures(
     {
       fixture: new FixtureBuilder()
         .withNetworkController(CustomNetworks.Tenderly.Mainnet)
-        .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.FRANCE])
+        .withRampsSelectedRegion(selectedRegion)
         .withMetaMetricsOptIn()
         .build(),
       restartDevice: true,
+      testSpecificMock: async (mockServer: Mockttp) => {
+        await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+      },
       endTestfn: async ({ mockServer }) => {
         const events = await getEventsPayloads(mockServer);
         eventsToCheck.push(...events);

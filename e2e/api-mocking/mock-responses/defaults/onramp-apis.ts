@@ -1,21 +1,28 @@
 import { MockEventsObject } from '../../../framework';
+import { RampsRegions, RampsRegionsEnum } from '../../../framework/Constants';
+import { RAMPS_NETWORKS_RESPONSE } from '../ramps/ramps-mocks';
+import { createGeolocationResponse } from '../ramps/ramps-geolocation';
 
 /**
  * Mock data for on-ramp API endpoints used in E2E testing.
- * Covers geolocation and other on-ramp services.
+ * Covers geolocation and network information.
+ * Can be overriden by testSpecificMock
  */
 
-export const ONRAMP_API_MOCKS: MockEventsObject = {
+export const DEFAULT_RAMPS_API_MOCKS: MockEventsObject = {
   GET: [
+    ...createGeolocationResponse(RampsRegions[RampsRegionsEnum.UNITED_STATES]),
     {
-      urlEndpoint: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/networks\?.*$/,
       responseCode: 200,
-      response: 'PT',
+      response: RAMPS_NETWORKS_RESPONSE,
     },
     {
-      urlEndpoint: 'https://on-ramp.api.cx.metamask.io/geolocation',
+      urlEndpoint:
+        /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/networks\?.*$/,
       responseCode: 200,
-      response: 'PT',
+      response: RAMPS_NETWORKS_RESPONSE,
     },
   ],
 };

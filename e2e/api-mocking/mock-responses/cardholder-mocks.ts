@@ -1,6 +1,9 @@
 import { TestSpecificMock } from '../../framework/types';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder';
 import { setupMockRequest } from '../mockHelpers';
+import { createGeolocationResponse } from './ramps/ramps-geolocation';
+import { RAMPS_NETWORKS_RESPONSE } from './ramps/ramps-mocks';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 
 /**
  * Mock responses for cardholder API calls
@@ -87,18 +90,39 @@ const clientConfig = {
 };
 
 export const testSpecificMock: TestSpecificMock = async (mockServer) => {
+  // Geolocation mocks - set to Spain (all envs)
+  for (const mock of createGeolocationResponse(
+    RampsRegions[RampsRegionsEnum.SPAIN],
+  )) {
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: mock.urlEndpoint,
+      response: mock.response,
+      responseCode: mock.responseCode,
+    });
+  }
+
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
-    url: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-    response: 'PT',
+    url: /^https:\/\/on-ramp-cache\.api\.cx\.metamask\.io\/regions\/networks\?.*$/,
+    response: RAMPS_NETWORKS_RESPONSE,
     responseCode: 200,
   });
+
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /^https:\/\/on-ramp-cache\.uat-api\.cx\.metamask\.io\/regions\/networks\?.*$/,
+    response: RAMPS_NETWORKS_RESPONSE,
+    responseCode: 200,
+  });
+
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: clientConfig.urlEndpoint,
     response: clientConfig.response,
     responseCode: 200,
   });
+
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /^https:\/\/accounts\.api\.cx\.metamask\.io\/v1\/metadata\?.*$/,

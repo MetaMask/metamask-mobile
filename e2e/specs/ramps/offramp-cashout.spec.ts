@@ -15,6 +15,8 @@ import {
 } from '../analytics/helpers';
 import SoftAssert from '../../utils/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-region-aware-mock-setup';
 
 const PaymentMethods = {
   SEPA_BANK_TRANSFER: 'SEPA Bank Transfer',
@@ -31,14 +33,18 @@ describe(SmokeTrade('Off-Ramp Cashout destination'), () => {
   });
 
   it('should change cashout destination', async () => {
+    const selectedRegion = RampsRegions[RampsRegionsEnum.FRANCE];
     await withFixtures(
       {
         fixture: new FixtureBuilder()
-          .withRampsSelectedRegion(RampsRegions[RampsRegionsEnum.FRANCE])
+          .withRampsSelectedRegion(selectedRegion)
           .withRampsSelectedPaymentMethod()
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
+        },
         endTestfn: async ({ mockServer }) => {
           const events = await getEventsPayloads(mockServer);
           const offRampPaymentMethodSelected = findEvent(
