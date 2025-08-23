@@ -83,7 +83,7 @@ describe(SmokeTrade('On-Ramp Parameters'), () => {
 
   it('should select payment method and verify display', async () => {
     await setupOnRampTest(async () => {
-      const paymentMethod = 'Apple Pay'; // This is now mocked
+      const paymentMethod = 'Apple Pay'; // This is now mocked so the dropdown will display the correct options even on Android
       await BuildQuoteView.tapPaymentMethodDropdown(paymentMethod);
       await SelectPaymentMethodView.tapPaymentMethodOption('Debit or Credit');
       await Assertions.expectElementToNotBeVisible(

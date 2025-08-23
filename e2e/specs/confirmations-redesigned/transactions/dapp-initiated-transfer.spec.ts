@@ -23,6 +23,7 @@ import {
   setupMockRequest,
   setupMockPostRequest,
 } from '../../../api-mocking/mockHelpers';
+import Gestures from '../../../framework/Gestures';
 
 const expectedEvents = {
   TRANSACTION_ADDED: 'Transaction Added',
@@ -42,15 +43,24 @@ const expectedEventNames = [
 
 describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
-    const { urlEndpoint, response } =
-      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
-
+    // Mock gas fees API for Ganache network
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
-      url: urlEndpoint,
-      response,
-      responseCode: 200,
+      url: mockEvents.GET.suggestedGasFeesApiGanache.urlEndpoint,
+      response: mockEvents.GET.suggestedGasFeesApiGanache.response,
+      responseCode: mockEvents.GET.suggestedGasFeesApiGanache.responseCode,
     });
+
+    // Mock security alerts API for Ganache chain (0x539)
+    await setupMockPostRequest(
+      mockServer,
+      'https://security-alerts.api.cx.metamask.io/validate/0x539',
+      mockEvents.POST.securityAlertApiValidate.requestBody,
+      mockEvents.POST.securityAlertApiValidate.response,
+      {
+        statusCode: mockEvents.POST.securityAlertApiValidate.responseCode,
+      },
+    );
 
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
@@ -76,6 +86,15 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
         ignoreFields,
       },
     );
+    const { urlEndpoint, response } =
+      mockEvents.GET.remoteFeatureFlagsRedesignedConfirmations;
+
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: urlEndpoint,
+      response,
+      responseCode: 200,
+    });
   };
   let eventsToCheck: EventPayload[];
 
@@ -125,6 +144,12 @@ describe(SmokeConfirmationsRedesigned('DApp Initiated Transfer'), () => {
           RowComponents.SimulationDetails,
         );
         await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
+
+        // Scroll to Advanced Details section on Android
+        if (device.getPlatform() === 'android') {
+          await Gestures.swipe(RowComponents.GasFeesDetails, 'up');
+        }
+
         await Assertions.expectElementToBeVisible(
           RowComponents.AdvancedDetails,
         );
