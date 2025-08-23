@@ -90,10 +90,10 @@ export function useTransactionBridgeQuotes() {
     log(
       'Bridge quotes',
       quotes?.map((quote) => ({
-        bridgeId: quote.quote.bridgeId,
-        networkFee: quote.totalMaxNetworkFee.valueInCurrency,
-        sourceAmount: quote.sentAmount.valueInCurrency,
-        to: quote.toTokenAmount.valueInCurrency,
+        bridgeId: quote.quote?.bridgeId,
+        networkFee: quote.totalMaxNetworkFee?.valueInCurrency,
+        sourceAmount: quote.sentAmount?.valueInCurrency,
+        to: quote.toTokenAmount?.valueInCurrency,
       })),
     );
   }, [dispatch, quotes, transactionId]);
