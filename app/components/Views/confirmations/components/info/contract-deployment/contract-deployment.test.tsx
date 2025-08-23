@@ -44,13 +44,20 @@ jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
   useConfirmationMetricEvents: jest.fn(),
 }));
 
-jest.mock('../../../hooks/gas/useGasFeeToken');
+jest.mock('../../../hooks/gas/useGasFeeToken', () => ({
+  useGasFeeToken: jest.fn(),
+  useSelectedGasFeeToken: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useTokenAsset');
+
 jest.mock('../../../hooks/gas/useIsGaslessSupported', () => ({
   useIsGaslessSupported: jest.fn().mockReturnValue({
     isSupported: false,
     isSmartTransaction: false,
   }),
 }));
+
 jest.mock('../../../hooks/alerts/useInsufficientBalanceAlert', () => ({
   useInsufficientBalanceAlert: jest.fn().mockReturnValue([]),
 }));

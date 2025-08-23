@@ -34,7 +34,7 @@ export function GasFeeTokenIcon({
   tokenAddress: Hex;
 }) {
   const transactionMeta = useTransactionMetadataRequest();
-  const { asset } = useTokenAsset();
+  const { asset } = useTokenAsset() || {};
   const { chainId } = transactionMeta || {};
   const {
     networkImage,
@@ -70,12 +70,12 @@ export function GasFeeTokenIcon({
   return (
     <View testID="native-icon">
       <NetworkAssetLogo
-        chainId={asset.chainId as Hex}
+        chainId={asset?.chainId as Hex}
         style={styles.logoNative}
-        ticker={asset.ticker ?? asset.symbol}
+        ticker={asset?.ticker ?? asset?.symbol}
         big={false}
         biggest={false}
-        testID={asset.name}
+        testID={asset?.name}
       />
     </View>
   );
