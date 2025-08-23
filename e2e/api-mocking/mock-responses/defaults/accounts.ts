@@ -1246,7 +1246,45 @@ export const DEFAULT_ACCOUNTS_MOCK: MockEventsObject = {
       urlEndpoint:
         /^https:\/\/accounts\.api\.cx\.metamask\.io\/v2\/accounts\/[^\/]+\/balances\?.*$/,
       responseCode: 200,
-      response: { count: 0, balances: [], unprocessedNetworks: [] },
+      response: {
+        count: 3,
+        balances: [
+          {
+            object: 'token',
+            address: '0x0000000000000000000000000000000000000000',
+            symbol: 'ETH',
+            name: 'Ethereum',
+            type: 'native',
+            timestamp: '2015-07-30T15:26:13.000Z',
+            decimals: 18,
+            chainId: 1,
+            balance: '0.5',
+          },
+          {
+            object: 'token',
+            address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+            symbol: 'USDC',
+            name: 'USD Coin',
+            type: 'erc20',
+            timestamp: '2018-05-28T00:00:00.000Z',
+            decimals: 6,
+            chainId: 1,
+            balance: '1000.0',
+          },
+          {
+            object: 'token',
+            address: '0x6b175474e89094c44da98b954eedeac495271d0f',
+            symbol: 'DAI',
+            name: 'Dai Stablecoin',
+            type: 'erc20',
+            timestamp: '2017-12-18T00:00:00.000Z',
+            decimals: 18,
+            chainId: 1,
+            balance: '500.0',
+          },
+        ],
+        unprocessedNetworks: [],
+      },
     },
     {
       urlEndpoint:
