@@ -12,7 +12,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { selectChainId } from '../../../../../selectors/networkController';
-import Engine from '../../../../../core/Engine';
+import { usePerpsFirstTimeUser } from '../../../../UI/Perps/hooks/usePerpsFirstTimeUser';
 
 export const ResetAccountModal = ({
   resetModalVisible,
@@ -29,6 +29,7 @@ export const ResetAccountModal = ({
     selectSelectedInternalAccountFormattedAddress,
   );
   const chainId = useSelector(selectChainId);
+  const { resetFirstTimeUserState } = usePerpsFirstTimeUser();
 
   const resetAccount = () => {
     if (selectedAddress) {
@@ -37,7 +38,7 @@ export const ResetAccountModal = ({
     }
     wipeTransactions();
     // Reset Perps first-time user state for testing
-    Engine.context.PerpsController?.resetFirstTimeUserState();
+    resetFirstTimeUserState();
     navigation.navigate('WalletView');
   };
 
