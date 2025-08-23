@@ -1,6 +1,5 @@
 import { SmokeNetworkAbstractions } from '../../tags';
 import Assertions from '../../framework/Assertions';
-import { mockNotificationServices } from './utils/mocks';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
@@ -20,9 +19,6 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
       {
         fixture: new FixtureBuilder().withBackupAndSyncSettings().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer) => {
-          await mockNotificationServices(mockServer);
-        },
         permissions: {
           notifications: 'YES',
         },

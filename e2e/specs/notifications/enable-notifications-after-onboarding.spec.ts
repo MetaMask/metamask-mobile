@@ -7,7 +7,6 @@ import { loginToApp } from '../../viewHelper';
 import {
   getMockFeatureAnnouncementItemId,
   getMockWalletNotificationItemIds,
-  mockNotificationServices,
 } from './utils/mocks';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
@@ -26,9 +25,6 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         restartDevice: true,
         permissions: {
           notifications: 'YES',
-        },
-        testSpecificMock: async (mockServer) => {
-          await mockNotificationServices(mockServer);
         },
       },
       async () => {
