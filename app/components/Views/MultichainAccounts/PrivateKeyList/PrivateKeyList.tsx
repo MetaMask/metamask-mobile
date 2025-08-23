@@ -44,6 +44,7 @@ import {
   createNavigationDetails,
 } from '../../../../util/navigation/navUtils';
 import Routes from '../../../../constants/navigation/Routes';
+import { PrivateKeyListIds } from '../../../../../e2e/selectors/MultichainAccounts/PrivateKeyList.selectors';
 
 import styleSheet from './styles';
 import type { Params as PrivateKeyListParams, AddressItem } from './types';
@@ -102,6 +103,10 @@ export const PrivateKeyList = () => {
     [],
   );
 
+  const onPasswordChange = useCallback((pswd: string) => {
+    setPassword(pswd);
+  }, []);
+
   const unlockPrivateKeys = useCallback(async () => {
     const { KeyringController } = Engine.context;
     const pkAccounts = accounts.filter((account: InternalAccount) =>
@@ -122,7 +127,7 @@ export const PrivateKeyList = () => {
     setPrivateKeys(privateKeyMap);
   }, [accounts, password]);
 
-  const verifyPassword = useCallback(async () => {
+  const verifyPasswordAndUnlockKeys = useCallback(async () => {
     const { KeyringController } = Engine.context;
     try {
       await KeyringController.verifyPassword(password);
@@ -131,11 +136,11 @@ export const PrivateKeyList = () => {
       setReveal(false);
       setPrivateKeys({});
       return;
-    } finally {
-      await unlockPrivateKeys();
-      setWrongPassword(false);
-      setReveal(true);
     }
+
+    await unlockPrivateKeys();
+    setWrongPassword(false);
+    setReveal(true);
   }, [password, unlockPrivateKeys]);
 
   const onCancel = useCallback(() => {
@@ -177,41 +182,49 @@ export const PrivateKeyList = () => {
     () => (
       <>
         <View style={styles.password}>
-          <Text variant={TextVariant.BodyLGMedium}>
+          <Text
+            variant={TextVariant.BodyLGMedium}
+            testID={PrivateKeyListIds.PASSWORD_TITLE}
+          >
             {strings('multichain_accounts.private_key_list.enter_password')}
           </Text>
 
           <TextInput
             style={styles.input}
-            onChange={(e) => setPassword(e.nativeEvent.text)}
+            onChangeText={onPasswordChange}
             placeholder={strings(
               'multichain_accounts.private_key_list.password_placeholder',
             )}
             secureTextEntry
+            testID={PrivateKeyListIds.PASSWORD_INPUT}
           />
 
           {wrongPassword && (
-            <Text variant={TextVariant.BodyLGMedium} color={TextColor.Error}>
+            <Text
+              variant={TextVariant.BodyLGMedium}
+              color={TextColor.Error}
+              testID={PrivateKeyListIds.PASSWORD_ERROR}
+            >
               {strings('multichain_accounts.private_key_list.wrong_password')}
             </Text>
           )}
         </View>
         <View style={styles.buttons}>
           <Button
-            label="Cancel"
+            label={strings('multichain_accounts.private_key_list.cancel')}
             size={ButtonSize.Lg}
             variant={ButtonVariants.Secondary}
             onPress={onCancel}
             style={styles.button}
-            testID="multichain-accounts-private-key-list-verify-password-button"
+            testID={PrivateKeyListIds.CANCEL_BUTTON}
           />
           <Button
-            label="Continue"
+            label={strings('multichain_accounts.private_key_list.continue')}
             size={ButtonSize.Lg}
             variant={ButtonVariants.Primary}
-            onPress={() => verifyPassword()}
+            onPress={() => verifyPasswordAndUnlockKeys()}
             style={styles.button}
-            testID="multichain-accounts-private-key-list-verify-password-button"
+            testID={PrivateKeyListIds.CONTINUE_BUTTON}
           />
         </View>
       </>
@@ -221,9 +234,10 @@ export const PrivateKeyList = () => {
       styles.input,
       styles.buttons,
       styles.button,
+      onPasswordChange,
       wrongPassword,
       onCancel,
-      verifyPassword,
+      verifyPasswordAndUnlockKeys,
     ],
   );
 
@@ -234,6 +248,7 @@ export const PrivateKeyList = () => {
           data={filteredAccounts()}
           keyExtractor={(item) => item.scope}
           renderItem={renderAddressItem}
+          testID={PrivateKeyListIds.LIST}
         />
       </View>
     ),
@@ -250,8 +265,9 @@ export const PrivateKeyList = () => {
           title={strings('multichain_accounts.private_key_list.warning_title')}
           description={`${strings(
             'multichain_accounts.private_key_list.warning_description',
-          )} ${strings('multichain_accounts.private_key_list.learn_more')} `}
+          )}`}
           style={styles.banner}
+          testID={PrivateKeyListIds.BANNER}
         />
 
         {reveal ? renderPrivateKeyList() : renderPassword()}
