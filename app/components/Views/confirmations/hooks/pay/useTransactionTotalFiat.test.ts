@@ -233,6 +233,6 @@ describe('useTransactionTotalFiat', () => {
       ] as TransactionBridgeQuote[],
     });
 
-    expect(result.current.bridgeFeeFormatted).toBe('$30.00');
+    expect(result.current.bridgeFeeFormatted).toBe('$30');
   });
 });
