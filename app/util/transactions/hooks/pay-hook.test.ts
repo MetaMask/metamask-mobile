@@ -15,6 +15,7 @@ import { StatusTypes } from '@metamask/bridge-controller';
 import { selectShouldUseSmartTransaction } from '../../../selectors/smartTransactionsController';
 
 jest.mock('../../../selectors/smartTransactionsController');
+jest.mock('../../transaction-controller');
 
 const TRANSACTION_ID_MOCK = '123-456';
 const BRIDGE_TRANSACTION_ID_MOCK = '456-789';

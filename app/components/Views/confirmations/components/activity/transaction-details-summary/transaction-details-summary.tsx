@@ -5,7 +5,6 @@ import Text, {
 } from '../../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../../../UI/Box/Box';
 import Icon, {
-  IconColor,
   IconName,
 } from '../../../../../../component-library/components/Icons/Icon';
 import {
@@ -90,10 +89,9 @@ function SummaryLine({
           alignItems={AlignItems.center}
           gap={12}
         >
-          <Icon name={IconName.CircleX} />
+          <Icon name={IconName.Check} />
           <Text variant={TextVariant.BodyMD}>{title}</Text>
         </Box>
-        <Icon name={IconName.Arrow2UpRight} color={IconColor.Alternative} />
       </Box>
       <Box flexDirection={FlexDirection.Row}>
         <Box style={styles.divider} />
