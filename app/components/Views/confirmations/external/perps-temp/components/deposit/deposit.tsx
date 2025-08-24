@@ -40,7 +40,13 @@ export function PerpsDeposit() {
               {inputChanged && <AlertMessage field={RowAlertKey.Amount} />}
               <PayTokenAmount amountHuman={amountHuman} />
             </Box>
-            {!isKeyboardVisible && <AlertBanner blockingFields inline />}
+            {!isKeyboardVisible && (
+              <AlertBanner
+                blockingFields
+                excludeFields={[RowAlertKey.Amount]}
+                inline
+              />
+            )}
             <InfoSection>
               <PayWithRow />
             </InfoSection>
