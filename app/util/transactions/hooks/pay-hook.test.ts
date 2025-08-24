@@ -162,6 +162,26 @@ describe('Pay Publish Hook', () => {
     expect(submitTransactionMock).not.toHaveBeenCalled();
   });
 
+  it('does nothing if first quote has same source and target chain', async () => {
+    jest.spyOn(store, 'getState').mockReturnValue({
+      confirmationMetrics: {
+        transactionBridgeQuotesById: {
+          [TRANSACTION_ID_MOCK]: [
+            {
+              ...QUOTE_MOCK,
+              quote: { ...QUOTE_MOCK.quote, destChainId: 123 },
+            },
+            QUOTE_2_MOCK,
+          ],
+        },
+      },
+    } as unknown as RootState);
+
+    await runHook();
+
+    expect(submitTransactionMock).not.toHaveBeenCalled();
+  });
+
   it('throws if bridge status is failed', async () => {
     submitTransactionMock.mockReset();
     submitTransactionMock.mockImplementation(async () => {
