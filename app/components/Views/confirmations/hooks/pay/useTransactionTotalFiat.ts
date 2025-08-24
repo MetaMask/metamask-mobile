@@ -83,10 +83,11 @@ export function useTransactionTotalFiat() {
   ]);
 
   return {
-    value,
-    formatted,
-    totalGasFormatted: totalNetworkFeeFormatted,
     bridgeFeeFormatted,
+    formatted,
+    quoteNetworkFee: quoteNetworkFeeTotal.toString(10),
+    totalGasFormatted: totalNetworkFeeFormatted,
+    value,
   };
 }
 

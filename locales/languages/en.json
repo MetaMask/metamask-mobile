@@ -54,7 +54,10 @@
       "message": "Min order value is $10"
     },
     "insufficient_pay_token_balance": {
-      "message": "Insufficient funds. Select different token."
+      "message": "Insufficient token funds. Select different token."
+    },
+    "insufficient_pay_token_native": {
+      "message": "Insufficient native funds on payment token chain. Select different token."
     },
     "no_pay_token_quotes": {
       "title": "We couldn't find any quotes.",
