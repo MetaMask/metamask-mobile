@@ -10,6 +10,8 @@ import { Severity } from '../../types/alerts';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 import { selectTransactionState } from '../../../../../reducers/transaction';
 import { useConfirmActions } from '../useConfirmActions';
+import { useTransactionPayToken } from '../pay/useTransactionPayToken';
+import { noop } from 'lodash';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -26,6 +28,7 @@ jest.mock('@react-navigation/native', () => {
 });
 jest.mock('../useConfirmActions');
 jest.mock('../transactions/useTransactionMetadataRequest');
+jest.mock('../pay/useTransactionPayToken');
 jest.mock('../useAccountNativeBalance');
 jest.mock('../../../../../../locales/i18n');
 jest.mock('../../../../../selectors/networkController');
@@ -43,6 +46,8 @@ describe('useInsufficientBalanceAlert', () => {
   const mockSelectNetworkConfigurations = jest.mocked(
     selectNetworkConfigurations,
   );
+  const mockUseTransactionPayToken = jest.mocked(useTransactionPayToken);
+
   const mockChainId = '0x1';
   const mockFromAddress = '0x123';
   const mockNativeCurrency = 'ETH';
@@ -58,6 +63,7 @@ describe('useInsufficientBalanceAlert', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
     mockUseAccountNativeBalance.mockReturnValue({
       balanceWeiInHex: '0x8', // 8 wei
     } as unknown as ReturnType<typeof useAccountNativeBalance>);
@@ -67,6 +73,7 @@ describe('useInsufficientBalanceAlert', () => {
         nativeCurrency: mockNativeCurrency,
       },
     } as unknown as ReturnType<typeof selectNetworkConfigurations>);
+    mockUseTransactionPayToken.mockReturnValue({ setPayToken: noop });
 
     (strings as jest.Mock).mockImplementation((key, params) => {
       if (key === 'alert_system.insufficient_balance.buy_action') {
@@ -185,6 +192,17 @@ describe('useInsufficientBalanceAlert', () => {
 
     expect(result.current).toHaveLength(1);
     expect(result.current[0].key).toBe(AlertKeys.InsufficientBalance);
+  });
+
+  it('returns empty array if pay token selected', () => {
+    mockUseTransactionPayToken.mockReturnValue({
+      setPayToken: noop,
+      payToken: {} as never,
+    });
+
+    const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+    expect(result.current).toStrictEqual([]);
   });
 
   describe('when ignoreGasFeeToken is true', () => {
