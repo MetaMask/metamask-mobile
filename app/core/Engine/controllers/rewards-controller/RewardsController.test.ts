@@ -52,6 +52,12 @@ describe('RewardsController', () => {
     subscription: {
       id: 'test-subscription-id',
       referralCode: 'test-referral-code',
+      accounts: [
+        {
+          address: '0x123',
+          chainId: 1,
+        },
+      ],
     },
   };
 
@@ -232,6 +238,12 @@ describe('RewardsController', () => {
           subscription: {
             id: 'test-id',
             referralCode: 'test-code',
+            accounts: [
+              {
+                address: '0x123',
+                chainId: 1,
+              },
+            ],
           },
         },
       });
@@ -696,6 +708,12 @@ describe('RewardsController', () => {
         subscription: {
           id: 'test-id',
           referralCode: 'test-code',
+          accounts: [
+            {
+              address: '0x123',
+              chainId: 1,
+            },
+          ],
         },
       };
 

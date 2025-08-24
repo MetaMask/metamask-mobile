@@ -89,13 +89,6 @@ export class RewardsController extends BaseController<
   }
 
   /**
-   * Reset controller state to default
-   */
-  resetState(): void {
-    this.update(() => getRewardsControllerDefaultState());
-  }
-
-  /**
    * Sign a message for rewards authentication
    */
   async #signRewardsMessage(
@@ -276,6 +269,50 @@ export class RewardsController extends BaseController<
       // For other errors, we don't update the state to allow retries
     } finally {
       this.#isProcessingSilentAuth = false;
+    }
+  }
+
+  /**
+   * Reset controller state to default
+   */
+  resetState(): void {
+    this.update(() => getRewardsControllerDefaultState());
+  }
+
+  /**
+   * Get the subscription ID from the current state
+   * @returns The subscription ID if available, null otherwise
+   */
+  getSubscriptionId(): string | null {
+    return this.state.subscription?.id ?? null;
+  }
+
+  /**
+   * Update the controller state with opt-in response data
+   * @param address - The account address that was authenticated
+   * @param loginResponse - The login response containing subscription data
+   */
+  async updateStateWithOptinResponse(
+    address: string,
+    loginResponse: LoginResponseDto,
+  ): Promise<void> {
+    this.update((state) => {
+      state.lastAuthenticatedAccount = address;
+      state.lastAuthTime = Date.now();
+      state.subscription = loginResponse.subscription;
+    });
+
+    // Store the subscription token for authenticated requests
+    if (loginResponse.subscription?.id && loginResponse.sessionId) {
+      await storeSubscriptionToken(
+        loginResponse.subscription.id,
+        loginResponse.sessionId,
+      ).catch((error) => {
+        Logger.log(
+          'RewardsController: Failed to store subscription token:',
+          error,
+        );
+      });
     }
   }
 }

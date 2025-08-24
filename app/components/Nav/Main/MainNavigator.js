@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Image, StyleSheet, Keyboard, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { useSelector } from 'react-redux';
@@ -47,6 +47,7 @@ import Confirm from '../../Views/confirmations/legacy/SendFlow/Confirm';
 import { Confirm as RedesignedConfirm } from '../../Views/confirmations/components/confirm';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
+import RewardsNavigator from '../../Views/RewardsView/RewardsNavigator';
 import SwapsAmountView from '../../UI/Swaps';
 import SwapsQuotesView from '../../UI/Swaps/QuotesView';
 import CollectiblesDetails from '../../UI/CollectibleModal';
@@ -103,6 +104,7 @@ import {
   selectPerpsEnabledFlag,
 } from '../../UI/Perps';
 import { selectRewardsEnabledFlag } from '../../../selectors/featureFlagController/rewards';
+import { selectOnboardingState } from '../../../selectors/rewardscontroller';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
@@ -245,8 +247,8 @@ const RewardsHome = () => {
   if (!isRewardsEnabled) {
     return null;
   }
-  // TODO: Return RewardsNavigator
-  return null;
+
+  return <RewardsNavigator />;
 };
 
 /* eslint-disable react/prop-types */
