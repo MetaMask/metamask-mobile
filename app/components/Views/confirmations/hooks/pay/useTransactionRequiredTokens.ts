@@ -10,6 +10,9 @@ import { BridgeToken } from '../../../../UI/Bridge/types';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataOrThrow } from '../transactions/useTransactionMetadataRequest';
 import { useDeepMemo } from '../useDeepMemo';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../../../../reducers';
+import { selectUSDConversionRateByChainId } from '../../../../../selectors/currencyRateController';
 
 const log = createProjectLogger('transaction-pay');
 
@@ -41,7 +44,7 @@ export function useTransactionRequiredTokens() {
     chainIds: [chainId],
   });
 
-  const gasToken = useGasToken();
+  const gasToken = useGasToken(chainId);
   const tokenTransferToken = useTokenTransferToken();
 
   const requiredTokens = useMemo(
@@ -90,20 +93,37 @@ function useTokenTransferToken(): TransactionTokenBase | undefined {
   }, [transferAmount, to]);
 }
 
-function useGasToken(): TransactionTokenBase | undefined {
-  const maxGasCost = useTransactionMaxGasCost() ?? '0x0';
+function useGasToken(chainId: Hex): TransactionTokenBase | undefined {
+  const maxGasCostHex = useTransactionMaxGasCost();
+
+  const usdConversionRate = useSelector((state: RootState) =>
+    selectUSDConversionRateByChainId(state, chainId as Hex),
+  );
+
+  const oneDollarNativeWei = new BigNumber(1)
+    .dividedBy(usdConversionRate || 1)
+    .shiftedBy(18);
+
+  const maxGasCost = new BigNumber(maxGasCostHex ?? '0x0', 16);
+
+  const amount = toHex(
+    (usdConversionRate && maxGasCost.isLessThan(oneDollarNativeWei)
+      ? oneDollarNativeWei
+      : maxGasCost
+    ).toFixed(0, BigNumber.ROUND_CEIL),
+  );
 
   return useMemo(() => {
-    if (maxGasCost === '0x0') {
+    if (!maxGasCostHex) {
       return undefined;
     }
 
     return {
       address: NATIVE_TOKEN_ADDRESS,
-      amount: maxGasCost,
+      amount,
       skipIfBalance: true,
     };
-  }, [maxGasCost]);
+  }, [amount, maxGasCostHex]);
 }
 
 function getPartialTokens(
