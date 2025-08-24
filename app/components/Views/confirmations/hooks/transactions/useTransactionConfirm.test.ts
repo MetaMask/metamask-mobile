@@ -212,8 +212,7 @@ describe('useTransactionConfirm', () => {
     );
   });
 
-  // eslint-disable-next-line jest/no-disabled-tests
-  it.skip('adds metamask pay properties to transaction metadata', async () => {
+  it('adds metamask pay properties to transaction metadata', async () => {
     const { result } = renderHook();
 
     await result.current.onConfirm();

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -66,12 +65,12 @@ export function useTransactionConfirm() {
     }
 
     const updatedMetadata = cloneDeep(transactionMetadata);
-    // updatedMetadata.metamaskPay = {};
-    // updatedMetadata.metamaskPay.bridgeFeeFiat = bridgeFeeFiat;
-    // updatedMetadata.metamaskPay.chainId = payToken?.chainId;
-    // updatedMetadata.metamaskPay.networkFeeFiat = networkFeeFiat;
-    // updatedMetadata.metamaskPay.tokenAddress = payToken?.address;
-    // updatedMetadata.metamaskPay.totalFiat = totalFiat;
+    updatedMetadata.metamaskPay = {};
+    updatedMetadata.metamaskPay.bridgeFeeFiat = bridgeFeeFiat;
+    updatedMetadata.metamaskPay.chainId = payToken?.chainId;
+    updatedMetadata.metamaskPay.networkFeeFiat = networkFeeFiat;
+    updatedMetadata.metamaskPay.tokenAddress = payToken?.address;
+    updatedMetadata.metamaskPay.totalFiat = totalFiat;
 
     if (batchTransactions) {
       updatedMetadata.batchTransactions = batchTransactions;
@@ -104,15 +103,15 @@ export function useTransactionConfirm() {
     }
   }, [
     batchTransactions,
-    // bridgeFeeFiat,
+    bridgeFeeFiat,
     chainId,
     dispatch,
     isFullScreenConfirmation,
     navigation,
-    // networkFeeFiat,
+    networkFeeFiat,
     onRequestConfirm,
-    // payToken,
-    // totalFiat,
+    payToken,
+    totalFiat,
     transactionMetadata,
     tryEnableEvmNetwork,
     type,
