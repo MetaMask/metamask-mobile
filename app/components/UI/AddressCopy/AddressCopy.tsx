@@ -95,11 +95,11 @@ const AddressCopy = ({ account, iconColor, hitSlop }: AddressCopyProps) => {
   }, [navigate, selectedAccountGroupId]);
 
   const handleOnPress = useCallback(() => {
-    if (isMultichainAccountsState2Enabled) {
-      navigateToAddressList();
-    } else {
-      copyAccountToClipboard();
-    }
+    navigateToAddressList();
+    // if (isMultichainAccountsState2Enabled) {
+    // } else {
+    //   copyAccountToClipboard();
+    // }
   }, [
     copyAccountToClipboard,
     isMultichainAccountsState2Enabled,
