@@ -95,10 +95,25 @@ describe('AlertBanner', () => {
   });
 
   it('renders blocking field alerts if blockingFields set', () => {
-    const { getByText } = render(<AlertBanner blockingFields />);
+    const { getByText, queryByText } = render(<AlertBanner blockingFields />);
 
     expect(getByText('Alert 3')).toBeDefined();
     expect(getByText('Details for alert 3')).toBeDefined();
+
+    expect(getByText('Alert 4')).toBeDefined();
+    expect(getByText('Details for alert 4')).toBeDefined();
+
+    expect(queryByText('Alert 5')).toBeNull();
+    expect(queryByText('Details for alert 5')).toBeNull();
+  });
+
+  it('excludes fields if specified and blockingFields set', () => {
+    const { getByText, queryByText } = render(
+      <AlertBanner blockingFields excludeFields={[RowAlertKey.Amount]} />,
+    );
+
+    expect(queryByText('Alert 3')).toBeNull();
+    expect(queryByText('Details for alert 3')).toBeNull();
 
     expect(getByText('Alert 4')).toBeDefined();
     expect(getByText('Details for alert 4')).toBeDefined();
