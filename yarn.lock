@@ -6303,10 +6303,10 @@
     "@toruslabs/http-helpers" "^8.1.1"
     bn.js "^5.2.1"
 
-"@metamask/transaction-controller@npm:@metamask-previews/transaction-controller@60.0.0-preview-f108d6a":
-  version "60.0.0-preview-f108d6a"
-  resolved "https://registry.yarnpkg.com/@metamask-previews/transaction-controller/-/transaction-controller-60.0.0-preview-f108d6a.tgz#e442ac554adeeda532accebfec663471e7992531"
-  integrity sha512-1x/HF7njAaoI9pc65iW7tWHF5ign6y4OXyj2fqZ7NEYEqKhZeSWyXwvQMTFUu+j7U/KvpdBeZp91WcgQKDiGpw==
+"@metamask/transaction-controller@npm:@metamask-previews/transaction-controller@60.0.0-preview-2c45ce0":
+  version "60.0.0-preview-2c45ce0"
+  resolved "https://registry.yarnpkg.com/@metamask-previews/transaction-controller/-/transaction-controller-60.0.0-preview-2c45ce0.tgz#5d4191da755ed2d435829a70cf38dead5ebaab53"
+  integrity sha512-SDRYgKVIzoDrdSxsE/IFbJfwVAFweDrXlegUWgLd3F75l6xt1R1O3xqak/CJxL0F+ev1qs3XmLvwFYCQyA2c+g==
   dependencies:
     "@ethereumjs/common" "^4.4.0"
     "@ethereumjs/tx" "^5.4.0"
