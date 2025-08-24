@@ -126,7 +126,7 @@ function getQuoteBatchTransactions(
   quotes: TransactionBridgeQuote[],
 ): BatchTransaction[] {
   return quotes.flatMap((quote) => [
-    ...(quote.approval ? [getQuoteBatchTransaction(quote.trade)] : []),
+    ...(quote.approval ? [getQuoteBatchTransaction(quote.approval)] : []),
     getQuoteBatchTransaction(quote.trade),
   ]);
 }
