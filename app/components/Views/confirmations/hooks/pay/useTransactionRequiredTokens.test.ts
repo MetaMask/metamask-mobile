@@ -14,6 +14,7 @@ import { Interface } from '@ethersproject/abi';
 import { toHex } from '@metamask/controller-utils';
 import { NATIVE_TOKEN_ADDRESS } from '../../constants/tokens';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
+import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 
 jest.mock('../tokens/useTokenWithBalance');
 
@@ -28,6 +29,7 @@ const STATE_MOCK = merge(
   },
   simpleSendTransactionControllerMock,
   transactionApprovalControllerMock,
+  otherControllersMock,
 );
 
 function runHook({
@@ -78,6 +80,29 @@ describe('useTransactionRequiredTokens', () => {
     const tokens = runHook({
       transaction: {
         txParams: {
+          maxFeePerGas: toHex(50000000000000),
+          gas: '0x3',
+        } as TransactionParams,
+      },
+    }).result.current;
+
+    expect(tokens).toStrictEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          address: EMPTY_ADDRESS,
+          amountHuman: '0.00015',
+          amountRaw: '150000000000000',
+          decimals: 18,
+          skipIfBalance: true,
+        }),
+      ]),
+    );
+  });
+
+  it('returns gas token as one dollar minimum', () => {
+    const tokens = runHook({
+      transaction: {
+        txParams: {
           maxFeePerGas: '0x3',
           gas: '0x5',
         } as TransactionParams,
@@ -88,8 +113,8 @@ describe('useTransactionRequiredTokens', () => {
       expect.arrayContaining([
         expect.objectContaining({
           address: EMPTY_ADDRESS,
-          amountHuman: '0.000000000000000015',
-          amountRaw: '15',
+          amountHuman: '0.0001',
+          amountRaw: '100000000000000',
           decimals: 18,
           skipIfBalance: true,
         }),
