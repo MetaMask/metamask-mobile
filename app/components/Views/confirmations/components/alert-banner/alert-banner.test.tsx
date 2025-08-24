@@ -35,6 +35,7 @@ describe('AlertBanner', () => {
       content: <Text>Details for alert 3</Text>,
       alertDetails: ['Detail 5', 'Detail 6'],
       field: RowAlertKey.Amount,
+      isBlocking: true,
     },
     {
       key: '4',
@@ -42,7 +43,16 @@ describe('AlertBanner', () => {
       severity: Severity.Info,
       content: <Text>Details for alert 4</Text>,
       alertDetails: ['Detail 7', 'Detail 8'],
-      field: RowAlertKey.Amount,
+      field: RowAlertKey.PayWith,
+      isBlocking: true,
+    },
+    {
+      key: '5',
+      title: 'Alert 5',
+      severity: Severity.Info,
+      content: <Text>Details for alert 5</Text>,
+      alertDetails: ['Detail 9', 'Detail 10'],
+      field: RowAlertKey.PendingTransaction,
     },
   ];
 
@@ -84,25 +94,13 @@ describe('AlertBanner', () => {
     );
   });
 
-  it('renders field alerts if field specified', () => {
-    const { getByText } = render(<AlertBanner field={RowAlertKey.Amount} />);
+  it('renders blocking field alerts if blockingFields set', () => {
+    const { getByText } = render(<AlertBanner blockingFields />);
 
     expect(getByText('Alert 3')).toBeDefined();
     expect(getByText('Details for alert 3')).toBeDefined();
 
     expect(getByText('Alert 4')).toBeDefined();
     expect(getByText('Details for alert 4')).toBeDefined();
-  });
-
-  it('renders nothing if no field alerts mathcing specified field', () => {
-    const { queryByText } = render(
-      <AlertBanner field={RowAlertKey.Blockaid} />,
-    );
-
-    expect(queryByText('Alert 3')).toBeNull();
-    expect(queryByText('Details for alert 3')).toBeNull();
-
-    expect(queryByText('Alert 4')).toBeNull();
-    expect(queryByText('Details for alert 4')).toBeNull();
   });
 });
