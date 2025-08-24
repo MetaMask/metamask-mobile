@@ -4,18 +4,26 @@ import BannerAlert from '../../../../../component-library/components/Banners/Ban
 import styleSheet from './alert-banner.styles';
 import { useStyles } from '../../../../hooks/useStyles';
 import { getBannerAlertSeverity } from '../../utils/alert-system';
+import { RowAlertKey } from '../UI/info-row/alert-row/constants';
 
 export interface AlertBannerProps {
   blockingFields?: boolean;
+  excludeFields?: RowAlertKey[];
   inline?: boolean;
 }
 
-const AlertBanner = ({ blockingFields, inline }: AlertBannerProps = {}) => {
+const AlertBanner = ({
+  blockingFields,
+  excludeFields,
+  inline,
+}: AlertBannerProps = {}) => {
   const { generalAlerts, fieldAlerts } = useAlerts();
   const { styles } = useStyles(styleSheet, { inline });
 
   const alerts = blockingFields
-    ? fieldAlerts.filter((a) => a.isBlocking)
+    ? fieldAlerts.filter(
+        (a) => a.isBlocking && !excludeFields?.includes(a.field as RowAlertKey),
+      )
     : generalAlerts;
 
   if (alerts.length === 0) {
