@@ -15,7 +15,6 @@ import Icon, {
 } from '../../../../component-library/components/Icons/Icon';
 import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
 import MultichainAddressRow, {
-  MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
   MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
 } from '../../../../component-library/components-temp/MultichainAccounts/MultichainAddressRow';
 import { AddressListIds } from '../../../../../e2e/selectors/MultichainAccounts/AddressList.selectors';
@@ -28,6 +27,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import styleSheet from './styles';
 import type { AddressListProps, AddressItem } from './types';
 import ClipboardManager from '../../../../core/ClipboardManager';
+import { strings } from '../../../../../locales/i18n';
 
 export const createAddressListNavigationDetails =
   createNavigationDetails<AddressListProps>(
@@ -51,34 +51,32 @@ export const AddressList = () => {
   const internalAccountsSpreadByScopes =
     selectInternalAccountsSpreadByScopes(groupId);
 
-  const copyAddressToClipboard = useCallback(async (address: string) => {
-    await ClipboardManager.setString(address);
-  }, []);
+  const renderAddressItem = useCallback(({ item }: { item: AddressItem }) => {
+    const copyAddressToClipboard = async () => {
+      await ClipboardManager.setString(item.account.address);
+    };
 
-  const renderAddressItem = useCallback(
-    ({ item }: { item: AddressItem }) => (
+    return (
       <MultichainAddressRow
         chainId={item.scope}
         networkName={item.networkName}
         address={item.account.address}
+        copyParams={{
+          successMessage: strings('multichain_accounts.address_list.copied'),
+          callback: copyAddressToClipboard,
+        }}
         icons={[
-          {
-            name: IconName.Copy,
-            callback: () => copyAddressToClipboard(item.account.address),
-            testId: MULTICHAIN_ADDRESS_ROW_COPY_BUTTON_TEST_ID,
-          },
           {
             name: IconName.QrCode,
             callback: () => {
               // TODO: Implement navigation to QR code screen when it is ready
             },
-            testId: MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID,
+            testId: `${MULTICHAIN_ADDRESS_ROW_QR_BUTTON_TEST_ID}-${item.scope}`,
           },
         ]}
       />
-    ),
-    [copyAddressToClipboard],
-  );
+    );
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
