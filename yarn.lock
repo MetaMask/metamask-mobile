@@ -1703,6 +1703,11 @@
   resolved "https://registry.yarnpkg.com/@discoveryjs/json-ext/-/json-ext-0.5.7.tgz#1d572bfbbe14b7704e0ba0f39b74815b84870d70"
   integrity sha512-dBVuXR082gk3jsFp7Rd/JI4kytwGHecnCoTtXFb7DB6CNHp4rg5k1bhg0nWdLGLnOV71lmDzGQaLMy8iPLY0pw==
 
+"@ecies/ciphers@^0.2.3":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@ecies/ciphers/-/ciphers-0.2.4.tgz#20a4e51f61d521e5e311eb49385d93d91087de51"
+  integrity sha512-t+iX+Wf5nRKyNzk8dviW3Ikb/280+aEJAnw9YXvCp2tYGPSkMki+NRY+8aNLmVFv3eNtMdvViPNOPxS8SZNP+w==
+
 "@egjs/hammerjs@^2.0.17":
   version "2.0.17"
   resolved "https://registry.yarnpkg.com/@egjs/hammerjs/-/hammerjs-2.0.17.tgz#5dc02af75a6a06e4c2db0202cae38c9263895124"
@@ -4788,15 +4793,15 @@
     lodash "^4.17.21"
 
 "@metamask/accounts-controller@^32.0.1":
-  version "32.0.1"
-  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-32.0.1.tgz#f2380bc6ddbca1135a167d71c3163a400712a10f"
-  integrity sha512-ggAJdOJuId40jVPrvAZVWwHWKJUHQZsd/MtounHhfYTzvKxlOi6sVmBCodLvk4rexOdgSatoM2lrHgNRnr29lw==
+  version "32.0.2"
+  resolved "https://registry.yarnpkg.com/@metamask/accounts-controller/-/accounts-controller-32.0.2.tgz#2cb1cf84710813d27dba621deade3e698b44d532"
+  integrity sha512-zyn+tDfiyVRTMxn0rt/n0p+Uowaf3I3Rua1QDGXJMh4Vo+PN622g30AF/A8QwpMNmx61PX6V2rje1TSK/RUO0A==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@metamask/base-controller" "^8.0.1"
-    "@metamask/eth-snap-keyring" "^14.0.0"
-    "@metamask/keyring-api" "^19.0.0"
-    "@metamask/keyring-internal-api" "^7.0.0"
+    "@metamask/eth-snap-keyring" "^16.0.0"
+    "@metamask/keyring-api" "^20.0.0"
+    "@metamask/keyring-internal-api" "^8.0.0"
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/snaps-sdk" "^9.0.0"
     "@metamask/snaps-utils" "^11.0.0"
@@ -4844,10 +4849,10 @@
     "@metamask/utils" "^11.1.0"
     nanoid "^3.3.8"
 
-"@metamask/assets-controllers@^73.0.2":
-  version "73.0.2"
-  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-73.0.2.tgz#a42ecee48f2c136a6d1b08694488294e756b2063"
-  integrity sha512-pPtbxv3MAckMFDfIcc9eKZwL2tdS8k2yK3bddCP5x217f3e34Jc6bLdN5bcgd2F951WJRbg4bO6L9FDALzS80g==
+"@metamask/assets-controllers@^73.3.0":
+  version "73.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/assets-controllers/-/assets-controllers-73.3.0.tgz#23d041dac4d12d0ed537bcef461e1cceeb30ff38"
+  integrity sha512-ld5YAHKZMlUtPMiWPRjECzVg655f3qHut9Z+OdtXGPdLg99BGyjsCBjym9Cxk2S9FbxbtGl9OEuXfWNX/T85TA==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.7.0"
@@ -4856,11 +4861,11 @@
     "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/providers" "^5.7.0"
     "@metamask/abi-utils" "^2.0.3"
-    "@metamask/base-controller" "^8.0.1"
+    "@metamask/base-controller" "^8.1.0"
     "@metamask/contract-metadata" "^2.4.0"
-    "@metamask/controller-utils" "^11.11.0"
+    "@metamask/controller-utils" "^11.12.0"
     "@metamask/eth-query" "^4.0.0"
-    "@metamask/keyring-api" "^19.0.0"
+    "@metamask/keyring-api" "^20.1.0"
     "@metamask/metamask-eth-abis" "^3.1.1"
     "@metamask/polling-controller" "^14.0.0"
     "@metamask/rpc-errors" "^7.0.2"
@@ -4875,6 +4880,7 @@
     immer "^9.0.6"
     lodash "^4.17.21"
     multiformats "^13.1.0"
+    reselect "^5.1.1"
     single-call-balance-checker-abi "^1.0.0"
     uuid "^8.3.2"
 
@@ -5253,33 +5259,16 @@
     ethereum-cryptography "^2.1.2"
     randombytes "^2.1.0"
 
-"@metamask/eth-snap-keyring@^14.0.0":
-  version "14.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-14.0.0.tgz#3f7e3602eb294cd084893262317b9c4ad3b1e32c"
-  integrity sha512-sUq8hW+DLW7D8OCaI/RZEYH62BsnDtbXJe1olVMFVDLwujmJKC59mYWpVN+Deh8nrjsBp7ubfJ/jqvmZvA73Lg==
-  dependencies:
-    "@ethereumjs/tx" "^5.4.0"
-    "@metamask/base-controller" "^7.1.1"
-    "@metamask/eth-sig-util" "^8.2.0"
-    "@metamask/keyring-api" "^19.0.0"
-    "@metamask/keyring-internal-api" "^7.0.0"
-    "@metamask/keyring-internal-snap-client" "^5.0.0"
-    "@metamask/keyring-utils" "^3.1.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.1.0"
-    "@types/uuid" "^9.0.8"
-    uuid "^9.0.1"
-
 "@metamask/eth-snap-keyring@^16.0.0":
-  version "16.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-16.0.0.tgz#e795b72127d72b4919a5619ea491cc04eadd635e"
-  integrity sha512-FNyZ4HY9Ogv4GWQwJsUVb++GpdbSTmFK7jCxoKBYco7kw/LQI6AJpKPVZlzl2WiOpLkWi/vJ124mbbthzPzeNQ==
+  version "16.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/eth-snap-keyring/-/eth-snap-keyring-16.1.0.tgz#2a4d54367ed8a329fb91d1d3200c82f4dd36423b"
+  integrity sha512-JnR14wPksYja+e/3RbEYWxFNukO/yIpmR0hmIiogNj6VWJTQd0F/E8G/5J+0jdyX2ZYtNpzGtJj0vZaNi3wq/w==
   dependencies:
     "@ethereumjs/tx" "^5.4.0"
     "@metamask/base-controller" "^7.1.1"
     "@metamask/eth-sig-util" "^8.2.0"
-    "@metamask/keyring-api" "^20.0.0"
-    "@metamask/keyring-internal-api" "^8.0.0"
+    "@metamask/keyring-api" "^20.1.0"
+    "@metamask/keyring-internal-api" "^8.1.0"
     "@metamask/keyring-internal-snap-client" "^6.0.0"
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/superstruct" "^3.1.0"
@@ -5419,20 +5408,10 @@
     "@metamask/utils" "^11.1.0"
     bitcoin-address-validation "^2.2.3"
 
-"@metamask/keyring-api@^19.0.0", "@metamask/keyring-api@^19.1.0":
-  version "19.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-19.1.0.tgz#5fcf1873bc779774a53025982bd84230d03dcf66"
-  integrity sha512-QmKlPuPKtVzFz+wmTX8FbrAatHC0X17t2EwaejoUXDbGdeEH1H3dHGjRHXVkfdjBWdTh2OeCXVUP/TVXwwxKGw==
-  dependencies:
-    "@metamask/keyring-utils" "^3.1.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@metamask/utils" "^11.1.0"
-    bitcoin-address-validation "^2.2.3"
-
-"@metamask/keyring-api@^20.0.0":
-  version "20.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-20.0.0.tgz#831dee2a44d1521b1f057e095b479ed6a3c88331"
-  integrity sha512-kRJ+dYIiE99MaoH2kmO1lc2m3Jc3sKINJxWp4iBlyiugx7lUd3Fmr+s4rsUv6l/9EXUygOckX/qfYJtR+2I04Q==
+"@metamask/keyring-api@^20.0.0", "@metamask/keyring-api@^20.1.0":
+  version "20.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-api/-/keyring-api-20.1.0.tgz#7649b6c25be9b669f62883b34d85356858e42aa4"
+  integrity sha512-NKrO93vihpLdjX1HPBzu77vyx9/yItRKsgpllFXNbkiITiEn5HaFsPg3yi6aYj7KTmHY7vp4VSy0EjLMtYYVsA==
   dependencies:
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/superstruct" "^3.1.0"
@@ -5469,34 +5448,14 @@
     "@metamask/keyring-utils" "^3.0.0"
     "@metamask/superstruct" "^3.1.0"
 
-"@metamask/keyring-internal-api@^7.0.0":
-  version "7.1.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-7.1.0.tgz#75e6ea03a6d61034318c454b39cc78bc120bd145"
-  integrity sha512-tT4LgdkaFyad6gd7Fm9hIkmRrNC8aksHZUTef6UOmW4rmOBVCGgQQV/ze9eRyiebQcyuq8A8WuJg6NqmCteQ6A==
+"@metamask/keyring-internal-api@^8.0.0", "@metamask/keyring-internal-api@^8.1.0":
+  version "8.1.0"
+  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-8.1.0.tgz#285b0480a540bba16c9ddde6fdc426022a0071db"
+  integrity sha512-rFLm5fELp5akU6nZV0/q6sCWscskFbjn07tjjGouZrb78Py0TLUHfktytl7OcDptgce2icuyy7E08spmfPda1w==
   dependencies:
-    "@metamask/keyring-api" "^19.1.0"
+    "@metamask/keyring-api" "^20.1.0"
     "@metamask/keyring-utils" "^3.1.0"
     "@metamask/superstruct" "^3.1.0"
-
-"@metamask/keyring-internal-api@^8.0.0":
-  version "8.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-api/-/keyring-internal-api-8.0.0.tgz#97356d73dc998110cd0b5879e545c1752760319c"
-  integrity sha512-GwqWwY4qWo4whiEHjvWiX9NrFDxyYMfH/lYRqP3kbTwvcLVHWzzgw2MswVAEdNccWl90zKOIbJ4hNumsGR+hYg==
-  dependencies:
-    "@metamask/keyring-api" "^20.0.0"
-    "@metamask/keyring-utils" "^3.1.0"
-    "@metamask/superstruct" "^3.1.0"
-
-"@metamask/keyring-internal-snap-client@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-internal-snap-client/-/keyring-internal-snap-client-5.0.0.tgz#cd49a4468a4c8022e9c899f3d6feb4528b88c2aa"
-  integrity sha512-BehDMPDbysXJyictftPbHQuMygB5eWEUvY7UtBtNp0lVRzI0K9/ITkYscBcDinjoB8xdtHur+IOpKNAYWxYW5Q==
-  dependencies:
-    "@metamask/base-controller" "^7.1.1"
-    "@metamask/keyring-api" "^19.0.0"
-    "@metamask/keyring-internal-api" "^7.0.0"
-    "@metamask/keyring-snap-client" "^6.0.0"
-    "@metamask/keyring-utils" "^3.1.0"
 
 "@metamask/keyring-internal-snap-client@^6.0.0":
   version "6.0.0"
@@ -5516,18 +5475,6 @@
   dependencies:
     "@metamask/keyring-api" "^18.0.0"
     "@metamask/keyring-utils" "^3.0.0"
-    "@metamask/superstruct" "^3.1.0"
-    "@types/uuid" "^9.0.8"
-    uuid "^9.0.1"
-    webextension-polyfill "^0.12.0"
-
-"@metamask/keyring-snap-client@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@metamask/keyring-snap-client/-/keyring-snap-client-6.0.0.tgz#ca0d02070c1497bfc46a6bdc980708e0e1b1d155"
-  integrity sha512-GnbZLqCixmQlolNKEMVG2N06qFvoblK6iq4bb+6BguniY6IWGmUMvAOPKPLTDtq5w9Kq+ca0GAcgi44kKs1a9Q==
-  dependencies:
-    "@metamask/keyring-api" "^19.0.0"
-    "@metamask/keyring-utils" "^3.1.0"
     "@metamask/superstruct" "^3.1.0"
     "@types/uuid" "^9.0.8"
     uuid "^9.0.1"
@@ -5578,6 +5525,25 @@
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/mobile-provider/-/mobile-provider-3.0.0.tgz#8a6a5a0874c8cbe4b468f63dfc57117d207f9595"
   integrity sha512-XwFJk0rd9lAZR5xS3VC7ypEhD7DvZR2gi2Ch6PHnODIqeS9Te3OdVKK5+jHI4his8v/zs6LWdFdlRtx5/jL96w==
+
+"@metamask/mobile-wallet-protocol-core@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-core/-/mobile-wallet-protocol-core-0.0.6.tgz#5112cd91c571e8c9e97769606cb76cff6383cc96"
+  integrity sha512-/RQwH1IoUTrhIgTn9P+XaWdD6R+JdtqiFGrs0A/D0EBoLV8jWtBhFzBIOzaNDKMGoKR6y3uSvDCDAj3V1tCz7g==
+  dependencies:
+    centrifuge "^5.3.5"
+    eciesjs "^0.4.15"
+    eventemitter3 "^5.0.1"
+    uuid "^11.1.0"
+
+"@metamask/mobile-wallet-protocol-wallet-client@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@metamask/mobile-wallet-protocol-wallet-client/-/mobile-wallet-protocol-wallet-client-0.0.6.tgz#5862bd975788f27b94f528882726e7aefedeea03"
+  integrity sha512-W/iRXuMvpImAlJLZ8BxtJp3raQZaPB8cR+gBY3Irtb+CUMclmuQL0mlLHs2tz0hLunhXd8rSRrI6W1T0AT4H6A==
+  dependencies:
+    "@metamask/mobile-wallet-protocol-core" "^0.0.6"
+    "@metamask/utils" "^9.1.0"
+    uuid "^11.1.0"
 
 "@metamask/multichain-account-service@^0.4.0":
   version "0.4.0"
@@ -6255,10 +6221,10 @@
     ses "^1.12.0"
     validate-npm-package-name "^5.0.0"
 
-"@metamask/solana-wallet-snap@^2.1.4":
-  version "2.1.4"
-  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.1.4.tgz#e935691c5cd9e13ec8c0600ad156ea6666f6c4ea"
-  integrity sha512-sbu+u5VQeUB0fwKZrz5zKd5lVJ4wiU1CyecDz5ykjlwuj1xcYzARyK4TBEdXMpvxScM0AlwvV+CIG3IY0Vztnw==
+"@metamask/solana-wallet-snap@^2.3.0":
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/@metamask/solana-wallet-snap/-/solana-wallet-snap-2.3.0.tgz#cf5438384033ee0f313d6c7b86ed6ed2d01620d3"
+  integrity sha512-zdqoC/obe407p3vZMXvIDsf51YviwzkcfOJbeqA3g4+RO5rb6eY5oUARsXpvSaaEO9kL/Xt9E8e3bApvEaNKwA==
 
 "@metamask/solana-wallet-standard@^0.5.1":
   version "0.5.1"
@@ -6427,7 +6393,7 @@
     semver "^7.5.4"
     uuid "^9.0.1"
 
-"@metamask/utils@^9.0.0", "@metamask/utils@^9.2.1":
+"@metamask/utils@^9.0.0", "@metamask/utils@^9.1.0", "@metamask/utils@^9.2.1":
   version "9.3.0"
   resolved "https://registry.yarnpkg.com/@metamask/utils/-/utils-9.3.0.tgz#4726bd7f5d6a43ea8425b6d663ab9207f617c2d1"
   integrity sha512-w8CVbdkDrVXFJbfBSlDfafDR6BAkpDmv1bC1UJVCoVny5tW2RKAdn9i68Xf7asYT4TnUhl/hN4zfUiKQq9II4g==
@@ -12592,7 +12558,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/secp256k1@^4.0.1", "@types/secp256k1@^4.0.3":
+"@types/secp256k1@^4.0.1":
   version "4.0.3"
   resolved "https://registry.yarnpkg.com/@types/secp256k1/-/secp256k1-4.0.3.tgz#1b8e55d8e00f08ee7220b4d59a6abe89c37a901c"
   integrity sha512-Da66lEIFeIz9ltsdMZcpQvmrmmoqrfju8pm1BH8WbYjZSwUgCwXLb9C+9XYogwBITnbsSaMdVPb2ekf7TV+03w==
@@ -16287,6 +16253,14 @@ cbor-sync@^1.0.4:
   resolved "https://registry.yarnpkg.com/cbor-sync/-/cbor-sync-1.0.4.tgz#5a11a1ab75c2a14d1af1b237fd84aa8c1593662f"
   integrity sha512-GWlXN4wiz0vdWWXBU71Dvc1q3aBo0HytqwAZnXF1wOwjqNnDWA1vZ1gDMFLlqohak31VQzmhiYfiCX5QSSfagA==
 
+centrifuge@^5.3.5:
+  version "5.4.0"
+  resolved "https://registry.yarnpkg.com/centrifuge/-/centrifuge-5.4.0.tgz#b84c140937b780288fb2bace35666362565fa209"
+  integrity sha512-XFRaOkljFN8GvN0Z+8g/nhlTf93PIF9nz9eWXuZ/OfviUkXuQfNpGzzQMAWMrrPnQCqVNXEK8WxJbproT2TSnw==
+  dependencies:
+    events "^3.3.0"
+    protobufjs "^7.2.5"
+
 chalk@4.1.2, chalk@^4.0.0, chalk@^4.0.2, chalk@^4.1.0, chalk@^4.1.1, chalk@^4.1.2:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/chalk/-/chalk-4.1.2.tgz#aac4e2b7734a740867aeb16bf02aad556a1e7a01"
@@ -16461,13 +16435,13 @@ cids@^0.7.1:
     multicodec "^1.0.0"
     multihashes "~0.4.15"
 
-cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/cipher-base/-/cipher-base-1.0.4.tgz#8760e4ecc272f4c363532f926d874aae2c1397de"
-  integrity sha512-Kkht5ye6ZGmwv40uUDZztayT2ThLQGfnj/T71N/XzeZeo3nf8foyW7zGTsPYkEya3m5f3cAypH+qe7YOrM1U2Q==
+cipher-base@1.0.5, cipher-base@^1.0.0, cipher-base@^1.0.1, cipher-base@^1.0.3:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/cipher-base/-/cipher-base-1.0.5.tgz#749f80731c7821e9a5fabd51f6998b696f296686"
+  integrity sha512-xq7ICKB4TMHUx7Tz1L9O2SGKOhYMOTR32oir45Bq28/AQTpHogKgHcoYFSdRbMtddl+ozNXfXY9jWcgYKmde0w==
   dependencies:
-    inherits "^2.0.1"
-    safe-buffer "^5.0.1"
+    inherits "^2.0.4"
+    safe-buffer "^5.2.1"
 
 citty@^0.1.4, citty@^0.1.5:
   version "0.1.5"
@@ -18379,13 +18353,22 @@ easy-table@*, easy-table@^1.1.1:
     wcwidth "^1.0.1"
 
 eciesjs@^0.3.15:
-  version "0.3.16"
-  resolved "https://registry.yarnpkg.com/eciesjs/-/eciesjs-0.3.16.tgz#a9dc1cf7222a2d286e68cf7869659ecaa74500d4"
-  integrity sha512-MoFRwH3vjelucj5DG+F7f+wdNngHE/GOSRcBYDxvpJ5+42yLt6svSwoCLtAkurVBlVNOgfD447pZLkqYcrtFdQ==
+  version "0.3.21"
+  resolved "https://registry.yarnpkg.com/eciesjs/-/eciesjs-0.3.21.tgz#532cad1bf52176cd7ddf45e049e61ef15d239516"
+  integrity sha512-6FiThm7KlTihph8ROhq/BHEglGCJSwq6c8KVgcCcJiNJFNlbrFtfnTqZobVmWIB764mzhZTOBFyinADSXXvTLg==
   dependencies:
-    "@types/secp256k1" "^4.0.3"
-    futoin-hkdf "^1.5.1"
-    secp256k1 "^4.0.3"
+    futoin-hkdf "^1.5.3"
+    secp256k1 "^5.0.1"
+
+eciesjs@^0.4.15:
+  version "0.4.15"
+  resolved "https://registry.yarnpkg.com/eciesjs/-/eciesjs-0.4.15.tgz#8c7191ce425c54627ee5c65328ab54eaa6ed4556"
+  integrity sha512-r6kEJXDKecVOCj2nLMuXK/FCPeurW33+3JRpfXVbjLja3XUYFfD9I/JBreH6sUyzcm3G/YQboBjMla6poKeSdA==
+  dependencies:
+    "@ecies/ciphers" "^0.2.3"
+    "@noble/ciphers" "^1.3.0"
+    "@noble/curves" "^1.9.1"
+    "@noble/hashes" "^1.8.0"
 
 edge-paths@^2.1.0:
   version "2.2.1"
@@ -20788,10 +20771,10 @@ fuse.js@3.4.4:
   resolved "https://registry.yarnpkg.com/fuse.js/-/fuse.js-3.4.4.tgz#f98f55fcb3b595cf6a3e629c5ffaf10982103e95"
   integrity sha512-pyLQo/1oR5Ywf+a/tY8z4JygnIglmRxVUOiyFAbd11o9keUDpUJSMGRWJngcnkURj30kDHPmhoKY8ChJiz3EpQ==
 
-futoin-hkdf@^1.5.1:
-  version "1.5.2"
-  resolved "https://registry.yarnpkg.com/futoin-hkdf/-/futoin-hkdf-1.5.2.tgz#d316623d29f45fe5e6f136f435eccd74096bf676"
-  integrity sha512-Bnytx8kQJQoEAPGgTZw3kVPy8e/n9CDftPzc0okgaujmbdF1x7w8wg+u2xS0CML233HgruNk6VQW28CzuUFMKw==
+futoin-hkdf@^1.5.3:
+  version "1.5.3"
+  resolved "https://registry.yarnpkg.com/futoin-hkdf/-/futoin-hkdf-1.5.3.tgz#6c8024f2e1429da086d4e18289ef2239ad33ee35"
+  integrity sha512-SewY5KdMpaoCeh7jachEWFsh1nNlaDjNHZXWqL5IGwtpEYHTgkr2+AMCgNwKWkcc0wpSYrZfR7he4WdmHFtDxQ==
 
 fwd-stream@^1.0.4:
   version "1.0.4"
@@ -29037,7 +29020,7 @@ secp256k1@3.8.1:
     nan "^2.14.0"
     safe-buffer "^5.1.2"
 
-secp256k1@4.0.3, secp256k1@4.0.4, secp256k1@^4.0.0, secp256k1@^4.0.1, secp256k1@^4.0.3:
+secp256k1@4.0.3, secp256k1@4.0.4, secp256k1@^4.0.0, secp256k1@^4.0.1, secp256k1@^5.0.1:
   version "4.0.4"
   resolved "https://registry.yarnpkg.com/secp256k1/-/secp256k1-4.0.4.tgz#58f0bfe1830fe777d9ca1ffc7574962a8189f8ab"
   integrity sha512-6JfvwvjUOn8F/jUoBY2Q1v5WY5XS+rj8qSe0v8Y4ezH4InLgTEeOOPQsRll9OV429Pvo6BCHGavIyJfr3TAhsw==
@@ -29234,13 +29217,14 @@ setprototypeof@1.2.0:
   resolved "https://registry.yarnpkg.com/setprototypeof/-/setprototypeof-1.2.0.tgz#66c9a24a73f9fc28cbe66b09fed3d33dcaf1b424"
   integrity sha512-E5LDX7Wrp85Kil5bhZv46j8jOeboKq5JMmYM3gVGdGH8xFpPWXUMsNrlODCrkoxMEeNi/XZIwuRvY4XNwYMJpw==
 
-sha.js@^2.3.6, sha.js@^2.4.0, sha.js@^2.4.11, sha.js@^2.4.8:
-  version "2.4.11"
-  resolved "https://registry.yarnpkg.com/sha.js/-/sha.js-2.4.11.tgz#37a5cf0b81ecbc6943de109ba2960d1b26584ae7"
-  integrity sha512-QMEp5B7cftE7APOjk5Y6xgrbWu+WkLVQwk8JNjZ8nKRciZaByEW6MubieAiToS7+dwvrjGhH8jRXz3MVd0AYqQ==
+sha.js@2.4.12, sha.js@^2.3.6, sha.js@^2.4.0, sha.js@^2.4.11, sha.js@^2.4.8:
+  version "2.4.12"
+  resolved "https://registry.yarnpkg.com/sha.js/-/sha.js-2.4.12.tgz#eb8b568bf383dfd1867a32c3f2b74eb52bdbf23f"
+  integrity sha512-8LzC5+bvI45BjpfXU8V5fdU2mfeKiQe1D1gIMn7XUlF3OTUrpdJpPPH4EMAnF0DsHHdSZqCdSss5qCmJKuiO3w==
   dependencies:
-    inherits "^2.0.1"
-    safe-buffer "^5.0.1"
+    inherits "^2.0.4"
+    safe-buffer "^5.2.1"
+    to-buffer "^1.2.0"
 
 sha256-uint8array@0.10.3, sha256-uint8array@^0.10.3:
   version "0.10.3"
@@ -31487,6 +31471,11 @@ uuid@9.0.0:
   version "9.0.0"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-9.0.0.tgz#592f550650024a38ceb0c562f2f6aa435761efb5"
   integrity sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==
+
+uuid@^11.1.0:
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.1.0.tgz#9549028be1753bb934fc96e2bca09bb4105ae912"
+  integrity sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==
 
 uuid@^3.0.1:
   version "3.4.0"
