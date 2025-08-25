@@ -4,10 +4,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import {
+  BUILDER_FEE_CONFIG,
   FEE_RATES,
   getBridgeInfo,
   getChainId,
   HYPERLIQUID_WITHDRAWAL_MINUTES,
+  REFERRAL_CONFIG,
   TRADING_DEFAULTS,
 } from '../../constants/hyperLiquidConfig';
 import {
@@ -20,6 +22,7 @@ import { HyperLiquidWalletService } from '../../services/HyperLiquidWalletServic
 import {
   adaptAccountStateFromSDK,
   adaptMarketFromSDK,
+  adaptOrderFromSDK,
   adaptPositionFromSDK,
   buildAssetMapping,
   formatHyperLiquidPrice,
@@ -67,7 +70,9 @@ import type {
   PerpsMarketData,
   Position,
   ReadyToTradeResult,
+  SubscribeAccountParams,
   SubscribeOrderFillsParams,
+  SubscribeOrdersParams,
   SubscribePositionsParams,
   SubscribePricesParams,
   ToggleTestnetResult,
@@ -93,6 +98,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
   // Asset mapping
   private coinToAssetId = new Map<string, number>();
+
+  // Cache for user fee rates to avoid excessive API calls
+  private userFeeCache = new Map<
+    string,
+    {
+      perpsTakerRate: number;
+      perpsMakerRate: number;
+      spotTakerRate: number;
+      spotMakerRate: number;
+      timestamp: number;
+      ttl: number;
+    }
+  >();
 
   constructor(options: { isTestnet?: boolean } = {}) {
     const isTestnet = options.isTestnet || false;
@@ -178,6 +196,86 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Check current builder fee approval for the user
+   * @param builder - Builder address to check approval for
+   * @returns Current max fee rate or null if not approved
+   */
+  private async checkBuilderFeeApproval(): Promise<number | null> {
+    const infoClient = this.clientService.getInfoClient();
+    const userAddress = await this.walletService.getUserAddressWithDefault();
+    const builder = this.getBuilderAddress(this.clientService.isTestnetMode());
+
+    return infoClient.maxBuilderFee({
+      user: userAddress,
+      builder,
+    });
+  }
+
+  /**
+   * Ensure builder fee approval before placing orders
+   */
+  private async ensureBuilderFeeApproval(): Promise<void> {
+    const { isApproved, requiredDecimal } = await this.checkBuilderFeeStatus();
+    const builderAddress = this.getBuilderAddress(
+      this.clientService.isTestnetMode(),
+    );
+
+    if (!isApproved) {
+      DevLogger.log('Builder fee approval required', {
+        builder: builderAddress,
+        currentApproval: isApproved,
+        requiredDecimal,
+      });
+
+      const exchangeClient = this.clientService.getExchangeClient();
+      const maxFeeRate = BUILDER_FEE_CONFIG.maxFeeRate;
+
+      await exchangeClient.approveBuilderFee({
+        builder: builderAddress,
+        maxFeeRate,
+      });
+
+      // Verify approval was successful
+      const afterApprovalDecimal = await this.checkBuilderFeeApproval();
+
+      // this throw will block the order from being placed
+      // this should ideally never happen
+      if (
+        afterApprovalDecimal === null ||
+        afterApprovalDecimal < requiredDecimal
+      ) {
+        throw new Error('Builder fee approval failed or insufficient');
+      }
+
+      DevLogger.log('Builder fee approval successful', {
+        builder: builderAddress,
+        approvedDecimal: afterApprovalDecimal,
+        maxFeeRate,
+      });
+    }
+  }
+
+  /**
+   * Check if builder fee is approved for the current user
+   * @returns Object with approval status and current rate
+   */
+  private async checkBuilderFeeStatus(): Promise<{
+    isApproved: boolean;
+    currentRate: number | null;
+    requiredDecimal: number;
+  }> {
+    const currentApproval = await this.checkBuilderFeeApproval();
+    const requiredDecimal = BUILDER_FEE_CONFIG.maxFeeDecimal;
+
+    return {
+      isApproved:
+        currentApproval !== null && currentApproval >= requiredDecimal,
+      currentRate: currentApproval,
+      requiredDecimal,
+    };
+  }
+
+  /**
    * Place an order using direct wallet signing (same as working debug test)
    */
   async placeOrder(params: OrderParams): Promise<OrderResult> {
@@ -191,6 +289,12 @@ export class HyperLiquidProvider implements IPerpsProvider {
       }
 
       await this.ensureReady();
+
+      // Ensure builder fee approval and referral code are set before placing any order
+      await Promise.all([
+        this.ensureBuilderFeeApproval(),
+        this.ensureReferralSet(),
+      ]);
 
       // Get asset info - use provided current price to avoid extra API call
       const infoClient = this.clientService.getInfoClient();
@@ -296,9 +400,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
           params.orderType === 'limit'
             ? { limit: { tif: 'Gtc' } }
             : { limit: { tif: 'Ioc' } },
-        c: params.clientOrderId
-          ? (params.clientOrderId as `0x${string}`)
-          : undefined,
+        c: params.clientOrderId ? (params.clientOrderId as Hex) : undefined,
       };
       orders.push(mainOrder);
 
@@ -362,6 +464,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const result = await exchangeClient.order({
         orders,
         grouping,
+        builder: {
+          b: this.getBuilderAddress(this.clientService.isTestnetMode()),
+          f: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+        },
       });
 
       if (result.status !== 'ok') {
@@ -460,7 +566,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
             ? { limit: { tif: 'Gtc' } }
             : { limit: { tif: 'Ioc' } },
         c: params.newOrder.clientOrderId
-          ? (params.newOrder.clientOrderId as `0x${string}`)
+          ? (params.newOrder.clientOrderId as Hex)
           : undefined,
       };
 
@@ -469,7 +575,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const result = await exchangeClient.modify({
         oid:
           typeof params.orderId === 'string'
-            ? (params.orderId as `0x${string}`)
+            ? (params.orderId as Hex)
             : params.orderId,
         order: newOrder,
       });
@@ -585,6 +691,11 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const isLong = parseFloat(position.size) > 0;
 
       await this.ensureReady();
+
+      await Promise.all([
+        this.ensureBuilderFeeApproval(),
+        this.ensureReferralSet(),
+      ]);
 
       // Get current price for the asset
       const infoClient = this.clientService.getInfoClient();
@@ -710,14 +821,23 @@ export class HyperLiquidProvider implements IPerpsProvider {
         orders.push(slOrder);
       }
 
+      // If no new orders, we've just cancelled existing ones (clearing TP/SL)
       if (orders.length === 0) {
-        throw new Error('No TP/SL prices provided');
+        DevLogger.log('No new TP/SL orders to place - existing ones cancelled');
+        return {
+          success: true,
+          // No orderId since we only cancelled orders, didn't place new ones
+        };
       }
 
       // Submit via SDK exchange client with positionTpsl grouping
       const result = await exchangeClient.order({
         orders,
         grouping: 'positionTpsl',
+        builder: {
+          b: this.getBuilderAddress(this.clientService.isTestnetMode()),
+          f: BUILDER_FEE_CONFIG.maxFeeTenthsBps,
+        },
       });
 
       if (result.status !== 'ok') {
@@ -1051,6 +1171,39 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Get currently open orders (real-time status)
+   * Uses frontendOpenOrders API to get only currently active orders
+   */
+  async getOpenOrders(params?: GetOrdersParams): Promise<Order[]> {
+    try {
+      DevLogger.log(
+        'Getting currently open orders via HyperLiquid SDK',
+        params || '(no params)',
+      );
+      await this.ensureReady();
+
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault(
+        params?.accountId,
+      );
+
+      const rawOrders = await infoClient.frontendOpenOrders({
+        user: userAddress,
+      });
+
+      DevLogger.log('Currently open orders received:', rawOrders);
+
+      // Transform HyperLiquid open orders to abstract Order type using adapter
+      const orders: Order[] = (rawOrders || []).map(adaptOrderFromSDK);
+
+      return orders;
+    } catch (error) {
+      DevLogger.log('Error getting currently open orders:', error);
+      return [];
+    }
+  }
+
+  /**
    * Get user funding history
    */
   async getFunding(params?: GetFundingParams): Promise<Funding[]> {
@@ -1143,7 +1296,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       const infoClient = this.clientService.getInfoClient();
       const meta = await infoClient.meta();
-      return meta.universe.map((asset) => adaptMarketFromSDK(asset));
+      const markets = meta.universe.map((asset) => adaptMarketFromSDK(asset));
+
+      return markets;
     } catch (error) {
       DevLogger.log('Error getting markets:', error);
       return [];
@@ -1162,9 +1317,10 @@ export class HyperLiquidProvider implements IPerpsProvider {
       const infoClient = this.clientService.getInfoClient();
 
       // Fetch all required data in parallel for better performance
-      const [perpsMeta, allMids] = await Promise.all([
+      const [perpsMeta, allMids, predictedFundings] = await Promise.all([
         infoClient.meta(),
         infoClient.allMids(),
+        infoClient.predictedFundings(),
       ]);
 
       if (!perpsMeta?.universe || !allMids) {
@@ -1180,6 +1336,7 @@ export class HyperLiquidProvider implements IPerpsProvider {
         universe: perpsMeta.universe,
         assetCtxs,
         allMids,
+        predictedFundings,
       });
     } catch (error) {
       DevLogger.log('Error getting market data with prices:', error);
@@ -1260,6 +1417,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
             };
           }
         } catch (error) {
+          // Log the error before falling back
+          DevLogger.log('Failed to get max leverage for symbol', error);
           // If we can't get max leverage, use the default as fallback
           const defaultMaxLeverage = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
           if (params.leverage < 1 || params.leverage > defaultMaxLeverage) {
@@ -1618,6 +1777,20 @@ export class HyperLiquidProvider implements IPerpsProvider {
   }
 
   /**
+   * Subscribe to live order updates
+   */
+  subscribeToOrders(params: SubscribeOrdersParams): () => void {
+    return this.subscriptionService.subscribeToOrders(params);
+  }
+
+  /**
+   * Subscribe to live account updates
+   */
+  subscribeToAccount(params: SubscribeAccountParams): () => void {
+    return this.subscriptionService.subscribeToAccount(params);
+  }
+
+  /**
    * Configure live data settings
    */
   setLiveDataConfig(config: Partial<LiveDataConfig>): void {
@@ -1678,7 +1851,8 @@ export class HyperLiquidProvider implements IPerpsProvider {
       try {
         await this.walletService.getCurrentAccountId();
         accountConnected = true;
-      } catch {
+      } catch (error) {
+        DevLogger.log('Account not connected:', error);
         accountConnected = false;
       }
 
@@ -1850,46 +2024,122 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Calculate fees based on HyperLiquid's fee structure
    * Returns fee rate as decimal (e.g., 0.00045 for 0.045%)
    *
-   * HyperLiquid base fees (Tier 0, no discounts):
-   * - Taker: 0.045% (market orders, aggressive limit orders)
-   * - Maker: 0.015% (limit orders that add liquidity)
-   *
-   * TODO: Apply volume and staking discounts when APIs available
+   * Uses the SDK's userFees API to get actual discounted rates when available,
+   * falling back to base rates if the API is unavailable or user not connected.
    */
   async calculateFees(
     params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
     const { orderType, isMaker = false, amount } = params;
 
-    // Use base rates from config
-    const baseRate =
+    // Start with base rates from config
+    let feeRate =
       orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
 
-    // TODO: When APIs available, apply user-specific discounts
-    // const volume = await this.getUserVolume();
-    // const staking = await this.getUserStaking();
-    // const { volumeTier, volumeDiscount, stakingDiscount } = await this.calculateDiscounts(volume, staking);
-    // const finalRate = baseRate * (1 - volumeDiscount) * (1 - stakingDiscount);
+    // Try to get user-specific rates if wallet is connected
+    try {
+      const userAddress = await this.walletService.getUserAddressWithDefault();
+
+      // Check cache first
+      if (this.isFeeCacheValid(userAddress)) {
+        const cached = this.userFeeCache.get(userAddress);
+        if (cached) {
+          // Market orders always use taker rate, limit orders check isMaker
+          feeRate =
+            orderType === 'market' || !isMaker
+              ? cached.perpsTakerRate
+              : cached.perpsMakerRate;
+        }
+      } else {
+        // Fetch fresh rates from SDK
+        await this.ensureReady();
+        const infoClient = this.clientService.getInfoClient();
+        const userFees = await infoClient.userFees({
+          user: userAddress as `0x${string}`,
+        });
+
+        // Parse the rates (these already include all discounts!)
+        const perpsTakerRate = parseFloat(userFees.feeSchedule.cross);
+        const perpsMakerRate = parseFloat(userFees.feeSchedule.add);
+        const spotTakerRate = parseFloat(userFees.feeSchedule.spotCross);
+        const spotMakerRate = parseFloat(userFees.feeSchedule.spotAdd);
+
+        // Validate all rates are valid numbers before caching
+        if (
+          isNaN(perpsTakerRate) ||
+          isNaN(perpsMakerRate) ||
+          isNaN(spotTakerRate) ||
+          isNaN(spotMakerRate) ||
+          perpsTakerRate < 0 ||
+          perpsMakerRate < 0 ||
+          spotTakerRate < 0 ||
+          spotMakerRate < 0
+        ) {
+          throw new Error('Invalid fee rates received from API');
+        }
+
+        const rates = {
+          perpsTakerRate,
+          perpsMakerRate,
+          spotTakerRate,
+          spotMakerRate,
+          timestamp: Date.now(),
+          ttl: 5 * 60 * 1000, // 5 minutes
+        };
+
+        this.userFeeCache.set(userAddress, rates);
+        // Market orders always use taker rate, limit orders check isMaker
+        feeRate =
+          orderType === 'market' || !isMaker
+            ? rates.perpsTakerRate
+            : rates.perpsMakerRate;
+
+        DevLogger.log('Fetched user fee rates', {
+          userAddress,
+          perpsTaker: rates.perpsTakerRate,
+          perpsMaker: rates.perpsMakerRate,
+          cacheExpiry: new Date(rates.timestamp + rates.ttl).toISOString(),
+        });
+      }
+    } catch (error) {
+      // Silently fall back to base rates
+      DevLogger.log('Failed to fetch user fee rates, using base rates', error);
+    }
 
     const parsedAmount = amount ? parseFloat(amount) : 0;
     const feeAmount =
       amount !== undefined
         ? isNaN(parsedAmount)
           ? 0
-          : parsedAmount * baseRate
+          : parsedAmount * feeRate
         : undefined;
 
     return {
-      feeRate: baseRate,
+      feeRate,
       feeAmount,
-      // Future: Include breakdown when we have user data
-      // breakdown: {
-      //   baseFeeRate: baseRate,
-      //   volumeTier,
-      //   volumeDiscount,
-      //   stakingDiscount,
-      // },
     };
+  }
+
+  /**
+   * Check if the fee cache is valid for a user
+   * @private
+   */
+  private isFeeCacheValid(userAddress: string): boolean {
+    const cached = this.userFeeCache.get(userAddress);
+    if (!cached) return false;
+    return Date.now() - cached.timestamp < cached.ttl;
+  }
+
+  /**
+   * Clear fee cache for a specific user or all users
+   * @param userAddress - Optional address to clear cache for
+   */
+  public clearFeeCache(userAddress?: string): void {
+    if (userAddress) {
+      this.userFeeCache.delete(userAddress);
+    } else {
+      this.userFeeCache.clear();
+    }
   }
 
   /**
@@ -1904,6 +2154,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Clear subscriptions through subscription service
       this.subscriptionService.clearAll();
+
+      // Clear fee cache
+      this.clearFeeCache();
 
       // Disconnect client service
       await this.clientService.disconnect();
@@ -1935,5 +2188,166 @@ export class HyperLiquidProvider implements IPerpsProvider {
     }
 
     return `${baseUrl}/explorer`;
+  }
+
+  private getBuilderAddress(isTestnet: boolean) {
+    return isTestnet
+      ? BUILDER_FEE_CONFIG.testnetBuilder
+      : BUILDER_FEE_CONFIG.mainnetBuilder;
+  }
+
+  private getReferralCode(isTestnet: boolean): string {
+    return isTestnet
+      ? REFERRAL_CONFIG.testnetCode
+      : REFERRAL_CONFIG.mainnetCode;
+  }
+
+  /**
+   * Ensure user has a MetaMask referral code set
+   * If user doesn't have a referral set, set MetaMask as referrer
+   * This is called before every order to maximize referral capture
+   *
+   * Note: This is network-specific - testnet and mainnet have separate referral states
+   */
+  private async ensureReferralSet(): Promise<void> {
+    const errorMessage = 'Error ensuring referral code is set';
+    try {
+      const isTestnet = this.clientService.isTestnetMode();
+      const network = isTestnet ? 'testnet' : 'mainnet';
+      const expectedReferralCode = this.getReferralCode(isTestnet);
+      const referrerAddress = this.getBuilderAddress(isTestnet);
+      const userAddress = await this.walletService.getUserAddressWithDefault();
+
+      if (userAddress.toLowerCase() === referrerAddress.toLowerCase()) {
+        // if the user is the builder, we don't need to set a referral code
+        return;
+      }
+
+      const isReady = await this.isReferralCodeReady();
+      if (!isReady) {
+        // if the referrer code is not ready, we can't set the referral code on the user
+        // so we just return and the error will be logged
+        // we may want to block this completely, but for now we just log the error
+        // as the referrer may need to address an issue first and we may not want to completely
+        // block orders for this
+        return;
+      }
+      // Check if user already has a referral set on this network
+      const hasReferral = await this.checkReferralSet();
+
+      if (!hasReferral) {
+        DevLogger.log('No referral set - setting MetaMask as referrer', {
+          network,
+          referralCode: expectedReferralCode,
+        });
+        const result = await this.setReferralCode();
+        if (result === true) {
+          DevLogger.log('Referral code set', {
+            network,
+            referralCode: expectedReferralCode,
+          });
+        } else {
+          throw new Error('Failed to set referral code');
+        }
+      }
+    } catch (error) {
+      console.error(errorMessage, error);
+      throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * Check if the referral code is ready to be used
+   * @returns Promise resolving to true if referral code is ready
+   */
+  private async isReferralCodeReady(): Promise<boolean> {
+    const errorMessage = 'Error checking if referral code is ready';
+    try {
+      const infoClient = this.clientService.getInfoClient();
+      const isTestnet = this.clientService.isTestnetMode();
+      const code = this.getReferralCode(isTestnet);
+      const referrerAddr = this.getBuilderAddress(isTestnet);
+
+      const referral = await infoClient.referral({ user: referrerAddr });
+
+      const stage = referral.referrerState?.stage;
+
+      if (stage === 'ready') {
+        const onFile = referral.referrerState?.data?.code || '';
+        if (onFile.toUpperCase() !== code.toUpperCase()) {
+          throw new Error(
+            `Ready for referrals but there is a config code mismatch ${onFile} vs ${code}`,
+          );
+        }
+        return true;
+      }
+      console.error('Referral code not ready', {
+        stage,
+        code,
+        referrerAddr,
+        referral,
+      });
+      return false;
+    } catch (error) {
+      console.error(errorMessage, error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if user has a referral code set with HyperLiquid
+   * @returns Promise resolving to true if referral is set, false otherwise
+   */
+  private async checkReferralSet(): Promise<boolean> {
+    try {
+      const infoClient = this.clientService.getInfoClient();
+      const userAddress = await this.walletService.getUserAddressWithDefault();
+
+      // Call HyperLiquid API to check if user has a referral set
+      const referralData = await infoClient.referral({
+        user: userAddress,
+      });
+
+      DevLogger.log('Referral check result:', {
+        userAddress,
+        referralData,
+      });
+
+      return !!referralData?.referredBy?.code;
+    } catch (error) {
+      DevLogger.log('Error checking referral status:', error);
+      // do not throw here, return false as we can try to set it again
+      return false;
+    }
+  }
+
+  /**
+   * Set MetaMask as the user's referrer on HyperLiquid
+   */
+  private async setReferralCode(): Promise<boolean> {
+    const errorMessage = 'Error setting referral code';
+    try {
+      const exchangeClient = this.clientService.getExchangeClient();
+      const referralCode = this.getReferralCode(
+        this.clientService.isTestnetMode(),
+      );
+
+      DevLogger.log('Setting referral code:', {
+        code: referralCode,
+        network: this.clientService.isTestnetMode() ? 'testnet' : 'mainnet',
+      });
+
+      // set the referral code
+      const result = await exchangeClient.setReferrer({
+        code: referralCode,
+      });
+
+      DevLogger.log('Referral code set result:', result);
+
+      return result?.status === 'ok';
+    } catch (error) {
+      console.error(errorMessage, error);
+      throw new Error(errorMessage);
+    }
   }
 }

@@ -1,18 +1,16 @@
-import { InternalAccount } from '@metamask/keyring-internal-api';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 // eslint-disable-next-line import/no-namespace
 import * as TransactionUtils from '../../../../util/transaction-controller';
-// eslint-disable-next-line import/no-namespace
-import * as SendMultichainTransactionUtils from '../../../../core/SnapKeyring/utils/sendMultichainTransaction';
-import { AssetType } from '../types/token';
-import { SOLANA_ASSET } from '../__mocks__/send.mock';
+import { AssetType, TokenStandard } from '../types/token';
+import { InitSendLocation } from '../constants/send';
 import {
   formatToFixedDecimals,
+  fromBNWithDecimals,
   handleSendPageNavigation,
   prepareEVMTransaction,
   submitEvmTransaction,
-  submitNonEvmTransaction,
+  toBNWithDecimals,
 } from './send';
 
 jest.mock('../../../../core/Engine', () => ({
@@ -26,7 +24,9 @@ jest.mock('../../../../core/Engine', () => ({
 describe('handleSendPageNavigation', () => {
   it('navigates to send page', () => {
     const mockNavigate = jest.fn();
-    handleSendPageNavigation(mockNavigate, { name: 'ETHEREUM' } as AssetType);
+    handleSendPageNavigation(mockNavigate, InitSendLocation.WalletActions, {
+      name: 'ETHEREUM',
+    } as AssetType);
     expect(mockNavigate).toHaveBeenCalledWith('SendFlowView');
   });
 });
@@ -69,7 +69,7 @@ describe('prepareEVMTransaction', () => {
     });
   });
 
-  it('prepares transaction for NFT token', () => {
+  it('prepares transaction for ERC721 NFT token', () => {
     expect(
       prepareEVMTransaction(
         {
@@ -77,11 +77,32 @@ describe('prepareEVMTransaction', () => {
           address: '0x123',
           chainId: '0x1',
           tokenId: '0x1',
+          standard: TokenStandard.ERC721,
+        } as AssetType,
+        { from: '0x123', to: '0x456' },
+      ),
+    ).toStrictEqual({
+      data: '0x23b872dd000000000000000000000000000000000000000000000000000000000000012300000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000001',
+      from: '0x123',
+      to: '0x123',
+      value: '0x0',
+    });
+  });
+
+  it('prepares transaction for ERC1155 NFT token', () => {
+    expect(
+      prepareEVMTransaction(
+        {
+          name: 'MyNFT',
+          address: '0x123',
+          chainId: '0x1',
+          tokenId: '0x1',
+          standard: TokenStandard.ERC1155,
         } as AssetType,
         { from: '0x123', to: '0x456', value: '100' },
       ),
     ).toStrictEqual({
-      data: '0x23b872dd000000000000000000000000000000000000000000000000000000000000012300000000000000000000000000000000000000000000000000000000000004560000000000000000000000000000000000000000000000000000000000000001',
+      data: '0xf242432a0000000000000000000000000000000000000000000000000000000000000123000000000000000000000000000000000000000000000000000000000000045600000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000064',
       from: '0x123',
       to: '0x123',
       value: '0x0',
@@ -110,21 +131,15 @@ describe('submitEvmTransaction', () => {
   });
 });
 
-describe('submitNonEvmTransaction', () => {
-  it('invokes function sendMultichainTransaction', () => {
-    const mockSendMultichainTransaction = jest
-      .spyOn(SendMultichainTransactionUtils, 'sendMultichainTransaction')
-      .mockImplementation(() => Promise.resolve());
-    submitNonEvmTransaction({
-      asset: SOLANA_ASSET,
-      fromAccount: { id: 'solana_account_id' } as InternalAccount,
-    });
-    expect(mockSendMultichainTransaction).toHaveBeenCalled();
-  });
-});
-
 describe('formatToFixedDecimals', () => {
-  it('return `0` is value is equivalent to 0', () => {
+  it('return `0` if value is not defined', () => {
+    expect(formatToFixedDecimals(undefined as unknown as string)).toEqual('0');
+    expect(formatToFixedDecimals(null as unknown as string)).toEqual('0');
+  });
+  it('remove trailing zeros', () => {
+    expect(formatToFixedDecimals('1.0000')).toEqual('1');
+  });
+  it('return `0` if value is equivalent to 0', () => {
     expect(formatToFixedDecimals('0.0000')).toEqual('0');
   });
   it('return correct string for very small values', () => {
@@ -134,7 +149,40 @@ describe('formatToFixedDecimals', () => {
     expect(formatToFixedDecimals('0.00001', 4)).toEqual('< 0.0001');
   });
   it('formats value with passed number of decimals', () => {
-    expect(formatToFixedDecimals('1', 4)).toEqual('1.0000');
+    expect(formatToFixedDecimals('1', 4)).toEqual('1');
     expect(formatToFixedDecimals('1.01010101', 4)).toEqual('1.0101');
+  });
+});
+
+describe('toBNWithDecimals', () => {
+  it('converts value to bignumber correctly', () => {
+    expect(toBNWithDecimals('1.20', 5).toString()).toEqual('120000');
+  });
+  it('remove addtional decimal part', () => {
+    expect(toBNWithDecimals('.123123', 3).toString()).toEqual('123');
+  });
+  it('converts decimal value to bignumber correctly', () => {
+    expect(toBNWithDecimals('.1', 5).toString()).toEqual('10000');
+  });
+  it('converts 0 value to bignumber correctly', () => {
+    expect(toBNWithDecimals('0', 5).toString()).toEqual('0');
+  });
+});
+
+describe('fromBNWithDecimals', () => {
+  it('converts bignumber to string correctly', () => {
+    expect(
+      fromBNWithDecimals(toBNWithDecimals('1.20', 5), 5).toString(),
+    ).toEqual('1.2');
+  });
+  it('converts decimal value to bignumber correctly', () => {
+    expect(fromBNWithDecimals(toBNWithDecimals('.1', 5), 5).toString()).toEqual(
+      '0.1',
+    );
+  });
+  it('converts 0 value to bignumber correctly', () => {
+    expect(fromBNWithDecimals(toBNWithDecimals('0', 5), 5).toString()).toEqual(
+      '0',
+    );
   });
 });

@@ -13,10 +13,10 @@ export const styleSheet = (params: {
 
   return StyleSheet.create({
     continueButton: {
-      color: continueDisabled
+      backgroundColor: continueDisabled
         ? theme.colors.error.default
-        : theme.colors.text.default,
-      marginBottom: 6,
+        : theme.colors.primary.default,
+      marginBottom: 12,
     },
   });
 };

@@ -1,60 +1,68 @@
 /* eslint-disable @metamask/design-tokens/color-no-hex */
 import React, {
-  useRef,
-  useState,
-  useMemo,
+  memo,
   useCallback,
   useEffect,
-  memo,
+  useMemo,
+  useRef,
+  useState,
 } from 'react';
-import { View, TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import {
   Gesture,
   GestureDetector,
   GestureHandlerRootView,
 } from 'react-native-gesture-handler';
+import LinearGradient from 'react-native-linear-gradient';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
 } from 'react-native-reanimated';
-import LinearGradient from 'react-native-linear-gradient';
+import { strings } from '../../../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
+import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import { useTheme } from '../../../../../util/theme';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
-  IconSize,
-  IconName,
   IconColor,
+  IconName,
+  IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { useTheme } from '../../../../../util/theme';
+import { Theme } from '../../../../../util/theme/models';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
-import { strings } from '../../../../../../locales/i18n';
-import { Theme } from '../../../../../util/theme/models';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;
   onClose: () => void;
-  onConfirm: (leverage: number) => void;
+  onConfirm: (leverage: number, inputMethod?: 'slider' | 'preset') => void;
   leverage: number;
   minLeverage: number;
   maxLeverage: number;
   currentPrice: number;
   liquidationPrice: number;
   direction: 'long' | 'short';
+  asset?: string;
 }
 
 // Custom Leverage Slider Component
@@ -64,10 +72,13 @@ const LeverageSlider: React.FC<{
   minValue: number;
   maxValue: number;
   colors: Theme['colors'];
-}> = ({ value, onValueChange, minValue, maxValue, colors }) => {
+  onInteraction?: () => void;
+}> = ({ value, onValueChange, minValue, maxValue, colors, onInteraction }) => {
   const styles = createStyles(colors);
   const sliderWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
+  const isPressed = useSharedValue(false);
+  const thumbScale = useSharedValue(1);
   const widthRef = useRef(0);
   const [gradientWidth, setGradientWidth] = useState(300);
 
@@ -104,10 +115,8 @@ const LeverageSlider: React.FC<{
     if (widthRef.current > 0) {
       const percentage = (value - minValue) / (maxValue - minValue);
       const newPosition = percentage * widthRef.current;
-      translateX.value = withSpring(newPosition, {
-        damping: 15,
-        stiffness: 400,
-      });
+      // Direct assignment for instant update, no spring animation
+      translateX.value = newPosition;
     }
   }, [value, minValue, maxValue, translateX]);
 
@@ -116,29 +125,43 @@ const LeverageSlider: React.FC<{
   }));
 
   const thumbStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
+    transform: [{ translateX: translateX.value }, { scale: thumbScale.value }],
   }));
 
   const updateValue = useCallback(
     (newValue: number) => {
       onValueChange(newValue);
+      onInteraction?.();
     },
-    [onValueChange],
+    [onValueChange, onInteraction],
   );
 
   const panGesture = Gesture.Pan()
+    .onBegin(() => {
+      isPressed.value = true;
+      thumbScale.value = 1.1; // Subtle scale effect, instant
+    })
     .onUpdate((event) => {
       const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
       translateX.value = newPosition;
+      // Real-time value update during drag
+      const currentValue = positionToValue(newPosition, sliderWidth.value);
+      runOnJS(updateValue)(currentValue);
     })
     .onEnd(() => {
+      isPressed.value = false;
+      thumbScale.value = 1; // Direct assignment, no spring
       const currentValue = positionToValue(translateX.value, sliderWidth.value);
       runOnJS(updateValue)(currentValue);
+    })
+    .onFinalize(() => {
+      isPressed.value = false;
+      thumbScale.value = 1; // Direct assignment, no spring
     });
 
   const tapGesture = Gesture.Tap().onEnd((event) => {
     const newPosition = Math.max(0, Math.min(event.x, sliderWidth.value));
-    translateX.value = withSpring(newPosition, { damping: 15, stiffness: 400 });
+    translateX.value = newPosition; // Direct assignment for instant response
     const newValue = positionToValue(newPosition, sliderWidth.value);
     runOnJS(updateValue)(newValue);
   });
@@ -199,7 +222,10 @@ const LeverageSlider: React.FC<{
           ))}
 
           {/* Thumb */}
-          <Animated.View style={[styles.leverageThumb, thumbStyle]} />
+          <Animated.View
+            style={[styles.leverageThumb, thumbStyle]}
+            hitSlop={{ top: 15, bottom: 15, left: 15, right: 15 }}
+          />
         </View>
       </GestureDetector>
     </GestureHandlerRootView>
@@ -216,21 +242,52 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
   currentPrice,
   liquidationPrice,
   direction,
+  asset = '',
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [tempLeverage, setTempLeverage] = useState(initialLeverage);
+  const [inputMethod, setInputMethod] = useState<'slider' | 'preset'>('slider');
+  const { track } = usePerpsEventTracking();
+  const hasTrackedLeverageView = useRef(false);
+
+  // Track screen load performance
+  usePerpsScreenTracking({
+    screenName: PerpsMeasurementName.LEVERAGE_BOTTOM_SHEET_LOADED,
+    dependencies: [isVisible],
+  });
 
   useEffect(() => {
     if (isVisible) {
       bottomSheetRef.current?.onOpenBottomSheet();
+    } else {
+      // Reset the flag and leverage when the bottom sheet is closed
+      hasTrackedLeverageView.current = false;
+      setTempLeverage(initialLeverage);
     }
-  }, [isVisible]);
+  }, [isVisible, initialLeverage]);
+
+  // Track leverage screen viewed event - separate concern
+  useEffect(() => {
+    if (isVisible && !hasTrackedLeverageView.current) {
+      track(MetaMetricsEvents.PERPS_LEVERAGE_SCREEN_VIEWED, {
+        [PerpsEventProperties.ASSET]: asset,
+        [PerpsEventProperties.DIRECTION]:
+          direction === 'long'
+            ? PerpsEventValues.DIRECTION.LONG
+            : PerpsEventValues.DIRECTION.SHORT,
+      });
+      hasTrackedLeverageView.current = true;
+    }
+  }, [isVisible, direction, asset, track]);
 
   const handleConfirm = () => {
-    DevLogger.log(`Confirming leverage: ${tempLeverage}`);
-    onConfirm(tempLeverage);
+    DevLogger.log(
+      `Confirming leverage: ${tempLeverage}, method: ${inputMethod}`,
+    );
+
+    onConfirm(tempLeverage, inputMethod);
     onClose();
   };
 
@@ -391,6 +448,7 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             minValue={minLeverage}
             maxValue={maxLeverage}
             colors={colors}
+            onInteraction={() => setInputMethod('slider')}
           />
           <View style={styles.sliderLabels}>
             <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
@@ -411,7 +469,10 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 styles.quickSelectButton,
                 tempLeverage === value && styles.quickSelectButtonActive,
               ]}
-              onPress={() => setTempLeverage(value)}
+              onPress={() => {
+                setTempLeverage(value);
+                setInputMethod('preset');
+              }}
             >
               <Text
                 variant={TextVariant.BodyLGMedium}

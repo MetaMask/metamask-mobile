@@ -56,6 +56,7 @@ import { WalletViewSelectorsIDs } from '../../../../e2e/selectors/wallet/WalletV
 import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { isUnifiedSwapsEnvVarEnabled } from '../../../core/redux/slices/bridge/utils/isUnifiedSwapsEnvVarEnabled';
+import { initialState as cardInitialState } from '../../../core/redux/slices/card';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   IconColor,
@@ -138,6 +139,12 @@ jest.mock('../../../core/Engine', () => {
       TokensController: {
         addTokens: jest.fn(),
       },
+      NetworkEnablementController: {
+        setEnabledNetwork: jest.fn(),
+        setDisabledNetwork: jest.fn(),
+        isNetworkEnabled: jest.fn(),
+        hasOneEnabledNetwork: jest.fn(),
+      },
     },
   };
 });
@@ -180,9 +187,7 @@ const mockInitialState = {
     hasOnboarded: false,
     isLive: true,
   },
-  wizard: {
-    step: 0,
-  },
+  card: cardInitialState,
   settings: {
     primaryCurrency: 'usd',
     basicFunctionalityEnabled: true,
@@ -306,6 +311,17 @@ jest.mock('../../../util/address', () => ({
       },
     },
   }),
+}));
+
+jest.mock('../../../util/networks', () => ({
+  ...jest.requireActual('../../../util/networks'),
+  isRemoveGlobalNetworkSelectorEnabled: jest.fn(() => false),
+}));
+
+jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
+  useNetworkSelection: jest.fn(() => ({
+    selectNetwork: jest.fn(),
+  })),
 }));
 
 // Better navigation mock pattern (from WalletActions.test.tsx)
@@ -499,7 +515,7 @@ describe('Wallet', () => {
       // Check that AssetDetailsActions was called with all required props
       expect(mockAssetDetailsActions.mock.calls[0][0]).toEqual(
         expect.objectContaining({
-          displayBuyButton: expect.any(Boolean),
+          displayFundButton: expect.any(Boolean),
           displaySwapsButton: expect.any(Boolean),
           displayBridgeButton: expect.any(Boolean),
           swapsIsLive: expect.any(Boolean),
@@ -507,8 +523,7 @@ describe('Wallet', () => {
           goToSwaps: expect.any(Function),
           onReceive: expect.any(Function),
           onSend: expect.any(Function),
-          onBuy: expect.any(Function),
-          buyButtonActionID: 'wallet-buy-button',
+          fundButtonActionID: 'wallet-fund-button',
           swapButtonActionID: 'wallet-swap-button',
           bridgeButtonActionID: 'wallet-bridge-button',
           sendButtonActionID: 'wallet-send-button',
@@ -594,14 +609,14 @@ describe('Wallet', () => {
       expect(sendFlowNavigationCall).toBeDefined();
     });
 
-    it('should handle onBuy callback correctly', () => {
+    it('should pass correct props to AssetDetailsActions (no onBuy prop needed)', () => {
       //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
-      const onBuy = mockAssetDetailsActions.mock.calls[0][0].onBuy;
-      onBuy();
-
-      expect(mockNavigate).toHaveBeenCalled();
+      // Verify that AssetDetailsActions is called without onBuy prop
+      const passedProps = mockAssetDetailsActions.mock.calls[0][0];
+      expect(passedProps.onBuy).toBeUndefined();
+      expect(passedProps.fundButtonActionID).toBeDefined();
     });
 
     it('should handle goToBridge callback correctly', () => {
@@ -841,6 +856,97 @@ describe('Wallet', () => {
       });
 
       jest.clearAllMocks();
+    });
+  });
+
+  describe('Feature Flag: isRemoveGlobalNetworkSelectorEnabled', () => {
+    const { isRemoveGlobalNetworkSelectorEnabled } = jest.requireMock(
+      '../../../util/networks',
+    );
+    const { useNetworkSelection } = jest.requireMock(
+      '../../../components/hooks/useNetworkSelection/useNetworkSelection',
+    );
+
+    // Common test configurations
+    const createMockSelectNetwork = () => jest.fn();
+
+    const createStateWithEnabledNetworks = (enabledNetworks: string[]) => ({
+      ...mockInitialState,
+      engine: {
+        backgroundState: {
+          ...mockInitialState.engine.backgroundState,
+          NetworkEnablementController: {
+            ...mockInitialState.engine.backgroundState
+              .NetworkEnablementController,
+            enabledNetworkMap: {
+              eip155: enabledNetworks.reduce((acc, network) => {
+                acc[network] = true;
+                return acc;
+              }, {} as Record<string, boolean>),
+            },
+          },
+        },
+      },
+    });
+
+    const setupMocks = (
+      mockSelectNetwork: jest.Mock,
+      featureFlagEnabled: boolean,
+    ) => {
+      jest
+        .mocked(isRemoveGlobalNetworkSelectorEnabled)
+        .mockReturnValue(featureFlagEnabled);
+      jest.mocked(useNetworkSelection).mockReturnValue({
+        selectNetwork: mockSelectNetwork,
+      });
+    };
+
+    const renderWalletWithState = (state: unknown) => {
+      jest
+        .mocked(useSelector)
+        .mockImplementation((callback) => callback(state));
+      //@ts-expect-error we are ignoring the navigation params on purpose
+      render(Wallet);
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    describe('when feature flag is enabled', () => {
+      it('should call selectNetwork when no enabled EVM networks', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, true);
+
+        const stateWithNoEnabledNetworks = createStateWithEnabledNetworks([]);
+        renderWalletWithState(stateWithNoEnabledNetworks);
+
+        expect(mockSelectNetwork).toHaveBeenCalledWith('0x1');
+      });
+
+      it('should not call selectNetwork when there are enabled EVM networks', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, true);
+
+        const stateWithEnabledNetworks = createStateWithEnabledNetworks([
+          '0x1',
+          '0x5',
+        ]);
+        renderWalletWithState(stateWithEnabledNetworks);
+
+        expect(mockSelectNetwork).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('when feature flag is disabled', () => {
+      it('should not call selectNetwork', () => {
+        const mockSelectNetwork = createMockSelectNetwork();
+        setupMocks(mockSelectNetwork, false);
+
+        renderWalletWithState(mockInitialState);
+
+        expect(mockSelectNetwork).not.toHaveBeenCalled();
+      });
     });
   });
 });

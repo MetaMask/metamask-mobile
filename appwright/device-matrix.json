@@ -1,0 +1,43 @@
+{
+  "android_devices": [
+    {
+      "name": "Samsung Galaxy S23 Ultra",
+      "os_version": "13.0",
+      "category": "high",
+      "description": "High-end Samsung flagship device with Android 13"
+    },
+    {
+      "name": "Google Pixel 8 Pro",
+      "os_version": "14.0",
+      "category": "high",
+      "description": "High-end Google flagship device with Android 14"
+    }
+  ],
+  "ios_devices": [
+    {
+      "name": "iPhone 16 Pro Max",
+      "os_version": "18",
+      "category": "high",
+      "description": "High-end iPhone 16 Pro Max with iOS 18"
+    },
+    {
+      "name": "iPhone 12",
+      "os_version": "17",
+      "category": "medium",
+      "description": "Medium iPhone 12."
+    }
+  ],
+  "device_categories": {
+    "high": "High-end devices for primary testing",
+    "medium": "Mid-range devices for broader compatibility testing",
+    "low": "Low-end devices for backward compatibility and emerging market testing"
+  },
+  "os_coverage": {
+    "android": ["13.0", "14.0"],
+    "ios": ["16", "17"]
+  },
+  "notes": {
+    "ios_limitations": "iPhone 11 (iOS 13) and iPhone 8 (iOS 11) have OS versions not supported by MetaMask app",
+    "android_performance": "TECNO KI5k included despite low-end specs due to high production volume (250.2K units) in emerging markets"
+  }
+}

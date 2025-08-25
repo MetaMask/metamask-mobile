@@ -8,8 +8,8 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 import { useCallback } from 'react';
 import { RootState } from '../../../../../reducers';
-import { Hex } from '@metamask/utils';
 import { useTokensWithBalance } from '../../../../UI/Bridge/hooks/useTokensWithBalance';
+import { Hex } from '@metamask/utils';
 
 export function useTransactionPayToken() {
   const dispatch = useDispatch();
@@ -24,23 +24,6 @@ export function useTransactionPayToken() {
   const chainId = selectedPayToken?.chainId || transactionChainId;
   const tokens = useTokensWithBalance({ chainIds: [chainId] });
 
-  const token = tokens.find(
-    (t) =>
-      t.chainId === chainId &&
-      t.address.toLowerCase() ===
-        (selectedPayToken?.address.toLowerCase() ??
-          EMPTY_ADDRESS.toLowerCase()),
-  );
-
-  const defaultPayToken: TransactionPayToken = {
-    address: EMPTY_ADDRESS,
-    chainId: transactionChainId as Hex,
-  };
-
-  const decimals = token?.decimals ?? 18;
-  const balanceHuman = token?.balance ?? '0';
-  const balanceFiat = token?.tokenFiatAmount?.toString() ?? '0';
-
   const setPayToken = useCallback(
     (payToken: TransactionPayToken) => {
       dispatch(
@@ -53,12 +36,27 @@ export function useTransactionPayToken() {
     [dispatch, transactionId],
   );
 
-  const payToken = selectedPayToken ?? defaultPayToken;
+  const token = tokens.find(
+    (t) =>
+      t.chainId === chainId &&
+      t.address.toLowerCase() ===
+        (selectedPayToken?.address.toLowerCase() ??
+          EMPTY_ADDRESS.toLowerCase()),
+  );
+
+  if (!selectedPayToken || !token) {
+    return {
+      setPayToken,
+    };
+  }
+
+  const payToken = {
+    ...token,
+    address: token.address as Hex,
+    chainId: token.chainId as Hex,
+  };
 
   return {
-    balanceFiat,
-    balanceHuman,
-    decimals,
     payToken,
     setPayToken,
   };

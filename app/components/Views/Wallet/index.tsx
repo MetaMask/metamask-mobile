@@ -48,6 +48,7 @@ import {
   getIsNetworkOnboarded,
   isPortfolioViewEnabled,
   isTestNet,
+  isRemoveGlobalNetworkSelectorEnabled,
 } from '../../../util/networks';
 import {
   selectChainId,
@@ -98,6 +99,7 @@ import {
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import { ButtonVariants } from '../../../component-library/components/Buttons/Button';
 import { useAccountName } from '../../hooks/useAccountName';
+import { useAccountGroupName } from '../../hooks/multichainAccounts/useAccountGroupName';
 
 import { PortfolioBalance } from '../../UI/Tokens/TokenList/PortfolioBalance';
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
@@ -128,21 +130,30 @@ import {
   SwapBridgeNavigationLocation,
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
-import { createBuyNavigationDetails } from '../../UI/Ramp/Aggregator/routes/utils';
+
 import { newAssetTransaction } from '../../../actions/transaction';
 import { getEther } from '../../../util/transactions';
 import { swapsUtils } from '@metamask/swaps-controller';
-import { swapsLivenessSelector } from '../../../reducers/swaps';
 import { isSwapsAllowed } from '../../UI/Swaps/utils';
 import { isBridgeAllowed } from '../../UI/Bridge/utils';
 import AppConstants from '../../../core/AppConstants';
 import useRampNetwork from '../../UI/Ramp/Aggregator/hooks/useRampNetwork';
-import { selectIsUnifiedSwapsEnabled } from '../../../core/redux/slices/bridge';
+import {
+  selectIsSwapsLive,
+  selectIsUnifiedSwapsEnabled,
+} from '../../../core/redux/slices/bridge';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { useSendNonEvmAsset } from '../../hooks/useSendNonEvmAsset';
 ///: END:ONLY_INCLUDE_IF
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import PerpsTabView from '../../UI/Perps/Views/PerpsTabView';
+import { selectEVMEnabledNetworks } from '../../../selectors/networkEnablementController';
+import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkSelection';
+import {
+  useNetworksByNamespace,
+  NetworkType,
+} from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
+import { selectIsCardholder } from '../../../core/redux/slices/card';
 import { selectIsConnectionRemoved } from '../../../reducers/user';
 import {
   IconColor,
@@ -150,7 +161,9 @@ import {
 } from '../../../component-library/components/Icons/Icon';
 import { setIsConnectionRemoved } from '../../../actions/user';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
+import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
+import { selectSolanaOnboardingModalEnabled } from '../../../selectors/multichain/multichain';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -267,11 +280,21 @@ const WalletTokensTabView = React.memo(
           renderTabBar={renderTabBar}
           onChangeTab={onChangeTab}
         >
-          <Tokens {...tokensTabProps} />
-          {isPerpsEnabled && <PerpsTabView {...perpsTabProps} />}
-          {defiEnabled && <DeFiPositionsList {...defiPositionsTabProps} />}
+          <Tokens {...tokensTabProps} key={tokensTabProps.key} />
+          {isPerpsEnabled && (
+            <PerpsTabView {...perpsTabProps} key={perpsTabProps.key} />
+          )}
+          {defiEnabled && (
+            <DeFiPositionsList
+              {...defiPositionsTabProps}
+              key={defiPositionsTabProps.key}
+            />
+          )}
           {collectiblesEnabled && (
-            <CollectibleContracts {...collectibleContractsTabProps} />
+            <CollectibleContracts
+              {...collectibleContractsTabProps}
+              key={collectibleContractsTabProps.key}
+            />
           )}
         </ScrollableTabView>
       </View>
@@ -304,6 +327,9 @@ const Wallet = ({
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
+  const solanaOnboardingModalEnabled = useSelector(
+    selectSolanaOnboardingModalEnabled,
+  );
 
   /**
    * Object containing the balance of the current selected account
@@ -328,7 +354,9 @@ const Wallet = ({
   );
 
   const [isNetworkRampSupported] = useRampNetwork();
-  const swapsIsLive = useSelector(swapsLivenessSelector);
+  const swapsIsLive = useSelector((state: RootState) =>
+    selectIsSwapsLive(state, chainId),
+  );
   const isUnifiedSwapsEnabled = useSelector(selectIsUnifiedSwapsEnabled);
 
   // Setup for AssetDetailsActions
@@ -355,7 +383,7 @@ const Wallet = ({
   });
   ///: END:ONLY_INCLUDE_IF
 
-  const displayBuyButton = isNetworkRampSupported;
+  const displayFundButton = isNetworkRampSupported;
   const displaySwapsButton =
     AppConstants.SWAPS.ACTIVE && isSwapsAllowed(chainId);
   const displayBridgeButton =
@@ -373,7 +401,9 @@ const Wallet = ({
     try {
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Try non-EVM first, if handled, return early
-      const wasHandledAsNonEvm = await sendNonEvmAsset();
+      const wasHandledAsNonEvm = await sendNonEvmAsset(
+        InitSendLocation.HomePage,
+      );
       if (wasHandledAsNonEvm) {
         return;
       }
@@ -393,14 +423,14 @@ const Wallet = ({
       }
 
       // Navigate to send flow after successful transaction initialization
-      navigateToSendPage();
+      navigateToSendPage(InitSendLocation.HomePage);
     } catch (error) {
       // Handle any errors that occur during the send flow initiation
       console.error('Error initiating send flow:', error);
 
       // Still attempt to navigate to maintain user flow, but without transaction initialization
       // The SendFlow view should handle the lack of initialized transaction gracefully
-      navigateToSendPage();
+      navigateToSendPage(InitSendLocation.HomePage);
     }
   }, [
     nativeCurrency,
@@ -410,23 +440,6 @@ const Wallet = ({
     sendNonEvmAsset,
     ///: END:ONLY_INCLUDE_IF
   ]);
-
-  const onBuy = useCallback(() => {
-    navigate(
-      ...createBuyNavigationDetails({
-        chainId: getDecimalChainId(chainId),
-      }),
-    );
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.BUY_BUTTON_CLICKED)
-        .addProperties({
-          text: 'Buy',
-          location: 'WalletOverview',
-          chain_id_destination: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -457,7 +470,17 @@ const Wallet = ({
   const hdKeyrings = useSelector(selectHDKeyrings);
 
   const accountName = useAccountName();
+  const accountGroupName = useAccountGroupName();
+
+  const displayName = accountGroupName || accountName;
   useAccountsWithNetworkActivitySync();
+
+  const { networks } = useNetworksByNamespace({
+    networkType: NetworkType.Popular,
+  });
+  const { selectNetwork } = useNetworkSelection({
+    networks,
+  });
 
   useEffect(() => {
     if (
@@ -487,8 +510,10 @@ const Wallet = ({
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   useEffect(() => {
-    checkAndNavigateToSolanaFeature();
-  }, [checkAndNavigateToSolanaFeature]);
+    if (solanaOnboardingModalEnabled) {
+      checkAndNavigateToSolanaFeature();
+    }
+  }, [checkAndNavigateToSolanaFeature, solanaOnboardingModalEnabled]);
   ///: END:ONLY_INCLUDE_IF
 
   useEffect(() => {
@@ -583,6 +608,7 @@ const Wallet = ({
 
   const networkImageSource = useSelector(selectNetworkImageSource);
   const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
+  const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
@@ -639,11 +665,17 @@ const Wallet = ({
         [chainId]: true,
       });
     }
-  }, [chainId, tokenNetworkFilter]);
+    if (
+      isRemoveGlobalNetworkSelectorEnabled() &&
+      enabledEVMNetworks.length === 0
+    ) {
+      selectNetwork(chainId);
+    }
+  }, [chainId, tokenNetworkFilter, selectNetwork, enabledEVMNetworks]);
 
   useEffect(() => {
     handleNetworkFilter();
-  }, [chainId, handleNetworkFilter]);
+  }, [chainId, handleNetworkFilter, enabledEVMNetworks]);
 
   /**
    * Check to see if notifications are enabled
@@ -701,13 +733,15 @@ const Wallet = ({
     [navigation, chainId, evmNetworkConfigurations],
   );
 
+  const isCardholder = useSelector(selectIsCardholder);
+
   useEffect(() => {
     if (!selectedInternalAccount) return;
     navigation.setOptions(
       getWalletNavbarOptions(
         walletRef,
         selectedInternalAccount,
-        accountName,
+        displayName,
         networkName,
         networkImageSource,
         onTitlePress,
@@ -717,11 +751,12 @@ const Wallet = ({
         isBackupAndSyncEnabled,
         unreadNotificationCount,
         readNotificationCount,
+        isCardholder,
       ),
     );
   }, [
     selectedInternalAccount,
-    accountName,
+    displayName,
     networkName,
     networkImageSource,
     onTitlePress,
@@ -731,6 +766,7 @@ const Wallet = ({
     isBackupAndSyncEnabled,
     unreadNotificationCount,
     readNotificationCount,
+    isCardholder,
   ]);
 
   const getTokenAddedAnalyticsParams = useCallback(
@@ -946,7 +982,7 @@ const Wallet = ({
         <>
           <PortfolioBalance />
           <AssetDetailsActions
-            displayBuyButton={displayBuyButton}
+            displayFundButton={displayFundButton}
             displaySwapsButton={displaySwapsButton}
             displayBridgeButton={displayBridgeButton}
             swapsIsLive={swapsIsLive}
@@ -954,8 +990,7 @@ const Wallet = ({
             goToSwaps={goToSwaps}
             onReceive={onReceive}
             onSend={onSend}
-            onBuy={onBuy}
-            buyButtonActionID={WalletViewSelectorsIDs.WALLET_BUY_BUTTON}
+            fundButtonActionID={WalletViewSelectorsIDs.WALLET_FUND_BUTTON}
             swapButtonActionID={WalletViewSelectorsIDs.WALLET_SWAP_BUTTON}
             bridgeButtonActionID={WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON}
             sendButtonActionID={WalletViewSelectorsIDs.WALLET_SEND_BUTTON}
@@ -983,13 +1018,12 @@ const Wallet = ({
       navigation,
       goToBridge,
       goToSwaps,
-      displayBuyButton,
+      displayFundButton,
       displaySwapsButton,
       displayBridgeButton,
       swapsIsLive,
       onReceive,
       onSend,
-      onBuy,
     ],
   );
   const renderLoader = useCallback(

@@ -68,14 +68,25 @@ export const createStyles = (colors: Theme['colors']) =>
     },
     keypadContainer: {
       marginBottom: 16,
-      padding: 0,
-    },
-    keypad: {
-      paddingHorizontal: 0,
-      marginHorizontal: -5,
     },
     footerContainer: {
       paddingHorizontal: 16,
       paddingBottom: 24,
+    },
+    priceDifferenceContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 8,
+      marginBottom: 16,
+    },
+    priceDifferenceLabel: {
+      fontSize: 14,
+      color: colors.text.alternative,
+      marginRight: 8,
+    },
+    priceDifferenceValue: {
+      fontSize: 14,
+      fontWeight: '600',
     },
   });

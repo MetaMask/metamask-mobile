@@ -85,6 +85,7 @@ export const DOWNGRADE_SMART_ACCOUNT_ACTION_KEY = 'downgradeSmartAccount';
 
 export const TRANSFER_FUNCTION_SIGNATURE = '0xa9059cbb';
 export const TRANSFER_FROM_FUNCTION_SIGNATURE = '0x23b872dd';
+export const NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE = '0xf242432a';
 export const APPROVE_FUNCTION_SIGNATURE = '0x095ea7b3';
 export const CONTRACT_CREATION_SIGNATURE = '0x60a060405260046060527f48302e31';
 export const INCREASE_ALLOWANCE_SIGNATURE = '0x39509351';
@@ -242,6 +243,24 @@ export function generateTransferData(type = undefined, opts = {}) {
             rawEncode(
               ['address', 'address', 'uint256'],
               [opts.fromAddress, opts.toAddress, addHexPrefix(opts.tokenId)],
+            ),
+            (x) => ('00' + x.toString(16)).slice(-2),
+          )
+          .join('')
+      );
+    case 'safeTransferFrom':
+      return (
+        NFT_SAFE_TRANSFER_FROM_FUNCTION_SIGNATURE +
+        Array.prototype.map
+          .call(
+            rawEncode(
+              ['address', 'address', 'uint256', 'uint256'],
+              [
+                opts.fromAddress,
+                opts.toAddress,
+                addHexPrefix(opts.tokenId),
+                opts.amount,
+              ],
             ),
             (x) => ('00' + x.toString(16)).slice(-2),
           )

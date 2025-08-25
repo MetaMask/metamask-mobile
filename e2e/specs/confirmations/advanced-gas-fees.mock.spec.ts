@@ -7,8 +7,7 @@ import TransactionConfirmationView from '../../pages/Send/TransactionConfirmView
 import { loginToApp } from '../../viewHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+
 import Assertions from '../../framework/Assertions';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 
@@ -35,8 +34,7 @@ describe(SmokeConfirmations('Advanced Gas Fees and Priority Tests'), () => {
         await Assertions.expectElementToBeVisible(WalletView.container);
 
         //Tap send Icon
-        await TabBarComponent.tapActions();
-        await WalletActionsBottomSheet.tapSendButton();
+        await WalletView.tapWalletSendButton();
 
         await SendView.inputAddress(VALID_ADDRESS);
         await SendView.tapNextButton();

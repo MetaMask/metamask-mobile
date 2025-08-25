@@ -22,6 +22,9 @@ const initialRootState: RootState = {
   legalNotices: undefined,
   collectibles: undefined,
   engine: { backgroundState },
+  cronjobController: {
+    storage: undefined,
+  },
   privacy: undefined,
   bookmarks: undefined,
   browser: undefined,
@@ -30,7 +33,6 @@ const initialRootState: RootState = {
   alert: undefined,
   transaction: undefined,
   user: userInitialState,
-  wizard: undefined,
   onboarding: initialOnboardingState,
   notification: undefined,
   swaps: undefined,

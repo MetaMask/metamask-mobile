@@ -3,6 +3,8 @@ import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 
+import { strings } from '../../../../../../../locales/i18n';
+import Logger from '../../../../../../util/Logger';
 import {
   hexToBN,
   isDecimal,
@@ -29,33 +31,33 @@ export const validateAmountFn = ({
   from: Hex;
 }) => {
   if (!asset || amount === undefined || amount === null || amount === '') {
-    return { invalidAmount: true };
+    return;
   }
   if (!isDecimal(amount) || Number(amount) < 0) {
-    return { invalidAmount: true };
+    return strings('send.invalid_value');
   }
   let weiValue;
   let weiBalance;
   if (isNativeToken(asset)) {
     const accountAddress = Object.keys(accounts).find(
-      (address) => address.toLowerCase() === from.toLowerCase(),
+      (address) => address?.toLowerCase() === from?.toLowerCase(),
     ) as Hex;
     const account = accounts[accountAddress];
     // toWei can throw error if input is not a number: Error: while converting number to string, invalid number value
     try {
       weiValue = toWei(amount);
     } catch (error) {
-      return { invalidAmount: true };
+      Logger.log(error);
+      return strings('send.invalid_value');
     }
     weiBalance = hexToBN(account?.balance ?? '0');
   } else {
-    weiValue = toTokenMinimalUnit(amount, asset.decimals);
+    weiValue = toTokenMinimalUnit(amount, asset.decimals ?? 0);
     weiBalance = hexToBN(contractBalances[asset.address as Hex]);
   }
   if (weiBalance.cmp(weiValue) === -1) {
-    return { insufficientBalance: true };
+    return strings('send.insufficient_funds');
   }
-  return {};
 };
 
 export const useEvmAmountValidation = () => {
@@ -68,7 +70,7 @@ export const useEvmAmountValidation = () => {
       validateAmountFn({
         accounts,
         amount: value,
-        asset,
+        asset: asset as AssetType,
         contractBalances,
         from: from as Hex,
       }),

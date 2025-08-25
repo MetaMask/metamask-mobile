@@ -21,7 +21,9 @@
     "accountTree": {
       "selectedAccountGroup": "",
       "wallets": {}
-    }
+    },
+    "accountGroupsMetadata": {},
+    "accountWalletsMetadata": {}
   },
   "AddressBookController": {
     "addressBook": {}
@@ -377,19 +379,26 @@
     "positions": [],
     "accountState": null,
     "pendingOrders": [],
-    "depositStatus": "idle",
-    "currentDepositTxHash": null,
-    "depositError": null,
-    "activeDepositTransactions": {},
+    "depositInProgress": false,
+    "lastDepositResult": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "isEligible": false
+    "isEligible": false,
+    "isFirstTimeUser": {
+      "testnet": true,
+      "mainnet": true
+    },
+    "hasPlacedFirstOrder": {
+      "testnet": false,
+      "mainnet": false
+    }
   },
   "RemoteFeatureFlagController": {
     "cacheTimestamp": 0,
     "remoteFeatureFlags": {}
   },
   "SeedlessOnboardingController": {
+    "isSeedlessOnboardingUserAuthenticated": false,
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {

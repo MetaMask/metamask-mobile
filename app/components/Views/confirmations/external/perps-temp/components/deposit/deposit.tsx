@@ -1,23 +1,29 @@
 import React, { useState } from 'react';
-import GasFeesDetailsRow from '../../../../components/rows/transactions/gas-fee-details-row/gas-fee-details-row';
 import { PayWithRow } from '../../../../components/rows/pay-with-row';
 import useNavbar from '../../../../hooks/ui/useNavbar';
 import { EditAmount } from '../../../../components/edit-amount';
 import { strings } from '../../../../../../../../locales/i18n';
-import { TokenAmountNative } from '../../../../components/token-amount-native';
+import { PayTokenAmount } from '../../../../components/pay-token-amount';
 import { TotalRow } from '../../../../components/rows/total-row';
 import InfoSection from '../../../../components/UI/info-row/info-section/info-section';
-import { PayTokenBalance } from '../../../../components/pay-token-balance';
 import { BridgeTimeRow } from '../../../../components/rows/bridge-time-row';
 import { AlertMessage } from '../../../../components/alert-message';
 import { RowAlertKey } from '../../../../components/UI/info-row/alert-row/constants';
+import AlertBanner from '../../../../components/alert-banner';
+import { Box } from '../../../../../../UI/Box/Box';
+import InfoRowDivider from '../../../../components/UI/info-row-divider';
+import { InfoRowDividerVariant } from '../../../../components/UI/info-row-divider/info-row-divider.styles';
+import { usePerpsDepositView } from '../../hooks/usePerpsDepositView';
+import { GasFeeFiatRow } from '../../../../components/rows/transactions/gas-fee-fiat-row';
 
 const AMOUNT_PREFIX = '$';
 
 export function PerpsDeposit() {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  useNavbar(strings('confirm.title.perps_deposit'), false);
+  const { isFullView } = usePerpsDepositView({
+    isKeyboardVisible,
+  });
 
   const handleKeyboardShow = () => {
     setIsKeyboardVisible(true);
@@ -27,6 +33,8 @@ export function PerpsDeposit() {
     setIsKeyboardVisible(false);
   };
 
+  useNavbar(strings('confirm.title.perps_deposit'), false);
+
   return (
     <>
       <EditAmount
@@ -35,18 +43,23 @@ export function PerpsDeposit() {
         onKeyboardShow={handleKeyboardShow}
         onKeyboardHide={handleKeyboardHide}
       >
-        <PayTokenBalance />
-        <AlertMessage field={RowAlertKey.Amount} />
-        <TokenAmountNative />
+        <Box gap={16}>
+          <AlertMessage field={RowAlertKey.Amount} />
+          <PayTokenAmount />
+        </Box>
+        {!isKeyboardVisible && (
+          <AlertBanner field={RowAlertKey.PayWith} inline />
+        )}
         <InfoSection>
           <PayWithRow />
-          {!isKeyboardVisible && <BridgeTimeRow />}
+          {isFullView && <BridgeTimeRow />}
         </InfoSection>
-        {!isKeyboardVisible && (
-          <>
-            <GasFeesDetailsRow disableUpdate hideSpeed fiatOnly />
+        {isFullView && (
+          <InfoSection>
+            <GasFeeFiatRow />
+            <InfoRowDivider variant={InfoRowDividerVariant.Large} />
             <TotalRow />
-          </>
+          </InfoSection>
         )}
       </EditAmount>
     </>

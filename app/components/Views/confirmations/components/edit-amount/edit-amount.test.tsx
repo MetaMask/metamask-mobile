@@ -57,7 +57,7 @@ describe('EditAmount', () => {
     } as unknown as AlertsContextParams);
 
     useTransactionPayTokenMock.mockReturnValue({
-      balanceFiat: '0',
+      payToken: { balanceFiat: '0' },
     } as ReturnType<typeof useTransactionPayToken>);
   });
 
@@ -123,7 +123,7 @@ describe('EditAmount', () => {
 
   it('updates token amount if percentage button pressed', async () => {
     useTransactionPayTokenMock.mockReturnValue({
-      balanceFiat: '1200.50',
+      payToken: { balanceFiat: '1200.50' },
     } as ReturnType<typeof useTransactionPayToken>);
 
     const { getByTestId, getByText } = render();
@@ -140,5 +140,25 @@ describe('EditAmount', () => {
 
     expect(updateTokenAmountMock).toHaveBeenCalledWith('600.25');
     expect(input).toHaveProp('value', '600.25');
+  });
+
+  it('does nothing if percentage button pressed with no pay token selected', async () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    const { getByTestId, getByText } = render();
+
+    const input = getByTestId('edit-amount-input');
+
+    await act(async () => {
+      fireEvent.press(input);
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('50%'));
+    });
+
+    expect(updateTokenAmountMock).not.toHaveBeenCalled();
   });
 });
