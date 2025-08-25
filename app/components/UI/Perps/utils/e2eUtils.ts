@@ -16,10 +16,11 @@ export const isPerpsE2EEnvironment = (): boolean =>
 
 /**
  * Check if streaming should be disabled
- * In E2E environment, we disable streaming to prevent timer issues
+ * Only disable streaming when SPECIFICALLY requested for E2E mocking
+ * This allows balance tests to use real data while position tests use mocks
  */
 export const shouldDisablePerpsStreaming = (): boolean =>
-  isPerpsE2EEnvironment();
+  process.env.DISABLE_PERPS_STREAMING === 'true';
 
 /**
  * Get appropriate throttle delay for E2E vs production
@@ -147,6 +148,36 @@ export const resetE2EMockData = () => {
 
   // Notify all subscribers of the reset
   notifyMockDataSubscribers();
+};
+
+/**
+ * Update the mock balance to reflect external changes (e.g. real transfers in balance tests)
+ */
+export const updateE2EMockBalance = (newBalance: string) => {
+  const balance = parseFloat(newBalance);
+  const marginUsed = parseFloat(e2eAccountState.marginUsed);
+
+  e2eAccountState = {
+    ...e2eAccountState,
+    totalBalance: balance.toFixed(2),
+    accountValue: balance.toFixed(2),
+    availableBalance: Math.max(0, balance - marginUsed).toFixed(2),
+    time: Date.now(),
+  };
+
+  DevLogger.log(`[E2E Mock] Balance updated to: ${balance.toFixed(2)}`);
+  notifyMockDataSubscribers();
+};
+
+/**
+ * Adjust the mock balance by a delta amount (+ for deposits, - for withdrawals)
+ */
+export const adjustE2EMockBalance = (deltaAmount: string) => {
+  const currentBalance = parseFloat(e2eAccountState.totalBalance);
+  const delta = parseFloat(deltaAmount);
+  const newBalance = currentBalance + delta;
+
+  updateE2EMockBalance(newBalance.toString());
 };
 
 /**

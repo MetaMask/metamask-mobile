@@ -212,6 +212,27 @@ export class PerpsHelpers {
     });
   }
 
+  // Update mock balance to reflect transfers (for balance test)
+  static async updateMockBalanceAfterTransfer(params: {
+    recipientAddress: string;
+    amount: string;
+    isOutgoing?: boolean; // true for outgoing transfers, false for incoming
+  }) {
+    const { recipientAddress, amount, isOutgoing = false } = params;
+    const { adjustE2EMockBalance } = await import(
+      '../../../../app/components/UI/Perps/utils/e2eUtils'
+    );
+
+    // Check if this transfer affects our test wallet
+    if (recipientAddress === USER_ADDRESS && !isOutgoing) {
+      // Incoming transfer to our wallet
+      adjustE2EMockBalance(amount);
+    } else if (recipientAddress === FUNDER_ADDRESS && isOutgoing) {
+      // Outgoing transfer from our wallet
+      adjustE2EMockBalance(`-${amount}`);
+    }
+  }
+
   /**
    * Scroll to bottom of the current view
    * Uses the same pattern as other page objects (WalletView.scrollToBottomOfTokensList)

@@ -15,16 +15,14 @@ import PerpsView from '../../pages/Perps/PerpsView';
 import TestHelpers from '../../helpers';
 
 describe(SmokePerps('Perps Position'), () => {
-  // Set E2E environment to disable Perps streaming
+  // Set specific flag to disable Perps streaming and use mocks for this test only
   beforeAll(() => {
-    process.env.IS_TEST = 'true';
-    process.env.METAMASK_ENVIRONMENT = 'e2e';
+    process.env.DISABLE_PERPS_STREAMING = 'true';
   });
 
   afterAll(() => {
     // Clean up environment variables
-    delete process.env.IS_TEST;
-    delete process.env.METAMASK_ENVIRONMENT;
+    delete process.env.DISABLE_PERPS_STREAMING;
   });
 
   it('should navigate to Market list and select first market', async () => {

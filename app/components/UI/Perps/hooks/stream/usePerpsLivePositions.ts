@@ -36,43 +36,42 @@ export interface UsePerpsLivePositionsReturn {
 export function usePerpsLivePositions(
   options: UsePerpsLivePositionsOptions = {},
 ): UsePerpsLivePositionsReturn {
-  const [e2ePositions, setE2ePositions] = useState<Position[]>([]);
-
-  // E2E Mode: Use reactive mock data
-  if (shouldDisablePerpsStreaming()) {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    useEffect(() => {
-      // Initialize with current mock data
-      const mockData = getE2EMockData();
-      setE2ePositions(mockData.positions as Position[]);
-
-      // Subscribe to changes
-      const unsubscribe = subscribeToE2EMockDataChanges(() => {
-        const updatedMockData = getE2EMockData();
-        setE2ePositions(updatedMockData.positions as Position[]);
-        DevLogger.log(
-          'usePerpsLivePositions: E2E mock positions updated',
-          updatedMockData.positions,
-        );
-      });
-
-      return unsubscribe;
-    }, []);
-
-    return {
-      positions: e2ePositions,
-      isInitialLoading: false,
-    };
-  }
-
   const { throttleMs = 0 } = options; // No throttling by default for instant updates
+  const isE2EMode = shouldDisablePerpsStreaming();
+
+  // Always call hooks unconditionally
+  const [e2ePositions, setE2ePositions] = useState<Position[]>([]);
   const stream = usePerpsStream();
   const [positions, setPositions] = useState<Position[]>(EMPTY_POSITIONS);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const lastPositionsRef = useRef<Position[]>(EMPTY_POSITIONS);
   const hasReceivedFirstUpdate = useRef(false);
 
+  // E2E Mode effect: Use reactive mock data
   useEffect(() => {
+    if (!isE2EMode) return;
+
+    // Initialize with current mock data
+    const mockData = getE2EMockData();
+    setE2ePositions(mockData.positions as Position[]);
+
+    // Subscribe to changes
+    const unsubscribe = subscribeToE2EMockDataChanges(() => {
+      const updatedMockData = getE2EMockData();
+      setE2ePositions(updatedMockData.positions as Position[]);
+      DevLogger.log(
+        'usePerpsLivePositions: E2E mock positions updated',
+        updatedMockData.positions,
+      );
+    });
+
+    return unsubscribe;
+  }, [isE2EMode]);
+
+  // Regular streaming effect
+  useEffect(() => {
+    if (isE2EMode) return;
+
     const unsubscribe = stream.positions.subscribe({
       callback: (newPositions) => {
         if (!newPositions) {
@@ -107,7 +106,15 @@ export function usePerpsLivePositions(
     return () => {
       unsubscribe();
     };
-  }, [stream, throttleMs]);
+  }, [isE2EMode, stream, throttleMs]);
+
+  // Return E2E data or regular data based on mode
+  if (isE2EMode) {
+    return {
+      positions: e2ePositions,
+      isInitialLoading: false,
+    };
+  }
 
   return {
     positions,
