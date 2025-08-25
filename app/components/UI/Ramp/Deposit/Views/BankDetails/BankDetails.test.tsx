@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import type { AxiosError } from 'axios';
 import BankDetails from './BankDetails';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
@@ -104,12 +105,15 @@ jest.mock('../../../Aggregator/sdk', () => ({
   RampSDKProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+const mockLogoutFromProvider = jest.fn();
+
 jest.mock('../../sdk', () => ({
   DepositSDKProvider: ({ children }: { children: React.ReactNode }) => children,
   useDepositSDK: jest.fn(() => ({
     sdk: {
       sdkMethod: jest.fn(),
     },
+    logoutFromProvider: mockLogoutFromProvider,
   })),
 }));
 
@@ -329,6 +333,112 @@ describe('BankDetails Component', () => {
       data: {
         destination: 'BankDetails',
       },
+    });
+  });
+
+  describe('401 Error Handling', () => {
+    it('handles 401 error in handleBankTransferSent by logging out and navigating to root', async () => {
+      const axiosError = new Error('Unauthorized') as AxiosError;
+      axiosError.status = 401;
+
+      mockConfirmPayment = jest.fn().mockRejectedValue(axiosError);
+
+      render(BankDetails);
+
+      fireEvent.press(screen.getByTestId('main-action-button'));
+
+      await waitFor(() => {
+        expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.DEPOSIT.ROOT,
+            },
+          ],
+        });
+      });
+    });
+
+    it('handles 401 error in handleCancelOrder by logging out and navigating to root', async () => {
+      const axiosError = new Error('Unauthorized') as AxiosError;
+      axiosError.status = 401;
+
+      mockCancelOrder = jest.fn().mockRejectedValue(axiosError);
+
+      render(BankDetails);
+
+      fireEvent.press(screen.getByText('Cancel order'));
+
+      await waitFor(() => {
+        expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
+        expect(mockReset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.DEPOSIT.ROOT,
+            },
+          ],
+        });
+      });
+    });
+
+    it('handles non-401 errors normally in handleBankTransferSent', async () => {
+      const regularError = new Error('Network error');
+      mockConfirmPayment = jest.fn().mockRejectedValue(regularError);
+
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      render(BankDetails);
+
+      fireEvent.press(screen.getByTestId('main-action-button'));
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          regularError,
+          'BankDetails: handleBankTransferSent',
+        );
+        expect(mockLogoutFromProvider).not.toHaveBeenCalled();
+        expect(screen.getByText('Network error')).toBeTruthy();
+      });
+    });
+
+    it('handles non-401 errors normally in handleCancelOrder', async () => {
+      const regularError = new Error('Network error');
+      mockCancelOrder = jest.fn().mockRejectedValue(regularError);
+
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      render(BankDetails);
+
+      fireEvent.press(screen.getByText('Cancel order'));
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          regularError,
+          'BankDetails: handleCancelOrder',
+        );
+        expect(mockLogoutFromProvider).not.toHaveBeenCalled();
+      });
+    });
+
+    it('logs error when handleLogoutError fails', async () => {
+      const axiosError = new Error('Unauthorized') as AxiosError;
+      axiosError.status = 401;
+      const logoutError = new Error('Logout failed');
+
+      mockConfirmPayment = jest.fn().mockRejectedValue(axiosError);
+      mockLogoutFromProvider.mockRejectedValue(logoutError);
+
+      const mockLoggerError = jest.spyOn(Logger, 'error');
+      render(BankDetails);
+
+      fireEvent.press(screen.getByTestId('main-action-button'));
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          logoutError,
+          'BankDetails: handleLogoutError',
+        );
+      });
     });
   });
 });

@@ -155,7 +155,7 @@ export const DepositSDKProvider = ({
   const checkExistingToken = useCallback(async () => {
     try {
       const tokenResponse = await getProviderToken();
-      if (tokenResponse.success && tokenResponse.token) {
+      if (tokenResponse.success && tokenResponse.token?.accessToken) {
         setAuthToken(tokenResponse.token);
         return true;
       }
