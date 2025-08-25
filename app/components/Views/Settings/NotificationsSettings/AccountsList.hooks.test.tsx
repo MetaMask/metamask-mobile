@@ -185,7 +185,7 @@ describe('useAccountProps', () => {
   const arrangeMocks = () => {
     const mockStore = jest.fn().mockReturnValue({
       settings: {
-        useBlockieIcon: true,
+        avatarStyle: AvatarAccountType.Maskicon,
       },
     });
 

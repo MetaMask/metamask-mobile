@@ -17,6 +17,7 @@ import {
   internalAccount2,
   internalSolanaAccount1,
 } from '../../../util/test/accountsControllerTestUtils';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 const mockAccounts = [
   {
@@ -71,7 +72,7 @@ const mockInitialState = {
     reloadAccounts: false,
   },
   settings: {
-    useBlockieIcon: false,
+    avatarStyle: AvatarAccountType.Maskicon,
   },
 };
 
@@ -111,7 +112,7 @@ jest.mock('react-redux', () => ({
         reloadAccounts: false,
       },
       settings: {
-        useBlockieIcon: false,
+        avatarStyle: AvatarAccountType.Maskicon,
       },
     };
     return (selector as (mockState: unknown) => unknown)(mockState);

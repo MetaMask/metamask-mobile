@@ -16,7 +16,7 @@ describe('useAccountAvatarType', () => {
     jest.clearAllMocks();
   });
 
-  it('returns Blockies avatar type when useBlockieIcon is true', () => {
+  it('returns Blockies avatar type when selectAvatarStyle is Blockies', () => {
     mockUseSelector.mockReturnValue(AvatarAccountType.Blockies);
 
     const { result } = renderHook(() => useAccountAvatarType());
@@ -24,11 +24,19 @@ describe('useAccountAvatarType', () => {
     expect(result.current).toBe(AvatarAccountType.Blockies);
   });
 
-  it('returns JazzIcon avatar type when useBlockieIcon is false', () => {
+  it('returns JazzIcon avatar type when selectAvatarStyle is JazzIcon', () => {
     mockUseSelector.mockReturnValue(AvatarAccountType.JazzIcon);
 
     const { result } = renderHook(() => useAccountAvatarType());
 
     expect(result.current).toBe(AvatarAccountType.JazzIcon);
+  });
+
+  it('returns MaskIcon avatar type when selectAvatarStyle is MaskIcon', () => {
+    mockUseSelector.mockReturnValue(AvatarAccountType.Maskicon);
+
+    const { result } = renderHook(() => useAccountAvatarType());
+
+    expect(result.current).toBe(AvatarAccountType.Maskicon);
   });
 });

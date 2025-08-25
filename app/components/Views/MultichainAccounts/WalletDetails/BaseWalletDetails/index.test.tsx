@@ -22,6 +22,7 @@ import {
   selectAccountGroupsByWallet,
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../utils/getInternalAccountsFromWallet');
 jest.mock('../hooks/useWalletBalances');
@@ -130,7 +131,7 @@ const mockWallet = createMockWallet('1', 'Test Wallet', [
 
 const mockInitialState: Partial<RootState> = {
   settings: {
-    useBlockieIcon: false,
+    avatarStyle: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState: {
