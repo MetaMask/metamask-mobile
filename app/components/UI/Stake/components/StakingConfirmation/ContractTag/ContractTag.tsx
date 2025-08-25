@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import TagBase, {
   TagSeverity,
   TagShape,
@@ -14,43 +14,47 @@ import imageIcons from '../../../../../../images/image-icons';
 import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../../../Earn/utils/tempLending';
 import { ImageSourcePropType } from 'react-native';
 
-// A set of addresses for the Aave V3 pool contracts
-const avaeAddresses = new Set<string>(
-  Object.values(CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS),
-);
-
 const ContractTag = ({
   contractName,
   contractAddress,
   useBlockieIcon = false,
-}: ContractTagProps) => (
-  <TagBase
-    startAccessory={
-      avaeAddresses.has(contractAddress) ? (
-        <Avatar
-          variant={AvatarVariant.Network}
-          size={AvatarSize.Xs}
-          name={contractName}
-          imageSource={imageIcons.AVAE as ImageSourcePropType}
-        />
-      ) : (
-        <Avatar
-          variant={AvatarVariant.Account}
-          size={AvatarSize.Xs}
-          accountAddress={contractAddress}
-          type={
-            useBlockieIcon
-              ? AvatarAccountType.Blockies
-              : AvatarAccountType.JazzIcon
-          }
-        />
-      )
-    }
-    shape={TagShape.Pill}
-    severity={TagSeverity.Neutral}
-  >
-    <Text>{contractName}</Text>
-  </TagBase>
-);
+}: ContractTagProps) => {
+  // A set of addresses for the Aave V3 pool contracts
+  const avaeAddresses = useMemo(
+    () =>
+      new Set<string>(Object.values(CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS)),
+    [],
+  );
+
+  return (
+    <TagBase
+      startAccessory={
+        avaeAddresses.has(contractAddress) ? (
+          <Avatar
+            variant={AvatarVariant.Network}
+            size={AvatarSize.Xs}
+            name={contractName}
+            imageSource={imageIcons.AVAE as ImageSourcePropType}
+          />
+        ) : (
+          <Avatar
+            variant={AvatarVariant.Account}
+            size={AvatarSize.Xs}
+            accountAddress={contractAddress}
+            type={
+              useBlockieIcon
+                ? AvatarAccountType.Blockies
+                : AvatarAccountType.JazzIcon
+            }
+          />
+        )
+      }
+      shape={TagShape.Pill}
+      severity={TagSeverity.Neutral}
+    >
+      <Text>{contractName}</Text>
+    </TagBase>
+  );
+};
 
 export default ContractTag;
