@@ -1,6 +1,4 @@
-import { Connection } from './connection';
-
-export type PersistedConnection = Omit<Connection, 'client' | 'bridge'>;
+import { PersistedConnection } from './persisted-connection';
 
 /**
  * Defines the contract for the persistence layer that will act as the

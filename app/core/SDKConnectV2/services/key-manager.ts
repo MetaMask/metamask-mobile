@@ -1,9 +1,6 @@
 import { IKeyManager, KeyPair } from '@metamask/mobile-wallet-protocol-core';
 import { PrivateKey, encrypt, decrypt } from 'eciesjs';
 
-/**
- * KeyManager is used to generate key pairs, encrypt and decrypt messages.
- */
 export class KeyManager implements IKeyManager {
   generateKeyPair(): KeyPair {
     const privateKey = new PrivateKey();

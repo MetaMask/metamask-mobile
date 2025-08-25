@@ -29,10 +29,16 @@ describe('ConnectionStore', () => {
   it('should save a connection', async () => {
     const connection: PersistedConnection = {
       id: 'test-id',
-      dappMetadata: {
-        name: 'Test DApp',
-        url: 'https://example.com',
-        icon: 'https://example.com/icon.png',
+      metadata: {
+        dapp: {
+          name: 'Test DApp',
+          url: 'https://example.com',
+          icon: 'https://example.com/icon.png',
+        },
+        sdk: {
+          version: '1.0.0',
+          platform: 'ios',
+        },
       },
     };
 
@@ -47,9 +53,16 @@ describe('ConnectionStore', () => {
   it('should get a connection by id', async () => {
     const connection: PersistedConnection = {
       id: 'test-id',
-      dappMetadata: {
-        name: 'Test DApp',
-        url: 'https://example.com',
+      metadata: {
+        dapp: {
+          name: 'Test DApp',
+          url: 'https://example.com',
+          icon: 'https://example.com/icon.png',
+        },
+        sdk: {
+          version: '1.0.0',
+          platform: 'ios',
+        },
       },
     };
 
@@ -76,11 +89,17 @@ describe('ConnectionStore', () => {
     const connections: PersistedConnection[] = [
       {
         id: 'id1',
-        dappMetadata: { name: 'DApp 1', url: 'https://dapp1.com' },
+        metadata: {
+          dapp: { name: 'DApp 1', url: 'https://dapp1.com' },
+          sdk: { version: '1.0.0', platform: 'ios' },
+        },
       },
       {
         id: 'id2',
-        dappMetadata: { name: 'DApp 2', url: 'https://dapp2.com' },
+        metadata: {
+          dapp: { name: 'DApp 2', url: 'https://dapp2.com' },
+          sdk: { version: '1.0.0', platform: 'ios' },
+        },
       },
     ];
 

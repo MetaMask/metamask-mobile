@@ -31,6 +31,14 @@ export class ConnectionRegistry {
   /**
    * The primary entry point for handling a new connection from a deeplink.
    * @param url The full deeplink URL that triggered the connection.
+   *
+   * Happy path:
+   * 1. Show loading indicator
+   * 2. Parse the connection request
+   * 3. Create a new connection and connect
+   * 4. Save the connection to the store
+   * 5. Sync the connection list to the host application
+   * 6. Hide loading indicator
    */
   public async handleConnectDeeplink(url: string): Promise<void> {
     let conn: Connection | undefined;
@@ -41,10 +49,10 @@ export class ConnectionRegistry {
       conn = await Connection.create(connreq, this.keymanager, this.RELAY_URL);
       await conn.connect(connreq.sessionRequest);
       this.connections.set(conn.id, conn);
-      await this.store.save({ id: conn.id, dappMetadata: conn.dappMetadata });
+      await this.store.save({ id: conn.id, metadata: connreq.metadata });
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
       console.warn(
-        `[SDKConnectV2] Connection with ${connreq.dappMetadata.name} successfully established.`,
+        `[SDKConnectV2] Connection with ${connreq.metadata.dapp.name} successfully established.`,
       );
     } catch (error) {
       console.error('[SDKConnectV2] Connection handshake failed:', error);
@@ -68,6 +76,9 @@ export class ConnectionRegistry {
   /**
    * Parses a Mobile Wallet Protocol deeplink URL.
    * @param url The full deeplink URL that triggered the connection.
+   * @returns The parsed connection request.
+   *
+   * Format: metamask://connect/mwp/<encoded_connection_request>
    */
   private parseConnectionRequest(url: string): ConnectionRequest {
     const payload = url.substring(url.lastIndexOf('/') + 1);
