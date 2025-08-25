@@ -73,20 +73,22 @@ const BasicFunctionalityModal = ({ route }: Props) => {
     bottomSheetRef.current?.onCloseBottomSheet(async () => {
       const newBasicFunctionalityState = !isEnabled;
       dispatch(toggleBasicFunctionality(newBasicFunctionalityState));
-      
+
       ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
       // Call MultichainAccountService to update provider states and trigger alignment
       try {
-                   await Engine.context.MultichainAccountService.setBasicFunctionality(
-             newBasicFunctionalityState,
-           );
-        console.log('Successfully updated multichain provider states');
+        await Engine.context.MultichainAccountService.setBasicFunctionality(
+          newBasicFunctionalityState,
+        );
       } catch (error) {
-        console.error('Failed to call MultichainAccountService.setBasicFunctionality:', error);
+        console.error(
+          'Failed to call MultichainAccountService.setBasicFunctionality:',
+          error,
+        );
         // Note: We continue with the flow even if this fails to avoid blocking the user
       }
       ///: END:ONLY_INCLUDE_IF
-      
+
       trackEvent(
         createEventBuilder(
           newBasicFunctionalityState
