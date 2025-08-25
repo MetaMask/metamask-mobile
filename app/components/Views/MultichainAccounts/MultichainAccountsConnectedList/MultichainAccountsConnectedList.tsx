@@ -43,6 +43,7 @@ const MultichainAccountsConnectedList = ({
         onSelectAccount={() => {
           // No op here because it is handled by edit accounts.
         }}
+        // @ts-expect-error - This is temporary because the account list cell is being updated in another PR.
         privacyMode={privacyMode}
       />
     ),
