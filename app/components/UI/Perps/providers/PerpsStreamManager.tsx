@@ -443,7 +443,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private readonly CACHE_DURATION =
     PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS;
 
-  protected async connect() {
+  protected connect() {
     // Fetch if cache is stale or empty
     const now = Date.now();
     const cached = this.cache.get('markets');
@@ -455,7 +455,10 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         cacheExpired: cacheAge > this.CACHE_DURATION,
         cacheDurationMs: this.CACHE_DURATION,
       });
-      await this.fetchMarketData();
+      // Don't await - just trigger the fetch and handle errors
+      this.fetchMarketData().catch((error) => {
+        console.error('PerpsStreamManager: Failed to fetch market data', error);
+      });
     } else {
       DevLogger.log('PerpsStreamManager: Using cached market data', {
         cacheAgeMs: cacheAge,
