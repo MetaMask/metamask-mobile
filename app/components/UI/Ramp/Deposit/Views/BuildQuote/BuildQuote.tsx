@@ -69,18 +69,9 @@ import Logger from '../../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../../util/trace';
 
 import {
-  selectChainId,
   selectNetworkConfigurations,
+  selectChainId,
 } from '../../../../../../selectors/networkController';
-import {
-  USDC_TOKEN,
-  DepositCryptoCurrency,
-  DepositPaymentMethod,
-  USD_CURRENCY,
-  DepositFiatCurrency,
-  EUR_CURRENCY,
-  DEBIT_CREDIT_PAYMENT_METHOD,
-} from '../../constants';
 import {
   createNavigationDetails,
   useParams,
@@ -100,23 +91,23 @@ const BuildQuote = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
-
-  const chainId = useSelector(selectChainId);
   const supportedTokens = useSupportedTokens();
   const paymentMethods = usePaymentMethods();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const [paymentMethod, setPaymentMethod] = useState<DepositPaymentMethod>(
-    DEBIT_CREDIT_PAYMENT_METHOD,
-  );
-  const [cryptoCurrency, setCryptoCurrency] =
-    useState<DepositCryptoCurrency>(USDC_TOKEN);
-  const [fiatCurrency, setFiatCurrency] =
-    useState<DepositFiatCurrency>(USD_CURRENCY);
+  const {
+    isAuthenticated,
+    selectedRegion,
+    paymentMethod,
+    setPaymentMethod,
+    cryptoCurrency,
+    setCryptoCurrency,
+    fiatCurrency,
+  } = useDepositSDK();
+
   const [amount, setAmount] = useState<string>('0');
   const [amountAsNumber, setAmountAsNumber] = useState<number>(0);
-  const { isAuthenticated, selectedRegion } = useDepositSDK();
   const [error, setError] = useState<string | null>();
 
   const isAccountTokenCompatible = useAccountTokenCompatible(cryptoCurrency);
@@ -128,6 +119,7 @@ const BuildQuote = () => {
     });
 
   const allNetworkConfigurations = useSelector(selectNetworkConfigurations);
+  const chainId = useSelector(selectChainId);
 
   const [, getQuote] = useDepositSdkMethod(
     { method: 'getBuyQuote', onMount: false, throws: true },
@@ -179,16 +171,6 @@ const BuildQuote = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedRegion?.currency) {
-      if (selectedRegion.currency === 'USD') {
-        setFiatCurrency(USD_CURRENCY);
-      } else if (selectedRegion.currency === 'EUR') {
-        setFiatCurrency(EUR_CURRENCY);
-      }
-    }
-  }, [selectedRegion?.currency]);
-
-  useEffect(() => {
     if (selectedRegion?.isoCode && paymentMethods.length > 0) {
       const isPaymentMethodSupported = paymentMethods.some(
         (method) => method.id === paymentMethod.id,
@@ -198,7 +180,33 @@ const BuildQuote = () => {
         setPaymentMethod(paymentMethods[0]);
       }
     }
-  }, [selectedRegion?.isoCode, paymentMethods, paymentMethod]);
+  }, [
+    selectedRegion?.isoCode,
+    paymentMethods,
+    paymentMethod,
+    setPaymentMethod,
+  ]);
+
+  useEffect(() => {
+    if (
+      cryptoCurrency.assetId &&
+      cryptoCurrency.chainId &&
+      supportedTokens.length > 0
+    ) {
+      const isTokenSupported = supportedTokens.some(
+        (token) => token.assetId === cryptoCurrency.assetId,
+      );
+
+      if (!isTokenSupported) {
+        setCryptoCurrency(supportedTokens[0]);
+      }
+    }
+  }, [
+    cryptoCurrency.assetId,
+    cryptoCurrency.chainId,
+    supportedTokens,
+    setCryptoCurrency,
+  ]);
 
   useEffect(() => {
     if (supportedTokens.length > 0) {
@@ -220,6 +228,7 @@ const BuildQuote = () => {
       }
 
       if (
+        supportedTokens.length > 0 &&
         !supportedTokens.some(
           (token) => token.assetId === cryptoCurrency.assetId,
         )
@@ -427,71 +436,14 @@ const BuildQuote = () => {
     [],
   );
 
-  const handleSelectAssetId = useCallback(
-    (assetId: string) => {
-      const selectedToken = supportedTokens.find(
-        (token) => token.assetId === assetId,
-      );
-      if (selectedToken) {
-        trackEvent('RAMPS_TOKEN_SELECTED', {
-          ramp_type: 'DEPOSIT',
-          region: selectedRegion?.isoCode || '',
-          chain_id: selectedToken.chainId,
-          currency_destination: selectedToken.assetId,
-          currency_source: fiatCurrency.id,
-          is_authenticated: isAuthenticated,
-        });
-        setCryptoCurrency(selectedToken);
-      }
-      setError(null);
-    },
-    [
-      supportedTokens,
-      trackEvent,
-      selectedRegion?.isoCode,
-      fiatCurrency.id,
-      isAuthenticated,
-    ],
-  );
-
   const handleCryptoPress = useCallback(
-    () =>
-      navigation.navigate(
-        ...createTokenSelectorModalNavigationDetails({
-          selectedAssetId: cryptoCurrency.assetId,
-          handleSelectAssetId,
-        }),
-      ),
-    [cryptoCurrency, navigation, handleSelectAssetId],
-  );
-
-  const handleSelectPaymentMethodId = useCallback(
-    (selectedPaymentMethodId: string) => {
-      const selectedPaymentMethod = paymentMethods.find(
-        (_paymentMethod) => _paymentMethod.id === selectedPaymentMethodId,
-      );
-      if (selectedPaymentMethod) {
-        trackEvent('RAMPS_PAYMENT_METHOD_SELECTED', {
-          ramp_type: 'DEPOSIT',
-          region: selectedRegion?.isoCode || '',
-          payment_method_id: selectedPaymentMethod.id,
-          is_authenticated: isAuthenticated,
-        });
-        setPaymentMethod(selectedPaymentMethod);
-      }
-      setError(null);
-    },
-    [paymentMethods, trackEvent, selectedRegion?.isoCode, isAuthenticated],
+    () => navigation.navigate(...createTokenSelectorModalNavigationDetails()),
+    [navigation],
   );
 
   const handlePaymentMethodPress = useCallback(() => {
-    navigation.navigate(
-      ...createPaymentMethodSelectorModalNavigationDetails({
-        selectedPaymentMethodId: paymentMethod.id,
-        handleSelectPaymentMethodId,
-      }),
-    );
-  }, [handleSelectPaymentMethodId, navigation, paymentMethod.id]);
+    navigation.navigate(...createPaymentMethodSelectorModalNavigationDetails());
+  }, [navigation]);
 
   const networkName = allNetworkConfigurations[cryptoCurrency.chainId]?.name;
   const networkImageSource = getNetworkImageSource({

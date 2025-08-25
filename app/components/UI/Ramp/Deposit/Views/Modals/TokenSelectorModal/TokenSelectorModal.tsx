@@ -30,22 +30,17 @@ import styleSheet from './TokenSelectorModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import useSupportedTokens from '../../../hooks/useSupportedTokens';
 import useSearchTokenResults from '../../../hooks/useSearchTokenResults';
+import { useDepositSDK } from '../../../sdk';
 
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../../selectors/networkController';
-import {
-  createNavigationDetails,
-  useParams,
-} from '../../../../../../../util/navigation/navUtils';
+import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import { getNetworkImageSource } from '../../../../../../../util/networks';
 import { DepositCryptoCurrency } from '../../../constants';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../../locales/i18n';
 import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../../../constants/networks';
 import { useTheme } from '../../../../../../../util/theme';
-interface TokenSelectorModalNavigationDetails {
-  selectedAssetId?: string;
-  handleSelectAssetId?: (assetId: string) => void;
-}
+import useAnalytics from '../../../../hooks/useAnalytics';
 
 export const createTokenSelectorModalNavigationDetails =
   createNavigationDetails(
@@ -56,9 +51,6 @@ export const createTokenSelectorModalNavigationDetails =
 function TokenSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const listRef = useRef<FlatList>(null);
-
-  const { selectedAssetId, handleSelectAssetId } =
-    useParams<TokenSelectorModalNavigationDetails>();
   const [searchString, setSearchString] = useState('');
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,
@@ -70,6 +62,15 @@ function TokenSelectorModal() {
   });
 
   const { colors } = useTheme();
+  const trackEvent = useAnalytics();
+
+  const {
+    setCryptoCurrency,
+    selectedRegion,
+    fiatCurrency,
+    isAuthenticated,
+    cryptoCurrency,
+  } = useDepositSDK();
 
   const supportedTokens = useSupportedTokens();
   const searchTokenResults = useSearchTokenResults({
@@ -84,12 +85,30 @@ function TokenSelectorModal() {
 
   const handleSelectAssetIdCallback = useCallback(
     (assetId: string) => {
-      if (handleSelectAssetId) {
-        handleSelectAssetId(assetId);
+      const selectedToken = supportedTokens.find(
+        (token) => token.assetId === assetId,
+      );
+      if (selectedToken) {
+        trackEvent('RAMPS_TOKEN_SELECTED', {
+          ramp_type: 'DEPOSIT',
+          region: selectedRegion?.isoCode || '',
+          chain_id: selectedToken.chainId,
+          currency_destination: selectedToken.assetId,
+          currency_source: fiatCurrency.id,
+          is_authenticated: isAuthenticated,
+        });
+        setCryptoCurrency(selectedToken);
       }
       sheetRef.current?.onCloseBottomSheet();
     },
-    [handleSelectAssetId],
+    [
+      supportedTokens,
+      trackEvent,
+      selectedRegion?.isoCode,
+      fiatCurrency.id,
+      isAuthenticated,
+      setCryptoCurrency,
+    ],
   );
 
   const scrollToTop = useCallback(() => {
@@ -123,7 +142,7 @@ function TokenSelectorModal() {
         DEPOSIT_NETWORKS_BY_CHAIN_ID[token.chainId]?.name;
       return (
         <ListItemSelect
-          isSelected={selectedAssetId === token.assetId}
+          isSelected={cryptoCurrency.assetId === token.assetId}
           onPress={() => handleSelectAssetIdCallback(token.assetId)}
           accessibilityRole="button"
           accessible
@@ -158,7 +177,7 @@ function TokenSelectorModal() {
       allNetworkConfigurations,
       colors.text.alternative,
       handleSelectAssetIdCallback,
-      selectedAssetId,
+      cryptoCurrency.assetId,
     ],
   );
 
@@ -224,7 +243,7 @@ function TokenSelectorModal() {
             ref={listRef}
             data={searchTokenResults}
             renderItem={renderToken}
-            extraData={selectedAssetId}
+            extraData={cryptoCurrency.assetId}
             keyExtractor={(item) => item.assetId}
             ListEmptyComponent={renderEmptyList}
             keyboardDismissMode="none"

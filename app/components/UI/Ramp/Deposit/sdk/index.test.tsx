@@ -7,7 +7,12 @@ import {
   DepositSDKProvider,
   useDepositSDK,
 } from '.';
-import { DEPOSIT_REGIONS } from '../constants';
+import {
+  DEPOSIT_REGIONS,
+  USDC_TOKEN,
+  DEBIT_CREDIT_PAYMENT_METHOD,
+  USD_CURRENCY,
+} from '../constants';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 
@@ -502,13 +507,68 @@ describe('Deposit SDK Context', () => {
       expect(contextValue?.authToken).toEqual(mockToken);
 
       await act(async () => {
-        contextValue?.logoutFromProvider();
+        await contextValue?.logoutFromProvider();
       });
 
-      expect(resetProviderTokenMock).toHaveBeenCalled();
       expect(logoutMock).toHaveBeenCalled();
+      expect(resetProviderTokenMock).toHaveBeenCalled();
       expect(contextValue?.isAuthenticated).toBe(false);
       expect(contextValue?.authToken).toBeUndefined();
+    });
+
+    it('provides default values for payment method, crypto currency, and fiat currency', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        {
+          state: mockedState,
+        },
+      );
+
+      expect(contextValue?.paymentMethod).toEqual(DEBIT_CREDIT_PAYMENT_METHOD);
+      expect(contextValue?.cryptoCurrency).toEqual(USDC_TOKEN);
+      expect(contextValue?.fiatCurrency).toEqual(USD_CURRENCY);
+    });
+
+    it('allows updating payment method, crypto currency, and fiat currency', () => {
+      let contextValue: ReturnType<typeof useDepositSDK> | undefined;
+      const TestComponent = () => {
+        contextValue = useDepositSDK();
+        return null;
+      };
+
+      renderWithProvider(
+        <DepositSDKProvider>
+          <TestComponent />
+        </DepositSDKProvider>,
+        {
+          state: mockedState,
+        },
+      );
+
+      const newPaymentMethod = {
+        ...DEBIT_CREDIT_PAYMENT_METHOD,
+        id: 'new-method',
+      };
+      const newCryptoCurrency = { ...USDC_TOKEN, symbol: 'NEW' };
+      const newFiatCurrency = { ...USD_CURRENCY, id: 'NEW' };
+
+      act(() => {
+        contextValue?.setPaymentMethod(newPaymentMethod);
+        contextValue?.setCryptoCurrency(newCryptoCurrency);
+        contextValue?.setFiatCurrency(newFiatCurrency);
+      });
+
+      expect(contextValue?.paymentMethod).toEqual(newPaymentMethod);
+      expect(contextValue?.cryptoCurrency).toEqual(newCryptoCurrency);
+      expect(contextValue?.fiatCurrency).toEqual(newFiatCurrency);
     });
 
     it('clears authentication state when calling logoutFromProvider with requireServerInvalidation=false even if SDK logout fails', async () => {
