@@ -141,12 +141,10 @@ const ButtonBase = ({
       : RNTouchableOpacity;
 
   // Handle disabled state properly in all environments
+  // Apply coordination logic on ALL platforms to prevent double firing
   const conditionalOnPress = isDisabled
     ? undefined
-    : Platform.OS === 'android' && !isE2ETest && !isUnitTest
-    ? onPress // On Android, let custom TouchableOpacity handle all coordination
-    : () => {
-        // On non-Android platforms, apply coordination logic to prevent double firing
+    : (_pressEvent?: GestureResponderEvent) => {
         const now = Date.now();
         const timeSinceLastPress = now - lastPressTime.current;
 

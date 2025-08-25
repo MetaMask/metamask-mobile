@@ -126,18 +126,16 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
       : RNTouchableOpacity;
 
   // Handle disabled state properly in all environments
+  // Apply coordination logic on ALL platforms to prevent double firing
   const conditionalOnPress = isDisabled
     ? undefined
-    : Platform.OS === 'android' && !isE2ETest && !isUnitTest
-    ? onPress // On Android, let custom TouchableOpacity handle all coordination
-    : (pressEvent: GestureResponderEvent) => {
-        // On non-Android platforms, coordinate between checkbox and main component
+    : (pressEvent?: GestureResponderEvent) => {
         const now = Date.now();
         const timeSinceLastPress = now - lastCheckboxGestureTime.current;
 
         if (onPress && timeSinceLastPress > COORDINATION_WINDOW) {
           lastCheckboxGestureTime.current = now;
-          onPress(pressEvent);
+          onPress(pressEvent as GestureResponderEvent);
         }
       };
 
@@ -162,17 +160,26 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
       {...props}
     >
       <ListItem gap={gap} style={styles.listItem}>
-        <Checkbox
-          style={styles.checkbox}
-          isChecked={isSelected}
-          onPressIn={
-            Platform.OS === 'android'
-              ? undefined // Android uses main gesture handler only
-              : isDisabled
-              ? undefined
-              : checkboxOnPressIn // iOS/other platforms use checkbox onPressIn
+        <View
+          pointerEvents={
+            Platform.OS === 'android' && !isE2ETest && !isUnitTest
+              ? 'none' // On Android, make checkbox non-interactive to prevent double firing
+              : 'auto' // On other platforms, allow normal interaction
           }
-        />
+        >
+          <Checkbox
+            style={styles.checkbox}
+            isChecked={isSelected}
+            isDisabled={isDisabled}
+            onPressIn={
+              Platform.OS === 'android'
+                ? undefined // Android uses main gesture handler only
+                : isDisabled
+                ? undefined
+                : checkboxOnPressIn // iOS/other platforms use checkbox onPressIn
+            }
+          />
+        </View>
         {children}
       </ListItem>
       {isSelected && (
