@@ -406,6 +406,28 @@ const QuoteDetailsCard = () => {
                 },
               }}
             />
+
+            {activeQuote?.minToTokenAmount && (
+              <KeyValueRow
+                field={{
+                  label: {
+                    text: strings('bridge.minimum_received'),
+                    variant: TextVariant.BodyMDMedium,
+                  },
+                  tooltip: {
+                    title: strings('bridge.minimum_received_tooltip_title'),
+                    content: strings('bridge.minimum_received_tooltip_content'),
+                    size: TooltipSizes.Sm,
+                  },
+                }}
+                value={{
+                  label: {
+                    text: `${activeQuote.minToTokenAmount.amount} ${destToken?.symbol}`,
+                    variant: TextVariant.BodyMD,
+                  },
+                }}
+              />
+            )}
           </Box>
         )}
       </Box>
