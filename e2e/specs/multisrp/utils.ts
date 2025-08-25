@@ -48,10 +48,11 @@ export const completeSrpQuiz = async (expectedSrp: string) => {
   await Assertions.expectElementToBeVisible(
     RevealSecretRecoveryPhrase.container,
   );
-  await Assertions.checkIfTextIsDisplayed(
+  await Assertions.expectTextDisplayed(
     RevealSeedViewSelectorsText.REVEAL_CREDENTIAL_SRP_TITLE_TEXT,
   );
-  await Assertions.checkIfTextIsDisplayed(expectedSrp);
+  await Assertions.expectTextDisplayed(expectedSrp);
+  await RevealSecretRecoveryPhrase.scrollToDone();
   await RevealSecretRecoveryPhrase.tapDoneButton();
 };
 

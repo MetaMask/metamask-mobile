@@ -99,6 +99,19 @@ export class HyperLiquidProvider implements IPerpsProvider {
   // Asset mapping
   private coinToAssetId = new Map<string, number>();
 
+  // Cache for user fee rates to avoid excessive API calls
+  private userFeeCache = new Map<
+    string,
+    {
+      perpsTakerRate: number;
+      perpsMakerRate: number;
+      spotTakerRate: number;
+      spotMakerRate: number;
+      timestamp: number;
+      ttl: number;
+    }
+  >();
+
   constructor(options: { isTestnet?: boolean } = {}) {
     const isTestnet = options.isTestnet || false;
 
@@ -2011,46 +2024,122 @@ export class HyperLiquidProvider implements IPerpsProvider {
    * Calculate fees based on HyperLiquid's fee structure
    * Returns fee rate as decimal (e.g., 0.00045 for 0.045%)
    *
-   * HyperLiquid base fees (Tier 0, no discounts):
-   * - Taker: 0.045% (market orders, aggressive limit orders)
-   * - Maker: 0.015% (limit orders that add liquidity)
-   *
-   * TODO: Apply volume and staking discounts when APIs available
+   * Uses the SDK's userFees API to get actual discounted rates when available,
+   * falling back to base rates if the API is unavailable or user not connected.
    */
   async calculateFees(
     params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
     const { orderType, isMaker = false, amount } = params;
 
-    // Use base rates from config
-    const baseRate =
+    // Start with base rates from config
+    let feeRate =
       orderType === 'market' || !isMaker ? FEE_RATES.taker : FEE_RATES.maker;
 
-    // TODO: When APIs available, apply user-specific discounts
-    // const volume = await this.getUserVolume();
-    // const staking = await this.getUserStaking();
-    // const { volumeTier, volumeDiscount, stakingDiscount } = await this.calculateDiscounts(volume, staking);
-    // const finalRate = baseRate * (1 - volumeDiscount) * (1 - stakingDiscount);
+    // Try to get user-specific rates if wallet is connected
+    try {
+      const userAddress = await this.walletService.getUserAddressWithDefault();
+
+      // Check cache first
+      if (this.isFeeCacheValid(userAddress)) {
+        const cached = this.userFeeCache.get(userAddress);
+        if (cached) {
+          // Market orders always use taker rate, limit orders check isMaker
+          feeRate =
+            orderType === 'market' || !isMaker
+              ? cached.perpsTakerRate
+              : cached.perpsMakerRate;
+        }
+      } else {
+        // Fetch fresh rates from SDK
+        await this.ensureReady();
+        const infoClient = this.clientService.getInfoClient();
+        const userFees = await infoClient.userFees({
+          user: userAddress as `0x${string}`,
+        });
+
+        // Parse the rates (these already include all discounts!)
+        const perpsTakerRate = parseFloat(userFees.feeSchedule.cross);
+        const perpsMakerRate = parseFloat(userFees.feeSchedule.add);
+        const spotTakerRate = parseFloat(userFees.feeSchedule.spotCross);
+        const spotMakerRate = parseFloat(userFees.feeSchedule.spotAdd);
+
+        // Validate all rates are valid numbers before caching
+        if (
+          isNaN(perpsTakerRate) ||
+          isNaN(perpsMakerRate) ||
+          isNaN(spotTakerRate) ||
+          isNaN(spotMakerRate) ||
+          perpsTakerRate < 0 ||
+          perpsMakerRate < 0 ||
+          spotTakerRate < 0 ||
+          spotMakerRate < 0
+        ) {
+          throw new Error('Invalid fee rates received from API');
+        }
+
+        const rates = {
+          perpsTakerRate,
+          perpsMakerRate,
+          spotTakerRate,
+          spotMakerRate,
+          timestamp: Date.now(),
+          ttl: 5 * 60 * 1000, // 5 minutes
+        };
+
+        this.userFeeCache.set(userAddress, rates);
+        // Market orders always use taker rate, limit orders check isMaker
+        feeRate =
+          orderType === 'market' || !isMaker
+            ? rates.perpsTakerRate
+            : rates.perpsMakerRate;
+
+        DevLogger.log('Fetched user fee rates', {
+          userAddress,
+          perpsTaker: rates.perpsTakerRate,
+          perpsMaker: rates.perpsMakerRate,
+          cacheExpiry: new Date(rates.timestamp + rates.ttl).toISOString(),
+        });
+      }
+    } catch (error) {
+      // Silently fall back to base rates
+      DevLogger.log('Failed to fetch user fee rates, using base rates', error);
+    }
 
     const parsedAmount = amount ? parseFloat(amount) : 0;
     const feeAmount =
       amount !== undefined
         ? isNaN(parsedAmount)
           ? 0
-          : parsedAmount * baseRate
+          : parsedAmount * feeRate
         : undefined;
 
     return {
-      feeRate: baseRate,
+      feeRate,
       feeAmount,
-      // Future: Include breakdown when we have user data
-      // breakdown: {
-      //   baseFeeRate: baseRate,
-      //   volumeTier,
-      //   volumeDiscount,
-      //   stakingDiscount,
-      // },
     };
+  }
+
+  /**
+   * Check if the fee cache is valid for a user
+   * @private
+   */
+  private isFeeCacheValid(userAddress: string): boolean {
+    const cached = this.userFeeCache.get(userAddress);
+    if (!cached) return false;
+    return Date.now() - cached.timestamp < cached.ttl;
+  }
+
+  /**
+   * Clear fee cache for a specific user or all users
+   * @param userAddress - Optional address to clear cache for
+   */
+  public clearFeeCache(userAddress?: string): void {
+    if (userAddress) {
+      this.userFeeCache.delete(userAddress);
+    } else {
+      this.userFeeCache.clear();
+    }
   }
 
   /**
@@ -2065,6 +2154,9 @@ export class HyperLiquidProvider implements IPerpsProvider {
 
       // Clear subscriptions through subscription service
       this.subscriptionService.clearAll();
+
+      // Clear fee cache
+      this.clearFeeCache();
 
       // Disconnect client service
       await this.clientService.disconnect();

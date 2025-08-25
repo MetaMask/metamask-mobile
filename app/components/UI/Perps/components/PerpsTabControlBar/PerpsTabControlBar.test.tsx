@@ -140,9 +140,8 @@ describe('PerpsTabControlBar', () => {
         // getAccountState is no longer used - using live subscriptions
         subscribeToPrices: jest.fn(),
         subscribeToOrderFills: jest.fn(),
-        deposit: jest.fn(),
-        getDepositRoutes: jest.fn(),
-        resetDepositState: jest.fn(),
+        depositWithConfirmation: jest.fn(),
+        clearDepositResult: jest.fn(),
       });
 
     jest

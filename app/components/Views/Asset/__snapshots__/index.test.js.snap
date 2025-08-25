@@ -1161,7 +1161,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -1193,7 +1193,7 @@ exports[`Asset Multichain Functionality should exclude mixed token/SOL transacti
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 8,
                                                   "paddingVertical": 16,
                                                 },
@@ -3008,7 +3008,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -3040,7 +3040,7 @@ exports[`Asset Multichain Functionality should exclude transactions with empty a
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 8,
                                                   "paddingVertical": 16,
                                                 },
@@ -4855,7 +4855,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -4887,7 +4887,7 @@ exports[`Asset Multichain Functionality should filter SPL token transactions cor
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 8,
                                                   "paddingVertical": 16,
                                                 },
@@ -6741,7 +6741,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -6773,7 +6773,7 @@ exports[`Asset Multichain Functionality should filter native SOL transactions co
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 8,
                                                   "paddingVertical": 16,
                                                 },
@@ -8588,7 +8588,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -8620,7 +8620,7 @@ exports[`Asset Multichain Functionality should handle state with no multichain t
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 8,
                                                   "paddingVertical": 16,
                                                 },
@@ -10435,7 +10435,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -10467,7 +10467,7 @@ exports[`Asset Multichain Functionality should handle unknown SPL token filterin
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 8,
                                                   "paddingVertical": 16,
                                                 },
@@ -12851,7 +12851,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -12883,7 +12883,7 @@ exports[`Asset Multichain Functionality should render non-EVM assets with Multic
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 8,
                                                   "paddingVertical": 16,
                                                 },
@@ -14698,7 +14698,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                               {
                                                 "busy": undefined,
                                                 "checked": undefined,
-                                                "disabled": true,
+                                                "disabled": false,
                                                 "expanded": undefined,
                                                 "selected": undefined,
                                               }
@@ -14730,7 +14730,7 @@ exports[`Asset Multichain Functionality should sort filtered transactions by tim
                                                   "backgroundColor": "#3c4d9d0f",
                                                   "borderRadius": 12,
                                                   "justifyContent": "center",
-                                                  "opacity": 0.5,
+                                                  "opacity": 1,
                                                   "paddingHorizontal": 8,
                                                   "paddingVertical": 16,
                                                 },

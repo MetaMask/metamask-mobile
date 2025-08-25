@@ -1454,6 +1454,8 @@ export class Engine {
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
             'AccountsController:listAccounts',
+            'AccountTrackerController:updateNativeBalances',
+            'AccountTrackerController:updateStakedBalances',
           ],
           allowedEvents: [
             'TokensController:stateChange',
@@ -1465,6 +1467,10 @@ export class Engine {
         // TODO: This is long, can we decrease it?
         interval: 180000,
         state: initialState.TokenBalancesController,
+        useAccountsAPI: false,
+        allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
+        queryMultipleAccounts:
+          preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
