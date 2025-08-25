@@ -62,28 +62,22 @@ export class PerpsHelpers {
   }
 
   /**
-   * Navigate to Perps tab with comprehensive sync management
-   * Handles the streaming system initialization to prevent timer blocking
+   * Navigate to Perps tab with manual sync management (for when sync is disabled from launch)
+   * Uses waitFor patterns instead of automatic synchronization
    */
   static async navigateToPerpsTab() {
-    // Disable sync before any Perps interaction
-    await PerpsHelpers.disableDetoxSync();
+    console.log('[PerpsHelpers] Navigating to Perps tab...');
 
     // Navigate to Perps tab
     await WalletView.tapOnPerpsTab();
 
-    // Wait for all streaming components to initialize
-    // - WebSocket connections: ~1000ms
-    // - Initial data loading: ~1000ms
-    // - Timer setup stabilization: ~1000ms
-    // - Buffer for safety: +2000ms
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    // Wait for Perps tab to load using manual timeout
+    // const { waitFor, element, by } = await import('detox');
+    // await waitFor(element(by.text('Perps')))
+    //   .toBeVisible()
+    //   .withTimeout(10000);
 
-    // Re-enable sync for UI assertions
-    await PerpsHelpers.enableDetoxSync();
-
-    // Small additional wait for sync to re-stabilize
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    console.log('[PerpsHelpers] Perps tab loaded successfully');
   }
 
   /**

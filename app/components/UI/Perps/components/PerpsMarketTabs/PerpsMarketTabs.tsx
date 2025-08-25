@@ -20,6 +20,7 @@ import {
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketTabsSelectorsIDs,
 } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
+import { isE2E } from '../../../../../util/test/utils';
 import PerpsOpenOrderCard from '../PerpsOpenOrderCard';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../../core/Engine';
@@ -37,14 +38,14 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
   fundingIntervalHours,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const fadeAnim = useRef(new Animated.Value(isE2E ? 1 : 0)).current;
 
   const [selectedTooltip, setSelectedTooltip] =
     useState<PerpsTooltipContentKey | null>(null);
 
   // Fade in animation when loading completes
   useEffect(() => {
-    if (!isLoadingPosition) {
+    if (!isLoadingPosition && !isE2E) {
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 300,

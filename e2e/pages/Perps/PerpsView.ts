@@ -12,7 +12,7 @@ class PerpsView {
   }
 
   get closePositionBottomSheetButton() {
-    return Matchers.getElementByID('bottomsheetfooter-button');
+    return Matchers.getElementByID('close-position-confirm-button');
   }
 
   get placeOrderButton() {
@@ -60,7 +60,9 @@ class PerpsView {
   }
 
   async tapClosePositionBottomSheetButton() {
-    await Gestures.waitAndTap(this.closePositionBottomSheetButton);
+    await Gestures.waitAndTap(this.closePositionBottomSheetButton, {
+      elemDescription: 'Close position bottom sheet button',
+    });
   }
 }
 
