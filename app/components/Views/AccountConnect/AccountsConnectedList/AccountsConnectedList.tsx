@@ -150,7 +150,9 @@ const AccountsConnectedList = ({
         type: accountAvatarType,
         accountAddress: address,
       };
-      const accountMetadataName = accountMetadata?.metadata.name;
+      const accountMetadataName =
+        accountMetadata?.metadata
+          .name; /* // Accounts: Needs to be updated to use the new accountGroup name*/
       const ensName = ensByAccountAddress[address];
       const accountName =
         isDefaultAccountName(accountMetadataName) && ensName

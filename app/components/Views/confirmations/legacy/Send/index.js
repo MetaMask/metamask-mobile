@@ -432,7 +432,7 @@ class Send extends PureComponent {
     const fromAccount = internalAccounts.find((account) =>
       areAddressesEqual(account.address, selectedAddress),
     );
-    newTxMeta.transactionFromName = fromAccount.metadata.name;
+    newTxMeta.transactionFromName = fromAccount.metadata.name; // Confirmations: Needs to be updated to use the new accountGroup name*/
     this.props.setTransactionObject(newTxMeta);
     this.mounted && this.setState({ ready: true, transactionKey: Date.now() });
   };

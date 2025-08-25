@@ -49,6 +49,7 @@ const AccountCard = ({
                 <AccountTag
                   accountAddress={account?.address}
                   accountName={account.metadata.name}
+                  // TODO: Earn - Needs to be updated to use the new accountGroup name
                   useBlockieIcon={useBlockieIcon}
                 />
               ),

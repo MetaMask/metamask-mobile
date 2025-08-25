@@ -83,6 +83,7 @@ export const AccountItem: React.FC<AccountItemProps> = ({
           />
           <Text variant={TextVariant.BodyMDMedium}>
             {account.metadata.name}
+            {/* // Accounts:  Does this need to be updated?*/}
           </Text>
         </Box>
         <Box

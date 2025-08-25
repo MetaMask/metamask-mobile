@@ -204,7 +204,7 @@ const LedgerSelectAccount = () => {
           if (account) {
             accountsController.setAccountName(
               account.id,
-              account.metadata.name + strings('ledger.ledger_legacy_label'),
+              account.metadata.name + strings('ledger.ledger_legacy_label'), // HardwareWallet/Accounts: Needs to be updated to use the new accountGroup name*/
             );
           }
         }

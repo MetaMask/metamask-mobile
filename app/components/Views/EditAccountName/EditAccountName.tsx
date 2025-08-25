@@ -96,9 +96,9 @@ const EditAccountName = () => {
   }, [updateNavBar]);
 
   useEffect(() => {
-    const name = selectedAccount?.metadata.name;
+    const name = selectedAccount?.metadata.name; // WalletUx: Needs to be updated to use the new accountGroup name*/
     setAccountName(isDefaultAccountName(name) && ens ? ens : name);
-  }, [ens, selectedAccount?.metadata.name]);
+  }, [ens, selectedAccount?.metadata.name]); // WalletUx: Needs to be updated to use the new accountGroup name*/
 
   const onChangeName = (name: string) => {
     setAccountName(name);

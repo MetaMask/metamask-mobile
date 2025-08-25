@@ -208,7 +208,7 @@ const AddressList = ({
             <AddressElement
               key={account.id}
               address={toChecksumHexAddress(account.address)}
-              name={account.metadata.name}
+              name={account.metadata.name} // Confirmations: Needs to be updated to use the new accountGroup name*/
               onAccountPress={onAccountPress}
               onIconPress={onIconPress}
               onAccountLongPress={onAccountLongPress}

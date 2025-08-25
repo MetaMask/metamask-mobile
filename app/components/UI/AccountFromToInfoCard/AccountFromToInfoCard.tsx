@@ -83,7 +83,7 @@ const AccountFromToInfoCard = (props: AccountFromToInfoCardProps) => {
         );
 
         const newName = accountWithMatchingFromAddress
-          ? accountWithMatchingFromAddress.metadata.name
+          ? accountWithMatchingFromAddress.metadata.name // Confirmations: Needs to be updated to use the new accountGroup name?
           : fromAddress;
 
         if (fromAccountName !== newName) {

@@ -432,7 +432,7 @@ class SendFlow extends PureComponent {
     return filteredAddressBook[checksummedAddress]
       ? filteredAddressBook[checksummedAddress].name
       : matchingAccount
-      ? matchingAccount.metadata.name
+      ? matchingAccount.metadata.name // Confirmations: Needs to be updated to use the new accountGroup name*/
       : null;
   };
 
