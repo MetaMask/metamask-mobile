@@ -1,36 +1,31 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsPositionHeader from './PerpsPositionHeader';
-import { usePerpsAssetMetadata } from '../../hooks/usePerpsAssetsMetadata';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { Position, PriceUpdate } from '../../controllers/types';
 import { Theme } from '../../../../../util/theme/models';
 import { PerpsPositionHeaderSelectorsIDs } from '../../../../../../e2e/selectors/Perps/Perps.selectors';
 
 // Mock dependencies
-jest.mock('../../hooks/usePerpsAssetsMetadata', () => ({
-  usePerpsAssetMetadata: jest.fn(),
-}));
-
 jest.mock('../../../../../component-library/hooks', () => ({
   useStyles: jest.fn(),
 }));
 
-jest.mock('../../../../Base/RemoteImage', () => {
-  const { Image } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({
-      source,
-      testID,
-      ...props
-    }: {
-      source?: { uri?: string };
-      testID?: string;
-      [key: string]: unknown;
-    }) => (
-      <Image testID={testID || 'remote-image'} source={source} {...props} />
-    ),
+// Mock PerpsTokenLogo
+jest.mock('../PerpsTokenLogo', () => {
+  const { View } = jest.requireActual('react-native');
+  const ReactModule = jest.requireActual('react');
+  return function MockPerpsTokenLogo({
+    symbol,
+    testID,
+  }: {
+    symbol: string;
+    testID?: string;
+  }) {
+    return ReactModule.createElement(View, {
+      testID: testID || 'perps-token-logo',
+      'data-symbol': symbol,
+    });
   };
 });
 
@@ -54,9 +49,6 @@ jest.mock('./PerpsPositionHeader.styles', () => ({
   styleSheet: () => ({}),
 }));
 
-const mockUsePerpsAssetMetadata = usePerpsAssetMetadata as jest.MockedFunction<
-  typeof usePerpsAssetMetadata
->;
 const mockUseStyles = useStyles as jest.MockedFunction<typeof useStyles>;
 
 describe('PerpsPositionHeader', () => {
@@ -104,11 +96,6 @@ describe('PerpsPositionHeader', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseStyles.mockReturnValue({ styles: mockStyles, theme: {} as Theme });
-    mockUsePerpsAssetMetadata.mockReturnValue({
-      assetUrl: '',
-      error: null,
-      hasError: false,
-    });
   });
 
   describe('Component Rendering', () => {
@@ -161,14 +148,7 @@ describe('PerpsPositionHeader', () => {
       ).toBeNull();
     });
 
-    it('renders fallback icon when assetUrl is not available', () => {
-      // Arrange
-      mockUsePerpsAssetMetadata.mockReturnValue({
-        assetUrl: '',
-        error: null,
-        hasError: false,
-      });
-
+    it('renders token logo component', () => {
       // Act
       render(
         <PerpsPositionHeader
@@ -178,31 +158,7 @@ describe('PerpsPositionHeader', () => {
       );
 
       // Assert
-      expect(screen.queryByTestId('remote-image')).toBeNull();
-      // Icon should be rendered - we can verify by checking that remote-image is not present
-      // since the component logic shows either Icon or RemoteImage
-    });
-
-    it('renders asset image when assetUrl is available', () => {
-      // Arrange
-      const assetUrl = 'https://example.com/eth.png';
-      mockUsePerpsAssetMetadata.mockReturnValue({
-        assetUrl,
-        error: null,
-        hasError: false,
-      });
-
-      // Act
-      render(
-        <PerpsPositionHeader
-          position={mockPosition}
-          priceData={mockPriceData}
-        />,
-      );
-
-      // Assert
-      expect(screen.getByTestId('remote-image')).toBeOnTheScreen();
-      // When remote-image is present, Icon should not be rendered
+      expect(screen.getByTestId('perps-token-logo')).toBeOnTheScreen();
     });
   });
 
@@ -401,20 +357,8 @@ describe('PerpsPositionHeader', () => {
 
       // Assert
       expect(screen.getByText('BTC-USD')).toBeOnTheScreen();
-      expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith('BTC');
-    });
-
-    it('calls usePerpsAssetMetadata with correct asset symbol', () => {
-      // Act
-      render(
-        <PerpsPositionHeader
-          position={mockPosition}
-          priceData={mockPriceData}
-        />,
-      );
-
-      // Assert
-      expect(mockUsePerpsAssetMetadata).toHaveBeenCalledWith('ETH');
+      const tokenLogo = screen.getByTestId('perps-token-logo');
+      expect(tokenLogo.props['data-symbol']).toBe('BTC');
     });
   });
 
@@ -442,14 +386,7 @@ describe('PerpsPositionHeader', () => {
   });
 
   describe('Edge Cases', () => {
-    it('handles undefined or null assetUrl gracefully', () => {
-      // Arrange
-      mockUsePerpsAssetMetadata.mockReturnValue({
-        assetUrl: undefined as unknown as string,
-        error: null,
-        hasError: false,
-      });
-
+    it('handles token logo rendering gracefully', () => {
       // Act
       render(
         <PerpsPositionHeader
@@ -461,6 +398,7 @@ describe('PerpsPositionHeader', () => {
       // Assert
       // Should render without crashing and display the asset name
       expect(screen.getByText('ETH-USD')).toBeOnTheScreen();
+      expect(screen.getByTestId('perps-token-logo')).toBeOnTheScreen();
     });
 
     it('handles very long asset names', () => {
