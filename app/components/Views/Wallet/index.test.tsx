@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Json } from '@metamask/utils';
 
 // Local mocks specific to this test file to avoid affecting other tests
 jest.mock('react-native-device-info', () => ({
@@ -1022,14 +1023,20 @@ describe('Wallet', () => {
               remoteFeatureFlags: {
                 ...backgroundState.RemoteFeatureFlagController
                   .remoteFeatureFlags,
-                ...mockedPerpsFeatureFlagsEnabledState,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
               },
             },
           },
         },
       };
 
-      renderWithProvider(<Wallet navigation={mockNavigation} />, { state });
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
 
       // Debug: Check if ScrollableTabView was rendered
       expect(mockScrollableTabViewComponent).toHaveBeenCalled();
@@ -1055,14 +1062,20 @@ describe('Wallet', () => {
               remoteFeatureFlags: {
                 ...backgroundState.RemoteFeatureFlagController
                   .remoteFeatureFlags,
-                ...mockedPerpsFeatureFlagsEnabledState,
+                ...(mockedPerpsFeatureFlagsEnabledState as unknown as Record<
+                  string,
+                  Json
+                >),
               },
             },
           },
         },
       };
 
-      renderWithProvider(<Wallet navigation={mockNavigation} />, { state });
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
 
       // Perps should be at index 1 when enabled (after Tokens at index 0)
       const perpsTabViewProps = mockPerpsTabView.mock.calls[0][0];
@@ -1093,7 +1106,10 @@ describe('Wallet', () => {
         },
       };
 
-      renderWithProvider(<Wallet navigation={mockNavigation} />, { state });
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
 
       // PerpsTabView should not be rendered
       expect(mockPerpsTabView).not.toHaveBeenCalled();
@@ -1123,7 +1139,10 @@ describe('Wallet', () => {
         },
       };
 
-      renderWithProvider(<Wallet navigation={mockNavigation} />, { state });
+      renderWithProvider(
+        <Wallet navigation={mockNavigation} currentRouteName="Wallet" />,
+        { state },
+      );
 
       // Simulate tab change
       const scrollableTabView = mockScrollableTabViewComponent.mock.calls[0][0];

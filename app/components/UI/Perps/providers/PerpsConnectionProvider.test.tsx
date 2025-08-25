@@ -127,11 +127,13 @@ describe('PerpsConnectionProvider', () => {
       '../hooks/usePerpsConnectionLifecycle',
     ).usePerpsConnectionLifecycle;
 
-    mockLifecycleHook.mockImplementation(({ onConnect }) => {
-      // Simulate immediate connection since isVisible defaults to true
-      setTimeout(() => onConnect(), 0);
-      return { hasConnected: false };
-    });
+    mockLifecycleHook.mockImplementation(
+      ({ onConnect }: { onConnect: () => Promise<void> }) => {
+        // Simulate immediate connection since isVisible defaults to true
+        setTimeout(() => onConnect(), 0);
+        return { hasConnected: false };
+      },
+    );
 
     render(
       <PerpsConnectionProvider isVisible>
@@ -151,10 +153,12 @@ describe('PerpsConnectionProvider', () => {
     ).usePerpsConnectionLifecycle;
 
     let disconnectCallback: (() => Promise<void>) | null = null;
-    mockLifecycleHook.mockImplementation(({ onDisconnect }) => {
-      disconnectCallback = onDisconnect;
-      return { hasConnected: false };
-    });
+    mockLifecycleHook.mockImplementation(
+      ({ onDisconnect }: { onDisconnect: () => Promise<void> }) => {
+        disconnectCallback = onDisconnect;
+        return { hasConnected: false };
+      },
+    );
 
     const { unmount } = render(
       <PerpsConnectionProvider>
@@ -163,7 +167,9 @@ describe('PerpsConnectionProvider', () => {
     );
 
     // Simulate unmount triggering disconnect
-    await disconnectCallback?.();
+    if (disconnectCallback) {
+      await (disconnectCallback as () => Promise<void>)();
+    }
     unmount();
 
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
@@ -242,16 +248,24 @@ describe('PerpsConnectionProvider', () => {
       '../hooks/usePerpsConnectionLifecycle',
     ).usePerpsConnectionLifecycle;
 
-    mockLifecycleHook.mockImplementation(({ onConnect, onError }) => {
-      setTimeout(async () => {
-        try {
-          await onConnect();
-        } catch (err) {
-          onError(err.message);
-        }
-      }, 0);
-      return { hasConnected: false };
-    });
+    mockLifecycleHook.mockImplementation(
+      ({
+        onConnect,
+        onError,
+      }: {
+        onConnect: () => Promise<void>;
+        onError: (error: string) => void;
+      }) => {
+        setTimeout(async () => {
+          try {
+            await onConnect();
+          } catch (err) {
+            onError(err instanceof Error ? err.message : String(err));
+          }
+        }, 0);
+        return { hasConnected: false };
+      },
+    );
 
     const onRender = jest.fn();
 
@@ -368,19 +382,27 @@ describe('PerpsConnectionProvider', () => {
       '../hooks/usePerpsConnectionLifecycle',
     ).usePerpsConnectionLifecycle;
 
-    mockLifecycleHook.mockImplementation(({ onConnect, onError }) => {
-      setTimeout(async () => {
-        try {
-          await onConnect();
-        } catch (err) {
-          // Simulate unknown error handling
-          onError(
-            err instanceof Error ? err.message : 'Unknown connection error',
-          );
-        }
-      }, 0);
-      return { hasConnected: false };
-    });
+    mockLifecycleHook.mockImplementation(
+      ({
+        onConnect,
+        onError,
+      }: {
+        onConnect: () => Promise<void>;
+        onError: (error: string) => void;
+      }) => {
+        setTimeout(async () => {
+          try {
+            await onConnect();
+          } catch (err) {
+            // Simulate unknown error handling
+            onError(
+              err instanceof Error ? err.message : 'Unknown connection error',
+            );
+          }
+        }, 0);
+        return { hasConnected: false };
+      },
+    );
 
     const onRender = jest.fn();
 
@@ -489,10 +511,12 @@ describe('PerpsConnectionProvider', () => {
     it('should update connection state when hook onConnect is called', async () => {
       let capturedOnConnect: (() => Promise<void>) | null = null;
 
-      mockUsePerpsConnectionLifecycle.mockImplementation(({ onConnect }) => {
-        capturedOnConnect = onConnect;
-        return { hasConnected: false };
-      });
+      mockUsePerpsConnectionLifecycle.mockImplementation(
+        ({ onConnect }: { onConnect: () => Promise<void> }) => {
+          capturedOnConnect = onConnect;
+          return { hasConnected: false };
+        },
+      );
 
       mockGetConnectionState.mockReturnValue({
         isConnected: false, // Start disconnected
@@ -536,10 +560,12 @@ describe('PerpsConnectionProvider', () => {
     it('should update connection state when hook onDisconnect is called', async () => {
       let capturedOnDisconnect: (() => Promise<void>) | null = null;
 
-      mockUsePerpsConnectionLifecycle.mockImplementation(({ onDisconnect }) => {
-        capturedOnDisconnect = onDisconnect;
-        return { hasConnected: true };
-      });
+      mockUsePerpsConnectionLifecycle.mockImplementation(
+        ({ onDisconnect }: { onDisconnect: () => Promise<void> }) => {
+          capturedOnDisconnect = onDisconnect;
+          return { hasConnected: true };
+        },
+      );
 
       mockGetConnectionState
         .mockReturnValueOnce({
@@ -582,10 +608,12 @@ describe('PerpsConnectionProvider', () => {
     it('should set error when hook onError is called', () => {
       let capturedOnError: ((error: string) => void) | null = null;
 
-      mockUsePerpsConnectionLifecycle.mockImplementation(({ onError }) => {
-        capturedOnError = onError;
-        return { hasConnected: false };
-      });
+      mockUsePerpsConnectionLifecycle.mockImplementation(
+        ({ onError }: { onError: (error: string) => void }) => {
+          capturedOnError = onError;
+          return { hasConnected: false };
+        },
+      );
 
       const TestComponentError = () => {
         const { error } = usePerpsConnection();
