@@ -6,6 +6,7 @@ import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonVariants,
@@ -15,6 +16,7 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 import { removePermittedAccounts } from '../../../../core/Permissions';
 import SDKConnect from '../../../../core/SDKConnect/SDKConnect';
+import SDKConnectV2 from '../../../../core/SDKConnectV2';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
@@ -23,6 +25,7 @@ import BottomSheet, {
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
 import { toHex } from '@metamask/controller-utils';
+import { RootState } from '../../../../reducers';
 
 const createStyles = (
   _colors: ThemeColors,
@@ -48,14 +51,17 @@ interface SDKDisconnectModalProps {
       accountName?: string;
       dapp?: string;
       accountsLength?: number;
+      isV2?: boolean;
     };
   };
 }
 
 const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
   const { params } = route;
-  const { channelId, account, accountsLength, accountName, dapp } =
+  const { channelId, account, accountsLength, accountName, dapp, isV2 } =
     params ?? {};
+
+  const { v2Connections } = useSelector((state: RootState) => state.sdk);
 
   const sheetRef = useRef<BottomSheetRef>(null);
   const safeAreaInsets = useSafeAreaInsets();
@@ -81,27 +87,47 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
   }, [channelId, account]);
 
   const onConfirm = async () => {
+    // Case 1: Disconnect a single account from a session.
     if (account && channelId) {
+      // This permission-layer logic works for both V1 and V2.
       removePermittedAccounts(channelId, [toHex(account)]);
-    } else if (!account && channelId) {
-      SDKConnect.getInstance().removeChannel({
-        channelId,
-        sendTerminate: true,
-      });
-    }
 
-    DevLogger.log(
-      `OnConfirm: accountsLength=${accountsLength} channelId: ${channelId}, account: ${account}`,
-    );
-    if (account && accountsLength && accountsLength <= 1 && channelId) {
-      SDKConnect.getInstance().removeChannel({
-        channelId,
-        sendTerminate: true,
-      });
-    } else if (!account && !channelId) {
+      // If it's the last account, also terminate the entire session.
+      if (accountsLength && accountsLength <= 1) {
+        if (isV2) {
+          await SDKConnectV2.disconnect(channelId);
+        } else {
+          SDKConnect.getInstance().removeChannel({
+            channelId,
+            sendTerminate: true,
+          });
+        }
+      }
+    }
+    // Case 2: Disconnect an entire dApp session.
+    else if (!account && channelId) {
+      if (isV2) {
+        await SDKConnectV2.disconnect(channelId);
+      } else {
+        SDKConnect.getInstance().removeChannel({
+          channelId,
+          sendTerminate: true,
+        });
+      }
+    }
+    // Case 3: Disconnect ALL sessions globally.
+    else if (!account && !channelId) {
+      // Disconnect all V1 sessions
       SDKConnect.getInstance().removeAll();
+
+      // Disconnect all V2 sessions by iterating through the list from Redux
+      const v2ConnectionIds = Object.keys(v2Connections || {});
+      for (const connId of v2ConnectionIds) {
+        await SDKConnectV2.disconnect(connId);
+      }
     }
 
+    // Navigate back to the updated session manager list.
     navigate(Routes.SETTINGS.SDK_SESSIONS_MANAGER, { trigger: Date.now() });
   };
 

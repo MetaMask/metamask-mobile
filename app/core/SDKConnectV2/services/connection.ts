@@ -10,7 +10,6 @@ import {
 import { DappMetadata } from '../types/dapp-metadata';
 import { ConnectionRequest } from '../types/connection-request';
 import { KVStore } from '../store/kv-store';
-import { BackgroundBridge } from '../../BackgroundBridge/BackgroundBridge';
 
 /**
  * Represents a live, runtime representation of a dApp connection.
@@ -19,18 +18,15 @@ export class Connection {
   public readonly id: string;
   public readonly dappMetadata: DappMetadata;
   public readonly client: WalletClient;
-  public readonly bridge?: BackgroundBridge; // FIXME
 
   private constructor(
     id: string,
     dappMetadata: DappMetadata,
     client: WalletClient,
-    bridge?: BackgroundBridge,
   ) {
     this.id = id;
     this.dappMetadata = dappMetadata;
     this.client = client;
-    this.bridge = bridge;
 
     this.client.on('message', this.handleMessage);
   }
@@ -50,9 +46,8 @@ export class Connection {
       new KVStore(`mwp/session-store/${id}`),
     );
     const client = new WalletClient({ transport, sessionstore, keymanager });
-    const bridge = undefined; // To be implemented in a future PR.
 
-    return new Connection(id, dappMetadata, client, bridge);
+    return new Connection(id, dappMetadata, client);
   }
 
   public async connect(sessionRequest: SessionRequest): Promise<void> {
@@ -66,21 +61,7 @@ export class Connection {
     console.warn(`[Connection:${this.id}] Disconnected.`);
   }
 
-  public async resume(): Promise<void> {
-    console.warn(
-      `[Connection:${this.id}] Session resumption logic to be implemented.`,
-    );
-    // In the next PR, this will be:
-    // this.client.on('message', this.handleMessage);
-    // await this.client.resume(this.id);
-    return Promise.resolve();
-  }
-
   private handleMessage = (payload: unknown) => {
     console.warn(`[Connection:${this.id}] Received message:`, payload);
-    // In a future PR, this will route the message to this connection's BackgroundBridge
-    // if (this.bridge) {
-    //   this.bridge.onMessage({ name: 'metamask-provider', data: payload });
-    // }
   };
 }

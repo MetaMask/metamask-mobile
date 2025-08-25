@@ -1,5 +1,6 @@
 import { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 import { DappMetadata } from './dapp-metadata';
+import { SDK } from './sdk';
 
 /**
  * Represents an incoming connection request parsed from a QR code or deep link.
@@ -19,4 +20,9 @@ export interface ConnectionRequest {
    * requesting the connection.
    */
   dappMetadata: DappMetadata;
+
+  /**
+   * Metadata about the MetaMask SDK used by the dApp.
+   */
+  sdk: SDK;
 }
