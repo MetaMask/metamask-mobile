@@ -73,6 +73,11 @@ jest.mock('../../../core/OAuthService/OAuthService', () => ({
   resetOauthState: jest.fn(),
 }));
 
+const mockNetInfoFetch = jest.fn();
+jest.mock('@react-native-community/netinfo', () => ({
+  fetch: mockNetInfoFetch,
+}));
+
 jest.mock('../../../core/OAuthService/error', () => ({
   OAuthError: class OAuthError extends Error {
     code: string;
@@ -366,6 +371,37 @@ describe('Onboarding', () => {
           [PREVIOUS_SCREEN]: ONBOARDING,
           onboardingTraceCtx: expect.any(Object),
         }),
+      );
+    });
+
+    it('should navigate to offline mode when create wallet is pressed with no internet connection', async () => {
+      mockNetInfoFetch.mockResolvedValueOnce({
+        isConnected: false,
+        isInternetReachable: false,
+      });
+
+      mockSeedlessOnboardingEnabled.mockReturnValue(true);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.any(Object),
       );
     });
   });
