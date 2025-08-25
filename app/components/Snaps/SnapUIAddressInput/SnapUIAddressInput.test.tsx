@@ -5,6 +5,7 @@ import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { useDisplayName } from '../SnapUIAddress/useDisplayName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
+import { SNAP_UI_AVATAR_TEST_ID } from '../SnapUIAvatar/SnapUIAvatar';
 
 const mockInitialState = {
   settings: {
@@ -129,7 +130,7 @@ describe('SnapUIAddressInput', () => {
     const displayName = 'Vitalik.eth';
     (useDisplayName as jest.Mock).mockReturnValue(displayName);
 
-    const { toJSON } = renderWithProvider(
+    const { getByTestId } = renderWithProvider(
       <SnapUIAddressInput
         name="testAddress"
         chainId={testChainId}
@@ -138,8 +139,7 @@ describe('SnapUIAddressInput', () => {
       { state: mockInitialState },
     );
 
-    const tree = JSON.stringify(toJSON());
-    expect(tree.includes('RNSVGSvgView')).toBe(true);
+    expect(getByTestId(SNAP_UI_AVATAR_TEST_ID)).toBeTruthy();
   });
 
   it('will not render avatar when displayAvatar is false', () => {
@@ -201,7 +201,7 @@ describe('SnapUIAddressInput', () => {
     const displayName = 'Vitalik.eth';
     (useDisplayName as jest.Mock).mockReturnValue(displayName);
 
-    const { queryByText, getByText, toJSON } = renderWithProvider(
+    const { queryByText, getByText, getByTestId } = renderWithProvider(
       <SnapUIAddressInput
         name="testAddress"
         chainId={testChainId}
@@ -212,10 +212,7 @@ describe('SnapUIAddressInput', () => {
 
     expect(queryByText(displayName)).toBeTruthy();
     expect(getByText('Error')).toBeTruthy();
-
-    const tree = JSON.stringify(toJSON());
-
-    expect(tree.includes('RNSVGSvgView')).toBe(true);
+    expect(getByTestId(SNAP_UI_AVATAR_TEST_ID)).toBeTruthy();
   });
 
   it('disables clear button for the input when disabled', () => {

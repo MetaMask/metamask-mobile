@@ -57,6 +57,7 @@ exports[`SnapUIAddress renders Bitcoin address 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <View
                 style={
@@ -150,6 +151,7 @@ exports[`SnapUIAddress renders Bitcoin address with blockie 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <Image
                 source={
@@ -252,6 +254,7 @@ exports[`SnapUIAddress renders Cosmos address 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <View
                 style={
@@ -345,6 +348,7 @@ exports[`SnapUIAddress renders Cosmos address with blockie 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <Image
                 source={
@@ -447,6 +451,7 @@ exports[`SnapUIAddress renders Ethereum address 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <View
                 style={
@@ -540,6 +545,7 @@ exports[`SnapUIAddress renders Ethereum address with blockie 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <Image
                 source={
@@ -642,6 +648,7 @@ exports[`SnapUIAddress renders Hedera address 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <View
                 style={
@@ -735,6 +742,7 @@ exports[`SnapUIAddress renders Hedera address with blockie 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <Image
                 source={
@@ -837,6 +845,7 @@ exports[`SnapUIAddress renders Polkadot address 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <View
                 style={
@@ -930,6 +939,7 @@ exports[`SnapUIAddress renders Polkadot address with blockie 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <Image
                 source={
@@ -1032,6 +1042,7 @@ exports[`SnapUIAddress renders Starknet address 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <View
                 style={
@@ -1125,6 +1136,7 @@ exports[`SnapUIAddress renders Starknet address with blockie 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <Image
                 source={
@@ -1227,6 +1239,7 @@ exports[`SnapUIAddress renders legacy Ethereum address 1`] = `
                   "width": NaN,
                 }
               }
+              testID="snap-ui-avatar"
             >
               <View
                 style={
