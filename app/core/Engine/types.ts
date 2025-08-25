@@ -276,6 +276,7 @@ import {
   PerpsControllerEvents,
 } from '../../components/UI/Perps/controllers/PerpsController';
 import { RewardsController } from './controllers/rewards-controller/RewardsController';
+import { RewardsDataService } from './controllers/rewards-controller/services/rewards-data-service';
 import type {
   RewardsControllerState,
   RewardsControllerEvents,
@@ -542,6 +543,7 @@ export type Controllers = {
   EarnController: EarnController;
   PerpsController: PerpsController;
   RewardsController: RewardsController;
+  RewardsDataService: RewardsDataService;
   SeedlessOnboardingController: SeedlessOnboardingController<EncryptionKey>;
 };
 
