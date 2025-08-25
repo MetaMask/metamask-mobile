@@ -98,7 +98,7 @@ pipelines:
   pr_smoke_e2e_pipeline:
     stages:
       - set_main_target_stage: {}
-      - pr_cache_check_stage: {}  # Temporarily disabled to test react-native-worklets-core/plugin issue
+      - pr_cache_check_stage: {}
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
@@ -1172,12 +1172,12 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      # - restore-gradle-cache@2: {}  # Temporarily disabled to test react-native-worklets-core/plugin issue
-      # - restore-cache@2:  # Temporarily disabled to test react-native-worklets-core/plugin issue
-      #     title: Restore Android PR Build Cache (if build was skipped)
-      #     run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "true"}}'
-      #     inputs:
-      #       - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
+      - restore-gradle-cache@2: {}
+      - restore-cache@2:
+          title: Restore Android PR Build Cache (if build was skipped)
+          run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "true"}}'
+          inputs:
+            - key: '{{ getenv "ANDROID_PR_BUILD_CACHE_KEY" }}'
       - script@1:
           title: Copy Android build from cache (if build was skipped)
           run_if: '{{getenv "SKIP_ANDROID_BUILD" | eq "true"}}'
@@ -1216,10 +1216,10 @@ workflows:
                 # Copy saved files for Detox usage
                 # INTERMEDIATE_ANDROID_BUILD_DIR is the cached directory from android_e2e_build's "Save Android build" step
                 cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
-      # - restore-cache@2:  # Temporarily disabled to test react-native-worklets-core/plugin issue
-      #     title: Restore cache node_modules
-      #     inputs:
-      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - script@1:
           title: Install foundry
           inputs:
@@ -1326,7 +1326,7 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      # - restore-gradle-cache@2: {}  # Temporarily disabled to test react-native-worklets-core/plugin issue
+      - restore-gradle-cache@2: {}
       - pull-intermediate-files@1:
           inputs:
             - artifact_sources: .*
@@ -1345,10 +1345,10 @@ workflows:
                 # Copy saved files for Detox usage
                 # INTERMEDIATE_ANDROID_BUILD_DIR is the cached directory from android_e2e_build's "Save Android build" step
                 cp -r "$INTERMEDIATE_ANDROID_BUILD_DIR" "$BITRISE_SOURCE_DIR/android/app/build"
-      # - restore-cache@2:  # Temporarily disabled to test react-native-worklets-core/plugin issue
-      #     title: Restore cache node_modules
-      #     inputs:
-      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - script@1:
           title: Install foundry
           inputs:
@@ -1454,11 +1454,11 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      # - restore-cache@2:  # Temporarily disabled to test react-native-worklets-core/plugin issue
-      #     title: Restore iOS PR Build Cache (if build was skipped)
-      #     run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
-      #     inputs:
-      #       - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
+      - restore-cache@2:
+          title: Restore iOS PR Build Cache (if build was skipped)
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
+          inputs:
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
       - script@1:
           title: Copy iOS build from cache (if build was skipped)
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
@@ -1509,10 +1509,10 @@ workflows:
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       # - restore-cocoapods-cache@2: {}
-      # - restore-cache@2:  # Temporarily disabled to test react-native-worklets-core/plugin issue
-      #     title: Restore cache node_modules
-      #     inputs:
-      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - script@1:
           title: Install foundry
           inputs:
@@ -1679,10 +1679,10 @@ workflows:
                 ln -s $(which ccache) /usr/local/bin/c++
                 ln -s $(which ccache) /usr/local/bin/clang
                 ln -s $(which ccache) /usr/local/bin/clang++
-      # - restore-cache@2:  # Temporarily disabled to test react-native-worklets-core/plugin issue
-      #     title: Restore CCache
-      #     inputs:
-      #       - key: '{{ getenv "CCACHE_KEY" }}'
+      - restore-cache@2:
+          title: Restore CCache
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
       - script@1:
           title: Set skip ccache upload
           run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
@@ -1755,11 +1755,11 @@ workflows:
     after_run:
       - notify_failure
     steps:
-      # - restore-cache@2:  # Temporarily disabled to test react-native-worklets-core/plugin issue
-      #     title: Restore iOS PR Build Cache (if build was skipped)
-      #     run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
-      #     inputs:
-      #       - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
+      - restore-cache@2:
+          title: Restore iOS PR Build Cache (if build was skipped)
+          run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
+          inputs:
+            - key: '{{ getenv "IOS_PR_BUILD_CACHE_KEY" }}'
       - script@1:
           title: Copy iOS build from cache (if build was skipped)
           run_if: '{{getenv "SKIP_IOS_BUILD" | eq "true"}}'
@@ -1810,10 +1810,10 @@ workflows:
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       # - restore-cocoapods-cache@2: {}
-      # - restore-cache@2:  # Temporarily disabled to test react-native-worklets-core/plugin issue
-      #     title: Restore cache node_modules
-      #     inputs:
-      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - script@1:
           title: Install foundry
           inputs:
@@ -1961,10 +1961,10 @@ workflows:
                 cp -r "$INTERMEDIATE_IOS_BUILD_DIR" "$BITRISE_SOURCE_DIR/ios/build/Build/Products"
                 cp -r "$INTERMEDIATE_IOS_DETOX_DIR" "$BITRISE_SOURCE_DIR/../Library/Detox"
       # - restore-cocoapods-cache@2: {}
-      # - restore-cache@2:  # Temporarily disabled to test react-native-worklets-core/plugin issue
-      #     title: Restore cache node_modules
-      #     inputs:
-      #       - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
+      - restore-cache@2:
+          title: Restore cache node_modules
+          inputs:
+            - key: node_modules-{{ .OS }}-{{ .Arch }}-{{ getenv "BRANCH_COMMIT_HASH" }}
       - script@1:
           title: Install foundry
           inputs:
@@ -2111,7 +2111,7 @@ workflows:
             - source: $KEYSTORE_FILE_PATH
             - destination: $KEYSTORE_PATH
           run_if: '{{not (enveq "IS_DEV_BUILD" "true")}}'
-      # - restore-gradle-cache@2: {}  # Temporarily disabled to test react-native-worklets-core/plugin issue
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -2282,7 +2282,7 @@ workflows:
             - content: |-
                 #!/usr/bin/env bash
                 ./scripts/cache/set-cache-envs.sh android
-      # - restore-gradle-cache@2: {}  # Temporarily disabled to test react-native-worklets-core/plugin issue
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
@@ -2300,10 +2300,10 @@ workflows:
                 #!/usr/bin/env bash
                 sudo apt update
                 sudo apt install ccache -y
-      # - restore-cache@2:  # Temporarily disabled to test react-native-worklets-core/plugin issue
-      #     title: Restore CCache
-      #     inputs:
-      #       - key: '{{ getenv "CCACHE_KEY" }}'
+      - restore-cache@2:
+          title: Restore CCache
+          inputs:
+            - key: '{{ getenv "CCACHE_KEY" }}'
       - script@1:
           title: Set skip ccache upload
           run_if: '{{ enveq "BITRISE_CACHE_HIT" "exact" }}'
@@ -2693,7 +2693,7 @@ workflows:
           inputs:
             - source: $BITRISEIO_ANDROID_QA_KEYSTORE_URL
             - destination: android/keystores/internalRelease.keystore
-      # - restore-gradle-cache@2: {}  # Temporarily disabled to test react-native-worklets-core/plugin issue
+      - restore-gradle-cache@2: {}
       - install-missing-android-tools@3:
           inputs:
             - ndk_version: $NDK_VERSION
