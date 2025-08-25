@@ -502,13 +502,13 @@ const PerpsClosePositionBottomSheet: React.FC<
 PerpsClosePositionBottomSheet.displayName = 'PerpsClosePositionBottomSheet';
 
 // Enable WDYR tracking in development
-// if (__DEV__) {
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   (PerpsClosePositionBottomSheet as any).whyDidYouRender = {
-//     logOnDifferentValues: true,
-//     customName: 'PerpsClosePositionBottomSheet',
-//   };
-// }
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsClosePositionBottomSheet as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsClosePositionBottomSheet',
+  };
+}
 
 export default memo(
   PerpsClosePositionBottomSheet,

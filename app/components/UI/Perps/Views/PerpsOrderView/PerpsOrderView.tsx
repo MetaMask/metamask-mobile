@@ -1022,13 +1022,13 @@ const PerpsOrderViewContentBase: React.FC = () => {
 };
 
 // Enable WDYR tracking BEFORE wrapping with React.memo
-// if (__DEV__) {
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   (PerpsOrderViewContentBase as any).whyDidYouRender = {
-//     logOnDifferentValues: true,
-//     customName: 'PerpsOrderViewContent',
-//   };
-// }
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsOrderViewContentBase as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsOrderViewContent',
+  };
+}
 
 // Now wrap with React.memo AFTER setting whyDidYouRender
 const PerpsOrderViewContent = React.memo(PerpsOrderViewContentBase);

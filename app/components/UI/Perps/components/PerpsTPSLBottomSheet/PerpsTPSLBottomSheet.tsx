@@ -757,13 +757,13 @@ const PerpsTPSLBottomSheet: React.FC<PerpsTPSLBottomSheetProps> = ({
 PerpsTPSLBottomSheet.displayName = 'PerpsTPSLBottomSheet';
 
 // Enable WDYR tracking in development
-// if (__DEV__) {
-//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-//   (PerpsTPSLBottomSheet as any).whyDidYouRender = {
-//     logOnDifferentValues: true,
-//     customName: 'PerpsTPSLBottomSheet',
-//   };
-// }
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsTPSLBottomSheet as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsTPSLBottomSheet',
+  };
+}
 
 export default memo(
   PerpsTPSLBottomSheet,
