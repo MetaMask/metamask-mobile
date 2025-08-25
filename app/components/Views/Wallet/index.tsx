@@ -338,11 +338,11 @@ const WalletTokensTabView = React.memo((props: WalletTokensTabViewProps) => {
       if ((shouldSelectPerpsTab || initialTab === 'perps') && isPerpsEnabled) {
         // Calculate the index of the Perps tab
         // Tokens is always at index 0, Perps is at index 1 when enabled
-        const perpsTabIndex = 1;
+        const targetPerpsTabIndex = 1;
 
         // Small delay ensures the ScrollableTabView is fully rendered before selection
         const timer = setTimeout(() => {
-          scrollableTabViewRef.current?.goToPage(perpsTabIndex);
+          scrollableTabViewRef.current?.goToPage(targetPerpsTabIndex);
 
           // Clear the params to prevent re-selection on subsequent focuses
           // This is important for navigation state management
