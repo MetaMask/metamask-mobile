@@ -1,12 +1,15 @@
 import React, { createContext, useContext } from 'react';
 import Engine from '../../../../core/Engine';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import type {
   PriceUpdate,
   Position,
   Order,
   OrderFill,
   AccountState,
+  PerpsMarketData,
 } from '../controllers/types';
+import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -211,18 +214,15 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     callback: (prices: Record<string, PriceUpdate>) => void;
     throttleMs?: number;
   }): () => void {
-    // Track new symbols
-    const newSymbols: string[] = [];
+    // Track symbols for filtering
     params.symbols.forEach((s) => {
-      if (!this.symbols.has(s)) {
-        newSymbols.push(s);
-      }
       this.symbols.add(s);
     });
 
-    // If we have new symbols and WebSocket is already connected, we need to reconnect
-    if (newSymbols.length > 0 && this.wsSubscription) {
-      this.disconnect();
+    // Ensure connection is established (allMids provides all symbols)
+    // No need to reconnect when new symbols are added since allMids
+    // already provides prices for all markets
+    if (!this.wsSubscription) {
       this.connect();
     }
 
@@ -436,6 +436,104 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
   }
 }
 
+// Market data channel for caching market list data
+class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
+  private lastFetchTime = 0;
+  private fetchPromise: Promise<void> | null = null;
+  private readonly CACHE_DURATION =
+    PERFORMANCE_CONFIG.MARKET_DATA_CACHE_DURATION_MS;
+
+  protected async connect() {
+    // Fetch if cache is stale or empty
+    const now = Date.now();
+    const cached = this.cache.get('markets');
+    if (!cached || now - this.lastFetchTime > this.CACHE_DURATION) {
+      await this.fetchMarketData();
+    }
+  }
+
+  private async fetchMarketData(): Promise<void> {
+    // Prevent concurrent fetches
+    if (this.fetchPromise) {
+      await this.fetchPromise;
+      return;
+    }
+
+    this.fetchPromise = (async () => {
+      try {
+        DevLogger.log('PerpsStreamManager: Fetching market data');
+
+        const controller = Engine.context.PerpsController;
+        const provider = controller.getActiveProvider();
+        const data = await provider.getMarketDataWithPrices();
+
+        // Update cache
+        this.cache.set('markets', data);
+        this.lastFetchTime = Date.now();
+
+        // Notify all subscribers
+        this.notifySubscribers(data);
+
+        DevLogger.log(
+          `PerpsStreamManager: Market data fetched and cached (${data.length} markets)`,
+        );
+      } catch (error) {
+        DevLogger.log('PerpsStreamManager: Failed to fetch market data', error);
+        // Keep existing cache if fetch fails
+        const existing = this.cache.get('markets');
+        if (existing) {
+          this.notifySubscribers(existing);
+        }
+      } finally {
+        this.fetchPromise = null;
+      }
+    })();
+
+    await this.fetchPromise;
+  }
+
+  /**
+   * Force refresh market data
+   */
+  public async refresh(): Promise<void> {
+    this.lastFetchTime = 0; // Force cache to be considered stale
+    await this.fetchMarketData();
+  }
+
+  protected getCachedData(): PerpsMarketData[] | null {
+    return this.cache.get('markets') || null;
+  }
+
+  protected getClearedData(): PerpsMarketData[] {
+    return [];
+  }
+
+  /**
+   * Prewarm market data cache
+   * @returns Cleanup function (no-op for REST data)
+   */
+  public prewarm(): () => void {
+    // Fetch data immediately to populate cache
+    this.fetchMarketData().catch((error) => {
+      DevLogger.log('PerpsStreamManager: Failed to prewarm market data', error);
+    });
+
+    // No cleanup needed for REST data
+    return () => {
+      // No-op
+    };
+  }
+
+  /**
+   * Clear cache and reset fetch time
+   */
+  public clearCache(): void {
+    super.clearCache();
+    this.lastFetchTime = 0;
+    this.fetchPromise = null;
+  }
+}
+
 // Main manager class
 export class PerpsStreamManager {
   public readonly prices = new PriceStreamChannel();
@@ -443,6 +541,7 @@ export class PerpsStreamManager {
   public readonly positions = new PositionStreamChannel();
   public readonly fills = new FillStreamChannel();
   public readonly account = new AccountStreamChannel();
+  public readonly marketData = new MarketDataChannel();
 
   // Future channels can be added here:
   // public readonly funding = new FundingStreamChannel();

@@ -213,6 +213,7 @@ class PerpsConnectionManagerClass {
       streamManager.positions.clearCache();
       streamManager.orders.clearCache();
       streamManager.account.clearCache();
+      streamManager.marketData.clearCache();
 
       // Reset state
       this.isConnected = false;
@@ -322,14 +323,20 @@ class PerpsConnectionManagerClass {
       // Get the singleton StreamManager instance
       const streamManager = getStreamManagerInstance();
 
-      // Pre-warm the positions, orders, and account channels
+      // Pre-warm the positions, orders, account, and market data channels
       // This creates persistent subscriptions that keep connections alive
       // Store cleanup functions to call when leaving Perps
       const positionCleanup = streamManager.positions.prewarm();
       const orderCleanup = streamManager.orders.prewarm();
       const accountCleanup = streamManager.account.prewarm();
+      const marketDataCleanup = streamManager.marketData.prewarm();
 
-      this.prewarmCleanups.push(positionCleanup, orderCleanup, accountCleanup);
+      this.prewarmCleanups.push(
+        positionCleanup,
+        orderCleanup,
+        accountCleanup,
+        marketDataCleanup,
+      );
 
       // Give subscriptions a moment to receive initial data
       await new Promise((resolve) => setTimeout(resolve, 100));

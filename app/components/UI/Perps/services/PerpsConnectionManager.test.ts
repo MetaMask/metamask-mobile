@@ -47,6 +47,7 @@ const mockStreamManagerInstance = {
   positions: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   orders: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   account: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
+  marketData: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -106,9 +107,11 @@ describe('PerpsConnectionManager', () => {
     mockStreamManagerInstance.positions.clearCache.mockClear();
     mockStreamManagerInstance.orders.clearCache.mockClear();
     mockStreamManagerInstance.account.clearCache.mockClear();
+    mockStreamManagerInstance.marketData.clearCache.mockClear();
     mockStreamManagerInstance.positions.prewarm.mockClear();
     mockStreamManagerInstance.orders.prewarm.mockClear();
     mockStreamManagerInstance.account.prewarm.mockClear();
+    mockStreamManagerInstance.marketData.prewarm.mockClear();
 
     // Reset the singleton instance state
     resetManager(PerpsConnectionManager);
@@ -598,6 +601,9 @@ describe('PerpsConnectionManager', () => {
       expect(mockStreamManagerInstance.positions.clearCache).toHaveBeenCalled();
       expect(mockStreamManagerInstance.orders.clearCache).toHaveBeenCalled();
       expect(mockStreamManagerInstance.account.clearCache).toHaveBeenCalled();
+      expect(
+        mockStreamManagerInstance.marketData.clearCache,
+      ).toHaveBeenCalled();
     });
 
     it('should reinitialize controller with new context', async () => {

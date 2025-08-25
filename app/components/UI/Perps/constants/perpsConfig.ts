@@ -68,6 +68,10 @@ export const PERFORMANCE_CONFIG = {
   // Order validation debounce delay (milliseconds)
   // Prevents excessive validation calls during rapid form input changes
   VALIDATION_DEBOUNCE_MS: 1000,
+
+  // Market data cache duration (milliseconds)
+  // How long to cache market list data before fetching fresh data
+  MARKET_DATA_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
 } as const;
 
 /**
