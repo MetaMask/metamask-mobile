@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { SolScope } from '@metamask/keyring-api';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { AccountGroupDetails } from './AccountGroupDetails';
 
@@ -38,6 +39,47 @@ const mockWallet = {
   id: 'wallet-1',
   metadata: { name: 'Test Wallet' },
   type: 'keyring',
+};
+
+const mockNetworkControllerState = {
+  networkConfigurationsByChainId: {
+    0x1: {
+      chainId: '0x1',
+      name: 'Ethereum',
+    },
+    0xaa36a7: {
+      chainId: '0xaa36a7',
+      name: 'Sepolia Test Network',
+    },
+    0x2105: {
+      chainId: '0x2105',
+      name: 'Base',
+    },
+    0xa4b1: {
+      chainId: '0xa4b1',
+      name: 'Arbitrum One',
+    },
+  },
+};
+
+const mockMultichainNetworkController = {
+  multichainNetworkConfigurationsByChainId: {
+    [SolScope.Mainnet]: {
+      name: 'Solana Mainnet',
+      chainId: SolScope.Mainnet,
+      isTestnet: false,
+    },
+    [SolScope.Testnet]: {
+      name: 'Solana Testnet',
+      chainId: SolScope.Testnet,
+      isTestnet: true,
+    },
+    [SolScope.Devnet]: {
+      name: 'Solana Devnet',
+      chainId: SolScope.Devnet,
+      isTestnet: true,
+    },
+  },
 };
 
 describe('AccountGroupDetails', () => {
@@ -89,6 +131,8 @@ describe('AccountGroupDetails', () => {
             },
           ],
         },
+        NetworkController: mockNetworkControllerState,
+        MultichainNetworkController: mockMultichainNetworkController,
       },
     },
   };
