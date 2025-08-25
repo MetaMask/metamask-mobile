@@ -14,6 +14,8 @@ import WalletView from '../../pages/wallet/WalletView';
 import TokenOverview from '../../pages/wallet/TokenOverview';
 import { mockEvents } from '../../api-mocking/mock-config/mock-events';
 import ToastModal from '../../pages/wallet/ToastModal';
+import { setupMockRequest } from '../../api-mocking/mockHelpers';
+import { Mockttp } from 'mockttp';
 
 describe(Regression('Transaction'), () => {
   beforeAll(async () => {
@@ -30,8 +32,15 @@ describe(Regression('Transaction'), () => {
       {
         fixture: new FixtureBuilder().withPopularNetworks().build(),
         restartDevice: true,
-        testSpecificMock: {
-          GET: [mockEvents.GET.remoteFeatureFlagsOldConfirmations],
+        testSpecificMock: async (mockServer: Mockttp) => {
+          const { urlEndpoint, response } =
+            mockEvents.GET.remoteFeatureFlagsOldConfirmations;
+          await setupMockRequest(mockServer, {
+            requestMethod: 'GET',
+            url: urlEndpoint,
+            response,
+            responseCode: 200,
+          });
         },
       },
       async () => {

@@ -241,6 +241,8 @@
     "@metamask/logging-controller": "^6.0.4",
     "@metamask/message-signing-snap": "^1.1.2",
     "@metamask/metamask-eth-abis": "3.1.1",
+    "@metamask/mobile-wallet-protocol-core": "^0.0.6",
+    "@metamask/mobile-wallet-protocol-wallet-client": "^0.0.6",
     "@metamask/multichain-account-service": "^0.4.0",
     "@metamask/multichain-api-client": "^0.6.5",
     "@metamask/multichain-api-middleware": "^0.4.0",
@@ -277,7 +279,7 @@
     "@metamask/snaps-rpc-methods": "^13.5.0",
     "@metamask/snaps-sdk": "^9.3.0",
     "@metamask/snaps-utils": "^11.5.0",
-    "@metamask/solana-wallet-snap": "^2.1.4",
+    "@metamask/solana-wallet-snap": "^2.3.0",
     "@metamask/solana-wallet-standard": "^0.5.1",
     "@metamask/stake-sdk": "^3.2.0",
     "@metamask/swappable-obj-proxy": "^2.1.0",
@@ -694,7 +696,8 @@
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>@reown/appkit-controllers>viem>ws>bufferutil": false,
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>@reown/appkit-utils>viem>ws>bufferutil": false,
       "@metamask/test-dapp-solana>@solana/wallet-adapter-wallets>@solana/wallet-adapter-walletconnect>@walletconnect/solana-adapter>@reown/appkit>viem>ws>bufferutil": false,
-      "@metamask/test-dapp-solana>@solana/web3.js>rpc-websockets>bufferutil": false
+      "@metamask/test-dapp-solana>@solana/web3.js>rpc-websockets>bufferutil": false,
+      "@metamask/mobile-wallet-protocol-core>centrifuge>protobufjs": false
     }
   },
   "packageManager": "yarn@1.22.22",
