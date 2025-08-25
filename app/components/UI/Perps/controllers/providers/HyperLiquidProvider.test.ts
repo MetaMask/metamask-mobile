@@ -218,6 +218,15 @@ describe('HyperLiquidProvider', () => {
           },
         }),
         maxBuilderFee: jest.fn().mockResolvedValue(1),
+        userFees: jest.fn().mockResolvedValue({
+          feeSchedule: {
+            cross: '0.00030', // 0.030% taker with discount
+            add: '0.00010', // 0.010% maker with discount
+            spotCross: '0.00040',
+            spotAdd: '0.00020',
+          },
+          dailyUserVlm: [],
+        }),
       }),
       disconnect: jest.fn().mockResolvedValue(undefined),
       toggleTestnet: jest.fn(),
@@ -2724,6 +2733,15 @@ describe('HyperLiquidProvider', () => {
     });
 
     describe('calculateFees', () => {
+      beforeEach(() => {
+        // Reset userFees mock for each test
+        (mockClientService.getInfoClient().userFees as jest.Mock).mockClear();
+        // Default to throw error (will use base rates)
+        mockWalletService.getUserAddressWithDefault.mockRejectedValue(
+          new Error('No wallet connected'),
+        );
+      });
+
       it('should calculate fees for market orders', async () => {
         const result = await provider.calculateFees({
           orderType: 'market',
@@ -2778,6 +2796,72 @@ describe('HyperLiquidProvider', () => {
         expect(result.feeAmount).toBeUndefined();
       });
 
+      it('should use cached user-specific fee rates when available', async () => {
+        // Reset mock and set user address to trigger user fee fetching
+        (mockClientService.getInfoClient().userFees as jest.Mock).mockClear();
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
+          feeSchedule: {
+            cross: '0.00030', // 0.030% taker with discount
+            add: '0.00010', // 0.010% maker with discount
+            spotCross: '0.00040',
+            spotAdd: '0.00020',
+          },
+          dailyUserVlm: [],
+        });
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
+
+        // First call should fetch from API
+        const result1 = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Should use discounted rate from userFees mock
+        expect(result1.feeRate).toBe(0.0003); // 0.030% with discount
+        expect(result1.feeAmount).toBeCloseTo(30, 5); // 100000 * 0.00030
+        expect(
+          mockClientService.getInfoClient().userFees,
+        ).toHaveBeenCalledTimes(1);
+
+        // Second call should use cache
+        const result2 = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        expect(result2.feeRate).toBe(0.0003);
+        expect(result2.feeAmount).toBeCloseTo(30, 5);
+        // Should not call API again (cached)
+        expect(
+          mockClientService.getInfoClient().userFees,
+        ).toHaveBeenCalledTimes(1);
+      });
+
+      it('should fall back to base rates on API failure', async () => {
+        // Reset and mock user address
+        (mockClientService.getInfoClient().userFees as jest.Mock).mockClear();
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue('0x123');
+
+        // Mock API failure
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockRejectedValue(new Error('API Error'));
+
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Should use base rates on failure
+        expect(result.feeRate).toBe(0.00045); // Base taker rate
+        expect(result.feeAmount).toBe(45);
+      });
+
       it('should handle non-numeric amount gracefully', async () => {
         const result = await provider.calculateFees({
           orderType: 'market',
@@ -2809,6 +2893,162 @@ describe('HyperLiquidProvider', () => {
         });
 
         expect(result).toBeInstanceOf(Promise);
+      });
+
+      it('should fetch user-specific fee rates when wallet is connected', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        // Mock user fees API response with discounted rates
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
+          feeSchedule: {
+            cross: '0.0003', // 0.03% - discounted taker rate
+            add: '0.0001', // 0.01% - discounted maker rate
+            spotCross: '0.0003',
+            spotAdd: '0.0001',
+          },
+        });
+
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        expect(result.feeRate).toBe(0.0003); // Discounted rate
+        expect(result.feeAmount).toBeCloseTo(30, 5);
+      });
+
+      it('should cache user fee rates and reuse them', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
+          feeSchedule: {
+            cross: '0.0003',
+            add: '0.0001',
+            spotCross: '0.0003',
+            spotAdd: '0.0001',
+          },
+        });
+
+        // First call - should fetch from API
+        await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        expect(
+          mockClientService.getInfoClient().userFees,
+        ).toHaveBeenCalledTimes(1);
+
+        // Second call - should use cache
+        await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Should not call API again
+        expect(
+          mockClientService.getInfoClient().userFees,
+        ).toHaveBeenCalledTimes(1);
+      });
+
+      it('should fall back to base rates when API returns invalid fee rates', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        // Mock user fees API response with invalid rates that will produce NaN
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
+          feeSchedule: {
+            cross: 'invalid', // Will cause parseFloat to return NaN
+            add: 'invalid',
+            spotCross: 'invalid',
+            spotAdd: 'invalid',
+          },
+        });
+
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Should fall back to base rates due to validation failure
+        expect(result.feeRate).toBe(0.00045); // Base taker rate
+        expect(result.feeAmount).toBe(45);
+      });
+
+      it('should fall back to base rates when API returns negative fee rates', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        // Mock user fees API response with negative rates
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
+          feeSchedule: {
+            cross: '-0.0003', // Negative rate - invalid
+            add: '0.0001',
+            spotCross: '0.0003',
+            spotAdd: '0.0001',
+          },
+        });
+
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: false,
+          amount: '100000',
+        });
+
+        // Should fall back to base rates due to validation failure
+        expect(result.feeRate).toBe(0.00045); // Base taker rate
+        expect(result.feeAmount).toBe(45);
+      });
+
+      it('should always use taker rate for market orders regardless of isMaker', async () => {
+        const testAddress = '0xTestAddress123';
+        mockWalletService.getUserAddressWithDefault.mockResolvedValue(
+          testAddress,
+        );
+
+        (
+          mockClientService.getInfoClient().userFees as jest.Mock
+        ).mockResolvedValue({
+          feeSchedule: {
+            cross: '0.0003', // Taker rate
+            add: '0.0001', // Maker rate (lower)
+            spotCross: '0.0003',
+            spotAdd: '0.0001',
+          },
+        });
+
+        // Test market order with isMaker=true (should still use taker rate)
+        const result = await provider.calculateFees({
+          orderType: 'market',
+          isMaker: true, // This should be ignored for market orders
+          amount: '100000',
+        });
+
+        // Should use taker rate even though isMaker is true
+        expect(result.feeRate).toBe(0.0003); // Taker rate, not maker rate (0.0001)
+        expect(result.feeAmount).toBeCloseTo(30, 5);
       });
 
       describe('placeholder methods for future implementation', () => {

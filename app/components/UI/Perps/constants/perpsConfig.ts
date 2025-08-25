@@ -5,8 +5,11 @@ export const PERPS_CONSTANTS = {
   FEATURE_FLAG_KEY: 'perpsEnabled',
   WEBSOCKET_TIMEOUT: 5000, // 5 seconds
   WEBSOCKET_CLEANUP_DELAY: 1000, // 1 second
+  BACKGROUND_DISCONNECT_DELAY: 20_000, // 20 seconds delay before disconnecting when app is backgrounded
   DEFAULT_ASSET_PREVIEW_LIMIT: 5,
   DEFAULT_MAX_LEVERAGE: 3 as number, // Default fallback max leverage when market data is unavailable - conservative default
+  FALLBACK_PRICE_DISPLAY: '$---', // Display when price data is unavailable
+  FALLBACK_DATA_DISPLAY: '--', // Display when non-price data is unavailable
 } as const;
 
 /**
@@ -65,6 +68,10 @@ export const PERFORMANCE_CONFIG = {
   // Order validation debounce delay (milliseconds)
   // Prevents excessive validation calls during rapid form input changes
   VALIDATION_DEBOUNCE_MS: 1000,
+
+  // Market data cache duration (milliseconds)
+  // How long to cache market list data before fetching fresh data
+  MARKET_DATA_CACHE_DURATION_MS: 5 * 60 * 1000, // 5 minutes
 } as const;
 
 /**
