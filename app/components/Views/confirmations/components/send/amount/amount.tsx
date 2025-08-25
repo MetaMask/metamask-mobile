@@ -20,7 +20,7 @@ import Text, {
 import { selectPrimaryCurrency } from '../../../../../../selectors/settings';
 import CollectibleMedia from '../../../../../UI/CollectibleMedia';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { TokenStandard } from '../../../types/token';
+import { AssetType, TokenStandard } from '../../../types/token';
 import { useAmountSelectionMetrics } from '../../../hooks/send/metrics/useAmountSelectionMetrics';
 import { useAmountValidation } from '../../../hooks/send/useAmountValidation';
 import { useBalance } from '../../../hooks/send/useBalance';
@@ -44,7 +44,9 @@ export const Amount = () => {
     getNativeValue,
   } = useCurrencyConversions();
   const isNFT = asset?.standard === TokenStandard.ERC1155;
-  const assetSymbol = asset?.ticker ?? asset?.symbol;
+  const assetSymbol = isNFT
+    ? undefined
+    : (asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol;
   const assetDisplaySymbol = assetSymbol ?? (isNFT ? 'NFT' : '');
   const { styles, theme } = useStyles(styleSheet, {
     inputError: Boolean(amountError),
