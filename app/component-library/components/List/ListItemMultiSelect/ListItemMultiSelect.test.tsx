@@ -302,6 +302,38 @@ describe('ListItemMultiSelect', () => {
       fireEvent.press(listItem);
       expect(mockOnPress).toHaveBeenCalled();
     });
+
+    it('should prevent double onPress firing when checkbox is tapped on iOS', () => {
+      const mockOnPress = jest.fn();
+      const { getByTestId } = render(
+        <ListItemMultiSelect
+          onPress={mockOnPress}
+          isSelected
+          testID="list-item-multi"
+        >
+          <View />
+        </ListItemMultiSelect>,
+      );
+
+      const listItem = getByTestId('list-item-multi');
+      // Verify the main component has the coordination wrapper function
+      expect(listItem.props.onPress).toBeDefined();
+      expect(typeof listItem.props.onPress).toBe('function');
+      // Test the coordination logic by simulating rapid consecutive calls
+      // This simulates what would happen if both checkbox onPressIn and main onPress fire
+      // First call (simulates checkbox onPressIn) - should succeed
+      const mockEvent1 = { nativeEvent: { timestamp: Date.now() } };
+      listItem.props.onPress(mockEvent1);
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+      // Second call immediately after (simulates main onPress) - should be blocked
+      const mockEvent2 = { nativeEvent: { timestamp: Date.now() } };
+      listItem.props.onPress(mockEvent2);
+      expect(mockOnPress).toHaveBeenCalledTimes(1); // Still 1, not 2 - DOUBLE TAP PREVENTED! ✅
+      // Third rapid call - should also be blocked
+      const mockEvent3 = { nativeEvent: { timestamp: Date.now() } };
+      listItem.props.onPress(mockEvent3);
+      expect(mockOnPress).toHaveBeenCalledTimes(1); // Still 1 - rapid taps prevented
+    });
   });
 
   describe('TouchableOpacity wrapper gesture handling', () => {

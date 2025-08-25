@@ -109,6 +109,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
 
   // Timestamp tracking for Checkbox coordination (separate from main TouchableComponent)
   const lastCheckboxGestureTime = useRef(0);
+  const COORDINATION_WINDOW = 50; // 50ms window to prevent double firing
 
   // Disable gesture wrapper in test environments to prevent test interference
   const isE2ETest =
@@ -122,16 +123,29 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
 
   // Handle disabled state properly in all environments
   // For custom TouchableOpacity (Android), pass original onPress and let it handle disabled state internally
-  // For standard TouchableOpacity, apply conditional logic to prevent disabled interaction
+  // For standard TouchableOpacity, apply conditional logic to prevent disabled interaction AND coordinate with checkbox
   const conditionalOnPress =
     TouchableComponent === TouchableOpacity
-      ? onPress
+      ? onPress // Android: Custom TouchableOpacity handles coordination internally
       : isDisabled
       ? undefined
-      : onPress;
+      : (pressEvent: GestureResponderEvent) => {
+          // Non-Android: Coordinate between checkbox onPressIn and main component onPress
+          const now = Date.now();
+          const timeSinceLastPress = now - lastCheckboxGestureTime.current;
+
+          // Only fire if enough time has passed since last interaction
+          // This prevents both checkbox->main double firing AND rapid repeated main calls
+          if (onPress && timeSinceLastPress > COORDINATION_WINDOW) {
+            lastCheckboxGestureTime.current = now; // Update timestamp for future coordination
+            onPress(pressEvent);
+          }
+        };
 
   // Checkbox onPressIn with timestamp coordination (non-Android only)
-  // Event firing order: Checkbox onPressIn -> Main TouchableComponent onPress
+  // Event firing order:
+  // 1. Checkbox onPressIn -> records timestamp -> calls onPress
+  // 2. Main TouchableComponent onPress -> checks timestamp -> skips if recent
   const checkboxOnPressIn = (pressEvent: GestureResponderEvent) => {
     const now = Date.now();
     // Record timestamp and call onPress if not disabled
