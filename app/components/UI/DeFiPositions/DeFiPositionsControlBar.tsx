@@ -99,7 +99,7 @@ const DeFiPositionsControlBar: React.FC = () => {
                   numberOfLines={1}
                 >
                   {enabledNetworks.length > 1
-                    ? strings('networks.all_networks')
+                    ? strings('wallet.all_networks')
                     : currentNetworkName ?? strings('wallet.current_network')}
                 </TextComponent>
               </View>

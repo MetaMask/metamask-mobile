@@ -7,6 +7,8 @@ import { selectPopularNetworkConfigurationsByCaipChainId } from '../../../select
 import { useNetworkEnablement } from '../useNetworkEnablement/useNetworkEnablement';
 import { ProcessedNetwork } from '../useNetworksByNamespace/useNetworksByNamespace';
 import { POPULAR_NETWORK_CHAIN_IDS } from '../../../constants/popular-networks';
+import { useNavigation } from '@react-navigation/native';
+import Routes from '../../../constants/navigation/Routes';
 
 interface UseNetworkSelectionOptions {
   /**
@@ -40,6 +42,8 @@ export const useNetworkSelection = ({
     enabledNetworksByNamespace,
     enableAllPopularNetworks,
   } = useNetworkEnablement();
+
+  const navigation = useNavigation();
 
   const popularNetworkConfigurations = useSelector(
     selectPopularNetworkConfigurationsByCaipChainId,
@@ -89,24 +93,27 @@ export const useNetworkSelection = ({
 
   /** Selects a custom network exclusively (disables other custom networks) */
   const selectCustomNetwork = useCallback(
-    (chainId: CaipChainId) => {
-      enableNetwork(chainId);
-      resetCustomNetworks(chainId);
+    async (chainId: CaipChainId) => {
+      await enableNetwork(chainId);
+      await resetCustomNetworks(chainId);
+      navigation.navigate(Routes.WALLET.HOME);
     },
-    [enableNetwork, resetCustomNetworks],
+    [enableNetwork, resetCustomNetworks, navigation],
   );
 
-  const selectAllPopularNetworks = useCallback(() => {
-    enableAllPopularNetworks();
-  }, [enableAllPopularNetworks]);
+  const selectAllPopularNetworks = useCallback(async () => {
+    await enableAllPopularNetworks();
+    navigation.navigate(Routes.WALLET.HOME);
+  }, [enableAllPopularNetworks, navigation]);
 
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
-    (chainId: CaipChainId) => {
-      enableNetwork(chainId);
-      resetCustomNetworks();
+    async (chainId: CaipChainId) => {
+      await enableNetwork(chainId);
+      await resetCustomNetworks();
+      navigation.navigate(Routes.WALLET.HOME);
     },
-    [enableNetwork, resetCustomNetworks],
+    [enableNetwork, resetCustomNetworks, navigation],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */
