@@ -25,17 +25,16 @@ const TouchableOpacity = ({
   disabled,
   children,
   ...props
-}: TouchableOpacityProps & { children?: React.ReactNode }) => {
+}: TouchableOpacityProps & {
+  children?: React.ReactNode;
+}) => {
   const isDisabled = disabled || (props as { isDisabled?: boolean }).isDisabled;
 
-  // Timestamp-based coordination to prevent double firing:
-  // 1. User taps list item
-  // 2. GestureDetector fires first (records timestamp) - handles ScrollView conflicts
-  // 3. RNTouchableOpacity onPress checks timestamp and skips if recent
-  // 4. Accessibility tools (screen readers) can still use onPress without ScrollView conflicts
-  const lastGestureTime = useRef(0);
-  const COORDINATION_WINDOW = 100; // 100ms window to prevent double firing (increased for TalkBack compatibility)
+  // Simple pass-through to main component coordination
+  // Main component handles ALL coordination logic
 
+  // Gesture detection for ScrollView compatibility on Android
+  // Sets timestamp FIRST, then calls parent function
   const tap = Gesture.Tap()
     .runOnJS(true)
     .shouldCancelWhenOutside(false)
@@ -43,9 +42,6 @@ const TouchableOpacity = ({
     .maxDeltaY(20)
     .onEnd((gestureEvent) => {
       if (onPress && !isDisabled) {
-        // Record when gesture handler fires to coordinate with accessibility onPress
-        lastGestureTime.current = Date.now();
-
         // Create a proper GestureResponderEvent-like object from gesture event
         const syntheticEvent = {
           nativeEvent: {
@@ -53,7 +49,7 @@ const TouchableOpacity = ({
             locationY: gestureEvent.y || 0,
             pageX: gestureEvent.absoluteX || 0,
             pageY: gestureEvent.absoluteY || 0,
-            timestamp: lastGestureTime.current,
+            timestamp: Date.now(),
           },
           persist: () => {
             /* no-op for synthetic event */
@@ -65,20 +61,15 @@ const TouchableOpacity = ({
             /* no-op for synthetic event */
           },
         } as GestureResponderEvent;
+
+        // Call main component function (handles coordination)
         onPress(syntheticEvent);
       }
     });
 
-  // Accessibility-safe onPress that won't conflict with ScrollView
-  // Only fires if gesture handler didn't already handle the interaction
+  // Simple accessibility handler - main component handles coordination
   const accessibilityOnPress = (pressEvent: GestureResponderEvent) => {
-    const now = Date.now();
-    // Only fire if gesture handler didn't fire in the last COORDINATION_WINDOW ms
-    if (
-      onPress &&
-      !isDisabled &&
-      now - lastGestureTime.current > COORDINATION_WINDOW
-    ) {
+    if (onPress && !isDisabled) {
       onPress(pressEvent);
     }
   };
@@ -111,10 +102,10 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, { style, isDisabled });
 
-  // Timestamp tracking for non-Android platforms only
-  // Android coordination is handled entirely by the custom TouchableOpacity component
+  // Shared coordination system for maximum reliability
+  // Both custom TouchableOpacity and main component use the same timestamp reference
   const lastPressTime = useRef(0);
-  const COORDINATION_WINDOW = 100; // 100ms window to prevent double firing (increased for TalkBack compatibility)
+  const COORDINATION_WINDOW = 100; // 100ms window for TalkBack compatibility
 
   // Disable gesture wrapper in test environments to prevent test interference
   const isE2ETest =
@@ -126,8 +117,8 @@ const ListItemSelect: React.FC<ListItemSelectProps> = ({
       ? TouchableOpacity
       : RNTouchableOpacity;
 
-  // Handle disabled state properly in all environments
-  // Apply coordination logic on ALL platforms to prevent double firing
+  // Option 3C: Universal coordination system
+  // All platforms use coordination logic to prevent double firing from any source
   const conditionalOnPress = isDisabled
     ? undefined
     : (pressEvent?: GestureResponderEvent) => {
