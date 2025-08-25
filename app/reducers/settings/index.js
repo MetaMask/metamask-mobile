@@ -4,8 +4,7 @@ import { AvatarAccountType } from '../../component-library/components/Avatars/Av
 const initialState = {
   searchEngine: AppConstants.DEFAULT_SEARCH_ENGINE,
   primaryCurrency: 'ETH',
-  lockTime: -1, // Disabled by default
-  useBlockieIcon: true,
+  lockTime: -1, // Disabled by default,
   avatarStyle: AvatarAccountType.Maskicon,
   hideZeroBalanceTokens: false,
   basicFunctionalityEnabled: true,

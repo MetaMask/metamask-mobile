@@ -12,6 +12,7 @@ import { AccountDetailsIds } from '../../../../../../../e2e/selectors/Multichain
 import { formatAddress } from '../../../../../../util/address';
 import { RootState } from '../../../../../../reducers';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
+import { AvatarAccountType } from '../../../../../../component-library/components/Avatars/Avatar';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -50,7 +51,7 @@ const mockAccount = createMockInternalAccount(
 
 const mockInitialState = {
   settings: {
-    useBlockieIcon: false,
+    avatarStyle: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState: {
@@ -103,10 +104,10 @@ describe('BaseAccountDetails', () => {
     expect(getByText(shortAddress)).toBeTruthy();
   });
 
-  it('shows JazzIcon avatar when useBlockieIcon is false', () => {
+  it('shows JazzIcon avatar when avatarStyle is JazzIcon', () => {
     const stateWithJazzIcon = {
       settings: {
-        useBlockieIcon: false,
+        avatarStyle: AvatarAccountType.JazzIcon,
       },
     };
 
@@ -120,10 +121,10 @@ describe('BaseAccountDetails', () => {
     ).toBeTruthy();
   });
 
-  it('shows Blockies avatar when useBlockieIcon is true', () => {
+  it('shows Blockies avatar when avatarStyle is Blockies', () => {
     const stateWithBlockies = {
       settings: {
-        useBlockieIcon: true,
+        avatarStyle: AvatarAccountType.Blockies,
       },
     };
 

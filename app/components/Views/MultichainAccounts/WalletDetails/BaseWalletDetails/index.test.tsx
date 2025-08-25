@@ -24,6 +24,7 @@ import {
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
+import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../utils/getInternalAccountsFromWallet');
 jest.mock('../hooks/useWalletBalances');
@@ -191,7 +192,7 @@ const mockWallet = createMockWallet('1', 'Test Wallet', [
 
 const mockInitialState: Partial<RootState> = {
   settings: {
-    useBlockieIcon: false,
+    avatarStyle: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState: {

@@ -4,10 +4,11 @@ import { SnapUIAddressInput } from './SnapUIAddressInput';
 import { useSnapInterfaceContext } from '../SnapInterfaceContext';
 import { useDisplayName } from '../SnapUIAddress/useDisplayName';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 const mockInitialState = {
   settings: {
-    useBlockieIcon: false,
+    avatarStyle: AvatarAccountType.Maskicon,
   },
 };
 

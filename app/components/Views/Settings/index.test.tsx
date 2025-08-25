@@ -16,6 +16,7 @@ jest.mock('../../../core', () => ({
 
 // Import the mocked Authentication
 import { Authentication } from '../../../core';
+import { AvatarAccountType } from '../../../component-library/components/Avatars/Avatar';
 
 const initialState = {
   user: { seedphraseBackedUp: true, passwordSet: true },
@@ -24,7 +25,7 @@ const initialState = {
   settings: {
     lockTime: 1000,
     searchEngine: 'Google',
-    useBlockieIcon: true,
+    avatarStyle: AvatarAccountType.Maskicon,
   },
   engine: {
     backgroundState,
