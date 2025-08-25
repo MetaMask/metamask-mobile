@@ -35,10 +35,13 @@ const TouchableOpacity = ({
   // 3. RNTouchableOpacity onPress checks timestamp and skips if recent
   // 4. Accessibility tools (screen readers) can still use onPress without ScrollView conflicts
   const lastGestureTime = useRef(0);
-  const COORDINATION_WINDOW = 50; // 50ms window to prevent double firing
+  const COORDINATION_WINDOW = 100; // 100ms window to prevent double firing (increased for TalkBack compatibility)
 
   const tap = Gesture.Tap()
     .runOnJS(true)
+    .shouldCancelWhenOutside(false)
+    .maxDeltaX(20) // Allow some movement while tapping
+    .maxDeltaY(20)
     .onEnd((gestureEvent) => {
       if (onPress && !isDisabled) {
         // Record when gesture handler fires to coordinate with accessibility onPress
@@ -110,7 +113,7 @@ const ListItemMultiSelect: React.FC<ListItemMultiSelectProps> = ({
   // Timestamp tracking for Checkbox coordination on non-Android platforms only
   // Android coordination is handled entirely by the custom TouchableOpacity component
   const lastCheckboxGestureTime = useRef(0);
-  const COORDINATION_WINDOW = 50; // 50ms window to prevent double firing
+  const COORDINATION_WINDOW = 100; // 100ms window to prevent double firing (increased for TalkBack compatibility)
 
   // Disable gesture wrapper in test environments to prevent test interference
   const isE2ETest =
