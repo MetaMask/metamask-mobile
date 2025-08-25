@@ -1,3 +1,3 @@
-import { AccountDiscovery } from './AccountDisscovery';
+import { AccountDiscovery } from './AccountDiscovery';
 
 export default AccountDiscovery;
