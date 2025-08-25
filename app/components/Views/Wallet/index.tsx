@@ -5,6 +5,7 @@ import React, {
   useContext,
   useMemo,
 } from 'react';
+
 import {
   ActivityIndicator,
   StyleSheet as RNStyleSheet,
@@ -107,10 +108,7 @@ import AccountGroupBalance from '../../UI/Assets/components/Balance/AccountGroup
 import useCheckNftAutoDetectionModal from '../../hooks/useCheckNftAutoDetectionModal';
 import useCheckMultiRpcModal from '../../hooks/useCheckMultiRpcModal';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
-import {
-  selectTokenNetworkFilter,
-  selectUseTokenDetection,
-} from '../../../selectors/preferencesController';
+import { selectUseTokenDetection } from '../../../selectors/preferencesController';
 import { TokenI } from '../../UI/Tokens/types';
 import { Hex } from '@metamask/utils';
 import { Nft, Token } from '@metamask/assets-controllers';
@@ -395,6 +393,12 @@ const Wallet = ({
    */
   const providerConfig = useSelector(selectProviderConfig);
   const chainId = useSelector(selectChainId);
+  const enabledNetworks = useSelector(selectEVMEnabledNetworks);
+
+  const enabledNetworksHasTestNet = useMemo(
+    () => enabledNetworks.some((network) => isTestNet(network)),
+    [enabledNetworks],
+  );
 
   const prevChainId = usePrevious(chainId);
 
@@ -656,7 +660,6 @@ const Wallet = ({
     networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
 
   const networkImageSource = useSelector(selectNetworkImageSource);
-  const tokenNetworkFilter = useSelector(selectTokenNetworkFilter);
   const enabledEVMNetworks = useSelector(selectEVMEnabledNetworks);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
@@ -708,19 +711,13 @@ const Wallet = ({
   const handleNetworkFilter = useCallback(() => {
     // TODO: Come back possibly just add the chain id of the eth
     // network as the default state instead of doing this
-    const { PreferencesController } = Engine.context;
-    if (Object.keys(tokenNetworkFilter).length === 0) {
-      PreferencesController.setTokenNetworkFilter({
-        [chainId]: true,
-      });
-    }
     if (
       isRemoveGlobalNetworkSelectorEnabled() &&
       enabledEVMNetworks.length === 0
     ) {
       selectNetwork(chainId);
     }
-  }, [chainId, tokenNetworkFilter, selectNetwork, enabledEVMNetworks]);
+  }, [chainId, selectNetwork, enabledEVMNetworks]);
 
   useEffect(() => {
     handleNetworkFilter();
@@ -1006,7 +1003,7 @@ const Wallet = ({
 
   const defiEnabled =
     isEvmSelected &&
-    !isTestNet(chainId) &&
+    !enabledNetworksHasTestNet &&
     basicFunctionalityEnabled &&
     assetsDefiPositionsEnabled;
 

@@ -194,6 +194,11 @@ const initialState = {
           },
         },
       },
+      NetworkEnablementController: {
+        enabledNetworks: {
+          '0x1': true,
+        },
+      },
     },
   },
   settings: {
@@ -261,6 +266,7 @@ jest.mock('../../hooks/useNetworkSelection/useNetworkSelection', () => ({
   useNetworkSelection: () => ({
     selectCustomNetwork: jest.fn(),
     selectPopularNetwork: jest.fn(),
+    selectAllPopularNetworks: jest.fn(),
   }),
 }));
 
@@ -270,6 +276,9 @@ jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
     enabledNetworks: { '0x1': true },
     setEnabledNetwork: jest.fn(),
     setDisabledNetwork: jest.fn(),
+    enableAllPopularNetworks: jest.fn(),
+    isNetworkEnabled: jest.fn(),
+    hasOneEnabledNetwork: false,
   }),
 }));
 
@@ -282,6 +291,7 @@ jest.mock('../../hooks/useCurrentNetworkInfo', () => ({
       chainId: '0x1',
     },
     getNetworkInfo: jest.fn(),
+    enabledNetworks: [{ chainId: '0x1' }],
   }),
 }));
 
