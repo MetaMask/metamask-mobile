@@ -130,21 +130,42 @@ export const usePerpsMarkets = (
       return;
     }
 
+    let isFirstUpdate = true;
+    const subscriptionStartTime = Date.now();
+
     const unsubscribe = streamManager.marketData.subscribe({
       callback: (marketData) => {
+        const receiveTime = Date.now();
+        const timeToData = receiveTime - subscriptionStartTime;
         if (marketData && marketData.length > 0) {
           const sortedMarkets = sortMarketsByVolume(marketData);
           setMarkets(sortedMarkets);
           setIsLoading(false);
           setError(null);
 
-          DevLogger.log('Perps: Market data updated', {
-            marketCount: marketData.length,
-          });
+          if (isFirstUpdate) {
+            DevLogger.log('Perps: Market data received (first load)', {
+              marketCount: marketData.length,
+              timeToDataMs: timeToData,
+              source: timeToData < 100 ? 'cache' : 'fresh_fetch',
+              cacheHit: timeToData < 100,
+            });
+            isFirstUpdate = false;
+          } else {
+            DevLogger.log('Perps: Market data updated', {
+              marketCount: marketData.length,
+            });
+          }
         } else if (marketData) {
           // Empty array
           setMarkets([]);
           setIsLoading(false);
+          if (isFirstUpdate) {
+            DevLogger.log('Perps: No market data available', {
+              timeToDataMs: timeToData,
+            });
+            isFirstUpdate = false;
+          }
         }
       },
       throttleMs: 0, // No throttle for market data updates

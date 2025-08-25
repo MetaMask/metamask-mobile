@@ -111,8 +111,13 @@ describe('usePerpsMarkets', () => {
       expect(result.current.error).toBeNull();
       expect(mockSubscribe).toHaveBeenCalledTimes(1);
       expect(mockLogger.log).toHaveBeenCalledWith(
-        'Perps: Market data updated',
-        { marketCount: 2 },
+        'Perps: Market data received (first load)',
+        expect.objectContaining({
+          marketCount: 2,
+          cacheHit: expect.any(Boolean),
+          source: expect.any(String),
+          timeToDataMs: expect.any(Number),
+        }),
       );
     });
 

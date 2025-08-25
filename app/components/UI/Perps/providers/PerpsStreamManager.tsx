@@ -447,8 +447,24 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     // Fetch if cache is stale or empty
     const now = Date.now();
     const cached = this.cache.get('markets');
-    if (!cached || now - this.lastFetchTime > this.CACHE_DURATION) {
+    const cacheAge = now - this.lastFetchTime;
+    if (!cached || cacheAge > this.CACHE_DURATION) {
+      DevLogger.log('PerpsStreamManager: Cache miss or stale', {
+        hasCached: !!cached,
+        cacheAgeMs: cached ? cacheAge : null,
+        cacheExpired: cacheAge > this.CACHE_DURATION,
+        cacheDurationMs: this.CACHE_DURATION,
+      });
       await this.fetchMarketData();
+    } else {
+      DevLogger.log('PerpsStreamManager: Using cached market data', {
+        cacheAgeMs: cacheAge,
+        cacheAgeSeconds: Math.round(cacheAge / 1000),
+        marketCount: cached.length,
+        cacheValidForMs: this.CACHE_DURATION - cacheAge,
+      });
+      // Notify subscribers with cached data immediately
+      this.notifySubscribers(cached);
     }
   }
 
@@ -460,12 +476,16 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     }
 
     this.fetchPromise = (async () => {
+      const fetchStartTime = Date.now();
       try {
-        DevLogger.log('PerpsStreamManager: Fetching market data');
+        DevLogger.log(
+          'PerpsStreamManager: Fetching fresh market data from API',
+        );
 
         const controller = Engine.context.PerpsController;
         const provider = controller.getActiveProvider();
         const data = await provider.getMarketDataWithPrices();
+        const fetchTime = Date.now() - fetchStartTime;
 
         // Update cache
         this.cache.set('markets', data);
@@ -474,14 +494,28 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         // Notify all subscribers
         this.notifySubscribers(data);
 
-        DevLogger.log(
-          `PerpsStreamManager: Market data fetched and cached (${data.length} markets)`,
-        );
+        DevLogger.log('PerpsStreamManager: Market data fetched and cached', {
+          marketCount: data.length,
+          fetchTimeMs: fetchTime,
+          cacheValidUntil: new Date(
+            Date.now() + this.CACHE_DURATION,
+          ).toISOString(),
+        });
       } catch (error) {
-        DevLogger.log('PerpsStreamManager: Failed to fetch market data', error);
+        const fetchTime = Date.now() - fetchStartTime;
+        DevLogger.log('PerpsStreamManager: Failed to fetch market data', {
+          error,
+          fetchTimeMs: fetchTime,
+        });
         // Keep existing cache if fetch fails
         const existing = this.cache.get('markets');
         if (existing) {
+          DevLogger.log(
+            'PerpsStreamManager: Using stale cache after fetch failure',
+            {
+              marketCount: existing.length,
+            },
+          );
           this.notifySubscribers(existing);
         }
       } finally {
