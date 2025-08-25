@@ -27,6 +27,8 @@ jest.mock('../../../context/ledger-context', () => ({
   }),
 }));
 
+jest.mock('../../../hooks/gas/useGasFeeToken');
+
 const MockView = View;
 const MockText = Text;
 const MockButton = Button;

@@ -9,14 +9,12 @@ const styleSheet = (params: {
   const { isSelected } = vars;
   return StyleSheet.create({
     gasFeeTokenListItem: {
-      display: 'flex',
       flexDirection: 'row',
       justifyContent: 'space-between',
       backgroundColor: isSelected ? theme.colors.background.muted : undefined,
       padding: 8,
     },
     gasFeeTokenListItemContent: {
-      display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
       paddingLeft: 8,
@@ -25,7 +23,6 @@ const styleSheet = (params: {
       paddingLeft: 8,
     },
     gasFeeTokenListItemSymbol: {
-      display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
       gap: 2,
@@ -39,7 +36,6 @@ const styleSheet = (params: {
       paddingRight: 8,
     },
     warningIndicator: {
-      display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
       borderRadius: 16,
