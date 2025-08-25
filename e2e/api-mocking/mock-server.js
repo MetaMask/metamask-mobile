@@ -5,6 +5,7 @@ import portfinder from 'portfinder';
 import _ from 'lodash';
 import { device } from 'detox';
 import { ALLOWLISTED_HOSTS, ALLOWLISTED_URLS } from './mock-e2e-allowlist.js';
+import { BLOCKLISTED_HOSTS } from './mock-e2e-blocklist.js';
 import { createLogger } from '../framework/logger';
 
 const logger = createLogger({
@@ -43,31 +44,38 @@ const handleDirectFetch = async (url, method, headers, requestBody) => {
 };
 
 /**
- * Utility function to check if a URL is allowed
- * @param {string} url - The URL to check
- * @returns {boolean} True if the URL is allowed, false otherwise
+ * Utility function to check if a host is blocklisted
+ * @param {string} host - The host to check
+ * @returns {boolean} True if the host is blocklisted, false otherwise
  */
-const isUrlAllowed = (url) => {
+const isHostBlocklisted = (host) => BLOCKLISTED_HOSTS.includes(host);
+
+/**
+ * Apply Android URL replacement if needed
+ * @param {string} url - The URL to potentially modify
+ * @returns {string} The URL with localhost replaced by 127.0.0.1 on Android
+ */
+const applyAndroidUrlReplacement = (url) =>
+  device.getPlatform() === 'android'
+    ? url.replace('localhost', '127.0.0.1')
+    : url;
+
+/**
+ * Check if URL or hostname is allowlisted
+ * @param {string} url - The URL to check
+ * @returns {boolean} True if URL or hostname is allowlisted
+ */
+const isAllowlisted = (url) => {
+  // Check exact URL match first
+  if (ALLOWLISTED_URLS.includes(url)) {
+    return true;
+  }
+
+  // Check exact hostname match
   try {
-    // First check if the exact URL is in the allowed URLs list
-    if (ALLOWLISTED_URLS.includes(url)) {
-      return true;
-    }
-
-    // Then check if the hostname is in the allowed hosts list
-    const parsedUrl = new URL(url);
-    const hostname = parsedUrl.hostname;
-
-    return ALLOWLISTED_HOSTS.some((allowedHost) => {
-      // Support exact match or wildcard subdomains (e.g., "*.example.com")
-      if (allowedHost.startsWith('*.')) {
-        const domain = allowedHost.slice(2);
-        return hostname === domain || hostname.endsWith(`.${domain}`);
-      }
-      return hostname === allowedHost;
-    });
+    const hostname = new URL(url).hostname;
+    return ALLOWLISTED_HOSTS.includes(hostname);
   } catch (error) {
-    logger.warn('Invalid URL:', url);
     return false;
   }
 };
@@ -172,7 +180,9 @@ export const startMockServer = async (events, port) => {
       }
 
       if (matchingEvent) {
-        logger.info(`Mocking ${method} request to: ${urlEndpoint}`);
+        logger.info(
+          `Mocking ${method} request to: ${urlEndpoint} with request body: ${requestBodyJson}`,
+        );
         logger.info(`Response status: ${matchingEvent.responseCode}`);
         logger.debug('Response:', matchingEvent.response);
         // For POST requests, verify the request body if specified
@@ -239,55 +249,51 @@ export const startMockServer = async (events, port) => {
         };
       }
 
-      // If no matching mock found, check if URL is allowed before passing through
-      const updatedUrl =
-        device.getPlatform() === 'android'
-          ? urlEndpoint.replace('localhost', '127.0.0.1')
-          : urlEndpoint;
+      // If no matching mock found, apply blocklist/allowlist logic
 
-      // Check if the URL is in the allowed list
-      if (!isUrlAllowed(updatedUrl)) {
-        const errorMessage = `Request going to live server: ${updatedUrl}`;
-        logger.warn(errorMessage);
-        liveRequests.push({
-          url: updatedUrl,
-          method,
-          timestamp: new Date().toISOString(),
-        });
-      } else if (ALLOWLISTED_URLS.includes(updatedUrl)) {
-        // Explicit debug to help with debugging in CI
-        console.warn(`Allowed URL: ${updatedUrl}`);
-        if (method === 'POST') {
-          console.warn(`Request Body: ${requestBodyText}`);
+      // Step 1: Check if host is blocklisted - redirect to local blockchain node
+      try {
+        const parsedUrl = new URL(urlEndpoint);
+        if (isHostBlocklisted(parsedUrl.hostname)) {
+          const blocklistRedirectUrl = applyAndroidUrlReplacement(
+            'http://localhost:8545',
+          );
+          logger.debug(
+            `Redirecting blocklisted host ${parsedUrl.toString()} to ${blocklistRedirectUrl} with method ${method} and request body ${requestBodyText}`,
+          );
+          return handleDirectFetch(
+            blocklistRedirectUrl,
+            method,
+            request.headers,
+            method === 'POST' ? requestBodyText : undefined,
+          );
         }
+      } catch (error) {
+        logger.warn('Invalid URL in proxy:', urlEndpoint);
       }
 
-      return handleDirectFetch(
-        updatedUrl,
-        method,
-        request.headers,
-        method === 'POST' ? requestBodyText : undefined,
-      );
+      // Step 2: Check if URL or host is allowlisted - pass through to live server
+      if (isAllowlisted(urlEndpoint)) {
+        logger.warn('Request going to allowlisted live server:', urlEndpoint);
+
+        return handleDirectFetch(
+          applyAndroidUrlReplacement(urlEndpoint),
+          method,
+          request.headers,
+          method === 'POST' ? requestBodyText : undefined,
+        );
+      }
     });
 
-  // In case any other requests are made, check allowed list before passing through
+  // Handle any unmatched requests (typically internal/direct requests)
   await mockServer.forUnmatchedRequest().thenCallback(async (request) => {
-    // Check if the URL is in the allowed list
-    if (!isUrlAllowed(request.url)) {
-      const errorMessage = `Request going to live server: ${request.url}`;
-      logger.warn(errorMessage);
-      liveRequests.push({
-        url: request.url,
-        method: request.method,
-        timestamp: new Date().toISOString(),
-      });
-    } else if (ALLOWLISTED_URLS.includes(request.url)) {
-      // Explicit debug to help with debugging in CI
-      logger.warn(`Allowed URL: ${request.url}`);
-      if (request.method === 'POST') {
-        logger.warn(`Request Body: ${await request.body.getText()}`);
-      }
-    }
+    logger.debug(`Unmatched request: ${request.method} ${request.url}`);
+
+    liveRequests.push({
+      url: request.url,
+      method: request.method,
+      timestamp: new Date().toISOString(),
+    });
 
     return handleDirectFetch(
       request.url,

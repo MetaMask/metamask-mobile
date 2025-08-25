@@ -13,6 +13,7 @@ import CommonView from '../../pages/CommonView';
 import enContent from '../../../locales/languages/en.json';
 import DeleteContactBottomSheet from '../../pages/Settings/Contacts/DeleteContactBottomSheet';
 import Assertions from '../../framework/Assertions';
+import { TestSpecificMock } from '../../framework/types';
 
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 const TETHER_ADDRESS = '0xdac17f958d2ee523a2206206994597c13d831ec7';
@@ -25,6 +26,143 @@ const TEST_CONTACT = {
   editedNetwork: 'Sepolia',
 };
 const MEMO = 'Test adding ENS';
+
+const infuraUrlEndpoint = /^https:\/\/mainnet\.infura\.io\/v3\/.*$/;
+
+const testSpecificMock: TestSpecificMock = {
+  POST: [
+    {
+      urlEndpoint: infuraUrlEndpoint,
+      requestBody: {
+        jsonrpc: '2.0',
+        id: 2470556049218,
+        method: 'eth_blockNumber',
+        params: [],
+      },
+      responseCode: 200,
+      response: {
+        jsonrpc: '2.0',
+        id: 1111111111111111,
+        result: '0x1',
+      },
+      ignoreFields: ['id'],
+    },
+    {
+      urlEndpoint: infuraUrlEndpoint,
+      requestBody: {
+        jsonrpc: '2.0',
+        id: 2470556049218,
+        method: 'eth_call',
+        params: [
+          {
+            to: '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e',
+            data: '0x0178b8bf62f5cd80e869a3e6f26adda90ee5c5de51733e083613cfc0df8f03838e51a5d1',
+          },
+          '0x1',
+        ],
+      },
+      responseCode: 200,
+      response: {
+        jsonrpc: '2.0',
+        id: 2470556049218,
+        result:
+          '0x000000000000000000000000226159d592e2b063810a10ebf6dcbada94ed68b8',
+      },
+      ignoreFields: ['id'],
+    },
+    {
+      urlEndpoint: infuraUrlEndpoint,
+      requestBody: {
+        jsonrpc: '2.0',
+        id: 2470556049218,
+        method: 'eth_call',
+        params: [
+          {
+            to: '0x226159d592e2b063810a10ebf6dcbada94ed68b8',
+            data: '0x3b3b57de62f5cd80e869a3e6f26adda90ee5c5de51733e083613cfc0df8f03838e51a5d1',
+          },
+          '0x1',
+        ],
+      },
+      responseCode: 200,
+      response: {
+        jsonrpc: '2.0',
+        id: 2470556049219,
+        result:
+          '0x00000000000000000000000045cf837b0bd8a9bf527ee36803026fe51b63e69a',
+      },
+      ignoreFields: ['id'],
+    },
+    {
+      urlEndpoint: infuraUrlEndpoint,
+      requestBody: {
+        jsonrpc: '2.0',
+        id: 2470556049219,
+        method: 'eth_call',
+        params: [
+          {
+            to: '0xca11bde05977b3631167028862be2a173976ca11',
+            data: '0xbce38bd700000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000004fef9d741011476750a243ac70b9789a63dd47df00000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000024f04da65b00000000000000000000000076cf1cdd1fcc252442b50d6e97207228aa4aefc300000000000000000000000000000000000000000000000000000000',
+          },
+          '0x1',
+        ],
+      },
+      responseCode: 200,
+      response: {
+        jsonrpc: '2.0',
+        id: '547b6502-63ae-4d61-9a47-67c43bfe37f8',
+        result:
+          '0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000004000000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000',
+      },
+      ignoreFields: ['id'],
+    },
+    {
+      urlEndpoint: infuraUrlEndpoint,
+      requestBody: {
+        jsonrpc: '2.0',
+        id: 2470556049220,
+        method: 'eth_call',
+        params: [
+          {
+            to: '0xb1f8e55c7f64d203c1400b9d8555d050f94adf39',
+            data: '0xf0002ea900000000000000000000000000000000000000000000000000000000000000400000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000100000000000000000000000076cf1cdd1fcc252442b50d6e97207228aa4aefc300000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000',
+          },
+          '0x1',
+        ],
+      },
+      responseCode: 200,
+      response: {
+        jsonrpc: '2.0',
+        id: '14762501-d530-4918-9e77-3ff229104699',
+        result:
+          '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000',
+      },
+      ignoreFields: ['id'],
+    },
+    {
+      urlEndpoint: infuraUrlEndpoint,
+      requestBody: {
+        jsonrpc: '2.0',
+        method: 'eth_call',
+        params: [
+          {
+            to: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+            data: '0x95d89b41',
+          },
+          '0x1',
+        ],
+      },
+      responseCode: 200,
+      response: {
+        jsonrpc: '2.0',
+        id: '547b6502-63ae-4d61-9a47-67c43bfe37f8',
+        result:
+          '0x000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000045553445400000000000000000000000000000000000000000000000000000000',
+      },
+      ignoreFields: ['id'],
+    },
+  ],
+};
 
 describe(SmokeWalletPlatform('Addressbook Tests'), () => {
   // In this file, some of the tests are dependent on the MM_REMOVE_GLOBAL_NETWORK_SELECTOR environment variable being set to true.
@@ -78,6 +216,7 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
       {
         fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
@@ -94,6 +233,7 @@ describe(SmokeWalletPlatform('Addressbook Tests'), () => {
       {
         fixture: new FixtureBuilder().withProfileSyncingDisabled().build(),
         restartDevice: true,
+        testSpecificMock,
       },
       async () => {
         await loginToApp();
