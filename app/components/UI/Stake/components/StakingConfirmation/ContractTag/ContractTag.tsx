@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { ImageSourcePropType } from 'react-native';
 import TagBase, {
   TagSeverity,
   TagShape,
@@ -12,7 +13,6 @@ import Avatar, {
 } from '../../../../../../component-library/components/Avatars/Avatar';
 import imageIcons from '../../../../../../images/image-icons';
 import { CHAIN_ID_TO_AAVE_V3_POOL_CONTRACT_ADDRESS } from '../../../../Earn/utils/tempLending';
-import { ImageSourcePropType } from 'react-native';
 
 const ContractTag = ({
   contractName,
