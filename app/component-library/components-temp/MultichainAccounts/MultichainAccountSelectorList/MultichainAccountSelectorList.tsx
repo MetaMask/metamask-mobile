@@ -29,7 +29,7 @@ import { strings } from '../../../../../locales/i18n';
 
 const MultichainAccountSelectorList = ({
   onSelectAccount,
-  selectedAccountGroup,
+  selectedAccountGroups,
   testID = MULTICHAIN_ACCOUNT_SELECTOR_LIST_TESTID,
   listRef,
   ...props
@@ -138,10 +138,11 @@ const MultichainAccountSelectorList = ({
   const handleSelectAccount = useCallback(
     (accountGroup: AccountGroupObject) => {
       // Prevent multiple rapid calls for the same account
-      if (selectedAccountGroup.id === accountGroup.id) return;
+      if (selectedAccountGroups.some((group) => group.id === accountGroup.id))
+        return;
       onSelectAccount?.(accountGroup);
     },
-    [onSelectAccount, selectedAccountGroup.id],
+    [onSelectAccount, selectedAccountGroups],
   );
 
   const renderItem: ListRenderItem<FlattenedMultichainAccountListItem> =
@@ -153,7 +154,9 @@ const MultichainAccountSelectorList = ({
           }
 
           case 'cell': {
-            const isSelected = item.data.id === selectedAccountGroup.id;
+            const isSelected = selectedAccountGroups.some(
+              (group) => group.id === item.data.id,
+            );
             return (
               <AccountListCell
                 accountGroup={item.data}
@@ -171,7 +174,7 @@ const MultichainAccountSelectorList = ({
             return null;
         }
       },
-      [selectedAccountGroup.id, handleSelectAccount],
+      [selectedAccountGroups, handleSelectAccount],
     );
 
   const keyExtractor = useCallback(
