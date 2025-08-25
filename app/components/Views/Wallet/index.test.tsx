@@ -71,7 +71,7 @@ import Wallet from './';
 import renderWithProvider, {
   renderScreen,
 } from '../../../util/test/renderWithProvider';
-import { screen as RNScreen } from '@testing-library/react-native';
+import { screen as RNScreen, fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
@@ -453,6 +453,29 @@ describe('Wallet', () => {
       WalletViewSelectorsIDs.ACCOUNT_ICON,
     );
     expect(accountPicker).toBeDefined();
+  });
+
+  it('should render the scan button', () => {
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
+    render(Wallet);
+    const scanButton = RNScreen.getByTestId(
+      WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
+    );
+    expect(scanButton).toBeDefined();
+  });
+
+  it('should navigate to QR scanner when scan button is pressed', () => {
+    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
+    render(Wallet);
+    const scanButton = RNScreen.getByTestId(
+      WalletViewSelectorsIDs.WALLET_SCAN_BUTTON,
+    );
+
+    fireEvent.press(scanButton);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.QR_TAB_SWITCHER, {
+      onScanSuccess: expect.any(Function),
+    });
   });
 
   it('Should add tokens to state automatically when there are detected tokens', () => {
