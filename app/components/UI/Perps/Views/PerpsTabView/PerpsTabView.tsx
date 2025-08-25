@@ -179,6 +179,7 @@ const PerpsTabView: React.FC<PerpsTabViewProps> = () => {
             onPress={handleStartTrading}
             style={styles.startTradingButton}
             width={ButtonWidthTypes.Full}
+            testID="perps-onboarding-button"
           />
         </View>
       );

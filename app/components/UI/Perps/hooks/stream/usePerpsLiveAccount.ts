@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
+import {
+  shouldDisablePerpsStreaming,
+  getE2EMockData,
+  subscribeToE2EMockDataChanges,
+} from '../../utils/e2eUtils';
 import type { AccountState } from '../../controllers/types';
 
 export interface UsePerpsLiveAccountOptions {
@@ -28,12 +33,36 @@ export function usePerpsLiveAccount(
   options: UsePerpsLiveAccountOptions = {},
 ): UsePerpsLiveAccountReturn {
   const { throttleMs = 1000 } = options;
+  const isE2EMode = shouldDisablePerpsStreaming();
+
+  // Always call hooks unconditionally
+  const [e2eAccountState, setE2eAccountState] = useState<AccountState | null>(
+    null,
+  );
   const [account, setAccount] = useState<AccountState | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const streamManager = usePerpsStream();
 
+  // E2E Mode effect: Use reactive mock account data
   useEffect(() => {
-    if (!streamManager) return;
+    if (!isE2EMode) return;
+
+    // Initialize with current mock data
+    const mockData = getE2EMockData();
+    setE2eAccountState(mockData.accountState);
+
+    // Subscribe to changes
+    const unsubscribe = subscribeToE2EMockDataChanges(() => {
+      const updatedMockData = getE2EMockData();
+      setE2eAccountState(updatedMockData.accountState);
+    });
+
+    return unsubscribe;
+  }, [isE2EMode]);
+
+  // Regular streaming effect
+  useEffect(() => {
+    if (isE2EMode || !streamManager) return;
 
     // Mark as no longer loading once we get first update
     const handleAccountUpdate = (newAccount: AccountState | null) => {
@@ -50,7 +79,15 @@ export function usePerpsLiveAccount(
     });
 
     return unsubscribe;
-  }, [streamManager, throttleMs]);
+  }, [isE2EMode, streamManager, throttleMs]);
+
+  // Return E2E data or regular data based on mode
+  if (isE2EMode) {
+    return {
+      account: e2eAccountState,
+      isInitialLoading: false,
+    };
+  }
 
   return { account, isInitialLoading };
 }

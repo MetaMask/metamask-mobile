@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
 import { usePerpsConnection } from '../providers/PerpsConnectionProvider';
+import { shouldDisablePerpsStreaming } from '../utils/e2eUtils';
 import type { Order, GetOrdersParams } from '../controllers/types';
 
 export interface UsePerpsOpenOrdersResult {
@@ -136,9 +137,15 @@ export const usePerpsOpenOrders = (
     }
   }, [fetchOpenOrders, skipInitialFetch, isConnected, isInitialized]);
 
-  // Polling effect (only when connected)
+  // Polling effect (only when connected) - disabled in E2E mode to prevent timer issues
   useEffect(() => {
-    if (!enablePolling || !isConnected || !isInitialized) return;
+    if (
+      !enablePolling ||
+      !isConnected ||
+      !isInitialized ||
+      shouldDisablePerpsStreaming()
+    )
+      return;
 
     const intervalId = setInterval(() => {
       fetchOpenOrders(true);

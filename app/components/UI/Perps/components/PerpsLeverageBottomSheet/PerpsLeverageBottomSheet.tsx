@@ -51,6 +51,7 @@ import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 import { formatPrice } from '../../utils/formatUtils';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
+import { shouldDisablePerpsStreaming } from '../../utils/e2eUtils';
 
 interface PerpsLeverageBottomSheetProps {
   isVisible: boolean;

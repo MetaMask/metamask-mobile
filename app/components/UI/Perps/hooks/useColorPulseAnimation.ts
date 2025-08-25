@@ -8,6 +8,7 @@ import {
   interpolateColor,
 } from 'react-native-reanimated';
 import { useStyles } from '../../../../component-library/hooks';
+import { shouldDisablePerpsStreaming } from '../utils/e2eUtils';
 
 export type PulseColor = 'increase' | 'decrease' | 'same';
 
@@ -62,6 +63,11 @@ export const useColorPulseAnimation = (
   const startPulseAnimation = useCallback(
     (pulseColor: PulseColor) => {
       'worklet';
+
+      // Skip animations in E2E mode to prevent timer blocking
+      if (shouldDisablePerpsStreaming()) {
+        return;
+      }
 
       // Stop any existing animation to prevent conflicts
       if (isAnimating.value) {

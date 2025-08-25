@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Engine from '../../../../core/Engine';
+import { shouldDisablePerpsStreaming } from '../utils/e2eUtils';
 import type { Funding, GetFundingParams } from '../controllers/types';
 
 export interface UsePerpsFundingResult {
@@ -117,9 +118,9 @@ export const usePerpsFunding = (
     }
   }, [fetchFunding, skipInitialFetch]);
 
-  // Polling effect
+  // Polling effect - disabled in E2E mode to prevent timer issues
   useEffect(() => {
-    if (!enablePolling) return;
+    if (!enablePolling || shouldDisablePerpsStreaming()) return;
 
     const intervalId = setInterval(() => {
       fetchFunding(true);

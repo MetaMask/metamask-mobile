@@ -71,7 +71,11 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
   };
 
   return (
-    <TouchableOpacity style={styles.wrapper} onPress={handlePress}>
+    <TouchableOpacity
+      style={styles.wrapper}
+      onPress={handlePress}
+      testID="perps-balance-button"
+    >
       <View style={styles.balanceContainer}>
         <Text
           variant={TextVariant.BodySM}
@@ -82,7 +86,11 @@ export const PerpsTabControlBar: React.FC<PerpsTabControlBarProps> = ({
         </Text>
         <View style={styles.balanceRow}>
           <Animated.View style={[styles.balanceText, getAnimatedStyle]}>
-            <Text variant={TextVariant.HeadingSM} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.HeadingSM}
+              color={TextColor.Default}
+              testID="perps-balance-value"
+            >
               {formatPerpsFiat(perpsAccount?.availableBalance || '0')}
             </Text>
           </Animated.View>

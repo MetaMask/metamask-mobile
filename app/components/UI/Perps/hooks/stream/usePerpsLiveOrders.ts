@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
+import {
+  shouldDisablePerpsStreaming,
+  getE2EMockData,
+} from '../../utils/e2eUtils';
 import type { Order } from '../../controllers/types';
 
 export interface UsePerpsLiveOrdersOptions {
@@ -20,6 +24,12 @@ export interface UsePerpsLiveOrdersOptions {
 export function usePerpsLiveOrders(
   options: UsePerpsLiveOrdersOptions = {},
 ): Order[] {
+  // E2E Mode: Return mock orders immediately without streaming
+  if (shouldDisablePerpsStreaming()) {
+    const mockData = getE2EMockData();
+    return mockData.orders as Order[];
+  }
+
   const { throttleMs = 0 } = options; // No throttling by default for instant updates
   const stream = usePerpsStream();
   const [orders, setOrders] = useState<Order[]>([]);

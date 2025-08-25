@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import {
+  shouldDisablePerpsStreaming,
+  getE2EMockData,
+} from '../../utils/e2eUtils';
 import type { OrderFill } from '../../controllers/types';
 
 export interface UsePerpsLiveFillsOptions {
@@ -18,6 +22,12 @@ export interface UsePerpsLiveFillsOptions {
 export function usePerpsLiveFills(
   options: UsePerpsLiveFillsOptions = {},
 ): OrderFill[] {
+  // E2E Mode: Return mock fills immediately without streaming
+  if (shouldDisablePerpsStreaming()) {
+    const mockData = getE2EMockData();
+    return mockData.fills as OrderFill[];
+  }
+
   const { throttleMs = 0 } = options;
   const stream = usePerpsStream();
   const [fills, setFills] = useState<OrderFill[]>([]);

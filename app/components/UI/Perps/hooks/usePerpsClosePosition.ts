@@ -13,6 +13,10 @@ import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { PerpsMeasurementName } from '../constants/performanceMetrics';
 import performance from 'react-native-performance';
 import { setMeasurement } from '@sentry/react-native';
+import {
+  shouldDisablePerpsStreaming,
+  removeE2EMockPosition,
+} from '../utils/e2eUtils';
 
 interface UsePerpsClosePositionOptions {
   onSuccess?: (result: OrderResult) => void;
@@ -46,6 +50,29 @@ export const usePerpsClosePosition = (
         });
 
         const closeStartTime = performance.now();
+
+        // E2E Mode: Return mock success result to avoid actual position closing
+        if (shouldDisablePerpsStreaming()) {
+          const mockResult: OrderResult = {
+            success: true,
+            orderId: `mock-close-order-${Date.now()}`,
+            filledSize: size || position.size, // Close the specified size or full position
+            averagePrice: position.entryPrice,
+          };
+
+          DevLogger.log(
+            'usePerpsClosePosition: Mock position closed successfully (E2E mode)',
+            mockResult,
+          );
+
+          // Remove the position from mock data (this will update the UI)
+          removeE2EMockPosition(position.coin);
+
+          // Call success callback
+          options?.onSuccess?.(mockResult);
+
+          return mockResult;
+        }
 
         const result = await closePosition({
           coin: position.coin,

@@ -110,11 +110,17 @@ export const getPerpsPayWithRowSelector = {
 // ========================================
 
 export const PerpsMarketListViewSelectorsIDs = {
-  TUTORIAL_BUTTON: 'perps-market-list-tutorial-button',
-  SEARCH_TOGGLE_BUTTON: 'perps-market-list-search-toggle-button',
-  CLOSE_BUTTON: 'perps-market-list-close-button',
-  SEARCH_CLEAR_BUTTON: 'perps-market-list-search-clear-button',
-  SKELETON_ROW: 'perps-market-list-skeleton-row',
+  TUTORIAL_BUTTON: 'tutorial-button',
+  SEARCH_TOGGLE_BUTTON: 'search-toggle-button',
+  CLOSE_BUTTON: 'close-button',
+  SEARCH_CLEAR_BUTTON: 'search-clear-button',
+  LIST_HEADER: 'list-header',
+  MARKET_ROW_ITEM: 'market-row-item',
+  MARKET_LIST_TUTORIAL_BUTTON: 'perps-market-list-tutorial-button',
+  MARKET_LIST_SEARCH_TOGGLE_BUTTON: 'perps-market-list-search-toggle-button',
+  MARKET_LIST_CLOSE_BUTTON: 'perps-market-list-close-button',
+  MARKET_LIST_SEARCH_CLEAR_BUTTON: 'perps-market-list-search-clear-button',
+  MARKET_LIST_SKELETON_ROW: 'perps-market-list-skeleton-row',
 };
 
 // ========================================
