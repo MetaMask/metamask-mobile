@@ -248,7 +248,9 @@ describe('PerpsConnectionManager', () => {
       mockPerpsController.getAccountState.mockResolvedValue({});
 
       // Mock disconnect to be slow so we can test the waiting behavior
-      let resolveDisconnect: () => void;
+      let resolveDisconnect: () => void = () => {
+        // Initial placeholder function
+      };
       const slowDisconnectPromise = new Promise<void>((resolve) => {
         resolveDisconnect = resolve;
       });
