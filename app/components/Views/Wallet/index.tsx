@@ -120,6 +120,7 @@ import { Carousel } from '../../UI/Carousel';
 import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { useNftDetectionChainIds } from '../../hooks/useNftDetectionChainIds';
 import Logger from '../../../util/Logger';
+
 import { cloneDeep } from 'lodash';
 import { prepareNftDetectionEvents } from '../../../util/assets';
 import DeFiPositionsList from '../../UI/DeFiPositions/DeFiPositionsList';
