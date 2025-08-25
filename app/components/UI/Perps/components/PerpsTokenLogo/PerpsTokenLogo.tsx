@@ -14,6 +14,10 @@ const assetSvgCache = new Map<
   { svgContent: string | null; valid: boolean }
 >();
 
+// Maximum number of SVGs to cache in memory
+// Set to 250 to accommodate all ~200 markets with some buffer
+const MAX_CACHE_SIZE = 250;
+
 const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
   symbol,
   size = 32,
@@ -192,6 +196,13 @@ const PerpsTokenLogo: React.FC<PerpsTokenLogoProps> = ({
           }
         }
 
+        // Implement simple FIFO cache eviction if cache is too large
+        if (assetSvgCache.size >= MAX_CACHE_SIZE) {
+          const firstKey = assetSvgCache.keys().next().value;
+          if (firstKey) {
+            assetSvgCache.delete(firstKey);
+          }
+        }
         assetSvgCache.set(upperSymbol, { svgContent: cleanedSvg, valid: true });
         setSvgContent(cleanedSvg);
         setIsLoading(false);
