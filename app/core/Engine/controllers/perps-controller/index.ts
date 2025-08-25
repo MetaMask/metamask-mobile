@@ -4,7 +4,7 @@ import {
   PerpsControllerMessenger,
   getDefaultPerpsControllerState,
 } from '../../../../components/UI/Perps/controllers';
-import { applyE2EControllerMocks } from '../../../../components/UI/Perps/utils/e2eBridge';
+import { applyE2EControllerMocks } from '../../../../components/UI/Perps/utils/e2eBridgePerps';
 
 /**
  * Initialize the PerpsController.

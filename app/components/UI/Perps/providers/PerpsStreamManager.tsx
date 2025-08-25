@@ -10,7 +10,7 @@ import type {
   PerpsMarketData,
 } from '../controllers/types';
 import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
-import { getE2EMockStreamManager } from '../utils/e2eBridge';
+import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 
 // Generic subscription parameters
 interface StreamSubscription<T> {
@@ -601,9 +601,10 @@ export const PerpsStreamProvider: React.FC<{
   testStreamManager?: PerpsStreamManager; // Only for testing
 }> = ({ children, testStreamManager }) => {
   // Check for E2E mock stream manager
-  const e2eMockStreamManager = getE2EMockStreamManager();
+  const e2eMockStreamManager =
+    getE2EMockStreamManager() as PerpsStreamManager | null;
 
-  const selectedManager =
+  const selectedManager: PerpsStreamManager =
     testStreamManager || e2eMockStreamManager || streamManager;
 
   DevLogger.log('PerpsStreamProvider: Using stream manager:', {

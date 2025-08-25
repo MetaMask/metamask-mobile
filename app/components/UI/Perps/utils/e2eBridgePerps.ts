@@ -10,19 +10,19 @@ import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { isE2E } from '../../../../util/test/utils';
 
 // Global bridge for E2E mock injection
-export interface E2EBridge {
-  mockStreamManager?: any;
-  applyControllerMocks?: (controller: any) => void;
+export interface E2EBridgePerpsStreaming {
+  mockStreamManager?: unknown;
+  applyControllerMocks?: (controller: unknown) => void;
 }
 
 // Global bridge instance
-let e2eBridge: E2EBridge = {};
+let e2eBridgePerps: E2EBridgePerpsStreaming = {};
 
 /**
  * Auto-configure E2E bridge when isE2E is true
  */
 function autoConfigureE2EBridge(): void {
-  if (!isE2E || e2eBridge.mockStreamManager) {
+  if (!isE2E || e2eBridgePerps.mockStreamManager) {
     return; // Already configured or not in E2E mode
   }
 
@@ -31,6 +31,7 @@ function autoConfigureE2EBridge(): void {
     // This will only work in E2E environment where these files exist
 
     // Try to require the modules directly - if they don't exist, this will throw
+    /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
     const {
       PerpsE2EMockService,
     } = require('../../../../../e2e/api-mocking/mock-responses/perps-e2e-mocks');
@@ -38,6 +39,7 @@ function autoConfigureE2EBridge(): void {
       applyE2EPerpsControllerMocks,
       createE2EMockStreamManager,
     } = require('../../../../../e2e/api-mocking/mock-config/perps-controller-mixin');
+    /* eslint-enable @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires */
 
     // Initialize mock service
     const mockService = PerpsE2EMockService.getInstance();
@@ -47,7 +49,7 @@ function autoConfigureE2EBridge(): void {
     const mockStreamManager = createE2EMockStreamManager();
 
     // Configure bridge
-    e2eBridge = {
+    e2eBridgePerps = {
       mockStreamManager,
       applyControllerMocks: applyE2EPerpsControllerMocks,
     };
@@ -78,9 +80,9 @@ function autoConfigureE2EBridge(): void {
 /**
  * Set E2E bridge from external test setup (legacy support)
  */
-export function setE2EBridge(bridge: E2EBridge): void {
+export function setE2EBridge(bridge: E2EBridgePerpsStreaming): void {
   if (isE2E) {
-    e2eBridge = bridge;
+    e2eBridgePerps = bridge;
     DevLogger.log('🎭 E2E Bridge manually configured:', Object.keys(bridge));
   }
 }
@@ -93,9 +95,9 @@ export function getE2EMockStreamManager(): unknown {
     autoConfigureE2EBridge();
     DevLogger.log(
       '🎭 E2E Bridge: Returning mock stream manager:',
-      !!e2eBridge.mockStreamManager,
+      !!e2eBridgePerps.mockStreamManager,
     );
-    return e2eBridge.mockStreamManager;
+    return e2eBridgePerps.mockStreamManager;
   }
   return null;
 }
@@ -106,8 +108,8 @@ export function getE2EMockStreamManager(): unknown {
 export function applyE2EControllerMocks(controller: unknown): void {
   if (isE2E) {
     autoConfigureE2EBridge();
-    if (e2eBridge.applyControllerMocks) {
-      e2eBridge.applyControllerMocks(controller);
+    if (e2eBridgePerps.applyControllerMocks) {
+      e2eBridgePerps.applyControllerMocks(controller);
     }
   }
 }
