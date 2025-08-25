@@ -98,7 +98,7 @@ pipelines:
   pr_smoke_e2e_pipeline:
     stages:
       - set_main_target_stage: {}
-      # - pr_cache_check_stage: {}  # Temporarily disabled to test react-native-worklets-core/plugin issue
+      - pr_cache_check_stage: {}  # Temporarily disabled to test react-native-worklets-core/plugin issue
       - build_smoke_e2e_ios_android_stage: {}
       - run_smoke_e2e_ios_android_stage: {}
       - notify: {}
