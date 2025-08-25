@@ -25,10 +25,12 @@ import expo.modules.ReactNativeHostWrapper
 
 import cl.json.ShareApplication
 import io.branch.rnbranch.RNBranchModule
+import com.airbnb.android.react.lottie.LottiePackage
 import io.metamask.nativeModules.PreventScreenshotPackage
 import io.metamask.nativeModules.RCTMinimizerPackage
 import io.metamask.nativesdk.NativeSDKPackage
 import io.metamask.nativeModules.RNTar.RNTarPackage
+import com.intercom.reactnative.IntercomModule
 
 class MainApplication : Application(), ShareApplication, ReactApplication {
 
@@ -40,6 +42,7 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
             override fun getPackages(): List<ReactPackage> {
                 val packages = PackageList(this).packages.toMutableList()
                 // Add all our custom packages
+                packages.add(LottiePackage())
                 packages.add(PreventScreenshotPackage())
                 packages.add(RCTMinimizerPackage())
                 packages.add(NativeSDKPackage())
@@ -73,6 +76,9 @@ class MainApplication : Application(), ShareApplication, ReactApplication {
         
         // Initialize Branch
         RNBranchModule.getAutoInstance(this)
+
+        // Initialize Intercom
+        IntercomModule.initialize(this, /* native exopackage */ false, "KEY_HERE", "KEY_HERE")
 
         // Increase cursor window size
         try {
