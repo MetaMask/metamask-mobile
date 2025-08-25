@@ -4,6 +4,7 @@ import { backgroundState } from '../../../../util/test/initial-root-state';
 import NotificationsSettings from '.';
 import { Props } from './NotificationsSettings.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
+import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
 jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsEnabledFlag: jest.fn().mockReturnValue(true),
@@ -11,7 +12,7 @@ jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
 
 const mockInitialState = {
   settings: {
-    useBlockieIcon: false,
+    avatarStyle: AvatarAccountType.Maskicon,
   },
   notificationsSettings: {
     isEnabled: true,

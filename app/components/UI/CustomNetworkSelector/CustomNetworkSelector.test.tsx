@@ -84,10 +84,6 @@ jest.mock('../../../selectors/networkController', () => ({
   createProviderConfig: jest.fn(),
 }));
 
-jest.mock('../../../selectors/preferencesController', () => ({
-  selectUseBlockieIcon: jest.fn(),
-}));
-
 jest.mock('../../../component-library/components/Cells/Cell', () => {
   const ReactActual = jest.requireActual('react');
   const MockCell = function MockCell(props: Record<string, unknown>) {
