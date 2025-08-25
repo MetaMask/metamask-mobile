@@ -144,11 +144,31 @@ class BuildQuoteView {
     });
   }
 
-  async tapPaymentMethodDropdown(paymentMethod: string): Promise<void> {
+  async tapPaymentMethodDropdown(
+    paymentMethod: string | RegExp,
+  ): Promise<void> {
     const paymentMethodOption = Matchers.getElementByText(paymentMethod);
     await Gestures.waitAndTap(paymentMethodOption, {
       elemDescription: `Payment Method Dropdown (${paymentMethod}) in Build Quote View`,
     });
+  }
+
+  async getPaymentMethodDropdownText(
+    regex: string | RegExp,
+  ): Promise<string | undefined> {
+    try {
+      const elem = await Matchers.getElementByText(regex);
+      const attributes = await (
+        elem as unknown as IndexableNativeElement
+      ).getAttributes();
+      return (
+        (attributes as { text?: string; label?: string }).text ??
+        (attributes as { text?: string; label?: string }).label
+      );
+    } catch (error) {
+      // Purposefully returning undefined to use in an assertion
+      return undefined;
+    }
   }
 
   async tapRegionSelector() {

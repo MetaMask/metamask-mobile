@@ -81,9 +81,6 @@ const renderComponent = (state: any = {}) =>
   );
 
 const mockInitialState = {
-  wizard: {
-    step: 1,
-  },
   engine: {
     backgroundState,
   },
@@ -153,7 +150,7 @@ describe('ActivityView', () => {
       fireEvent.press(filterControlsButton);
 
       expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
-        9,
+        10,
       );
       expect(spyOnCreateNetworkManagerNavDetails).toHaveBeenCalledWith({});
       expect(mockNavigation.navigate).toHaveBeenCalledWith(
@@ -183,7 +180,7 @@ describe('ActivityView', () => {
       fireEvent.press(filterControlsButton);
 
       expect(spyOnIsRemoveGlobalNetworkSelectorEnabled).toHaveBeenCalledTimes(
-        9,
+        10,
       );
       expect(spyOnCreateTokenBottomSheetFilterNavDetails).toHaveBeenCalledWith(
         {},
