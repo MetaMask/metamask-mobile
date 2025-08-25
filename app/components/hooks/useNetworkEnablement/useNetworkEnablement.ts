@@ -15,7 +15,7 @@ import { selectChainId } from '../../../selectors/networkController';
 
 /**
  * Manages network enablement state across namespaces (EVM, Bitcoin, etc).
- * Provides methods to enable, disable, and toggle networks.
+ * Provides methods to enable, disable, toggle networks, and select all popular networks.
  * @returns Network enablement methods and state
  * @example
  *
@@ -48,6 +48,13 @@ export const useNetworkEnablement = () => {
   const enableNetwork = useMemo(
     () => (chainId: CaipChainId) =>
       networkEnablementController.enableNetwork(chainId),
+    [networkEnablementController],
+  );
+
+  const enablePopularNetworks = useMemo(
+    () => () => {
+      networkEnablementController.enableAllPopularNetworks();
+    },
     [networkEnablementController],
   );
 
@@ -102,6 +109,7 @@ export const useNetworkEnablement = () => {
     enableNetwork,
     disableNetwork,
     toggleNetwork,
+    enablePopularNetworks,
     isNetworkEnabled,
     hasOneEnabledNetwork,
   };

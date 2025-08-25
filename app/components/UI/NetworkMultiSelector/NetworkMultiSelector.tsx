@@ -23,6 +23,14 @@ import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkS
 import stylesheet from './NetworkMultiSelector.styles';
 import { NetworkMultiSelectorProps } from './NetworkMultiSelector.types';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constants';
+import Cell, {
+  CellVariant,
+} from '../../../component-library/components/Cells/Cell/index.ts';
+import {
+  AvatarSize,
+  AvatarVariant,
+} from '../../../component-library/components/Avatars/Avatar/index.ts';
+import { IconName } from '../../../component-library/components/Icons/Icon/Icon.types';
 
 interface ModalState {
   showPopularNetworkModal: boolean;
@@ -53,12 +61,13 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
   const [modalState, setModalState] = useState<ModalState>(initialModalState);
 
   const { namespace, enabledNetworksByNamespace } = useNetworkEnablement();
-  const { networks } = useNetworksByNamespace({
+  const { networks, areAllNetworksSelected } = useNetworksByNamespace({
     networkType: NetworkType.Popular,
   });
-  const { selectPopularNetwork } = useNetworkSelection({
-    networks,
-  });
+  const { selectPopularNetwork, selectAllPopularNetworks } =
+    useNetworkSelection({
+      networks,
+    });
 
   const selectedChainIds = useMemo(
     () =>
@@ -134,6 +143,23 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
     [namespace, styles.customNetworkContainer, customNetworkProps],
   );
 
+  const selectAllNetworksComponent = useMemo(
+    () => (
+      <Cell
+        isSelected={areAllNetworksSelected}
+        variant={CellVariant.Select}
+        title={strings('networks.all_popular_networks')}
+        onPress={selectAllPopularNetworks}
+        avatarProps={{
+          variant: AvatarVariant.Icon,
+          name: IconName.Global,
+          size: AvatarSize.Sm,
+        }}
+      />
+    ),
+    [selectAllPopularNetworks, areAllNetworksSelected],
+  );
+
   return (
     <ScrollView
       style={styles.bodyContainer}
@@ -146,6 +172,8 @@ const NetworkMultiSelector = ({ openModal }: NetworkMultiSelectorProps) => {
         selectedChainIds={selectedChainIds}
         onSelectNetwork={selectPopularNetwork}
         additionalNetworksComponent={additionalNetworksComponent}
+        selectAllNetworksComponent={selectAllNetworksComponent}
+        areAllNetworksSelected={areAllNetworksSelected}
       />
     </ScrollView>
   );

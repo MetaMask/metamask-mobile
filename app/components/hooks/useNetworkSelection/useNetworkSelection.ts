@@ -37,8 +37,8 @@ export const useNetworkSelection = ({
     namespace,
     enableNetwork,
     disableNetwork,
-    toggleNetwork,
     enabledNetworksByNamespace,
+    enablePopularNetworks,
   } = useNetworkEnablement();
 
   const popularNetworkConfigurations = useSelector(
@@ -96,13 +96,17 @@ export const useNetworkSelection = ({
     [enableNetwork, resetCustomNetworks],
   );
 
+  const selectAllPopularNetworks = useCallback(() => {
+    enablePopularNetworks();
+  }, [enablePopularNetworks]);
+
   /** Toggles a popular network and resets all custom networks */
   const selectPopularNetwork = useCallback(
     (chainId: CaipChainId) => {
-      toggleNetwork(chainId);
+      enableNetwork(chainId);
       resetCustomNetworks();
     },
-    [toggleNetwork, resetCustomNetworks],
+    [enableNetwork, resetCustomNetworks],
   );
 
   /** Selects a network, automatically handling popular vs custom logic */
@@ -156,5 +160,6 @@ export const useNetworkSelection = ({
     toggleAll,
     resetCustomNetworks,
     customNetworksToReset,
+    selectAllPopularNetworks,
   };
 };
