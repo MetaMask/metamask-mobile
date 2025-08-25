@@ -71,6 +71,7 @@ export const createStyles = (colors: any) =>
       width: '80%',
       marginLeft: 'auto',
       marginRight: 'auto',
+      ...fontStyles.bold,
     },
     red: {
       marginHorizontal: 24,
@@ -79,6 +80,7 @@ export const createStyles = (colors: any) =>
     warningText: {
       textAlign: 'left',
       width: '100%',
+      fontWeight: '500',
     },
     warningTextContainer: {
       flexDirection: 'column',
