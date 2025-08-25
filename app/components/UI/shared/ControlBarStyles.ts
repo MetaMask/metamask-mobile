@@ -3,20 +3,31 @@ import { Theme } from '../../../util/theme/models';
 import { isRemoveGlobalNetworkSelectorEnabled } from '../../../util/networks';
 
 /**
- *
+ * Shared styles for control bar components
  * @param params Style sheet params.
  * @param params.theme App theme from ThemeContext.
  * @returns StyleSheet object.
  */
-const styleSheet = (params: { theme: Theme }) => {
+const createControlBarStyles = (params: { theme: Theme }) => {
   const {
     theme: { colors },
   } = params;
+
   return StyleSheet.create({
     actionBarWrapper: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       marginVertical: 8,
+    },
+    controlButtonOuterWrapper: {
+      flexDirection: 'row',
+      width: '100%',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
+    controlButtonInnerWrapper: {
+      flexDirection: 'row',
+      gap: 12,
     },
     controlButton: {
       backgroundColor: colors.background.default,
@@ -51,4 +62,4 @@ const styleSheet = (params: { theme: Theme }) => {
   });
 };
 
-export default styleSheet;
+export default createControlBarStyles;
