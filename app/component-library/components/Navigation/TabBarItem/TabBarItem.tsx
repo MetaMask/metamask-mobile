@@ -38,7 +38,7 @@ const TabBarItemInner = ({
     <ButtonAnimated
       style={({ pressed }) =>
         tw.style(
-          'h-[45px] w-[45px] items-center justify-center rounded-full bg-primary-default px-2 py-1',
+          'h-[45px] w-[45px] items-center justify-center rounded-full bg-primary-default px-1 py-1',
           pressed && 'bg-primary-default-pressed',
         )
       }
