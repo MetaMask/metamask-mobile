@@ -373,17 +373,15 @@ exports[`ActivityView should render correctly 1`] = `
                               "alignSelf": "flex-start",
                               "backgroundColor": "#ffffff",
                               "borderColor": "#b7bbc8",
-                              "borderRadius": 20,
+                              "borderRadius": 0,
                               "borderStyle": "solid",
-                              "borderWidth": 1,
+                              "borderWidth": 0,
                               "flexDirection": "row",
                               "height": 40,
                               "justifyContent": "center",
-                              "marginLeft": 5,
-                              "marginRight": 5,
                               "maxWidth": "60%",
                               "overflow": "hidden",
-                              "paddingHorizontal": 16,
+                              "paddingHorizontal": 0,
                             }
                           }
                           testID="token-network-filter"
