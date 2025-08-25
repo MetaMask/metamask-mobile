@@ -4,6 +4,14 @@ import Engine from '../../../../core/Engine';
 import type { PerpsMarketData } from '../controllers/types';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
+// Simple time-based cache to prevent duplicate fetches
+let marketDataCache: {
+  data: PerpsMarketData[];
+  timestamp: number;
+} | null = null;
+
+const CACHE_DURATION_MS = 5000; // 5 seconds
+
 export interface UsePerpsMarketsResult {
   /**
    * Transformed market data ready for UI consumption
@@ -66,6 +74,20 @@ export const usePerpsMarkets = (
 
   const fetchMarketData = useCallback(
     async (isRefresh = false): Promise<void> => {
+      // Check cache first (unless it's a manual refresh)
+      if (!isRefresh && marketDataCache) {
+        const cacheAge = Date.now() - marketDataCache.timestamp;
+        if (cacheAge < CACHE_DURATION_MS) {
+          DevLogger.log('Perps: Using cached market data', {
+            cacheAge: `${cacheAge}ms`,
+            marketCount: marketDataCache.data.length,
+          });
+          setMarkets(marketDataCache.data);
+          setIsLoading(false);
+          return;
+        }
+      }
+
       if (isRefresh) {
         setIsRefreshing(true);
       } else {
@@ -120,10 +142,17 @@ export const usePerpsMarkets = (
 
         setMarkets(sortedMarkets);
 
+        // Update cache with fresh data
+        marketDataCache = {
+          data: sortedMarkets,
+          timestamp: Date.now(),
+        };
+
         DevLogger.log(
           'Perps: Successfully fetched and transformed market data',
           {
             marketCount: marketDataWithPrices.length,
+            cached: true,
           },
         );
       } catch (err) {

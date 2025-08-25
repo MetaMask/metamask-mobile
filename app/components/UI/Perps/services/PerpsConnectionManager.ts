@@ -15,8 +15,10 @@ class PerpsConnectionManagerClass {
   private isConnected = false;
   private isConnecting = false;
   private isInitialized = false;
+  private isDisconnecting = false;
   private connectionRefCount = 0;
   private initPromise: Promise<void> | null = null;
+  private disconnectPromise: Promise<void> | null = null;
   private hasPreloaded = false;
   private prewarmCleanups: (() => void)[] = [];
   private unsubscribeFromStore: (() => void) | null = null;
@@ -111,6 +113,16 @@ class PerpsConnectionManagerClass {
   }
 
   async connect(): Promise<void> {
+    // Wait if we're still disconnecting
+    if (this.isDisconnecting && this.disconnectPromise) {
+      DevLogger.log(
+        'PerpsConnectionManager: Waiting for disconnection to complete before connecting',
+      );
+      await this.disconnectPromise;
+      // Add small delay to ensure cleanup is complete
+      await new Promise((resolve) => setTimeout(resolve, 200));
+    }
+
     // Set up monitoring when first entering Perps (refCount 0 -> 1)
     if (this.connectionRefCount === 0) {
       this.setupStateMonitoring();
@@ -118,11 +130,14 @@ class PerpsConnectionManagerClass {
 
     this.connectionRefCount++;
     DevLogger.log(
-      `PerpsConnectionManager: Connection requested (refCount: ${this.connectionRefCount})`,
+      `PerpsConnectionManager: Connection requested (refCount: ${this.connectionRefCount}, isConnected: ${this.isConnected}, isInitialized: ${this.isInitialized})`,
     );
 
     // If already connecting, return the existing promise
     if (this.initPromise) {
+      DevLogger.log(
+        'PerpsConnectionManager: Already connecting, returning existing promise',
+      );
       return this.initPromise;
     }
 
@@ -132,11 +147,15 @@ class PerpsConnectionManagerClass {
       try {
         // Quick check to see if connection is actually alive
         await Engine.context.PerpsController.getAccountState();
+        DevLogger.log(
+          'PerpsConnectionManager: Connection is already active and healthy',
+        );
         return Promise.resolve();
       } catch (error) {
         // Connection is stale, reset state and reconnect
         DevLogger.log(
-          'PerpsConnectionManager: Stale connection detected, reconnecting',
+          'PerpsConnectionManager: Stale connection detected, will reconnect',
+          error,
         );
         this.isConnected = false;
         this.isInitialized = false;
@@ -242,27 +261,39 @@ class PerpsConnectionManagerClass {
       this.connectionRefCount = 0; // Ensure it doesn't go negative
 
       if (this.isConnected || this.isInitialized) {
-        try {
-          DevLogger.log(
-            'PerpsConnectionManager: Disconnecting (no more references)',
-          );
+        // Track that we're disconnecting
+        this.isDisconnecting = true;
 
-          // Clean up preloaded subscriptions
-          this.cleanupPreloadedSubscriptions();
+        this.disconnectPromise = (async () => {
+          try {
+            DevLogger.log(
+              'PerpsConnectionManager: Disconnecting (no more references)',
+            );
 
-          // Clean up state monitoring when leaving Perps
-          this.cleanupStateMonitoring();
+            // Clean up preloaded subscriptions
+            this.cleanupPreloadedSubscriptions();
 
-          // Reset state before disconnecting to prevent race conditions
-          this.isConnected = false;
-          this.isInitialized = false;
-          this.isConnecting = false;
-          this.hasPreloaded = false; // Reset pre-load flag on disconnect
+            // Clean up state monitoring when leaving Perps
+            this.cleanupStateMonitoring();
 
-          await Engine.context.PerpsController.disconnect();
-        } catch (error) {
-          DevLogger.log('PerpsConnectionManager: Disconnection error', error);
-        }
+            // Reset state before disconnecting to prevent race conditions
+            this.isConnected = false;
+            this.isInitialized = false;
+            this.isConnecting = false;
+            this.hasPreloaded = false; // Reset pre-load flag on disconnect
+
+            await Engine.context.PerpsController.disconnect();
+
+            DevLogger.log('PerpsConnectionManager: Disconnection complete');
+          } catch (error) {
+            DevLogger.log('PerpsConnectionManager: Disconnection error', error);
+          } finally {
+            this.isDisconnecting = false;
+            this.disconnectPromise = null;
+          }
+        })();
+
+        await this.disconnectPromise;
       } else {
         // Even if not connected, clean up monitoring when leaving Perps
         this.cleanupStateMonitoring();
@@ -353,7 +384,21 @@ class PerpsConnectionManagerClass {
       isConnected: this.isConnected,
       isConnecting: this.isConnecting,
       isInitialized: this.isInitialized,
+      isDisconnecting: this.isDisconnecting,
     };
+  }
+
+  /**
+   * Check if the manager is fully disconnected and ready to connect
+   */
+  isFullyDisconnected(): boolean {
+    return (
+      !this.isConnected &&
+      !this.isInitialized &&
+      !this.isConnecting &&
+      !this.isDisconnecting &&
+      this.connectionRefCount === 0
+    );
   }
 }
 

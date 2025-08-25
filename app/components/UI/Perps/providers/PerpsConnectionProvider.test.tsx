@@ -387,6 +387,202 @@ describe('PerpsConnectionProvider', () => {
     clearIntervalSpy.mockRestore();
   });
 
+  describe('usePerpsConnectionLifecycle Hook Integration', () => {
+    let mockUsePerpsConnectionLifecycle: jest.Mock;
+
+    beforeEach(() => {
+      // Mock the hook
+      jest.mock('../hooks/usePerpsConnectionLifecycle', () => ({
+        usePerpsConnectionLifecycle: jest.fn(() => ({ hasConnected: true })),
+      }));
+      mockUsePerpsConnectionLifecycle = jest.requireMock(
+        '../hooks/usePerpsConnectionLifecycle',
+      ).usePerpsConnectionLifecycle;
+    });
+
+    it('should call usePerpsConnectionLifecycle with correct parameters', () => {
+      const { rerender } = render(
+        <PerpsConnectionProvider isVisible>
+          <Text>Test</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      expect(mockUsePerpsConnectionLifecycle).toHaveBeenCalledWith(
+        expect.objectContaining({
+          isVisible: true,
+          onConnect: expect.any(Function),
+          onDisconnect: expect.any(Function),
+          onError: expect.any(Function),
+        }),
+      );
+
+      // Test with different visibility
+      rerender(
+        <PerpsConnectionProvider isVisible={false}>
+          <Text>Test</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      expect(mockUsePerpsConnectionLifecycle).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isVisible: false,
+        }),
+      );
+    });
+
+    it('should update connection state when hook onConnect is called', async () => {
+      let capturedOnConnect: (() => Promise<void>) | null = null;
+
+      mockUsePerpsConnectionLifecycle.mockImplementation(({ onConnect }) => {
+        capturedOnConnect = onConnect;
+        return { hasConnected: false };
+      });
+
+      mockGetConnectionState.mockReturnValue({
+        isConnected: true,
+        isConnecting: false,
+        isInitialized: true,
+      });
+
+      const TestComponentConnect = () => {
+        const { isConnected } = usePerpsConnection();
+        return <Text>{isConnected ? 'Connected' : 'Not Connected'}</Text>;
+      };
+
+      const { getByText } = render(
+        <PerpsConnectionProvider isVisible>
+          <TestComponentConnect />
+        </PerpsConnectionProvider>,
+      );
+
+      // Initially not connected
+      expect(getByText('Not Connected')).toBeDefined();
+
+      // Call the onConnect callback
+      await act(async () => {
+        if (capturedOnConnect) {
+          await capturedOnConnect();
+        }
+      });
+
+      await waitFor(() => {
+        expect(mockConnect).toHaveBeenCalled();
+      });
+    });
+
+    it('should update connection state when hook onDisconnect is called', async () => {
+      let capturedOnDisconnect: (() => Promise<void>) | null = null;
+
+      mockUsePerpsConnectionLifecycle.mockImplementation(({ onDisconnect }) => {
+        capturedOnDisconnect = onDisconnect;
+        return { hasConnected: true };
+      });
+
+      mockGetConnectionState
+        .mockReturnValueOnce({
+          isConnected: true,
+          isConnecting: false,
+          isInitialized: true,
+        })
+        .mockReturnValue({
+          isConnected: false,
+          isConnecting: false,
+          isInitialized: false,
+        });
+
+      const TestComponentDisconnect = () => {
+        const { isConnected } = usePerpsConnection();
+        return <Text>{isConnected ? 'Connected' : 'Not Connected'}</Text>;
+      };
+
+      const { getByText } = render(
+        <PerpsConnectionProvider isVisible={false}>
+          <TestComponentDisconnect />
+        </PerpsConnectionProvider>,
+      );
+
+      // Initially connected
+      expect(getByText('Connected')).toBeDefined();
+
+      // Call the onDisconnect callback
+      await act(async () => {
+        if (capturedOnDisconnect) {
+          await capturedOnDisconnect();
+        }
+      });
+
+      await waitFor(() => {
+        expect(mockDisconnect).toHaveBeenCalled();
+      });
+    });
+
+    it('should set error when hook onError is called', () => {
+      let capturedOnError: ((error: string) => void) | null = null;
+
+      mockUsePerpsConnectionLifecycle.mockImplementation(({ onError }) => {
+        capturedOnError = onError;
+        return { hasConnected: false };
+      });
+
+      const TestComponentError = () => {
+        const { error } = usePerpsConnection();
+        return <Text>{error || 'No error'}</Text>;
+      };
+
+      const { getByText } = render(
+        <PerpsConnectionProvider>
+          <TestComponentError />
+        </PerpsConnectionProvider>,
+      );
+
+      expect(getByText('No error')).toBeDefined();
+
+      // Call the onError callback
+      act(() => {
+        if (capturedOnError) {
+          capturedOnError('Test error message');
+        }
+      });
+
+      expect(getByText('Test error message')).toBeDefined();
+    });
+
+    it('should handle visibility changes through the hook', () => {
+      const { rerender } = render(
+        <PerpsConnectionProvider isVisible>
+          <Text>Test</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      // Initial call with visible
+      expect(mockUsePerpsConnectionLifecycle).toHaveBeenCalledWith(
+        expect.objectContaining({ isVisible: true }),
+      );
+
+      // Change to not visible
+      rerender(
+        <PerpsConnectionProvider isVisible={false}>
+          <Text>Test</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      expect(mockUsePerpsConnectionLifecycle).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: false }),
+      );
+
+      // Change back to visible
+      rerender(
+        <PerpsConnectionProvider isVisible>
+          <Text>Test</Text>
+        </PerpsConnectionProvider>,
+      );
+
+      expect(mockUsePerpsConnectionLifecycle).toHaveBeenLastCalledWith(
+        expect.objectContaining({ isVisible: true }),
+      );
+    });
+  });
+
   it('should handle rapid state changes', async () => {
     const onRender = jest.fn();
 
