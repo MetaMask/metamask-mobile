@@ -6,7 +6,8 @@ import { type KeyringControllerState } from '@metamask/keyring-controller';
 import NavigationService from '../NavigationService';
 import Logger from '../../util/Logger';
 import Routes from '../../constants/navigation/Routes';
-import { INIT_BG_STATE_KEY, UPDATE_BG_STATE_KEY } from './constants';
+import { INIT_BG_STATE_KEY } from './constants';
+import { ControllerStorage } from '../../store/persistConfig';
 
 // Mock NavigationService
 jest.mock('../NavigationService', () => ({
@@ -26,6 +27,17 @@ jest.mock('../BackupVault', () => ({
 }));
 
 jest.mock('../../util/test/network-store.js', () => jest.fn());
+
+// Mock ControllerStorage
+jest.mock('../../store/persistConfig', () => ({
+  ControllerStorage: {
+    getKey: jest.fn(() => Promise.resolve({ backgroundState: {} })),
+    setItem: jest.fn(),
+    getItem: jest.fn(),
+    removeItem: jest.fn(),
+  },
+  setupEnginePersistence: jest.fn(),
+}));
 
 // Unmock global Engine
 jest.unmock('../Engine');
@@ -118,6 +130,8 @@ describe('EngineService', () => {
     mockDispatch = jest.fn();
     jest.clearAllMocks();
     jest.resetAllMocks();
+    // Use fake timers to prevent timeout issues after Jest teardown
+    jest.useFakeTimers();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({
         engine: { backgroundState: { KeyringController: {} } },
@@ -128,6 +142,16 @@ describe('EngineService', () => {
     engineService = new EngineService();
   });
 
+  afterEach(() => {
+    // Clean up any pending timers to prevent Jest teardown issues
+    try {
+      jest.runOnlyPendingTimers();
+    } catch {
+      // Ignore error if fake timers are not active
+    }
+    jest.useRealTimers();
+  });
+
   it('should have Engine initialized', async () => {
     engineService.start();
     await waitFor(() => {
@@ -135,7 +159,15 @@ describe('EngineService', () => {
     });
   });
 
-  it('should log Engine initialization with state info', async () => {
+  it('should log Engine initialization with state info (existing installation)', async () => {
+    // Mock ControllerStorage to return actual state (existing installation)
+    (ControllerStorage.getKey as jest.Mock).mockResolvedValue({
+      backgroundState: {
+        KeyringController: { vault: 'encrypted_vault_data' },
+        PreferencesController: { selectedAddress: '0x123' },
+      },
+    });
+
     engineService.start();
     await waitFor(() => {
       expect(Logger.log).toHaveBeenCalledWith(
@@ -147,7 +179,12 @@ describe('EngineService', () => {
     });
   });
 
-  it('should log Engine initialization with empty state', async () => {
+  it('should log Engine initialization with empty state (fresh install)', async () => {
+    // Mock ControllerStorage to return empty state (fresh install)
+    (ControllerStorage.getKey as jest.Mock).mockResolvedValue({
+      backgroundState: {},
+    });
+
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({ engine: { backgroundState: {} } }),
       dispatch: jest.fn(),
@@ -158,13 +195,16 @@ describe('EngineService', () => {
       expect(Logger.log).toHaveBeenCalledWith(
         'EngineService: Initializing Engine:',
         {
-          hasState: false,
+          hasState: false, // Should be false for fresh installs now that the bug is fixed
         },
       );
     });
   });
 
   it('should have recovered vault on redux store and log initialization', async () => {
+    // Use real timers for this test to handle the Promise-based setTimeout
+    jest.useRealTimers();
+
     await engineService.start();
     const { success } = await engineService.initializeVaultFromBackup();
     expect(success).toBeTruthy();
@@ -172,9 +212,12 @@ describe('EngineService', () => {
     expect(Logger.log).toHaveBeenCalledWith(
       'EngineService: Initializing Engine from backup:',
       {
-        hasState: true,
+        hasState: false, // Correctly detects no persisted state now that the bug is fixed
       },
     );
+
+    // Restore fake timers for other tests
+    jest.useFakeTimers();
   });
 
   it('should navigate to vault recovery if Engine fails to initialize', async () => {
@@ -182,6 +225,10 @@ describe('EngineService', () => {
       throw new Error('Failed to initialize Engine');
     });
     engineService.start();
+
+    // Advance timers to trigger the navigation reset setTimeout (150ms)
+    jest.advanceTimersByTime(150);
+
     await waitFor(() => {
       // Logs error to Sentry
       expect(Logger.error).toHaveBeenCalledWith(
@@ -202,13 +249,16 @@ describe('EngineService', () => {
       // @ts-expect-error - accessing private property for testing
       engineService.updateBatcher.add(INIT_BG_STATE_KEY);
 
+      // Advance timers to trigger the batch flush
+      jest.advanceTimersByTime(250);
+
       // Wait for batcher to process
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalledWith({ type: INIT_BG_STATE_KEY });
       });
     });
 
-    it('should batch multiple update keys', async () => {
+    it('should only handle INIT_BG_STATE_KEY in updateBatcher', async () => {
       engineService.start();
 
       const keys = [
@@ -217,21 +267,20 @@ describe('EngineService', () => {
         'NetworkController',
       ];
 
-      // Add each key
+      // Add each key - these should not be processed by updateBatcher anymore
       keys.forEach((key) => {
         // @ts-expect-error - accessing private property for testing
         engineService.updateBatcher.add(key);
       });
 
-      // Wait for batcher to process and verify each key in order
+      // Advance timers to trigger the batch flush
+      jest.advanceTimersByTime(250);
+
+      // Wait for batcher to process - should only handle INIT_BG_STATE_KEY
       await waitFor(() => {
-        expect(mockDispatch).toHaveBeenCalledTimes(keys.length); // 3 keys
-        keys.forEach((key, index) => {
-          expect(mockDispatch).toHaveBeenNthCalledWith(index + 1, {
-            type: UPDATE_BG_STATE_KEY,
-            payload: { key },
-          });
-        });
+        // updateBatcher now only handles INIT_BG_STATE_KEY
+        // UPDATE_BG_STATE_KEY is handled in setupEnginePersistence()
+        expect(mockDispatch).toHaveBeenCalledTimes(0);
       });
     });
   });
