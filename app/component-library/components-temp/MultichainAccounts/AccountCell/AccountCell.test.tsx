@@ -5,6 +5,26 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 import { fireEvent } from '@testing-library/react-native';
 import { createMockAccountGroup } from '../test-utils';
 
+// Configurable mock balance for selector
+const mockBalance: { value: number; currency: string } = {
+  value: 0,
+  currency: 'usd',
+};
+
+// Mock balance selector to avoid deep store dependencies
+jest.mock('../../../../selectors/assets/balances', () => {
+  const actual = jest.requireActual('../../../../selectors/assets/balances');
+  return {
+    ...actual,
+    selectBalanceByAccountGroup: (groupId: string) => () => ({
+      walletId: groupId.split('/')[0],
+      groupId,
+      totalBalanceInUserCurrency: mockBalance.value,
+      userCurrency: mockBalance.currency,
+    }),
+  };
+});
+
 // Mock navigation
 const mockNavigate = jest.fn();
 
@@ -43,6 +63,8 @@ const renderAccountCell = (
 describe('AccountCell', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBalance.value = 0;
+    mockBalance.currency = 'usd';
   });
 
   it('displays account name', () => {
@@ -55,15 +77,19 @@ describe('AccountCell', () => {
     expect(getByText('Test Account Group')).toBeTruthy();
   });
 
-  it('displays placeholder balance', () => {
+  it.each([
+    { currency: 'usd', value: 1234.56, expected: '$1,234.56' },
+    { currency: 'eur', value: 987.65, expected: '€987.65' },
+  ])('displays correct formatted balances', ({ currency, value, expected }) => {
+    mockBalance.value = value;
+    mockBalance.currency = currency;
     const { getByText } = renderAccountCell();
-    expect(getByText('$1234567890.00')).toBeTruthy();
+    expect(getByText(expected)).toBeTruthy();
   });
 
   it('renders menu button', () => {
     const { getByText } = renderAccountCell();
     expect(getByText('Test Account Group')).toBeTruthy();
-    expect(getByText('$1234567890.00')).toBeTruthy();
   });
 
   it('navigates to account actions when menu button is pressed', () => {

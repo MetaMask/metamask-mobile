@@ -121,4 +121,19 @@ describe('MultichainAccountActions', () => {
       },
     );
   });
+
+  it('navigates to address list when addresses button is pressed', () => {
+    const { getByTestId } = renderWithProvider(<MultichainAccountActions />);
+
+    const addressesButton = getByTestId(MULTICHAIN_ACCOUNT_ACTIONS_ADDRESSES);
+    addressesButton.props.onPress();
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+      {
+        groupId: mockAccountGroup.id,
+        title: `Addresses / ${mockAccountGroup.metadata.name}`,
+      },
+    );
+  });
 });
