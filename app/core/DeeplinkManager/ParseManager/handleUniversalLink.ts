@@ -30,6 +30,9 @@ enum SUPPORTED_ACTIONS {
   SWAP = ACTIONS.SWAP,
   SEND = ACTIONS.SEND,
   CREATE_ACCOUNT = ACTIONS.CREATE_ACCOUNT,
+  PERPS = ACTIONS.PERPS,
+  PERPS_MARKETS = ACTIONS.PERPS_MARKETS,
+  PERPS_ASSET = ACTIONS.PERPS_ASSET,
 }
 
 async function handleUniversalLink({
@@ -115,8 +118,8 @@ async function handleUniversalLink({
   };
 
   const shouldProceed = await new Promise<boolean>((resolve) => {
-    const [, action] = validatedUrl.pathname.split('/');
-    const sanitizedAction = action?.replace(/-/g, ' ');
+    const [, actionName] = validatedUrl.pathname.split('/');
+    const sanitizedAction = actionName?.replace(/-/g, ' ');
     const pageTitle: string = capitalize(sanitizedAction?.toLowerCase()) || '';
 
     handleDeepLinkModalDisplay({
@@ -169,6 +172,15 @@ async function handleUniversalLink({
   } else if (action === SUPPORTED_ACTIONS.CREATE_ACCOUNT) {
     const deeplinkUrl = urlObj.href.replace(BASE_URL_ACTION, '');
     instance._handleCreateAccount(deeplinkUrl);
+  } else if (
+    action === SUPPORTED_ACTIONS.PERPS ||
+    action === SUPPORTED_ACTIONS.PERPS_MARKETS
+  ) {
+    const perpsPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handlePerps(perpsPath);
+  } else if (action === SUPPORTED_ACTIONS.PERPS_ASSET) {
+    const assetPath = urlObj.href.replace(BASE_URL_ACTION, '');
+    instance._handlePerpsAsset(assetPath);
   }
 }
 
