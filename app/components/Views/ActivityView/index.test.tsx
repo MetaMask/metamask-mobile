@@ -206,7 +206,7 @@ describe('ActivityView', () => {
         jest.restoreAllMocks();
       });
 
-      it('shows "Enabled Networks" text when multiple networks are enabled', () => {
+      it('shows "All Networks" text when multiple networks are enabled', () => {
         const { getByText } = renderComponent(mockInitialState);
 
         expect(getByText('Enabled networks')).toBeTruthy();

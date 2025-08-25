@@ -230,7 +230,7 @@ describe('TokenListControlBar', () => {
         expect(mockNavigate).toHaveBeenCalledWith('NetworkManager', {});
       });
 
-      it('should show "Enabled Networks" text when multiple networks are enabled', () => {
+      it('should show "All Networks text when multiple networks are enabled', () => {
         const { getByText } = renderComponent();
 
         expect(getByText('networks.enabled_networks')).toBeTruthy();
