@@ -41,7 +41,6 @@ import { PreferencesController } from '@metamask/preferences-controller';
 import {
   TransactionController,
   TransactionMeta,
-  type TransactionParams,
 } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import {
@@ -134,7 +133,6 @@ import { ClientId } from '@metamask/smart-transactions-controller/dist/types';
 import { zeroAddress } from 'ethereumjs-util';
 import {
   ChainId,
-  handleFetch,
   type TraceCallback,
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   toHex,
@@ -200,8 +198,8 @@ import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { ApprovalControllerInit } from './controllers/approval-controller';
 import { createTokenSearchDiscoveryController } from './controllers/TokenSearchDiscoveryController';
-import { BridgeClientId, BridgeController } from '@metamask/bridge-controller';
-import { BridgeStatusController } from '@metamask/bridge-status-controller';
+import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
+import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
 import { multichainNetworkControllerInit } from './controllers/multichain-network-controller/multichain-network-controller-init';
 import { currencyRateControllerInit } from './controllers/currency-rate-controller/currency-rate-controller-init';
 import { EarnController } from '@metamask/earn-controller';
@@ -215,7 +213,6 @@ import { isProductSafetyDappScanningEnabled } from '../../util/phishingDetection
 import { appMetadataControllerInit } from './controllers/app-metadata-controller';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 import { toFormattedAddress } from '../../util/address';
-import { BRIDGE_API_BASE_URL } from '../../constants/bridge';
 import { getFailoverUrlsForInfuraNetwork } from '../../util/networks/customNetworks';
 import {
   onRpcEndpointDegraded,
@@ -1153,102 +1150,6 @@ export class Engine {
         }),
       });
 
-    /* bridge controller Initialization */
-    const bridgeController = new BridgeController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'BridgeController',
-        allowedActions: [
-          'AccountsController:getSelectedMultichainAccount',
-          'SnapController:handleRequest',
-          'NetworkController:getState',
-          'NetworkController:getNetworkClientById',
-          'NetworkController:findNetworkClientIdByChainId',
-          'TokenRatesController:getState',
-          'MultichainAssetsRatesController:getState',
-          'CurrencyRateController:getState',
-          'RemoteFeatureFlagController:getState',
-        ],
-        allowedEvents: [],
-      }),
-      clientId: BridgeClientId.MOBILE,
-      // TODO: change getLayer1GasFee type to match transactionController.getLayer1GasFee
-      getLayer1GasFee: async ({
-        transactionParams,
-        chainId,
-      }: {
-        transactionParams: TransactionParams;
-        chainId: ChainId;
-      }) =>
-        this.transactionController.getLayer1GasFee({
-          transactionParams,
-          chainId,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        }) as any,
-
-      fetchFn: handleFetch,
-      config: {
-        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
-      },
-      trackMetaMetricsFn: (event, properties) => {
-        const metricsEvent = MetricsEventBuilder.createEventBuilder({
-          // category property here maps to event name
-          category: event,
-        })
-          .addProperties({
-            ...(properties ?? {}),
-          })
-          .build();
-        MetaMetrics.getInstance().trackEvent(metricsEvent);
-      },
-      traceFn: trace as TraceCallback,
-    });
-
-    const bridgeStatusController = new BridgeStatusController({
-      messenger: this.controllerMessenger.getRestricted({
-        name: 'BridgeStatusController',
-        allowedActions: [
-          'AccountsController:getSelectedMultichainAccount',
-          'NetworkController:getNetworkClientById',
-          'NetworkController:findNetworkClientIdByChainId',
-          'NetworkController:getState',
-          'BridgeController:getBridgeERC20Allowance',
-          'BridgeController:stopPollingForQuotes',
-          'BridgeController:trackUnifiedSwapBridgeEvent',
-          'GasFeeController:getState',
-          'AccountsController:getAccountByAddress',
-          'SnapController:handleRequest',
-          'TransactionController:getState',
-          'RemoteFeatureFlagController:getState',
-        ],
-        allowedEvents: [
-          'TransactionController:transactionConfirmed',
-          'TransactionController:transactionFailed',
-          'MultichainTransactionsController:transactionConfirmed',
-        ],
-      }),
-      state: initialState.BridgeStatusController,
-      clientId: BridgeClientId.MOBILE,
-      fetchFn: handleFetch,
-      addTransactionFn: (
-        ...args: Parameters<typeof this.transactionController.addTransaction>
-      ) => this.transactionController.addTransaction(...args),
-      estimateGasFeeFn: (
-        ...args: Parameters<typeof this.transactionController.estimateGasFee>
-      ) => this.transactionController.estimateGasFee(...args),
-      addTransactionBatchFn: (
-        ...args: Parameters<
-          typeof this.transactionController.addTransactionBatch
-        >
-      ) => this.transactionController.addTransactionBatch(...args),
-      updateTransactionFn: (
-        ...args: Parameters<typeof this.transactionController.updateTransaction>
-      ) => this.transactionController.updateTransaction(...args),
-      traceFn: trace as TraceCallback,
-      config: {
-        customBridgeApiBaseUrl: BRIDGE_API_BASE_URL,
-      },
-    });
-
     const existingControllersByName = {
       KeyringController: this.keyringController,
       NetworkController: networkController,
@@ -1273,6 +1174,8 @@ export class Engine {
         CurrencyRateController: currencyRateControllerInit,
         MultichainNetworkController: multichainNetworkControllerInit,
         DeFiPositionsController: defiPositionsControllerInit,
+        BridgeController: bridgeControllerInit,
+        BridgeStatusController: bridgeStatusControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
@@ -1318,6 +1221,7 @@ export class Engine {
     const multichainNetworkController =
       controllersByName.MultichainNetworkController;
     const currencyRateController = controllersByName.CurrencyRateController;
+    const bridgeController = controllersByName.BridgeController;
 
     ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
     const cronjobController = controllersByName.CronjobController;
@@ -1433,18 +1337,18 @@ export class Engine {
         name: 'EarnController',
         allowedEvents: [
           'AccountsController:selectedAccountChange',
-          'NetworkController:stateChange',
           'TransactionController:transactionConfirmed',
+          'NetworkController:networkDidChange',
         ],
         allowedActions: [
           'AccountsController:getSelectedAccount',
           'NetworkController:getNetworkClientById',
-          'NetworkController:getState',
         ],
       }),
       addTransactionFn: transactionController.addTransaction.bind(
         transactionController,
       ),
+      selectedNetworkClientId: networkController.state.selectedNetworkClientId,
     });
 
     this.context = {
@@ -1550,6 +1454,8 @@ export class Engine {
             'PreferencesController:getState',
             'AccountsController:getSelectedAccount',
             'AccountsController:listAccounts',
+            'AccountTrackerController:updateNativeBalances',
+            'AccountTrackerController:updateStakedBalances',
           ],
           allowedEvents: [
             'TokensController:stateChange',
@@ -1561,6 +1467,10 @@ export class Engine {
         // TODO: This is long, can we decrease it?
         interval: 180000,
         state: initialState.TokenBalancesController,
+        useAccountsAPI: false,
+        allowExternalServices: () => isBasicFunctionalityToggleEnabled(),
+        queryMultipleAccounts:
+          preferencesController.state.isMultiAccountBalancesEnabled,
       }),
       TokenRatesController: new TokenRatesController({
         messenger: this.controllerMessenger.getRestricted({
@@ -1674,7 +1584,7 @@ export class Engine {
       TokenSearchDiscoveryDataController: tokenSearchDiscoveryDataController,
       MultichainNetworkController: multichainNetworkController,
       BridgeController: bridgeController,
-      BridgeStatusController: bridgeStatusController,
+      BridgeStatusController: controllersByName.BridgeStatusController,
       EarnController: earnController,
       DeFiPositionsController: controllersByName.DeFiPositionsController,
       SeedlessOnboardingController: seedlessOnboardingController,

@@ -3,14 +3,14 @@ import RequestPaymentModal from '../../pages/Receive/RequestPaymentModal';
 import SendLinkView from '../../pages/Receive/SendLinkView';
 import PaymentRequestQrBottomSheet from '../../pages/Receive/PaymentRequestQrBottomSheet';
 import RequestPaymentView from '../../pages/Receive/RequestPaymentView';
-import TabBarComponent from '../../pages/wallet/TabBarComponent';
-import WalletActionsBottomSheet from '../../pages/wallet/WalletActionsBottomSheet';
+import WalletView from '../../pages/wallet/WalletView';
 import ProtectYourWalletModal from '../../pages/Onboarding/ProtectYourWalletModal';
 import { loginToApp } from '../../viewHelper';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import WalletView from '../../pages/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
+import { startMockServer } from '../../api-mocking/mock-server';
+import { getMockServerPort } from '../../framework/fixtures/FixtureUtils';
 
 const SAI_CONTRACT_ADDRESS: string =
   '0x89d24a6b4ccb1b6faa2625fe562bdd9a23260359';
@@ -19,6 +19,8 @@ describe(
   SmokeWalletPlatform('Request Token Flow with Unprotected Wallet'),
   (): void => {
     it('should complete request token flow from action button to wallet protection modal', async (): Promise<void> => {
+      const mockServerPort = getMockServerPort();
+      const mockServer = await startMockServer({}, mockServerPort);
       await withFixtures(
         {
           fixture: new FixtureBuilder()
@@ -26,13 +28,13 @@ describe(
             .withSeedphraseBackedUpDisabled()
             .build(),
           restartDevice: true,
+          mockServerInstance: mockServer,
         },
         async (): Promise<void> => {
           await loginToApp();
           await Assertions.expectElementToBeVisible(WalletView.container);
-          // Request asset from Action button
-          await TabBarComponent.tapActions();
-          await WalletActionsBottomSheet.tapReceiveButton();
+          // Request asset from main Receive button
+          await WalletView.tapWalletReceiveButton();
           await RequestPaymentModal.tapRequestPaymentButton();
           await Assertions.expectElementToBeVisible(
             RequestPaymentView.requestPaymentContainer,

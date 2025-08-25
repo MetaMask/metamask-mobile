@@ -7,10 +7,11 @@ const styleSheet = (params: { theme: Theme }) => {
   return StyleSheet.create({
     title: {
       marginTop: 24,
+      marginBottom: 4,
     },
     subtitle: {
       marginBottom: 16,
-      color: theme.colors.text.muted,
+      color: theme.colors.text.alternative,
     },
     nameInputRow: {
       flexDirection: 'row',
@@ -30,6 +31,9 @@ const styleSheet = (params: { theme: Theme }) => {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
+    },
+    errorContainer: {
+      marginVertical: 8,
     },
   });
 };

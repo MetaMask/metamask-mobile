@@ -1,5 +1,8 @@
 import BN from 'bnjs4';
-import { AccountInformation } from '@metamask/assets-controllers';
+import {
+  AccountInformation,
+  getNativeTokenAddress,
+} from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
@@ -13,7 +16,6 @@ import {
 import { selectAccounts } from '../../../../../../selectors/accountTrackerController';
 import { selectContractBalances } from '../../../../../../selectors/tokenBalancesController';
 import { AssetType } from '../../../types/token';
-import { isNativeToken } from '../../../utils/generic';
 import { useSendContext } from '../../../context/send-context';
 import { useGasFeeEstimatesForSend } from '../useGasFeeEstimatesForSend';
 
@@ -58,8 +60,12 @@ export const getPercentageValueFn = ({
   if (!asset) {
     return '0';
   }
-  if (isNativeToken(asset)) {
-    // todo: confirm gas calculation for L2 networks
+  const nativeTokenAddressForChainId = getNativeTokenAddress(
+    asset.chainId as Hex,
+  );
+  if (
+    nativeTokenAddressForChainId.toLowerCase() === asset.address.toLowerCase()
+  ) {
     const estimatedTotalGas = getEstimatedTotalGas(gasFeeEstimates);
     const accountAddress = Object.keys(accounts).find(
       (address) => address.toLowerCase() === from.toLowerCase(),
@@ -95,7 +101,7 @@ export const useEvmPercentageAmount = () => {
     (percentage: number) =>
       getPercentageValueFn({
         accounts,
-        asset,
+        asset: asset as AssetType,
         contractBalances,
         from: from as Hex,
         gasFeeEstimates: gasFeeEstimates as unknown as GasFeeEstimatesType,

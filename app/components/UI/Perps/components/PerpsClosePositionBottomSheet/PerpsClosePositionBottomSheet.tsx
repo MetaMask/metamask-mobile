@@ -24,12 +24,20 @@ import type { OrderType, Position } from '../../controllers/types';
 import {
   useMinimumOrderAmount,
   usePerpsOrderFees,
-  usePerpsPrices,
   usePerpsClosePositionValidation,
 } from '../../hooks';
+import { usePerpsLivePrices } from '../../hooks/stream';
 import { formatPositionSize, formatPrice } from '../../utils/formatUtils';
 import PerpsSlider from '../PerpsSlider/PerpsSlider';
 import { createStyles } from './PerpsClosePositionBottomSheet.styles';
+import { PerpsMeasurementName } from '../../constants/performanceMetrics';
+import {
+  PerpsEventProperties,
+  PerpsEventValues,
+} from '../../constants/eventNames';
+import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
+import { usePerpsScreenTracking } from '../../hooks/usePerpsScreenTracking';
 
 interface PerpsClosePositionBottomSheetProps {
   isVisible: boolean;
@@ -50,6 +58,14 @@ const PerpsClosePositionBottomSheet: React.FC<
   const { colors } = theme;
   const styles = createStyles(theme);
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const hasTrackedCloseView = useRef(false);
+  const { track } = usePerpsEventTracking();
+
+  // Track screen load performance
+  usePerpsScreenTracking({
+    screenName: PerpsMeasurementName.CLOSE_SCREEN_LOADED,
+    dependencies: [isVisible],
+  });
 
   // State for order type tabs
   const [orderType, setOrderType] = useState<OrderType>('market');
@@ -63,8 +79,11 @@ const PerpsClosePositionBottomSheet: React.FC<
   const [limitPrice, setLimitPrice] = useState('');
   const [limitPriceInputFocused, setLimitPriceInputFocused] = useState(false);
 
-  // Subscribe to real-time price
-  const priceData = usePerpsPrices(isVisible ? [position.coin] : []);
+  // Subscribe to real-time price with 1s debounce for position closing
+  const priceData = usePerpsLivePrices({
+    symbols: isVisible ? [position.coin] : [],
+    throttleMs: 1000,
+  });
   const currentPrice = priceData[position.coin]?.price
     ? parseFloat(priceData[position.coin].price)
     : parseFloat(position.entryPrice);
@@ -81,11 +100,8 @@ const PerpsClosePositionBottomSheet: React.FC<
     : 1;
   const effectiveMargin = positionValue / leverage;
 
-  // Calculate P&L
-  const entryPrice = parseFloat(position.entryPrice);
-  const pnl = isLong
-    ? (currentPrice - entryPrice) * absSize
-    : (entryPrice - currentPrice) * absSize;
+  // Use unrealized PnL from position
+  const pnl = parseFloat(position.unrealizedPnl);
 
   // Calculate fees using the unified fee hook
   const closingValue = positionValue * (closePercentage / 100);
@@ -127,20 +143,67 @@ const PerpsClosePositionBottomSheet: React.FC<
     isPartialClose,
   });
 
+  // Open bottom sheet when visible
   useEffect(() => {
     if (isVisible) {
       bottomSheetRef.current?.onOpenBottomSheet();
+    } else {
+      // Reset the flag when the bottom sheet is closed
+      hasTrackedCloseView.current = false;
     }
   }, [isVisible]);
+
+  // Track position close screen viewed event - separate concern
+  useEffect(() => {
+    if (isVisible && !hasTrackedCloseView.current) {
+      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SCREEN_VIEWED, {
+        [PerpsEventProperties.ASSET]: position.coin,
+        [PerpsEventProperties.DIRECTION]: isLong
+          ? PerpsEventValues.DIRECTION.LONG
+          : PerpsEventValues.DIRECTION.SHORT,
+        [PerpsEventProperties.POSITION_SIZE]: absSize,
+        [PerpsEventProperties.UNREALIZED_PNL_DOLLAR]: pnl,
+      });
+      hasTrackedCloseView.current = true;
+    }
+  }, [isVisible, position.coin, isLong, absSize, pnl, track]);
 
   // Update close amount when percentage changes
   useEffect(() => {
     const newAmount = (closePercentage / 100) * absSize;
     setCloseAmount(newAmount.toString());
     setCloseAmountUSD(newAmount * currentPrice);
-  }, [closePercentage, absSize, currentPrice]);
+
+    // Track position close value changed
+    if (isVisible && closePercentage !== 100) {
+      track(MetaMetricsEvents.PERPS_POSITION_CLOSE_VALUE_CHANGED, {
+        [PerpsEventProperties.ASSET]: position.coin,
+        [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
+        [PerpsEventProperties.CLOSE_VALUE]: newAmount * currentPrice,
+      });
+    }
+  }, [closePercentage, absSize, currentPrice, isVisible, position.coin, track]);
 
   const handleConfirm = () => {
+    // Track position close initiated
+    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_INITIATED, {
+      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.DIRECTION]: isLong
+        ? PerpsEventValues.DIRECTION.LONG
+        : PerpsEventValues.DIRECTION.SHORT,
+      [PerpsEventProperties.ORDER_TYPE]: orderType,
+      [PerpsEventProperties.CLOSE_PERCENTAGE]: closePercentage,
+      [PerpsEventProperties.CLOSE_VALUE]: closingValue,
+      [PerpsEventProperties.PNL_DOLLAR]: pnl * (closePercentage / 100),
+      [PerpsEventProperties.RECEIVED_AMOUNT]: receiveAmount,
+    });
+
+    // Track position close submitted
+    track(MetaMetricsEvents.PERPS_POSITION_CLOSE_SUBMITTED, {
+      [PerpsEventProperties.ASSET]: position.coin,
+      [PerpsEventProperties.ORDER_TYPE]: orderType,
+    });
+
     // For full close, don't send size parameter
     const sizeToClose = closePercentage === 100 ? undefined : closeAmount;
 
@@ -173,7 +236,7 @@ const PerpsClosePositionBottomSheet: React.FC<
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
-      disabled:
+      isDisabled:
         isClosing ||
         (orderType === 'limit' &&
           (!limitPrice || parseFloat(limitPrice) <= 0)) ||
@@ -205,7 +268,16 @@ const PerpsClosePositionBottomSheet: React.FC<
           <TouchableOpacity
             testID="market-order-tab"
             style={[styles.tab, orderType === 'market' && styles.tabActive]}
-            onPress={() => setOrderType('market')}
+            onPress={() => {
+              setOrderType('market');
+              // Track order type changed
+              track(MetaMetricsEvents.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED, {
+                [PerpsEventProperties.ASSET]: position.coin,
+                [PerpsEventProperties.CURRENT_ORDER_TYPE]: orderType,
+                [PerpsEventProperties.SELECTED_ORDER_TYPE]:
+                  PerpsEventValues.ORDER_TYPE.MARKET,
+              });
+            }}
           >
             <Text
               variant={TextVariant.BodyMDMedium}
@@ -221,7 +293,16 @@ const PerpsClosePositionBottomSheet: React.FC<
           <TouchableOpacity
             testID="limit-order-tab"
             style={[styles.tab, orderType === 'limit' && styles.tabActive]}
-            onPress={() => setOrderType('limit')}
+            onPress={() => {
+              setOrderType('limit');
+              // Track order type changed
+              track(MetaMetricsEvents.PERPS_POSITION_CLOSE_ORDER_TYPE_CHANGED, {
+                [PerpsEventProperties.ASSET]: position.coin,
+                [PerpsEventProperties.CURRENT_ORDER_TYPE]: orderType,
+                [PerpsEventProperties.SELECTED_ORDER_TYPE]:
+                  PerpsEventValues.ORDER_TYPE.LIMIT,
+              });
+            }}
           >
             <Text
               variant={TextVariant.BodyMDMedium}
@@ -243,7 +324,10 @@ const PerpsClosePositionBottomSheet: React.FC<
             style={styles.sizeAmount}
             testID="close-amount-usd"
           >
-            {formatPrice(closeAmountUSD)}
+            {formatPrice(closeAmountUSD, {
+              minimumDecimals: 2,
+              maximumDecimals: 2,
+            })}
           </Text>
           <Text
             variant={TextVariant.BodyMD}
@@ -318,8 +402,11 @@ const PerpsClosePositionBottomSheet: React.FC<
               variant={TextVariant.BodyMDMedium}
               color={pnl >= 0 ? TextColor.Success : TextColor.Error}
             >
-              {pnl >= 0 ? '+' : ''}
-              {formatPrice(pnl * (closePercentage / 100))}
+              {pnl >= 0 ? '+' : '-'}
+              {formatPrice(Math.abs(pnl * (closePercentage / 100)), {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              })}
             </Text>
           </View>
 
@@ -332,7 +419,11 @@ const PerpsClosePositionBottomSheet: React.FC<
               variant={TextVariant.BodyMD}
               color={TextColor.Default}
             >
-              -{formatPrice(feeResults.totalFee)}
+              -
+              {formatPrice(feeResults.totalFee, {
+                minimumDecimals: 2,
+                maximumDecimals: 2,
+              })}
             </Text>
           </View>
 
@@ -348,16 +439,19 @@ const PerpsClosePositionBottomSheet: React.FC<
                 variant={TextVariant.BodyLGMedium}
                 color={TextColor.Default}
               >
-                {formatPrice(receiveAmount)}
+                {formatPrice(receiveAmount, {
+                  minimumDecimals: 2,
+                  maximumDecimals: 2,
+                })}
               </Text>
             </View>
           </View>
 
           {validationResult.errors.length > 0 && (
             <View style={styles.warningContainer}>
-              {validationResult.errors.map((error, index) => (
+              {validationResult.errors.map((error) => (
                 <Text
-                  key={`error-${index}`}
+                  key={error}
                   variant={TextVariant.BodySM}
                   color={TextColor.Error}
                   style={styles.warningText}
@@ -369,9 +463,9 @@ const PerpsClosePositionBottomSheet: React.FC<
           )}
           {validationResult.warnings.length > 0 && (
             <View style={styles.warningContainer}>
-              {validationResult.warnings.map((warning, index) => (
+              {validationResult.warnings.map((warning) => (
                 <Text
-                  key={`warning-${index}`}
+                  key={warning}
                   variant={TextVariant.BodySM}
                   color={TextColor.Warning}
                   style={styles.warningText}
@@ -406,6 +500,15 @@ const PerpsClosePositionBottomSheet: React.FC<
 };
 
 PerpsClosePositionBottomSheet.displayName = 'PerpsClosePositionBottomSheet';
+
+// Enable WDYR tracking in development
+if (__DEV__) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (PerpsClosePositionBottomSheet as any).whyDidYouRender = {
+    logOnDifferentValues: true,
+    customName: 'PerpsClosePositionBottomSheet',
+  };
+}
 
 export default memo(
   PerpsClosePositionBottomSheet,

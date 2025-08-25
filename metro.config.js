@@ -45,11 +45,12 @@ module.exports = function (baseConfig) {
   return wrapWithReanimatedMetroConfig(
     mergeConfig(defaultConfig, {
       resolver: {
-        assetExts: assetExts.filter((ext) => ext !== 'svg'),
+        assetExts: [...assetExts.filter((ext) => ext !== 'svg'), 'riv'],
         sourceExts: [...sourceExts, 'svg', 'cjs', 'mjs'],
         resolverMainFields: ['sbmodern', 'react-native', 'browser', 'main'],
         extraNodeModules: {
           ...defaultConfig.resolver.extraNodeModules,
+          'node:crypto': require.resolve('react-native-crypto'),
           crypto: require.resolve('react-native-crypto'),
           stream: require.resolve('stream-browserify'),
           _stream_transform: require.resolve('readable-stream/transform'),

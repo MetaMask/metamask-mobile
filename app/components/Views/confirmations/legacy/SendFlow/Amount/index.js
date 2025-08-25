@@ -96,7 +96,6 @@ import {
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../../selectors/accountsController';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { getRampNetworks } from '../../../../../../reducers/fiatOrders';
-import { swapsLivenessSelector } from '../../../../../../reducers/swaps';
 import { isSwapsAllowed } from '../../../../../UI/Swaps/utils';
 import { swapsUtils } from '@metamask/swaps-controller';
 import { regex } from '../../../../../../util/regex';
@@ -127,6 +126,7 @@ import { isRemoveGlobalNetworkSelectorEnabled } from '../../../../../../util/net
 import { setTransactionSendFlowContextualChainId } from '../../../../../../actions/sendFlow';
 import { selectNetworkImageSourceByChainId } from '../../../../../../selectors/networkInfos';
 import ContextualNetworkPicker from '../../../../../UI/ContextualNetworkPicker/ContextualNetworkPicker';
+import { selectIsSwapsLive } from '../../../../../../core/redux/slices/bridge';
 
 const KEYBOARD_OFFSET = Device.isSmallDevice() ? 80 : 120;
 
@@ -1871,7 +1871,7 @@ const mapStateToProps = (state, ownProps) => {
     ),
     isRedesignedTransferConfirmationEnabledForTransfer:
       selectConfirmationRedesignFlags(state).transfer,
-    swapsIsLive: swapsLivenessSelector(state),
+    swapsIsLive: selectIsSwapsLive(state, currentChainId),
     globalChainId,
     globalNetworkClientId,
     contextualChainId,

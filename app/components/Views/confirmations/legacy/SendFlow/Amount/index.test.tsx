@@ -13,6 +13,10 @@ import { setMaxValueMode } from '../../../../../../actions/transaction';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { TransactionType } from '@metamask/transaction-controller';
 
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('1.0.0'),
+}));
+
 const mockTransactionTypes = TransactionTypes;
 
 const MOCK_NFTS = [
